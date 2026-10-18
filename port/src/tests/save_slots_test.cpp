@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "dataread.hpp"
+#include "dng_event.hpp"
 #include "dng_main.hpp"
 #include "font.hpp"
 #include "gamepad.hpp"
@@ -66,6 +67,15 @@ protected:
         manager.InitForMC();
         SaveSlots = {};
         SaveSlotSetPendingSpawn(std::nullopt);
+        SaveSlotForgetFloorEntry();
+        ClearTowns();
+    }
+
+    // The live layouts are found by the address of their record, which a later test's save data may reuse.
+    void ClearTowns() {
+        for (const CEditData &data : live->edit_data) {
+            PortClearTownLayout(data);
+        }
     }
 
     void TearDown() override {
@@ -74,6 +84,8 @@ protected:
         PortActiveSaveData = previous;
         SaveSlots = {};
         SaveSlotSetPendingSpawn(std::nullopt);
+        SaveSlotForgetFloorEntry();
+        ClearTowns();
         SaveSlotNew = false;
         PathsReset();
         std::error_code error;
@@ -411,6 +423,7 @@ TEST_F(SaveSlotTest, LoadBeyondRetailLimitRestoresPayloadAndTransition) {
 TEST_F(SaveSlotTest, DungeonAutosaveLoadsOnItsFloor) {
     live->save_dungeon.stage_id = 3;
     live->save_dungeon.floor_id[3] = 7;
+    SaveSlotRecordFloorEntry();
     SetDngTreeFlag(1);
     ASSERT_TRUE(SaveSlotWriteAutosave(LOOP_DUNGEON));
     SetDngTreeFlag(0);
@@ -422,6 +435,168 @@ TEST_F(SaveSlotTest, DungeonAutosaveLoadsOnItsFloor) {
     EXPECT_EQ(manager.load_dungeon_no, 3);
     EXPECT_EQ(manager.load_floor_id, 7);
     EXPECT_EQ(manager.load_dng_tree_flag, 0);
+}
+
+// Underground Channel's pump room: Linda's arrival scene sets flag 103 and then sets the boss loose. A save of
+// the floor after the scene would load with the flag set and no boss, so the autosave keeps the floor's entry.
+TEST_F(SaveSlotTest, DungeonAutosaveKeepsTheStateTheFloorWasEnteredWith) {
+    live->save_dungeon.stage_id = 0;
+    live->save_dungeon.floor_id[0] = 4;
+    live->user_data.money = 303;
+    DungeonFloorInit();
+    live->SetBitFlag(103, 1);
+    live->user_data.money = 999;
+    ASSERT_TRUE(SaveSlotWriteAutosave(LOOP_DUNGEON));
+
+    ASSERT_EQ(SaveSlotRead(SaveSlotAutosavePath(), *document), SaveSlotState::Ready);
+    EXPECT_EQ(document->image.program_loop_no, LOOP_DUNGEON);
+    EXPECT_EQ(document->image.dungeon_no, 0);
+    EXPECT_EQ(document->image.floor_id, 4);
+    EXPECT_EQ(document->image.save_data.GetBitFlag(103), 0);
+    EXPECT_EQ(document->image.save_data.user_data.money, 303);
+    // The live game is untouched, and a town autosave still writes it as it stands.
+    EXPECT_EQ(live->GetBitFlag(103), 1);
+    ASSERT_TRUE(SaveSlotWriteAutosave(LOOP_EDIT));
+    ASSERT_EQ(SaveSlotRead(SaveSlotAutosavePath(), *document), SaveSlotState::Ready);
+    EXPECT_EQ(document->image.save_data.GetBitFlag(103), 1);
+}
+
+TEST_F(SaveSlotTest, DungeonAutosaveNeedsAnEntryStateOfTheCurrentFloor) {
+    live->save_dungeon.stage_id = 0;
+    live->save_dungeon.floor_id[0] = 3;
+    EXPECT_FALSE(SaveSlotHasFloorEntry());
+    EXPECT_FALSE(SaveSlotWriteAutosave(LOOP_DUNGEON));
+    EXPECT_FALSE(fs::exists(SaveSlotAutosavePath()));
+
+    SaveSlotRecordFloorEntry();
+    EXPECT_TRUE(SaveSlotHasFloorEntry());
+    ASSERT_TRUE(SaveSlotWriteAutosave(LOOP_DUNGEON));
+    const auto original = Bytes(SaveSlotAutosavePath());
+    // Another floor, or the same floor number of another dungeon, is not the recorded one.
+    live->save_dungeon.floor_id[0] = 4;
+    EXPECT_FALSE(SaveSlotHasFloorEntry());
+    EXPECT_FALSE(SaveSlotWriteAutosave(LOOP_DUNGEON));
+    live->save_dungeon.floor_id[0] = 3;
+    live->save_dungeon.stage_id = 1;
+    live->save_dungeon.floor_id[1] = 3;
+    EXPECT_FALSE(SaveSlotWriteAutosave(LOOP_DUNGEON));
+    live->save_dungeon.stage_id = -1;
+    EXPECT_FALSE(SaveSlotHasFloorEntry());
+    EXPECT_EQ(Bytes(SaveSlotAutosavePath()), original);
+
+    live->save_dungeon.stage_id = 0;
+    EXPECT_TRUE(SaveSlotHasFloorEntry());
+    SaveSlotForgetFloorEntry();
+    EXPECT_FALSE(SaveSlotHasFloorEntry());
+    EXPECT_FALSE(SaveSlotWriteAutosave(LOOP_DUNGEON));
+    EXPECT_EQ(Bytes(SaveSlotAutosavePath()), original);
+}
+
+// A town's Georama layout past retail's part limit, with houses, a placement log and a river grid.
+static TownLayout LargeTown(int seed) {
+    TownLayout town;
+    const int  parts = EDIT_DATA_PARTS_MAX + 40;
+    for (int i = 0; i < parts; ++i) {
+        TownPart part;
+        part.id = seed * 1000 + i + 1;
+        part.state = static_cast<s8>(1 + i % 2);
+        part.angle = static_cast<s8>(i % 4);
+        part.pos = {static_cast<s16>(i), static_cast<s16>(seed), static_cast<s16>(-i)};
+        part.color[i % EDIT_DATA_COLOR_MAX] = {0x80, static_cast<u8>(i), static_cast<u8>(seed)};
+        part.house_no = i % 10 == 0 ? i / 10 + 1 : 0;
+        town.parts.push_back(part);
+    }
+    for (int i = 0; i < parts / 10 + 1; ++i) {
+        town.houses.push_back({.npc_no = static_cast<s16>(seed * 100 + i)});
+    }
+    for (int i = 1; i < parts; ++i) {
+        town.place_log.push_back({.parts_no = static_cast<s16>(i), .base_no = static_cast<s16>(i - 1)});
+    }
+    TownGrid river;
+    river.num_x = 3;
+    river.num_z = 2;
+    river.pos = {1, 2, 3};
+    river.cells = {1, 0, 1, 1, 0, static_cast<u8>(seed & 1)};
+    town.grids.push_back(river);
+    return town;
+}
+
+static void ExpectSameTown(const TownLayout &actual, const TownLayout &expected) {
+    ASSERT_EQ(actual.parts.size(), expected.parts.size());
+    for (std::size_t i = 0; i < expected.parts.size(); ++i) {
+        EXPECT_EQ(actual.parts[i].id, expected.parts[i].id) << i;
+        EXPECT_EQ(actual.parts[i].state, expected.parts[i].state) << i;
+        EXPECT_EQ(actual.parts[i].angle, expected.parts[i].angle) << i;
+        EXPECT_EQ(actual.parts[i].pos, expected.parts[i].pos) << i;
+        EXPECT_EQ(actual.parts[i].color, expected.parts[i].color) << i;
+        EXPECT_EQ(actual.parts[i].house_no, expected.parts[i].house_no) << i;
+    }
+    ASSERT_EQ(actual.houses.size(), expected.houses.size());
+    for (std::size_t i = 0; i < expected.houses.size(); ++i) {
+        EXPECT_EQ(actual.houses[i].npc_no, expected.houses[i].npc_no) << i;
+    }
+    ASSERT_EQ(actual.place_log.size(), expected.place_log.size());
+    for (std::size_t i = 0; i < expected.place_log.size(); ++i) {
+        EXPECT_EQ(actual.place_log[i].parts_no, expected.place_log[i].parts_no) << i;
+        EXPECT_EQ(actual.place_log[i].base_no, expected.place_log[i].base_no) << i;
+    }
+    ASSERT_EQ(actual.grids.size(), expected.grids.size());
+    for (std::size_t i = 0; i < expected.grids.size(); ++i) {
+        EXPECT_EQ(actual.grids[i].num_x, expected.grids[i].num_x) << i;
+        EXPECT_EQ(actual.grids[i].num_z, expected.grids[i].num_z) << i;
+        EXPECT_EQ(actual.grids[i].pos, expected.grids[i].pos) << i;
+        EXPECT_EQ(actual.grids[i].cells, expected.grids[i].cells) << i;
+    }
+}
+
+// The towns' Georama layouts are kept beside the save data, found by the address of the live town records, so the
+// dungeon autosave's entry state owns copies of them: the autosave writes and loads every layout, past retail's part
+// limit too, rather than the empty towns a copy of the save data alone would find.
+TEST_F(SaveSlotTest, DungeonAutosaveRoundTripsTheTownsLayouts) {
+    const TownLayout first = LargeTown(1);
+    const TownLayout second = LargeTown(2);
+    PortTownLayout(live->edit_data[1]) = first;
+    PortTownLayout(live->edit_data[3]) = second;
+    live->save_dungeon.stage_id = 2;
+    live->save_dungeon.floor_id[2] = 5;
+    DungeonFloorInit();
+    // The entry state holds the towns as the floor began, whatever later becomes of the live layouts.
+    PortTownLayout(live->edit_data[1]).parts.resize(1);
+    PortClearTownLayout(live->edit_data[3]);
+    ASSERT_TRUE(SaveSlotWriteAutosave(LOOP_DUNGEON));
+
+    ASSERT_EQ(SaveSlotRead(SaveSlotAutosavePath(), *document), SaveSlotState::Ready);
+    EXPECT_EQ(document->image.program_loop_no, LOOP_DUNGEON);
+    ExpectSameTown(document->towns[1], first);
+    ExpectSameTown(document->towns[3], second);
+    EXPECT_TRUE(document->towns[0].parts.empty());
+    EXPECT_TRUE(document->towns[2].parts.empty());
+    EXPECT_TRUE(document->towns[4].parts.empty());
+
+    // Loading puts every layout back beside the live records.
+    ClearTowns();
+    manager.GetAllSaveFileInfo();
+    ASSERT_EQ(manager.LoadFromMc(0), MC_STEP_DONE);
+    ASSERT_EQ(manager.error.code, MC_ERROR_NONE);
+    EXPECT_EQ(manager.load_program_loop_no, LOOP_DUNGEON);
+    EXPECT_EQ(manager.load_dungeon_no, 2);
+    EXPECT_EQ(manager.load_floor_id, 5);
+    ASSERT_NE(PortFindTownLayout(live->edit_data[1]), nullptr);
+    ASSERT_NE(PortFindTownLayout(live->edit_data[3]), nullptr);
+    ExpectSameTown(*PortFindTownLayout(live->edit_data[1]), first);
+    ExpectSameTown(*PortFindTownLayout(live->edit_data[3]), second);
+
+    // A town autosave and a save from the save screen write the layouts as they stand.
+    ASSERT_TRUE(SaveSlotWriteAutosave(LOOP_EDIT));
+    ASSERT_EQ(SaveSlotRead(SaveSlotAutosavePath(), *document), SaveSlotState::Ready);
+    ExpectSameTown(document->towns[1], first);
+    ExpectSameTown(document->towns[3], second);
+    SaveSlotNew = true;
+    manager.SaveToMc(0);
+    ASSERT_EQ(manager.error.code, MC_ERROR_NONE);
+    ASSERT_EQ(SaveSlotRead(SaveSlotPath(0), *document), SaveSlotState::Ready);
+    ExpectSameTown(document->towns[1], first);
+    ExpectSameTown(document->towns[3], second);
 }
 
 TEST_F(SaveSlotTest, AutosaveIsOneFileListedFirstForLoadingOnly) {
@@ -526,6 +701,7 @@ TEST_F(SaveSlotTest, AutosaveSpawnIsConsumedOnceAfterLoadingTheAutosave) {
     manager.LoadFromMc(1);
     EXPECT_FALSE(SaveSlotTakePendingSpawn(10));
     // A dungeon autosave carries no spot.
+    SaveSlotRecordFloorEntry();
     ASSERT_TRUE(SaveSlotWriteAutosave(LOOP_DUNGEON, &second));
     ASSERT_EQ(SaveSlotRead(SaveSlotAutosavePath(), *document), SaveSlotState::Ready);
     EXPECT_FALSE(document->spawn);
@@ -609,6 +785,7 @@ TEST_F(SaveSlotTest, ArrivalAutosaveWaitsForControlAndEnabledConfigurationThenRu
     GetMainScene()->event_run = false;
     live->save_dungeon.stage_id = 2;
     live->save_dungeon.floor_id[2] = 7;
+    SaveSlotRecordFloorEntry();
     configure(true);
     for (auto mode : {DNG_STATUS_MENU, DNG_STATUS_EVENT, DNG_STATUS_EVENT_EDIT, DNG_STATUS_EVENT_MENU, DNG_STATUS_EXIT}) {
         DngStatus.mode = mode;
@@ -628,26 +805,46 @@ TEST_F(SaveSlotTest, ArrivalAutosaveWaitsForControlAndEnabledConfigurationThenRu
     GetMainScene()->event_run = true;
     PortAutosaveStep(LOOP_DUNGEON);
     GetMainScene()->event_run = false;
-    PortCaptureMode = CAPTURE_OFF + 1;
-    PortAutosaveStep(LOOP_DUNGEON);
-    PortCaptureMode = CAPTURE_OFF;
-    PortAutosave = false;
-    PortAutosaveStep(LOOP_DUNGEON);
-    PortAutosave = true;
-    configure(false);
-    PortAutosaveStep(LOOP_DUNGEON);
     EXPECT_FALSE(fs::exists(SaveSlotAutosavePath()));
-    configure(true);
+    EXPECT_TRUE(SaveSlotHasFloorEntry());
     PortAutosaveStep(LOOP_DUNGEON);
     EXPECT_EQ(Counter(SaveSlotAutosavePath()), 1);
+    EXPECT_FALSE(SaveSlotHasFloorEntry());
     PortAutosaveStep(LOOP_DUNGEON);
     EXPECT_EQ(Counter(SaveSlotAutosavePath()), 1);
+    // With autosave off at a floor's first controllable frame, the floor is passed over: its entry state lacks what
+    // the player goes on to do there, so turning autosave on again does not write it.
+    const std::vector<std::function<void(bool)> > switches = {
+        [&](bool on) { PortCaptureMode = on ? CAPTURE_OFF : CAPTURE_OFF + 1; },
+        [&](bool on) { PortAutosave = on; },
+        [&](bool on) { configure(on); },
+    };
+    for (std::size_t i = 0; i < switches.size(); ++i) {
+        live->save_dungeon.floor_id[2] = static_cast<s16>(20 + i);
+        SaveSlotRecordFloorEntry();
+        switches[i](false);
+        PortAutosaveStep(LOOP_DUNGEON);
+        EXPECT_FALSE(SaveSlotHasFloorEntry()) << i;
+        switches[i](true);
+        PortAutosaveStep(LOOP_DUNGEON);
+        EXPECT_EQ(Counter(SaveSlotAutosavePath()), 1) << i;
+    }
+    // A floor reached without its load event's entry state is passed over, and stays passed over.
     live->save_dungeon.floor_id[2] = 8;
+    PortAutosaveStep(LOOP_DUNGEON);
+    EXPECT_EQ(Counter(SaveSlotAutosavePath()), 1);
+    live->save_dungeon.floor_id[2] = 9;
+    SaveSlotRecordFloorEntry();
     PortAutosaveStep(LOOP_DUNGEON);
     ASSERT_EQ(SaveSlotRead(SaveSlotAutosavePath(), *document), SaveSlotState::Ready);
     EXPECT_EQ(document->image.unique_counter, 2);
-    EXPECT_EQ(document->image.floor_id, 8);
+    EXPECT_EQ(document->image.floor_id, 9);
+    // Entering a loop forgets both the arrival and the entry state.
     PortAutosaveResetArrival();
+    PortAutosaveStep(LOOP_DUNGEON);
+    EXPECT_EQ(Counter(SaveSlotAutosavePath()), 2);
+    PortAutosaveResetArrival();
+    SaveSlotRecordFloorEntry();
     PortAutosaveStep(LOOP_DUNGEON);
     EXPECT_EQ(Counter(SaveSlotAutosavePath()), 3);
 }

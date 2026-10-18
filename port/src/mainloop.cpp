@@ -79,21 +79,32 @@ void WriteAutosave(int program_loop_no, AutosaveSpawn *spawn = nullptr) {
     }
 }
 
-// Once per floor, the first frame the player has control on it.
+// Once per floor, the first frame the player has control on it, writing the floor's entry state. The entry state
+// is dropped then either way: it holds nothing the player goes on to do on the floor, so writing it later, once
+// autosave is turned on, would take the game back.
 void AutosaveFloor() {
     const auto *save = GetSaveData();
     const auto *scene = GetMainScene();
-    if (!save || !AutosaveEnabled() || DngStatus.mode != DNG_STATUS_FIELD || !scene || scene->event_run || GamePad__2.key_lock ||
+    if (!save || DngStatus.mode != DNG_STATUS_FIELD || !scene || scene->event_run || GamePad__2.key_lock ||
         !BattleAreaScene || (BattleAreaScene->pause_flag & (DNG_PAUSE_PLAYER_STEP | DNG_PAUSE_FIELD_STEP)) ||
         save->save_dungeon.stage_id < 0 || save->save_dungeon.stage_id >= SAVE_DUNGEON_NUM) {
         return;
     }
     const auto &dungeon = save->save_dungeon;
     const auto  floor = std::pair{dungeon.stage_id, static_cast<int>(dungeon.floor_id[dungeon.stage_id])};
-    if (floor != autosaved_floor) {
-        autosaved_floor = floor;
+    if (floor == autosaved_floor) {
+        return;
+    }
+    autosaved_floor = floor;
+    if (!SaveSlotHasFloorEntry()) {
+        // A floor entered without the load event's DNG_FLOOR_INIT has no entry state to resume from.
+        CT_LOG_DEBUG(Save, "autosave: stage {} floor {} has no entry state; not saved", floor.first, floor.second);
+    } else if (!AutosaveEnabled()) {
+        CT_LOG_DEBUG(Save, "autosave: off at stage {} floor {}; not saved", floor.first, floor.second);
+    } else {
         WriteAutosave(LOOP_DUNGEON);
     }
+    SaveSlotForgetFloorEntry();
 }
 
 // Save on the first controllable exterior frame of each town map.
@@ -159,6 +170,7 @@ void RecordCrashContext(int mode, const INIT_LOOP_ARG &arg) {
 void PortAutosaveResetArrival() {
     autosaved_floor.reset();
     autosaved_map.reset();
+    SaveSlotForgetFloorEntry();
 }
 
 void PortAutosaveStep(int program_loop_no) {

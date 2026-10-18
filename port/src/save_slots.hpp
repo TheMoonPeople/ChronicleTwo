@@ -82,10 +82,28 @@ CMemoryCardManager *SaveSlotManager();
 
 FilesResult SaveSlotWrite(const std::filesystem::path &path, const SaveDocument &document, bool replace);
 
-// Writes the game as it stands over the autosave, as a town save or, for LOOP_DUNGEON, as a save the
-// title resumes on the current floor; false if the write failed, the autosave then keeping what it held.
-// A town save given a spawn also records it, so that loading the autosave returns the player to that spot.
+// Writes over the autosave the game as it stands, as a town save, or for LOOP_DUNGEON the game as the
+// current floor's load event began (SaveSlotRecordFloorEntry), as a save the title resumes on that floor.
+// False if the write failed, or for LOOP_DUNGEON without an entry state of the current floor; the autosave
+// then keeps what it held. A town save given a spawn also records it, so that loading the autosave returns
+// the player to that spot.
 bool SaveSlotWriteAutosave(int program_loop_no, const AutosaveSpawn *spawn = nullptr);
+
+/**
+ * Keeps the whole save as it stands, the save data and every town's layout, as the current floor's entry state.
+ * The floor load event (1010) calls DNG_FLOOR_INIT before any of the floor's own events, which is when the port
+ * records it.
+ */
+void SaveSlotRecordFloorEntry();
+/**
+ * Drops the recorded floor entry state. Each game loop starts without one, and the floor's first controllable
+ * frame drops it whether or not it was written.
+ */
+void SaveSlotForgetFloorEntry();
+/**
+ * Whether the recorded entry state belongs to the stage and floor the game is on.
+ */
+bool SaveSlotHasFloorEntry();
 
 // A legacy row publishes a new JSON file, then attempts to archive its original.
 FilesResult SaveSlotWrite(const SaveSlot &slot, const SaveDocument &document);

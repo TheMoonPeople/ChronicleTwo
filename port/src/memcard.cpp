@@ -37,6 +37,20 @@ unsigned long long MaxUniqueCounter(const SaveSlotList &list) {
     return newest;
 }
 
+// The current floor's entry state: the whole save as the floor's load event reached DNG_FLOOR_INIT, before any of
+// the floor's own events. It owns its copy of every town's layout, as the live layouts are found by the address of
+// the live save's town records.
+std::unique_ptr<SaveDocument> floor_entry;
+
+// The stage and floor a save is on, or -1 for the floor when its stage is out of range.
+std::pair<int, int> FloorOf(const CSaveData &save) {
+    const auto &dungeon = save.save_dungeon;
+    if (dungeon.stage_id < 0 || dungeon.stage_id >= SAVE_DUNGEON_NUM) {
+        return {dungeon.stage_id, -1};
+    }
+    return {dungeon.stage_id, dungeon.floor_id[dungeon.stage_id]};
+}
+
 // Builds the retail save image; no PC metadata is embedded in the payload.
 void BuildImage(SAVEDATA_FORMAT &image, int program_loop_no, unsigned long long newest) {
     auto &save = *GetSaveData();
@@ -88,23 +102,52 @@ bool SaveSlotWriteAutosave(int program_loop_no, const AutosaveSpawn *spawn) {
         FilesCreateDirectory(SaveSlotsRoot()) == FilesResult::kFailed) {
         return false;
     }
+    // A floor's events can change flags whose effects live only in the running floor (a boss that an arrival
+    // scene sets loose, say). The floor load event that loading runs replays those events only from the
+    // state before them, so a dungeon autosave is the game as the floor's load event began.
+    if (program_loop_no == LOOP_DUNGEON && !SaveSlotHasFloorEntry()) {
+        return false;
+    }
     const auto list = SaveSlotScan(true);
     const auto newest = MaxUniqueCounter(list);
     if (list.read_failed || newest == std::numeric_limits<u64>::max()) {
         return false;
     }
+    if (program_loop_no == LOOP_DUNGEON) {
+        // Only the counter belongs to the write; the save data, the towns' layouts and the header are the entry's.
+        floor_entry->image.unique_counter = newest + 1;
+        return SaveSlotWrite(SaveSlotAutosavePath(), *floor_entry, true) == FilesResult::kWritten;
+    }
     auto document = BuildDocument(program_loop_no, newest);
-    if (program_loop_no == LOOP_EDIT && spawn != nullptr) {
+    if (spawn != nullptr) {
         if (spawn->map_no != document->image.map_no) {
             return false;
         }
         document->spawn = *spawn;
         document->spawn->counter = document->image.unique_counter;
     }
-    if (program_loop_no == LOOP_DUNGEON) {
-        document->image.dng_tree_flag = 0;
-    }
     return SaveSlotWrite(SaveSlotAutosavePath(), *document, true) == FilesResult::kWritten;
+}
+
+void SaveSlotRecordFloorEntry() {
+    if (GetSaveData() == nullptr) {
+        floor_entry.reset();
+        return;
+    }
+    floor_entry = BuildDocument(LOOP_DUNGEON, 0);
+    // Loading resumes on the floor itself, never on the floor list.
+    floor_entry->image.dng_tree_flag = 0;
+}
+
+void SaveSlotForgetFloorEntry() { floor_entry.reset(); }
+
+bool SaveSlotHasFloorEntry() {
+    const CSaveData *save = GetSaveData();
+    if (!floor_entry || save == nullptr) {
+        return false;
+    }
+    const auto floor = FloorOf(floor_entry->image.save_data);
+    return floor.second >= 0 && floor == FloorOf(*save);
 }
 
 CMemoryCardManager *SaveSlotManager() { return active_manager; }

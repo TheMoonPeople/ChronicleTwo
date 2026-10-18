@@ -303,10 +303,28 @@ once on each town map, the first frame the player walks it outside an interior
 money or with an escape item), and as a dungeon save
 (`LOOP_DUNGEON`, `dng_tree_flag` 0) once on each floor, the first frame the
 player has control there. Menus, events, locked input and paused field or player
-updates defer the save. Turning autosave off leaves the arrival eligible when
-it is enabled again. Loading the dungeon one takes retail's path for a
+updates defer the save. A town autosave is the game as it stands when written,
+and turning autosave off leaves the map's arrival eligible when it is enabled
+again. Loading the dungeon one takes retail's path for a
 save made on a floor: the title enters the saved dungeon and floor with
-`mc_load` set. A town autosave also records, in its `pc.spawn` object, the
+`mc_load` set, and the floor load event (1010) builds the floor and runs its
+arrival events again. The dungeon autosave therefore holds the game as that
+event reached `DNG_FLOOR_INIT` (`DungeonFloorInit`, empty in retail), before any
+of the floor's own events: the save data, every town's Georama layout and the
+header as they stood then, with only the counter taken when it is written. An
+arrival scene can set a flag whose effect lives only on the running floor: in
+the Channel Pump Room, Underground Channel's floor 4, the scene before Linda
+sets flag 103 and then sets the boss loose, and a save made after it loaded with
+no boss. Nothing that happened on the floor after `DNG_FLOOR_INIT` is in the
+save, the player's position and whatever the floor's events did before control
+returned included; on loading those events run again from the entry state, as
+entering the floor from the floor list does, and anything they do not redo is
+lost. A floor reached without that call is not autosaved. The entry state is
+dropped on the floor's first controllable frame, written or not, so a floor
+whose first controllable frame passes with autosave off is not autosaved, even
+if autosave is turned on there later: writing the entry state then would undo
+what the player had done on the floor since.
+A town autosave also records, in its `pc.spawn` object, the
 player's position, rotation and camera. Retail saves hold only the map, and a
 loaded town save starts at that map's save point (or its entrance on a map
 without one); after loading the autosave, the first frame the player has control

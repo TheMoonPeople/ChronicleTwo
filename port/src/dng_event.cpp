@@ -25,8 +25,13 @@
 #include "monster_memory.hpp"
 #include "platform/arena.hpp"
 #include "runscript.hpp"
+#include "save_slots.hpp"
 #include "scene.hpp"
 #include "snd_mngr.hpp"
+
+// Retail's body is empty. Every dungeon's floor load event (1010) calls it once the floor is chosen and before the
+// floor's own events, which makes it the state a dungeon autosave keeps.
+PORT_OVERRIDE void DungeonFloorInit() { SaveSlotRecordFloorEntry(); }
 
 PORT_OVERRIDE void CTreasureBoxManager::SetCollisionModel(u32 *model, mgCMemory *memory) {
     const auto path = DataReadBufferPath(model);
