@@ -395,18 +395,23 @@ void Question(CMenuItemInfo &menu, CMenuKeyFunc &keys, const Take &take) {
         return;
     }
     if (menu.mode == MENU_ASK_MODE_EXTEND && menu.ask_para.ask_mode == MENU_ITEM_EXTEND_BUILD_UP && menu.step == 0) {
-        const int     count = std::clamp(BuildUpWeaponInfo.select_num, 0, 3);
-        MenuMouseRect rows[3]{};
-        for (int i = 0; i < count; ++i) {
-            rows[i] = {.x = static_cast<float>(BuildUpNameXY[i][0]), .y = static_cast<float>(BuildUpNameXY[i][1]), .w = 200, .h = 24};
-        }
-        const int selected = MenuMouseRows({rows, static_cast<std::size_t>(count)}, BuildUpWeaponInfo.select_no);
+        const int                            count = std::clamp(BuildUpWeaponInfo.select_num, 0, 3);
+        const auto                           rows = MenuMouseBuildUpRows(BuildUpNameXY, count, LanguageCode);
+        const std::span<const MenuMouseRect> shown{rows.data(), static_cast<std::size_t>(count)};
+        // The board is drawn with the spread panels, so its rows are hit in the retail layout's coordinates.
+        MenuMouseSample mouse = MenuMouseTake();
+        mouse.x = pointer.pos.x;
+        mouse.y = pointer.pos.y;
+        const int selected = MenuMouseChoose(mouse, shown, BuildUpWeaponInfo.select_no);
         // The retail build-up step reads its cursor after this hook, so it cannot sound this move.
         if (selected != BuildUpWeaponInfo.select_no) {
             BuildUpWeaponInfo.select_no = selected;
             MenuMouseCursorSound();
         }
-        synthetic = MenuMouseButtons();
+        // Cross on any row, "???" included: the retail step refuses those with its own sound.
+        if ((take.pressed & 1) && MenuMouseHit(shown, pointer.pos.x, pointer.pos.y) >= 0) {
+            synthetic = PAD_CROSS;
+        }
         return;
     }
     // Scripts often put a follow-up on message 7, rather than ask_para.mes_no.

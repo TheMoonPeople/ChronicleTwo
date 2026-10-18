@@ -156,6 +156,16 @@ MenuMouseRect MenuMousePart(CMenuPosDataForm *form, const char *name) {
     return {.x = x, .y = y, .w = part->w, .h = part->h};
 }
 
+std::array<MenuMouseRect, 3> MenuMouseBuildUpRows(const short (&names)[3][2], int count, int language) {
+    // MenuWeaponBuildUpDraw's name board width (name_w) and height (BuildUpWeaponNameBoardDraw's 0x20).
+    const float                  board_w = language > 0 ? 0xBE : 0xAC;
+    std::array<MenuMouseRect, 3> rows{};
+    for (int i = 0; i < std::clamp(count, 0, 3); ++i) {
+        rows[i] = {.x = static_cast<float>(names[i][0]), .y = static_cast<float>(names[i][1] - 5), .w = board_w + 20, .h = 0x20};
+    }
+    return rows;
+}
+
 MenuMouseView MenuMouseScroll(float wheel, MenuMouseView view, int count, int visible, int hovered) {
     if (wheel == 0 || !std::isfinite(wheel) || count <= 0 || visible <= 0) {
         return view;

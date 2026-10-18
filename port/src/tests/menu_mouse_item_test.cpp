@@ -690,6 +690,67 @@ TEST_F(ItemMouse, BuildUpListHoverSelectsBeforeClickConfirms) {
     std::copy(&saved_pos[0][0], &saved_pos[0][0] + 6, &BuildUpNameXY[0][0]);
 }
 
+// MenuWeaponBuildUpDraw puts a name board 20 right of and 5 above each recorded name position:
+// 0xBE by 0x20 outside Japanese, 0xAC wide in Japanese.
+TEST(MenuMouse, BuildUpRowsCoverEachDrawnNameBoard) {
+    const short names[3][2] = {
+        {262, 80 },
+        {262, 158},
+        {7,   7  }
+    };
+    const auto rows = MenuMouseBuildUpRows(names, 2, LANG_ENGLISH);
+    EXPECT_TRUE(rows[0].Contains(262, 75));
+    EXPECT_TRUE(rows[0].Contains(471.9f, 106.9f));
+    EXPECT_FALSE(rows[0].Contains(472, 90));
+    EXPECT_FALSE(rows[0].Contains(261.9f, 90));
+    EXPECT_FALSE(rows[0].Contains(300, 107));
+    EXPECT_TRUE(rows[1].Contains(300, 153));
+    EXPECT_EQ(MenuMouseHit(rows, 300, 130), -1); // Between the boards.
+    EXPECT_EQ(MenuMouseHit(rows, 10, 10), -1);   // Past count, the third row is empty.
+    EXPECT_FLOAT_EQ(MenuMouseBuildUpRows(names, 2, LANG_JAPANESE)[0].w, 0xAC + 20);
+    EXPECT_FLOAT_EQ(MenuMouseBuildUpRows(names, 9, LANG_ENGLISH)[2].w, 0xBE + 20);
+    EXPECT_FLOAT_EQ(MenuMouseBuildUpRows(names, -1, LANG_ENGLISH)[0].w, 0);
+}
+
+TEST_F(ItemMouse, BuildUpClicksConfirmOnlyOnRowsAndRightClickBacksOut) {
+    const auto saved = BuildUpWeaponInfo;
+    const int  saved_language = LanguageCode;
+    s16        saved_pos[3][2];
+    std::copy(&BuildUpNameXY[0][0], &BuildUpNameXY[0][0] + 6, &saved_pos[0][0]);
+    LanguageCode = LANG_ENGLISH;
+    class_menu_item_info.mode = MENU_ASK_MODE_EXTEND;
+    class_menu_item_info.ask_para.ask_mode = MENU_ITEM_EXTEND_BUILD_UP;
+    BuildUpWeaponInfo.select_num = 2;
+    BuildUpWeaponInfo.select_no = 1;
+    BuildUpWeaponInfo.enable[0] = BuildUpWeaponInfo.enable[1] = false; // Both "???": retail refuses them.
+    const s16 names[2][2] = {
+        {262, 80 },
+        {262, 158}
+    };
+    std::copy(&names[0][0], &names[0][0] + 4, &BuildUpNameXY[0][0]);
+
+    MoveTo(460, 100); // The right end of the first board.
+    EXPECT_EQ(BuildUpWeaponInfo.select_no, 0);
+    MoveTo(240, 170); // Left of the second board, past its gap: no target.
+    EXPECT_EQ(BuildUpWeaponInfo.select_no, 0);
+    Tick(0, 0, 1);
+    EXPECT_EQ(GamePad__2.GetPadDown(), 0);
+    EXPECT_EQ(BuildUpWeaponInfo.select_no, 0);
+    Tick();
+    MoveTo(300, 180);
+    EXPECT_EQ(BuildUpWeaponInfo.select_no, 1);
+    Tick(0, 0, 1); // Retail Cross handles the refusal and its sound.
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CROSS);
+    Tick();
+    Tick(0, 0, 2);
+    EXPECT_EQ(GamePad__2.GetPadDown(), PAD_CIRCLE);
+    EXPECT_EQ(BuildUpWeaponInfo.select_no, 1);
+
+    BuildUpWeaponInfo = saved;
+    LanguageCode = saved_language;
+    std::copy(&saved_pos[0][0], &saved_pos[0][0] + 6, &BuildUpNameXY[0][0]);
+}
+
 TEST_F(ItemMouse, CommandMessageIdIsCheckedBeforeIndexingTheMessageTable) {
     class_menu_item_info.mode = MENU_ASK_MODE_ITEM_COMMAND;
     class_menu_item_info.ask_para.form = &command;

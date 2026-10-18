@@ -718,6 +718,11 @@ bool CursorShown() {
 }
 
 float CursorFrameShift() {
+    // The build-up list is drawn with the left panels, and its hand sits near the split, where the eased shift
+    // would carry it far right of its row. It takes the selection's side, as the pointer does (RetailPointerX).
+    if (class_menu_item_info.mode == MENU_ASK_MODE_EXTEND && class_menu_item_info.ask_para.ask_mode == MENU_ITEM_EXTEND_BUILD_UP) {
+        return SelectionSide() > 0 ? -LayoutLeft() : LayoutLeft();
+    }
     // The selection frame's x tweens with the selection, so one shift keeps the hand and the frame together.
     const CMenuPosDataForm *frame = MenuPosData->GetFormInfo(const_cast<char *>("cur_waku0"));
     if (frame == nullptr) {

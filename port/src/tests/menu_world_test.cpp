@@ -222,6 +222,28 @@ TEST(MenuWorld, CursorShiftEasesFromTheLeftPanelsToTheRightPanels) {
     mgScreenWidth = saved_width;
 }
 
+// The build-up list's hand sits near the split, but moves with the selection's panels like the pointer, not the eased shift.
+TEST(MenuWorld, BuildUpHandTakesTheSelectionsSide) {
+    const int saved_width = mgScreenWidth;
+    mgScreenWidth = 512;
+    auto      &menu = class_menu_item_info;
+    const auto saved_mode = menu.mode;
+    const auto saved_ask = menu.ask_para.ask_mode;
+    const auto saved_key = menu.key_arg_no;
+    menu.mode = MENU_ASK_MODE_EXTEND;
+    menu.ask_para.ask_mode = MENU_ITEM_EXTEND_BUILD_UP;
+
+    menu.key_arg_no = ITEM_MENU_PANEL_WEAPON;
+    EXPECT_FLOAT_EQ(menuworld::CursorFrameShift(), menuworld::CursorShift(0.0f));
+    menu.key_arg_no = ITEM_MENU_PANEL_BAG;
+    EXPECT_FLOAT_EQ(menuworld::CursorFrameShift(), menuworld::CursorShift(400.0f));
+
+    menu.mode = saved_mode;
+    menu.ask_para.ask_mode = saved_ask;
+    menu.key_arg_no = saved_key;
+    mgScreenWidth = saved_width;
+}
+
 // The debug item browser keeps the frame's layout: the Item page's anchor is not applied and the menu camera stays.
 TEST(MenuWorld, DebugItemBrowserIgnoresTheSpread) {
     const int saved_debug = menu_debug_flag;

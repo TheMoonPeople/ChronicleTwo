@@ -1041,6 +1041,20 @@ outside the menu (1550). `item-menu-mouse-dungeon.input` reaches the dungeon's
 Item page and opens Bread's commands by frame 2850. These two scripts also use
 1280x720; scale `mouse:dx,dy` counts with the window dimensions for other sizes.
 
+A weapon's Build Up list takes the mouse too. Hovering a target's name board,
+or the gap before it where the retail hand points, selects that target and
+plays the cursor sound. Mouse1 on a target sends Cross, so retail handles it:
+a target shown as "???" is refused with the retail sound, and a reachable one
+opens the build-up question. Clicks beside the targets do nothing, Mouse2 backs
+out like Circle, and the wheel steps the selection. A weapon has at most three
+targets and all of them are shown, so nothing scrolls. The boards are drawn with the left panels, so on a
+wide window the targets are hit through the same spread mapping as the retail
+hand, which stays beside its target there. `MenuMouseBuildUpRows`
+(`port/src/menu_mouse.cpp`) gives the targets from the drawn name positions;
+the Monster Transform class-change list uses it as well.
+`tools/input/item-build-up-mouse.input` (`--jump town:10 --fast-load`, 1920x1080)
+opens the Battle Wrench's two targets; its comments give capture frames.
+
 ### Item page over the paused world
 
 The town and dungeon main menus capture the exact field frame at the pause instant (`port/src/menu_world.cpp`). The renderer replays that frame's recorded draws once with the player removed, and the same frame is then drawn in full. The playerless copy leaves out the player's meshes, shadow and outline, the effects the player owns, and the town's exit markers. Subgame menus retain retail behavior.

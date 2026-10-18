@@ -1,0 +1,42 @@
+# --jump town:10 --fast-load --window 1920x1080: the Battle Wrench's Build Up list with the mouse.
+# The pad opens bag cell 0's commands and chooses Build Up; capture 1000 shows the retail hand on row 0.
+# The pointer replaces the hand; the blinking red stat labels show the selected target's shortfall:
+# Attack, Smash and Beast for row 0, Attack alone for row 1.
+# 1100: the pointer takes over at the hand. 1220: hovering row 1 selects it.
+# 1340: hovering row 0. 1420: a wheel notch steps the selection to row 1.
+# 1540: a click on row 0 selects it and sends Cross; retail refuses the "???" target with its cancel sound.
+# 1650: a click beside the rows does nothing. 1800: Mouse2 backs out to the weapon's Status page.
+300 triangle
+306
+420 cross
+426
+650 cross
+656
+700 down
+706
+730 down
+736
+760 down
+766
+790 down
+796
+820 down
+826
+870 cross
+876
+1050 mouse:1,0
+1051
+1150 mouse:210,169
+1151
+1250 mouse:0,-176
+1251
+1350 wheel:-1
+1351
+1450 mouse1
+1451
+1550 mouse:-300,0
+1551
+1600 mouse1
+1601
+1700 mouse2
+1701

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <span>
 #include <vector>
@@ -59,6 +60,10 @@ private:
 class CMenuPosDataForm;
 // A drawn form part's rectangle; empty when the form or the part is hidden or missing.
 MenuMouseRect MenuMousePart(CMenuPosDataForm *form, const char *name);
+// The build-up list's rows, as MenuWeaponBuildUpDraw draws them: each name board with the gap left of it,
+// from the name positions it records (BuildUpNameXY: 20 left of a board, 5 below its top). Rows past
+// count are empty. language is LanguageCode, which widens the boards outside Japanese.
+std::array<MenuMouseRect, 3> MenuMouseBuildUpRows(const short (&names)[3][2], int count, int language);
 class ClsMes;
 std::vector<MenuMouseRect> MenuMouseMessageRows(ClsMes &message, int count);
 // The pad button a drawn message line's leading symbol shows, or 0, and the bounds of that placed line.

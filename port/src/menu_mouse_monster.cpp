@@ -41,12 +41,9 @@ void BadgeMouse(CMenuMosSelect &box) {
 }
 
 void ClassMouse() {
-    const int     count = std::clamp(BuildUpWeaponInfo.select_num, 0, 3);
-    MenuMouseRect rows[3]{};
-    for (int i = 0; i < count; ++i) {
-        rows[i] = {.x = static_cast<float>(BuildUpNameXY[i][0]), .y = static_cast<float>(BuildUpNameXY[i][1]), .w = 200, .h = 24};
-    }
-    const int selected = MenuMouseRows({rows, static_cast<std::size_t>(count)}, BuildUpWeaponInfo.select_no);
+    const int  count = std::clamp(BuildUpWeaponInfo.select_num, 0, 3);
+    const auto rows = MenuMouseBuildUpRows(BuildUpNameXY, count, LanguageCode);
+    const int  selected = MenuMouseRows({rows.data(), static_cast<std::size_t>(count)}, BuildUpWeaponInfo.select_no);
     if (selected != BuildUpWeaponInfo.select_no) {
         BuildUpWeaponInfo.select_no = selected;
         MenuMouseCursorSound();
