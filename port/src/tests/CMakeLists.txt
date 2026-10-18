@@ -72,6 +72,7 @@ set(CT_GPU_SLOW_TESTS
 set(CT_GPU_TESTS
     TargetPresentation.*
     PickupPresentation.RetailEmissionsTagCoinsAbsAndFloatingItems
+    HealingPresentation.*
     DamagePresentation.RetailDamageInterpolatesProjectedBounceAndOpacity
     DamagePresentation.Score2InterpolatesAndReusedSlotsStayNewest
     DamagePresentation.SpriteHealClippingAndPause

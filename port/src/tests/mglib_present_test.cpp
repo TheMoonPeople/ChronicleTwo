@@ -14,6 +14,7 @@
 #include <fstream>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <thread>
 #include <vector>
@@ -21,6 +22,7 @@
 #include "actionchara.hpp"
 #include "dataread.hpp"
 #include "dataread_port.hpp"
+#include "dng_effect.hpp"
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
 #include "dng_object.hpp"
@@ -37,6 +39,7 @@
 #include "menu_mouse.hpp"
 #include "menuchr_port.hpp"
 #include "menudraw.hpp"
+#include "mg_camera.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_drawprim_port.hpp"
 #include "mg_memory.hpp"
@@ -1716,6 +1719,105 @@ TEST(PickupPresentation, RetailEmissionsTagCoinsAbsAndFloatingItems) {
         EXPECT_EQ(gfx::CurrentInterp2D().key, 0u);
         pickup.Clear();
     }
+    mgPortSetPrimSink({});
+}
+
+TEST(HealingPresentation, EachLightSpriteKeepsItsOwnKeyThroughCulling) {
+    PresentRenderer renderer(640, 480);
+    mgCMemory       memory;
+    u_long128       backing[512]{};
+    memory.stSetBuffer(backing, 512);
+    mgSetDataBuffer(&memory, &memory, 0);
+
+    struct Tagged {
+        gfx::Interp2D tag;
+        size_t        vertices;
+    };
+
+    std::vector<Tagged> draws;
+    DamagePrimSink      sink_reset;
+    mgPortSetPrimSink([&](gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices,
+                          const gfx::TextureBinding &, const gfx::DrawState       &state) {
+        EXPECT_EQ(primitive, gfx::Primitive::Quads);
+        EXPECT_NE(state.depth_test, gfx::DepthTest::Always);
+        draws.push_back({gfx::CurrentInterp2D(), vertices.size()});
+    });
+    auto project = [](float x) {
+        auto matrix = Identity();
+        matrix[12] = x;
+        matrix[13] = 2000.0f;
+        std::memcpy(mgRenderInfo.world_screen, matrix.data(), sizeof(float) * 16);
+        const auto view_screen = Identity();
+        std::memcpy(mgRenderInfo.view_screen, view_screen.data(), sizeof(float) * 16);
+        mgRenderInfo.clip_min[2] = 0.0f;
+        mgRenderInfo.clip_max[2] = 100.0f;
+    };
+    CHealingEffectMan healing{};
+    healing.Initialize();
+    for (int i = 0; i < HEALING_LIGHT_MAX; ++i) {
+        healing.light[i].radius = 40.0f;
+        healing.light[i].angle = (static_cast<float>(i) + 0.5f) * TWO_PI / HEALING_LIGHT_MAX - PI;
+    }
+    float center[4] = {0, 0, 0, 1};
+    healing.Set(center);
+    mgCCamera camera(1.0f);
+    camera.SetPos(0.0f, 0.0f, 0.0f);
+    auto key = [&](int light, int kind) {
+        return static_cast<gfx::InterpKey>(reinterpret_cast<uintptr_t>(&healing.light[light]) + kind);
+    };
+    auto draw = [&](float x) {
+        draws.clear();
+        mgBeginFrame(nullptr);
+        project(x);
+        healing.Draw(&camera);
+        mgEndFrame(nullptr);
+        EXPECT_EQ(gfx::CurrentInterp2D().key, 0u);
+        std::set<gfx::InterpKey> keys;
+        for (const auto &drawn : draws) {
+            EXPECT_EQ(drawn.vertices, 4u); // One sprite per draw, so occurrences never shift.
+            EXPECT_TRUE(drawn.tag.world_corners);
+            EXPECT_EQ(drawn.tag.generation, draws.front().tag.generation);
+            EXPECT_TRUE(keys.insert(drawn.tag.key).second);
+        }
+        return keys;
+    };
+
+    // Every glow and halo on screen: each its own key, inside its own light.
+    auto keys = draw(2000.0f);
+    ASSERT_EQ(draws.size(), 2u * HEALING_LIGHT_MAX);
+    std::set<gfx::InterpKey> all;
+    for (int i = 0; i < HEALING_LIGHT_MAX; ++i) {
+        all.insert(key(i, 0));
+        all.insert(key(i, 1));
+    }
+    EXPECT_EQ(keys, all);
+    const uint64_t generation = draws.front().tag.generation;
+
+    // The screen's left edge culls the lights behind it; the rest keep their keys.
+    healing.Step();
+    keys = draw(0.0f);
+    std::set<gfx::InterpKey> visible;
+    for (int i = 0; i < HEALING_LIGHT_MAX; ++i) {
+        const float x = healing.light[i].pos[0];
+        if (x - 1.5f >= 0.0f) {
+            visible.insert(key(i, 0));
+        }
+        if (x - 15.0f >= 0.0f) {
+            visible.insert(key(i, 1));
+        }
+    }
+    EXPECT_EQ(keys, visible);
+    EXPECT_GT(keys.size(), 0u);
+    EXPECT_LT(keys.size(), all.size());
+    ASSERT_FALSE(draws.empty());
+    EXPECT_EQ(draws.front().tag.generation, generation);
+
+    // Another healing point is a new emission.
+    healing.Set(center);
+    keys = draw(2000.0f);
+    EXPECT_EQ(keys, all);
+    ASSERT_FALSE(draws.empty());
+    EXPECT_GT(draws.front().tag.generation, generation);
     mgPortSetPrimSink({});
 }
 

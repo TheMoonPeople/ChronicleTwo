@@ -23,6 +23,9 @@ void mgPortClearPacketDraws();
 // Runs the host draw registered for `packet`; false when there is none, including a null packet.
 bool mgPortPacketDraw(const void *packet);
 
+// Draws what the builder has batched so far, so the primitives after it make a draw of their own, with their own
+// interpolation tag. Nothing pending draws nothing.
+void mgPortPrimFlush(const mgCDrawPrim &prim);
 // Draws `vertices` as a list of Triangles, Lines or Quads with the builder's state. Mirrors Kick's flush and
 // flat-shading rules, so an override draws what its retail caller would.
 void mgPortPrimSubmit(mgCDrawPrim &prim, gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices);

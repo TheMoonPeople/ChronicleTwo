@@ -609,6 +609,10 @@ bool mgPortPacketDraw(const void *packet) {
     return true;
 }
 
+void mgPortPrimFlush(const mgCDrawPrim &prim) {
+    FlushPending(&prim);
+}
+
 void mgPortPrimSubmit(mgCDrawPrim &prim, gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices) {
     FlushPending(&prim);
 
