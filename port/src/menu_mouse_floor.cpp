@@ -28,6 +28,10 @@ int               pending_frame = -1;
 
 // Longest path a wheel turn walks, past any retail floor count.
 constexpr int kMaxWheelSteps = 32;
+// Ticks after the floor information opens in which a click is still taken as the room's double click.
+constexpr int kInfoDoubleClickTicks = 20;
+int           info_opened = -1;
+int           info_seen = -1;
 
 GLID_INFO *FloorRoom(std::span<GLID_INFO> cells, int floor_id) {
     const auto found = std::ranges::find_if(
@@ -61,11 +65,18 @@ void FloorScreenMouse() {
     }
     if (CMenuTreePt->key_arg_no == DNG_TREE_MAP_SCREEN_FLOOR && dngfloor_infoview &&
         DngAskMessageDrawFlag == DNG_TREE_MAP_ASK_JUMP && MenuDCMsg[3]) {
-        // Only the floor information's own labels act on a left click, so a double click on a room cannot travel.
+        if (info_seen != mgPortFrameCount() - 1 && info_seen != mgPortFrameCount()) {
+            info_opened = mgPortFrameCount();
+        }
+        info_seen = mgPortFrameCount();
         if (ClickLabel(*MenuDCMsg[3], 3, mouse)) {
             return;
         }
-        MenuMouseRows({}, 0);
+        // A left click anywhere then enters the floor, as Cross does, but not the second click of the double
+        // click on a room that opened it.
+        if (mgPortFrameCount() - info_opened < kInfoDoubleClickTicks) {
+            MenuMouseRows({}, 0);
+        }
     }
     // The start, side, boss and exit questions, the information-only view and the materials list take the shared
     // clicks in the language's layout.

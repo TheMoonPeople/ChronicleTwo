@@ -793,10 +793,13 @@ reach along the path (down onward, up back), preferring Right, Down, Up, then
 Left, so at a fork it keeps to the Right key's branch. Room hit boxes follow the
 drawn pictures and their cull edge. Clicking a help label presses the button its
 symbol shows: Back to Map or Exit Dungeon, Save Progress, and the floor
-information's Move and Cancel; on the floor information only those labels act on
-a left click. On these maps and the screens they open (the place list, the travel
-and floor questions, and Save Progress's save screen), Mouse1 confirms and Mouse2
-cancels in the language's own layout, so Japanese confirms with Circle.
+information's Move and Cancel. A left click elsewhere on the Floor Info screen
+enters the floor as Cross does, except in the first 20 ticks after it opens, so
+the second click of a double click on a room does not travel; the help labels
+act at once. On these maps and the screens they open (the place list, the
+travel and floor questions, and Save Progress's save screen), Mouse1 confirms
+and Mouse2 cancels in the language's own layout, so Japanese confirms with
+Circle.
 
 The shared pointer implementation is `port/src/menu_mouse.cpp`; menu adapters, cursor
 transitions, floor selection and message choices live in separate
