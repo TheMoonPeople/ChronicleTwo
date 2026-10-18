@@ -1044,7 +1044,7 @@ int _GET_ACTIVE_MONS_MAX_LIFE(RS_STACKDATA *stack, int argc) {
  */
 int _SET_DAMAGE_SCORE(RS_STACKDATA *stack, int argc) {
     float         pos[4];
-    int           color_flag;
+    int           color_flag PORT_INIT(0);
     int           id;
     int           value;
     CActionChara *monster;
@@ -1454,7 +1454,7 @@ int _SET_CAMERA_SPEED(RS_STACKDATA *stack, int argc) {
  */
 int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc) {
     CameraCtrlParam *param;
-    float            value;
+    float            value PORT_INIT(0.0f);
 
     if (argc > 0 && argc < 5) {
         return 0;
@@ -1504,7 +1504,7 @@ int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc) {
  */
 int _SET_CAMERA_CTRL_PARAM2(RS_STACKDATA *args, int argc) {
     CameraCtrlParam *param;
-    float            value;
+    float            value PORT_INIT(0.0f);
 
     if (argc > 0 && argc < 7) {
         return 0;
@@ -1947,7 +1947,7 @@ int _SET_DMG2(RS_STACKDATA *stack, int argc) {
 int _GET_OBJ_POS(RS_STACKDATA *stack, int argc) {
     float         pos[4];
     char         *object_name;
-    mgCFrame     *object;
+    mgCFrame     *object PORT_INIT(NULL);
     CActionChara *chara;
     char         *chara_name;
 

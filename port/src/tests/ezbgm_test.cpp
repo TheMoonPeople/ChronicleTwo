@@ -100,9 +100,9 @@ public:
           previous(PathsDataRoot()), previous_packs(datapacks::Root()) {
         std::error_code error;
         fs::remove_all(root, error);
-        fs::create_directories(root / "port_data/sound");
+        fs::create_directories(root / "data/sound");
         PathsSetDataRoot(root / "data");
-        datapacks::Load(root / "port_data");
+        datapacks::Load(root / "data");
     }
 
     ~ScratchDataRoot() {
@@ -122,10 +122,10 @@ public:
 
     void AddWav(const char *name, int channels, const std::vector<std::int16_t> &samples) {
         const std::string bytes = WavFile(channels, samples);
-        std::ofstream     out(root / "port_data/sound" / name, std::ios::binary);
+        std::ofstream     out(root / "data/sound" / name, std::ios::binary);
         out.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
         out.close();
-        datapacks::Load(root / "port_data");
+        datapacks::Load(root / "data");
     }
 
 private:

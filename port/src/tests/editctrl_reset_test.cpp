@@ -10,7 +10,6 @@
 
 extern mgCCamera    *PortContinuousEyeCamera;
 extern int           PortTownEyeInitialized asm("EditCtrl_EyeInitialized");
-extern sceVu0FVECTOR PortTownSavedEye asm("EditCtrl_SavedEye");
 
 TEST(TownEyeCamera, RetailResetCutsEvenInsideAContinuousScope) {
     const auto    old_mode = PortEditViewMode;

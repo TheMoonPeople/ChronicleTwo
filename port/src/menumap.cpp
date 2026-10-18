@@ -63,12 +63,12 @@ struct WorldMap {
  */
 WorldMap ParseWorldMap(const native_config::Json &document) {
     using namespace native_config;
-    WorldMap map{Int(document, "positions_capacity"), {}, Int(document, "areas_capacity"), {}};
+    WorldMap map{.positions_capacity = Int(document, "positions_capacity"), .positions = {}, .areas_capacity = Int(document, "areas_capacity"), .areas = {}};
     if (map.positions_capacity < 0 || map.areas_capacity < 0 || map.positions_capacity > 0x7FFF || map.areas_capacity > 0x7FFF) {
         throw std::runtime_error("world-map table size out of range");
     }
     for (const auto &pos : Array(document, "positions")) {
-        map.positions.push_back({Int(pos, "index"), Int(pos, "map"), Int(pos, "loop"), Int(pos, "area"), Int(pos, "dungeon"), Int(pos, "floor"), Int(pos, "flag"), Int(pos, "type")});
+        map.positions.push_back({.index = Int(pos, "index"), .map = Int(pos, "map"), .loop = Int(pos, "loop"), .area = Int(pos, "area"), .dungeon = Int(pos, "dungeon"), .floor = Int(pos, "floor"), .flag = Int(pos, "flag"), .type = Int(pos, "type")});
     }
     for (const auto &area : Array(document, "areas")) {
         auto title = OptionalText(area, "title");
@@ -76,7 +76,7 @@ WorldMap ParseWorldMap(const native_config::Json &document) {
         if (title && title->size() >= 0x80) {
             throw std::runtime_error("world-map area title is too long");
         }
-        map.areas.push_back({Int(area, "area"), Int(area, "map"), Int(area, "x"), Int(area, "y"), Int(area, "name_x"), Int(area, "name_y"), Int(area, "name_side"), std::move(title)});
+        map.areas.push_back({.area = Int(area, "area"), .map = Int(area, "map"), .x = Int(area, "x"), .y = Int(area, "y"), .name_x = Int(area, "name_x"), .name_y = Int(area, "name_y"), .name_side = Int(area, "name_side"), .title = std::move(title)});
     }
     return map;
 }

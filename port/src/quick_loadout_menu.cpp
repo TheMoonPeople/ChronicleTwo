@@ -118,8 +118,8 @@ bool SlotCommand(CBaseMenuClass *menu, int push_button) {
 
 PORT_OVERRIDE int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int place, int chara) {
     int num = GetItemCommandMsg(item, param->cmd_msg, param->cmd_color, param->cmd_shade, param->cmd_mark, place, chara);
-    int owner;
-    int row;
+    int owner = 0;
+    int row = 0;
     if (num <= 0 || num >= kCommandMax - 1 || !PortQuickLoadoutTarget(item, &owner, &row) ||
         (place != MENU_SWAP_TYPE_ITEM_BOARD && place != MENU_SWAP_TYPE_EQUIP && place != MENU_SWAP_TYPE_ROBO_PART)) {
         return num;

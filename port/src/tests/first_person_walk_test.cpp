@@ -20,7 +20,6 @@
 #include "stubs/photo.hpp"
 #include "userdata.hpp"
 
-extern sceVu0FVECTOR PortTownSavedEye asm("EditCtrl_SavedEye");
 extern sceVu0FVECTOR PortDungeonSavedEye asm("DngMain_SavedEye");
 extern int           PortTownEyeInitialized asm("EditCtrl_EyeInitialized");
 extern int           PortDungeonEyeInitialized asm("DngMain_EyeInitialized");

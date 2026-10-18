@@ -80,11 +80,10 @@ struct DepthScope {
 
 } // namespace
 
-PORT_OVERRIDE CScriptInterpreter::CScriptInterpreter() : stack(nullptr) {
+PORT_OVERRIDE CScriptInterpreter::CScriptInterpreter() : stack(nullptr), string_buff(string_buff_next = nullptr) {
     buffer = nullptr;
     size = position = stack_count = stack_size = string_buff_size = binary = tag_count = 0;
 
-    string_buff = string_buff_next = nullptr;
     tag = nullptr;
     hash_table = nullptr;
 }

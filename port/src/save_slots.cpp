@@ -140,8 +140,8 @@ ByteComparison SameBytes(const fs::path &left, const fs::path &right) {
     if (!a || !b || !ImportStep(SaveSlotImportStage::Comparing, left, right)) {
         return ByteComparison::Unavailable;
     }
-    std::array<char, 65536> x;
-    std::array<char, 65536> y;
+    std::array<char, 65536> x{};
+    std::array<char, 65536> y{};
     for (std::uintmax_t remaining = size; remaining;) {
         const auto count = static_cast<std::streamsize>(std::min<std::uintmax_t>(remaining, x.size()));
         if (!a.read(x.data(), count) || !b.read(y.data(), count)) {

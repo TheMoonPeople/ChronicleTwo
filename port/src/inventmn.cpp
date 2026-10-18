@@ -190,7 +190,7 @@ struct ScoopText {
 std::vector<ScoopText> ParseScoopTexts(const native_config::Json &document) {
     std::vector<ScoopText> entries;
     for (const auto &entry : native_config::Array(document, "entries")) {
-        entries.push_back({native_config::Int(entry, "id"), native_config::OptionalText(entry, "text")});
+        entries.push_back({.id = native_config::Int(entry, "id"), .text = native_config::OptionalText(entry, "text")});
     }
     return entries;
 }

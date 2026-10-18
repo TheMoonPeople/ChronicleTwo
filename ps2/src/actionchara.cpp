@@ -907,7 +907,7 @@ int CActionChara::Draw() {
     float         draw_pos[4];
     float         saved_pos[4];
     float         ambient[4];
-    int           result;
+    int           result PORT_INIT(0);
     CActionChara *chara;
 
     chara = this;
@@ -939,7 +939,7 @@ int CActionChara::DrawDirect() {
     float         saved_pos[4];
     float         ambient[4];
     float         pallet_color[4];
-    int           result;
+    int           result PORT_INIT(0);
     CActionChara *chara;
     int           i;
 
@@ -988,6 +988,7 @@ int CActionChara::DrawShadowDirect() {
             current = current->next;
         } while (current != NULL);
     }
+    PORT_RETURN(0);
 }
 
 void CActionChara::DrawEffect() {

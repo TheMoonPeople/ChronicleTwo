@@ -42,12 +42,12 @@ namespace {
 
 using Bytes = std::vector<uint8_t>;
 
-// ctest runs from the build directory, so search upward from the test executable for port_data/movie/.
+// ctest runs from the build directory, so search upward from the test executable for data/movie/.
 std::optional<fs::path> MovieFile(const char *name) {
     fs::path relative = name;
     relative.replace_extension(".mp4");
     if (const char *root = std::getenv("KZ_MOVIE_OUTPUT")) {
-        const auto path = fs::path(root) / "port_data/movie" / relative;
+        const auto path = fs::path(root) / "data/movie" / relative;
         if (fs::is_regular_file(path)) {
             return path;
         }
@@ -55,7 +55,7 @@ std::optional<fs::path> MovieFile(const char *name) {
     fs::path dir = PathsExecutable().parent_path();
     for (int up = 0; up < 6 && !dir.empty(); up++, dir = dir.parent_path()) {
         std::error_code error;
-        fs::path        path = dir / "port_data" / "movie" / relative;
+        fs::path        path = dir / "data" / "movie" / relative;
         if (fs::is_regular_file(path, error)) {
             return path;
         }
@@ -103,7 +103,7 @@ TEST(MoviePlayer, GarbageFileDoesNotOpen) {
 TEST(MoviePlayer, L5LogoPlaysEveryPictureAtTwentyFiveFramesASecond) {
     const std::optional<fs::path> path = MovieFile("l5logo.mp4");
     if (!path) {
-        GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
+        GTEST_SKIP() << "no extracted data/movie/l5logo.mp4 within 6 levels above the test executable";
     }
 
     video::MoviePlayer player;
@@ -159,7 +159,7 @@ TEST(MoviePlayer, L5LogoPlaysEveryPictureAtTwentyFiveFramesASecond) {
 TEST(MoviePlayer, CatchUpSkipsIntermediatePictures) {
     const std::optional<fs::path> path = MovieFile("l5logo.mp4");
     if (!path) {
-        GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
+        GTEST_SKIP() << "no extracted data/movie/l5logo.mp4 within 6 levels above the test executable";
     }
 
     video::MoviePlayer player;
@@ -246,7 +246,7 @@ TEST(MovieGlue, L5LogoPlaysOnTheClockWithItsSoundtrack) {
     if (!fs::is_regular_file(datapacks::Root() / MoviePortPath("L5LOGO.MP4"))) {
         const std::optional<fs::path> found = MovieFile("l5logo.mp4");
         if (!found) {
-            GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
+            GTEST_SKIP() << "no extracted data/movie/l5logo.mp4 within 6 levels above the test executable";
         }
         PathsSetDataRoot(found->parent_path().parent_path().parent_path() / "data");
         datapacks::Load(found->parent_path().parent_path());
@@ -348,7 +348,7 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
     if (!fs::is_regular_file(datapacks::Root() / MoviePortPath("L5LOGO.MP4"))) {
         const std::optional<fs::path> found = MovieFile("l5logo.mp4");
         if (!found) {
-            GTEST_SKIP() << "no extracted port_data/movie/l5logo.mp4 within 6 levels above the test executable";
+            GTEST_SKIP() << "no extracted data/movie/l5logo.mp4 within 6 levels above the test executable";
         }
         PathsSetDataRoot(found->parent_path().parent_path().parent_path() / "data");
         datapacks::Load(found->parent_path().parent_path());

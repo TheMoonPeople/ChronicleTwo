@@ -10,6 +10,11 @@ extern float           PortMenuWakuPosition[2] asm("MenuDraw_WakuPosition");
 float MenuTilePatternFirst(float phase, int size, float minimum);
 int   MenuTilePatternCount(float first, int size, float limit);
 
+/**
+ * Aligns the English PAL character board's central grey slot with its portrait and surrounding slots.
+ */
+void MenuAlignCharacterSlot(CMenuPosDataForm &form);
+
 class CDC2Mes;
 
 // Whether a form lies outside retail's screen, where retail parks unused panels, in a window that

@@ -1,5 +1,7 @@
 #include "menu_mouse_shop.hpp"
 
+#include <math.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -35,10 +37,10 @@ void MenuMouseShopUpdate(CShopMenu &menu, CMenuKeyFunc &keys, int goods) {
         const int bag = menumouse::BagHit({.x = mouse.x, .y = mouse.y}, board, bag_count);
         int       row = -1;
         if (menu.item_brd && menu.item_brd->draw_flag && menu.item_list && menu.item_list->draw_flag) {
-            float x;
-            float y;
-            float clip_x;
-            float clip_y;
+            float x = NAN;
+            float y = NAN;
+            float clip_x = NAN;
+            float clip_y = NAN;
             menu.item_list->GetPutPosXY(nullptr, x, y);
             menu.item_brd->GetPutPosXY(nullptr, clip_x, clip_y);
             if (MenuMouseRect{.x = clip_x + 14, .y = clip_y + 44, .w = 184, .h = SHOP_LIST_LINE * 44}.Contains(mouse.x, mouse.y) &&

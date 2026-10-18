@@ -5245,7 +5245,7 @@ void CBattleCharaInfo::ClearMagicSwordPow() {
 }
 
 float CBattleCharaInfo::AddAbs(int slot, float amount, int *leveled_up) {
-    float        rate;
+    float        rate PORT_INIT(0.0f);
     COMMON_GAGE *gage = GetNowAccessAbs(slot);
 
     if (gage == NULL) {

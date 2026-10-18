@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
