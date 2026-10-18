@@ -9,3 +9,4 @@ void                   PortRetailInitMainCharaBG(int, mgCMemory *, int) asm("Men
 int                    PortRetailKeyMainCharaBG() asm("MenuChr_KeyMainCharaBG");
 extern CMenuMosSelect *MenuMosSelectPtr asm("MenuMouse_MosSelect");
 extern CMenuCostumeSel *MenuCosPtr asm("MenuMouse_Costume");
+extern short            MenuCosutumeLoadPhase asm("MenuMouse_CostumeLoadPhase");

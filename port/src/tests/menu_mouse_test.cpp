@@ -1116,3 +1116,68 @@ TEST_F(MenuMouseInput, RepairBoardInputLeavesNoTargetForCedricsCommandsAfterItCl
         MenuItemBrdUnderBrdPosXY[1] = old_y;
     }
 }
+
+namespace {
+MenuMouseSample DragSample(float x, bool held, bool pressed = false) {
+    return {.x = x, .y = 200, .pointing = true, .clicked = pressed ? 1u : 0u, .held = held ? 1u : 0u};
+}
+} // namespace
+
+TEST(MenuMouseDrag, TurnsOnlyAfterAFreshPressOverTheArea) {
+    MenuMouseDrag drag;
+    const int     owner = 0;
+    EXPECT_EQ(drag.Step(&owner, 1, true, DragSample(350, true, true), false), 0);
+    EXPECT_EQ(drag.Step(&owner, 2, true, DragSample(370, true), true), 0) << "pressed beside the area";
+    EXPECT_EQ(drag.Step(&owner, 3, true, DragSample(380, false), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 4, true, DragSample(380, true, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 5, true, DragSample(395, true), false), 15) << "the drag keeps going off the area";
+    EXPECT_EQ(drag.Step(&owner, 6, true, DragSample(390, true), true), -5);
+}
+
+TEST(MenuMouseDrag, AHeldPressDoesNotCarryThroughALoad) {
+    MenuMouseDrag drag;
+    const int     owner = 0;
+    // Pressed while the model is still loading, then held as it finishes: no stale travel.
+    EXPECT_EQ(drag.Step(&owner, 1, false, DragSample(350, true, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 2, false, DragSample(420, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 3, true, DragSample(450, true), true), 0);
+    EXPECT_FALSE(drag.Dragging());
+    // A load during a drag ends it too.
+    EXPECT_EQ(drag.Step(&owner, 4, true, DragSample(450, true, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 5, false, DragSample(460, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 6, true, DragSample(500, true), true), 0);
+}
+
+TEST(MenuMouseDrag, AQuestionOrMissedTicksNeedAFreshPress) {
+    MenuMouseDrag drag;
+    const int     owner = 0;
+    EXPECT_EQ(drag.Step(&owner, 1, true, DragSample(350, true, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 2, true, DragSample(360, true), true), 10);
+    // A confirmation question cancels the drag; the button still held afterwards turns nothing.
+    drag.Cancel();
+    EXPECT_EQ(drag.Step(&owner, 3, true, DragSample(380, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 4, true, DragSample(380, true, true), true), 0);
+    EXPECT_EQ(drag.Step(&owner, 5, true, DragSample(390, true), true), 10);
+    // Ticks the menu skipped (its question took the mouse) end it as well.
+    EXPECT_EQ(drag.Step(&owner, 9, true, DragSample(420, true), true), 0);
+}
+
+TEST(MenuMouseDrag, ReleaseOrAReopenedMenuEndsTheDrag) {
+    MenuMouseDrag drag;
+    const int     first = 0;
+    const int     reopened = 0;
+    EXPECT_EQ(drag.Step(&first, 1, true, DragSample(350, true, true), true), 0);
+    EXPECT_EQ(drag.Step(&first, 2, true, DragSample(352, false), true), 0) << "released";
+    EXPECT_EQ(drag.Step(&first, 3, true, DragSample(360, true), true), 0) << "held again without a press";
+    EXPECT_EQ(drag.Step(&first, 4, true, DragSample(360, true, true), true), 0);
+    EXPECT_EQ(drag.Step(&first, 5, true, DragSample(365, true), true), 5);
+    // The menu closes and another opens while the button is still down.
+    EXPECT_EQ(drag.Step(&reopened, 6, true, DragSample(380, true), true), 0);
+    EXPECT_FALSE(drag.Dragging());
+    // The pointer leaving the menu (hidden) ends it too.
+    EXPECT_EQ(drag.Step(&reopened, 7, true, DragSample(380, true, true), true), 0);
+    MenuMouseSample hidden = DragSample(400, true);
+    hidden.pointing = false;
+    EXPECT_EQ(drag.Step(&reopened, 8, true, hidden, true), 0);
+    EXPECT_EQ(drag.Step(&reopened, 9, true, DragSample(420, true), true), 0);
+}

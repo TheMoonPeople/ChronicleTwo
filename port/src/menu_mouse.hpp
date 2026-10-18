@@ -34,6 +34,25 @@ int   MenuMouseHit(std::span<const MenuMouseRect> rows, float x, float y);
 int   MenuMouseChoose(const MenuMouseSample &mouse, std::span<const MenuMouseRect> rows, int selected, int wheel_step = 1);
 // Whole wheel notches move selected by wheel_step per notch, clamped to [0, count).
 int MenuMouseWheelStep(int selected, float wheel, int count, int wheel_step = 1);
+
+// A left-button drag across an area of one menu, such as the costume model. It starts only on a fresh
+// press over the area while the menu takes input, and ends on release, when the menu stops taking input
+// or the pointer leaves it, when the owner changes, and when a tick passes without a Step (the menu
+// closed or skipped its input), so a press held across any of those turns nothing until pressed again.
+class MenuMouseDrag {
+public:
+    // The pointer's x travel this tick while dragging, or 0.
+    float Step(const void *owner, int tick, bool ready, const MenuMouseSample &mouse, bool over_area);
+    void  Cancel() { dragging_ = false; }
+    bool  Dragging() const { return dragging_; }
+
+private:
+    const void *owner_ = nullptr;
+    int         tick_ = 0;
+    bool        stepped_ = false;
+    bool        dragging_ = false;
+    float       x_ = 0;
+};
 class CMenuPosDataForm;
 // A drawn form part's rectangle; empty when the form or the part is hidden or missing.
 MenuMouseRect MenuMousePart(CMenuPosDataForm *form, const char *name);
