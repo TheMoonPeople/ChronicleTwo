@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <optional>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -55,12 +56,12 @@ std::vector<AnalysisSource> ParseAnalysis(const native_config::Json &document) {
     using namespace native_config;
     std::vector<AnalysisSource> sources;
     for (const auto &source : Array(document, "sources")) {
-        AnalysisSource parsed{Int(source, "id"), {}, {}};
+        AnalysisSource parsed{.id = Int(source, "id"), .conditions = {}, .entries = {}};
         for (const auto &condition : Array(source, "conditions")) {
-            parsed.conditions.push_back({Int(condition, "index"), OptionalText(condition, "name"), OptionalInt(condition, "geo_floor")});
+            parsed.conditions.push_back({.index = Int(condition, "index"), .name = OptionalText(condition, "name"), .geo_floor = OptionalInt(condition, "geo_floor")});
         }
         for (const auto &entry : Array(source, "entries")) {
-            AnalysisEntry analysis{Int(entry, "index"), Int(entry, "unk_10"), OptionalText(entry, "message"), OptionalInt(entry, "geo_floor"), std::nullopt, std::nullopt, std::nullopt, OptionalInt(entry, "percent")};
+            AnalysisEntry analysis{.index = Int(entry, "index"), .unk_10 = Int(entry, "unk_10"), .message = OptionalText(entry, "message"), .geo_floor = OptionalInt(entry, "geo_floor"), .condition_numbers = std::nullopt, .on_parts = std::nullopt, .off_parts = std::nullopt, .percent = OptionalInt(entry, "percent")};
             if (entry.contains("condition_numbers")) {
                 analysis.condition_numbers = IntList(entry, "condition_numbers");
             }
@@ -150,5 +151,5 @@ PORT_OVERRIDE void LoadEditAnalyzeData(int area_no, u_long128 * /*dest*/) {
     if (const auto sources = native_config::ReadGame<std::vector<AnalysisSource> >(name.c_str(), "georama_analysis", ParseAnalysis)) {
         ApplyAnalysis(*sources, &memory);
     }
-    std::printf("GeoData Remain = %dkbyte\n", ((memory.stack_size - memory.stack_used) * 16) / 1024);
+    std::println("GeoData Remain = {}kbyte", ((memory.stack_size - memory.stack_used) * 16) / 1024);
 }

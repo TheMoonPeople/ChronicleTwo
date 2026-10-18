@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <iterator>
 
 #include "actionchara.hpp"
@@ -87,6 +88,7 @@ struct State {
     gfx::TextureHandle picture = gfx::kNullTexture;  /**< Window-resolution grab of the framed world. */
     bool               captured = false;             /**< The picture holds this menu's frame. */
     bool               fill_pending = false;         /**< The Item page's black fill is still to come. */
+    std::uint64_t      generation = 0;               /**< Frame at which this menu's framing began. */
     Placed             placed;                       /**< Menu model standing in the world. */
 };
 
@@ -114,15 +116,24 @@ float LayoutLeft() {
     return std::max(mgPortVisibleExtent().left, (width - width * kLayoutAspect / kFrameAspect) * 0.5f);
 }
 
+// The menu script keeps this destination while a form slides in or out.
+std::optional<float> InwardX(const CMenuPosDataForm &form) {
+    constexpr char k_inward_action[] = "\x92\x86\x82\xD6";
+    if (form.action == nullptr) {
+        return std::nullopt;
+    }
+    for (int i = 0; i < form.action_num; ++i) {
+        const MENU_FORM_ACTION &action = form.action[i];
+        if (action.move != nullptr && std::strncmp(action.name, k_inward_action, sizeof(action.name)) == 0) {
+            return action.move->x;
+        }
+    }
+    return std::nullopt;
+}
+
 // Logical x where the Item page's panels split between the left and right edges: the bag board's left edge.
 float LayoutSplit() {
-    float split_x = 240.0f;
-    if (CMenuPosDataForm *board = class_menu_item_info.item_board_form) {
-        float board_y = 0.0f;
-        board->GetPutPosXY(nullptr, split_x, board_y);
-        split_x -= 2.0f;
-    }
-    return split_x;
+    return ItemPanelSplit(class_menu_item_info.item_board_form);
 }
 
 // Side the selection and the command popup move with: -1 the character's panels, 1 the bag.
@@ -354,7 +365,7 @@ bool HoldMenuInit(MENU_INIT_ARG *arg) {
         return false;
     }
 
-    state = State{.stage = Stage::Settle, .loop = *loop, .arg = arg, .scene = scene, .picture = state.picture};
+    state = State{.stage = Stage::Settle, .loop = *loop, .arg = arg, .scene = scene, .picture = state.picture, .generation = static_cast<std::uint64_t>(mgPortFrameCount())};
     // The menu's other pages show the world as it was asked for, with the player and the walking camera.
     const gfx::TextureHandle unframed = gfx::NamedRenderTarget("menu world unframed", static_cast<uint32_t>(mgScreenWidth),
                                                                static_cast<uint32_t>(mgScreenHeight), false, false, true);
@@ -447,28 +458,51 @@ bool FillWithBackdrop() {
     }
     state.fill_pending = false;
 
+    const int                alpha = ItemBackdropAlpha();
+    const gfx::UiAnchorScope unanchored(gfx::UiAnchor{});
+    if (alpha < 128 && MenuPosData != nullptr) {
+        // Rebuild the returning backdrop below the dissolving world, leaving the moving panels above both.
+        int loaded_texture = -1;
+        for (CMenuPosDataForm *form = MenuPosData->GetDrawTopList(); form != nullptr; form = form->next) {
+            if (HidesForm(*form)) {
+                form->MenuFormDraw(static_cast<int>(form->x), static_cast<int>(form->y), loaded_texture);
+            }
+        }
+    }
+
     // A frame target addresses the window's sides past the logical frame at texels outside it.
     const mgPortExtent extent = mgPortVisibleExtent();
-    const auto         corner = [](float x, float y) {
+    const auto         corner = [alpha](float x, float y) {
         return gfx::Vertex2D{
-            .x = x, .y = y, .z = 0.0f, .u = x, .v = y, .color = {0x80, 0x80, 0x80, 0x80}
+            .x = x, .y = y, .z = 0.0f, .u = x, .v = y, .color = {0x80, 0x80, 0x80, static_cast<uint8_t>(alpha)}
         };
     };
     const std::array strip = {corner(extent.left, extent.top), corner(extent.right, extent.top),
                               corner(extent.left, extent.bottom), corner(extent.right, extent.bottom)};
     gfx::DrawState   draw_state = mgPortDrawState();
-    draw_state.blend = false;
+    draw_state.blend = true;
+    draw_state.alpha = {};
     draw_state.alpha_test = false;
     draw_state.depth_test = gfx::DepthTest::Always;
     draw_state.depth_write = false;
     draw_state.cull = gfx::CullMode::None;
+    draw_state.scissor = false;
     gfx::TextureBinding binding;
     binding.texture = state.picture;
     binding.ignore_alpha = true;
     // The picture fills the window behind the spread panels, not the spread itself.
-    const gfx::UiAnchorScope unanchored(gfx::UiAnchor{});
+    const gfx::Interp2DScope interpolation({.key = 0x4954454D42474E44, .generation = state.generation});
     mgPortDraw2D(gfx::Primitive::TriangleStrip, strip, binding, draw_state);
     return true;
+}
+
+int ItemBackdropAlpha() {
+    if (class_menu_item_info.mode != MENU_ASK_MODE_CLOSE) {
+        return 128;
+    }
+    // The native frame travels from x=-192 to x=0 during the return and ends before the page switches.
+    const float remaining = std::clamp(-GetMenuMainFrameLeftTopPos(0)[0] / 192.0f, 0.0f, 1.0f);
+    return static_cast<int>(std::lround(128.0f * remaining * remaining * (3.0f - 2.0f * remaining)));
 }
 
 bool ViewMenuCharacter() {
@@ -520,18 +554,52 @@ bool HidesForm(const CMenuPosDataForm &form) {
                                        &form == MenuPosData->GetFormInfo(const_cast<char *>("mainform_fill"))));
 }
 
+float ItemPanelSplit(const CMenuPosDataForm *board) {
+    if (board != nullptr) {
+        if (const auto inward_x = InwardX(*board); inward_x && *inward_x > 0.0f && *inward_x < mgScreenWidth) {
+            return *inward_x - 2.0f;
+        }
+    }
+    return 240.0f;
+}
+
+int ItemPanelSide(const CMenuPosDataForm &form, float split) {
+    if (&form == class_menu_item_info.item_board_form || &form == class_menu_item_info.money_form) {
+        return 1;
+    }
+    for (const CMenuPosDataForm *view : class_menu_item_info.view_form) {
+        if (&form == view) {
+            return -1;
+        }
+    }
+    const float x = InwardX(form).value_or(form.x);
+    return x >= split - 40.0f ? 1 : -1;
+}
+
+bool RootChromeUnanchored(const CMenuPosDataForm &form) {
+    if (form.name == nullptr) {
+        return false;
+    }
+    if (std::strcmp(form.name, "areaboard") == 0 || std::strcmp(form.name, "timeboard") == 0 ||
+        std::strcmp(form.name, "msg1") == 0 || std::strcmp(form.name, "mi00") == 0) {
+        return true;
+    }
+    return form.name[0] == 'm' && form.name[1] == 'i' && form.name[2] >= '0' && form.name[2] <= '9' &&
+           form.name[3] == '\0';
+}
+
 std::optional<gfx::UiAnchor> FormAnchor(const CMenuPosDataForm &form) {
     if (!ItemBackdrop()) {
         return std::nullopt;
+    }
+    if (RootChromeUnanchored(form)) {
+        return gfx::UiAnchor{};
     }
     // The command popup moves with the panel of the item it is for.
     if (class_menu_item_info.mode != MENU_ASK_MODE_NONE && &form == class_menu_item_info.ask_para.form) {
         return gfx::UiAnchor::Side(SelectionSide(), 0, true, kLayoutAspect);
     }
-    float form_x = 0.0f;
-    float form_y = 0.0f;
-    const_cast<CMenuPosDataForm &>(form).GetPutPosXY(nullptr, form_x, form_y);
-    return gfx::UiAnchor::Side(form_x >= LayoutSplit() - 40.0f ? 1 : -1, 0, true, kLayoutAspect);
+    return gfx::UiAnchor::Side(ItemPanelSide(form, LayoutSplit()), 0, true, kLayoutAspect);
 }
 
 std::optional<gfx::UiAnchor> SelectionAnchor() {

@@ -59,9 +59,9 @@ protected:
     void SetUp() override {
         GetCurrentDir(previous_directory.data());
         SetCurrentDir(nullptr);
-        std::filesystem::create_directories(root / "port_data/models");
+        std::filesystem::create_directories(root / "data/models");
         const std::array<float, 9> positions{0, 0, 0, 1, 0, 0, 0, 1, 0};
-        std::ofstream              binary(root / "port_data/models/fish.bin", std::ios::binary);
+        std::ofstream              binary(root / "data/models/fish.bin", std::ios::binary);
         binary.write(reinterpret_cast<const char *>(positions.data()), sizeof(positions));
         binary.close();
         const Json gltf = {
@@ -75,7 +75,7 @@ protected:
             {"bufferViews", Json::array({{{"buffer", 0}, {"byteLength", sizeof(positions)}}})                                                                  },
             {"accessors",   Json::array({{{"bufferView", 0}, {"componentType", 5126}, {"count", 3}, {"type", "VEC3"}, {"min", {0, 0, 0}}, {"max", {1, 1, 0}}}})}
         };
-        Write(root / "port_data/models/fish.gltf", gltf);
+        Write(root / "data/models/fish.gltf", gltf);
         const Json mesh = {
             {"frame",        0                                                                                                                                                                                   },
             {"vertex_count", 3                                                                                                                                                                                   },
@@ -114,9 +114,9 @@ protected:
             {{"command", "IMG_END"}, {"args", Json::array()}                                        },
             {{"command", "MODEL"},   {"args", Json::array({geometry})}                              }
         });
-        Write(root / "port_data/models/fish.game.json", game);
-        Write(root / "port_data/menu/aqua/fish/f01a1.json", Texture(4));
-        Write(root / "port_data/menu/aqua/fish/f01a2.json", Texture(8));
+        Write(root / "data/models/fish.game.json", game);
+        Write(root / "data/menu/aqua/fish/f01a1.json", Texture(4));
+        Write(root / "data/menu/aqua/fish/f01a2.json", Texture(8));
         std::filesystem::create_directories(root / "data");
         DataReadIndex(root / "data");
         texture_memory.SetHeapMem(texture_storage.data(), static_cast<int>(texture_storage.size()));

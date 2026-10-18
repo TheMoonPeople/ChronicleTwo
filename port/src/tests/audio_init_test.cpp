@@ -126,7 +126,7 @@ double Amplitude(const std::vector<float> &dry, double hz) {
 
 TEST(AudioInit, DisabledOutputStartsNothing) {
     AudioEnvironment env;
-    env.Disable();
+    AudioEnvironment::Disable();
     EXPECT_TRUE(AudioInit());
     EXPECT_FALSE(AudioOutputRunning());
     AudioShutdown();

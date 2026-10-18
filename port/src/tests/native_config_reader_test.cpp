@@ -32,9 +32,9 @@ protected:
 
     void SetUp() override {
         directory = std::filesystem::temp_directory_path() / ("chronicle_native_reader_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-        std::filesystem::create_directories(directory / "port_data/configs");
+        std::filesystem::create_directories(directory / "data/configs");
         std::filesystem::create_directories(directory / "data");
-        Write(directory / "port_data/configs/shop.cfg.json", Shops(7));
+        Write(directory / "data/configs/shop.cfg.json", Shops(7));
         DataReadIndex(directory / "data");
     }
 
@@ -84,7 +84,7 @@ std::vector<std::array<int, 3> > replayed;
 /**
  * Records three integer slots, including inherited ones.
  */
-int CaptureInts(SPI_STACK *stack, int) {
+int CaptureInts(SPI_STACK *stack, int /*unused*/) {
     replayed.push_back({spiGetStackInt(stack), spiGetStackInt(stack + 1), spiGetStackInt(stack + 2)});
     return 0;
 }

@@ -4941,8 +4941,8 @@ void MenuPosFormValueSetWeapon(CGameDataUsed *item) {
             form = CMenuItemInfoPt->view_form[2];
             float rates[2] = {0.0f, 0.0f};
             s16   values[12] = {0};
-            float max;
-            float now;
+            float max PORT_INIT(0.0f);
+            float now PORT_INIT(0.0f);
 
             if (type == USED_ITEM_TYPE_WEAPON) {
                 WEAPON_USED *weapon = &item->data.weapon;
@@ -5527,7 +5527,7 @@ int CMenuItemInfo::EquipDirect(int chara, CGameDataUsed *item, int &slot) {
     int            status;
     int            robo_slot2;
     int            data_type = GetItemDataType(item_no);
-    CGameDataUsed *target;
+    CGameDataUsed *target PORT_INIT(NULL);
     int            chara_no = chara;
 
     if (item->IsFishingRod() && !CheckFishCondition()) {

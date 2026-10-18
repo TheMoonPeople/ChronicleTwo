@@ -49,7 +49,25 @@ constexpr std::size_t kExpectedFiles = 10240;
 
 // The index replaces DATA.HD4, which never listed these: manifest.txt and the movie/ and sound/ trees
 // are converted data that their own subsystems read, not dataread.
-constexpr std::array<std::string_view, 5> kExcludedRootNames = {"manifest.txt", "manifest.json", "movie", "sound", "port_data"};
+constexpr std::array<std::string_view, 4> kExcludedRootNames = {"manifest.txt", "manifest.json", "movie", "sound"};
+
+/**
+ * Locates the loose game configuration in a checkout or beside an installed executable.
+ */
+fs::path GameplayRoot() {
+    const auto      executable_directory = PathsExecutable().parent_path();
+    std::error_code error;
+    for (auto directory = executable_directory; !directory.empty(); directory = directory.parent_path()) {
+        const auto candidate = directory / "port/gameplay";
+        if (fs::is_directory(candidate, error)) {
+            return candidate;
+        }
+        if (directory == directory.parent_path()) {
+            break;
+        }
+    }
+    return executable_directory / "gameplay";
+}
 
 struct IndexedFile {
     vfs::Ref    file;             /**< Data file supplying the bytes. */
@@ -360,11 +378,9 @@ void DataReadIndex(const fs::path &root) {
     TextureSourceClear();
     loaded_buffers.clear();
     const fs::path data_root = root.has_filename() ? root : root.parent_path();
-    const fs::path native_root = data_root.parent_path() / "port_data";
     const fs::path archive = data_root.parent_path() / "data.zip";
 
-    // data.zip holds both converted trees in one namespace; without it the data/ and port_data/ directories are
-    // mounted together, port_data/ winning on a shared name.
+    // Archive and directory mounts expose the same unified asset namespace.
     std::shared_ptr<const vfs::Mount> base;
     fs::path                          location = data_root;
     std::error_code                   error;
@@ -376,14 +392,15 @@ void DataReadIndex(const fs::path &root) {
             std::println(stderr, "dataread: {}: {}", PathsDisplay(archive), exception.what());
         }
     } else {
-        base = vfs::OpenDirectories({data_root, native_root});
+        base = vfs::OpenDirectory(data_root);
     }
     if (base) {
+        base = vfs::Overlay({vfs::OpenDirectory(GameplayRoot()), std::move(base)});
         texture_catalog::Load(base);
     } else {
         texture_catalog::Clear();
     }
-    datapacks::Load(base, native_root);
+    datapacks::Load(base, data_root);
     texture_catalog::SetCandidateResolver(datapacks::Candidates);
     BuildIndex(base, location);
     std::println(stderr, "dataread: index ready in {:.3f} seconds",
@@ -614,7 +631,7 @@ PORT_OVERRIDE void SetCurrentDir(char *dir) {
     }
     const std::string_view directory(dir);
     if (directory.size() > directory_limit) {
-        std::fprintf(stderr, "dataread: current directory longer than %zu bytes ignored: %s\n", directory_limit, dir);
+        std::println(stderr, "dataread: current directory longer than {} bytes ignored: {}", directory_limit, dir);
         return;
     }
     current_dir = directory;
@@ -737,7 +754,7 @@ PORT_OVERRIDE void BreakReadBG() {
 // the load that needs it.
 PORT_OVERRIDE int LoadFile(char *path, void *buffer, int *out_size) {
     if (!LoadFile2(path, buffer, out_size, LOAD_FILE_READ)) {
-        std::fprintf(stderr, "File open error \"%s\"\n \n \n", path);
+        std::println(stderr, "File open error \"{}\"\n \n ", path);
         Exit(0);
     }
     return 1;
@@ -851,7 +868,7 @@ PORT_OVERRIDE int WriteFile(char *path, void *buffer, int size) {
         return 0;
     }
     if (std::string_view(path).starts_with("net:")) {
-        std::fprintf(stderr, "dataread: no network socket on the host, not writing %s\n", path);
+        std::println(stderr, "dataread: no network socket on the host, not writing {}", path);
         return 0;
     }
 

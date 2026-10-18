@@ -3,6 +3,7 @@
 #include <array>
 #include <cmath>
 #include <cstring>
+#include <numbers>
 #include <optional>
 #include <string>
 #include <utility>
@@ -356,7 +357,7 @@ private:
             point.invent.box.max[3] = 1.0f;
             point.invent.unk_24 = invent.unk_24;
             point.invent.range = invent.range;
-            point.invent.angle = PI * invent.angle_degrees / 180.0f;
+            point.invent.angle = std::numbers::pi_v<float> * invent.angle_degrees / 180.0f;
         }
         if (source.event) {
             Event(point, *source.event);
@@ -814,7 +815,7 @@ PORT_OVERRIDE void CMap::LoadCfgFile(char *script, int /*length*/, mgCMemory *me
     for (const auto &rect : config->draw_off_rects) {
         mgVu0FBOX first{};
         mgVu0FBOX second{};
-        std::memcpy(first.min, &rect[0], sizeof(float) * 3);
+        std::memcpy(first.min, rect.data(), sizeof(float) * 3);
         std::memcpy(first.max, &rect[3], sizeof(float) * 3);
         std::memcpy(second.min, &rect[6], sizeof(float) * 3);
         std::memcpy(second.max, &rect[9], sizeof(float) * 3);

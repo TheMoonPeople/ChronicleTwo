@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <iterator>
+#include <utility>
 
 #include "gameutil.hpp"
 #include "mg_frame.hpp"
@@ -30,7 +31,7 @@ void LinkVertexNormals(tagFRAME_INF &info, const mgCVisualMDT &mesh) {
                     continue;
                 }
                 FrameLinkRecord &record = info.vertex_refs[from];
-                if (record.count < static_cast<s32>(std::size(record.link))) {
+                if (std::cmp_less(record.count, std::size(record.link))) {
                     record.link[record.count++] = to;
                 }
             }

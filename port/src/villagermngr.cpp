@@ -32,7 +32,7 @@ PORT_OVERRIDE int CVillagerMngr::GetAppearVlgr(int progress, int time, int map_n
         // Records the schedule's places on this map; returns whether it has any place at this time.
         const auto collect = [&](const CVillagerPlace::ProgressInfo &schedule) {
             bool any = false;
-            for (auto alternative : schedule.place) {
+            for (const auto *alternative : schedule.place) {
                 CVillagerPlaceInfo *place = alternative[time];
                 if (place == nullptr) {
                     continue;

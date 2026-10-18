@@ -26,7 +26,7 @@ std::vector<NativeDebugRaceFish> ParseDebugRaceFish(const native_config::Json &d
         if (name && name->size() >= sizeof(BREEDFISH_USED::name)) {
             throw std::runtime_error("gyorace fish name is too long");
         }
-        fish.push_back({name.value_or(std::string{}), name.has_value(), Int(entry, "item"), Int(entry, "color"), Int(entry, "kind"), Int(entry, "tactics"), Int(entry, "battle"), Int(entry, "stamina"), Int(entry, "boost"), Int(entry, "endurance"), Int(entry, "tenacity")});
+        fish.push_back({.name = name.value_or(std::string{}), .has_name = name.has_value(), .item = Int(entry, "item"), .color = Int(entry, "color"), .kind = Int(entry, "kind"), .tactics = Int(entry, "tactics"), .battle = Int(entry, "battle"), .stamina = Int(entry, "stamina"), .boost = Int(entry, "boost"), .endurance = Int(entry, "endurance"), .tenacity = Int(entry, "tenacity")});
     }
     return fish;
 }

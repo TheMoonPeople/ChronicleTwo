@@ -41,7 +41,7 @@ TEST(MenuWorkspace, DirectoryMarkerDoesNotLimitAquariumStorageOrTextureReentry) 
     const auto root = std::filesystem::temp_directory_path() / ("menu_workspace_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     const auto previous_root = PathsDataRoot();
     std::filesystem::create_directories(root / "data");
-    const auto directory = root / "port_data/menu/native.pac";
+    const auto directory = root / "data/menu/native.pac";
     std::filesystem::create_directories(directory);
     std::ofstream(directory / "pack.json") << R"({"schema_version":1,"kind":"asset_directory"})";
     std::ofstream(directory / "edmenu.json") << R"({"schema_version":3,"groups":[0],"entries":[{"name":"menuwork2","pictures":[{"levels":["pixel.png"]}]}]})";

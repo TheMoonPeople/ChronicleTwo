@@ -29,22 +29,22 @@ TEST(EffectListLoad, EntersDirectTextureDocumentsWithoutRetailImageMembers) {
     const auto base = fs::temp_directory_path() / ("effectlist_native_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     const auto previous = PathsDataRoot();
     fs::create_directories(base / "data/effect");
-    fs::create_directories(base / "port_data/effect/map.efp/nested");
-    std::ofstream(base / "port_data/effect/map.efp/pack.json") << R"({"schema_version":1,"kind":"asset_directory"})";
+    fs::create_directories(base / "data/effect/map.efp/nested");
+    std::ofstream(base / "data/effect/map.efp/pack.json") << R"({"schema_version":1,"kind":"asset_directory"})";
     const nlohmann::json texture = {
         {"schema_version", 3                                                                                         },
         {"groups",         {0}                                                                                       },
         {"entries",        {{{"name", "effect_native"}, {"pictures", {{{"canvas", {{"width", 2}, {"height", 2}}}}}}}}}
     };
-    std::ofstream(base / "port_data/effect/map.efp/spark.json") << texture.dump(2);
-    std::ofstream(base / "port_data/effect/map.efp/unrelated.json") << nlohmann::json({
-                                                                                          {"schema_version", 1             },
-                                                                                          {"kind",           "sound_bundle"}
+    std::ofstream(base / "data/effect/map.efp/spark.json") << texture.dump(2);
+    std::ofstream(base / "data/effect/map.efp/unrelated.json") << nlohmann::json({
+                                                                                     {"schema_version", 1             },
+                                                                                     {"kind",           "sound_bundle"}
     })
-                                                                           .dump(2);
+                                                                      .dump(2);
     auto nested = texture;
     nested["entries"][0]["name"] = "nested_texture";
-    std::ofstream(base / "port_data/effect/map.efp/nested/other.json") << nested.dump(2);
+    std::ofstream(base / "data/effect/map.efp/nested/other.json") << nested.dump(2);
     DataReadIndex(base / "data");
     mgCMemory textures;
     textures.SetHeapMem(texture_storage.data(), texture_storage.size());
