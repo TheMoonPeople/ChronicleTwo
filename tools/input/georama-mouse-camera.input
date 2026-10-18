@@ -1,0 +1,30 @@
+# With --jump edit:0 --fast-load (Sindain). Mouse counts per logical update.
+# The edit debug menu (R3) sets CharaMove 1 so Select enters Georama from the jump's start.
+0
+2000 r3
+2004
+2010 down
+2014
+2020 down
+2024
+2030 down
+2034
+2040 right
+2044
+2050 r3
+2054
+2100 select
+2106
+# Yaw: 57.3 counts at the default sensitivity is one full right-stick frame. Capture at 2400.
+2300 mouse:57.3,0
+2312
+# Upward motion moves the camera out, as the stick pulled down does. Capture at 2550.
+2450 mouse:0,-50
+2462
+# Menu ownership: motion in the parts menu must not turn the camera. Capture at 2950: same view as 2550.
+2600 triangle
+2604
+2700 mouse:100,60
+2712
+2800 circle
+2804

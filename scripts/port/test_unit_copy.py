@@ -65,6 +65,13 @@ class RetailBridgeTests(unittest.TestCase):
         self.assertIn("(&parts_heap)->ClearHeapMem();", mirror)
         self.assertNotIn("CEditMap::ClearAllParts()", mirror)
 
+    def test_georama_cursor_step_keeps_retail_body_under_its_bridge(self):
+        source = Path(__file__).resolve().parents[2] / "ps2/src/editmode.cpp"
+        mirror = unit_copy.retail_bridges(self.override, source, True)
+        self.assertEqual(mirror.count("void PortRetailEditMode(CScene *scene) {"), 1)
+        self.assertIn("camera->AddAngle(0.1f * -pad->Analog(PAD_ANALOG_RIGHT_X));", mirror)
+        self.assertNotIn("void EditMode(", mirror)
+
     def test_other_units_have_no_bridge(self):
         self.assertEqual(unit_copy.retail_bridges(self.override, Path("other.cpp"), True), "")
 

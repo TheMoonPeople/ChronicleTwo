@@ -42,6 +42,7 @@ def load_port_override(path: Path):
 RETAIL_BRIDGES = {
     "editctrl.cpp": [("ResetViewMode(CScene*)", "ResetViewMode", "PortRetailResetViewMode")],
     "editmap.cpp": [("CEditMap::ClearAllParts()", "ClearAllParts", "PortRetailClearAllParts")],
+    "editmode.cpp": [("EditMode(CScene*)", "EditMode", "PortRetailEditMode")],
     "editloop.cpp": [
         ("UpdateTrBoxFlag(int)", "UpdateTrBoxFlag", "PortRetailUpdateTrBoxFlag"),
         ("EditDraw()", "EditDraw", "PortRetailEditDraw"),

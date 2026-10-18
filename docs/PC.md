@@ -4,7 +4,7 @@
 
 The port runs the retail main loop on the shared renderer and mixer, reading extracted PAL disc files. Supported checkpoints include the boot movies, title, costume selection, opening event, Palm Brinks exploration and the first Underground Channel floor. Town and dungeon movement, inventory item use, chapter resources, menus, photos and save/continue have native implementations and bounded replay fixtures. These checkpoints do not establish a complete campaign or every sub-game; the fish race still aborts at its unimplemented loop.
 
-The PC controls include keyboard menu navigation, mouse menus and item drag/drop, town and dungeon mouse camera control, optional wheel zoom, a PC settings page, JSON save files and Georama towns without a part limit. Sharp ASCII font rendering is an opt-in prototype, off by default. Presentation can interpolate between logic frames independently of the display rate. Ordinary boots leave debug controls disabled; `game.debug_mode=true` or `--jump` enables them explicitly.
+The PC controls include keyboard menu navigation, mouse menus and item drag/drop, town, dungeon and Georama mouse camera control, optional wheel zoom, a PC settings page, JSON save files and Georama towns without a part limit. Sharp ASCII font rendering is an opt-in prototype, off by default. Presentation can interpolate between logic frames independently of the display rate. Ordinary boots leave debug controls disabled; `game.debug_mode=true` or `--jump` enables them explicitly.
 
 ## Building and running
 
@@ -926,7 +926,8 @@ a later event resets the camera; the mouse turns the camera whenever camera
 control is on, as the right stick does. Paused player or field control and
 pending/running event scripts retain camera ownership. Town water movement uses
 the walking camera; ladders keep their authored camera for both inputs.
-Boss and arena views, menus and Georama retain their existing controls. Fixed
+Boss and arena views and menus retain their existing controls; Georama has its
+own mouse camera, below. Fixed
 town rooms use the separate fixed-camera look option below; photo view uses
 the direct aiming controls described below. A camera-reset request owns
 its frame; a later mouse yaw cancels an unfinished reset.
@@ -957,6 +958,33 @@ motion into it. The town caller preserves its retail movement and ladder helpers
 then applies mouse look only to the established eye-view owner.
 `tools/input/dungeon-mouse-eye.input` and `tools/input/town-mouse-eye.input` enter
 R2 view and exercise mouse look.
+
+### Georama mouse camera
+
+In Georama's placement view the mouse turns and moves the camera as the right
+stick does there. Horizontal motion turns the camera around the cursor; moving
+the mouse right turns the view as the stick pushed right does. Vertical motion
+changes the camera's distance, as the stick's vertical axis does: moving the
+mouse up (with `input.mouse_invert_y` off) moves it out, like the stick pulled
+down. `input.mouse_sensitivity` applies as for the follow camera, and the
+distance moves at the stick's ratio of 15 units for each 0.1 radian of turn,
+within retail's 400 to 800. The wheel, L1/R1 and the mouse buttons keep their
+existing roles; retail has no Georama zoom button, so the wheel adds none.
+
+The `EditMode` port override (`port/src/editmode.cpp`) applies each pad read's
+mouse sample to the active edit camera before the retail cursor step, which then
+adds the stick, follows the cursor and pulls the camera in from walls and under
+the map's height limit exactly as it does for the stick alone. The sample is
+skipped while retail ignores the pad (the cursor lock after a placement or removal),
+with locked input or the debug camera, and outside an edit map. The parts menu
+and its other screens take the mouse as their pointer, so motion there does not
+reach the camera.
+
+`tools/input/georama-mouse-camera.input`, with `--jump edit:0 --fast-load`
+(Sindain), sets the edit debug menu's CharaMove to 1, enters Georama with Select
+and exercises yaw, vertical motion and a parts-menu interruption; its comments
+give capture frames. `GeoramaMouse.*` covers the stick parity, the distance
+limits and the ownership checks.
 
 ### First-person walking
 
@@ -1693,7 +1721,7 @@ PORT_OVERRIDE void mgInit(int screen_mode, int video_mode) {
 
 `port/src/<unit>_config_bridge.inc`, when it exists, is appended to that unit's copy, so native code can reach the unit's file-local record types and statics (`menuaqua`'s prize groups, `editdebug`'s gyorace counter, `movieviewlp`'s movie table); `character_metadata_bridge.inc` is appended to `character.cpp`. `CONFIG_SEAMS` replaces only the configuration interpreter run inside a retail loader that does other work around it (`LoadSkyPack`, `CEditMap::LoadEditInfo`, `CDynamicAnime::Load`) with a call into `port/src`, keeping every line number.
 
-Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`, the outfit-index guard around `GetRoboPartsInfo`, and the chest-flag split before `UpdateTrBoxFlag`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
+Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`, the outfit-index guard around `GetRoboPartsInfo`, the chest-flag split before `UpdateTrBoxFlag`, and the Georama mouse camera before `EditMode`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
 
 Each name then has one definition. A replacement without the tag leaves `ps2/src`'s definition in, and the link fails on the duplicate symbol. A replacement takes the signature `ps2/src` gives the function: parameter types as spelled; names and default arguments may differ. By convention a replacement goes in the file that mirrors its unit.
 
