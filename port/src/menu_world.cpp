@@ -753,19 +753,21 @@ float RetailPointerX(float x) {
     if (class_menu_item_info.mode != MENU_ASK_MODE_NONE) {
         return SelectionSide() > 0 ? x + shift : x - shift;
     }
-    // The cursor's shift eases across the band between the two spreads, so the pointer's edges are its ends.
-    const float split = LayoutSplit();
-    const float band_left = split - kPanelFlipWidth + shift;
-    const float band_right = split - shift;
-    if (x < band_left) {
+    const bool holding = MenuCommonInfo != nullptr && MenuCommonInfo->have_item.item_no > 0;
+    return SpreadPointerX(x, shift, LayoutSplit(), holding);
+}
+
+float SpreadPointerX(float x, float shift, float split, bool holding) {
+    // The view pages move whole with the left spread right up to the split, so a part in the band where the
+    // retail cursor eases across (Max's second weapon) is hit where it is drawn. The bag moves with the right.
+    if (x < split + shift) {
         return x - shift;
     }
-    if (x >= band_right) {
+    if (x >= split - shift) {
         return x + shift;
     }
     // The gap the spread opens beside the bag: its first column while an item is held, so it stays by the
     // pointer, and nothing otherwise.
-    const bool holding = MenuCommonInfo != nullptr && MenuCommonInfo->have_item.item_no > 0;
     return holding ? split + kHeldPointerOffset : kOffLayout;
 }
 

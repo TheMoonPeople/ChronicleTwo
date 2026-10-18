@@ -225,6 +225,13 @@ float CursorFrameShift();
 float RetailPointerX(float x);
 
 /**
+ * Maps a pointer x on the spread Item page, with the left panels moved by shift (zero or negative) and the
+ * right ones by -shift about split, back to the retail layout; the gap between them is off the layout, or the
+ * bag's first column while an item is held.
+ */
+float SpreadPointerX(float x, float shift, float split, bool holding);
+
+/**
  * Where a retail layout x of the Item page is shown once its panels spread.
  */
 float SpreadX(float retail_x);

@@ -74,6 +74,21 @@ TEST(MenuWorld, OtherMenusOpenUnchanged) {
     EXPECT_FLOAT_EQ(menuworld::RetailPointerX(123.5f), 123.5f);
 }
 
+TEST(MenuWorld, SpreadPointerReachesLeftPanelPartsUpToTheSplit) {
+    // At 16:9 the left panels move 106.7 left and the bag 106.7 right of the split at 240.
+    const float shift = -106.7f;
+    // A weapon icon drawn at retail x 225, inside the 40-wide band before the split, is hit where it is drawn.
+    EXPECT_FLOAT_EQ(menuworld::SpreadPointerX(225.0f + shift, shift, 240.0f, false), 225.0f);
+    EXPECT_FLOAT_EQ(menuworld::SpreadPointerX(100.0f + shift, shift, 240.0f, false), 100.0f);
+    // The bag's first column, and the gap between the spreads.
+    EXPECT_FLOAT_EQ(menuworld::SpreadPointerX(250.0f - shift, shift, 240.0f, false), 250.0f);
+    EXPECT_LT(menuworld::SpreadPointerX(240.0f, shift, 240.0f, false), -1000.0f);
+    EXPECT_GT(menuworld::SpreadPointerX(240.0f, shift, 240.0f, true), 240.0f);
+    // At 4:3 nothing moves.
+    EXPECT_FLOAT_EQ(menuworld::SpreadPointerX(239.0f, 0.0f, 240.0f, false), 239.0f);
+    EXPECT_FLOAT_EQ(menuworld::SpreadPointerX(240.0f, 0.0f, 240.0f, false), 240.0f);
+}
+
 TEST(MenuWorld, ItemsEntryDissolvesThePlayerAndReturnsThroughTheOrb) {
     const int     saved_loop_mode = PortTownLoopMode;
     CMenuKeyFunc *saved_keys = MenuCommonInfo;
