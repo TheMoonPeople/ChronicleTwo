@@ -85,28 +85,28 @@ struct SetupKind {
  * Every action a game_setup document may hold.
  */
 constexpr std::array kSetupKinds{
-    SetupKind{"map",               SetupAction::Map,             SetupShape::Map,      "map",   nullptr},
-    SetupKind{"progress",          SetupAction::Progress,        SetupShape::One,      "value", nullptr},
-    SetupKind{"bit_flags_on",      SetupAction::BitFlagsOn,      SetupShape::List,     "flags", nullptr},
-    SetupKind{"bit_flags_off",     SetupAction::BitFlagsOff,     SetupShape::List,     "flags", nullptr},
-    SetupKind{"start_event",       SetupAction::StartEvent,      SetupShape::One,      "event", nullptr},
-    SetupKind{"georama_complete",  SetupAction::GeoramaComplete, SetupShape::List,     "towns", nullptr},
-    SetupKind{"georama_debug",     SetupAction::GeoramaDebug,    SetupShape::None,     nullptr, nullptr},
-    SetupKind{"item_set",          SetupAction::ItemSet,         SetupShape::One,      "set",   nullptr},
-    SetupKind{"get_items",         SetupAction::GetItems,        SetupShape::List,     "items", nullptr},
-    SetupKind{"get_items_counted", SetupAction::GetItemsCounted, SetupShape::Counted,  "items", nullptr},
-    SetupKind{"equip",             SetupAction::Equip,           SetupShape::Two,      "chara", "item" },
-    SetupKind{"defense",           SetupAction::Defense,         SetupShape::Two,      "chara", "value"},
-    SetupKind{"defence",           SetupAction::Defense,         SetupShape::Two,      "chara", "value"},
-    SetupKind{"hp",                SetupAction::Hp,              SetupShape::Two,      "chara", "value"},
-    SetupKind{"all_georama_parts", SetupAction::AllGeoramaParts, SetupShape::Optional, "mode",  nullptr},
-    SetupKind{"param_draw",        SetupAction::ParamDraw,       SetupShape::One,      "show",  nullptr},
-    SetupKind{"option",            SetupAction::Option,          SetupShape::Option,   "name",  "value"},
-    SetupKind{"monica",            SetupAction::Monica,          SetupShape::None,     nullptr, nullptr},
-    SetupKind{"steve",             SetupAction::Steve,           SetupShape::Optional, "core",  nullptr},
-    SetupKind{"monsters",          SetupAction::Monsters,        SetupShape::List,     "ids",   nullptr},
-    SetupKind{"party",             SetupAction::Party,           SetupShape::One,      "chara", nullptr},
-    SetupKind{"active_chara",      SetupAction::ActiveChara,     SetupShape::One,      "chara", nullptr},
+    SetupKind{.name = "map",               .action = SetupAction::Map,             .shape = SetupShape::Map,      .first = "map",   .second = nullptr},
+    SetupKind{.name = "progress",          .action = SetupAction::Progress,        .shape = SetupShape::One,      .first = "value", .second = nullptr},
+    SetupKind{.name = "bit_flags_on",      .action = SetupAction::BitFlagsOn,      .shape = SetupShape::List,     .first = "flags", .second = nullptr},
+    SetupKind{.name = "bit_flags_off",     .action = SetupAction::BitFlagsOff,     .shape = SetupShape::List,     .first = "flags", .second = nullptr},
+    SetupKind{.name = "start_event",       .action = SetupAction::StartEvent,      .shape = SetupShape::One,      .first = "event", .second = nullptr},
+    SetupKind{.name = "georama_complete",  .action = SetupAction::GeoramaComplete, .shape = SetupShape::List,     .first = "towns", .second = nullptr},
+    SetupKind{.name = "georama_debug",     .action = SetupAction::GeoramaDebug,    .shape = SetupShape::None,     .first = nullptr, .second = nullptr},
+    SetupKind{.name = "item_set",          .action = SetupAction::ItemSet,         .shape = SetupShape::One,      .first = "set",   .second = nullptr},
+    SetupKind{.name = "get_items",         .action = SetupAction::GetItems,        .shape = SetupShape::List,     .first = "items", .second = nullptr},
+    SetupKind{.name = "get_items_counted", .action = SetupAction::GetItemsCounted, .shape = SetupShape::Counted,  .first = "items", .second = nullptr},
+    SetupKind{.name = "equip",             .action = SetupAction::Equip,           .shape = SetupShape::Two,      .first = "chara", .second = "item" },
+    SetupKind{.name = "defense",           .action = SetupAction::Defense,         .shape = SetupShape::Two,      .first = "chara", .second = "value"},
+    SetupKind{.name = "defence",           .action = SetupAction::Defense,         .shape = SetupShape::Two,      .first = "chara", .second = "value"},
+    SetupKind{.name = "hp",                .action = SetupAction::Hp,              .shape = SetupShape::Two,      .first = "chara", .second = "value"},
+    SetupKind{.name = "all_georama_parts", .action = SetupAction::AllGeoramaParts, .shape = SetupShape::Optional, .first = "mode",  .second = nullptr},
+    SetupKind{.name = "param_draw",        .action = SetupAction::ParamDraw,       .shape = SetupShape::One,      .first = "show",  .second = nullptr},
+    SetupKind{.name = "option",            .action = SetupAction::Option,          .shape = SetupShape::Option,   .first = "name",  .second = "value"},
+    SetupKind{.name = "monica",            .action = SetupAction::Monica,          .shape = SetupShape::None,     .first = nullptr, .second = nullptr},
+    SetupKind{.name = "steve",             .action = SetupAction::Steve,           .shape = SetupShape::Optional, .first = "core",  .second = nullptr},
+    SetupKind{.name = "monsters",          .action = SetupAction::Monsters,        .shape = SetupShape::List,     .first = "ids",   .second = nullptr},
+    SetupKind{.name = "party",             .action = SetupAction::Party,           .shape = SetupShape::One,      .first = "chara", .second = nullptr},
+    SetupKind{.name = "active_chara",      .action = SetupAction::ActiveChara,     .shape = SetupShape::One,      .first = "chara", .second = nullptr},
 };
 
 /**
@@ -131,11 +131,11 @@ std::vector<GameSetupStep> ParseGameSetup(const native_config::Json &document) {
     std::vector<GameSetupStep> steps;
     for (const auto &entry : Array(document, "actions")) {
         const auto name = Text(entry, "action");
-        const auto kind = std::ranges::find_if(kSetupKinds, [&](const SetupKind &item) { return name == item.name; });
+        const auto *const kind = std::ranges::find_if(kSetupKinds, [&](const SetupKind &item) { return name == item.name; });
         if (kind == kSetupKinds.end()) {
             throw std::runtime_error("unknown game setup action " + name);
         }
-        GameSetupStep step{kind->action, {}, 0, 0, std::nullopt, {}, {}, std::nullopt};
+        GameSetupStep step{.action = kind->action, .map = {}, .first = 0, .second = 0, .optional = std::nullopt, .values = {}, .counted = {}, .name = std::nullopt};
         switch (kind->shape) {
             case SetupShape::None:
                 break;
@@ -361,12 +361,8 @@ void Perform(const GameSetupStep &step) {
             break;
         case SetupAction::ActiveChara: {
             int chara_no = step.first;
-            if (chara_no < USER_CHARA_MAX) {
-                chara_no = USER_CHARA_MAX;
-            }
-            if (chara_no > USER_CHARA_MONICA) {
-                chara_no = USER_CHARA_MONICA;
-            }
+            chara_no = std::max<int>(chara_no, USER_CHARA_MAX);
+            chara_no = std::min<int>(chara_no, USER_CHARA_MONICA);
             if (CUserDataManager *manager = GetUserDataMan()) {
                 manager->SetActiveChrNo(chara_no);
             }

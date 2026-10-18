@@ -38,12 +38,12 @@ struct QuestList {
  */
 QuestList ParseQuests(const native_config::Json &document) {
     using namespace native_config;
-    QuestList list{Int(document, "count"), {}};
+    QuestList list{.count = Int(document, "count"), .quests = {}};
     if (list.count < 0) {
         throw std::runtime_error("negative request count");
     }
     for (const auto &quest : Array(document, "quests")) {
-        QuestEntry entry{Int(quest, "id"), Text(quest, "name", sizeof(QUEST_INFO::name)), std::nullopt, {}};
+        QuestEntry entry{.id = Int(quest, "id"), .name = Text(quest, "name", sizeof(QUEST_INFO::name)), .comment = std::nullopt, .reactions = {}};
         if (quest.contains("comment")) {
             entry.comment = Text(quest, "comment", sizeof(QUEST_INFO::comment));
             for (const auto &reaction : Array(quest, "reactions")) {

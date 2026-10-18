@@ -6,6 +6,7 @@
 #include "common.h"
 
 #include <cstring>
+#include <numbers>
 #include <optional>
 #include <string>
 #include <vector>
@@ -59,7 +60,7 @@ std::vector<SkyRow> Rows(const native_config::Json &document, const char *key, c
     using namespace native_config;
     std::vector<SkyRow> rows;
     for (const auto &row : Array(document, key)) {
-        SkyRow parsed{band ? Int(row, "band") : 0, OptionalText(row, name_key), degree_key != nullptr ? Float(row, degree_key) : 0.0f};
+        SkyRow parsed{.band = band ? Int(row, "band") : 0, .name = OptionalText(row, name_key), .degrees = degree_key != nullptr ? Float(row, degree_key) : 0.0f};
         // The sky's fields hold 31 bytes and a terminator.
         if (parsed.name && parsed.name->size() >= kSkyName) {
             throw std::runtime_error(std::string(key) + " name is longer than the sky holds");
@@ -73,13 +74,13 @@ std::vector<SkyRow> Rows(const native_config::Json &document, const char *key, c
  * Parses a sky document.
  */
 SkyDocument ParseSky(const native_config::Json &document) {
-    return {Rows(document, "images", "file", nullptr, true),
-            Rows(document, "models", "file", "rotation_degrees", true),
-            Rows(document, "animations", "frame", "speed_degrees", true),
-            Rows(document, "suns", "file", nullptr, true),
-            Rows(document, "back_models", "file", "rotation_degrees", true),
-            Rows(document, "back_animations", "frame", "speed_degrees", true),
-            Rows(document, "backgrounds", "file", nullptr, false)};
+    return {.images = Rows(document, "images", "file", nullptr, true),
+            .models = Rows(document, "models", "file", "rotation_degrees", true),
+            .animations = Rows(document, "animations", "frame", "speed_degrees", true),
+            .suns = Rows(document, "suns", "file", nullptr, true),
+            .back_models = Rows(document, "back_models", "file", "rotation_degrees", true),
+            .back_animations = Rows(document, "back_animations", "frame", "speed_degrees", true),
+            .backgrounds = Rows(document, "backgrounds", "file", nullptr, false)};
 }
 
 /**
@@ -109,7 +110,7 @@ void Animations(const std::vector<SkyRow> &rows, int *ids, char (*names)[32], fl
         }
         ids[count] = row.band;
         CopyName(names[count], row.name);
-        speeds[count] = PI * row.degrees / 180.0f;
+        speeds[count] = std::numbers::pi_v<float> * row.degrees / 180.0f;
         ++count;
     }
 }
@@ -132,7 +133,7 @@ void PortLoadSkyInfo(MAP_SKY_INFO *info, char *script, int size) {
     for (const auto &row : sky->models) {
         if (Band(row.band)) {
             CopyName(info->sky_mds_name[row.band], row.name);
-            info->sky_rot_speed[row.band] = row.degrees * PI / 180.0f;
+            info->sky_rot_speed[row.band] = row.degrees * std::numbers::pi_v<float> / 180.0f;
         }
     }
     for (const auto &row : sky->suns) {
@@ -143,7 +144,7 @@ void PortLoadSkyInfo(MAP_SKY_INFO *info, char *script, int size) {
     for (const auto &row : sky->back_models) {
         if (Band(row.band)) {
             CopyName(info->skyb_mds_name[row.band], row.name);
-            info->skyb_rot_speed[row.band] = row.degrees * PI / 180.0f;
+            info->skyb_rot_speed[row.band] = row.degrees * std::numbers::pi_v<float> / 180.0f;
         }
     }
     for (const auto &row : sky->backgrounds) {

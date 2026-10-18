@@ -188,6 +188,28 @@ std::string CapturedString(const Json &argument) {
 }
 
 /**
+ * Observes typed arguments through the same game-text decoder used by profile playback.
+ */
+Json ObserveTyped(const Json &arguments) {
+    std::vector<std::string> strings;
+    auto slots = command_replay::Arguments(arguments, strings);
+    CaptureParity(slots.data(), static_cast<int>(slots.size()));
+    auto result = observations.back();
+    observations.erase(observations.end() - 1);
+    return result;
+}
+
+/**
+ * Reads a retail numeric operand without changing its callback type.
+ */
+double CapturedNumber(const Json &argument) {
+    if (argument.at("type") == SPI_STACK_TYPE_INT) {
+        return argument.at("integer").get<double>();
+    }
+    return std::bit_cast<float>(argument.at("float_bits").get<uint32_t>());
+}
+
+/**
  * Normalizes an ASCII resource identity for the extraction inventory comparison.
  */
 std::string Lower(std::string value) {
@@ -346,7 +368,8 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
     }
     Json manifest;
     std::ifstream(manifest_name) >> manifest;
-    const std::filesystem::path root = manifest.at("port_data").get<std::string>();
+    const std::filesystem::path root = manifest.at("data").get<std::string>();
+    const std::filesystem::path config_root = manifest.at("config").get<std::string>();
     datapacks::Load(root);
     std::set<std::string> identities;
     std::set<std::string> leaf_names;
@@ -376,6 +399,27 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
                 std::ifstream input(root / source.at("game").get<std::string>());
                 ASSERT_TRUE(input.good());
                 game = ReadParityGameplay(input);
+                auto gameplay_path = std::filesystem::path(source.at("game").get<std::string>());
+                gameplay_path.replace_extension(".character.json");
+                std::ifstream gameplay_input(config_root / gameplay_path);
+                if (gameplay_input.good()) {
+                    Json gameplay;
+                    gameplay_input >> gameplay;
+                    ASSERT_EQ(gameplay.at("kind"), "character_gameplay");
+                    ASSERT_EQ(gameplay.at("schema_version"), 1);
+                    for (const auto *field : {"profiles", "game_names", "default_profile"}) {
+                        if (gameplay.contains(field)) {
+                            game[field] = gameplay.at(field);
+                        }
+                    }
+                    if (gameplay.contains("cloth_commands")) {
+                        for (const auto &entry : gameplay.at("cloth_commands")) {
+                            const auto index = entry.at("index").get<std::size_t>();
+                            ASSERT_LT(index, game.at("resources").at("cloths").size());
+                            game["resources"]["cloths"][index]["commands"] = entry.at("commands");
+                        }
+                    }
+                }
                 auto bytes = fastgltf::GltfDataBuffer::FromPath(root / path);
                 ASSERT_EQ(bytes.error(), fastgltf::Error::None);
                 fastgltf::Parser parser;
@@ -392,7 +436,7 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
             document = game.at("profiles").at(source.at("profile").get<std::string>());
             document["schema_version"] = 1;
         } else {
-            std::ifstream input(root / source.at("json").get<std::string>());
+            std::ifstream input(config_root / source.at("json").get<std::string>());
             ASSERT_TRUE(input.good());
             input >> document;
         }
@@ -401,8 +445,7 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
             continue;
         }
         if (!character) {
-            // A configuration is a native semantic document; the converter proves at extraction that
-            // it gives back every value the original script's callbacks read.
+            // The source audit compares this tracked semantic document with the retail script.
             EXPECT_EQ(document.at("schema_version"), 2);
             EXPECT_TRUE(document.at("kind").is_string());
             EXPECT_FALSE(document.contains("commands"));
@@ -459,17 +502,41 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
         auto native = observations;
         for (std::size_t row = 0; row < native.size() && row < executed.size(); ++row) {
             const auto name = executed.at(row)->value("command", std::string{});
-            native.at(row)["tag"] = static_cast<int>(std::find(strings.begin(), strings.end(), name) - strings.begin());
+            native.at(row)["tag"] = static_cast<int>(std::ranges::find(strings, name) - strings.begin());
         }
         ASSERT_EQ(native.size(), original.size());
         ASSERT_EQ(native.size(), executed.size());
         const auto container = alias.substr(0, alias.rfind('/'));
         auto       effect_container = container;
+        const Json *active_actions = nullptr;
+        std::map<std::string, std::pair<double, double>> action_intervals;
         for (std::size_t row = 0; row < native.size(); ++row) {
             const auto &command = *executed.at(row);
             const auto  name = command.value("command", std::string{});
             SCOPED_TRACE(name + " row " + std::to_string(row));
             ASSERT_EQ(native.at(row).at("tag"), original.at(row).at("tag"));
+            if (name == "MOTION" && command.at("args").size() > 1 && command.at("args").at(1).value("type", "") == "resource" &&
+                !command.at("args").at(1).at("index").is_null()) {
+                active_actions = &game.at("resources").at("animations").at(command.at("args").at(1).at("index").get<std::size_t>()).at("actions");
+            }
+            if (name == "KEY") {
+                ASSERT_EQ(native.at(row).at("count"), 2);
+                ASSERT_EQ(original.at(row).at("count"), 4);
+                ASSERT_EQ(command.at("args").size(), 2);
+                ASSERT_NE(active_actions, nullptr);
+                const auto action_name = command.at("args").at(0).at("value").get<std::string>();
+                ASSERT_TRUE(game.at("game_names").contains(action_name));
+                const auto mapped = ObserveTyped(Json::array({game.at("game_names").at(action_name)}));
+                EXPECT_EQ(mapped.at("arguments").at(0), original.at(row).at("arguments").at(0));
+                const auto start = CapturedNumber(original.at(row).at("arguments").at(1));
+                const auto end = CapturedNumber(original.at(row).at("arguments").at(2));
+                const auto action = std::ranges::find_if(*active_actions, [&](const Json &entry) { return entry.value("name", "") == action_name; });
+                ASSERT_NE(action, active_actions->end());
+                EXPECT_EQ(action->at("duration").get<double>(), std::max(0., end - start));
+                EXPECT_EQ(native.at(row).at("arguments").at(1), original.at(row).at("arguments").at(3));
+                action_intervals[CapturedString(original.at(row).at("arguments").at(0))] = {start, end};
+                continue;
+            }
             ASSERT_EQ(native.at(row).at("count"), original.at(row).at("count"));
             ASSERT_EQ(native.at(row).at("arguments").size(), command.at("args").size());
             for (std::size_t arg = 0; arg < command.at("args").size(); ++arg) {
@@ -477,6 +544,26 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
                 const auto &baseline = original.at(row).at("arguments").at(arg);
                 const auto &actual = native.at(row).at("arguments").at(arg);
                 SCOPED_TRACE("argument " + std::to_string(arg));
+                if (character && arg == 0 && (name == "SE" || name == "SELP" || name == "SEQ" || name == "SEQ_START") &&
+                    converted.at("type") == "string") {
+                    const auto english = converted.at("value").get<std::string>();
+                    ASSERT_TRUE(game.at("game_names").contains(english));
+                    const auto mapped = ObserveTyped(Json::array({game.at("game_names").at(english)}));
+                    EXPECT_EQ(mapped.at("arguments").at(0), baseline);
+                    EXPECT_EQ(actual, ObserveTyped(Json::array({converted})).at("arguments").at(0));
+                    continue;
+                }
+                if (character && (name == "SE" || name == "SELP") && (arg == 3 || (name == "SELP" && arg == 4)) &&
+                    CapturedNumber(baseline) > 1.) {
+                    const auto original_name = CapturedString(original.at(row).at("arguments").at(0));
+                    ASSERT_TRUE(action_intervals.contains(original_name));
+                    const auto [start, end] = action_intervals.at(original_name);
+                    const auto span = std::max(0., end - start);
+                    const auto ratio = span == 0. ? 0. : std::clamp((CapturedNumber(baseline) - start) / span, 0., 1.);
+                    ASSERT_EQ(actual.at("type"), SPI_STACK_TYPE_FLOAT);
+                    EXPECT_EQ(std::bit_cast<float>(actual.at("float_bits").get<uint32_t>()), static_cast<float>(ratio));
+                    continue;
+                }
                 if (converted.at("type") == "resource") {
                     ASSERT_TRUE(character);
                     ASSERT_EQ(baseline.at("type"), SPI_STACK_TYPE_STRING);
@@ -536,7 +623,7 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
                 const auto expected = NativeFilename(old_name, name == "CHARA" && arg == 1);
                 ASSERT_NE(expected, old_name);
                 EXPECT_EQ(new_name, expected);
-                if (!(name == "CHARA" && arg == 1)) {
+                if (name != "CHARA" || arg != 1) {
                     const auto normalized = Lower(old_name);
                     const auto basename = std::filesystem::path(normalized).filename().generic_string();
                     const bool exists = identities.contains(normalized) || identities.contains(Lower(container + "/" + old_name)) || leaf_names.contains(basename);

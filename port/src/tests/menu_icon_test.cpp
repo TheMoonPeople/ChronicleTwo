@@ -109,8 +109,8 @@ TEST_F(MenuIconGpu, ActiveIconsRefreshBakedRgbaPixelsAfterInPlaceCopy) {
     for (mgCTexture *texture : dest) {
         auto            handles = MgTextureLookup(texture);
         std::vector<u8> pixels;
-        uint32_t        width;
-        uint32_t        height;
+        uint32_t        width = 0;
+        uint32_t        height = 0;
         ASSERT_TRUE(gfx::ReadbackTexture(handles.texture, pixels, width, height));
         EXPECT_EQ(pixels[1], 255);
         EXPECT_EQ(pixels[3], 255);
@@ -144,8 +144,8 @@ TEST_F(MenuIconGpu, ItemDrawSamplesSelectedAtlasCellsInCanonicalAndDisplayFrames
     u8              rgba[] = {128, 128, 128, 128};
     const auto      handles = MgTextureLookup(texture);
     std::vector<u8> original_atlas;
-    uint32_t        width;
-    uint32_t        height;
+    uint32_t        width = 0;
+    uint32_t        height = 0;
     ASSERT_TRUE(gfx::ReadbackTexture(handles.texture, original_atlas, width, height));
     gfx::BeginRecording();
     const u8 clear[] = {0, 0, 0, 255};

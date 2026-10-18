@@ -1032,7 +1032,7 @@ void DrawEventEdit() {
                         look[1] = 0.0f;
                         JisFont.PrintDirect(0x10, y += 0x12, " Distance = %1.2f\n", (double) mgDistVector(eye, look));
                         JisFont.PrintDirect(0x10, y += 0x12, " Projection = %1.1f\n", (double) EdEventInfo.projection);
-                        float      remain;
+                        float      remain PORT_INIT(0.0f);
                         mgCMemory *stack = EventScene->GetStack(EventScene->stack_no);
 
                         if (stack != NULL) {

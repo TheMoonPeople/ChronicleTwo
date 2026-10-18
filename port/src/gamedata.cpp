@@ -183,12 +183,9 @@ std::array<int, N> IntArray(const native_config::Json &object, const char *key) 
  */
 CommonTable ParseCommon(const native_config::Json &document) {
     using namespace native_config;
-    CommonTable table{OptionalInt(document, "count"), {}};
+    CommonTable table{.count = OptionalInt(document, "count"), .records = {}};
     for (const auto &entry : Array(document, "records")) {
-        CommonRecord record{Int(entry, "item_no"), Int(entry, "type"), Int(entry, "list_no"), Int(entry, "active_set"),
-                            Int(entry, "stack_num"), Int(entry, "max_num"), Int(entry, "icon_texture_no"),
-                            Int(entry, "icon_no"), Int(entry, "message_no"), OptionalText(entry, "file_name"),
-                            Int(entry, "attribute")};
+        CommonRecord record{.item_no = Int(entry, "item_no"), .type = Int(entry, "type"), .list_no = Int(entry, "list_no"), .active_set = Int(entry, "active_set"), .stack_num = Int(entry, "stack_num"), .max_num = Int(entry, "max_num"), .icon_texture_no = Int(entry, "icon_texture_no"), .icon_no = Int(entry, "icon_no"), .message_no = Int(entry, "message_no"), .file_name = OptionalText(entry, "file_name"), .attribute = Int(entry, "attribute")};
         if (record.file_name && record.file_name->size() >= sizeof(CDataCommon::file_name)) {
             throw std::runtime_error("file_name does not fit the common item record");
         }
@@ -202,18 +199,14 @@ CommonTable ParseCommon(const native_config::Json &document) {
  */
 CountedTable<WeaponRecord> ParseWeapons(const native_config::Json &document) {
     using namespace native_config;
-    CountedTable<WeaponRecord> table{Int(document, "count"), {}};
+    CountedTable<WeaponRecord> table{.count = Int(document, "count"), .rows = {}};
     for (const auto &weapon : Array(document, "weapons")) {
         const auto                        &special = At(weapon, "special");
         std::optional<std::array<int, 3> > monster;
         if (weapon.contains("buildup_monster")) {
             monster = IntArray<3>(weapon, "buildup_monster");
         }
-        table.rows.push_back({Int(weapon, "durability"), Int(weapon, "levelup_exp"), IntArray<2>(weapon, "status"),
-                              IntArray<2>(weapon, "status_max"), IntArray<8>(weapon, "attribute"), IntArray<8>(weapon, "attribute_max"),
-                              Float(special, "initial_fusion_point"), Int(special, "pallet_color"), Int(special, "unk_47"),
-                              Int(special, "fusion_point"), Int(special, "special"), OptionalInt(special, "attack_type"),
-                              OptionalInt(special, "model_no"), IntArray<3>(weapon, "buildup_weapon"), monster});
+        table.rows.push_back({.durability = Int(weapon, "durability"), .levelup_exp = Int(weapon, "levelup_exp"), .status = IntArray<2>(weapon, "status"), .status_max = IntArray<2>(weapon, "status_max"), .attribute = IntArray<8>(weapon, "attribute"), .attribute_max = IntArray<8>(weapon, "attribute_max"), .initial_fusion_point = Float(special, "initial_fusion_point"), .pallet_color = Int(special, "pallet_color"), .unk_47 = Int(special, "unk_47"), .fusion_point = Int(special, "fusion_point"), .special = Int(special, "special"), .attack_type = OptionalInt(special, "attack_type"), .model_no = OptionalInt(special, "model_no"), .buildup_weapon = IntArray<3>(weapon, "buildup_weapon"), .buildup_monster = monster});
     }
     return table;
 }
@@ -223,10 +216,9 @@ CountedTable<WeaponRecord> ParseWeapons(const native_config::Json &document) {
  */
 CountedTable<UsableItemRecord> ParseItems(const native_config::Json &document) {
     using namespace native_config;
-    CountedTable<UsableItemRecord> table{Int(document, "count"), {}};
+    CountedTable<UsableItemRecord> table{.count = Int(document, "count"), .rows = {}};
     for (const auto &item : Array(document, "items")) {
-        table.rows.push_back({Int(item, "item_no"), Int(item, "use_flags"), Int(item, "action_flags"), Int(item, "target_flags"),
-                              IntArray<3>(item, "value")});
+        table.rows.push_back({.item_no = Int(item, "item_no"), .use_flags = Int(item, "use_flags"), .action_flags = Int(item, "action_flags"), .target_flags = Int(item, "target_flags"), .value = IntArray<3>(item, "value")});
     }
     return table;
 }
@@ -236,9 +228,9 @@ CountedTable<UsableItemRecord> ParseItems(const native_config::Json &document) {
  */
 CountedTable<AttachmentRecord> ParseAttachments(const native_config::Json &document) {
     using namespace native_config;
-    CountedTable<AttachmentRecord> table{Int(document, "count"), {}};
+    CountedTable<AttachmentRecord> table{.count = Int(document, "count"), .rows = {}};
     for (const auto &attachment : Array(document, "attachments")) {
-        table.rows.push_back({IntArray<2>(attachment, "status"), IntArray<8>(attachment, "attribute"), Int(attachment, "special")});
+        table.rows.push_back({.status = IntArray<2>(attachment, "status"), .attribute = IntArray<8>(attachment, "attribute"), .special = Int(attachment, "special")});
     }
     return table;
 }
@@ -248,7 +240,7 @@ CountedTable<AttachmentRecord> ParseAttachments(const native_config::Json &docum
  */
 CountedTable<RidepodPartRecord> ParseRidepodParts(const native_config::Json &document) {
     using namespace native_config;
-    CountedTable<RidepodPartRecord> table{Int(document, "count"), {}};
+    CountedTable<RidepodPartRecord> table{.count = Int(document, "count"), .rows = {}};
     for (const auto &part : Array(document, "parts")) {
         RidepodPartRecord record{};
         record.item_no = Int(part, "item_no");
@@ -286,10 +278,9 @@ CountedTable<RidepodPartRecord> ParseRidepodParts(const native_config::Json &doc
  */
 CountedTable<FishRecord> ParseFish(const native_config::Json &document) {
     using namespace native_config;
-    CountedTable<FishRecord> table{Int(document, "count"), {}};
+    CountedTable<FishRecord> table{.count = Int(document, "count"), .rows = {}};
     for (const auto &fish : Array(document, "fish")) {
-        table.rows.push_back({Int(fish, "item_no"), Float(fish, "size"), Int(fish, "unk_4"), Int(fish, "battle"), Int(fish, "boost"),
-                              Int(fish, "endurance"), Int(fish, "tenacity"), Int(fish, "stamina"), OptionalInt(fish, "unk_10")});
+        table.rows.push_back({.item_no = Int(fish, "item_no"), .size = Float(fish, "size"), .unk_4 = Int(fish, "unk_4"), .battle = Int(fish, "battle"), .boost = Int(fish, "boost"), .endurance = Int(fish, "endurance"), .tenacity = Int(fish, "tenacity"), .stamina = Int(fish, "stamina"), .unk_10 = OptionalInt(fish, "unk_10")});
     }
     return table;
 }
@@ -299,9 +290,9 @@ CountedTable<FishRecord> ParseFish(const native_config::Json &document) {
  */
 CountedTable<GuardRecord> ParseGuards(const native_config::Json &document) {
     using namespace native_config;
-    CountedTable<GuardRecord> table{Int(document, "count"), {}};
+    CountedTable<GuardRecord> table{.count = Int(document, "count"), .rows = {}};
     for (const auto &guard : Array(document, "guards")) {
-        table.rows.push_back({Int(guard, "item_no"), Int(guard, "value")});
+        table.rows.push_back({.item_no = Int(guard, "item_no"), .value = Int(guard, "value")});
     }
     return table;
 }
@@ -313,7 +304,7 @@ ItemMessages ParseMessages(const native_config::Json &document) {
     using namespace native_config;
     ItemMessages messages;
     for (const auto &message : Array(document, "messages")) {
-        messages.messages.push_back({Int(message, "item_no"), OptionalText(message, "name")});
+        messages.messages.push_back({.item_no = Int(message, "item_no"), .name = OptionalText(message, "name")});
     }
     return messages;
 }
@@ -338,13 +329,13 @@ ItemTable ParseAs(const native_config::Json &document) {
  * Every item table kind LoadGameDataAnalyze accepts.
  */
 constexpr std::array kItemTableKinds{
-    ItemTableKind{"item_common",   ParseAs<ParseCommon>      },
-    ItemTableKind{"weapons",       ParseAs<ParseWeapons>     },
-    ItemTableKind{"items",         ParseAs<ParseItems>       },
-    ItemTableKind{"attachments",   ParseAs<ParseAttachments> },
-    ItemTableKind{"ridepod_parts", ParseAs<ParseRidepodParts>},
-    ItemTableKind{"fish",          ParseAs<ParseFish>        },
-    ItemTableKind{"guards",        ParseAs<ParseGuards>      },
+    ItemTableKind{.kind = "item_common",   .parse = ParseAs<ParseCommon>      },
+    ItemTableKind{.kind = "weapons",       .parse = ParseAs<ParseWeapons>     },
+    ItemTableKind{.kind = "items",         .parse = ParseAs<ParseItems>       },
+    ItemTableKind{.kind = "attachments",   .parse = ParseAs<ParseAttachments> },
+    ItemTableKind{.kind = "ridepod_parts", .parse = ParseAs<ParseRidepodParts>},
+    ItemTableKind{.kind = "fish",          .parse = ParseAs<ParseFish>        },
+    ItemTableKind{.kind = "guards",        .parse = ParseAs<ParseGuards>      },
 };
 
 /**
@@ -353,7 +344,7 @@ constexpr std::array kItemTableKinds{
 ItemTable ParseItemTable(const native_config::Json &document) {
     const auto found = document.is_object() ? document.find("kind") : document.end();
     const auto kind = found != document.end() && found->is_string() ? found->get<std::string>() : std::string();
-    const auto entry = std::ranges::find_if(kItemTableKinds, [&](const ItemTableKind &item) { return kind == item.kind; });
+    const auto *const entry = std::ranges::find_if(kItemTableKinds, [&](const ItemTableKind &item) { return kind == item.kind; });
     if (entry == kItemTableKinds.end()) {
         native_config::CheckKind(document, "item table");
         throw std::runtime_error("configuration is not an item table document");

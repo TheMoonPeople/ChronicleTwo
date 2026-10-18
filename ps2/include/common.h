@@ -20,5 +20,13 @@
 #ifndef PORT_RECORD_ASSERT
 #define PORT_RECORD_ASSERT(expr)
 #endif
+/** Initializes a variable retail reads uninitialized; compiled out on the PS2, an initializer on PC. */
+#ifndef PORT_INIT
+#define PORT_INIT(value)
+#endif
+/** Returns a value where retail falls off the end of a function; compiled out on the PS2, a return on PC. */
+#ifndef PORT_RETURN
+#define PORT_RETURN(value)
+#endif
 
 #endif

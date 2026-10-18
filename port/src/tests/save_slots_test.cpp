@@ -137,7 +137,7 @@ std::string MessageText(const CDC2Mes &message) {
 }
 
 std::vector<u_long128> SaveMessages(int language) {
-    const auto    path = PathsDataRoot().parent_path() / "port_data/menu" / std::to_string(language) / "save.pac/allmenu.mes";
+    const auto    path = PathsDataRoot().parent_path() / "data/menu" / std::to_string(language) / "save.pac/allmenu.mes";
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) {
         return {};

@@ -69,18 +69,18 @@ struct FishingPlaces {
  */
 FishingPlaces ParseFishingPlaces(const native_config::Json &document) {
     using namespace native_config;
-    FishingPlaces places{Int(document, "count"), {}};
+    FishingPlaces places{.count = Int(document, "count"), .maps = {}};
     if (places.count < 0) {
         throw std::runtime_error("negative fishing place count");
     }
     for (const auto &map : Array(document, "maps")) {
-        PlaceMap entry{Int(map, "map"), OptionalInt(map, "exclusive"), std::nullopt, {}};
+        PlaceMap entry{.map = Int(map, "map"), .exclusive = OptionalInt(map, "exclusive"), .place = std::nullopt, .fish = {}};
         if (map.contains("place")) {
             const auto &place = At(map, "place");
-            entry.place = PlaceArea{Int(place, "area_type"), OptionalText(place, "name"), Floats<kAreaParams>(place, "params")};
+            entry.place = PlaceArea{.area_type = Int(place, "area_type"), .name = OptionalText(place, "name"), .params = Floats<kAreaParams>(place, "params")};
         }
         for (const auto &fish : Array(map, "fish")) {
-            entry.fish.push_back({Int(fish, "fish"), Float(fish, "rate"), Float(fish, "wait_bias")});
+            entry.fish.push_back({.fish = Int(fish, "fish"), .rate = Float(fish, "rate"), .wait_bias = Float(fish, "wait_bias")});
         }
         places.maps.push_back(std::move(entry));
     }

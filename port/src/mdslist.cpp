@@ -49,7 +49,7 @@ std::vector<ModelEntry> ParseModelList(const native_config::Json &document) {
     using namespace native_config;
     std::vector<ModelEntry> models;
     for (const auto &model : Array(document, "models")) {
-        ModelEntry entry{GameText(At(model, "model")), OptionalInt(model, "type"), std::nullopt, 0};
+        ModelEntry entry{.model = GameText(At(model, "model")), .type = OptionalInt(model, "type"), .far_dist = std::nullopt, .far_fade = 0};
         if (model.contains("far_clip")) {
             const auto &clip = At(model, "far_clip");
             entry.far_dist = Float(clip, "distance");

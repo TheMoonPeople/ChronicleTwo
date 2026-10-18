@@ -38,17 +38,17 @@ struct MenuDirectory {
         using Json = nlohmann::json;
 
         root = std::filesystem::temp_directory_path() / ("chronicle_menu_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-        const auto directory = root / "port_data/menu/fixture.pak";
+        const auto directory = root / "data/menu/fixture.pak";
         std::filesystem::create_directories(directory);
         const Json forms = {
-            {"schema_version", 2},
-            {"kind", "menu_layout"},
-            {"operations", Json::array({{{"op", "allocate_forms"}, {"count", 1}}, {{"op", "form_offset"}, {"index", 0}}, {{"op", "form"}, {"name", "poly_chr0"}, {"settings", Json::array()}, {"parts", Json::array()}}, {{"op", "init_drawlist"}}})}
+            {"schema_version", 2                                                                                                                                                                                                                        },
+            {"kind",           "menu_layout"                                                                                                                                                                                                            },
+            {"operations",     Json::array({{{"op", "allocate_forms"}, {"count", 1}}, {{"op", "form_offset"}, {"index", 0}}, {{"op", "form"}, {"name", "poly_chr0"}, {"settings", Json::array()}, {"parts", Json::array()}}, {{"op", "init_drawlist"}}})}
         };
         const Json script = {
-            {"schema_version", 2},
-            {"kind", "menu_commands"},
-            {"blocks", Json::array()}
+            {"schema_version", 2              },
+            {"kind",           "menu_commands"},
+            {"blocks",         Json::array()  }
         };
         metadata = Json({
                             {"schema_version", 1                },
@@ -66,7 +66,7 @@ struct MenuDirectory {
         std::ofstream(directory / "inv_com.cfg.json") << script.dump(2);
         std::ofstream(directory / "inv6.lst") << "DATATABLESET 1; DATASET 42,1,2,3,210,5,0,1.0,2.0,3.0,4.0;";
         script_size = std::filesystem::file_size(directory / "inv_com.cfg.json");
-        datapacks::Load(root / "port_data");
+        datapacks::Load(root / "data");
         DataReadRegisterAsset(metadata.data(), "menu/fixture.pak/pack.json", metadata.size());
     }
 

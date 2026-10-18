@@ -71,7 +71,7 @@ private:
 
 TEST(EffectListDraw, SpriteFadeIsOneBatchOfScreenQuads) {
     Harness h;
-    h.Screen(512, 480, 77, 13);
+    Harness::Screen(512, 480, 77, 13);
     h.prim.Begin2();
     h.prim.Color(10, 20, 30, 40);
     DivSpriteScreen(h.prim);
@@ -104,7 +104,7 @@ TEST(EffectListDraw, SpriteFadeIsOneBatchOfScreenQuads) {
 
 TEST(EffectListDraw, EdgeStripAlternatesLeftAndRightEdges) {
     Harness h;
-    h.Screen(512, 480, 77, 13);
+    Harness::Screen(512, 480, 77, 13);
     h.prim.Begin2();
     DivSpriteScreen(h.prim, 100, 300, 0);
     h.prim.End2();
@@ -127,7 +127,7 @@ TEST(EffectListDraw, EdgeStripAlternatesLeftAndRightEdges) {
 
 TEST(EffectListDraw, JaggedStripOffsetsLeftEdgeByRowParity) {
     Harness h;
-    h.Screen(512, 480, 77, 13);
+    Harness::Screen(512, 480, 77, 13);
     h.prim.Begin2();
     DivSpriteScreen(h.prim, 100, 300, 1);
     h.prim.End2();

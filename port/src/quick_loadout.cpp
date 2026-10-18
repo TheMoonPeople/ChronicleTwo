@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <math.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -604,7 +606,7 @@ float halo_travel = 0.0f; // how far the dashes have gone round, in dashes
 void EdgePoint(float x0, float y0, float x1, float y1, float r, float s, float *x, float *y, float *dir) {
     const float across = x1 - x0 - 2.0f * r;
     const float down = y1 - y0 - 2.0f * r;
-    const float arc = 0.5f * PI * r;
+    const float arc = 0.5f * std::numbers::pi_v<float> * r;
     const float sides[4] = {across, down, across, down};
     // Where each side starts, where its corner turns about, and which way the side runs.
     const float start[4][2] = {
@@ -682,9 +684,9 @@ void DrawHalo(float x0, float y0, float w, float h, float alpha) {
         for (int j = 0; j <= kDashSlices; j++) {
             float s = (dash + halo_travel) * length + length * j / kDashSlices;
             s = fmodf(s, perimeter);
-            float x;
-            float y;
-            float dir;
+            float x = NAN;
+            float y = NAN;
+            float dir = NAN;
             EdgePoint(left, top, right, bottom, radius, s, &x, &y, &dir);
             // Outward from the edge, as the ring's radius grows outward.
             const float nx = sinf(dir);
@@ -824,10 +826,10 @@ void PortQuickLoadoutDraw(float statusbar_rate) {
     }
     for (int slot = 0; slot < kSlots; slot++) {
         const Rect  &r = kSlotRect[slot];
-        const float  x0 = static_cast<float>(left + r.x);
-        const float  y0 = static_cast<float>(top + r.y);
-        const float  w = static_cast<float>(r.w);
-        const float  h = static_cast<float>(r.h);
+        const auto   x0 = static_cast<float>(left + r.x);
+        const auto   y0 = static_cast<float>(top + r.y);
+        const auto   w = static_cast<float>(r.w);
+        const auto   h = static_cast<float>(r.h);
         const Entry &entry = slots[chara][slot];
         if (entry.item_no > 0) {
             const CGameDataUsed     *equipped = RowEquip(chara, slot / 2);
@@ -894,8 +896,8 @@ bool PortQuickLoadoutTarget(const CGameDataUsed *item, int *chara, int *row) {
 }
 
 bool PortQuickLoadoutAssign(const CGameDataUsed *item, int slot) {
-    int chara;
-    int row;
+    int chara = 0;
+    int row = 0;
     if (slot < 0 || slot >= kSlots || !PortQuickLoadoutTarget(item, &chara, &row) || slot / 2 != row) {
         return false;
     }

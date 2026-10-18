@@ -210,7 +210,10 @@ Rect LocateSkipTriangle(const Rect &cell, uint32_t scale, const datapacks::Decod
     const int        width = static_cast<int>(decoded.width);
     const int        top = std::max(0, static_cast<int>((cell.y - 4) * scale));
     const int        bottom = std::min(static_cast<int>(decoded.height), static_cast<int>((cell.y + cell.h + 4) * scale));
-    int              min_x = width, max_x = -1, min_y = bottom, max_y = -1;
+    int              min_x = width;
+    int              max_x = -1;
+    int              min_y = bottom;
+    int              max_y = -1;
     for (int y = top; y < bottom; ++y) {
         for (int x = 0; x < width; ++x) {
             const uint8_t *texel = &level[(static_cast<std::size_t>(y) * width + x) * 4];

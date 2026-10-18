@@ -486,6 +486,39 @@ std::shared_ptr<const Json> ParseGameplay(const std::filesystem::path &gltf, std
             if (game->at("schema_version") != 1) {
                 throw std::runtime_error("unsupported native gameplay schema");
             }
+            std::string gameplay_identity;
+            if (game->contains("models")) {
+                auto gameplay_path = gltf;
+                gameplay_path.replace_extension(".character.json");
+                for (const auto &candidate : datapacks::Candidates(gameplay_path)) {
+                    std::vector<uint8_t> gameplay_bytes;
+                    if (!datapacks::ReadFileBytes(candidate, gameplay_bytes)) {
+                        continue;
+                    }
+                    const auto gameplay = Json::parse(gameplay_bytes.begin(), gameplay_bytes.end());
+                    if (gameplay.at("schema_version") != 1 || gameplay.at("kind") != "character_gameplay" ||
+                        !gameplay.at("profiles").is_object()) {
+                        throw std::runtime_error("invalid external character gameplay JSON: " + gameplay_path.generic_string());
+                    }
+                    for (const auto *field : {"profiles", "game_names", "default_profile"}) {
+                        if (gameplay.contains(field)) {
+                            (*game)[field] = gameplay.at(field);
+                        }
+                    }
+                    if (gameplay.contains("cloth_commands")) {
+                        auto &cloths = game->at("resources").at("cloths");
+                        for (const auto &entry : gameplay.at("cloth_commands")) {
+                            const auto index = entry.at("index").get<std::size_t>();
+                            if (index >= cloths.size() || !entry.at("commands").is_array()) {
+                                throw std::runtime_error("invalid external character cloth commands");
+                            }
+                            cloths.at(index)["commands"] = entry.at("commands");
+                        }
+                    }
+                    gameplay_identity = datapacks::ImageDecodeKey("character_gameplay", std::span(&candidate, 1));
+                    break;
+                }
+            }
             auto validate_model = [](const Json &model) {
                 if (!model.at("frames").is_array() || !model.at("meshes").is_array()) {
                     throw std::runtime_error("invalid native gameplay model");
@@ -535,7 +568,7 @@ std::shared_ptr<const Json> ParseGameplay(const std::filesystem::path &gltf, std
                 validate_model(*game);
             }
             error.clear();
-            identity = datapacks::ImageDecodeKey("gameplay", std::span(&path, 1));
+            identity = datapacks::ImageDecodeKey("gameplay", std::span(&path, 1)) + '|' + gameplay_identity;
             return game;
         } catch (const std::exception &exception) {
             error = exception.what();

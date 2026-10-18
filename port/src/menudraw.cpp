@@ -2,9 +2,7 @@
 #include "mw_runtime.h"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -13,12 +11,10 @@
 #include <print>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "actionchara.hpp"
 #include "asset_directory.hpp"
 #include "dataread_port.hpp"
-#include "mainloop.hpp"
 #include "menu_mouse_item.hpp"
 #include "menu_world.hpp"
 #include "menuchr.hpp"
@@ -26,7 +22,6 @@
 #include "menudraw_port.hpp"
 #include "menumain.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_frame.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
@@ -36,7 +31,6 @@
 #include "platform/model_assets.hpp"
 #include "platform/texture_bundle.hpp"
 #include "stubs/menudraw.hpp"
-#include "userdata.hpp"
 
 PORT_OVERRIDE void MenuReloadCLUT(int index) {
     MgTextureSetDrawVariant(MenuCharaChangeBase_Tex, index == 0 ? MenuCharaChangeCLUT_Tex : nullptr);
@@ -308,7 +302,24 @@ bool MenuPanelOutsideFrame(const CMenuPosDataForm &form) {
 
 } // namespace
 
+void MenuAlignCharacterSlot(CMenuPosDataForm &form) {
+    if (form.name == nullptr || std::strcmp(form.name, "chr_bg") != 0) {
+        return;
+    }
+    auto *backing = form.GetPartInfo(const_cast<char *>("fcb1"));
+    auto *portrait = form.GetPartInfo(const_cast<char *>("fc1"));
+    auto *upper_backing = form.GetPartInfo(const_cast<char *>("fcb0"));
+    if (backing != nullptr && portrait != nullptr && upper_backing != nullptr &&
+        backing->y == 158.0f && backing->h == 100.0f && portrait->y == 181.0f && upper_backing->h == 121.0f) {
+        backing->y = portrait->y;
+        backing->h = upper_backing->h;
+    }
+}
+
 PORT_OVERRIDE void CMenuPosDataForm::MenuFormDraw(int &state) {
+    if (MenuCommonInfo != nullptr && MenuCommonInfo->now_mode == MENU_MODE_CHARA_CHANGE) {
+        MenuAlignCharacterSlot(*this);
+    }
     // Retail parks unused panels wholly outside its logical frame (SPECHECK,
     // for example, at x=-260). Hide that panel, not the entire page's flanks.
     // As soon as it overlaps the frame, draw its complete entering geometry.
@@ -367,262 +378,6 @@ PORT_OVERRIDE void MenuCursorDraw(mgCTexture *texture, float *position, float ro
         prim->Vertex(px, py, 0.0f);
     }
     prim->End();
-}
-
-namespace {
-
-// Lattice spacing in board units, and how much a patch magnifies the slot interior.
-// The patch reach (0.8 of the spacing, see Ramp) stays inside the slot's frame lines.
-constexpr float kCellX = 24.0f;
-constexpr float kCellY = 30.0f;
-constexpr float kMagnify = 1.3f;
-// Overall tone, so the flattened surface keeps the slot's average brightness.
-constexpr float kTone = 1.05f;
-// Fraction of each cell edge held by a single patch before the blend starts.
-constexpr float kRamp = 0.2f;
-// Inset of the sampled patch from the slot's frame lines, in texels.
-constexpr int kKomaInset = 3;
-constexpr int kBoardColumns = 6;
-constexpr int kBoardRows = 26;
-constexpr int kSlotW = 40;
-constexpr int kSlotH = 50;
-
-/**
- * Hashes a lattice vertex into a well-mixed 32-bit value.
- */
-constexpr uint32_t Hash(int x, int y) {
-    uint32_t h = static_cast<uint32_t>(x) * 0x8DA6B343u ^ static_cast<uint32_t>(y) * 0xD8163841u;
-    h ^= h >> 15;
-    h *= 0x2C1B3C6Du;
-    h ^= h >> 12;
-    h *= 0x297A2D39u;
-    h ^= h >> 15;
-    return h;
-}
-
-/**
- * Returns a pseudo-random value in [-1, 1] for a lattice vertex.
- */
-constexpr float Lattice(int x, int y) {
-    return static_cast<float>(Hash(x, y + 0x1000) & 0xFFFF) / 32767.5f - 1.0f;
-}
-
-/**
- * Returns smooth value noise in [-1, 1] at a fractional lattice position.
- */
-float ValueNoise(float x, float y) {
-    const float fx = std::floor(x);
-    const float fy = std::floor(y);
-    const int   ix = static_cast<int>(fx);
-    const int   iy = static_cast<int>(fy);
-    const float tx = (x - fx) * (x - fx) * (3.0f - 2.0f * (x - fx));
-    const float ty = (y - fy) * (y - fy) * (3.0f - 2.0f * (y - fy));
-    const float top = Lattice(ix, iy) + (Lattice(ix + 1, iy) - Lattice(ix, iy)) * tx;
-    const float bottom = Lattice(ix, iy + 1) + (Lattice(ix + 1, iy + 1) - Lattice(ix, iy + 1)) * tx;
-    return top + (bottom - top) * ty;
-}
-
-/**
- * Returns the low-frequency brightness factor at a board position.
- */
-float Macro(float x, float y) {
-    // About +-4%, varying over a few slots.
-    const float col = x / kSlotW;
-    const float row = y / kSlotH;
-    const float n = 0.7f * ValueNoise(col * 0.38f + 11.3f, row * 0.42f + 3.7f) +
-                    0.3f * ValueNoise(col * 0.9f + 47.1f, row * 0.9f + 29.5f);
-    return 1.0f + 0.04f * n;
-}
-
-/**
- * Returns the slot art's brightness at a texel, relative to its mean.
- */
-constexpr float SlotShading(float u, float v) {
-    // Least-squares cubic of the slot's brightness; (u, v) are texels from its top-left corner.
-    const float x = (u - 20.0f) / 20.0f;
-    const float y = (v - 25.0f) / 25.0f;
-    return 0.9156f + y * (0.2082f + y * (0.2006f - 0.2238f * y)) + x * (0.1266f + 0.0763f * y - 0.0289f * y * y) +
-           x * x * (0.1747f - 0.0056f * y) - 0.1412f * x * x * x;
-}
-
-/**
- * Maps a fraction across a lattice cell to the blend weight of its far corner.
- */
-constexpr float Ramp(float t) {
-    // Flat near each corner, so most of the cell keeps one patch's contrast.
-    return std::clamp((t - kRamp) / (1.0f - 2.0f * kRamp), 0.0f, 1.0f);
-}
-
-/**
- * Scales one colour channel by a factor and clamps the result to a byte.
- */
-uint8_t Channel(int channel, float factor) {
-    const int value = static_cast<int>(std::lround(static_cast<float>(channel) * factor));
-    return static_cast<uint8_t>(std::clamp(value, 0, 0xFF));
-}
-
-/**
- * Placement, visible rows and tint of the item board being drawn.
- */
-struct Board {
-    float       left = 0;        /**< Left edge of the board, in screen units. */
-    float       top = 0;         /**< Top edge of the board, in screen units. */
-    float       right = 0;       /**< Right edge of the board, in screen units. */
-    float       bottom = 0;      /**< Bottom edge of the board, in screen units. */
-    float       clip_top = 0;    /**< Top of the visible rows, in screen units. */
-    float       clip_bottom = 0; /**< Bottom of the visible rows, in screen units. */
-    mgRect<int> koma;            /**< Slot interior that the patches sample, in texels. */
-    int         r = 0;           /**< Red tint channel. */
-    int         g = 0;           /**< Green tint channel. */
-    int         b = 0;           /**< Blue tint channel. */
-    int         a = 0;           /**< Opacity. */
-};
-
-/**
- * Appends the triangles that carry one corner's patch over every lattice cell in view.
- */
-void AppendPass(const mgCDrawPrim &prim, const Board &board, int dx, int dy, std::vector<gfx::Vertex2D> &out) {
-    const float centre_u = board.koma.left + board.koma.right * 0.5f;
-    const float centre_v = board.koma.top + board.koma.bottom * 0.5f;
-    const int   first_row = static_cast<int>(std::floor((board.clip_top - board.top) / kCellY));
-    const int   last_row = static_cast<int>(std::ceil((board.clip_bottom - board.top) / kCellY));
-    const int   columns = static_cast<int>(std::ceil((board.right - board.left) / kCellX));
-    // The ramp's corners, plus enough steps for the shading correction to follow its curve.
-    const std::array<float, 6> knots{0.0f, kRamp, 0.4f, 0.6f, 1.0f - kRamp, 1.0f};
-
-    for (int cy = std::max(first_row, 0); cy < last_row; cy++) {
-        for (int cx = 0; cx < columns; cx++) {
-            const uint32_t variant = Hash(cx + dx, cy + dy) >> 9;
-            const float    su = (variant & 1) ? -1.0f : 1.0f;
-            const float    sv = (variant & 2) ? -1.0f : 1.0f;
-            const float    origin_x = board.left + cx * kCellX;
-            const float    origin_y = board.top + cy * kCellY;
-            const float    corner_x = origin_x + dx * kCellX;
-            const float    corner_y = origin_y + dy * kCellY;
-
-            auto vertex = [&](float x, float y) {
-                const float                  tx = (x - origin_x) / kCellX;
-                const float                  ty = (y - origin_y) / kCellY;
-                const float                  wx = dx ? Ramp(tx) : 1.0f - Ramp(tx);
-                const float                  wy = dy ? Ramp(ty) : 1.0f - Ramp(ty);
-                const float                  du = su * (x - corner_x) / kMagnify;
-                const float                  dv = sv * (y - corner_y) / kMagnify;
-                const float                  f = wx * wy * kTone * Macro(x - board.left, y - board.top) / SlotShading(20.0f + du, 25.0f + dv);
-                const std::array<uint8_t, 4> rgba{Channel(board.r, f), Channel(board.g, f), Channel(board.b, f),
-                                                  static_cast<uint8_t>(board.a)};
-                return mgPortPrimVertex(prim, x, y, 0.0f, centre_u + du, centre_v + dv, rgba.data());
-            };
-
-            for (std::size_t j = 0; j + 1 < knots.size(); j++) {
-                const float y0 = std::max({origin_y + knots[j] * kCellY, board.top, board.clip_top});
-                const float y1 = std::min({origin_y + knots[j + 1] * kCellY, board.bottom, board.clip_bottom});
-                if (y1 <= y0) {
-                    continue;
-                }
-                for (std::size_t i = 0; i + 1 < knots.size(); i++) {
-                    const float x0 = std::max(origin_x + knots[i] * kCellX, board.left);
-                    const float x1 = std::min(origin_x + knots[i + 1] * kCellX, board.right);
-                    if (x1 <= x0) {
-                        continue;
-                    }
-                    const gfx::Vertex2D top_left = vertex(x0, y0);
-                    const gfx::Vertex2D top_right = vertex(x1, y0);
-                    const gfx::Vertex2D bottom_right = vertex(x1, y1);
-                    const gfx::Vertex2D bottom_left = vertex(x0, y1);
-                    out.insert(out.end(), {top_left, top_right, bottom_right, top_left, bottom_right, bottom_left});
-                }
-            }
-        }
-    }
-}
-
-} // namespace
-
-/**
- * Draws the item board as one continuous surface rather than a grid of identical slots.
- * The surface is built by blending mirrored patches of the slot interior, placed on a
- * lattice that ignores the slot grid. The lattice is keyed to board coordinates, so the
- * surface scrolls with the board. The capacity line under the last usable row is kept.
- */
-PORT_OVERRIDE void MenuItemBrdDraw(float *pos, mgRect<int> clip_rect, int &tex_block, int a, int r, int g, int b) {
-    mgCDrawPrim *prim = GetMenuPrim();
-    mgCTexture  *tex = mgTexManager.GetTexture(const_cast<char *>("mt0"), -1);
-
-    if (tex == nullptr || mgScreenWidth < pos[0]) {
-        return;
-    }
-
-    mgRect<int> scissor = clip_rect;
-    MenuClipRectCheck(scissor);
-    MenuReloadTexture(tex_block, tex->block);
-
-    // The slot's interior, inside its frame lines.
-    const mgRect<int> koma = MenuItemBrdKomaRect;
-    Board             board{};
-    board.left = static_cast<float>(static_cast<int>(pos[0]));
-    board.top = static_cast<float>(static_cast<int>(pos[1]));
-    board.right = std::min(board.left + kBoardColumns * kSlotW, static_cast<float>(mgScreenWidth) + kSlotW);
-    board.bottom = board.top + kBoardRows * kSlotH;
-    board.clip_top = static_cast<float>(scissor.top);
-    board.clip_bottom = static_cast<float>(scissor.bottom) + 1.0f;
-    board.koma = mgRect<int>(koma.left + kKomaInset, koma.top + kKomaInset, koma.right - 2 * kKomaInset,
-                             koma.bottom - 2 * kKomaInset);
-    board.r = r;
-    board.g = g;
-    board.b = b;
-    board.a = a;
-
-    SetSpriteEnv(prim, MENU_SPRITE_ENV_TEXTURE);
-    prim->Shading(1);
-    prim->Direct(SCE_GS_SCISSOR_1, scissor.left | (static_cast<s64>(scissor.right) << 16) |
-                                       (static_cast<s64>(scissor.top) << 32) | (static_cast<s64>(scissor.bottom) << 48));
-    std::vector<gfx::Vertex2D> triangles;
-
-    // The first corner's patch replaces what is underneath; the other three add on top.
-    for (int corner = 0; corner < 4; corner++) {
-        prim->AlphaBlend(corner == 0 ? MG_ALPHA_BLEND_NONE : MG_ALPHA_BLEND_ADD_FULL);
-        prim->Begin(MG_PRIM_SPRITE);
-        prim->Texture(tex);
-        prim->Color(r, g, b, a);
-        triangles.clear();
-        AppendPass(*prim, board, corner & 1, corner >> 1, triangles);
-        mgPortPrimSubmit(*prim, gfx::Primitive::Triangles, triangles);
-        prim->End();
-    }
-
-    prim->AlphaBlend(MG_ALPHA_BLEND_NORMAL);
-
-    // Capacity line under the last usable row.
-    const int last_row = GetNowBagMax(ITEM_BOARD_MAIN) / kBoardColumns;
-    const int line_top = static_cast<int>(pos[1]) + last_row * kSlotH;
-
-    if (last_row < kBoardRows && OmakeFlag == 0 && line_top <= clip_rect.bottom) {
-        const int line_x0 = static_cast<int>(pos[0] - 2.0f);
-        const int line_x1 = static_cast<int>(pos[0] + static_cast<float>(kSlotW * kBoardColumns));
-        const int line_y = line_top - 1;
-        prim->TextureMapEnable(0);
-        prim->Bilinear(1);
-        prim->Begin(MG_PRIM_SPRITE);
-        prim->Color(0xDE, 0xDE, 0xDE, a);
-        prim->Vertex(line_x0, line_y, 0);
-        prim->Vertex(line_x1, line_y + 1, 0);
-        prim->End();
-        prim->Begin(MG_PRIM_SPRITE);
-        prim->Color(0xAC, 0xAC, 0xAC, a * 3 / 5);
-        prim->Vertex(line_x0, line_y + 2, 0);
-        prim->Vertex(line_x1, line_y + 3, 0);
-        prim->End();
-        prim->Begin(MG_PRIM_SPRITE);
-        prim->Color(0x80, 0x80, 0x80, a / 5);
-        prim->Vertex(line_x0, line_y + 4, 0);
-        prim->Vertex(line_x1, line_y + 5, 0);
-        prim->End();
-        prim->TextureMapEnable(1);
-        prim->Bilinear(0);
-    }
-
-    prim->Shading(0);
-    prim->Direct(SCE_GS_SCISSOR_1, (static_cast<s64>(mgScreenWidth - 1) << 16) | (static_cast<s64>(mgScreenHeight - 1) << 48));
 }
 
 namespace {

@@ -56,15 +56,12 @@ TEST_F(PlatformFirstRun, RegularFileRootIsMissing) {
 
 TEST_F(PlatformFirstRun, NativeAssetDirectoryAndMarkerNeedNoManifest) {
     fs::create_directories(Root());
-    fs::create_directories(base_ / "port_data");
     std::ofstream(base_ / "data.json", std::ios::binary)
         << R"({"schema_version":1,"data_version":)" << KAZAROV_DATA_VERSION << "}";
     EXPECT_FALSE(FirstRunDataMissing(Root()));
 }
 
-TEST_F(PlatformFirstRun, MissingConvertedAssetDirectoryRequiresExtraction) {
-    fs::create_directories(Root());
-    std::ofstream(Root() / "manifest.json", std::ios::binary) << R"({"schema_version":1,"files":{}})";
+TEST_F(PlatformFirstRun, MissingUnifiedDataDirectoryRequiresExtraction) {
     std::ofstream(base_ / "data.json", std::ios::binary)
         << R"({"schema_version":1,"data_version":)" << KAZAROV_DATA_VERSION << "}";
     EXPECT_TRUE(FirstRunDataMissing(Root()));
@@ -72,9 +69,8 @@ TEST_F(PlatformFirstRun, MissingConvertedAssetDirectoryRequiresExtraction) {
 
 TEST_F(PlatformFirstRun, MissingOrOldRootMarkerRequiresExtraction) {
     fs::create_directories(Root());
-    fs::create_directories(base_ / "port_data");
     std::ofstream(Root() / "manifest.json", std::ios::binary) << R"({"schema_version":1,"files":{}})";
-    std::ofstream(base_ / "port_data" / "manifest.json", std::ios::binary)
+    std::ofstream(base_ / "data" / "manifest.json", std::ios::binary)
         << R"({"schema_version":1,"files":{}})";
     EXPECT_TRUE(FirstRunDataMissing(Root()));
     std::ofstream(base_ / "data.json", std::ios::binary)
@@ -110,9 +106,8 @@ TEST_F(PlatformFirstRun, MissingDataExitsWithNoDataAndNamesTheCommand) {
 
 TEST_F(PlatformFirstRun, PresentDataReturns) {
     fs::create_directories(Root());
-    fs::create_directories(base_ / "port_data");
     std::ofstream(Root() / "manifest.json", std::ios::binary) << R"({"schema_version":1,"files":{}})";
-    std::ofstream(base_ / "port_data" / "manifest.json", std::ios::binary)
+    std::ofstream(base_ / "data" / "manifest.json", std::ios::binary)
         << R"({"schema_version":1,"files":{}})";
     std::ofstream(base_ / "data.json", std::ios::binary)
         << R"({"schema_version":1,"data_version":)" << KAZAROV_DATA_VERSION << "}";

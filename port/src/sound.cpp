@@ -647,7 +647,7 @@ PORT_OVERRIDE int TransHdBd(int /*unused*/, int /*unused*/, int /*unused*/, int 
 
 int SoundLoadBankJson(int port, std::string_view document, bool add) {
     auto bank = audio::Bank::CreateFromJsonCandidates(document, datapacks::Candidates);
-    return SoundBindBank(port, std::move(bank), add);
+    return SoundBindBank(port, bank, add);
 }
 
 int SoundBindBank(int port, const std::shared_ptr<audio::Bank> &bank, bool add) {

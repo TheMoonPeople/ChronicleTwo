@@ -4,7 +4,7 @@
 #include "first_person_walk.hpp"
 
 #define CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT
-#include <math.h>
+#include <cmath>
 
 #include "cameracontrol.hpp"
 #undef CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT

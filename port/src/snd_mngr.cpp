@@ -7,6 +7,7 @@
 #include <cstring>
 #include <new>
 #include <print>
+#include <utility>
 #include <vector>
 
 #include "audio/sq.hpp"
@@ -305,7 +306,7 @@ unsigned SoundLoadBundleData(int port_no, std::span<const std::byte> bytes, mgCM
 unsigned SoundLoadBundlePath(int port_no, std::string_view path, mgCMemory *memory) {
     for (const auto &document : AudioDocuments(path)) {
         const auto result = SoundLoadBundleData(port_no, std::as_bytes(std::span(document.data(), document.size())), memory);
-        if (result != static_cast<unsigned>(-1)) {
+        if (std::cmp_not_equal(result, -1)) {
             return result;
         }
     }

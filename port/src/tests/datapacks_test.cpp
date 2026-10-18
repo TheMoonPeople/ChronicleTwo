@@ -85,7 +85,7 @@ class DatapacksTest : public ::testing::Test {
 protected:
     std::filesystem::path  directory = std::filesystem::temp_directory_path() /
                                        ("ct_datapacks_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::filesystem::path  retail = directory / "port_data";
+    std::filesystem::path  retail = directory / "data";
     texture_catalog::Entry entry;
 
     void SetUp() override {

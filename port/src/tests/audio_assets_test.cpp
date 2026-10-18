@@ -27,7 +27,7 @@ protected:
     fs::path                 previous = datapacks::Root();
     std::vector<std::string> documents = std::vector<std::string>(8);
 
-    void SetUp() override { fs::create_directories(root / "port_data/sound"); }
+    void SetUp() override { fs::create_directories(root / "data/sound"); }
 
     void TearDown() override {
         if (previous.empty()) {
@@ -40,10 +40,10 @@ protected:
     }
 
     void Document(const char *relative, const nlohmann::json &document, int token) {
-        fs::create_directories((root / "port_data" / relative).parent_path());
+        fs::create_directories((root / "data" / relative).parent_path());
         documents[token] = document.dump();
-        std::ofstream(root / "port_data" / relative) << documents[token];
-        datapacks::Load(root / "port_data");
+        std::ofstream(root / "data" / relative) << documents[token];
+        datapacks::Load(root / "data");
     }
 
     void EnablePack(const std::string &name) {
@@ -53,7 +53,7 @@ protected:
                                                                                {"load_order",     nlohmann::json::array({name})}
         })
                                                                 .dump();
-        datapacks::Load(root / "port_data");
+        datapacks::Load(root / "data");
     }
 };
 
@@ -161,7 +161,7 @@ TEST_F(AudioAssetsTest, DirectBundleLoadsExplicitDependenciesAndInvalidOverlayFa
 
 TEST_F(AudioAssetsTest, WaveOverrideWinsAndMalformedReplacementFallsBack) {
     const auto base = dc::test::SampleFile(48000);
-    fs::copy_file(base, root / "port_data/sound/test.wav");
+    fs::copy_file(base, root / "data/sound/test.wav");
     const auto replacement = root / "datapacks/custom/sound/test.wav";
     fs::create_directories(replacement.parent_path());
     fs::copy_file(base, replacement);
@@ -185,7 +185,7 @@ TEST_F(AudioAssetsTest, WaveOverrideWinsAndMalformedReplacementFallsBack) {
 
 TEST_F(AudioAssetsTest, SelfContainedH264AacMp4OverrideAndInvalidFallback) {
     const fs::path fixtures = fs::path(__FILE__).parent_path() / "fixtures";
-    const auto     base = root / "port_data/movie/test.mp4";
+    const auto     base = root / "data/movie/test.mp4";
     fs::create_directories(base.parent_path());
     fs::copy_file(fixtures / "movie.mp4", base);
     const auto replacement = root / "datapacks/custom/movie/test.mp4";
