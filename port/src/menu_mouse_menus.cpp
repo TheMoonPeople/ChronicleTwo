@@ -70,6 +70,37 @@ void ItemPopupMouse() {
     }
 }
 
+void CostumeMouse() {
+    if (!MenuCosPtr || MenuCosPtr->mode != MENU_ASK_MODE_NONE || (MenuCosPtr->step != 0 && MenuCosPtr->step != 3) ||
+        MenuCosPtr->loading || MenuCosPtr->wait_load) {
+        return;
+    }
+    auto &menu = *MenuCosPtr;
+    // Match the list artwork, then the character/continue and Monica exit rows.
+    const MenuMouseRect rows[] = {
+        {.x = 46,  .y = 80,  .w = 226, .h = 62},
+        {.x = 46,  .y = 146, .w = 226, .h = 62},
+        {.x = 46,  .y = 212, .w = 226, .h = 62},
+        {.x = 112, .y = 288, .w = 120, .h = 26},
+        {.x = 74,  .y = 328, .w = 170, .h = 26},
+    };
+    const int count = menu.chara == USER_CHARA_MONICA ? 5 : 4;
+    const int selected = MenuMouseRows({rows, static_cast<std::size_t>(count)}, menu.select);
+    if (selected != menu.select) {
+        menu.select = selected;
+        MenuMouseCursorSound();
+    }
+    const auto &mouse = MenuMouseTake();
+    // Include the drawn arrows' full six-unit swing without hitting the labels.
+    if ((mouse.clicked & 1) && selected < 3) {
+        const MenuMouseRect left{.x = 49, .y = rows[selected].y + 33, .w = 22, .h = 22};
+        const MenuMouseRect right{.x = 249, .y = rows[selected].y + 33, .w = 22, .h = 22};
+        if (left.Contains(mouse.x, mouse.y) || right.Contains(mouse.x, mouse.y)) {
+            MenuMouseSetButtons((MenuMouseButtons() & ~PAD_CROSS) | (left.Contains(mouse.x, mouse.y) ? PAD_LEFT : PAD_RIGHT));
+        }
+    }
+}
+
 void TitleMouse() {
     if (GetNowLoopNo() != LOOP_TITLE || !MouseTitle || MouseTitle->mode != TITLE_MODE_TITLE) {
         return;
@@ -110,6 +141,9 @@ PORT_OVERRIDE int CMenuKeyFunc::CheckSelectKey() {
         }
         if (now_mode == MENU_MODE_MAIN_TOWN || now_mode == MENU_MODE_MAIN_DUNGEON) {
             RootMouse();
+        }
+        if (now_mode == MENU_MODE_COSTUME) {
+            CostumeMouse();
         }
         if (now_mode == MENU_MODE_DNG_TREE_MAP) {
             MenuMouseFloor();
