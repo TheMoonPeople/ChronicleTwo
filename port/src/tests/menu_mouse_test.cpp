@@ -89,6 +89,18 @@ TEST(MenuMouse, WindowPixelsFollowUiScalingAndHighDpiMapping) {
     EXPECT_FLOAT_EQ(MenuMouseUnits(0, 0, 0), 1);
 }
 
+TEST(MenuMouse, PointerGainKeepsFineMotionLinearAndDoublesFastMotion) {
+    EXPECT_FLOAT_EQ(MenuMouseGain(30, 0, 1.5f, false), 1.5f);
+    EXPECT_FLOAT_EQ(MenuMouseGain(3, 0, 1.5f, true), 1.5f);
+    EXPECT_FLOAT_EQ(MenuMouseGain(0, 4, 1.5f, true), 1.5f);
+    EXPECT_FLOAT_EQ(MenuMouseGain(16, 0, 1.5f, true), 2.25f);
+    EXPECT_FLOAT_EQ(MenuMouseGain(-28, 0, 1.5f, true), 3.0f);
+    EXPECT_FLOAT_EQ(MenuMouseGain(300, 300, 1.5f, true), 3.0f);
+    // Bad input keeps a finite gain.
+    EXPECT_FLOAT_EQ(MenuMouseGain(std::numeric_limits<float>::quiet_NaN(), 0, 1, true), 1);
+    EXPECT_FLOAT_EQ(MenuMouseGain(0, 0, 0, false), 1);
+}
+
 TEST(MenuMouse, HoverUsesTheRetailMoveResultAndScrollUpdate) {
     int cursor = 0;
     int scroll = 0;

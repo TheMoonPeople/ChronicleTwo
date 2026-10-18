@@ -13,6 +13,7 @@
 #include "menudraw.hpp"
 #include "mglib.hpp"
 #include "mglib_port.hpp"
+#include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
 #include "platform/window.hpp"
@@ -65,6 +66,17 @@ bool MenuMouseRect::Contains(float px, float py) const {
 
 float MenuMouseUnits(float scale, float pixels, float window) {
     return scale > 0 && pixels > 0 && window > 0 ? pixels / (scale * window) : 1;
+}
+
+float MenuMouseGain(float dx, float dy, float speed, bool accelerate) {
+    const float gain = std::isfinite(speed) && speed > 0 ? speed : 1.0f;
+    const float counts = std::hypot(std::isfinite(dx) ? dx : 0.0f, std::isfinite(dy) ? dy : 0.0f);
+    if (!accelerate || !std::isfinite(counts)) {
+        return gain;
+    }
+    // Up to 4 counts a tick stays linear for fine aiming; a smoothstep doubles the gain by 28.
+    const float blend = std::clamp((counts - 4) / 24, 0.0f, 1.0f);
+    return gain * (1 + blend * blend * (3 - 2 * blend));
 }
 
 int MenuMouseHit(std::span<const MenuMouseRect> rows, float x, float y) {
@@ -172,15 +184,19 @@ bool PadOrFocusOwnsPointer() {
 
 void MovePointer(MenuMouseSample &point, float dx, float dy) {
     const auto extent = mgPortVisibleUiExtent(gfx::kMainTarget);
-    float      units_x = 1;
-    float      units_y = 1;
+    // Captured motion bypasses the OS pointer settings, so the menu hand has its own speed and
+    // acceleration. An uncaptured hand follows the desktop cursor 1:1 so it reaches every edge.
+    const auto &config = ConfigGet();
+    const float gain = MouseCaptured() ? MenuMouseGain(dx, dy, config.menu_pointer_speed, config.menu_pointer_acceleration) : 1.0f;
+    float       units_x = gain;
+    float       units_y = gain;
     if (mgPortRendererReady()) {
         const auto mapping = gfx::GetUiMapping(gfx::kMainTarget);
         int        width = static_cast<int>(mapping.pixel_width);
         int        height = static_cast<int>(mapping.pixel_height);
         WindowSize(width, height);
-        units_x = MenuMouseUnits(mapping.scale_x, mapping.pixel_width, width);
-        units_y = MenuMouseUnits(mapping.scale_y, mapping.pixel_height, height);
+        units_x = gain * MenuMouseUnits(mapping.scale_x, mapping.pixel_width, width);
+        units_y = gain * MenuMouseUnits(mapping.scale_y, mapping.pixel_height, height);
     }
     if (std::isfinite(dx)) {
         point.x += dx * units_x;

@@ -171,6 +171,8 @@ std::span<const Page> Pages() {
                                  Number<&Config::mouse_sensitivity>("input.mouse_sensitivity", "Mouse sensitivity", "Camera turn per count of mouse movement.", {.01, .025, .05, .075, .1, .15, .2, .3, .5, .75, 1}),
                                  Choice<&Config::mouse_invert_y>("input.mouse_invert_y", "Invert mouse Y", "Reverses vertical mouse look.", {"Off", "On"}),
                                  Choice<&Config::mouse_capture>("input.mouse_capture", "Capture mouse", "Keeps the pointer inside the game.\nRelease with a configured mouse-release key.", {"Off", "On"}),
+                                 Number<&Config::menu_pointer_speed>("input.menu_pointer_speed", "Menu pointer speed", "Menu hand speed while the mouse is captured.\n100% moves it one window pixel per count.", {.5, .75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4}, 100, "%"),
+                                 Choice<&Config::menu_pointer_acceleration>("input.menu_pointer_acceleration", "Menu pointer acceleration", "Fast mouse motion moves the menu hand further.\nSlow motion keeps its precision.", {"Off", "On"}),
                                  Number<&Config::stick_sensitivity>("input.stick_sensitivity", "Stick sensitivity", "Scales controller stick response.", {.5, .75, 1, 1.1, 1.2, 1.33, 1.5, 1.75, 2, 2.5, 3}),
                                  Choice<&Config::stick_invert_x>("input.stick_invert_x", "Invert stick X", "Reverses the right stick's horizontal axis.", {"Off", "On"}),
                                  Choice<&Config::stick_invert_y>("input.stick_invert_y", "Invert stick Y", "Reverses the right stick's vertical axis.", {"Off", "On"}),

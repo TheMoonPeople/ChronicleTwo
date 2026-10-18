@@ -48,6 +48,10 @@ struct Config : HostSettings {
     float        ui_scale = 1.0f;
     bool         font_sharp = false;
     bool         mouse_fixed_look = true;
+    // input.menu_pointer_speed: captured menu hand travel per mouse count; 1 is one window pixel. Camera look ignores it.
+    float menu_pointer_speed = 1.5f;
+    // input.menu_pointer_acceleration: fast captured motion moves the menu hand up to twice as far per count.
+    bool menu_pointer_acceleration = true;
     // audio.dualsense_speaker: the Ridepod's lines, the treasure chests' opening and the menus' effects
     // play on a DualSense speaker when one is found instead of the TV.
     bool dualsense_speaker = true;

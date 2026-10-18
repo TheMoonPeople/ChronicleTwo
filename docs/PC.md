@@ -652,6 +652,8 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `input.mouse_capture` | bool | true | | capture the mouse |
 | `input.mouse_zoom` | bool | false | | mouse wheel zoom |
 | `input.mouse_fixed_look` | bool | true | | gentle mouse look in fixed-camera town rooms |
+| `input.menu_pointer_speed` | number | 1.5 | 0.25 to 4 | captured menu hand travel per mouse count; 1 is one window pixel |
+| `input.menu_pointer_acceleration` | bool | true | | fast captured motion moves the menu hand up to twice as far per count |
 | `input.touchpad` | bool | true | | a DualSense touchpad as the menus' mouse |
 | `input.touchpad_sensitivity` | number | 1.0 | above 0 | touchpad speed |
 | `input.lightbar` | bool | true | | lets the game colour the lightbar; read and saved, nothing sets a colour yet |
@@ -708,7 +710,7 @@ The **PC SETTINGS** entry and the page are drawn at the UI scale, or smaller whe
 |---|---|
 | Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, auto/4:3 aspect, UI scale, original/sharp text font, FPS counter |
 | Audio | Master volume and PS2/custom soundtrack |
-| Controls | Mouse sensitivity, Y inversion and capture; stick sensitivity and X/Y inversion; button symbols and glyph style |
+| Controls | Mouse sensitivity, Y inversion and capture; menu pointer speed and acceleration; stick sensitivity and X/Y inversion; button symbols and glyph style |
 | Game | Autosave, quick loadout title, skip intro, auto-use event items, floor monster list, more monsters and debug mode |
 | Bindings | Keyboard and mouse bindings for pad buttons, movement, look, FPS and debug menu |
 
@@ -764,6 +766,13 @@ display rate. The hand is a display overlay and stays out of canonical screensho
 and game captures. The menu hand shares cursor ownership with the operating-system cursor.
 `input.mouse_capture` configures capture, and `input.mouse_release` selects the
 keys that release it.
+
+Captured motion arrives as raw counts with the OS pointer acceleration off, so the
+hand has its own **Menu pointer speed** (default 150%) and **Menu pointer
+acceleration** (default On) in PC SETTINGS > Controls. Acceleration leaves up to
+four counts per tick linear and smoothly doubles the gain by 28 counts. Camera
+look keeps `input.mouse_sensitivity`. With capture off the hand follows the
+desktop cursor 1:1.
 
 Mouse selection covers the town and dungeon root menus, title menu, world map,
 dungeon floor maps and their help actions, the flat save/load file lists,

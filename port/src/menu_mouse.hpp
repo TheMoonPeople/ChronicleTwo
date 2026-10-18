@@ -30,6 +30,9 @@ MenuMouseView MenuMouseScroll(float wheel, MenuMouseView view, int count, int vi
 
 // Relative window pixels map through the same logical extent as the menu art.
 float MenuMouseUnits(float scale, float pixels, float window);
+// The menu hand's gain for a tick's motion of (dx, dy) counts: speed, raised smoothly to twice
+// speed between 4 and 28 counts when accelerating.
+float MenuMouseGain(float dx, float dy, float speed, bool accelerate);
 int   MenuMouseHit(std::span<const MenuMouseRect> rows, float x, float y);
 int   MenuMouseChoose(const MenuMouseSample &mouse, std::span<const MenuMouseRect> rows, int selected, int wheel_step = 1);
 // Whole wheel notches move selected by wheel_step per notch, clamped to [0, count).
