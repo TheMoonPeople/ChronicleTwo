@@ -159,7 +159,7 @@ Rect ModelArea(float left, float top, float bottom) { return {.x = left, .y = to
 Target PartnerHit(CMenuItemInfo &menu, Point p) {
     const bool robo = menu.view_mode == MENU_ITEM_VIEW_ROBO;
     auto      *form = menu.view_form[robo ? 3 : 4];
-    if (!form || !form->draw_flag || !form->GetPartInfo(const_cast<char *>("chr_cur"))) {
+    if (!form || !form->draw_flag || !MenuMouseFindPart(form, "chr_cur")) {
         return {};
     }
     // The left edge is the Ridepod's first part slot (c_w0, 16 left of the form).
@@ -175,9 +175,13 @@ Target PartnerHit(CMenuItemInfo &menu, Point p) {
 
 // Max's bait slot is drawn, and reachable by the retail cursor, only with a rod equipped.
 Target BaitHit(CMenuItemInfo &menu, CMenuPosDataForm *form, Point p) {
-    auto *bait = form->GetPartInfo(const_cast<char *>("esa0"));
+    if (menu.view_mode != MENU_ITEM_VIEW_MAX || menu.sub_view != 0) {
+        return {};
+    }
+    // Monica's page has no esa0 part.
+    auto *bait = MenuMouseFindPart(form, "esa0");
     auto *user = GetUserDataMan();
-    if (menu.view_mode != MENU_ITEM_VIEW_MAX || menu.sub_view != 0 || !bait || !bait->draw_flag || !user || !user->GetActiveEsa()) {
+    if (!bait || !bait->draw_flag || !user || !user->GetActiveEsa()) {
         return {};
     }
     // The bait icon is drawn at its part's size (24x30), smaller than the 28x35
@@ -200,14 +204,14 @@ Target Hit(CMenuItemInfo &menu, Point p, int count) {
         const int stats = menu.view_mode == MENU_ITEM_VIEW_WEAPON ? 10 : 5;
         for (int i = 0; i < stats; ++i) {
             const std::string name = "index" + std::to_string(i);
-            auto             *part = form->GetPartInfo(const_cast<char *>(name.c_str()));
+            auto             *part = MenuMouseFindPart(form, name.c_str());
             if (!part || !part->draw_flag) {
                 continue;
             }
             constexpr const char *values[] = {"st0", "st1", "el0", "el1", "el2", "el3", "el4", "el5", "el6", "el7"};
             const Point           q = FormPoint(form, part->name);
             float                 width = part->w > 0 ? part->w : 60;
-            if (auto *value = form->GetPartInfo(const_cast<char *>(values[i]))) {
+            if (auto *value = MenuMouseFindPart(form, values[i])) {
                 const Point v = FormPoint(form, value->name);
                 width = std::max(width, v.x + value->w - q.x);
             }
@@ -219,7 +223,7 @@ Target Hit(CMenuItemInfo &menu, Point p, int count) {
         // The model turns above the parameter board, right of the retail hand at
         // chrpos. The top is 112 above chrpos: the bag's first row on the weapon
         // page. The bottom stops 20 above the board, at the durability bar (hpbar).
-        if (form->GetPartInfo(const_cast<char *>("chrpos"))) {
+        if (MenuMouseFindPart(form, "chrpos")) {
             const Point cursor = FormPoint(form, "chrpos");
             const Point board = FormPoint(form);
             if (ModelArea(cursor.x - 8, cursor.y - 112, board.y - 20).Contains(p)) {

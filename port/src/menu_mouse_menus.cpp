@@ -311,7 +311,7 @@ int MenuMouseCharaSelect(CMenuPosDataForm &form, unsigned party, int npc_no, int
     // Each portrait's ring is a target while its character, or the townsperson, is shown.
     std::array<MenuMouseRect, CHR_CNG_SELECT_NPC + 1> rows{};
     for (int i = 0; i <= CHR_CNG_SELECT_NPC; ++i) {
-        const auto *ring = form.GetPartInfo(const_cast<char *>(kPortraitRings[i]));
+        const auto *ring = MenuMouseFindPart(&form, kPortraitRings[i]);
         if (ring && ((party & (1u << i)) || (i == CHR_CNG_SELECT_NPC && npc_no > 0))) {
             rows[i] = {.x = form.x + ring->x, .y = form.y + ring->y, .w = ring->w, .h = ring->h};
         }

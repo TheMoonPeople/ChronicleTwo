@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <utility>
 #include <vector>
 
@@ -105,11 +106,23 @@ int MenuMouseWheelStep(int selected, float wheel, int count, int wheel_step) {
     return std::clamp(selected + (-static_cast<int>(std::clamp(wheel, -32.0f, 32.0f)) * wheel_step), 0, count - 1);
 }
 
+MENUFORMPARTS_TYPE *MenuMouseFindPart(CMenuPosDataForm *form, const char *name) {
+    if (!form || !name) {
+        return nullptr;
+    }
+    for (int i = 0; i < form->parts_num; ++i) {
+        if (form->parts[i].name && std::strcmp(form->parts[i].name, name) == 0) {
+            return &form->parts[i];
+        }
+    }
+    return nullptr;
+}
+
 MenuMouseRect MenuMousePart(CMenuPosDataForm *form, const char *name) {
     if (!form || !form->draw_flag) {
         return {};
     }
-    auto *part = form->GetPartInfo(const_cast<char *>(name));
+    auto *part = MenuMouseFindPart(form, name);
     if (!part || !part->draw_flag) {
         return {};
     }
