@@ -77,6 +77,22 @@ float Local(const Action &action, float frame) {
 }
 
 /**
+ * Applies one auxiliary (material, camera, vertex or visibility) channel at a local game frame.
+ *
+ * An action's channels are sliced to its KEY interval and end on its last frame, where the retail
+ * motion carried on. There the game's MotionProc finds no later key to interpolate toward and divides
+ * zero by zero, so material alpha and colour become NaN and a fading effect draws at full brightness.
+ * At or past its last key the channel holds that key, the value the game read there from the whole motion.
+ */
+Mot_List *ApplyAuxiliary(mgCFrame &root, float local, Mot_List *channel, mgCCamera *camera) {
+    const u32 last = channel->key_frames[channel->key_count - 1];
+    if (local >= static_cast<float>(last)) {
+        return MotionProc(&root, last, last, 0.0f, channel, camera);
+    }
+    return MotionProc(&root, local, channel, camera);
+}
+
+/**
  * Applies one action's channels at a local game frame.
  */
 void Apply(mgCFrame &root, const Action &action, float local, mgCCamera *camera) {
@@ -88,7 +104,7 @@ void Apply(mgCFrame &root, const Action &action, float local, mgCCamera *camera)
         if (model_assets::ApplyChannel(root, local, local, 0, *channel)) {
             channel = channel->next;
         } else {
-            channel = MotionProc(&root, local, channel, camera);
+            channel = ApplyAuxiliary(root, local, channel, camera);
         }
     }
 }
@@ -187,7 +203,7 @@ void Blend(mgCFrame &root, tagMOTION_TYPE &motion, float from, float to, float b
         if (!channel->key_count || model_assets::IsNativeChannel(*channel)) {
             channel = channel->next;
         } else {
-            channel = MotionProc(&root, target_local, channel, camera);
+            channel = ApplyAuxiliary(root, target_local, channel, camera);
         }
     }
 }
