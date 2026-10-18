@@ -1,17 +1,58 @@
 # Debug mode
 
-Retail cites are `ps2/src` file:line. PC cites are `port/src` or `tools/kazarov`.
+How the PC port turns on the retail developer/debug tools (Ver0.334 menu, map jumps, edit debug, dungeon debug, and related pad shortcuts).
 
-## Config
+Retail cites are `ps2/src` file:line. PC cites are `port/src` or `tools/kazarov`. Host settings overview: [PORT_OPTIONS.md](PORT_OPTIONS.md).
 
-`game.debug_mode` in `config.json`, default `false`, also set by **PC SETTINGS** > **Game** > **Debug mode**. The boot unlock reads it once at boot, so a change takes effect on the next start.
+## Quick start (PC port)
 
-- `true`: at boot, `MasterDebugCode` is set to `MASTER_DEBUG_CODE` and `MasterDebugModeOn` is set to 1. Retail `title.cpp:2377` then unlocks pad 2 without a developer save. Retail `title.cpp:2281` would otherwise read the save's debug code. Also enables the pad-1 chord below.
-- `false`: nothing changes at boot. Retail behaviour: pad 2 unlocks only if the four shoulders are held on pad 2 at boot and a memory card save carries a debug code. The pad-1 chord is off.
+1. Open **PC SETTINGS** — **Backspace** on keyboard (default `select` binding), or **Select / Back** on a gamepad. From the in-game pause **Options** screen you can use the same **Select** hint (`View: PC SETTINGS` on some glyph sets).
+2. Go to **Game** → **Debug mode** → **On** (default is **Off**). This writes `game.debug_mode` in `<save-root>/config.json` immediately.
+3. **Quit and restart** the game. Boot-time unlock (`MasterDebugCode`, title-screen pad routing) is applied in `DebugModeBoot` when the new session loads config — toggling mid-session does not re-run that path.
+4. Optional: launch with `--jump …` for one run with debug enabled without editing the file ([PC test hooks](PC.md#test-hooks)).
 
-Set `"game": {"debug_mode": true}` in the save root's `config.json` to enable native debug controls. Ordinary boots preserve the retail developer-save gate. `--jump` enables debug controls explicitly for that run.
+Implementation: `port/src/debug_mode.cpp` (`DebugModeBoot`), called from `port/src/mainloop.cpp` after the optional four-shoulder boot check.
 
-Boot code: `port/src/debug_mode.cpp` (`DebugModeBoot`), called from `port/src/mainloop.cpp` after the retail shoulder check.
+Retail in-game **Options** does not expose debug for now; use PC SETTINGS only.
+
+## Controller and keyboard
+
+**Yes — a gamepad works.** The first connected controller is **pad 1** (menus, gameplay, and most debug chords). SDL maps **Start** → `start` and **Back / Share / Select** → `select` by default; rebind under PC SETTINGS → **Bindings** if needed.
+
+| Action | Gamepad (typical) | Default keyboard (pad 1) |
+|--------|-------------------|----------------------------|
+| Open PC SETTINGS | Select / Back | Backspace (`select`) |
+| Developer menu chord | Hold **Start + Select**, release, repeat | **Return + Backspace** |
+| Toggle `DebugFlag` (debug overlays) | Hold **L1+L2+R1+R2**, press **R3** | **Z + Q + F/X + R**, then **B** |
+| One-controller “pad 2” debug | Hold **L2 + Select**, then use face buttons | **Q + Backspace**, then e.g. **Cross** as pad-2 Circle |
+
+`--jump` or `game.debug_mode` must be active for the pad-1 chords and **Start+Select** developer-menu entry. `--jump` also forces `DebugFlag` on for that run.
+
+A second physical pad still maps as **pad 2** when present; see [One controller](#one-controller) below.
+
+## Title screen and “main menu”
+
+Two related ideas:
+
+**Developer menu (Ver0.334)** — the full debug hub (maps, dungeons, chrview, sound test, save tools, …).
+
+- With `game.debug_mode` or `--jump`, press **Start + Select** on pad 1 **once** (release both before pressing again). The port handles this on the **title screen**, in town, in dungeons, and elsewhere (`GameDeveloperMenuRequested` in `port/src/test_hooks.cpp`, main loop in `port/src/mainloop.cpp`).
+- Retail title code also checks **Start + Select** when `DebugFlag` is already on (`ps2/src/title.cpp`).
+
+You do **not** need a developer save on the memory card when `game.debug_mode` is true at boot.
+
+**In-game pause → Options** is the normal settings list (vibration, sound, …). It is **not** where debug is toggled on PC today. Use **PC SETTINGS → Game**.
+
+After restart with debug enabled, you can open the developer menu from the **title** (New Game / Continue) with **Start + Select**, or enable `DebugFlag` first (pad-2 **Circle** or four-shoulder + **R3** on pad 1) for extra title shortcuts documented under [What `DebugFlag` unlocks](#what-debugflag-unlocks-on-pad-1).
+
+## Config (`game.debug_mode`)
+
+`game.debug_mode` in `config.json`, default `false`.
+
+- **`true` at boot:** `DebugModeBoot` sets `MasterDebugCode = MASTER_DEBUG_CODE` and `MasterDebugModeOn = 1`, matching a developer save. Title memory-card flow can unlock pad-2 debug routing without a debug save (`ps2/src/title.cpp`). Enables the pad-1 four-shoulder + **R3** chord (`DebugModeToggleChord`).
+- **`false`:** retail gate only: hold **L1+L2+R1+R2 on pad 1 at boot** (port `mainloop.cpp`, same as PS2 pad-2 shoulders) **or** use a save with a debug code on original hardware behaviour.
+
+`GameDebugEnabled()` is `config.debug_mode || --jump` (`port/src/test_hooks.cpp`).
 
 ## Pad-1 chord
 

@@ -23,6 +23,9 @@
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
+#ifdef PORT
+#include "port_options.hpp"
+#endif
 #include "menusys.hpp"
 #include "mg_camera.hpp"
 #include "mg_math.hpp"
@@ -2436,6 +2439,11 @@ void TitleCopyRightInit() {
  *
  */
 int TitleCopyRightStep() {
+#ifdef PORT
+    if (PortSkipIntroLogos()) {
+        return 1;
+    }
+#endif
     switch (TitleCopyRightDispPhase) {
         case COPYRIGHT_PHASE_DELAY:
             TitleCopyRightDispCounter++;

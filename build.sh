@@ -5,5 +5,5 @@
 #   ./build.sh ps2-pal elf     build the ELF only
 #   CLEAN=1 ./build.sh         discard build/pal and build it again
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-[ -f "$root/tools/kazarov/scripts/kazarov" ] || git -C "$root" submodule update --init tools/kazarov
+"$root/scripts/ensure_kazarov_submodule.sh"
 exec "$root/tools/kazarov/scripts/kazarov" build "$@"

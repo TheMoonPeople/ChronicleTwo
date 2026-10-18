@@ -4,7 +4,7 @@
 
 The port runs the retail main loop on the shared renderer and mixer, reading extracted PAL disc files. Supported checkpoints include the boot movies, title, costume selection, opening event, Palm Brinks exploration and the first Underground Channel floor. Town and dungeon movement, inventory item use, chapter resources, menus, photos and save/continue have native implementations and bounded replay fixtures. These checkpoints do not establish a complete campaign or every sub-game; the fish race still aborts at its unimplemented loop.
 
-The PC controls include keyboard menu navigation, mouse menus and item drag/drop, town and dungeon mouse camera control, optional wheel zoom, a PC settings page and flat save files. Sharp ASCII font rendering is an opt-in prototype, off by default. Presentation can interpolate between logic frames independently of the display rate. Ordinary boots leave debug controls disabled; `game.debug_mode=true` or `--jump` enables them explicitly.
+The PC controls include keyboard menu navigation, mouse menus and item drag/drop, town and dungeon mouse camera control, optional wheel zoom, a PC settings page and flat save files. Sharp ASCII font rendering is an opt-in prototype, off by default. Presentation can interpolate between logic frames independently of the display rate. Ordinary boots leave debug controls disabled; `game.debug_mode=true` or `--jump` enables them explicitly. See [DEBUG.md](DEBUG.md) for PC SETTINGS, controller chords, and the title-screen developer menu.
 
 ## Building and running
 
@@ -21,7 +21,7 @@ Without the container, `cmake --preset linux-x64`, `cmake --build --preset linux
 
 The renderer's cases need a Vulkan device with the features `tools/kazarov/src/cpp/gfx/README.md` lists under "Device". The container's Mesa lavapipe provides them, so no GPU is needed there.
 
-`./run.sh linux-x64` builds, then runs `port/build/pc/darkchronicle` on a Linux host. It extracts the PAL source (`rom/pal/Dark Chronicle (PAL).iso`, else the first `.iso` in `rom/pal/` by name, else `rom/pal/extracted/iso`) into the ignored `port/run/` root with `dc2data`, under `.kazarov/locks/port-data.lock`. The game holds the lock shared while it runs. The extractor verifies source and output hashes on each launch and skips publication when both already match.
+`./run.sh linux-x64` builds, then runs `port/build/pc/darkchronicle` on a Linux host. It extracts the PAL source into the ignored `port/run/` root with `dc2data`, under `.kazarov/locks/port-data.lock`. The game holds the lock shared while it runs. The extractor verifies source and output hashes on each launch and skips publication when both already match.
 
 ### Windows
 
@@ -32,7 +32,7 @@ The renderer's cases need a Vulkan device with the features `tools/kazarov/src/c
 
 `build.bat` and `run.bat` pass the configuration through Kazarov's host launcher to `tools/windows/kazarov.ps1`. That script builds into `port/build/<configuration>`. The first run fetches the toolchain into `.kazarov/windows`, through `tools/windows/acquire.ps1`: llvm-mingw 20260922 (clang and lld), Ninja 1.13.2, SDL3 3.4.18 (MinGW), FFmpeg n9.0.2 (the LGPL shared build), glslang 16.6.0, the Vulkan 1.4.363.0 headers, and Rust 1.99.0 for the llvm-mingw UCRT target. `acquire-rust.ps1` verifies the official Rust and rustfmt archives, caches the locked crates, and installs `cxxbridge-cmd` 1.0.205; Corrosion 0.6.1 integrates Rust with CMake. Each downloaded archive is checked against its SHA-256 before extraction. `windows-x64` is a Debug build; `windows-x64-release` (and `windows`) is RelWithDebInfo.
 
-The Windows launcher prints elapsed stages for dependency checks, configuration and the build, and announces any lock wait. Compiler and Cargo output appears live, with the complete latest build output retained in `port/build/<configuration>/build.log`; failures preserve the native exit code. First-run downloads, archive verification and extraction announce their stages and log paths. `JOBS=N` sets the compile job count (the logical processor count by default). See [build measurements](port/buildperf.md) for the measured incremental costs. `pwsh -NoProfile -File tools/windows/test-build.ps1` checks live stdout/stderr, full logging and successful/failing exit codes without requiring a toolchain.
+The Windows launcher prints elapsed stages for dependency checks, configuration and the build, and announces any lock wait. Compiler and Cargo output appears live, with the complete latest build output retained in `port/build/<configuration>/build.log`; failures preserve the native exit code. First-run downloads, archive verification and extraction announce their stages and log paths. `JOBS=N` sets the compile job count (12 by default). See [build measurements](port/buildperf.md) for the measured incremental costs. `pwsh -NoProfile -File tools/windows/test-build.ps1` checks live stdout/stderr, full logging and successful/failing exit codes without requiring a toolchain.
 
 `run.bat` uses the same ignored `port/run/` extraction and version checks before launching, under the `port-data.lock` lock. The game holds the lock shared while it runs.
 
@@ -97,9 +97,10 @@ dc2data current <iso-or-directory> <data-directory>
 ```
 
 `extract` uses up to 32 workers by default; `--jobs N` accepts 1 through 64.
+After the raw-file counter, the CLI prints coalesced phase progress on stderr (`dc2data: [ 45%] Converting textures…`) so long conversion and packing steps are not silent; the setup window uses the same weighted phases in its progress bar.
 `current` compares the source's path and file metadata with the versioned marker and verifies both output directories exist; it returns 0 only when extraction can be skipped. `check` performs the full hash and payload audit.
 
-The source of `extract` is a Dark Chronicle disc image or a folder holding `DATA.HD4`, `DATA.DAT`, `SOUND.HD3`, `SOUND.DAT` and `MOVIE`. Give it `<game-root>/data` as the output. The C++ command-line program calls the Rust extractor through a `cxx` bridge; conversion runs in process. Data version 9 writes every game file, retained and converted, into one Zstandard ZIP archive, `<game-root>/data.zip` ([format](PORT_ARCHIVE_FORMAT.md)), with a version marker at `<game-root>/data.json`. Textures use JSON and PNG; sound uses semantic JSON and PCM WAV; models and complete characters use glTF with embedded images and minimal gameplay JSON sidecars; configurations and textual maps use native semantic JSON documents (data version 12); movies use self-contained MP4 with copied MPEG-2 video and embedded lossless ALAC audio. Ordinary PACK archives become folders with a minimal versioned `pack.json` containing no contents listing. Substituted originals are removed. Native game code references actual asset paths directly, without catalogs or manifests. See the [migration](PORT_ASSET_MIGRATION.md), [texture](PORT_TEXTURE_FORMAT.md), [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and [configuration](PORT_CONFIG_FORMAT.md) documents. `dc2data check <game-root>/data` validates native payloads and the whole-output SHA-256 digest. Extraction stages both trees before publication and restores the previous output on failure. Exit status: 0 on success, 1 on an error or failed check, 2 on usage error.
+The source of `extract` is a Dark Chronicle disc image or a folder holding `DATA.HD4`, `DATA.DAT`, `SOUND.HD3`, `SOUND.DAT` and `MOVIE`. Give it `<game-root>/data` as the output. The C++ command-line program calls the Rust extractor through a `cxx` bridge; conversion runs in process. Data version 9 writes every game file, retained and converted, into one Zstandard ZIP archive, `<game-root>/data.zip` ([format](PORT_ARCHIVE_FORMAT.md)), with a version marker at `<game-root>/data.json`. Textures use JSON and PNG; sound uses semantic JSON and PCM WAV; models and complete characters use glTF with embedded images and minimal gameplay JSON sidecars; configurations and textual maps use typed JSON; movies use self-contained MP4 with copied MPEG-2 video and embedded lossless ALAC audio. Ordinary PACK archives become folders with a minimal versioned `pack.json` containing no contents listing. Substituted originals are removed. Native game code references actual asset paths directly, without catalogs or manifests. See the [migration](PORT_ASSET_MIGRATION.md), [texture](PORT_TEXTURE_FORMAT.md), [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and [configuration](PORT_CONFIG_FORMAT.md) documents. `dc2data check <game-root>/data` validates native payloads and the whole-output SHA-256 digest. Extraction stages both trees before publication and restores the previous output on failure. Exit status: 0 on success, 1 on an error or failed check, 2 on usage error.
 
 Each texture variant is a full-colour RGBA PNG. When retail animation scripts copy colours between textures, extraction bakes the finite source-colour variants into separate destination PNGs and records their selectors in the texture document. Source palettes are used only during extraction; runtime textures and generated render targets use RGBA pixels without palette files or palette uploads. `data.json` carries the current `data_version`, and the game rejects an older extraction so the launcher can rebuild it.
 
@@ -205,8 +206,7 @@ references it; each external PNG is decoded once and shared. Invalid
 model or metadata overlays can fall back to lower-priority candidates. See the
 [audio](PORT_AUDIO_FORMAT.md), [model](PORT_MODEL_FORMAT.md), and
 [configuration](PORT_CONFIG_FORMAT.md) formats for the physical paths and
-replacement constraints. A replacement movie is best 1, 2 or 4 times the retail
-512x416 picture; see [Movies](#movies).
+replacement constraints.
 
 Packs can also replace ordinary, unconverted files read by the game's file
 loader. Put each file at its entry name in `data.zip`, directly inside the
@@ -229,9 +229,9 @@ The save root is the first of these that applies. It is created when first resol
 3. `DC2_SAVE`
 4. the per-user save directory: `%LOCALAPPDATA%\chronicletwo\saves` on Windows, `$XDG_DATA_HOME/chronicletwo/saves` or `~/.local/share/chronicletwo/saves` elsewhere
 
-A data root is missing when its parent has no current `data.json` marker, or has neither `data.zip` nor the `data/` and `port_data/` directories. A windowed run opens Kazarov's Rust setup window before creating the game window. The editable path accepts a disc image or a disc folder; **Choose image** and **Choose folder** open the operating system's file and folder pickers. A folder with no `DATA.DAT` and a single `.iso` file stands for that image. **Okay** starts extraction on a worker thread. The progress bar tracks completed raw files and texture conversions, reserving 100% for successful publication. The setup window then closes automatically and normal game startup continues. Existing current data skips setup on subsequent launches. Extraction errors remain visible for correction and retry; closing setup before extraction exits with status 3. During extraction the window stays open until the worker finishes. Headless runs still print the `dc2data extract` command and exit with status 3.
+A data root is missing when its parent has no current `data.json` marker, or has neither `data.zip` nor the `data/` and `port_data/` directories. A windowed run opens Kazarov's Rust setup window before creating the game window. The editable path accepts a disc image or a disc folder; **Choose folder** opens the operating system's folder picker. **Okay** starts extraction on a worker thread. The progress bar tracks completed raw files and texture conversions, reserving 100% for successful publication. The setup window then closes automatically and normal game startup continues. Existing current data skips setup on subsequent launches. Extraction errors remain visible for correction and retry; closing setup before extraction exits with status 3. During extraction the window stays open until the worker finishes. Headless runs still print the `dc2data extract` command and exit with status 3.
 
-The setup uses an eframe desktop window and rfd native dialogs on Windows, Linux and macOS. Linux file and folder selection requires an XDG desktop portal and its desktop backend. Extraction uses the same staged publication and integrity checks as `dc2data`; the output must be outside the selected source folder. A typed ISO path is supported without mounting the image.
+The setup uses an eframe desktop window and an rfd native folder dialog on Windows, Linux and macOS. Linux folder selection requires an XDG desktop portal and its desktop backend. Extraction uses the same staged publication and integrity checks as `dc2data`; the output must be outside the selected source folder. A typed ISO path is supported without mounting the image.
 
 `run.sh` with no configuration boots the PS2 build in PCSX2 on Linux, and runs `macos-arm64-release` on macOS. `run.bat` with no configuration runs `windows-x64-release`. A PC configuration name extracts the data first, as described above, and then runs the port.
 
@@ -361,15 +361,6 @@ can be removed while the game is closed. A load reads and validates the complete
 image before changing the live game state. The retail checksum format is retained;
 it is not a cryptographic integrity check.
 
-### Retail data fixes
-
-Retail gives two of Starlight Temple's (`f02`) chests the same opened flag 7: the
-Fruit of Eden by the weapon platform (`item19`) and the one by Starlight Items
-(`item11`), so opening either hid the other for good. The `UpdateTrBoxFlag`
-override (`port/src/editloop.cpp`) records `item11` under flag 9, which no other
-chest of the town uses; the save layout is unchanged. A save whose flag 7 is
-already set offers `item11` again, which restores it to saves that lost it.
-
 ### darkchronicle
 
 ```
@@ -386,7 +377,7 @@ darkchronicle [options]
 | `--frames N` | exit with status 0 after frame N of the main loop. N is a positive integer |
 | `--screenshot PATH` | with `--frames`: write the last frame to PATH as a PNG on exit. A failed write exits with status 1 |
 | `--screenshot-display N` | with `--screenshot`: also write N interpolated display frames of that frame, as `<stem>-display-<k>.png` for k = 0 to N-1 |
-| `--screenshot-fps` | with `--screenshot`: draw the FPS counter and any menu pointer into the image, from a presented frame at window size. With `--offscreen`, nothing is presented: the image is read back from the display image instead |
+| `--screenshot-fps` | with `--screenshot`: draw the FPS counter into the image, from a presented frame at window size. With `--offscreen`, nothing is presented: the image is read back from the display image instead |
 | `--input SCRIPT` | drive the pads from an input script at start-up. A bad script exits with status 2 |
 | `--display-per-tick N` | also render N interpolated display frames per clock tick, discarded. N is a positive integer |
 | `--show-fps` | draw the FPS counter on presented frames, headless too |
@@ -487,7 +478,7 @@ Each arena's high-water mark is tracked, and `MainLoop` logs `mg_memory: <name> 
 
 `port/src/mainloop.cpp` retains the retail boot and mode-dispatch order. Native changes include pointer-width alignment; mapped arenas and native-sized sub-game storage; retained static helpers through link-name bridges; writable file paths; and arena high-water reporting. `InitCDFile` runs from `main` before NTSC script validation and renderer startup.
 
-Launch hooks prepare an explicit scene jump and give requested items on arrival. Jumps skip the ordinary boot logo and select English. `game.skip_intro` keeps the language select but drops the boot logo's fades, the copyright notice and the Level-5 logo movie. Configured debug mode or a jump unlocks debug controls; the one-controller modifier, developer-menu chord and capture/resume handling are native additions. Mode changes cut interpolation, and the final frame border follows the live visible extent rather than fixed retail screen edges. Ordinary launches preserve the retail scene route and default debug gate.
+Launch hooks prepare an explicit scene jump and give requested items on arrival. Jumps skip the ordinary boot logo and select English. Configured debug mode or a jump unlocks debug controls; the one-controller modifier, developer-menu chord and capture/resume handling are native additions. Mode changes cut interpolation, and the final frame border follows the live visible extent rather than fixed retail screen edges. Ordinary launches preserve the retail scene route and default debug gate.
 
 ## config.json
 
@@ -506,11 +497,11 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.debug_mode` | bool | false | | the boot debug unlock, and the pad-1 chord; see [DEBUG.md](DEBUG.md) |
 | `game.autosave` | bool | true | | write the autosave on arriving in a town or on a dungeon floor |
 | `game.quick_loadout_title` | string | bar | bar, plate | the quick loadout panel's title on a bar, or on a plate like the EXP gauge's; see [QUICK_LOADOUT.md](QUICK_LOADOUT.md) |
-| `game.auto_use_event_item` | bool | false | | an event that asks for one item the bag holds is handed it without the item picker; see "Auto-use event items" |
-| `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
-| `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true | | interpolate display frames between ticks |
+| `video.interpolation_draw_budget` | int | 0 | 0 or more | when a tick records more mesh+2D draws than this, skip tweened display frames (0 = never skip). Ordinary towns record 2900-4200 draws |
+| `video.interpolation_fps_floor` | int | 54 | 0 or more | skip tweened frames while rolling present FPS is below this (0 = off) |
+| `video.interpolation_multi_present` | bool | true | | present tweened frames as often as `video.max_fps` allows; false allows one per tick slice, about 60 FPS |
 | `video.max_fps` | number | 0 | 0 or more | display frame cap; 0 is unlimited |
 | `video.width` | int | 0 | 0 or more | window width; 0 is the monitor's |
 | `video.height` | int | 0 | 0 or more | window height; 0 is the monitor's |
@@ -518,7 +509,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `video.aspect` | string | auto | auto, 4:3 | `auto` fills the window; `4:3` letterboxes |
 | `video.ui_scale` | number | 1 | 0.25 to 4 | 2D UI scale |
 | `video.show_fps` | bool | true | | FPS counter (windowed runs; `--show-fps` forces it headless) |
-| `video.fps_detail` | string | all | fps, ticks, all | FPS counter text |
+| `video.fps_detail` | string | all | fps, ticks, all, budget | FPS counter text; `budget` adds CANON/DISP/OTH ms per tick |
 | `audio.master_volume` | number | 1 | 0 to 1 | final mixer gain, independent of the game's fades and core volumes; applies live |
 | `audio.sound` | string | stereo | stereo, surround | output layout; read and saved, not yet applied (the output is stereo) |
 | `audio.soundtrack` | string | ps2 | ps2, custom | `custom` plays recordings from `soundtrack/` beside the save root, as named by its `soundtrack.json` |
@@ -586,12 +577,10 @@ The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Dow
 | Display | Windowed/fullscreen, resolution, FIFO/mailbox/immediate, frame cap, interpolation, auto/4:3 aspect, UI scale, FPS counter |
 | Audio | Master volume and PS2/custom soundtrack |
 | Controls | Mouse sensitivity, Y inversion and capture; stick sensitivity and X/Y inversion; button symbols and glyph style |
-| Game | Autosave, quick loadout title, skip intro, auto-use event items, floor monster list and debug mode |
 | Bindings | Keyboard and mouse bindings for pad buttons, movement, look, FPS and debug menu |
+| Game | Autosave, debug mode, skip intro, expanded dungeon monsters, Georama polygon budget (1×–6×; see [PORT_OPTIONS.md](PORT_OPTIONS.md)) |
 
 Edits save to `config.json` and apply immediately. Soundtrack selection takes effect the next time a song starts, including one whose data is already loaded. Custom recordings use the actual sequence JSON path in `soundtrack/soundtrack.json`; `AUDIO_TRACE` prints that path. An absent or invalid recording falls back to the converted sequence. Current music is not restarted by moving the setting.
-
-Turning to another tab, with L1/R1 or the mouse, plays the retail menu cursor sound once; clicking the tab already shown is silent.
 
 Resolution changes the windowed size; fullscreen uses the desktop. A command-line `--window` takes precedence. A refused window change is read back and reported on screen. Hand-edited resolutions and numeric values are shown as stored and stay unchanged until that row is edited. The PC UI offers a bounded set of scale presets; the configuration file still accepts the full documented range.
 
@@ -602,10 +591,6 @@ A failed write shows a warning. Settings still work in the current session. Chec
 `tools/input/pc-settings.input` replays all four tabs, a key rebind, Escape cancellation, and return to retail Options from `--jump town:10 --fast-load`. Its comments give capture frames. `tools/input/pc-settings-mouse.input` exercises clicking and mouse-button capture at `--window 1280x960`. Use fresh save roots and `--screenshot-display 2` for both.
 
 `tools/input/pc-settings-display.input` checks fullscreen, return to windowed, and resizing in a real window. Start with a fresh config containing a nonzero window size, omit `--window`, and stop at frame 940. The optional `PcSettingsReplay` CTests run the headless pad and mouse flows and assert the saved configuration when `DC2_DATA` is available.
-
-### Auto-use event items
-
-With **Auto-use event items** (`game.auto_use_event_item`, PC SETTINGS > Game), an event that asks for exactly one item the bag holds is handed it without opening its item picker, and uses it up when the event asks; requests for several items and the fish tournament's picker are unchanged.
 
 ### Keyboard menu controls
 
@@ -642,31 +627,20 @@ and game captures. The menu hand shares cursor ownership with the operating-syst
 `input.mouse_capture` configures capture, and `input.mouse_release` selects the
 keys that release it.
 
-Mouse selection covers the town and dungeon root menus, title menu, world map,
-dungeon floor maps and their help actions, the flat save/load file lists,
-and the field Use Item popup. Yes/No boxes and dialogue choices use the message
+Mouse selection covers the town and dungeon root menus, title menu, dungeon
+floor map and Save Adventure action, the flat save/load file lists,
+and the field Use Item popup. With **PC SETTINGS → Game → Auto-use event items**
+enabled, events that require exactly one specific item you already carry skip
+that picker and hand the item over immediately (default **Off**; fish-tournament
+item select and multi-item prompts are unchanged). Yes/No boxes and dialogue choices use the message
 system's drawn choice positions and feed its normal directional input before
 confirming. The pointer follows the renderer's UI mapping, including widescreen
 anchoring and display scaling.
 
 The root and file lists pass their selection through the retail cursor helper,
 so scrolling, help text and background loading follow the same path as a D-pad
-move. The floor map similarly uses its normal next-room transition.
-
-On the world map, hovering an unlocked area's mark selects it; clicking the mark
-or the area's name frame opens its place list. On a dungeon floor map, opened from
-the world map or a dungeon, hovering a room selects it and clicking opens its
-information or question. Each wheel notch moves to the next room the arrow keys
-reach along the path (down onward, up back), preferring Right, Down, Up, then
-Left, so at a fork it keeps to the Right key's branch. Room hit boxes follow the
-drawn pictures and their cull edge. Clicking a help label presses the button its
-symbol shows: Back to Map or Exit Dungeon, Save Progress, and the floor
-information's Move and Cancel; on the floor information only those labels act on
-a left click. On these maps and the screens they open (the place list, the travel
-and floor questions, and Save Progress's save screen), Mouse1 confirms and Mouse2
-cancels in the language's own layout, so Japanese confirms with Circle.
-
-The shared pointer implementation is `port/src/menu_mouse.cpp`; menu adapters, cursor
+move. The floor map similarly uses its normal next-room transition. The shared
+pointer implementation is `port/src/menu_mouse.cpp`; menu adapters, cursor
 transitions, floor selection and message choices live in separate
 `menu_mouse_*.cpp` files.
 
@@ -678,13 +652,7 @@ Deterministic mouse replays are `tools/input/town-mouse-menu.input` and
 controller handoff, scrolling and confirmation timing.
 
 `town-mouse-menu-wide.input` checks opening and cancelling at 16:9.
-`world-map-mouse.input`, with `--jump town:10 --fast-load --window 1920x1080`,
-hovers and clicks world map areas, walks Rainbow Butterfly Wood's floor map with
-the wheel, clicks Back to Map, Cancel and Move to this floor, and enters floor 1;
-its comments give capture frames. `MenuMouseMap.*` and `MenuMouseMapInput.*`
-cover the area marks, room pictures and culling, wheel steps through a fork, help
-labels and these clicks in English and Japanese.
-`dungeon-mouse-play.input` enters a floor through its Move label and opens its root menu.
+`dungeon-mouse-play.input` enters a floor with the mouse and opens its root menu.
 `dungeon-mouse-item-popup.input` follows the normal dungeon replay to the locked
 gate and selects the Gate Key with the mouse. `title-mouse-load.input` exercises
 Continue, a file-row click and its confirmation using a copied flat-save fixture.
@@ -706,46 +674,6 @@ pointer immediately. Ordinary dialogue choices share the message adapter;
 the rendered confirmation replays and drawn-message unit tests cover that input
 path, but campaign dialogue choices still need a dedicated replay.
 
-### Character, Options and Help mouse
-
-On the Character page, hovering a shown portrait (Max, Monica, the Ridepod,
-Monster Transform or the travelling townsperson) moves the retail cursor there,
-and clicking it confirms; a click beside the portraits does nothing. While a
-character change loads, left clicks do nothing. The change question, the
-townsperson's View Status/Send back question, their commands and their
-questions take clicks on their drawn choices; when a question opens over a
-list that still draws its cursor, the newest window takes the mouse. On
-Cedric's repair board, hover and the wheel select an item and only a click on
-an item confirms, so a stray click cannot spend his points. Waits that take
-any button (the opening, the townsperson's speech) still take any click.
-
-Retail mirrors the hand to point left at Max; the mouse pointer is never
-mirrored, so its body stays on the same side of the hotspot on every target.
-
-On the retail Options page, hovering a row's label moves the row cursor and keeps
-its choice; hovering a choice button also moves the choice. Clicking a button
-selects that setting. The PC SETTINGS label opens that page on click.
-
-In Help, hovering an entry moves the cursor and a click opens it. On an entry's
-picture pages the wheel turns pages (down for the next) through the retail
-Left/Right keys; a click turns to the next page and right click returns, as Cross
-and Circle do. Movies keep their retail controls. Keyboard and controller input
-is unchanged on all three pages.
-
-The wheel follows one rule on these pages: in a list longer than its window,
-each notch scrolls the list one row and the cursor takes the row that comes under
-the pointer, or stays in view (`MenuMouseScroll`; the ITEM page's bag scrolls the
-same way). Elsewhere it moves the cursor, as in shops and the root menu; the
-Character page's portrait map is not a list, so the wheel does nothing there.
-Options and Help rows are hit where they are drawn while the list eases to a new scroll, and
-only inside the list's scissor (`clip0`): a row sliding under the footer cannot
-be clicked, and a visible row above the new scroll still can.
-
-`tools/input/character-mouse.input`, `character-mouse-cedric.input`, `options-mouse.input` (`--jump town:10`)
-and `help-mouse.input` (`--jump dungeon:0:1`) replay these at `--window 1920x1080`
-with `--fast-load`; their comments give capture frames. `--screenshot-fps`
-captures include the menu pointer.
-
 ### Mouse follow camera
 
 Mouse motion directly turns the active walking camera around the character. It
@@ -761,10 +689,7 @@ town walking mode or dungeon follow/follow-low mode with the active main camera,
 unlocked input and no scene event or subgame. Dungeon carrying, guarding, aiming,
 falling and lock-on keep follow-camera mouse control, just as they keep right-stick
 control; lock-on target framing still runs first. The character's menu-eligibility
-flag does not gate the follow camera, nor does the camera's follow flag, which
-door, map and world map entry events and the dungeon death event leave off until
-a later event resets the camera; the mouse turns the camera whenever camera
-control is on, as the right stick does. Paused player or field control and
+flag does not gate the follow camera. Paused player or field control and
 pending/running event scripts retain camera ownership. Town water movement uses
 the walking camera; ladders keep their authored camera for both inputs.
 Boss and arena views, menus and Georama retain their existing controls. Fixed
@@ -813,7 +738,7 @@ Photo aiming, fishing, Ridepod, menus and scripted control keep their own contro
 ### Item menu mouse
 
 The town and dungeon main menu's Item page accepts the mouse. Move over a grid
-cell, an active-item slot, an equipped weapon or the model on the left to move the
+cell, an active-item slot, an equipped weapon or the character model to move the
 retail selection there. Mouse1 opens the selected item's command list; move over
 a command and click to confirm it. Mouse2 backs out like Circle. The command
 window stays attached to the item, using the game's own placement and disabled
@@ -831,26 +756,7 @@ the mouse. A short click opens commands on release. Swapped items return to the
 original slot through the retail return animation. Dropping outside a target or
 pressing Mouse2 returns the held item; it does not discard it. Equipment, use,
 stack limits and refusal checks remain the game's own. Wheel notches over the
-grid scroll one row each, stopping at the bag's ends, with the board's retail
-eased scroll; the cell that settles under the pointer is selected.
-
-The panel left of the bag follows its page: the character model on Max's and
-Monica's pages, the turning weapon or fishing rod on a Status page, the Ridepod,
-Monica's monster form, and Max's bait slot while a rod is equipped are targets
-too. Hovering one moves the retail hand there and Mouse1 sends Cross, so clicking
-a Status page's weapon opens its commands. Dropping a held item on a target sends
-the Cross that carrying it there with the pad would: the character, Ridepod or
-monster uses or equips it; on an equipped weapon, a Status page's weapon or a
-bag weapon, a synth sphere opens the retail synthesis question and other items
-are used on that weapon. The game's refusals, questions and sounds apply. An
-item still carried after a refusal or a declined question returns to its slot,
-unless controller or keyboard input took over in the meantime.
-The 3D models have no form part of their own, so each area spans from the retail
-hand's part to the page's name or parameter board. `item-menu-mouse-targets.input`
-(`--jump town:10 --fast-load --give 388`, 1920x1080 or 4:3 1440x1080) drags a
-Potato Pie onto Max (capture 800), spectrumises a Bread and drags the sphere
-onto the Drill Wrench on its Status page: the question at 1680, the raised Flame
-at 2150.
+grid scroll rows, stopping at the bag's ends.
 
 The pointer starts at the retail selection when the mouse takes over. Controller
 or keyboard button input returns control to the retail cursor. Mouse counts are
@@ -869,38 +775,6 @@ active-slot placement (1100), active-slot moves (1300), and return after a drop
 outside the menu (1550). `item-menu-mouse-dungeon.input` reaches the dungeon's
 Item page and opens Bread's commands by frame 2850. These two scripts also use
 1280x720; scale `mouse:dx,dy` counts with the window dimensions for other sizes.
-
-### Item page over the paused world
-
-The town and dungeon main menus open over the paused world instead of the retail backdrop (`port/src/menu_world.cpp`). The request waits up to 20 ticks for the player to stop, swings the following camera to the player's front, where the next world tick's collision check keeps it clear of scenery, hides the player and its shadow, and holds the camera 89.7 units out and to the side so the player stands in the space the Item page leaves for the character. Depth of field is off from then until the menu closes. `MenuMainInit` then runs on that frame. Its `MenuCapture` keeps the frame at window resolution in a frame target of its own, while retail's half-size grab, which the other pages show, copies the world as it was when the menu was asked for, with the player and the walking camera. A subgame, the eye view, a fixed town camera, a non-following camera or the loop leaving its field mode leaves the menu as retail opens it.
-
-On the Item page the picture replaces the black fill and the retail backdrop forms. The menu character is drawn through the world camera at the player's spot, facing it; the Ridepod is drawn at 0.6 scale and the monster form at 0.8. A looked-at weapon or rod keeps the menu's close-up. Panels left of the bag board are anchored to the left edge and the rest to the right, within a centred 16:9 area (`gfx::UiAnchor::max_aspect`); the selection frame and the command popup move with their panel, a carried item is drawn at the pointer, and mouse hit tests map the pointer back to the retail layout. Closing the menu restores the camera and the player.
-
-### Make and Monster Transform mouse
-
-On the Make menu, hovering an invention card or a cell of the item board moves
-the retail cursor there; hovering the other pane brings it forward as Left and
-Right do. Where the panes overlap, the pane in front keeps the pointer. Mouse1
-on a card or cell confirms it; a click that brings the other pane forward only
-selects. Mouse2 backs out like Circle, and clicks on the background confirm
-nothing. The wheel moves the card cursor one row per notch, or scrolls the item
-board one row with its retail eased scroll. On the quantity board, hovering Yes
-or No selects it, the arrows and the wheel change the count, and Mouse1 on Yes,
-No or the count confirms. Result and error messages accept a click. The idea
-board, notebook and album pages have no pointer targets: Mouse1 there does
-nothing and Mouse2 backs out.
-
-On the Monster Transform screen, hovering a badge selects it and updates the
-preview, Mouse1 opens its commands, and the wheel moves one row of badges.
-Command, form and Yes/No lists use the shared message choices; the class-change
-list accepts hover and click. On a badge's status page the wheel steps through
-its forms like L1 and R1, and Mouse1 does nothing. Mouse2 backs out of each
-step and closes the box.
-
-The adapters are `port/src/menu_mouse_make.cpp` and `menu_mouse_monster.cpp`;
-`MenuMouseMake.*` and `MakeMouse.*` test them. `tools/input/make-menu-mouse.input`
-and `monster-transform-mouse.input` replay both screens at 1280x720 with
-`--jump town:10 --fast-load`; their comments give capture frames.
 
 ### Fixed camera mouse look
 
@@ -964,33 +838,6 @@ presentation frames. Enable the option in each replay's save-root config.
 `tools/input/dungeon-mouse-zoom-wall.input` adds a sideways wall approach,
 distance clamping, an inward reversal and reset in the same corridor.
 
-### Floor monster list
-
-`game.floor_info_monsters` (**Floor monster list** in PC SETTINGS > Game, off by default) adds a list of a dungeon
-floor's monsters to its information on the floor map (`port/src/floor_monsters.cpp`). Off, the floor map is
-unchanged. On, it shows what the game keeps hidden (mimic chests, drop chances): Triangle opens the list from the
-information when the floor lists no Georama materials, or from the materials list's last page, which then no longer
-returns to the information. Triangle turns the list's pages and leaves it from the last one; Cancel leaves at once.
-The prompt "Triangle: See monster info" (the Monster Notes item's command) shows under the information, with retail's
-Move prompt moved up a row, and under the materials list's last page; it also shows for a floor chosen from the
-dungeon menu. Clicking the prompt presses Triangle. Turning the setting off while the information or the list is
-open restores the original screen.
-
-Each kind of monster is listed with its count, then its drops and their chances. The counts come from the floor's
-list in its `monster_floors` document (`dungeon/cfg_file/mos_place<n>.cfg.json`, see
-[NATIVE_CONFIGS.md](NATIVE_CONFIGS.md)), read as `CreatMonsterFloorInfo` and `AutoSetMonster` read it: each entry is
-placed once, mimics become treasure boxes, and live monsters past `MONSTER_ACTIVE_MAX` are not placed. Monsters that
-events add are not listed. The first entry's kind carries the floor's gate key and shows the key's name in gold. Drop
-chances follow `_SET_DEAD_START`: with both of the first two slots set, 13% and 4%; with one, 17%; the third slot
-25%, or 100% while Borneo is with the player. A monster without reward money drops nothing. Names come from the
-loaded monster table and item messages in the current language.
-
-The list is drawn on the materials list's board, opaque and up to 12 rows tall. `tools/input/floor-monsters-channel.input`
-(`--jump dungeon:0 --fast-load`) shows the list for a floor without materials, and
-`tools/input/floor-monsters-deathtrap.input` (`--jump dungeon:4 --fast-load`) opens every floor with the menu debug
-mode and pages from Deathtrap's materials to its monsters; their comments give capture frames. Both need the setting
-on in the save root's `config.json`.
-
 ## Decision 1: long64 is kept
 
 The PS2's `long` is 64-bit, and on Windows (LLP64) it is not. `scripts/port/long64.py` rewrites the build-tree copies of `ps2/src` and the `ps2/include` mirror, on every host, so the port keeps the PS2's width:
@@ -1017,8 +864,6 @@ A buffer inside a block is a child view, and it stays exactly where retail carve
 
 `stAlloc` and `Alloc` past an arena's end abort, naming `mgCMemory::name` or, when it has none, the arena's address, where retail printed and returned NULL. `stAllocTest` keeps retail's probe.
 
-Retail's `LoadMapData` reads a map's `.map`, `.cfg`, `.mpk` and `.sky` one after another into the caller's fixed load buffer (the dungeon's `BuffReadData`, the town's read buffer) with no bound, so a large map or a datapack's replacement ran into the objects carved after it. A unit fixup makes it read into `PortMapLoadBuffer` (`port/src/sceneload.cpp`) instead: host memory outside the arenas, 64-byte aligned and sized to the files' 64-byte-rounded sizes plus the last read's sector tail. It grows when a map needs more and keeps the buffer it replaced for a deferred map build still reading it. `sceneload_map_buffer_test.cpp` covers it.
-
 Retail places objects in runs with hand-written quadword counts. The placement operators in `port/src/mg_memory.cpp` grow the run to the host object's size while it is still its arena's last, as Dark Cloud 1 does. `arena_placement_test.cpp` lists the 51 literal-count sites whose host object outgrows its run, such as `CCharacter2` (2496 bytes in 0x68 quadwords), and the 8 cast-not-placed runs that nothing can grow: the script stacks `RS_STACKDATA` and `RS_CALLDATA` (`actscript.cpp`, `effscript.cpp`, `event.cpp`, `runscript_opcodes.cpp`) and `mgSORT_PACKET` (`mg_drawprim.cpp`). Each of those overruns its run on the host until `ps2/src` sizes it with `sizeof`.
 
 On Windows the executable is linked with `--dynamicbase` and `--high-entropy-va`, lld's MinGW defaults pinned in `port/cmake/arena.cmake`. The image base is 0x140000000, relocated by high-entropy ASLR, and the image is `LARGE_ADDRESS_AWARE`, so the image and the `VirtualAlloc` mappings lie above 4 GiB, and a truncated pointer faults at once. Linux stays `-pie -z separate-code`. Dark Cloud 1 links Windows with the same defaults.
@@ -1044,8 +889,6 @@ The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they 
 - Matching only looks at decoded instructions inside the script's functions (the program table, CALL targets and unreferenced function blocks), never at raw bytes. Every recipe is validated before any is written, sizes never change, and a converted script converts to the same bytes again.
 - `port/src/script_timing_inventory.inc` lists every script that holds a conversion, with the count of each recipe it must show. Before gameplay starts, NTSC timing validates every indexed `.stb` with the same decoder and recipes, including datapack replacements. Matching replacements are converted through the same loader. A listed script that does not match, or an unlisted one that holds a conversion, appears in a startup report naming the asset. Startup logs the complete asset list and exits with status 5; desktop runs also show an error dialog. Saved settings are unchanged. Unlisted, undecodable `.stb` files stay unchanged with a warning once per asset per session, matching the loader. Validation reads and decodes the scripts on up to 16 threads, then reports them in key order; it reads the files once and writes no disk cache. Each converted asset logs once per session.
 - Effect scripts keep PAL's waits for the end of their motion.
-
-[Luau scripts](PORT_LUAU.md) describes the script kinds, the command catalog and the corpus survey for the Luau replacement of the script machine.
 
 ## Rendering
 
@@ -1075,15 +918,17 @@ The PAL scripts (`.stb`) hold the NTSC frame counts and convert them while they 
 - Depth-tested screen effects set `gfx::DrawState::screen_space` so the depth-of-field layers stay screen-aligned while sampling the display camera's refreshed grabs. World sprites retain camera reprojection.
 - Dungeon pickup sprites (`CPullItem`, including coins, ABS and floating items) opt into keyed world-corner interpolation. `SetItem` starts a new emission generation; matched corners blend in world space under the display camera, including bobbing, glow size and opacity. Atlas animation stays newest. Reused slots, unmatched/incompatible draws, motion beyond 200 units, near-plane crossings and multi-camera lists keep newest own motion. Canonical and alpha-1 rendering remain exact.
 - Enemy anger-counter marks (`CEnemyGekirin`) have independent screen-space keys, so their movement and break-away bounce interpolate even when HP changes or neighbouring marks disappear. `ResetGekirin` starts a new generation for refills and reused monsters. Game steps, rage counts and canonical rendering are unchanged.
-- The quick-change name banner (`PortDrawQuickChangeBanner`, `port/src/menuchr.cpp`) tags its strip and logo with one screen-space key, so the slide in and out and the strip's fade interpolate between game frames. Each banner shown starts a new generation, so a new banner starts at the left edge instead of sliding from the last one; one reappearing after a menu hid it starts where it is. The first and last visible game frames have nothing to slide from or to, so they appear and leave as recorded. Its timing and canonical rendering are unchanged.
-- Not interpolated: ordinary HUD/text without depth; untagged 3D sprites' own motion; objects and cameras past their teleport thresholds; the first tick after `mgInit` and after `mgPortCutInterpolation()`, which `mainloop.cpp` calls on every loop change. Damage scores, lock-on markers, HP bars, anger-counter marks, target names and the quick-change name banner have separate opt-in screen-space presentation paths.
+- Not interpolated: ordinary HUD/text without depth; untagged 3D sprites' own motion; objects and cameras past their teleport thresholds; the first tick after `mgInit` and after `mgPortCutInterpolation()`, which `mainloop.cpp` calls on every loop change. Damage scores, lock-on markers, HP bars, anger-counter marks and target names have separate opt-in screen-space presentation paths.
 - `video.interpolation = false` presents each canonical image once.
 - Headless, the clock is unbounded: one canonical render and one present per game frame. `--display-per-tick N` also renders N display frames at k/N and discards them. Screenshots are byte-identical with it (`PresentIdentity.DisplayPerTickScreenshot`).
 - Frame grabs: `mgPortRenderTarget(..., frame_target = true)` makes a gfx frame target, which a display render grabs again from its own image.
-- The FPS counter: `video.show_fps` turns it on (F3 and the `fps_toggle` host action flip it; headless only with `--show-fps`). It is drawn through `RecordHostOverlay`, as a display render's overlay, in the overlay's own font (the Dark Cloud Compendium Community Font baked into `overlay_font.inc`), so no canonical image holds it. The game's message font is not used: its texture lives only in the current mode's texture block (`ReLoadFontTexture` per mode) and `FontTex[0]` dangles across mode changes, so a badge in it would come and go with the modes. Its text is set by `video.fps_detail`; with all fields it reads `FPS 143.9  TICK 60.0/60  DRAWS 412`. TICK counts clock ticks per second, so it reads the tick rate whatever `mgFrameRate` is. DRAWS is the newest list's mesh plus 2D draws. `--log-fps` prints the same text on stderr once a second.
+- The FPS counter: `video.show_fps` turns it on (F3 and the `fps_toggle` host action flip it; headless only with `--show-fps`). It is drawn through `OverlayRecord`, as a display render's overlay, in the overlay's own font (the Dark Cloud Compendium Community Font baked into `overlay_font.inc`), so no canonical image holds it. The game's message font is not used: its texture lives only in the current mode's texture block (`ReLoadFontTexture` per mode) and `FontTex[0]` dangles across mode changes, so a badge in it would come and go with the modes. Its text is set by `video.fps_detail`; with `all` it reads `FPS 143.9  TICK 60.0/60  DRAWS 412`. With `budget` it adds rolling averages per logic tick: `CANON` (canonical GPU replay in `mgEndFrame`), `DISP` (swapchain/display presents and interpolated frames), and `OTH` (remaining host work in the tick, such as depth pick setup). TICK counts clock ticks per second, so it reads the tick rate whatever `mgFrameRate` is. DRAWS is the newest list's mesh plus 2D draws. If FPS is low but TICK stays near 60, the bottleneck is in CANON or DISP, not simulation. `--log-fps` prints the same text on stderr once a second.
+- **Dungeon FPS check (example):** build `linux-x64-release`, set `"video": {"show_fps": true, "fps_detail": "budget"}` in `<save>/config.json`, run `darkchronicle --jump dungeon:0:1 --fast-load --log-fps` and compare CANON vs DISP while turning the camera on a heavy floor. Use a Release build and turn Vulkan validation off for representative numbers.
+- **Dungeon benchmark (scripted):** `tools/input/bench-dungeon-floor1.input` skips comms on floor 1, then **`--bench-spawn-enemies`** (default **120** requested; capped by active-monster limit — **60** with `game.expanded_dungeon_monsters`, else **24**) places a tight grid near the player at ~2800 vsync, followed by camera orbit and melee. Run `python scripts/port/bench_dungeon.py --exe port/build/pc-release/darkchronicle` (uses `DC2_DATA` or `port/run/data`). Default is **windowed** with real **DISP** (use **`--offscreen`** for headless CI). Bench config sets `video.fps_detail=budget`, `interpolation_draw_budget=2400` and `interpolation_multi_present=false`, so heavy crowds skip tweened display frames and the display stays near 60 FPS. If **FPS** sags while **TICK** stays ~60/s, read **DISP** (interpolation + present); **CANON** is the tick's GPU replay. Writes `port/run/bench/<timestamp>/summary.json`. Options: `--georama N`, `--no-interpolation`, `--no-spawn`, `--bench-spawn-enemies N`. CTest: `Bench.DungeonFloor1` (label `bench`; skips with code 77 when data is missing).
+- **CPU flamegraph (attach to running game):** install `perf` (`sudo pacman -S perf`), keep the game running, then `DURATION=30 ./scripts/port/flamegraph_attach.sh` (or pass the PID from `pgrep -f 'port/build/.*/darkchronicle'`). Output is `port/run/profile/flamegraph-<timestamp>.svg`. If attach fails with ptrace errors, run `sudo sysctl -w kernel.yama.ptrace_scope=0` once. Use the Debug or Release PC build so stacks resolve to source file names. After visual mesh cache work, re-run the same dungeon repro and confirm `UploadIfReady` / `gfx::CreateMesh` shrink in the SVG or CANON ms drops in budget mode; unit coverage lives in `VisualMeshCache.*` (`darkchronicle_tests`).
 - Interpolation diagnostic: set `KZ_INTERPOLATION_TINT=1` to tint draws on the main presentation image (default off). Green is a matched transformed mesh; cyan is an unmatched or pose-excluded mesh carried by the display camera; red is newest-only geometry; blue is flat 2D or a screen effect; yellow is a depth-tested sprite with reprojected corners. Unchanged matched meshes remain green. This classifies geometry, not all its inputs: texture contents, lighting, fog parameters and sprite motion can still be tick-exact. Alpha tests, coverage, depth and blending are retained, so translucent passes can mix tints. Reusable intermediate render targets keep their original colours; their final composites are tinted on the main image. Canonical renders and ordinary screenshots never receive the tint. Use `--screenshot-display 8` to inspect the diagnostic at eight interpolation phases. Optional `KZ_INTERPOLATION_TRACE=<file>` appends per-draw CSV sections at alpha zero, including matching/cut reasons, texture IDs, camera IDs, target IDs, whether a draw is tinted on the main image, and changed fog/material/projection/local inputs. It writes only while tint is enabled; remove both environment variables after diagnosis.
 - Outlined models render into a shared transparent image. Canonical clears and copies retain the retail draw rectangle; presentation scratch clears and replacement vertices cover the full visible extent so the interpolated model/bone pose remains complete under the display camera, including fixed-camera mouse look. Each copy preserves its texture-to-screen offset. Fixed-look current and previous lists preserve presentation vertices and clear rectangles while leaving resource retirement ownership with their source lists. Transparent texels in a depth-writing presentation composite do not write depth. GPU regressions compare a rotating thin part at alpha 0.5 against an independently recorded horizontal pose and complete fixed-look outline pixels at alpha 1 and 0.5 against a direct full-extent reference render; translation, scratch-target reuse and transparent-depth regressions remain covered. `tools/input/area-dungeon-chest-turn.input` with `--jump dungeon:0:1 --fast-load --frames 2518 --screenshot chest.png --screenshot-display 8` exercises the unopened chest during a camera turn. For multi-part NPCs, use `--input tools/input/repro-town-npc-outline.input --jump town:10 --fast-load --frames 278 --window 1280x720 --screenshot woman.png --screenshot-display 8`; the woman's face must remain visible throughout the turn. `--input tools/input/repro-clown-outline.input --frames 27230 --window 1280x720 --screenshot clown.png --screenshot-display 8` checks the clown's face during the prologue camera move.
-- `--screenshot-display N` writes N display frames of the screenshot's frame, at alpha k/N from the previous list to the last, as `<stem>-display-<k>.png`. `--screenshot-fps` writes the screenshot with the FPS counter and any visible menu pointer drawn into it, at window size, from a presented frame (`RecordHostOverlay`, shared with presentation). With `--offscreen`, nothing is presented, and the image is read back from the display image instead. Neither reaches any other written image.
+- `--screenshot-display N` writes N display frames of the screenshot's frame, at alpha k/N from the previous list to the last, as `<stem>-display-<k>.png`. `--screenshot-fps` writes the screenshot with the FPS counter drawn into it, at window size, from a presented frame. With `--offscreen`, nothing is presented, and the image is read back from the display image instead. The counter reaches no other written image.
 - `video.max_fps=0` leaves presentation uncapped; a positive cap paces display starts without catching up in bursts. A due logic tick takes priority. FIFO follows the display's synchronization, while mailbox and immediate depend on device support. Interpolation off presents canonical frames at their game cadence; a high display cap does not increase the logic tick rate.
 
 ### Packets
@@ -1094,7 +939,6 @@ No packet is built or sent, so there are no packet buffers. `mgInitVif1Packet` a
 
 - The GS evaluates a sprite's UV at integer pixel positions and a nearest filter takes `floor(u)`; the GPU samples at pixel centres of an upscaled window. For nearest-filtered UV sprites, `AssembleSprite` (`port/src/mg_drawprim.cpp`) therefore maps the quad onto exactly the texels the GS reads (`mgPortSpriteTexelSpan`) and adds `kMgPortNearestTexelBias` (1/64 texel) so a sample exactly on a texel boundary takes the texel after it, as the GS does. This keeps the font's one-texel-wider UV rects (`set2DSpriteEasyFont`) from bleeding the next glyph, and 1:1 background tiles from showing a black seam at 2.5x. Linear-filtered UV sprites subtract half a destination pixel times the UV slope from both corners, so their samples also correspond to the GS integer pixel locations rather than Vulkan pixel centres. This handles stretched and flipped sprites without identifying textures or changing atlas rectangles. TME/FST-off draws keep their UVs. `MgDrawPrim.*` checks the slopes; `MgDrawPrimRender.LinearAtlasCellsKeepTopOutlinesWithoutSamplingTheNextCell` checks RGBA and indexed atlas cells at 2.5x. The bilinear sampler's half-texel footprint is separate from this pixel-location correction.
 - Deliberate deviation from retail: every `DrawVersatileWin` variant (`ps2/src/drawwin.cpp`) puts its translucent backing at +13/+16 from the window origin in `DrawVersatileWin_yesno`, `_1` and `_3`, and at +13/+12 in `_4`. The gaiji frame's opening lies one pixel up and left of the backing, which leaves an undarkened line along the opening's top and left edges on the PS2 too. `port/src/nd_meswin.cpp` overrides `FillRect`, whose only callers are those windows, to draw one pixel up and left. To restore retail's output, delete that file and `port/src/tests/nd_meswin_test.cpp`.
-- Deliberate deviation from retail: the item board (`MenuItemBrdDraw`, `port/src/menudraw.cpp`) is drawn as one continuous surface instead of one 40x50 slot sprite per bag slot, which shows as a grid of identical squares at high resolutions. Every vertex of a lattice independent of the slot grid owns a mirrored patch of the slot's interior; each cell blends its four corners' patches with weights summing to one, the slot art's own shading is divided out, and a low-frequency brightness field breaks up repetition. It is keyed to board coordinates, so it scrolls with the board. Retail's capacity line under the last usable row is kept. To restore retail's output, delete that override.
 - The menu background tile grid (`DrawMenuTilePattern`, `port/src/menudraw.cpp`) starts at or left of x = -256 and runs to 256 past the right edge, with rows reaching 256 past the bottom, so 16:9 and 9:16 windows show no uncovered flank. The 4:3 letterbox clips the extra tiles, so the canonical image is unchanged; `port/src/tests/menudraw_tile_test.cpp` covers the column range.
 
 ### Initial GS state
@@ -1128,8 +972,6 @@ Menu tile patterns derive phase-preserving coverage from `mgPortVisibleExtent()`
 ### Shadows
 
 `mgBeginDrawShadow` clears the main target's stencil (when a frame is open) and enters shadow mode. While in shadow, `mgPortShadowTarget()` returns the main target. `mgEndDrawShadow` composites a quad over the visible extent onto the main target: vertex alpha 48, blend `(0 - Cd) * As / 128 + Cd` with FIX `0x80` (128), alpha test off, and stencil test NotEqual 0, which zeroes the count. It then sets TEXA to TA0 0, TA1 128, AEM 1.
-
-The shadow draw reads retail's `mgCShadowMDT::CreateFace` layout: triangles of three position indices. The native loader builds a shadow model's faces in the visual layout (position, normal, uv and colour indices per corner) and then compacts them into that layout (`ShadowFaces` in `port/src/platform/model_assets.cpp`), keeping only triangle lists as retail does. Shadow groups carry `MG_VU_PROG_SHADOW` and build no face meshes, including after a morph.
 
 ### Controller speaker
 
@@ -1186,27 +1028,9 @@ Draws are recorded into display lists (see "Ticks and display frames").
 - The full-frame rule that fills the flanks samples with clamped wrap, so a repeating texture shows no seam line at the frame's edges.
 - Copies of the frame (`mgSetPkMoveImage`: the heat haze in `sceneevent.cpp`, `map.cpp`'s screen, menu grabs) go to frame targets as 1:1 logical copies, so a grab is as wide as the window.
 - Culls: `mgPortVisibleExtent()` (`gfx::VisibleLogicalRect` of the current target, in screen units, with centred half extents and GS coordinates) replaces retail's 256/240 half extents in `mgCFrame::GetDrawRect` (`mg_frame_asm.cpp`). It also replaces them in `mgRENDER_INFO::screen_box_min`/`max`, which retail's `SetRenderInfo` sets from the screen size. `mgSetRenderInfo` is overridden to widen them, and `mgBeginFrame` refreshes them every game frame, since the window can change shape between scenes. `mgCFrame::Draw`'s `mgClipBoxW` reads them. A mesh at logical x = -40 is drawn at 16:9 and culled at 4:3 (`MglibAspect.*`). The GS guard band (2048) is unchanged.
-- The dungeon floor map (`CDngFreeMap::DrawRoot` and `DrawRoomOne`, `port/src/dngmenu.cpp`) culls its rooms and passages at `mgPortVisibleUiExtent`, the visible extent in the UI units its 2D is drawn in, so floors in a wide window's flanks, or uncovered by `video.ui_scale` below 1, are drawn. Retail strokes each passage with three 1-pixel GS lines a pixel apart; each is filled as the pixel-wide band the GS covers, so a passage stays one solid stroke above 512x480 (`MglibAspect.FloorMap*`).
 - A layout change (`video.aspect`, `video.ui_scale`) is applied from the pump outside a recording.
 - `--window WxH` sets the window size (headless: the offscreen image's).
 - Config keys: `video.interpolation` (`true`), `video.max_fps` (`0`), `video.present_mode` (`fifo`, `mailbox` or `immediate`), `video.aspect` (`auto` or `4:3`), `video.ui_scale` (`1`), `video.show_fps`, `video.fps_detail`.
-
-## Character motion
-
-Characters play their motions as named glTF actions (see [model format](PORT_MODEL_FORMAT.md#named-actions)). The loader gives each action of a character its own interval of game frames and hands the game's `KEY` records those intervals under the original motion names, so `CCharacter2::Step`, `SetMotion`, the `KEY`/`SE`/`SELP` handlers and every caller of them run unchanged. `SetMotionTime` and `ChangeMotion` (`port/src/gameutil.cpp`) pose the action whose interval holds the frame through `character_motion` (`port/src/character_motion.cpp`). `CreateAnimeDataEX` reports retail motion data as unsupported; native profiles never reach it. Event and extension motions take their actions from the bundle of the model the character was built from, where the exporter published them.
-
-A model bundle holds every action its characters play, including event and extension motions, so the main characters' bundles reach tens of megabytes. The game reads a model file into its own buffer only to hand that buffer to a model loader, which finds the glTF by the buffer's registered name and reads it from the data itself; nothing reads the glTF bytes from the game's buffer. `dataread` therefore no longer copies a `.gltf` into that buffer: the file occupies one zeroed sector there, and its reported size is that sector, so game buffers and size-based allocations stay small however large the bundle is.
-
-A character's actions also keep their keys out of the game's arenas: each glTF channel takes one motion-list record in the arena the game sized for its retail motion, and the native evaluator samples the keys from the loaded glTF document. Copying every action's keys there, with each action's own boundary keys, overflowed Max's dungeon budget of 68,500 quadwords.
-
-These differ from retail:
-
-- A blend between actions of different motion sets starts from the action last posed. Retail samples the new motion set at the previous action's frame number, which belongs to another motion.
-- During a blend between two different actions, auxiliary material, visibility, camera and vertex keys of the new action apply unblended. Retail blends a key list with itself.
-- Frame arithmetic runs on the actions' own intervals rather than on the retail motion frames, so float rounding of the frame step can differ in the last bit; with intervals of a few hundred frames it is no coarser than retail's.
-- The retail `KEY` `横飛びL` in `event/e00/e50/e50_monica.chr` ends before it starts; it plays as a still pose at its start, as retail does unless the motion is held.
-
-A game model's frame holds its whole authored transform in its matrix with unit scale, so a scale set by gameplay or a script (`_SET_SCALE`, `_EOH_SET_SCALE`, `_OBJS_SET_SCALE`, `_CHR_SET_SCALE`, a monster's `_SET_SCALE`) keeps the retail order: after the frame's rotation, in the parent's axes. Only a frame whose node an animation scales to a value other than one composes rotation before scale, as glTF does, because its rebaked keys are in that order (see [the model format](PORT_MODEL_FORMAT.md#native-runtime)); while such a clip plays its scale keys overwrite the frame's scale, as retail's did. Replacement and third-party glTFs use glTF's order on every node. `CopyFrame` keeps a frame's convention through a retail bridge.
 
 ## Audio
 
@@ -1223,7 +1047,7 @@ bundle through `SoundLoadBundlePath` or its bounded-byte equivalent. Its bank,
 sequence and control documents reference their actual native files.
 `audio::Bank::CreateFromJsonCandidates` loads bank JSON and PCM WAV samples
 through datapack priority; `audio::SqFile::CreateFromJson` loads normalized
-musical events. Other game configurations are native semantic documents that their loaders read directly into the game's tables ([native configurations](NATIVE_CONFIGS.md)).
+musical events. Other game configurations execute typed JSON commands directly.
 See [published audio resources](PORT_AUDIO_FORMAT.md) and
 [native configuration assets](PORT_CONFIG_FORMAT.md).
 
@@ -1327,7 +1151,7 @@ existing caption slots. A datapack can replace the actual JSON file;
 an invalid replacement falls back to a valid lower-priority document. See
 [native configuration assets](PORT_CONFIG_FORMAT.md).
 
-The retail movie threads are not used. The game calls `SwitchThread` once per game frame and `EndCheck` beside it; both advance the player to the movie time elapsed since `Play`, `(ClockTickCount() - tick at Play) * 90000 / ClockTickRate()`. The newest picture whose PTS is due is shown; pictures overtaken after a stall are decoded but not converted. At the fixed 60 Hz tick with `mgFrameRate` 2, a 25 fps movie keeps its cadence across 30 game frames per second; headless runs on the unbounded clock are deterministic.
+There are no threads. The game calls `SwitchThread` once per game frame and `EndCheck` beside it; both advance the player to the movie time elapsed since `Play`, `(ClockTickCount() - tick at Play) * 90000 / ClockTickRate()`. The newest picture whose PTS is due is shown; pictures overtaken after a stall are decoded but not converted. At the fixed 60 Hz tick with `mgFrameRate` 2, a 25 fps movie keeps its cadence across 30 game frames per second; headless runs on the unbounded clock are deterministic.
 
 The picture is uploaded into the texture the game names in `Play` (`"moviework"`), found with `mgTexManager.GetTexture(name, -1)` and `mgPortFindTexture`, with `gfx::UpdateTexture` (recorded into the tick's display list when one is open). That is what the PS2 did: `setImageTag` uploaded into the same texture and the game draws it itself as a 2D quad (the copyright screen's `L5LOGO.PSS`, `RUSH.PSS`, the movie viewer, the event script's `_LOAD_MOVIE`, the manual), so its fades, stretch and letterbox stay the game's, tick-exact.
 
@@ -1343,29 +1167,13 @@ See [published audio resources](PORT_AUDIO_FORMAT.md). `Load` opens the actual
 MP4 path through datapack priority. If requested, `Play` hands its decoded audio to the shared
 mixer as an `audio::PcmTrack` with `Mixer::SetStream` on port 5 at full port
 volume (`kMoviePortAudioPort`: `GetCSndPortNo` never maps a game port there).
-`Term` stops and clears it. `init_sound` (which reset the PS2 sound driver)
-and the memory pools are ignored: the host allocates.
-
-`Load`'s width and height are the retail picture size, 512x416 for every
-caller. A picture of exactly 1, 2 or 4 times that size is shown as decoded; any
-other size is converted to RGBA and resampled with libswscale (area averaging
-when either side shrinks, bicubic when both grow) to the largest of those it
-covers, or to 512x416 when it covers none, and `Load` logs one `movie:` line
-naming both sizes. A 2x or 4x picture is uploaded whole:
-`MgTextureSetPhysicalScale` gives the movie texture 2 or 4 host texels per
-retail texel, so the game's quad, which keeps its retail texel coordinates,
-shows the whole picture over the original screen area. Changing a texture's
-physical scale rebuilds its image, blank, at the new size on its next lookup.
-A stream larger than the retail size decodes on FFmpeg's threads (one per core,
-up to 8); conversion and upload stay on the main thread. A 4x picture is 13 MB
-of RGBA and a 16 MB texture, so 2x is the size to prefer. On Linux and macOS
-the minimal kz-ffmpeg build decodes only MPEG-2 and H.264 video (and ALAC, AAC
-and PCM audio), so a replacement must use one of those to play everywhere.
+`Term` stops and clears it. `init_sound` (which reset the PS2 sound driver),
+the memory pools and the width and height arguments are ignored: the host
+allocates and the picture size comes from the video stream.
 
 The game links FFmpeg's libavformat, libavcodec, libavutil, libswscale and
 libswresample (`port/cmake/movies.cmake`). `movie_test` covers MP4 path
-mapping, the embedded-audio fixture, clocked playback, picture fitting, threaded
-decoding, 2x and 4x replacements drawn through the movie texture, and the `CMovie` glue;
+mapping, the embedded-audio fixture, clocked playback and the `CMovie` glue;
 retail `L5LOGO` cases use the converted MP4 when available.
 
 ## Layout
@@ -1375,7 +1183,6 @@ The root `CMakeLists.txt` selects the platform: `PS2` builds `ps2/`, and `PC` en
 - `ps2/src` and `ps2/include` hold the game as the PS2 build compiles it. `ps2/CMakeLists.txt` and `ps2/cmake/` are that build. Port code does not live there, except the `#ifndef PORT` guards, the `#ifdef PORT` `uptr`/`sptr` selection in `ps2/include/types.h`, the `PORT_RECORD_ASSERT` hook in `ps2/include/common.h` (compiled out on the PS2, a `static_assert` on PC via `port/include/port.h`), and the edits listed in "Keeping the PS2 build matching".
 - `port/src` holds code only the port compiles. `main.cpp` starts the game. `identity.cpp` sets the game's name and directories. `<unit>.cpp` replaces functions of `ps2/src/<unit>.cpp`. `*_asm.cpp` defines the functions `ps2/src` writes in MWCC assembly. `linknames.cpp` supplies link-time names (below). `tests/` holds the GoogleTest cases, one process per case.
 - `port/include` holds `port.h`, included ahead of every unit the port compiles, and `stubs/`, the per-unit headers (below).
-- `port/assets` holds the data the port ships beside the game's: `glyphs/`, the button symbols the build copies to `glyphs/` beside the executable (see [GLYPHS.md](GLYPHS.md)), and `icon/`, the window and package icons.
 - `tools/kazarov` is the shared-code submodule. `tools/kazarov/port` holds the code both games share: `gfx`, `audio`, `platform`, `sce` (the SDK replacements) and `tests`. `cmake/KazarovPort.cmake` gives the port its targets:
   - `kz_port_host_library(ct_host)` builds `gfx`, `audio` and `platform`.
   - `kz_port_sce_sources(... LIBS libvu0 libpad libmc sifdev sifrpc eekernel libcdvd libgraph libdma libpkt eekernel_threads libdev libmpeg libsdr modmsin sifdma)` selects the SDK families.
@@ -1403,9 +1210,7 @@ PORT_OVERRIDE void mgInit(int screen_mode, int video_mode) {
 
 `unit_copy.py` also preserves the routines listed in `RETAIL_BRIDGES` under new definition names in the generated unit. It reads each body from the unstripped retail source, changes only the definition name, and appends it before the unit fixups and long64 rewrites. Calls in the original unit keep the public name, so they reach the native `PORT_OVERRIDE`; that override can add native behavior and delegate to the preserved routine. Each appended body has its own `#line` marker naming the original retail source and definition line, keeping diagnostics and debugger locations valid.
 
-`port/src/<unit>_config_bridge.inc`, when it exists, is appended to that unit's copy, so native code can reach the unit's file-local record types and statics (`menuaqua`'s prize groups, `editdebug`'s gyorace counter, `movieviewlp`'s movie table); `character_metadata_bridge.inc` is appended to `character.cpp`. `CONFIG_SEAMS` replaces only the configuration interpreter run inside a retail loader that does other work around it (`LoadSkyPack`, `CEditMap::LoadEditInfo`, `CDynamicAnime::Load`) with a call into `port/src`, keeping every line number.
-
-Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`, the outfit-index guard around `GetRoboPartsInfo`, and the chest-flag split before `UpdateTrBoxFlag`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
+Use this mechanism when a native seam needs to wrap retail behavior rather than replace it, as with the camera-cut seams around `ResetViewMode` and `ResetEyeView`, and the outfit-index guard around `GetRoboPartsInfo`. Add the unit, exact signature, original name and bridge name to `RETAIL_BRIDGES`, declare the bridge's asm link name in both `port/include/stubs/<unit>.hpp` and the native caller, and call it from the public override. The bridge body is generated from retail rather than transcribed into native source; `ps2/` stays unchanged. `NativeRetailBridges` runs `scripts/port/test_unit_copy.py` through CTest, alongside the other native unit-copy Python tests.
 
 Each name then has one definition. A replacement without the tag leaves `ps2/src`'s definition in, and the link fails on the duplicate symbol. A replacement takes the signature `ps2/src` gives the function: parameter types as spelled; names and default arguments may differ. By convention a replacement goes in the file that mirrors its unit.
 
@@ -1417,7 +1222,7 @@ The 22 `#ifndef PORT` guards are 21 in the eight `.cpp` files that hold assembly
 
 `port/include/stubs/<unit>.hpp`, when it exists, is included ahead of `ps2/src/<unit>.cpp`, after `port.h` and nothing else. It declares what the port defines in place of code `PORT` leaves out, and it renames or supplies what the unit takes from MWCC or from the PS2 link alone. Only the port's build sees `port/include`.
 
-The 26 native unit headers are `charasetup`, `collision`, `dataread`, `dng_event`, `dng_main`, `dngfloor`, `dngmenu`, `editctrl`, `editmap2`, `effect`, `event`, `event_func`, `gamepad`, `gameutil`, `inventmn`, `mainloop`, `menudraw`, `menumain`, `menuop`, `menusys`, `mg_frame`, `mg_math`, `mglib`, `nowload`, `photo`, `title`. `mg_dataset` declares the `CopyFrame` bridge. Their link-name bridges and native caller declarations remain outside retail source.
+The 23 native unit headers are `charasetup`, `collision`, `dataread`, `dng_main`, `dngmenu`, `editctrl`, `editmap2`, `event`, `event_func`, `gamepad`, `gameutil`, `inventmn`, `mainloop`, `menudraw`, `menumain`, `menuop`, `menusys`, `mg_frame`, `mg_math`, `mglib`, `nowload`, `photo`, `title`. Their link-name bridges and native caller declarations remain outside retail source.
 
 ## Header fixups
 
@@ -1428,7 +1233,6 @@ The 26 native unit headers are `charasetup`, `collision`, `dataread`, `dng_event
 
 MWCC accepts a `void Draw()` that hides the base's `int Draw()` and gives it a new vtable slot. clang rejects that, and no standard spelling keeps the PS2 vtables. The `int` declarations make the two draws overrides instead. This is an accepted difference. The port's definitions (`port/src/dng_event.cpp`, `port/src/dng_hud.cpp`) are real bodies that return 0; the `int` return type is the whole fixup.
 
-- `dngmenu.hpp`: `CMenuTreeMap` declares `PortRetailStep` and `PortRetailDraw`, the retail bridges that the floor monster list's `Step` and `Draw` seams call (see "How `port/src` takes precedence").
 - `nd_meswin.hpp`: `#ifndef MES_WINDOW_OUT_OF_LINE_INIT` becomes `#if 1`, so `ClsMes::Init` is inline in every unit. `dngmenu.cpp`'s out-of-line copy was a strong definition and collided with the COMDAT copies on COFF.
 - `collision.hpp`: `memset` takes `static_cast<void *>`, because `mgVu0FBOX` is not trivially copyable and `-Wnontrivial-memcall` rejects it.
 - `mapload.hpp`: `CFuncPoint` gets a memberwise copy assignment on its constructor's line. `InventData`'s `mgVu0FBOX` makes the union's implicit copy deleted under clang; MWCC generated it, and `CFuncPointMngr::GetLight` and `CMap::GetCharaLight` assign points with it. Retail's bodies then compile unchanged.
@@ -1445,10 +1249,8 @@ Each fixup's text must occur exactly once in its file, or the script stops befor
 
 - `editeff.cpp` and `editmap.cpp`: the identical inline `CMapParts::CMapParts()` copies are blanked, so `map.cpp`'s out-of-line definition is the only one. COFF has no inline-versus-strong resolution.
 - `dng_debug.cpp`: `CTreasureBox::Initialize()` becomes `inline`. `CTreasureBox`'s vtable becomes COMDAT with it.
-- `nowload.cpp`: `SCElogoFade`'s fade loop also stops on `PortSkipIntro()` (`game.skip_intro`), keeping the language select and the title image load.
-- `menuop.cpp`: `CMenuOption::KeyStep` moves the cursor's `op_cursorlimmit` bottom (y 274) down to the selected row's place in the settled list through `PortOptionCursorBottom` (`port/src/menuop.cpp`). Retail PAL settles the ninth shown row at 288, so on the last shown row its cursor and frame stopped between the last two rows.
+
 - `inventmn.cpp`: the native copy removes `inline` from `CMenuInvent::CMenuInvent()` so callers in other units have one emitted constructor. Retail source retains its original spelling.
-- `dng_main.cpp` and `editloop.cpp`: the frame work stacks `BuffWorkData` and `WorkBuffer` hold 10000 `mgSORT_PACKET`s rather than 10000 quadwords, since each sorted packet and its draw-table slot grow with pointer width. The town's total data buffer gives up the difference.
 
 Each unit fixup's text must also occur exactly once; missing, duplicate and already-transformed constructor text is rejected by `NativeUnitFixups`.
 
@@ -1598,18 +1400,6 @@ The ctest case is `Truncations.Check` (Linux; it skips when `clang.cindex` is mi
 The checker sees casts and implicit conversions. It does not see an address copied through an int member of a union; `SPI_STACK` was found at run time.
 
 The tests are `port/src/tests/uptr_test.cpp` (`Uptr.*`). They cover pointer width, an address above 4 GiB through `(u_char *) ((uptr) p + ofs)`, through `MenuCalcBufAlignment`, through a `uptr` field and through a `uptr` return.
-
-## Memory safety
-
-On PC, script strings have no length cap, and datapacks can replace any script. The fixed-size fields and tables that retail fills from script, save and player data are therefore replaced or guarded. [The memory safety audit](port/memory_safety.md) lists every site: replaced, guarded and still open.
-
-- `port/src/bounded_text.hpp` reads and writes the game's terminated text fields bounded by their size, without splitting a Shift-JIS character.
-- `port/src/script_guards.cpp` holds argument rules (index ranges, string lengths, argument caps) keyed by handler function. `CRunScript::ext` refuses an external that breaks one. `CScriptInterpreter::GetNextTAG` skips a tag handler or caps its argument count. A refusal is reported once per handler as `script guard: ...`.
-- The effect-script loader (`port/src/effect.cpp`) owns its open emitter in a `std::unique_ptr`. This is the one manual `new`/`delete` pair in `ps2/src`.
-- The binary script reader (`GetArgBin`, `SearchCommand`) stays inside the script and the 64-slot argument stack.
-- Item names, photo and memo titles, the Sphida score name, the treasure and item tables, `MotionProc2`'s deform buffer, the effect-list names and `GetCurrentDir` are bounded native replacements.
-
-`port/src/tests/memory_safety_test.cpp` covers these.
 
 ## Keeping the PS2 build matching
 

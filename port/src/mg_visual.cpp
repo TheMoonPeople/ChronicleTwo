@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "mg_dataset.hpp"
-#include "mg_drawprim.hpp"
 #include "mg_drawprim_port.hpp"
 #include "mg_math.hpp"
 #include "mg_texture.hpp"
@@ -30,10 +29,6 @@ constexpr u_int kPrmodeFog = 0x20;
 constexpr u_int kPrmodeBlend = 0x40;
 // Gouraud shading, texture mapping and blending: the PRMODE every visual starts from.
 constexpr u_int kPrmodeDefault = 0x58;
-
-// mgCFrameAttr::program_mode bits.
-constexpr int kProgramModeReal = 0x1;
-constexpr int kProgramModeRefSphere = 0x2;
 
 // The retail material's specular exponent (mat_pw).
 constexpr uint32_t kMaterialPower = 3;
@@ -62,7 +57,7 @@ struct CornerStreams {
 
 CornerStreams CornerOf(const mgCFace &face, int corner) {
     const int    *cursor = face.index + corner * face.index_stride;
-    CornerStreams streams = {.position = cursor[0], .normal = -1, .uv = -1, .colour = -1};
+    CornerStreams streams = {cursor[0], -1, -1, -1};
     int           next = 1;
 
     if ((face.type & MG_FACE_NO_NORMAL) == 0) {
@@ -116,8 +111,14 @@ gfx::Vertex3D SkinSlot(const mgVertexWeight &weight) {
 struct FaceEntry {
     std::shared_ptr<mgVisualFaceMesh> mesh;
     bool                              persistent = false;
+    bool                              gpu_uploaded = false;
     int                               last_frame = 0;
 };
+
+int g_mesh_upload_count = 0;
+int g_sweep_pass_count = 0;
+
+constexpr size_t kFaceTableReserveThreshold = 256;
 
 std::unordered_map<const mgCFace *, FaceEntry> &FaceTable() {
     static std::unordered_map<const mgCFace *, FaceEntry> table;
@@ -134,12 +135,24 @@ void ReleaseMesh(mgVisualFaceMesh &mesh) {
 // The CPU copy supports reupload after eviction and immediate draws when no mesh slot is free.
 void UploadIfReady(FaceEntry &entry) {
     mgVisualFaceMesh &mesh = *entry.mesh;
+    if (entry.gpu_uploaded && mesh.mesh != gfx::kNullMesh) {
+        return;
+    }
     if (!entry.persistent || mesh.mesh != gfx::kNullMesh || mesh.indices.empty() ||
         !mgPortRendererReady()) {
         return;
     }
 
     mesh.mesh = gfx::CreateMesh(mesh.vertices, mesh.indices);
+    if (mesh.mesh == gfx::kNullMesh) {
+        return;
+    }
+    ++g_mesh_upload_count;
+    entry.gpu_uploaded = true;
+    if (!entry.persistent) {
+        std::vector<gfx::Vertex3D>().swap(mesh.vertices);
+        std::vector<uint32_t>().swap(mesh.indices);
+    }
 }
 
 } // namespace
@@ -158,7 +171,7 @@ mgVisualFaceMesh mgVisualPortBuildFace(const mgCVisualMDT &visual, const mgCFace
     if (skinned) {
         // Skin is carried only by a mgCVisualMotionMDT. When its bones overflow, retail leaves the weights
         // NULL and then reads through them, so such a face has no geometry here.
-        const auto &motion = static_cast<const mgCVisualMotionMDT &>(visual);
+        const mgCVisualMotionMDT &motion = static_cast<const mgCVisualMotionMDT &>(visual);
         if (motion.weight == nullptr) {
             return out;
         }
@@ -195,8 +208,16 @@ mgVisualFaceMesh mgVisualPortBuildFace(const mgCVisualMDT &visual, const mgCFace
 }
 
 void mgVisualPortRefreshFace(mgCVisualMDT *visual, mgCFace *face) {
-    const int  kind = visual->Iam();
-    FaceEntry &entry = FaceTable()[face];
+    const int kind = visual->Iam();
+
+    // A plain visual is rebuilt on every CreateFacePacket and would churn GPU meshes if uploaded, so it stays
+    // on the CPU.
+    auto &table = FaceTable();
+    if (table.size() >= kFaceTableReserveThreshold && table.bucket_count() < table.size() * 2) {
+        table.reserve(table.size() * 2);
+    }
+    FaceEntry &entry = table[face];
+    entry.gpu_uploaded = false;
     // Address reuse replaces the table's owner. Queued draws keep the previous geometry alive until their
     // packet arena is reset; the last owner releases its GPU mesh, including during display-list recording.
     entry.mesh = std::shared_ptr<mgVisualFaceMesh>(
@@ -205,8 +226,6 @@ void mgVisualPortRefreshFace(mgCVisualMDT *visual, mgCFace *face) {
             ReleaseMesh(*mesh);
             delete mesh;
         });
-    // A plain visual is rebuilt on every CreateFacePacket and would churn GPU meshes if uploaded, so it stays
-    // on the CPU.
     entry.persistent = kind == MG_VISUAL_KIND_FIX_MDT || kind == MG_VISUAL_KIND_MOTION_MDT;
     entry.last_frame = mgPortFrameCount();
     UploadIfReady(entry);
@@ -223,8 +242,9 @@ std::shared_ptr<const mgVisualFaceMesh> FaceMesh(const mgCFace *face) {
 
     FaceEntry &entry = found->second;
     entry.last_frame = mgPortFrameCount();
-    UploadIfReady(entry);
-    mgVisualPortSweep();
+    if (!entry.gpu_uploaded || entry.mesh->mesh == gfx::kNullMesh) {
+        UploadIfReady(entry);
+    }
     return entry.mesh;
 }
 
@@ -241,6 +261,7 @@ void mgVisualPortSweep() {
         return;
     }
     swept_frame = frame;
+    ++g_sweep_pass_count;
 
     auto &table = FaceTable();
     for (auto it = table.begin(); it != table.end();) {
@@ -265,8 +286,8 @@ PORT_OVERRIDE u_int *GetScrPad() {
     PS2_UNIMPLEMENTED();
 }
 
-PORT_OVERRIDE int mgCVisualMDT::CreateFacePacket(u_int * /*packet*/, mgCFace *face) {
-    if (face != nullptr) {
+PORT_OVERRIDE int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
+    if (face != NULL) {
         mgVisualPortRefreshFace(this, face);
     }
     return 0;
@@ -274,7 +295,7 @@ PORT_OVERRIDE int mgCVisualMDT::CreateFacePacket(u_int * /*packet*/, mgCFace *fa
 
 // Retail's body carries 128-bit GS literals the host compiler cannot represent. Only the retail packet builders
 // call it, and CreatePacket is overridden.
-PORT_OVERRIDE int mgCVisualMDT::SetMaterialRef(u_long128 * /*packet*/, mgMaterial * /*material*/, int /*flags*/) {
+PORT_OVERRIDE int mgCVisualMDT::SetMaterialRef(u_long128 *packet, mgMaterial *material, int flags) {
     return 0;
 }
 
@@ -283,7 +304,7 @@ namespace {
 struct RenderRecord {
     gfx::MeshConstants  mesh;
     gfx::Prog0Constants prog0;
-    gfx::MeshTransform  transform{};
+    gfx::MeshTransform  transform;
     gfx::DrawState      state;
     bool                drawn = false;
 };
@@ -299,15 +320,15 @@ const void *current_object = nullptr;
 struct FaceDraw {
     std::shared_ptr<const mgVisualFaceMesh> geometry;
     gfx::TextureBinding                     binding;
-    uint32_t                                face_flags{};
+    uint32_t                                face_flags;
 };
 
 struct GroupDraw {
     gfx::MeshConstants  mesh;
     gfx::Prog0Constants prog0;
-    gfx::MeshTransform  transform{};
+    gfx::MeshTransform  transform;
     gfx::DrawState      state;
-    const void         *object{};
+    const void         *object;
 };
 
 // Both prog0 submissions. Every call goes through here, so the renderer and frame checks mgPortDrawMesh makes
@@ -373,13 +394,13 @@ mgCDrawEnv mgVisualPortDrawEnv(const mgCVisualAttr &attr, const mgCDrawEnv &base
     if (attr.z_test != 0) {
         env.test.bits.zte = 1;
         switch (attr.z_test) {
-            case MG_DEPTH_TEST_ALWAYS:
+            case -1:
                 env.test.bits.ztst = 1;
                 break;
-            case MG_DEPTH_TEST_GEQUAL:
+            case 1:
                 env.test.bits.ztst = 2;
                 break;
-            case MG_DEPTH_TEST_GREATER:
+            case 2:
                 env.test.bits.ztst = 3;
                 break;
         }
@@ -393,14 +414,14 @@ mgCDrawEnv mgVisualPortDrawEnv(const mgCVisualAttr &attr, const mgCDrawEnv &base
     }
 
     switch (attr.dest_alpha_test) {
-        case MG_DEST_ALPHA_TEST_OFF:
+        case -1:
             env.test.bits.date = 0;
             break;
-        case MG_DEST_ALPHA_TEST_ZERO:
+        case 1:
             env.test.bits.date = 1;
             env.test.bits.datm = 0;
             break;
-        case MG_DEST_ALPHA_TEST_ONE:
+        case 2:
             env.test.bits.date = 1;
             env.test.bits.datm = 1;
             break;
@@ -426,9 +447,9 @@ gfx::Prog0Constants &mgVisualPortCurrentProg0() {
     return CurrentRecord().prog0;
 }
 
-PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float (*matrix)[4], mgRENDER_INFO *info) {
+PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int *packet, float (*matrix)[4], mgRENDER_INFO *info) {
     RenderRecord &record = CurrentRecord();
-    record.drawn = info->attr != nullptr;
+    record.drawn = info->attr != NULL;
 
     if (!record.drawn) {
         return 0;
@@ -452,9 +473,9 @@ PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float
         ApplyDepthBias(record.transform);
     }
 
-    auto         *projection = reinterpret_cast<float (*)[4]>(record.transform.projection);
-    auto         *view = reinterpret_cast<float (*)[4]>(record.transform.view);
-    auto         *model = reinterpret_cast<float (*)[4]>(record.transform.model);
+    float (*projection)[4] = reinterpret_cast<float (*)[4]>(record.transform.projection);
+    float (*view)[4] = reinterpret_cast<float (*)[4]>(record.transform.view);
+    float (*model)[4] = reinterpret_cast<float (*)[4]>(record.transform.model);
     sceVu0FMATRIX view_model;
     sceVu0FMATRIX mvp;
     mgMulMatrix(view_model, view, model);
@@ -489,7 +510,7 @@ PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float
         std::memcpy(prog0.eye, eye, sizeof prog0.eye);
     }
 
-    auto *clip_or_view = reinterpret_cast<float (*)[4]>(prog0.clip_or_view);
+    float (*clip_or_view)[4] = reinterpret_cast<float (*)[4]>(prog0.clip_or_view);
     if (info->scissor != 0) {
         sceVu0FMATRIX model_clip;
         sceVu0FMATRIX fit;
@@ -498,7 +519,7 @@ PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float
         mgMulMatrix(clip_or_view, fit, model_clip);
     }
 
-    if (attr.program_mode & kProgramModeRefSphere) {
+    if (attr.program_mode & 0x2) {
         mgMulMatrix(clip_or_view, info->view, matrix);
     }
 
@@ -525,10 +546,10 @@ PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float
     if (info->scissor != 0) {
         flags |= gfx::kProg0Scissor;
     }
-    if (attr.program_mode & kProgramModeReal) {
+    if (attr.program_mode & 0x1) {
         flags |= gfx::kProg0Real;
     }
-    if (attr.program_mode & kProgramModeRefSphere) {
+    if (attr.program_mode & 0x2) {
         flags |= gfx::kProg0RefSphere;
     }
     if (attr.program_option != 0) {
@@ -551,7 +572,7 @@ PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float
     const bool fogged = attr.fog != 0 && info->fog_enable != 0;
     this->prmode = (fogged ? kPrmodeFog : 0) | kPrmodeDefault;
 
-    const mgCDrawEnv env = mgVisualPortDrawEnv(attr, draw_env != nullptr ? *draw_env : info->draw_env[0]);
+    const mgCDrawEnv env = mgVisualPortDrawEnv(attr, draw_env != NULL ? *draw_env : info->draw_env[0]);
 
     record.state = mgPortDrawState();
     mgPortApplyDrawEnv(record.state, env);
@@ -568,35 +589,35 @@ PORT_OVERRIDE int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float
     }
 
     record.drawn = true;
-    CreateExtRenderInfoPacket(nullptr, matrix, info);
+    CreateExtRenderInfoPacket(NULL, matrix, info);
     return 0;
 }
 
-PORT_OVERRIDE uptr mgCVisualMDT::CreatePacket(mgCDrawManager * /*manager*/) {
-    for (mgFACE_GROUP *group = face_group; group != nullptr; group = group->next) {
-        for (mgCFace *face = group->face; face != nullptr; face = face->next) {
-            CreateFacePacket(nullptr, face);
+PORT_OVERRIDE uptr mgCVisualMDT::CreatePacket(mgCDrawManager *manager) {
+    for (mgFACE_GROUP *group = face_group; group != NULL; group = group->next) {
+        for (mgCFace *face = group->face; face != NULL; face = face->next) {
+            CreateFacePacket(NULL, face);
         }
     }
     return 0;
 }
 
-PORT_OVERRIDE uptr mgCVisualFixMDT::CreatePacket(mgCDrawManager * /*manager*/) {
+PORT_OVERRIDE uptr mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
     return 0;
 }
 
 PORT_OVERRIDE int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_manager) {
-    if (draw_manager == nullptr) {
+    if (draw_manager == NULL) {
         draw_manager = &mgDrawManager;
     }
 
     mgRENDER_INFO *info = draw_manager->render_info;
     texture_manager = draw_manager->texture_manager;
-    prev_tex = nullptr;
+    prev_tex = 0;
     // A shadow model's CreateRenderInfoPacket leaves the record alone, so the previous visual's record must not
     // send the shadow faces down as lit meshes in that visual's place.
     CurrentRecord().drawn = false;
-    CreateRenderInfoPacket(nullptr, matrix, info);
+    CreateRenderInfoPacket(NULL, matrix, info);
     CreatePacket(draw_manager);
 
     const RenderRecord &record = CurrentRecord();
@@ -609,20 +630,21 @@ PORT_OVERRIDE int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawMana
         object = this;
     }
 
-    u_long128 *common = nullptr;
-    if (tag == nullptr) {
+    u_long128 *common = NULL;
+    if (tag == NULL) {
         common = draw_manager->data_memory->Alloc(1);
-        if (common == nullptr) {
+        if (common == NULL) {
             return 0;
         }
         // This common packet is empty; its reused address may still hold an earlier face draw.
         mgPortClearPacketDraw(common);
     }
 
-    for (mgFACE_GROUP *group = face_group; group != nullptr; group = group->next) {
+    for (mgFACE_GROUP *group = face_group; group != NULL; group = group->next) {
         mgMaterial         *mat = material + group->material;
         gfx::TextureBinding binding = mgPortBinding(mat->texture);
-        // Retail SetMaterialRef writes this texture's CLAMP for every material, so no draw inherits another's wrap.
+        // Retail SetMaterialRef writes this texture's CLAMP for every material.
+        // Record it with the mesh instead of inheriting another draw's wrap state.
         if (mat->texture != nullptr) {
             binding.wrap_u = mgPortWrapU(mat->texture->clamp_bits);
             binding.wrap_v = mgPortWrapV(mat->texture->clamp_bits);
@@ -640,9 +662,9 @@ PORT_OVERRIDE int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawMana
         draw.object = object;
 
         std::vector<FaceDraw> faces;
-        for (mgCFace *face = group->face; face != nullptr; face = face->next) {
+        for (mgCFace *face = group->face; face != NULL; face = face->next) {
             const auto geometry = FaceMesh(face);
-            if (geometry == nullptr || (geometry->mesh == gfx::kNullMesh && geometry->indices.empty())) {
+            if (geometry == NULL || (geometry->mesh == gfx::kNullMesh && geometry->indices.empty())) {
                 continue;
             }
 
@@ -653,23 +675,39 @@ PORT_OVERRIDE int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawMana
             faces.push_back(entry);
         }
 
-        if (tag != nullptr) {
+        if (tag != NULL) {
             SubmitFaces(draw, faces);
             continue;
         }
 
         u_long128 *packet = draw_manager->data_memory->Alloc(1);
-        if (packet == nullptr) {
+        if (packet == NULL) {
             break;
         }
 
-        mgPortSetPacketDraw(packet, [draw, faces = std::move(faces)] {
+        mgPortSetPacketDraw(packet, [draw, faces = std::move(faces)]() {
             SubmitFaces(draw, faces);
         });
 
-        const int block = mat->texture != nullptr ? mat->texture->block : -1;
+        const int block = mat->texture != NULL ? mat->texture->block : -1;
         draw_manager->AddPacket(block, common, packet, group->vu_program);
     }
 
     return 0;
+}
+
+int mgVisualPortMeshUploadCountForTest() {
+    return g_mesh_upload_count;
+}
+
+void mgVisualPortResetMeshUploadCountForTest() {
+    g_mesh_upload_count = 0;
+}
+
+int mgVisualPortSweepPassCountForTest() {
+    return g_sweep_pass_count;
+}
+
+void mgVisualPortResetSweepPassCountForTest() {
+    g_sweep_pass_count = 0;
 }

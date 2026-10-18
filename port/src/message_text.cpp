@@ -9,6 +9,7 @@
 
 #include "mainloop.hpp"
 #include "nd_meswin.hpp"
+#include "options/retail_system_mes.hpp"
 
 // The PAL disc's menu and system messages describe PS2 memory cards, their slots and the console.
 // The PC port keeps saves, the photo album and Extras data in folders, so the messages that
@@ -490,9 +491,15 @@ u16 *Lookup(short *table, int line_id) {
 } // namespace
 
 PORT_OVERRIDE u16 *ClsMes::GetTextLineDataTop(int line_id) {
+    if (u16 *override_text = PortRetailSystemMessageOverride(line_id)) {
+        return override_text;
+    }
     return Lookup(buff, line_id);
 }
 
 PORT_OVERRIDE u16 *ClsMes::GetTextLineDataTop_system(int line_id) {
+    if (u16 *override_text = PortRetailSystemMessageOverride(line_id)) {
+        return override_text;
+    }
     return Lookup(buff_system, line_id);
 }

@@ -68,7 +68,7 @@ PORT_OVERRIDE void dbgCJISFont::PrintDirect(int start_x, int start_y, char *form
     y = start_y;
     prev_serno = 0;
 
-    va_list args = nullptr;
+    va_list args;
     va_start(args, format);
     std::vsnprintf(text, sizeof text, format, args);
     va_end(args);

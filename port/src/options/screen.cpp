@@ -1,17 +1,22 @@
 #include "common.h"
 
+#include <SDL3/SDL.h>
+
 #include <algorithm>
+#include <cmath>
 #include <string>
-#include <utility>
 
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
+#include "menuaqua.hpp"
 #include "menucommon.hpp"
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "menuop.hpp"
 #include "menusys.hpp"
+#include "port_options.hpp"
+#include "options/config_bool.hpp"
 #include "options/rows.hpp"
 #include "options/screen.hpp"
 #include "platform/display.hpp"
@@ -28,11 +33,6 @@ namespace options {
 State g_screen;
 
 namespace {
-
-// MenuMouseSample button bits.
-constexpr std::uint32_t kMouseLeft = 1;
-constexpr std::uint32_t kMouseRight = 2;
-
 Repeat        g_repeat;
 bool          g_tracking = false;
 bool          g_pointing = false;
@@ -53,8 +53,12 @@ void Save(const Config &config) {
 }
 
 void Change(int direction) {
-    Config config = ConfigGet();
-    if (StepRow(CurrentRow(), config, direction)) {
+    Config       config = ConfigGet();
+    const Row   &row = CurrentRow();
+    if (StepRow(row, config, direction)) {
+        if (row.key == "game.debug_mode") {
+            port_settings::WriteConfigBool(config, row.key, config.debug_mode);
+        }
         Save(config);
         MenuSePlay(SYSTEM_SE_CURSOR);
     }
@@ -70,8 +74,9 @@ void Close() {
     g_screen.open = false;
     g_screen.binding = -1;
     g_wait_source.clear();
-    // Swallow the closing click or held key so it cannot change a retail option underneath.
     g_drain = true;
+    // Stay in menu-pointer mode until the retail Options screen finishes, so a closing click or
+    // held key cannot change one of its options. Its pad state and settings are otherwise untouched.
     MenuSePlay(SYSTEM_SE_CANCEL);
 }
 
@@ -126,9 +131,10 @@ InputMenuMouse Pointer() {
     g_pointer_x = sample.x;
     g_pointer_y = sample.y;
     g_pointing = sample.pointing;
-    // This page handles its own clicks; they must not also reach the retail Options screen as pad edges.
+    // This page handles its own hit regions, so a click must not also reach the
+    // underlying retail Options screen through the shared synthetic pad edge.
     MenuMouseSetButtons(0);
-    return {.dx = sample.pointing && sample.moved ? 1.0f : 0.0f, .dy = 0, .wheel = sample.wheel, .buttons = sample.held};
+    return {sample.pointing && sample.moved ? 1.0f : 0.0f, 0, sample.wheel, sample.held};
 }
 
 void Track(bool on) {
@@ -168,7 +174,7 @@ bool Run() {
     }
     const int cancel = LanguageCode > 0 ? PAD_CIRCLE : PAD_CROSS;
     const int confirm = LanguageCode > 0 ? PAD_CROSS : PAD_CIRCLE;
-    if (pressed_mouse & kMouseRight) {
+    if (pressed_mouse & 2) {
         if (g_screen.binding >= 0) {
             g_screen.binding = -1;
             g_drain = true;
@@ -181,7 +187,7 @@ bool Run() {
     }
     if (g_screen.binding >= 0) {
         const auto point = PointerPosition();
-        if ((pressed_mouse & kMouseLeft) && HitTest(g_screen, point.x, point.y).kind == HitKind::Back) {
+        if ((pressed_mouse & 1) && HitTest(g_screen, point.x, point.y).kind == HitKind::Back) {
             g_screen.binding = -1;
             g_drain = true;
             return true;
@@ -231,74 +237,76 @@ bool Run() {
                 Change(1);
             }
         } else if ((pressed & PAD_SQUARE) && !CurrentRow().action.empty()) {
-            Activate({.kind = HitKind::ResetBinding});
+            Activate({HitKind::ResetBinding});
         }
     }
     const auto point = PointerPosition();
     const Hit  hit = HitTest(g_screen, point.x, point.y);
     NavigatePointer(g_screen, point, mouse.dx != 0 || mouse.dy != 0, mouse.wheel);
-    if (pressed_mouse & kMouseLeft) {
+    if (pressed_mouse & 1) {
         Activate(hit);
         if (g_screen.open) {
             return true;
         }
-        if (!g_drain && PortMenuOption && MenuPosData &&
-            MenuMouseOption(*PortMenuOption, MenuPosData->GetFormInfo(const_cast<char *>("Op_Switch")),
-                            MenuPosData->GetFormInfo(const_cast<char *>("clip0")))) {
+        if (!g_drain && PortMenuOption && MenuMouseOption(*PortMenuOption, MenuPosData ? MenuPosData->GetFormInfo(const_cast<char *>("Op_Switch")) : nullptr)) {
             MenuMousePress(confirm);
         }
     }
     return g_screen.open || g_drain;
 }
 
-Point PointerPosition() { return {.x = g_pointer_x, .y = g_pointer_y}; }
+Point PointerPosition() { return {g_pointer_x, g_pointer_y}; }
 
 bool Pointing() { return g_tracking && g_pointing; }
 
 Point PointerToUi(float x, float y, int w, int h, const gfx::LogicalMapping &mapping) {
     if (w <= 0 || h <= 0 || mapping.scale_x <= 0 || mapping.scale_y <= 0) {
-        return {.x = -1, .y = -1};
+        return {-1, -1};
     }
-    return {.x = (x * mapping.pixel_width / w - mapping.offset_x) / mapping.scale_x,
-            .y = (y * mapping.pixel_height / h - mapping.offset_y) / mapping.scale_y};
+    return {(x * mapping.pixel_width / w - mapping.offset_x) / mapping.scale_x,
+            (y * mapping.pixel_height / h - mapping.offset_y) / mapping.scale_y};
 }
 
 Hit HitTest(const State &state, float x, float y) {
     if (state.binding >= 0) {
-        return Inside(x, y, kLeft, 343, kLeft + 105, 370) ? Hit{.kind = HitKind::Back} : Hit{};
+        return Inside(x, y, kLeft, 343, kLeft + 105, 370) ? Hit{HitKind::Back} : Hit{};
     }
     if (!state.open) {
-        return Inside(x, y, 284, 51, 444, 76) ? Hit{.kind = HitKind::Entry} : Hit{};
+        return Inside(x, y, 284, 51, 444, 76) ? Hit{HitKind::Entry} : Hit{};
     }
-    for (int page = 0; page < kPages; ++page) {
-        if (Inside(x, y, kLeft + page * kTabStep, 91, kLeft + (page + 1) * kTabStep, 114)) {
-            return {.kind = HitKind::Tab, .index = page};
+    const int tab_count = static_cast<int>(Pages().size());
+    const int tab_step = TabStep(tab_count);
+    for (int page = 0; page < tab_count; ++page) {
+        const int left = kLeft + page * tab_step;
+        if (Inside(x, y, left, 91, left + tab_step, 114)) {
+            return {HitKind::Tab, page};
         }
     }
     if (Inside(x, y, kLeft, 343, kLeft + 105, 370)) {
-        return {.kind = HitKind::Back};
+        return {HitKind::Back};
     }
     if (state.page == kBindingsPage && Inside(x, y, 272, 343, kRight, 370)) {
-        return {.kind = HitKind::ResetBinding};
+        return {HitKind::ResetBinding};
     }
     if (Inside(x, y, kLeft, kRowY, kRight, kRowY + kVisibleRows * kRowStep)) {
         int row = state.first[state.page] + static_cast<int>(y - kRowY) / kRowStep;
-        if (std::cmp_less(row, Pages()[state.page].rows.size())) {
-            return {.kind = HitKind::Row, .index = row, .direction = x < kValueX + 65 ? -1 : 1};
+        if (row < static_cast<int>(Pages()[state.page].rows.size())) {
+            return {HitKind::Row, row, x < kValueX + 65 ? -1 : 1};
         }
     }
     return {};
 }
 
-bool SelectPage(State &state, int page) {
-    const int previous = state.page;
-    state.page = (page + kPages) % kPages;
+void SelectPage(State &state, int page) {
+    const int count = static_cast<int>(Pages().size());
+    state.page = count > 0 ? (page % count + count) % count : 0;
     state.binding = -1;
-    if (state.page == previous) {
-        return false;
+    const int rows = static_cast<int>(Pages()[state.page].rows.size());
+    if (rows > 0) {
+        state.row[state.page] = std::clamp(state.row[state.page], 0, rows - 1);
+    } else {
+        state.row[state.page] = 0;
     }
-    MenuSePlay(SYSTEM_SE_CURSOR);
-    return true;
 }
 
 void MoveRow(State &state, int direction) {
@@ -346,11 +354,33 @@ void Repeat::Reset(std::uint16_t held) {
 
 } // namespace options
 
+namespace {
+int g_retail_label_rebuild_frames = 0;
+
+void RequestRetailOptionMesRebuild() {
+    constexpr int kWindows[] = {2, 4, 5};
+    for (const int index : kWindows) {
+        if (MenuDCMsg[index] != nullptr) {
+            MenuDCMsg[index]->msg_change = 1;
+        }
+    }
+}
+} // namespace
+
 PORT_OVERRIDE int MenuOptionKey() {
     // The original menu still owns opening, saving retail options, closing and all pad behavior.
     // SELECT is unused by its KeyStep; L1/R1 keep their retail page-scroll meaning there.
     const bool ready = PortMenuOption->mode == MENU_ASK_MODE_NONE && GetMenuMainFrameEndFlag() != 0;
     options::Track(ready);
+    if (ready) {
+        PortOptionsRefreshRetailLabels();
+        if (g_retail_label_rebuild_frames < 2) {
+            RequestRetailOptionMesRebuild();
+            g_retail_label_rebuild_frames++;
+        }
+    } else {
+        g_retail_label_rebuild_frames = 0;
+    }
     if (ready && options::Run()) {
         return 0;
     }

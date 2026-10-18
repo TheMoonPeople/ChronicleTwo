@@ -26,6 +26,9 @@
 #include "font.hpp"
 #include "gameutil.hpp"
 #include "mainloop.hpp"
+#ifdef PORT
+#include "port_monster_limit.hpp"
+#endif
 #include "maintex.hpp"
 #include "mapinfo.hpp"
 #include "mapjump.hpp"
@@ -2003,8 +2006,13 @@ void AutoSetMonster() {
         spawn_count = ActiveMonster->locate.num;
         floor_id = DngSaveDataDungeon->floor_id[DngSaveDataDungeon->stage_id];
 
-        if (spawn_count > MONSTER_ACTIVE_MAX) {
-            spawn_count = MONSTER_ACTIVE_MAX;
+#ifdef PORT
+        const int monster_spawn_cap = PortMonsterActiveLimit();
+#else
+        const int monster_spawn_cap = MONSTER_ACTIVE_MAX;
+#endif
+        if (spawn_count > monster_spawn_cap) {
+            spawn_count = monster_spawn_cap;
         }
 
         GetDungeonEventPoint(event_point, &event_extra[3], DUNGEON_EVENT_POINT_WAY_32);

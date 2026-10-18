@@ -33,6 +33,9 @@
 #include "gamepad.hpp"
 #include "helpmes.hpp"
 #include "mainloop.hpp"
+#ifdef PORT
+#include "dungeon_monster_pool.hpp"
+#endif
 #include "maintex.hpp"
 #include "map.hpp"
 #include "mapload.hpp"
@@ -412,6 +415,9 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
 
     memset(&MainBuffer->stack[MainBuffer->stack_used], 0xFF, 0x1EF00);
     CActiveMonster *mons = new (MainBuffer->Alloc(DngAlign16Size(sizeof(CActiveMonster) * MONSTER_ACTIVE_MAX) + 2)) CActiveMonster[MONSTER_ACTIVE_MAX];
+#ifdef PORT
+    PortSetDungeonMonsterPool(mons);
+#endif
 
     for (int i = 0; i < MONSTER_ACTIVE_MAX; i++) {
         mons[i].Initialize();

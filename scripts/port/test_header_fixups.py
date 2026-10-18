@@ -65,6 +65,10 @@ class UnitFixups(unittest.TestCase):
         self.assertIn("frame <= 22 && !PortSkipIntro();", result)
         self.assertEqual(result.count("\n"), source.count("\n"))
 
+    def test_skip_intro_fixup_optional_when_scelogo_fade_is_native(self):
+        source = "// native SCElogoFade override; retail fade loop stripped\n"
+        self.assertEqual(header_fixups.fixup_unit_text("nowload.cpp", source), source)
+
     def test_invent_constructor_emitted_exactly_once(self):
         source = "// constructor\ninline CMenuInvent::CMenuInvent() {\n    card_cursor = 0;\n}\n"
         result = header_fixups.fixup_unit_text("inventmn.cpp", source)

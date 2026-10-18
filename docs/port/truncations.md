@@ -30,9 +30,9 @@ Origin is where the pointer points, where the expression shows it: **image** (a 
 |---|---|---|---|
 | round-trip | 0 | 2 | 2 |
 | resolved | 1 | 0 | 1 |
-| escapes | 31 | 3 | 34 |
+| escapes | 31 | 4 | 35 |
 | low-bits | 4 | 6 | 10 |
-| **all** | 36 | 11 | 47 |
+| **all** | 36 | 12 | 48 |
 
 Open round trips by unit: ps2/src/movie.cpp 2.
 
@@ -71,6 +71,12 @@ the same literals in their **masked** column when the masked expression holds a 
 | ps2/src/movie.cpp | 828 | no | `*(int *) 0x1000B430 = (uptr) buf->tag & 0xFFFFFFF;` |
 | ps2/src/movie.cpp | 903 | no | `chcr = (chcr & 0xFFFFFFF) \| 0x30000000;` |
 | ps2/src/movie.cpp | 946 | no | `MOVIE_CHCR_LOW_MASK = 0xFFFFFFF, /**< Keeps the low 28 bits of a saved DMA channel control word when its upper tag bits are replaced. */` |
+
+## port/src/item_icon3d.cpp (1 rows)
+
+| line | function | state | class | expression | origin | use | phase |
+|---|---|---|---|---|---|---|---|
+| 55 | IconTextures::IconTextures | open | escapes | `reinterpret_cast < std :: uintptr_t >(storage.data())` | call (data) | argument: stSetBuffer | - |
 
 ## ps2/src/dataread.cpp (1 rows)
 

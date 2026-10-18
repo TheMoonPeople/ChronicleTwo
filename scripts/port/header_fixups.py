@@ -54,6 +54,9 @@ FIXUPS = [
 # its slot in the draw manager's pointer tables. Both grow with pointer width, so the work stacks scale with them.
 WORK_STACK_QUADWORDS = "10000 * (int) sizeof(mgSORT_PACKET) / 16"
 
+# Retail-only fixups: no-op when unit_copy removed the matched text (native PORT_OVERRIDE).
+UNIT_FIXUPS_OPTIONAL = frozenset({"nowload.cpp"})
+
 # The leading newline anchors each match to its line start: a copy already rewritten fails the exactly-once check
 # instead of gaining a second `inline`.
 # COFF has no inline-vs-strong resolution: map.cpp's out-of-line CMapParts::CMapParts is the single definition,
@@ -98,6 +101,7 @@ UNIT_FIXUPS = [
     # Emit the constructor from the native unit without changing its retail inline spelling.
     ("inventmn.cpp", "\ninline CMenuInvent::CMenuInvent() {", "\nCMenuInvent::CMenuInvent() {"),
     # game.skip_intro: the boot's language select and title image load stay; the logo's fade frames are skipped.
+    # Omitted when port/src/nowload.cpp overrides SCElogoFade and unit_copy strips the retail body.
     ("nowload.cpp", "    for (; frame <= 22; ++frame, opacity_value += 128) {",
      "    for (; frame <= 22 && !PortSkipIntro(); ++frame, opacity_value += 128) {"),
     ("editeff.cpp", "\ninline CMapParts::CMapParts() { Initialize(); }", "\n"),
@@ -209,6 +213,8 @@ def fixup_unit_text(name: str, text: str) -> str:
         if unit != name:
             continue
         count = text.count(old)
+        if count == 0 and name in UNIT_FIXUPS_OPTIONAL:
+            continue
         if count != 1:
             sys.exit(f"header_fixups: {name} has {count} occurrences of {old!r}, expected exactly 1")
         # Keep diagnostics and debug locations aligned with the retail source.

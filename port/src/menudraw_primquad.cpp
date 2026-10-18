@@ -37,24 +37,27 @@ void DrawBackdrop(mgCDrawPrim &prim, mgRect<float> rect, mgRect<int> uv, float a
         {1, 1},
         {0, 1}
     };
+    // bg16's last four columns and chr_bg's extra source column are transparent
+    // padding. Join reflections and the settled panel to opaque texels, not padding.
+    const float u_end = std::min(static_cast<float>(uv.right), artwork_width);
+    const float v_end = static_cast<float>(uv.top + uv.bottom);
+    const float u_min = 0.5f;
+    const float u_max = u_end - 0.5f;
+    const float v_min = static_cast<float>(uv.top) + 0.5f;
+    const float v_max = v_end - 0.5f;
     const auto append = [&](float left, float right, float u0, float u1) {
-        // Linear filtering must stay inside the artwork at a reflection seam;
-        // otherwise its transparent padding leaves a dark hairline.
-        if (wide) {
-            u0 = std::clamp(u0, 0.5f, artwork_width - 0.5f);
-            u1 = std::clamp(u1, 0.5f, artwork_width - 0.5f);
-        }
+        // Linear filtering must stay inside the artwork at every seam; otherwise
+        // transparent atlas padding leaves a dark hairline (notably op_bg at 4:3).
+        u0 = std::clamp(u0, u_min, u_max);
+        u1 = std::clamp(u1, u_min, u_max);
         for (const auto &corner : corners) {
-            vertices.push_back(mgPortPrimVertex(prim,
-                                                corner[0] ? right : left, corner[1] ? rect.top + rect.bottom : rect.top, 0,
-                                                corner[0] ? u1 : u0, corner[1] ? uv.top + uv.bottom : uv.top, color));
+            const float v = std::clamp(corner[1] ? v_end : static_cast<float>(uv.top), v_min, v_max);
+            vertices.push_back(mgPortPrimVertex(prim, corner[0] ? right : left,
+                                                corner[1] ? rect.top + rect.bottom : rect.top, 0,
+                                                corner[0] ? u1 : u0, v, color));
         }
     };
-    const float left = rect.left;
-    const float right = left + rect.right;
-    // bg16's last four columns and chr_bg's extra source column are transparent
-    // padding. At wide aspects join the reflection to the artwork, not padding.
-    const float u_end = wide ? artwork_width : uv.right;
+    const float left = rect.left, right = left + rect.right;
     const float span = rect.right * u_end / uv.right;
     append(left, left + span, 0, u_end);
 
@@ -99,11 +102,11 @@ PORT_OVERRIDE void PrimQuad(mgCTexture *texture, float x, float y, mgRect<int> u
     const bool         cursor = GetNowLoopNo() == LOOP_TITLE && uv.right == 40 && uv.bottom == 24 &&
                                 ((uv.left == 0 && uv.top == 40 && texture == mgTexManager.GetTexture(const_cast<char *>("moji"), -1)) ||
                                  (uv.left == 216 && uv.top == 360));
-    gfx::Interp2DScope tag(cursor ? gfx::Interp2D{.key = MenuMouseNextHandKey(), .generation = static_cast<uint64_t>(mgPortFrameCount())} : gfx::CurrentInterp2D());
+    gfx::Interp2DScope tag(cursor ? gfx::Interp2D{MenuMouseNextHandKey(), static_cast<uint64_t>(mgPortFrameCount())} : gfx::CurrentInterp2D());
     if (cursor) {
         MenuMouseNoteHand(mgPortBinding(texture),
-                          {.x = static_cast<float>(uv.left), .y = static_cast<float>(uv.top), .w = static_cast<float>(uv.right), .h = static_cast<float>(uv.bottom)},
-                          0, alpha);
+                          {float(uv.left), float(uv.top), float(uv.right), float(uv.bottom)},
+                          0, 0, alpha);
     }
     mgCDrawPrim prim;
     SetSpriteEnv(&prim, MENU_SPRITE_ENV_TEXTURE);
@@ -120,16 +123,14 @@ void PrimQuad<float>(mgCDrawPrim *prim, mgRect<float> put_rect, mgRect<int> tex_
     static char character_name[] = "chr_bg";
     static char invent_name[] = "inv_bg";
     static char options_name[] = "op_bg";
-    const auto  extent = mgPortVisibleExtent();
-    if ((extent.left < 0 || extent.right > mgScreenWidth) &&
-        (IsBackdrop(prim, tex_rect, character_name, 513, 768) ||
-         IsBackdrop(prim, tex_rect, invent_name, 512, 416, 48) ||
-         IsBackdrop(prim, tex_rect, options_name, 512, 448, 46))) {
+    if (IsBackdrop(prim, tex_rect, character_name, 513, 768) ||
+        IsBackdrop(prim, tex_rect, invent_name, 512, 416, 48) ||
+        IsBackdrop(prim, tex_rect, options_name, 512, 448, 46)) {
         DrawBackdrop(*prim, put_rect, tex_rect, 512);
         return;
     }
-    PrimQuad_f_(prim, mgRect_f_{.left = put_rect.left, .top = put_rect.top, .right = put_rect.right, .bottom = put_rect.bottom},
-                mgRect_i_{.left = tex_rect.left, .top = tex_rect.top, .right = tex_rect.right, .bottom = tex_rect.bottom});
+    PrimQuad_f_(prim, mgRect_f_{put_rect.left, put_rect.top, put_rect.right, put_rect.bottom},
+                mgRect_i_{tex_rect.left, tex_rect.top, tex_rect.right, tex_rect.bottom});
 }
 
 template <>
@@ -141,6 +142,6 @@ void PrimQuad<int>(mgCDrawPrim *prim, mgRect<int> put_rect, mgRect<int> tex_rect
         DrawBackdrop(*prim, mgRect<float>(put_rect.left, put_rect.top, put_rect.right, put_rect.bottom), tex_rect, 700);
         return;
     }
-    PrimQuad_i_(prim, mgRect_i_{.left = put_rect.left, .top = put_rect.top, .right = put_rect.right, .bottom = put_rect.bottom},
-                mgRect_i_{.left = tex_rect.left, .top = tex_rect.top, .right = tex_rect.right, .bottom = tex_rect.bottom});
+    PrimQuad_i_(prim, mgRect_i_{put_rect.left, put_rect.top, put_rect.right, put_rect.bottom},
+                mgRect_i_{tex_rect.left, tex_rect.top, tex_rect.right, tex_rect.bottom});
 }

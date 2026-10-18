@@ -23,6 +23,10 @@
 #include "effscript.hpp"
 #include "gameutil.hpp"
 #include "mainloop.hpp"
+#ifdef PORT
+#include "dungeon_monster_pool.hpp"
+#include "port_monster_limit.hpp"
+#endif
 #include "maintex.hpp"
 #include "map.hpp"
 #include "mapinfo.hpp"
@@ -635,6 +639,20 @@ int CActiveMonster::CheckView(int rank_limit) {
         return view_state;
     }
 
+#ifdef PORT
+    if (PortDungeonMonsterExpandedView()) {
+        if (view_state == MONSTER_VIEW_IN) {
+            if (!(target_dist <= 30.0f + clip_dist)) {
+                view_state = MONSTER_VIEW_FADE_OUT;
+            }
+        } else if (view_state == MONSTER_VIEW_OUT && target_dist < clip_dist) {
+            view_state = MONSTER_VIEW_FADE_IN;
+        }
+
+        return view_state;
+    }
+#endif
+
     if (view_state == MONSTER_VIEW_IN) {
         if (!(target_dist <= 30.0f + clip_dist) || rank >= rank_limit) {
             view_state = MONSTER_VIEW_FADE_OUT;
@@ -771,11 +789,24 @@ void CMonsterMan::Initialize(CScene *scene) {
     textures = &mgTexManager;
     this->scene = scene;
     effect_man = FxScriptMan;
+#ifdef PORT
+    priority_limit = PortMonsterVisiblePriorityLimit();
+    PortReconnectDungeonMonsterSlots(scene);
+    const int active_limit = PortMonsterActiveLimit();
+#else
     priority_limit = 5;
+    const int active_limit = MONSTER_ACTIVE_MAX;
+#endif
 
-    for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        active[i] = (CActiveMonster *) scene->GetCharacter(i + MONSTER_ACTIVE_MAX);
-        active[i]->Initialize();
+    for (i = 0; i < active_limit; i++) {
+        active[i] = (CActiveMonster *) scene->GetCharacter(MONSTER_CHARA_INDEX(i));
+        if (active[i] != NULL) {
+            active[i]->Initialize();
+        }
+    }
+
+    for (i = active_limit; i < MONSTER_ACTIVE_MAX; i++) {
+        active[i] = NULL;
     }
 
     for (j = 0; j < MONSTER_REFER_MAX; j++) {
@@ -1003,8 +1034,13 @@ BASE_MONSTER_TBL *CMonsterMan::GetReferPtr2(int monster_id) {
 int CMonsterMan::SearchActiveMonsterBlock() {
     int             slot;
     CActiveMonster *monster;
+#ifdef PORT
+    const int limit = PortMonsterActiveLimit();
+#else
+    const int limit = MONSTER_ACTIVE_MAX;
+#endif
 
-    for (slot = 0; slot < MONSTER_ACTIVE_MAX; slot++) {
+    for (slot = 0; slot < limit; slot++) {
         monster = active[slot];
 
         if (monster == NULL) {
@@ -1149,7 +1185,7 @@ CActiveMonster *CMonsterMan::SetActiveMonster(int refer_no, float pos[], sceVu0F
 
     area = &scene->battle_area;
     npc = GetBattleCharaInfo()->GetNowNPC();
-    active[slot] = (CActiveMonster *) scene->GetCharacter(slot + MONSTER_ACTIVE_MAX);
+    active[slot] = (CActiveMonster *) scene->GetCharacter(MONSTER_CHARA_INDEX(slot));
 
     if (active[slot] == NULL) {
         return NULL;
@@ -1184,7 +1220,7 @@ CActiveMonster *CMonsterMan::SetActiveMonster(int refer_no, float pos[], sceVu0F
     monster->base_tbl = tbl;
     monster->tbl = &monster->param;
     monster->monster_id = refer[refer_no].id;
-    monster->chara_type = slot + MONSTER_ACTIVE_MAX;
+    monster->chara_type = MONSTER_CHARA_INDEX(slot);
     monster->chara_kind = ACTION_KIND_SCRIPT;
     monster->Show(1, 1);
     monster->refer_no = refer_no;
@@ -1322,7 +1358,7 @@ void CMonsterMan::DrawLifeGage(int view, int mode) {
 
         if (monster != NULL && monster->state != ACTIVE_MONSTER_NONE &&
             monster->target_dist <= monster->clip_dist) {
-            if (i + MONSTER_ACTIVE_MAX == target_no) {
+            if (MONSTER_CHARA_INDEX(i) == target_no) {
                 monster->life_gage.SetView(true);
             } else {
                 monster->life_gage.SetView(false);
@@ -1434,7 +1470,12 @@ void CMonsterMan::DrawShadowActMonster() {
         monster = active[index];
 
         if (monster != NULL && monster->chara_kind == ACTION_KIND_SCRIPT && monster->catch_state != ACTION_CATCH_HELD &&
-            monster->target_dist <= 0.6f * monster->clip_dist && monster->priority < priority_limit &&
+            monster->target_dist <= 0.6f * monster->clip_dist &&
+#ifdef PORT
+            (PortDungeonMonsterExpandedView() || monster->priority < priority_limit) &&
+#else
+            monster->priority < priority_limit &&
+#endif
             !(monster->alpha < 0.6f)) {
             float shadow_position[4] = {0.0f, -10.0f, 0.0f, 0.0f};
             active[index]->GetEntryObjectPos(1, shadow_position);
@@ -1487,7 +1528,7 @@ CActiveMonster *CMonsterMan::GetPriorityLevelIndex(int level, int *slot) {
         if (active[i] != NULL && active[i]->chara_kind == ACTION_KIND_SCRIPT &&
             active[i]->priority == level) {
             if (slot != NULL) {
-                *slot = i + MONSTER_ACTIVE_MAX;
+                *slot = MONSTER_CHARA_INDEX(i);
             }
 
             return active[i];
@@ -2011,7 +2052,7 @@ void CMonsterMan::CheckDamage() {
             continue;
         }
 
-        prim = ColPrimMan.CheckHit(i + MONSTER_ACTIVE_MAX);
+        prim = ColPrimMan.CheckHit(MONSTER_CHARA_INDEX(i));
 
         if (prim != NULL) {
             if (prim->has_gift) {
@@ -2675,6 +2716,10 @@ void CMonsterMan::ThinkHost() {
         return;
     }
 
+#ifdef PORT
+    priority_limit = PortMonsterVisiblePriorityLimit();
+#endif
+
     CCameraControl *camera = (CCameraControl *) scene->GetCamera(scene->active_camera);
 
     if (camera != NULL) {
@@ -2785,7 +2830,7 @@ void CMonsterMan::ThinkHost() {
         }
 
         if (target != NULL && monster->state == ACTIVE_MONSTER_LIVE && target->murderous_time > 0 &&
-            target->target_no == i + MONSTER_ACTIVE_MAX) {
+            target->target_no == MONSTER_CHARA_INDEX(i)) {
             int chance = fptosi(100.0f * (float) rand() / 2147483648.0f);
 
             if (monster->mask_flag & 2) {

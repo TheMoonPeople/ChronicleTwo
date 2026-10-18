@@ -7,7 +7,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <optional>
-#include <print>
 #include <utility>
 
 #include "arena_root.hpp"
@@ -23,12 +22,15 @@
 #include "gamepad.hpp"
 #include "helpmes.hpp"
 #include "inventmn.hpp"
+#include "menuchr_port.hpp"
+#include "quick_loadout.hpp"
 #include "item_icon3d.hpp"
 #include "main.hpp"
 #include "mainloop.hpp"
 #include "mainloop3.hpp"
 #include "mainloop_port.hpp"
 #include "mapjump.hpp"
+#include "options/retail_system_mes.hpp"
 #include "mapselect.hpp"
 #include "menuchr_port.hpp"
 #include "mg_drawprim.hpp"
@@ -38,7 +40,6 @@
 #include "mglib_port.hpp"
 #include "monster.hpp"
 #include "nowload.hpp"
-#include "nowload_port.hpp"
 #include "npccfg.hpp"
 #include "padcontrol.hpp"
 #include "platform/arena.hpp"
@@ -46,7 +47,6 @@
 #include "platform/input.hpp"
 #include "platform/paths.hpp"
 #include "play_time.hpp"
-#include "quick_loadout.hpp"
 #include "save_slots.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
@@ -54,6 +54,7 @@
 #include "snd_mngr.hpp"
 #include "subgame.hpp"
 #include "sysmes.hpp"
+#include "bench_spawn.hpp"
 #include "test_hooks.hpp"
 #include "userdata.hpp"
 #include "vlgr_info.hpp"
@@ -73,7 +74,7 @@ bool AutosaveEnabled() {
 
 void WriteAutosave(int program_loop_no, AutosaveSpawn *spawn = nullptr) {
     if (!SaveSlotWriteAutosave(program_loop_no, spawn)) {
-        std::println(stderr, "autosave: could not write {}", PathsDisplay(SaveSlotAutosavePath()));
+        std::fprintf(stderr, "autosave: could not write %s\n", PathsDisplay(SaveSlotAutosavePath()).c_str());
     }
 }
 
@@ -149,11 +150,9 @@ extern u_long128 main_buffer[0x1A0000];
 extern CScene    MainScene;
 extern CFont     Font;
 
-namespace {
-constexpr int kSubGameQuads = std::max(5000, static_cast<int>((sizeof(CSubGameData) + 15) / 16));
-} // namespace
+static constexpr int kSubGameQuads = std::max(5000, static_cast<int>((sizeof(CSubGameData) + 15) / 16));
 
-int PortPlayTimeVSyncCallback(int /*unused*/) {
+int PortPlayTimeVSyncCallback(int) {
     if (PortPlayTimeCountFlag != 0) {
         GetSaveData()->play_time += PlayTimeTick(true);
     }
@@ -169,7 +168,7 @@ PORT_OVERRIDE void InitSaveData() {
 void PortDrawFrameBorder() {
     const auto  edge = mgPortVisibleExtent();
     mgCDrawPrim frame_border;
-    frame_border.Initialize(nullptr, nullptr);
+    frame_border.Initialize(NULL, NULL);
     frame_border.DepthTestEnable(false);
     frame_border.AlphaTestEnable(false);
     frame_border.AlphaBlendEnable(false);
@@ -188,14 +187,14 @@ void PortDrawFrameBorder() {
 PORT_OVERRIDE void MainLoop() {
     static u_long128 *vu_prog[16];
 
-    mgCMemory        *memory = nullptr;
-    mgCMemory        *read_memory = nullptr;
-    CUserDataManager *user_data = nullptr;
-    u_long128        *file_buffer = nullptr;
-    int               file_size = 0;
-    int               mode_finished = 0;
-    std::uintptr_t    buffer_address = 0;
-    std::uintptr_t    alignment = 0;
+    mgCMemory        *memory;
+    mgCMemory        *read_memory;
+    CUserDataManager *user_data;
+    u_long128        *file_buffer;
+    int               file_size;
+    int               mode_finished;
+    std::uintptr_t    buffer_address;
+    std::uintptr_t    alignment;
     u_long128        *main_arena = ArenaRoot(&main_buffer, 0x1A0000, "MainBuffer");
 
     memory = GetMainStack();
@@ -205,10 +204,10 @@ PORT_OVERRIDE void MainLoop() {
     SaveData.Initialize();
     PlayTimeReset();
     PortActiveSaveData = &SaveData;
-    PortSubGameSaveData = nullptr;
+    PortSubGameSaveData = NULL;
     DebugFlag = false;
     GamePad__2.Init();
-    InitFileCache(nullptr, 0);
+    InitFileCache(NULL, 0);
     mgInit(MG_SCREEN_MODE_512X480, 3);
     PortPlayTimeCountFlag = false;
     mgInitVSyncCallBack(PortPlayTimeVSyncCallback);
@@ -251,15 +250,16 @@ PORT_OVERRIDE void MainLoop() {
     LoadFontTexture();
     LoadGaijiImg();
     LoadFontTblBin();
+    PortRetailInstallHostOptionSystemLines();
     LoadFontTex2Img();
     LoadNPCCfg();
     InfoStack.stSetBuffer(ArenaRoot(PortInfoBuff, 5000, "InfoStack"), 5000 * kArenaHeadroom);
     LoadGameInfo(&InfoStack);
     InitPauseData();
     InitSaveData();
-    user_data = nullptr;
+    user_data = NULL;
 
-    if (PortActiveSaveData != nullptr) {
+    if (PortActiveSaveData != NULL) {
         user_data = &PortActiveSaveData->user_data;
     }
 
@@ -270,7 +270,7 @@ PORT_OVERRIDE void MainLoop() {
     PortCaptureMode = CAPTURE_OFF;
     sndInitMngr();
     MainScene.InitSnd();
-    SetCurrentDir(nullptr);
+    SetCurrentDir(NULL);
     SystemSeStack.stSetBuffer(ArenaRoot(PortSystemSeBuff, 400, "SystemSeStack"), 400 * kArenaHeadroom);
     SystemSeStack.stack_used = 0;
     SystemSeStack.lock = 0;
@@ -289,16 +289,16 @@ PORT_OVERRIDE void MainLoop() {
     char rev_path[] = "snd2/rev.json";
     char map_index_path[] = "snd2/map_index.json";
 
-    if (LoadFile2(sy_path, file_buffer, nullptr, 0)) {
-        SystemSND_ID = sndLoadSound(SND_PORT_SYSTEM, reinterpret_cast<u_int *>(file_buffer), &SystemSeStack);
+    if (LoadFile2(sy_path, file_buffer, NULL, 0)) {
+        SystemSND_ID = sndLoadSound(SND_PORT_SYSTEM, (u_int *) file_buffer, &SystemSeStack);
     }
 
     if (LoadFile2(rev_path, file_buffer, &file_size, 0)) {
-        MainScene.LoadSndRevInfo(reinterpret_cast<char *>(file_buffer), file_size);
+        MainScene.LoadSndRevInfo((char *) file_buffer, file_size);
     }
 
     if (LoadFile2(map_index_path, file_buffer, &file_size, 0)) {
-        MainScene.LoadSndFileInfo(reinterpret_cast<char *>(file_buffer), file_size);
+        MainScene.LoadSndFileInfo((char *) file_buffer, file_size);
     }
 
     LoadHelpMes(file_buffer);
@@ -310,22 +310,22 @@ PORT_OVERRIDE void MainLoop() {
     Font.SetFuchi(0);
     Font.SetClearance(15, 18);
     CreateGamePadThread(&GamePad__2);
-    LoadGameConfig(nullptr);
+    LoadGameConfig(NULL);
     SetIoErrCallBack(EmergencyMessage);
-    if (!GameHasJump() && !PortSkipIntro()) {
+    if (!GameHasJump()) {
         SCElogoFade(1, memory);
     }
     GamePrepareJump(PortLoopNo, InitArg);
 
-    while (true) {
+    while (1) {
         if (PortLoopNo == LOOP_TITLE || OmakeFlag != 0) {
-            PortSubGameSaveData = reinterpret_cast<CSubGameData *>(main_arena);
+            PortSubGameSaveData = (CSubGameData *) main_arena;
             memory->stSetBuffer(&main_arena[kSubGameQuads], 0x1A0000 * kArenaHeadroom - kSubGameQuads);
             memory->stack_used = 0;
             memory->lock = 0;
         }
 
-        std::println("main_data remain = {}kb", ((memory->stack_size - memory->stack_used) * 16) / 1024);
+        printf("main_data remain = %dkb\n", ((memory->stack_size - memory->stack_used) * 16) / 1024);
 
         if (PortLoopNo < 0 || PortLoopNo >= LOOP_MODE_NUM) {
             break;
@@ -369,8 +369,8 @@ PORT_OVERRIDE void MainLoop() {
             MainScene.InitSnd();
         }
 
-        std::println("##### {}", mgGetVSyncCount());
-        // Every mode change passes here, including the LOOP_MENU->LOOP_TITLE redirect above and the PortNextLoopNo hand-off below.
+        printf("##### %d\n", mgGetVSyncCount());
+        // Single entry for every mode change: covers the LOOP_MENU->LOOP_TITLE redirect above and the PortNextLoopNo hand-off below.
         mgPortCutInterpolation();
         PortCancelQuickChangeBanner();
         PortQuickLoadoutReset();
@@ -383,7 +383,7 @@ PORT_OVERRIDE void MainLoop() {
         NextLoop(LOOP_MENU, next_arg);
 
         bool developer_menu_requested = false;
-        auto request_developer_menu = [&] {
+        auto request_developer_menu = [&]() {
             if (!GameDeveloperMenuRequested(PortLoopNo)) {
                 return false;
             }
@@ -393,7 +393,7 @@ PORT_OVERRIDE void MainLoop() {
             return true;
         };
 
-        while (true) {
+        while (1) {
             request_developer_menu();
             if (developer_menu_requested) {
                 DebugFlag = 1;
@@ -407,9 +407,9 @@ PORT_OVERRIDE void MainLoop() {
                     if (PortLoopNo == LOOP_DUNGEON) {
                         DngStatus.mode = DNG_STATUS_EXIT;
                     }
-                    mgBeginFrame(nullptr);
+                    mgBeginFrame(NULL);
                     LoopMain[PortLoopNo]();
-                    mgEndFrame(nullptr);
+                    mgEndFrame(NULL);
                     GamePad__2.pad[0].button = buttons;
                 }
                 PauseCancel();
@@ -449,7 +449,8 @@ PORT_OVERRIDE void MainLoop() {
                 DebugFlag = !DebugFlag;
             }
 
-            mgBeginFrame(nullptr);
+            GameBenchTrySpawnEnemies(PortLoopNo);
+            mgBeginFrame(NULL);
             mode_finished = LoopMain[PortLoopNo]();
             PortFinishQuickChange();
             sndStep(mgGetNowFrameRate());
@@ -460,7 +461,7 @@ PORT_OVERRIDE void MainLoop() {
             PortStepQuickChangeEffect();
             PortDrawQuickChangeBanner();
             PortDrawFrameBorder();
-            mgEndFrame(nullptr);
+            mgEndFrame(NULL);
 
             if (mode_finished != 0) {
                 PauseCancel();

@@ -12,8 +12,7 @@
 #include <format>
 #include <fstream>
 #include <limits>
-#include <optional>
-#include <print>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -23,17 +22,19 @@
 #include "platform/files.hpp"
 #include "platform/paths.hpp"
 
+#include "georama_poly_budget.hpp"
+
 namespace {
 
 using Json = nlohmann::ordered_json;
 
 Config g_config;
-// What config.json was last read or written as; unset when its contents are unknown.
-std::optional<Config> g_persisted;
+Config g_persisted;
+bool   g_have_persisted = false;
 // Whether config.json holds g_config, so a failed save is retried with the next change.
 bool g_saved = false;
 // An existing config.json that could not be read: replacing it would discard the user's settings.
-bool             g_keep_file = false;
+bool g_keep_file = false;
 ConfigChangeHook g_change_hook = nullptr;
 ConfigReadHook   g_read_hook = nullptr;
 
@@ -67,19 +68,11 @@ constexpr auto kUnit = [](auto value) { return value >= 0 && value <= 1; };
 constexpr const char *kPresentModeNames[] = {"fifo", "mailbox", "immediate"};
 constexpr const char *kAspectNames[] = {"auto", "4:3"};
 constexpr const char *kFpsDetailNames[] = {"fps", "ticks", "all"};
+constexpr const char *kFpsDetailBudget = "budget";
 constexpr const char *kHapticsNames[] = {"off", "vibration", "full"};
 constexpr const char *kGyroNames[] = {"off", "always", "first_person", "held"};
 constexpr const char *kGlyphDeviceNames[] = {
-    "auto",
-    "ps3",
-    "ps4",
-    "ps5",
-    "ps5color",
-    "xbox",
-    "switch",
-    "steamdeck",
-    "steamcontroller",
-    "keyboard",
+    "auto", "ps3", "ps4", "ps5", "ps5color", "xbox", "switch", "steamdeck", "steamcontroller", "keyboard",
 };
 
 std::string_view Trim(std::string_view text) {
@@ -103,8 +96,8 @@ double Shortest(float value) {
 }
 
 void Ignore(std::string_view name, const Json &value) {
-    std::println(stderr, "config.json: ignoring {:.{}} = {}", name.data(), static_cast<int>(name.size()),
-                 value.dump());
+    std::fprintf(stderr, "config.json: ignoring %.*s = %s\n", static_cast<int>(name.size()), name.data(),
+                 value.dump().c_str());
 }
 
 template <class T, class Valid>
@@ -192,7 +185,7 @@ bool ApplyBindings(Config &config, const Json &bindings) {
         return false;
     }
     for (const auto &[action, keys] : bindings.items()) {
-        ConfigKeyBinding binding = {.action = Lower(action), .keys = {}};
+        ConfigKeyBinding binding = {Lower(action), {}};
         if (ReadList(keys, binding.keys)) {
             config.key_bindings.push_back(std::move(binding));
         } else {
@@ -210,23 +203,54 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "game.autosave") {
         return ReadBool(value, config.autosave);
     }
-    if (name == "game.floor_info_monsters") {
-        return ReadBool(value, config.floor_info_monsters);
-    }
     if (name == "game.quick_loadout_title") {
         return ReadChoice(value, "bar", "plate", config.quick_loadout_plate);
     }
     if (name == "game.skip_intro") {
         return ReadBool(value, config.skip_intro);
     }
+    if (name == "game.georama_poly_multiplier") {
+        if (!ReadInt(value, config.georama_poly_multiplier)) {
+            return false;
+        }
+        config.georama_poly_multiplier = ClampGeoramaPolyMultiplier(config.georama_poly_multiplier);
+        return true;
+    }
+    if (name == "game.expanded_dungeon_monsters") {
+        return ReadBool(value, config.expanded_dungeon_monsters);
+    }
     if (name == "game.auto_use_event_item") {
         return ReadBool(value, config.auto_use_event_item);
+    }
+    if (name == "game.floor_info_monsters") {
+        return ReadBool(value, config.floor_info_monsters);
     }
     if (name == "video.present_mode") {
         return ReadEnum(value, kPresentModeNames, s.present_mode);
     }
     if (name == "video.interpolation") {
         return ReadBool(value, config.interpolation);
+    }
+    if (name == "video.interpolation_draw_budget") {
+        if (!ReadInt(value, config.interpolation_draw_budget)) {
+            return false;
+        }
+        if (config.interpolation_draw_budget < 0) {
+            config.interpolation_draw_budget = 0;
+        }
+        return true;
+    }
+    if (name == "video.interpolation_fps_floor") {
+        if (!ReadInt(value, config.interpolation_fps_floor)) {
+            return false;
+        }
+        if (config.interpolation_fps_floor < 0) {
+            config.interpolation_fps_floor = 0;
+        }
+        return true;
+    }
+    if (name == "video.interpolation_multi_present") {
+        return ReadBool(value, config.interpolation_multi_present);
     }
     if (name == "video.max_fps") {
         if (!ReadNumber(value, s.max_fps, kNonNegative)) {
@@ -259,6 +283,16 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
         return ReadBool(value, s.show_fps);
     }
     if (name == "video.fps_detail") {
+        if (!value.is_string()) {
+            return false;
+        }
+        const std::string detail = Lower(value.get<std::string>());
+        if (detail == kFpsDetailBudget) {
+            s.fps_detail = ConfigFpsDetail::All;
+            config.fps_detail_budget = true;
+            return true;
+        }
+        config.fps_detail_budget = false;
         return ReadEnum(value, kFpsDetailNames, s.fps_detail);
     }
     if (name == "audio.master_volume") {
@@ -270,7 +304,8 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "audio.dualsense_speaker") {
         return ReadBool(value, config.dualsense_speaker);
     }
-    // Superseded by audio.dualsense_speaker, whose default is this key's only opt-in: validated and dropped.
+    // Replaced by audio.dualsense_speaker. Its only opt-in, "controller", is the new default, and "tv"
+    // was written by every install as the old default, so the value is checked and dropped.
     if (name == "audio.robot_voice") {
         bool controller = false;
         return ReadChoice(value, "tv", "controller", controller);
@@ -423,7 +458,7 @@ Config ConfigParse(std::string_view text) {
     }
     Json root = Json::parse(text, nullptr, false, true);
     if (!root.is_object()) {
-        std::println(stderr, "config.json: {}; using the defaults",
+        std::fprintf(stderr, "config.json: %s; using the defaults\n",
                      root.is_discarded() ? "not valid JSON" : "expected an object");
         return config;
     }
@@ -453,10 +488,15 @@ std::string ConfigSerialize(const Config &config) {
     root["game"]["autosave"] = config.autosave;
     root["game"]["quick_loadout_title"] = config.quick_loadout_plate ? "plate" : "bar";
     root["game"]["skip_intro"] = config.skip_intro;
+    root["game"]["georama_poly_multiplier"] = config.georama_poly_multiplier;
+    root["game"]["expanded_dungeon_monsters"] = config.expanded_dungeon_monsters;
     root["game"]["auto_use_event_item"] = config.auto_use_event_item;
     root["game"]["floor_info_monsters"] = config.floor_info_monsters;
     root["video"]["present_mode"] = kPresentModeNames[static_cast<std::size_t>(s.present_mode)];
     root["video"]["interpolation"] = config.interpolation;
+    root["video"]["interpolation_draw_budget"] = config.interpolation_draw_budget;
+    root["video"]["interpolation_fps_floor"] = config.interpolation_fps_floor;
+    root["video"]["interpolation_multi_present"] = config.interpolation_multi_present;
     root["video"]["max_fps"] = s.max_fps;
     root["video"]["width"] = s.window_width;
     root["video"]["height"] = s.window_height;
@@ -465,7 +505,9 @@ std::string ConfigSerialize(const Config &config) {
     root["video"]["ui_scale"] = Shortest(config.ui_scale);
     root["video"]["text_font"] = config.font_sharp ? "sharp" : "original";
     root["video"]["show_fps"] = s.show_fps;
-    root["video"]["fps_detail"] = kFpsDetailNames[static_cast<std::size_t>(s.fps_detail)];
+    root["video"]["fps_detail"] =
+        config.fps_detail_budget ? kFpsDetailBudget
+                                 : kFpsDetailNames[static_cast<std::size_t>(s.fps_detail)];
     root["audio"]["master_volume"] = Shortest(s.master_volume);
     root["audio"]["sound"] = s.surround ? "surround" : "stereo";
     root["audio"]["soundtrack"] = s.soundtrack ? "custom" : "ps2";
@@ -539,26 +581,28 @@ bool ConfigSave() {
         return g_saved = false;
     }
     const Json after = Json::parse(ConfigSerialize(g_config));
-    if (g_persisted && !recovered) {
-        MergeChanges(root, Json::parse(ConfigSerialize(*g_persisted)), after);
+    if (g_have_persisted && !recovered) {
+        MergeChanges(root, Json::parse(ConfigSerialize(g_persisted)), after);
     } else {
         root = after;
     }
     g_saved = WriteReplacing(path, root.dump(4) + "\n");
     if (g_saved) {
         g_persisted = g_config;
-    } else {
-        std::println(stderr, "config: could not save {}", PathsDisplay(path));
+        g_have_persisted = true;
+    }
+    if (!g_saved) {
+        std::fprintf(stderr, "config: could not save %s\n", PathsDisplay(path).c_str());
     }
     return g_saved;
 }
 
 bool ConfigLoad() {
-    const std::filesystem::path        path = PathsSaveRoot() / "config.json";
-    std::error_code                    error;
+    const std::filesystem::path path = PathsSaveRoot() / "config.json";
+    std::error_code             error;
     const std::filesystem::file_status status = std::filesystem::status(path, error);
     g_keep_file = false;
-    g_persisted.reset();
+    g_have_persisted = false;
     if (status.type() == std::filesystem::file_type::not_found) {
         g_config = Config{};
         ConfigSave();
@@ -566,8 +610,8 @@ bool ConfigLoad() {
     }
     std::string text;
     if (error || !std::filesystem::is_regular_file(status) || !ReadConfig(path, text)) {
-        std::println(stderr, "config: could not read {}; using defaults and leaving it untouched",
-                     PathsDisplay(path));
+        std::fprintf(stderr, "config: could not read %s; using defaults and leaving it untouched\n",
+                     PathsDisplay(path).c_str());
         g_config = Config{};
         g_saved = false;
         g_keep_file = true;
@@ -576,6 +620,7 @@ bool ConfigLoad() {
     g_config = ConfigParse(text);
     g_saved = true;
     g_persisted = g_config;
+    g_have_persisted = true;
     return true;
 }
 

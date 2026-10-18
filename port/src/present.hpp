@@ -14,7 +14,14 @@ struct PresentSettings {
     int display_per_tick = 0;
     bool show_fps = false;
     ConfigFpsDetail fps_detail = ConfigFpsDetail::All;
+    bool fps_detail_budget = false;
     bool log_fps = false;
+    // When the last tick's draw count exceeds this, interpolated display frames are skipped (0 = never).
+    int interpolation_draw_budget = 0;
+    // When rolling present FPS is below this, skip tweened frames until it recovers (0 = off).
+    int interpolation_fps_floor = 0;
+    // When false, at most one tweened present per tick wait, about 60 FPS; true lets max_fps pace them.
+    bool interpolation_multi_present = true;
 };
 
 struct PresentStats {
@@ -25,6 +32,22 @@ struct PresentStats {
     std::uint32_t last_draws = 0;
 };
 
+struct FrameBudgetAverages {
+    double canonical_ms = 0.0;
+    double display_ms = 0.0;
+    double other_ms = 0.0;
+};
+
+void PresentFrameBudgetTickBegin();
+void PresentFrameBudgetAddCanonical(double seconds);
+void PresentFrameBudgetTickCommit();
+
+FrameBudgetAverages PresentFrameBudgetAverages();
+void PresentFrameBudgetResetForTest();
+void PresentFrameBudgetInjectTickForTest(double canonical_seconds, double display_seconds, double other_seconds);
+
+// Whether tweened display frames may run, given the rolling present rate and the last tick's draws.
+bool                   PresentInterpolationAllowed(const PresentSettings &settings, double present_fps, std::uint32_t last_draws);
 bool                   PresentMouseActive();
 void PresentSetSettings(const PresentSettings &settings);
 const PresentSettings &PresentGetSettings();

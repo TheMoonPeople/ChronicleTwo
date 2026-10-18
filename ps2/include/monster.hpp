@@ -29,13 +29,21 @@
  *
  */
 enum MONSTER_MAN_SIZE {
+    MONSTER_CHARA_BASE = 24, /**< Scene character index of monster slot 0 (DNG_CHARA_SLOT_MONSTER). */
+#ifdef PORT
+    MONSTER_ACTIVE_MAX = 60, /**< Monsters that can be out on the floor at once (port arrays). */
+#else
     MONSTER_ACTIVE_MAX = 24, /**< Monsters that can be out on the floor at once. */
+#endif
     MONSTER_REFER_MAX = 12,  /**< Monster kinds that can be loaded at once. */
     MONSTER_LOCATE_MAX = 32, /**< Entries in the floor's list of monsters to place. */
     MONSTER_VAR_MAX = 8,     /**< Variables that each monster's script keeps for itself. */
     MONSTER_VAR2_MAX = 32,   /**< Second set of variables that each monster's script keeps for itself. */
     MONSTER_SHARE_MAX = 128  /**< Variables that every monster's script shares. */
 };
+
+#define MONSTER_CHARA_INDEX(slot) (MONSTER_CHARA_BASE + (slot))
+#define MONSTER_CHARA_END (MONSTER_CHARA_BASE + MONSTER_ACTIVE_MAX)
 
 /**
  *
