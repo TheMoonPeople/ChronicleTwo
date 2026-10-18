@@ -170,6 +170,12 @@ UNIT_FIXUPS = [
      '                MenuPosData->GetEtcTblValue("op_cursorlimmit", limit[0], limit[1]); '
      'if (LocalMenuBGForm != NULL) { int base[2]; LocalMenuBGForm->GetPutPosXY("base_msg", base[0], base[1]); '
      'limit[1] = PortOptionCursorBottom(limit[1], pos.y, fptosi(list_y - 3.0f), base[1] - top * 24 - 3); }'),
+    # MenuManualInit fills five 10-row Help columns (entries 0-49) from the 47-entry manual_boot_event_no.
+    # Retail reads its padding and the next table there. That read is undefined in C++, and at -O3 clang drops
+    # the last column's loop exit and writes past its window. Entries 47-49 have no event flag, so they stay locked.
+    ("menuop.cpp", "static short manual_boot_event_no[47] = {", "static short manual_boot_event_no[50] = {"),
+    ("menuop.cpp", "SAVE_FLAG_FINNY_FRENZY_UNLOCKED, SAVE_FLAG_FINNY_FRENZY_UNLOCKED, -1};",
+     "SAVE_FLAG_FINNY_FRENZY_UNLOCKED, SAVE_FLAG_FINNY_FRENZY_UNLOCKED, -1, -1, -1, -1};"),
     # Fusion colours can target a float-aligned ambient field rather than a quadword boundary.
     ("menusys.cpp", "*(u_long128 *) color = *(u_long128 *) fusion_ambient;",
      "memcpy(color, fusion_ambient, sizeof(fusion_ambient));"),

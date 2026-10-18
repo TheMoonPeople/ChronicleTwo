@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 import header_fixups
@@ -38,6 +39,19 @@ class UnitFixups(unittest.TestCase):
         self.assertEqual(result.count("\n"), source.count("\n"))
         self.assertEqual(result.count("if (limit[1] < pos.y) {"), 1)
         self.assertEqual(header_fixups.fixup_unit_text("other.cpp", source), source)
+
+    def test_manual_event_table_covers_every_help_list_row(self):
+        source = (Path(__file__).resolve().parents[2] / "ps2/src/menuop.cpp").read_text(encoding="latin-1")
+        self.assertIn("for (list = 0, entry = 0; list < 5; list++, entry += 10) {", source)
+        self.assertIn("for (item = 0; item < 10; item++) {", source)
+        result = header_fixups.fixup_unit_text("menuop.cpp", source)
+        table = re.search(r"static short manual_boot_event_no\[(\d+)\] = \{(.*?)\};", result, re.S)
+        self.assertIsNotNone(table)
+        entries = [entry.strip() for entry in table.group(2).split(",")]
+        self.assertEqual(int(table.group(1)), 5 * 10)
+        self.assertEqual(len(entries), 5 * 10)
+        self.assertEqual(entries[46:], ["-1"] * 4)
+        self.assertEqual(result.count("\n"), source.count("\n"))
 
     def test_password_generator_avoids_host_random_without_changing_its_body(self):
         source = (Path(__file__).resolve().parents[2] / "ps2/src/password.cpp").read_text()
