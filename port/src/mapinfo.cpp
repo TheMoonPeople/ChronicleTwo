@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <numbers>
 #include <optional>
 #include <string>
 
@@ -153,7 +154,7 @@ void ApplySettings(CMapInfo &info, const SceneInfo &settings) {
         info.sky_info = *settings.sky_info;
         info.sky_height = settings.sky_height;
         if (settings.sun_angle_degrees) {
-            info.sun_angle = mgAngleLimit(PI * *settings.sun_angle_degrees / 180.0f);
+            info.sun_angle = mgAngleLimit(std::numbers::pi_v<float> * *settings.sun_angle_degrees / 180.0f);
         }
     }
     if (settings.lens_flare) {

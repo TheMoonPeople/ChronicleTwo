@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include <math.h>
 
 #include <algorithm>
 #include <bit>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>

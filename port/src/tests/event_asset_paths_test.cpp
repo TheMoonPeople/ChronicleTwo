@@ -79,7 +79,7 @@ protected:
     }
 
     void Write(const std::string &name, const nlohmann::json &document) {
-        const auto path = root / "port_data" / name;
+        const auto path = root / "data" / name;
         std::filesystem::create_directories(path.parent_path());
         std::ofstream(path) << document.dump(2);
     }
@@ -143,7 +143,7 @@ TEST_F(EventAssetPaths, BackgroundCharacterBatchExceedsSceneScratchWithoutWritin
     std::size_t                      total = 0;
     for (std::size_t index = 0; index < names.size(); ++index) {
         names[index] = "model" + std::to_string(index) + ".gltf";
-        GltfFile(root / "port_data/event/ui" / names[index], sizes[index]);
+        GltfFile(root / "data/event/ui" / names[index], sizes[index]);
         arguments[index].type = RS_STR;
         arguments[index].val.s = names[index].data();
         total += sizes[index];
@@ -177,10 +177,10 @@ TEST_F(EventAssetPaths, BackgroundCharacterBatchExceedsSceneScratchWithoutWritin
 
 TEST_F(EventAssetPaths, OversizedGltfReplacementAndUnqueuedFallbackRegisterTheirNamesInOneZeroedSector) {
     const auto *const path = "event/ui/replacement.gltf";
-    GltfFile(root / "port_data" / path, 128);
+    GltfFile(root / "data" / path, 128);
     GltfFile(root / "datapacks/large" / path, 5 * 1024 * 1024 + 13);
-    GltfFile(root / "port_data/event/ui/fallback.gltf", 6 * 1024 * 1024 + 7);
-    std::ofstream(root / "port_data/event/ui/next.txt", std::ios::binary).write("replacement.gltf", 17);
+    GltfFile(root / "data/event/ui/fallback.gltf", 6 * 1024 * 1024 + 7);
+    std::ofstream(root / "data/event/ui/next.txt", std::ios::binary).write("replacement.gltf", 17);
     std::ofstream(root / "datapacks/datapacks.json") << R"({"schema_version":1,"load_order":["large"]})";
     DataReadIndex(root / "data");
     char directory[] = "event/ui/";

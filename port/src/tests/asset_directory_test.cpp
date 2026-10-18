@@ -23,7 +23,7 @@ protected:
 
     void SetUp() override {
         root = std::filesystem::temp_directory_path() / ("chronicle_directory_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-        std::filesystem::create_directories(root / "port_data/bundle/child");
+        std::filesystem::create_directories(root / "data/bundle/child");
         const Json marker = {
             {"schema_version", 1                },
             {"kind",           "asset_directory"}
@@ -54,8 +54,8 @@ protected:
                                              {"schema_version", 2           },
                                              {"kind",           "shop_lists"}
         });
-        std::ofstream(root / "port_data/bundle/raw.bin", std::ios::binary) << "abc";
-        datapacks::Load(root / "port_data");
+        std::ofstream(root / "data/bundle/raw.bin", std::ios::binary) << "abc";
+        datapacks::Load(root / "data");
         DataReadRegisterAsset(metadata.data(), "bundle/pack.json", metadata.size());
     }
 
@@ -66,7 +66,7 @@ protected:
         std::filesystem::remove_all(root);
     }
 
-    void Write(const std::filesystem::path &path, const Json &data) { std::ofstream(root / "port_data" / path) << data.dump(2); }
+    void Write(const std::filesystem::path &path, const Json &data) { std::ofstream(root / "data" / path) << data.dump(2); }
 };
 } // namespace
 
@@ -110,7 +110,7 @@ TEST_F(AssetDirectory, RejectsTraversalAndNonDirectoryBytes) {
     EXPECT_EQ(size, 0);
     EXPECT_EQ(AssetDirectoryRead(metadata.data(), "/outside.json", nullptr), nullptr);
     auto invalid = std::string(R"({"schema_version":"bad","kind":4})");
-    std::ofstream(root / "port_data/bundle/pack.json") << invalid;
+    std::ofstream(root / "data/bundle/pack.json") << invalid;
     DataReadRegisterAsset(invalid.data(), "bundle/pack.json", invalid.size());
     EXPECT_FALSE(AssetDirectoryPath(invalid.data()));
     DataReadRegisterAsset(metadata.data(), "bundle/model.gltf", metadata.size());
@@ -133,7 +133,7 @@ TEST_F(AssetDirectory, MergesDatapackOnlyFilesAndFallsBackFromMalformedTypedDocu
                                                                     .dump(2);
     std::ofstream(root / "datapacks/test/bundle/config.json") << "{broken";
     std::ofstream(root / "datapacks/test/bundle/pack.json") << "{broken";
-    datapacks::Load(root / "port_data");
+    datapacks::Load(root / "data");
     std::string invalid = "{broken";
     DataReadRegisterAsset(invalid.data(), "bundle/pack.json", invalid.size());
     EXPECT_EQ(AssetDirectoryPath(invalid.data()), std::optional<std::string>{"bundle"});

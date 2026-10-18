@@ -33,17 +33,17 @@ protected:
 TEST_F(NativeAssetsTest, DirectAssetCandidatesPreservePriorityAndBaseFallback) {
     Write(root / "datapacks/datapacks.json", R"({"schema_version":1,"load_order":["low","high"]})");
     for (const char *name : {"sound/sample.wav", "chara/character.gltf", "menu/options.json", "movie/opening.mp4"}) {
-        Write(root / "port_data" / name, "base");
+        Write(root / "data" / name, "base");
         Write(root / "datapacks/low" / name, "low");
         Write(root / "datapacks/high" / name, "high");
     }
-    datapacks::Load(root / "port_data");
+    datapacks::Load(root / "data");
     for (const char *name : {"sound/sample.wav", "chara/character.gltf", "menu/options.json", "movie/opening.mp4"}) {
         const auto paths = datapacks::Candidates(name);
         ASSERT_EQ(paths.size(), 3);
         EXPECT_EQ(vfs::HostPath(paths[0]), root / "datapacks/high" / name);
         EXPECT_EQ(vfs::HostPath(paths[1]), root / "datapacks/low" / name);
-        EXPECT_EQ(vfs::HostPath(paths[2]), root / "port_data" / name);
+        EXPECT_EQ(vfs::HostPath(paths[2]), root / "data" / name);
     }
     EXPECT_TRUE(datapacks::Candidates("../outside.wav").empty());
 }
@@ -51,7 +51,7 @@ TEST_F(NativeAssetsTest, DirectAssetCandidatesPreservePriorityAndBaseFallback) {
 TEST_F(NativeAssetsTest, LoadsActualJsonAndPreservesItsByteBoundsAcrossCopies) {
     std::filesystem::create_directories(root / "data");
     constexpr char json[] = R"({"schema_version":1,"commands":[]})";
-    Write(root / "port_data/menu/positions.json", json);
+    Write(root / "data/menu/positions.json", json);
     DataReadIndex(root / "data");
     alignas(16) std::array<unsigned char, 2048> source{};
     alignas(16) std::array<unsigned char, 2048> copy{};

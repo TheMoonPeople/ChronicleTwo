@@ -64,6 +64,11 @@ private:
 bool FillWithBackdrop();
 
 /**
+ * Opacity of the paused world as the Item page's frame slides back to the main menu.
+ */
+int ItemBackdropAlpha();
+
+/**
  * Sets the view the menu character is drawn through; false leaves it to the menu's own camera.
  */
 bool ViewMenuCharacter();
@@ -72,6 +77,21 @@ bool ViewMenuCharacter();
  * True for the Item page's retail backdrop forms, which the paused world replaces.
  */
 bool HidesForm(const CMenuPosDataForm &form);
+
+/**
+ * The fixed split between the Item page's character and bag panels.
+ */
+float ItemPanelSplit(const CMenuPosDataForm *board);
+
+/**
+ * The side a form occupies at its inward action's resting position.
+ */
+int ItemPanelSide(const CMenuPosDataForm &form, float split);
+
+/**
+ * True for common menu forms that retain their own coordinates as the Item page closes.
+ */
+bool RootChromeUnanchored(const CMenuPosDataForm &form);
 
 /**
  * The anchor an Item page form is drawn with, or none outside the spread Item page.

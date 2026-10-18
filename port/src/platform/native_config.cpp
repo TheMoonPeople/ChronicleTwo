@@ -67,7 +67,7 @@ std::shared_ptr<const Json> Parse(const vfs::Ref &candidate) {
         document = std::make_shared<const Json>(std::move(parsed));
     }
     const std::scoped_lock lock(cache_mutex);
-    cache.push_front({candidate.mount(), candidate.index(), digest, bytes.size(), document});
+    cache.push_front({.mount = candidate.mount(), .index = candidate.index(), .digest = digest, .size = bytes.size(), .document = document});
     if (cache.size() > kCacheEntries) {
         cache.pop_back();
     }

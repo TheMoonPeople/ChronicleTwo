@@ -87,13 +87,6 @@ int _MENU_EXE_MSGSETFUCHI(SPI_STACK *stack, int argc);
 int _MENU_EXE_MSGSETCURSOR(SPI_STACK *stack, int argc);
 int _MENU_SET_QUESTIONGYOU(SPI_STACK *stack, int argc);
 int _MENU_SET_OPENSPEED(SPI_STACK *stack, int argc);
-int _OUTLINE(SPI_STACK *stack, int argc);
-int _OBJECT_NAME(SPI_STACK *stack, int argc);
-int _OBJECT_NAME2(SPI_STACK *stack, int argc);
-int _VERTEX_ANIME(SPI_STACK *stack, int argc);
-int _KEY(SPI_STACK *stack, int argc);
-int _SEQ(SPI_STACK *stack, int argc);
-int _SKIN_MODEL(SPI_STACK *stack, int argc);
 
 namespace script_guards {
 namespace {
@@ -222,7 +215,7 @@ bool LoadScriptNameFits(RS_STACKDATA *args, int argc) {
  * Accepts _FUNCTION_MAP_JUMP only when the scene's destination name fits jump_map_name.
  *
  */
-bool SceneJumpNameFits(RS_STACKDATA *, int) {
+bool SceneJumpNameFits(RS_STACKDATA * /*unused*/, int /*unused*/) {
     if (EventScene == nullptr) {
         return true;
     }
@@ -545,7 +538,7 @@ int TagArguments(SPI_TAG_FUNCTION function, SPI_STACK *args, int argc, const cha
 
 void GuardEventExternals(std::span<RunScriptFunction> table) {
     struct EventRule {
-        int  slot; /**< EVENT_EXT slot of the external. */
+        int  slot{}; /**< EVENT_EXT slot of the external. */
         Rule rule; /**< Requirement on its arguments. */
     };
 

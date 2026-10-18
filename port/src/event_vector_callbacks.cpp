@@ -56,8 +56,8 @@ int AttributeStatus(RS_STACKDATA *stack, int argc) {
 }
 
 int SetFramePosition(RS_STACKDATA *stack, int argc) {
-    int   slot;
-    int   handle;
+    int   slot = 0;
+    int   handle = 0;
     int   frames = 0;
     char *name = nullptr;
     float offset[4]{};

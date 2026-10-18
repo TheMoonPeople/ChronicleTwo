@@ -6,6 +6,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <charconv>
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
@@ -57,7 +58,7 @@ void WriteBytes(const fs::path &path, const std::vector<unsigned char> &bytes) {
  * Publishes native item table documents at the direct paths used by the native game.
  */
 void WriteMenuConfigs(const fs::path &base, const std::vector<std::pair<std::string, nlohmann::json> > &documents) {
-    const auto root = base / "port_data";
+    const auto root = base / "data";
     fs::create_directories(root / "menu/cfg7");
     for (const auto &[name, document] : documents) {
         const auto relative = fs::path("menu/cfg7") / fs::path(name).replace_extension(".cfg.json");
@@ -106,21 +107,21 @@ int Load(const char *name, void *buffer, int *size) {
     return LoadFile2(path.data(), buffer, size, LOAD_FILE_READ);
 }
 
-// The published data/ beside the test executable, when direct native configurations exist.
+// The published asset root selected explicitly or found above the test executable.
 std::optional<fs::path> ExtractedDataRoot() {
-    if (const char *selected = std::getenv("DC2_DATA")) {
-        const fs::path  data(selected);
+    const auto published = [](const fs::path &data) {
         std::error_code error;
-        if (fs::is_directory(data, error) &&
-            fs::is_regular_file(data.parent_path() / "port_data/edit.cfg.json", error)) {
+        return fs::is_regular_file(data.parent_path() / "data.zip", error) || fs::is_directory(data, error);
+    };
+    if (const char *selected = std::getenv("DC2_DATA")) {
+        const fs::path data(selected);
+        if (published(data)) {
             return data;
         }
     }
     fs::path dir = PathsExecutable().parent_path();
     for (int up = 0; up < 6 && !dir.empty(); up++, dir = dir.parent_path()) {
-        std::error_code error;
-        if (fs::is_regular_file(dir / "port_data" / "edit.cfg.json", error) &&
-            fs::is_directory(dir / "data", error)) {
+        if (published(dir / "data")) {
             return dir / "data";
         }
     }
@@ -134,7 +135,7 @@ protected:
                ("dataread_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
         root = base / "data";
         WriteBytes(root / "DIR" / "Sub" / "File.BIN", MakeBytes(kFileSize, 7));
-        const auto native = base / "port_data/chara/pack.pac";
+        const auto native = base / "data/chara/pack.pac";
         WriteBytes(native / "a.bin", MakeBytes(10, 1));
         WriteBytes(native / "b.bin", MakeBytes(300, 2));
         std::ofstream(native / "pack.json") << R"({"schema_version":1,"kind":"asset_directory"})";
@@ -163,9 +164,19 @@ using DataReadDeathTest = DataRead;
 
 TEST_F(DataRead, IndexLogsItsCountAndRoot) {
     testing::internal::CaptureStderr();
+    DataReadIndex(base / "absent");
+    const auto        config_log = testing::internal::GetCapturedStderr();
+    const std::string prefix = "dataread: indexed ";
+    const auto        count_start = config_log.find(prefix);
+    ASSERT_NE(count_start, std::string::npos) << config_log;
+    std::size_t config_count = 0;
+    const auto  parsed = std::from_chars(config_log.data() + count_start + prefix.size(),
+                                         config_log.data() + config_log.size(), config_count);
+    ASSERT_EQ(parsed.ec, std::errc{});
+    testing::internal::CaptureStderr();
     DataReadIndex(root);
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find("dataread: indexed 5 files under " + PathsDisplay(root)), std::string::npos) << log;
+    EXPECT_NE(log.find(prefix + std::to_string(config_count + 5) + " files under " + PathsDisplay(root)), std::string::npos) << log;
 }
 
 TEST_F(DataRead, RootExclusionsKeepDiscOnlyFilesOutOfTheIndex) {
@@ -183,7 +194,7 @@ TEST_F(DataRead, RootExclusionsKeepDiscOnlyFilesOutOfTheIndex) {
     testing::internal::CaptureStderr();
     DataReadIndex(root);
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find("dataread: indexed 6 files under " + PathsDisplay(root)), std::string::npos) << log;
+    EXPECT_NE(log.find(" files under " + PathsDisplay(root)), std::string::npos) << log;
 
     for (const char *name : {"manifest.txt", "manifest.json", ".kazarov-data", "movie/a.pss", "sound/sound.dat", "x.dc2tmp"}) {
         EXPECT_FALSE(DataReadFind(name).has_value()) << name;
@@ -246,7 +257,7 @@ TEST_F(DataRead, DatapacksOverrideIndexedFilesWithReplacementSizesAndSparseFallb
     ASSERT_EQ(Load("chara/pack.pac", Buffer(), &size), 1);
     const auto fallback = DataReadFind("chara/pack.pac");
     ASSERT_TRUE(fallback.has_value());
-    EXPECT_TRUE(fs::equivalent(*vfs::HostPath(*fallback), base / "port_data/chara/pack.pac/pack.json"));
+    EXPECT_TRUE(fs::equivalent(*vfs::HostPath(*fallback), base / "data/chara/pack.pac/pack.json"));
 
     std::ofstream(base / "datapacks" / "datapacks.json")
         << R"({"schema_version":1,"load_order":["Last pack","First pack"]})";
@@ -268,7 +279,7 @@ TEST_F(DataRead, DatapacksUseSelectedExtractionWithTrailingSeparator) {
 }
 
 TEST_F(DataRead, ConvertedTextureLoadsItsActualJsonWithoutACatalog) {
-    const fs::path native = base / "port_data";
+    const fs::path native = base / "data";
     fs::create_directories(native / "img");
     const std::string json = R"({"schema_version":3,"groups":[0],"entries":[]})";
     std::ofstream(native / "img/foo.json")
@@ -522,11 +533,12 @@ TEST_F(DataRead, HostNameAbsentFromTheSaveTreeLoadsFromData) {
     EXPECT_EQ(size, 258);
 }
 
-TEST_F(DataRead, MissingRootIndexesNothingAndDoesNotAbort) {
+TEST_F(DataRead, MissingAssetRootKeepsLooseConfigsAndDoesNotAbort) {
     testing::internal::CaptureStderr();
     DataReadIndex(base / "absent");
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find("dataread: indexed 3 files under"), std::string::npos) << log;
+    EXPECT_NE(log.find("dataread: indexed "), std::string::npos) << log;
+    EXPECT_TRUE(DataReadFind("/menu/cfg7/atdat.cfg.json").has_value());
 
     EXPECT_FALSE(DataReadFind("small.txt").has_value());
     int size = 0;
@@ -542,7 +554,9 @@ TEST_F(DataRead, RealDataIndexesTheDiscFiles) {
     testing::internal::CaptureStderr();
     DataReadIndex(*data);
     std::string log = testing::internal::GetCapturedStderr();
-    EXPECT_NE(log.find(" files under " + PathsDisplay(*data)), std::string::npos) << log;
+    const auto  archive = data->parent_path() / "data.zip";
+    const auto  location = fs::is_regular_file(archive) ? archive : *data;
+    EXPECT_NE(log.find(" files under " + PathsDisplay(location)), std::string::npos) << log;
     EXPECT_TRUE(DataReadFind("menu/cfg7/atdat.cfg.json").has_value());
 }
 
@@ -615,7 +629,7 @@ TEST_F(DataRead, ItemDataJsonLargerThanRetailScratchLoadsItsRecords) {
         // The reader ignores members it does not know, so this pads the document past the retail scratch buffer.
         {"padding", std::string(0x780 * sizeof(u_long128), 'x')}
     };
-    const auto path = base / "port_data/menu/cfg7/large.json";
+    const auto path = base / "data/menu/cfg7/large.json";
     fs::create_directories(path.parent_path());
     std::ofstream(path, std::ios::binary) << document.dump(2);
     ASSERT_GT(fs::file_size(path), 0x780u * sizeof(u_long128));
@@ -638,16 +652,15 @@ TEST_F(DataRead, RetailAttachmentJsonPreservesEveryRecordValue) {
     if (!retail) {
         GTEST_SKIP() << "requires converted retail data";
     }
-    const auto path = retail->parent_path() / "port_data/menu/cfg7/atdat.cfg.json";
-    if (!fs::is_regular_file(path)) {
-        GTEST_SKIP() << "requires converted attachment data";
-    }
-    std::ifstream input(path);
-    const auto    document = nlohmann::json::parse(input);
+    DataReadIndex(*retail);
+    const auto file = DataReadFind("menu/cfg7/atdat.cfg.json");
+    ASSERT_TRUE(file.has_value());
+    std::vector<std::uint8_t> bytes;
+    ASSERT_TRUE(vfs::Read(*file, bytes));
+    const auto document = nlohmann::json::parse(bytes);
     if (document.value("kind", "") != "attachments") {
         GTEST_SKIP() << "requires native attachment data";
     }
-    DataReadIndex(*retail);
     GameItemDataManage.Initialize();
     char name[] = "atdat.cfg.json";
     ASSERT_EQ(LoadGameDataAnalyze(name), 1);

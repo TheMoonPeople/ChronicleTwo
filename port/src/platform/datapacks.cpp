@@ -14,6 +14,7 @@
 #include <map>
 #include <mutex>
 #include <print>
+#include <ranges>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>
@@ -485,10 +486,10 @@ void Load(std::shared_ptr<const vfs::Mount> base_mount, const std::filesystem::p
         }
         // One merged index resolves load_order once: each name maps to its replacements, highest priority first.
         std::unordered_map<std::string, std::vector<vfs::Ref> > merged;
-        for (auto pack = configured.rbegin(); pack != configured.rend(); ++pack) {
-            const auto count = pack->mount->Count();
+        for (auto &pack : std::views::reverse(configured)) {
+            const auto count = pack.mount->Count();
             for (std::size_t index = 0; index < count; ++index) {
-                merged[vfs::FoldKey(pack->mount->Name(index))].emplace_back(pack->mount, index);
+                merged[vfs::FoldKey(pack.mount->Name(index))].emplace_back(pack.mount, index);
             }
         }
         packs = std::move(configured);

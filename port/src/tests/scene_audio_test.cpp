@@ -110,16 +110,16 @@ TEST_F(SceneAudio, MalformedAndOversizedDocumentsDoNotPartiallyReplaceTables) {
 TEST_F(SceneAudio, MalformedDatapackFallsThroughToValidBaseTable) {
     const auto previous = datapacks::Root();
     const auto root = std::filesystem::temp_directory_path() / ("scene_audio_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    std::filesystem::create_directories(root / "port_data/snd2");
+    std::filesystem::create_directories(root / "data/snd2");
     std::filesystem::create_directories(root / "datapacks/test/snd2");
-    std::ofstream(root / "port_data/snd2/rev.json") << Reverbs().dump(2);
+    std::ofstream(root / "data/snd2/rev.json") << Reverbs().dump(2);
     std::ofstream(root / "datapacks/test/snd2/rev.json") << "invalid JSON";
     std::ofstream(root / "datapacks/datapacks.json") << Json({
                                                                  {"schema_version", 1       },
                                                                  {"load_order",     {"test"}}
     })
                                                             .dump(2);
-    datapacks::Load(root / "port_data");
+    datapacks::Load(root / "data");
     std::string text = "invalid JSON";
     DataReadRegisterAsset(text.data(), "snd2/rev.json", text.size());
     scene->LoadSndRevInfo(text.data(), static_cast<int>(text.size()));

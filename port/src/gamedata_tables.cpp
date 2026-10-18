@@ -154,7 +154,7 @@ PORT_OVERRIDE s16 *CGameData::GetGuardData(int item_no) {
 
 // Retail advances the attachment cursor past the 38-entry table; it becomes null at the table's end,
 // which the other attachment tags already treat as no attachment.
-PORT_OVERRIDE int _DATAATTACH_ST_SP(SPI_STACK *stack, int) {
+PORT_OVERRIDE int _DATAATTACH_ST_SP(SPI_STACK *stack, int /*unused*/) {
     if (SpiAttach == nullptr) {
         return 1;
     }

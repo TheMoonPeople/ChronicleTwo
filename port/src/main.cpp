@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <print>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -70,8 +71,8 @@ struct Options {
 Options g_options;
 
 [[noreturn]] void Usage(const char *program) {
-    std::fprintf(stderr,
-                 "usage: %s [--data DIR] [--run-dir DIR] [--save DIR] [--window WxH] [--headless] [--offscreen]\n"
+    std::println(stderr,
+                 "usage: {} [--data DIR] [--run-dir DIR] [--save DIR] [--window WxH] [--headless] [--offscreen]\n"
                  "          [--frames N] [--screenshot PATH] [--input SCRIPT] [--display-per-tick N]\n"
                  "          [--show-fps] [--log-fps] [--screenshot-display N] [--screenshot-fps]\n"
                  "  --jump MODE[:ARG]  start in town:<map>, dungeon:<n>[:<floor>], event:<id>, title, opening, menu (DC2_JUMP)\n"
@@ -79,7 +80,7 @@ Options g_options;
                  "  --give ITEM,...    give missing items and weapons on arrival (DC2_GIVE)\n"
                  "  --bench-spawn-enemies N[:MONSTER_ID[:VSYNC]]  dungeon bench: spawn N monsters near player\n"
                  "                     (capped at 24 or 60 with Expanded dungeon monsters; default monster 0, vsync 2800)\n"
-                 "  --run-dir DIR      game root containing data/, port_data/ and saves/\n"
+                 "  --run-dir DIR      game root containing data.zip and saves/\n"
                  "                     (default: the per-user chronicletwo app data directory)\n"
                  "  --data DIR         override the extracted data/ subdirectory (DC2_DATA)\n"
                  "  --save DIR         override the saves/ subdirectory (DC2_SAVE)\n"
@@ -89,12 +90,12 @@ Options g_options;
                  "  --screenshot PATH  with --frames: write the last frame to PATH as a PNG on exit\n"
                  "  --screenshot-display N  with --screenshot: also write N interpolated display frames of that frame\n"
                  "                     beside PATH, as PATH-display-K.png for K = 0..N-1\n"
-                 "  --screenshot-fps   with --screenshot: draw the FPS counter into the written image\n"
+                 "  --screenshot-fps   with --screenshot: draw the FPS counter and menu pointer into the written image\n"
                  "  --input SCRIPT     drive the pads named in SCRIPT from an input script\n"
                  "  --window WxH       window size in pixels (default: config.json, then the monitor's)\n"
                  "  --display-per-tick N  headless: also render N interpolated display frames per tick (discarded)\n"
                  "  --show-fps         draw the FPS counter on presented frames, headless too\n"
-                 "  --log-fps          print the FPS counter's text on stderr every second\n",
+                 "  --log-fps          print the FPS counter's text on stderr every second",
                  program);
     std::exit(kExitUsage);
 }

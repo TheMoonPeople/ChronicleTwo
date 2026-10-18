@@ -167,6 +167,55 @@ TEST_F(DataArchive, ArchiveListsDirectMembersAndImpliedDirectories) {
     EXPECT_TRUE(archive->List("missing").empty());
 }
 
+TEST_F(DataArchive, OverlayPrefersLaterFilesAndFindsNewLooseFiles) {
+    Pack(tree, root / "data.zip");
+    const auto archive = ArchiveMountOpen(root / "data.zip");
+    const auto loose_root = root / "loose";
+    Write(loose_root / "CHARA/HERO.BIN", std::string("loose hero"));
+    Write(loose_root / "menu/setting.cfg.json", std::string(R"({"schema_version":1})"));
+    const auto overlay = vfs::Overlay({archive, vfs::OpenDirectory(loose_root)});
+
+    const auto hero = vfs::Find(overlay, "chara/hero.bin");
+    ASSERT_TRUE(hero);
+    EXPECT_EQ(hero.Name(), "CHARA/HERO.BIN");
+    EXPECT_EQ(Read(hero), (std::vector<std::uint8_t>{'l', 'o', 'o', 's', 'e', ' ', 'h', 'e', 'r', 'o'}));
+    EXPECT_EQ(vfs::Size(hero), 10u);
+    ASSERT_TRUE(vfs::HostPath(hero));
+    EXPECT_EQ(*vfs::HostPath(hero), loose_root / "CHARA/HERO.BIN");
+    EXPECT_FALSE(vfs::Stored(hero));
+    EXPECT_FALSE(vfs::Stamp(hero).empty());
+    std::array<std::uint8_t, 5> prefix{};
+    ASSERT_TRUE(vfs::ReadPrefix(hero, prefix));
+    EXPECT_EQ(prefix, (std::array<std::uint8_t, 5>{'l', 'o', 'o', 's', 'e'}));
+    std::array<std::uint8_t, 10> whole{};
+    ASSERT_TRUE(vfs::ReadInto(hero, whole.data(), whole.size()));
+    EXPECT_EQ(whole[0], 'l');
+
+    const auto png = vfs::Find(overlay, "menu/example_0.png");
+    ASSERT_TRUE(png);
+    EXPECT_EQ(Read(png), Bytes(300, 1));
+    EXPECT_TRUE(vfs::Stored(png));
+    EXPECT_FALSE(vfs::HostPath(png));
+    EXPECT_TRUE(vfs::Find(overlay, "MENU/SETTING.CFG.JSON"));
+    const auto menu = overlay->List("menu");
+    EXPECT_TRUE(std::ranges::any_of(menu, [](const vfs::Member &member) { return member.name == "setting.cfg.json"; }));
+
+    const auto original_index = hero.index();
+    Write(loose_root / "new/document.map.json", std::string("{}"));
+    const auto added = vfs::Find(overlay, "new/document.map.json");
+    ASSERT_TRUE(added);
+    EXPECT_EQ(Read(added), (std::vector<std::uint8_t>{'{', '}'}));
+    EXPECT_EQ(vfs::Find(overlay, "CHARA/HERO.BIN").index(), original_index);
+
+    const auto png_index = png.index();
+    Write(loose_root / "menu/example_0.png", std::string("replacement"));
+    const auto replaced = vfs::Find(overlay, "menu/example_0.png");
+    ASSERT_TRUE(replaced);
+    EXPECT_EQ(replaced.index(), png_index);
+    EXPECT_EQ(Read(replaced), (std::vector<std::uint8_t>{'r', 'e', 'p', 'l', 'a', 'c', 'e', 'm', 'e', 'n', 't'}));
+    EXPECT_TRUE(vfs::HostPath(replaced));
+}
+
 TEST_F(DataArchive, ConcurrentReadsReturnEveryEntryIntact) {
     Pack(tree, root / "data.zip");
     const auto               archive = ArchiveMountOpen(root / "data.zip");

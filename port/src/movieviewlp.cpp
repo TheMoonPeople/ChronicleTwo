@@ -40,7 +40,7 @@ std::vector<MovieRecord> ParseMovieList(const native_config::Json &document) {
     using namespace native_config;
     std::vector<MovieRecord> movies;
     for (const auto &movie : Array(document, "movies")) {
-        movies.push_back({OptionalText(movie, "title"), OptionalText(movie, "file"), OptionalInt(movie, "bgm").value_or(-1)});
+        movies.push_back({.title = OptionalText(movie, "title"), .file = OptionalText(movie, "file"), .bgm_no = OptionalInt(movie, "bgm").value_or(-1)});
     }
     return movies;
 }
@@ -61,7 +61,7 @@ int PortReadMovieList(const PortMovieEntry **entries) {
         movie_records = std::move(*movies);
     }
     for (const auto &movie : movie_records) {
-        movie_entries.push_back({TextOf(movie.title), TextOf(movie.file), movie.bgm_no});
+        movie_entries.push_back({.title = TextOf(movie.title), .file = TextOf(movie.file), .bgm_no = movie.bgm_no});
     }
     *entries = movie_entries.data();
     return static_cast<int>(movie_entries.size());

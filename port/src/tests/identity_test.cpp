@@ -52,14 +52,14 @@ TEST(NativeIcon, ActualTitleModelUsesValidDatapackThenRetailFallback) {
         }
     } cleanup{.root = root, .previous = datapacks::Root()};
 
-    WriteIcon(root / "port_data/title/dc2_ic.gltf", 1, 0);
+    WriteIcon(root / "data/title/dc2_ic.gltf", 1, 0);
     WriteIcon(root / "datapacks/icon/title/dc2_ic.gltf", 0, 1);
     const nlohmann::json config = {
         {"schema_version", 1       },
         {"load_order",     {"icon"}}
     };
     std::ofstream(root / "datapacks/datapacks.json") << config.dump(2) << '\n';
-    datapacks::Load(root / "port_data");
+    datapacks::Load(root / "data");
     const auto source = GameDataIconSource();
     ASSERT_EQ(source.packs, std::vector<fs::path>{"title"});
     EXPECT_STREQ(source.member, "dc2_ic.gltf");
@@ -77,6 +77,6 @@ TEST(NativeIcon, ActualTitleModelUsesValidDatapackThenRetailFallback) {
     pixels = GameIconFromData(source, 32);
     ASSERT_EQ(pixels.size(), 32u * 32u * 4u);
     EXPECT_GT(channel(pixels, 0), channel(pixels, 1));
-    fs::remove(root / "port_data/title/dc2_ic.gltf");
+    fs::remove(root / "data/title/dc2_ic.gltf");
     EXPECT_TRUE(GameIconFromData(source, 32).empty());
 }

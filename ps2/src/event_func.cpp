@@ -5544,7 +5544,7 @@ static int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc) {
     float position[4];
     float direction[4];
     int   monster_no;
-    int   param;
+    int   param PORT_INIT(0);
 
     if (GetNowLoopNo() != LOOP_DUNGEON) {
         return false;
@@ -5886,7 +5886,7 @@ static int _DNG_DEBUG_COMMAND(RS_STACKDATA *stack, int argc) {
  *
  */
 static int _CD_SEEK(RS_STACKDATA *stack, int argc) {
-    sceCdlFILE *file_info;
+    sceCdlFILE *file_info PORT_INIT(NULL);
 
     if (sceCdSearchFile(file_info, GetStackString(stack)) != 0) {
         return sceCdSeek(file_info->lsn);
@@ -13507,7 +13507,7 @@ static int _SND_LOAD_SOUND(RS_STACKDATA *stack, int argc) {
  */
 static int _GET_SND_ID(RS_STACKDATA *stack, int argc) {
     int snd_id;
-    int src_no;
+    int src_no PORT_INIT(0);
 
     if (argc == 1) {
         snd_id = EdEventInfo.last_snd_id;

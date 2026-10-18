@@ -582,6 +582,7 @@ int _GET_MONS_ID(RS_STACKDATA *stack, int argc) {
     }
 
     SetStack(stack, monster_id);
+    PORT_RETURN(true);
 }
 
 /**
@@ -600,6 +601,7 @@ int _GET_FRONT_VEC(RS_STACKDATA *stack, int argc) {
     SetStack(stack++, front[0]);
     SetStack(stack++, front[1]);
     SetStack(stack, front[2]);
+    PORT_RETURN(true);
 }
 
 /**

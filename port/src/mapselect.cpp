@@ -57,15 +57,13 @@ std::size_t TableQuadwords(int count) {
  */
 MapNames ParseMapNames(const native_config::Json &document) {
     using namespace native_config;
-    MapNames names{Int(document, "count"), {}};
+    MapNames names{.count = Int(document, "count"), .maps = {}};
     if (names.count < 0) {
         throw std::runtime_error("negative map name count");
     }
     std::size_t string_bytes = 0;
     for (const auto &map : Array(document, "maps")) {
-        MapNameEntry entry{OptionalText(map, "name"), OptionalText(map, "title"), OptionalText(map, "add_path"),
-                           Int(map, "type"), Int(map, "sel_type"), OptionalInt(map, "snd_data_id"),
-                           OptionalInt(map, "area_no")};
+        MapNameEntry entry{.name = OptionalText(map, "name"), .title = OptionalText(map, "title"), .add_path = OptionalText(map, "add_path"), .type = Int(map, "type"), .sel_type = Int(map, "sel_type"), .snd_data_id = OptionalInt(map, "snd_data_id"), .area_no = OptionalInt(map, "area_no")};
         string_bytes += StoredBytes(entry.name) + StoredBytes(entry.title) + StoredBytes(entry.add_path);
         names.maps.push_back(std::move(entry));
     }

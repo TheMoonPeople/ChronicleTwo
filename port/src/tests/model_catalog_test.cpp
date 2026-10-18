@@ -66,7 +66,7 @@ protected:
 
     void SetUp() override {
         directory = std::filesystem::temp_directory_path() / ("chronicle_native_model_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-        std::filesystem::create_directories(directory / "port_data/models");
+        std::filesystem::create_directories(directory / "data/models");
         storage.resize(16384);
         memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
         const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
@@ -94,9 +94,9 @@ protected:
             {"bind_poses",      Json::array()                                                                                                                                                                                                                                                                                                                                                                                                             }
         };
         game = metadata;
-        Write(directory / "port_data/models/model.gltf", gltf);
-        Write(directory / "port_data/models/model.game.json", game);
-        datapacks::Load(directory / "port_data");
+        Write(directory / "data/models/model.gltf", gltf);
+        Write(directory / "data/models/model.game.json", game);
+        datapacks::Load(directory / "data");
         std::string error;
     }
 
@@ -110,7 +110,7 @@ protected:
     void Write(const std::filesystem::path &path, const Json &value) {
         std::ofstream(path) << value.dump(2);
         if (path.filename() == "model.gltf") {
-            std::ofstream(directory / "port_data/models/model.game.json") << game.dump(2);
+            std::ofstream(directory / "data/models/model.game.json") << game.dump(2);
         }
     }
 
@@ -146,8 +146,8 @@ TEST_F(NativeModel, DistinctModelDocumentsReuseIdenticalEmbeddedTexturesWithinTa
     mgCTexture *original = nullptr;
     for (int index = 0; index < 80; ++index) {
         const std::string stem = "models/scene" + std::to_string(index);
-        Write(directory / "port_data" / (stem + ".gltf"), gltf);
-        Write(directory / "port_data" / (stem + ".game.json"), game);
+        Write(directory / "data" / (stem + ".gltf"), gltf);
+        Write(directory / "data" / (stem + ".game.json"), game);
         memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
         mgLoadData load{};
         load.memory = &memory;
@@ -188,7 +188,7 @@ TEST_F(NativeModel, CharacterTextureOwnershipDoesNotSkipDeletedReinitializedOrSu
         {"resources",       {{"texture_sets", Json::array({{{"document", textures_document}}})}}                                },
         {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
     };
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     std::vector<u_long128> texture_storage(4096);
     mgCMemory              texture_memory;
     mgCTextureManager      textures;
@@ -256,9 +256,9 @@ TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
         {"resources",       {{"texture_sets", Json::array({{{"document", textures_document}}})}}                                },
         {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
     };
-    Write(directory / "port_data/models/model.gltf", gltf);
-    Write(directory / "port_data/models/other.gltf", gltf);
-    Write(directory / "port_data/models/other.game.json", game);
+    Write(directory / "data/models/model.gltf", gltf);
+    Write(directory / "data/models/other.gltf", gltf);
+    Write(directory / "data/models/other.game.json", game);
     std::vector<u_long128> texture_storage(4096);
     mgCMemory              texture_memory;
     mgCTextureManager      textures;
@@ -306,7 +306,7 @@ TEST_F(NativeModel, MenuCostumeArenaUsesActualNativeCountsInsteadOfRetailPartiti
         {"resources",       {{"texture_sets", Json::array()}}                                                                   },
         {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
     };
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     constexpr int retail_capacity = 0x1b80;
     static char   retail_owner;
     auto         *retail = reinterpret_cast<u_long128 *>(ArenaBlock(&retail_owner, (retail_capacity + 1) * sizeof(u_long128)));
@@ -554,7 +554,7 @@ TEST_F(NativeModel, SelectsStandardScenesByNameAcrossDifferentBundleOrders) {
         {"resources",      Json::object()              }
     };
     for (int order = 0; order < 2; ++order) {
-        Write(directory / "port_data/models/model.gltf", gltf);
+        Write(directory / "data/models/model.gltf", gltf);
         mgLoadData load{};
         load.memory = &memory;
         std::string error;
@@ -585,9 +585,9 @@ TEST_F(NativeModel, SelectsNondefaultStandardScenesWithoutGameplayJson) {
         {{"name", "other"},  {"nodes", {0}}},
         {{"name", "cursor"}, {"nodes", {1}}}
     });
-    const auto path = directory / "port_data/models/standard.gltf";
+    const auto path = directory / "data/models/standard.gltf";
     Write(path, standard);
-    ASSERT_FALSE(std::filesystem::exists(directory / "port_data/models/standard.game.json"));
+    ASSERT_FALSE(std::filesystem::exists(directory / "data/models/standard.game.json"));
     mgLoadData load{};
     load.memory = &memory;
     std::string error;
@@ -648,7 +648,7 @@ TEST_F(NativeModel, DungeonArticlesLoadNamedScenesAndAllDirectChildCharacters) {
         models.push_back(std::move(model));
     }
     const auto publish = [&](const std::string &relative, const Json &asset, const Json &semantics) {
-        auto path = directory / "port_data" / relative;
+        auto path = directory / "data" / relative;
         std::filesystem::create_directories(path.parent_path());
         Write(path, asset);
         path.replace_extension(".game.json");
@@ -715,9 +715,9 @@ TEST_F(NativeModel, PreservesEscapedGameNamesAndUntexturedNullMetadata) {
     metadata["meshes"][0]["materials"][0]["texture_source"] = nullptr;
     metadata["meshes"][0]["materials"][0]["texture_path"] = nullptr;
     gltf["nodes"][0]["name"] = "%81%5C";
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     game = metadata;
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *frame = Instantiate();
     ASSERT_NE(frame, nullptr);
     EXPECT_STREQ(frame->name, "\x81\x5C");
@@ -781,7 +781,7 @@ TEST_F(NativeModel, LoadsCharacterProfileResourcesAndGameplayInOrder) {
         {"game_names",     {{"walk", text("walk")}}                                                                                                                                                                 },
         {"resources",      {{"animations", Json::array({{{"actions", Json::array({{{"name", "walk"}, {"duration", 30}}})}, {"variants", Json::array({{{"model", 0}, {"node_offset", 0}, {"animations", {0}}}})}}})}}}
     };
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     CCharacter2 character;
     character.Initialize();
     model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
@@ -856,7 +856,7 @@ TEST_F(NativeModel, ImageEndSetsTheCharacterBlockWithoutImagesAndSkinEndRetainsI
 
 TEST_F(NativeModel, SupportsStepInterpolationAndClampsOutsideClip) {
     gltf["animations"][0]["samplers"][0]["interpolation"] = "STEP";
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *frame = Instantiate();
     ASSERT_NE(frame, nullptr);
     auto motion = Motion();
@@ -895,7 +895,7 @@ TEST_F(NativeModel, ConvertsStandardRotationsToNativeMatricesAndMotionRecords) {
         gltf["accessors"][2]["count"] = cubic ? 6 : 2;
         gltf["animations"][0]["samplers"][0]["interpolation"] = interpolation;
         gltf["animations"][0]["channels"][0]["target"]["path"] = "rotation";
-        Write(directory / "port_data/models/model.gltf", gltf);
+        Write(directory / "data/models/model.gltf", gltf);
         auto *root = Instantiate();
         ASSERT_NE(root, nullptr);
         auto motion = Motion();
@@ -944,7 +944,7 @@ TEST_F(NativeModel, GltfOnlyOverlayChangesTopologyAndMalformedGameplayOverlayFal
     replacement["meshes"][0]["primitives"].push_back(replacement["meshes"][0]["primitives"][0]);
     Write(directory / "datapacks/test/models/model.gltf", replacement);
     std::ofstream(directory / "datapacks/test/models/model.game.json") << "{broken";
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     auto *frame = Instantiate();
     ASSERT_NE(frame, nullptr);
     EXPECT_FLOAT_EQ(frame->trans_matrix[3][0], 9);
@@ -1009,7 +1009,7 @@ TEST_F(NativeModel, CollapsesStandardScaleRotationHelpersWithoutChangingGameplay
         {{"sampler", 1}, {"target", {{"node", 0}, {"path", "scale"}}}   },
         {{"sampler", 2}, {"target", {{"node", 2}, {"path", "scale"}}}   }
     });
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *root = Instantiate();
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->frame_num, 2);
@@ -1055,7 +1055,7 @@ TEST_F(NativeModel, CollapsesStandardScaleRotationHelpersWithoutChangingGameplay
     }
     std::memcpy(bytes.data(), values.data(), bytes.size());
     gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     root = Instantiate();
     motion = Motion();
     SetMotionTime(root, &motion, 14, nullptr);
@@ -1085,7 +1085,7 @@ TEST_F(NativeModel, StandardNonuniformScaleOverridesUseRotationBeforeScaleAndCle
         {{"mesh", 0}}
     });
     game["frames"][0]["rotation_node"] = 1;
-    Write(directory / "port_data/models/model.gltf", base);
+    Write(directory / "data/models/model.gltf", base);
     Write(directory / "datapacks/datapacks.json", {
                                                       {"schema_version", 1       },
                                                       {"load_order",     {"test"}}
@@ -1095,7 +1095,7 @@ TEST_F(NativeModel, StandardNonuniformScaleOverridesUseRotationBeforeScaleAndCle
     gltf["nodes"][0]["rotation"] = {0, 0, half, half};
     gltf["nodes"][0]["scale"] = {2, 3, 4};
     Write(directory / "datapacks/test/models/model.gltf", gltf);
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     auto *root = Instantiate();
     ASSERT_NE(root, nullptr);
     EXPECT_TRUE(model_assets::UsesStandardScaleOrder(root));
@@ -1171,7 +1171,7 @@ TEST_F(NativeModel, GameModelsKeepAuthoredScaleInTheMatrixSoGameplayScaleUsesThe
         {"sampler", 2                               },
         {"target",  {{"node", 0}, {"path", "scale"}}}
     });
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *root = Instantiate();
     ASSERT_NE(root, nullptr);
     EXPECT_FALSE(model_assets::UsesStandardScaleOrder(root));
@@ -1206,7 +1206,7 @@ TEST_F(NativeModel, GeneratedBaseRotationsPreserveRetailNearOppositeSnapWhileOve
     gltf["bufferViews"][2]["byteLength"] = 8 * sizeof(float);
     gltf["accessors"][2]["type"] = "VEC4";
     gltf["animations"][0]["channels"][0]["target"]["path"] = "rotation";
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *root = Instantiate();
     ASSERT_NE(root, nullptr);
     auto motion = Motion();
@@ -1232,7 +1232,7 @@ TEST_F(NativeModel, GeneratedBaseRotationsPreserveRetailNearOppositeSnapWhileOve
                                                       {"load_order",     {"test"}}
     });
     Write(directory / "datapacks/test/models/model.gltf", gltf);
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     root = Instantiate();
     motion = Motion();
     SetMotionTime(root, &motion, 15, nullptr);
@@ -1248,7 +1248,7 @@ TEST_F(NativeModel, InvalidGameplayIdentitiesFallBackBeforeNativeAllocation) {
                                                       {"schema_version", 1       },
                                                       {"load_order",     {"test"}}
     });
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     std::vector<Json> invalid(5, game);
     invalid[0]["frames"][0]["mdt"] = 999;
     invalid[1]["frames"][0]["mdt"] = -1;
@@ -1279,7 +1279,7 @@ TEST_F(NativeModel, ModelListsIncludeModelsAddedOnlyByDatapacks) {
         {"schema_version", 1                },
         {"kind",           "asset_directory"}
     };
-    Write(directory / "port_data/models/pack.json", marker);
+    Write(directory / "data/models/pack.json", marker);
     Json models = Json::array();
     for (const auto *name : {"model.gltf", "added.gltf"}) {
         models.push_back({
@@ -1292,7 +1292,7 @@ TEST_F(NativeModel, ModelListsIncludeModelsAddedOnlyByDatapacks) {
                                                                  {"kind",           "model_list"},
                                                                  {"models",         models      }
     });
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     auto metadata = marker.dump(2);
     DataReadRegisterAsset(metadata.data(), "models/pack.json", metadata.size());
     CMdsList list{};
@@ -1319,7 +1319,7 @@ TEST_F(NativeModel, SamplesCubicSplineWithSecondBasedTangents) {
     gltf["bufferViews"][2]["byteLength"] = 72;
     gltf["accessors"][2]["count"] = 6;
     gltf["animations"][0]["samplers"][0]["interpolation"] = "CUBICSPLINE";
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *frame = Instantiate();
     ASSERT_NE(frame, nullptr);
     auto motion = Motion();
@@ -1355,7 +1355,7 @@ TEST_F(NativeModel, AppliesStandardMorphTargetWeightsThroughRotationHelpers) {
     game["frames"][0]["rotation_node"] = 1;
     gltf["animations"][0]["channels"][0]["target"]["node"] = 1;
     gltf["animations"][0]["channels"][0]["target"]["path"] = "weights";
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *frame = Instantiate();
     ASSERT_NE(frame, nullptr);
     auto motion = Motion();
@@ -1388,12 +1388,12 @@ TEST_F(NativeModel, PngOverlayWinsBeforeImageRegistrationAndGltfOverlayOwnsItsEm
     gltf["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"] = {
         {"index", 0}
     };
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     Json metadata = game;
     metadata["meshes"][0]["materials"][0]["texture"] = "fixture_texture";
     metadata["meshes"][0]["materials"][0]["texture_path"] = "textures/model.png";
     game = metadata;
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     std::filesystem::create_directories(directory / "datapacks/test/textures");
     {
         std::vector<unsigned char> pixels(8 * 8 * 4);
@@ -1407,7 +1407,7 @@ TEST_F(NativeModel, PngOverlayWinsBeforeImageRegistrationAndGltfOverlayOwnsItsEm
                                                       {"schema_version", 1       },
                                                       {"load_order",     {"test"}}
     });
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     auto *base = Instantiate();
     ASSERT_NE(base, nullptr);
     auto *base_texture = static_cast<mgCVisualMDT *>(base->visual)->material[0].texture;
@@ -1422,7 +1422,7 @@ TEST_F(NativeModel, PngOverlayWinsBeforeImageRegistrationAndGltfOverlayOwnsItsEm
     EXPECT_EQ(MgTexturePhysicalExtent(base_texture).height, 8u);
     std::filesystem::create_directories(directory / "datapacks/test/models");
     Write(directory / "datapacks/test/models/model.gltf", gltf);
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     auto *overlaid = Instantiate();
     ASSERT_NE(overlaid, nullptr);
     auto *overlay_texture = static_cast<mgCVisualMDT *>(overlaid->visual)->material[0].texture;
@@ -1453,7 +1453,7 @@ TEST_F(NativeModel, ContentKeyedImagesNeverShareDifferentEmbeddedFallbacksAndFol
                                                       {"schema_version", 1       },
                                                       {"load_order",     {"test"}}
     });
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     const auto load = [&](const std::string &stem, const std::string &texture, unsigned char red) {
         const std::vector<unsigned char> pixels{red, 0, 0, 255, red, 0, 0, 255, red, 0, 0, 255, red, 0, 0, 255};
         EXPECT_TRUE(gfx::WritePng(directory / "embedded.png", pixels.data(), 2, 2));
@@ -1464,8 +1464,8 @@ TEST_F(NativeModel, ContentKeyedImagesNeverShareDifferentEmbeddedFallbacksAndFol
         auto model = gltf;
         model["images"] = Json::array({{{"uri", "data:image/png;base64," + Base64(png)}}});
         game["meshes"][0]["materials"][0]["texture"] = texture;
-        Write(directory / "port_data" / (stem + ".gltf"), model);
-        Write(directory / "port_data" / (stem + ".game.json"), game);
+        Write(directory / "data" / (stem + ".gltf"), model);
+        Write(directory / "data" / (stem + ".game.json"), game);
         memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
         mgLoadData data{};
         data.memory = &memory;
@@ -1491,7 +1491,7 @@ TEST_F(NativeModel, ContentKeyedImagesNeverShareDifferentEmbeddedFallbacksAndFol
     }
     std::filesystem::remove(directory / "datapacks/test/textures/shared.png");
     ASSERT_TRUE(gfx::WritePng(directory / "datapacks/test/textures/shared.png", green.data(), 8, 8));
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     auto *third = load("models/third", "third", 50);
     auto *fourth = load("models/fourth", "fourth", 60);
     ASSERT_NE(third, nullptr);
@@ -1516,16 +1516,16 @@ TEST_F(NativeModel, ExternalImageUrisShareOneDecodeAndFollowPackOverrides) {
         {"index", 0}
     };
     const std::vector<unsigned char> red{200, 0, 0, 255, 200, 0, 0, 255, 200, 0, 0, 255, 200, 0, 0, 255};
-    std::filesystem::create_directories(directory / "port_data/textures");
-    ASSERT_TRUE(gfx::WritePng(directory / "port_data/textures/shared.png", red.data(), 2, 2));
-    datapacks::Load(directory / "port_data");
+    std::filesystem::create_directories(directory / "data/textures");
+    ASSERT_TRUE(gfx::WritePng(directory / "data/textures/shared.png", red.data(), 2, 2));
+    datapacks::Load(directory / "data");
     const auto load = [&](const std::string &stem, const std::string &uri, const std::string &texture) {
         auto model = gltf;
         model["images"] = Json::array({{{"uri", uri}}});
         game["meshes"][0]["materials"][0]["texture"] = texture;
-        std::filesystem::create_directories((directory / "port_data" / (stem + ".gltf")).parent_path());
-        Write(directory / "port_data" / (stem + ".gltf"), model);
-        Write(directory / "port_data" / (stem + ".game.json"), game);
+        std::filesystem::create_directories((directory / "data" / (stem + ".gltf")).parent_path());
+        Write(directory / "data" / (stem + ".gltf"), model);
+        Write(directory / "data" / (stem + ".game.json"), game);
         memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
         mgLoadData data{};
         data.memory = &memory;
@@ -1565,7 +1565,7 @@ TEST_F(NativeModel, ExternalImageUrisShareOneDecodeAndFollowPackOverrides) {
                                                       {"schema_version", 1       },
                                                       {"load_order",     {"test"}}
     });
-    datapacks::Load(directory / "port_data");
+    datapacks::Load(directory / "data");
     auto *third = load("models/third", "../textures/shared.png", "third");
     ASSERT_NE(third, nullptr);
     EXPECT_EQ(reinterpret_cast<const unsigned char *>(third->image[0])[0], 0);
@@ -1590,9 +1590,9 @@ TEST_F(NativeModel, BuildsCollisionHierarchyAndGroundAttributesFromNativeGeometr
         {"translation", {2, 0, 0}}
     });
     gltf["materials"][0]["pbrMetallicRoughness"]["baseColorFactor"] = {1, 1, 1, 0};
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     game = metadata;
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     auto *frame = LoadCollisionModel("models/model.gltf", &memory);
     ASSERT_NE(frame, nullptr);
     EXPECT_STREQ(frame->name, "root");
@@ -1622,7 +1622,7 @@ TEST_F(NativeModel, TreasureBoxesSelectCollisionSceneFromCompleteGltfBundle) {
         {{"name", "tbox1"},  {"nodes", {1}}},
         {{"name", "tbox_a"}, {"nodes", {2}}}
     });
-    Write(directory / "port_data/models/treasure.gltf", standard);
+    Write(directory / "data/models/treasure.gltf", standard);
     const auto       text = standard.dump();
     std::vector<u32> buffer((text.size() + sizeof(u32) - 1) / sizeof(u32));
     std::memcpy(buffer.data(), text.data(), text.size());
@@ -1707,9 +1707,9 @@ TEST_F(NativeModel, ShadowCpuSkinRetainsMoreThanThirtyTwoBones) {
     metadata["weights"] = Json::array({
         {{"alias", "fixture/model.wgt"}, {"channels", channels}}
     });
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     game = metadata;
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     std::string        error;
     char               empty[] = "";
     mgCreateVisualType types[] = {
@@ -1833,7 +1833,7 @@ TEST_F(NativeModel, ShadowModelFacesKeepOnlyTrianglePositionIndices) {
     auto bytes = FixtureBytes();
     AddShadowCorners(gltf, bytes, 68);
     AddNormalsAndUvs(gltf, game);
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     ExpectShadowTriangles(LoadShadowVisual(memory), {0, 1, 2, 2, 1, 0});
 }
 
@@ -1841,7 +1841,7 @@ TEST_F(NativeModel, ShadowModelFacesKeepOnlyTrianglePositionIndices) {
 TEST_F(NativeModel, ShadowModelFacesWithoutNormalsOrUvsKeepTheirTriangles) {
     auto bytes = FixtureBytes();
     AddShadowCorners(gltf, bytes, 68);
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     ExpectShadowTriangles(LoadShadowVisual(memory), {0, 1, 2, 2, 1, 0});
 }
 
@@ -1850,7 +1850,7 @@ TEST_F(NativeModel, ShadowModelStripFacesKeepNoTriangles) {
     auto bytes = FixtureBytes();
     AddShadowCorners(gltf, bytes, 68);
     gltf["meshes"][0]["primitives"][0]["mode"] = 5;
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     ExpectShadowTriangles(LoadShadowVisual(memory), {});
 }
 
@@ -1882,7 +1882,7 @@ TEST_F(NativeModel, ShadowModelMorphKeepsShadowFaces) {
     gltf["animations"][0]["channels"][0]["target"]["path"] = "weights";
     AddShadowCorners(gltf, bytes, values.size() * sizeof(float));
     AddNormalsAndUvs(gltf, game);
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
 
     std::string        error;
     char               empty[] = "";
@@ -1951,7 +1951,7 @@ TEST_F(NativeModel, SkinUsesGltfBindsOnlyInItsLoadedHierarchy) {
         {"id",  1      },
         {"mdt", nullptr}
     });
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     char               empty[] = "";
     mgCreateVisualType types[] = {
         {.type = MG_VISUAL_CREATE_MOTION_MDT, .name = empty  },
@@ -2051,7 +2051,7 @@ TEST_F(NativeModel, ReadsAllStandardJointGroupsAndPreservesNativeGpuInfluenceLim
     gltf["skins"][0]["joints"][0] = 7;
     game["frames"][0]["rotation_node"] = 6;
     game["frames"][1]["rotation_node"] = 7;
-    Write(directory / "port_data/models/model.gltf", gltf);
+    Write(directory / "data/models/model.gltf", gltf);
     char               empty[] = "";
     mgCreateVisualType types[] = {
         {.type = MG_VISUAL_CREATE_MOTION_MDT, .name = empty  },

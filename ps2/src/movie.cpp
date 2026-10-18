@@ -1184,7 +1184,7 @@ int strFileOpen(StrFile *file, char *path) {
     char       full_path[0x100];
     char       device[0x4C];
     sceCdRMode cd_mode;
-    int        leftover;
+    int        leftover PORT_INIT(0);
     char      *colon = index(path, ':');
 
     if (colon != NULL) {

@@ -622,7 +622,7 @@ class CatalogFixture {
 public:
     CatalogFixture() {
         static int next = 0;
-        directory = std::filesystem::temp_directory_path() / ("ct_texture_catalog_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + "_" + std::to_string(++next)) / "port_data";
+        directory = std::filesystem::temp_directory_path() / ("ct_texture_catalog_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + "_" + std::to_string(++next)) / "data";
         std::filesystem::create_directories(directory);
     }
 
@@ -1141,7 +1141,7 @@ TEST(MgTexture, MinimalCatalogDerivesPictureSizeAndSampler) {
     EXPECT_EQ(source->entries[1].animation_mode, texture_catalog::AnimationMode::Copy);
 
     Harness h;
-    fixture.Enter(h.manager);
+    CatalogFixture::Enter(h.manager);
     char        name[] = "atlas";
     const auto *texture = h.manager.GetTexture(name, 0);
     ASSERT_NE(texture, nullptr);
@@ -1416,7 +1416,7 @@ TEST_F(MgTextureGpu, CatalogPngUploadsAndSelectsBakedRgbaVariant) {
     fixture.Load(JsonTexture("color", 32, 2, 2, "[\"color.png\"]") + "," +
                  JsonTexture("indexed", 8, 2, 2, "[\"color.png\"]", 0, false, 0,
                              R"(,{"selector":"alternate","levels":["alternate.png"]})"));
-    fixture.Enter(h_.manager);
+    CatalogFixture::Enter(h_.manager);
 
     char        color_name[] = "color";
     char        index_name[] = "indexed";
@@ -1472,7 +1472,7 @@ TEST_F(MgTextureGpu, CatalogCfgClutCopyUsesBakedRgbaCrossVariant) {
                  JsonTexture("destination", 8, 2, 2, "[\"destination.png\"]", 0, false, 0,
                              R"(,{"selector":"source","levels":["baked.png"]})") +
                  "," + cfg);
-    fixture.Enter(h_.manager, 0, &h_.memory);
+    CatalogFixture::Enter(h_.manager, 0, &h_.memory);
     auto *anime = h_.manager.blocks[0].anime;
     ASSERT_NE(anime, nullptr);
     char        destination_name[] = "destination";
@@ -1490,7 +1490,7 @@ TEST_F(MgTextureGpu, CatalogNoImageDestinationAndResourceLifetime) {
     CatalogFixture fixture;
     fixture.Load(JsonTexture("destination", 8, 2, 2, "[]", 0, true) + "," +
                  JsonTexture("kept", 32, 2, 2, "[]", 1, true));
-    fixture.Enter(h_.manager);
+    CatalogFixture::Enter(h_.manager);
     char        destination_name[] = "destination";
     char        kept_name[] = "kept";
     mgCTexture *destination = h_.manager.GetTexture(destination_name, 0);
@@ -1522,7 +1522,7 @@ TEST_F(MgTextureGpu, CatalogMipsAndExtraPicturesGetDistinctNames) {
     fixture.Rgba("base.png", 2, 2, base);
     fixture.Rgba("mip.png", 1, 1, mip);
     fixture.Load(R"({"name":"atlas","pictures":[{"levels":["base.png","mip.png"],"animation":"copy_variant"},{"levels":["base.png"],"animation":"copy_variant"}]})");
-    fixture.Enter(h_.manager);
+    CatalogFixture::Enter(h_.manager);
     char        primary_name[] = "atlas";
     char        extra_name[] = "atlas#picture1";
     mgCTexture *primary = h_.manager.GetTexture(primary_name, 0);
@@ -1752,7 +1752,7 @@ TEST_F(MgTextureGpu, HighResolutionColorVariantsAndCopiesRetainDetail) {
                              R"(,{"selector":"alternate","levels":["alternate.png"]})"));
     fixture.Rgba("alternate.png", 2, 2, DetailPixels(2, 2));
     HighResolutionOverlay(fixture, "detail.png", 4, 4, DetailPixels(4, 4));
-    fixture.Enter(h_.manager);
+    CatalogFixture::Enter(h_.manager);
     char  name[] = "detail";
     char  grey_name[] = "grey";
     char  highlight_name[] = "highlight";
@@ -1803,7 +1803,7 @@ TEST_F(MgTextureGpu, HighResolutionAnimationCopiesOffsetsRestoresAndReleasesTarg
                  JsonTexture("blank", 32, 4, 4, "[]", 0, true));
     HighResolutionOverlay(fixture, "source.png", 8, 8, DetailPixels(8, 8));
     HighResolutionOverlay(fixture, "destination.png", 32, 32, DetailPixels(32, 32));
-    fixture.Enter(h_.manager);
+    CatalogFixture::Enter(h_.manager);
     char  source_name[] = "source";
     char  destination_name[] = "destination";
     auto *source = h_.manager.GetTexture(source_name, 0);
@@ -1905,7 +1905,7 @@ TEST_F(MgTextureGpu, MenuPointerUsesPhysicalTexelsFromDoubleResolutionPack) {
     fixture.Rgba("gaiji.png", 2, 2, DetailPixels(2, 2));
     fixture.Load(JsonTexture("gaiji", 32, 2, 2, "[\"gaiji.png\"]"));
     HighResolutionOverlay(fixture, "gaiji.png", 4, 4, DetailPixels(4, 4));
-    fixture.Enter(h_.manager);
+    CatalogFixture::Enter(h_.manager);
     char        name[] = "gaiji";
     const auto *texture = h_.manager.GetTexture(name, 0);
     ASSERT_NE(texture, nullptr);

@@ -72,14 +72,14 @@ std::vector<subtitle_config::Cue> Original(std::vector<char> text, int chapter) 
 } // namespace
 
 TEST_F(NativeSubtitles, UsesTypedTimesAndTextWithInvalidOverlayFallback) {
-    Write(root / "port_data/configs/help.json", R"({"schema_version":2,"kind":"movie_subtitles","chapters":[{"id":901,"entries":[{"start_seconds":1.65,"clear_seconds":9.55,"text":"Line one\nLine two"}]}]})");
+    Write(root / "data/configs/help.json", R"({"schema_version":2,"kind":"movie_subtitles","chapters":[{"id":901,"entries":[{"start_seconds":1.65,"clear_seconds":9.55,"text":"Line one\nLine two"}]}]})");
     Write(root / "datapacks/datapacks.json", R"({"schema_version":1,"load_order":["broken"]})");
     Write(root / "datapacks/broken/configs/help.json", R"({"schema_version":2,"kind":"movie_subtitles","chapters":"invalid"})");
-    datapacks::Load(root / "port_data");
+    datapacks::Load(root / "data");
     std::string                       error;
     std::vector<subtitle_config::Cue> cues;
     ASSERT_TRUE(subtitle_config::Load("configs/help.json", 901, cues, error)) << error;
-    std::ifstream input(root / "port_data/configs/help.json");
+    std::ifstream input(root / "data/configs/help.json");
     std::string   bytes{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
     MovieCCAnalyze(bytes.data(), static_cast<int>(bytes.size()), 1);
     EXPECT_EQ(MovieCCStart[0], 49);
@@ -106,7 +106,7 @@ TEST_F(NativeSubtitles, MatchesEveryOfflineSubtitleChapter) {
     if (expected == 0) {
         GTEST_SKIP() << "the selected fixture has no retail movie subtitle sources";
     }
-    const std::filesystem::path port = manifest.at("port_data").get<std::string>();
+    const std::filesystem::path port = manifest.at("data").get<std::string>();
     datapacks::Load(port);
     std::string error;
     std::size_t documents = 0;
