@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <format>
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include "dng_event.hpp"
@@ -20,6 +21,7 @@
 #include "platform_fixture.hpp"
 #include "runscript.hpp"
 #include "scene.hpp"
+#include "subgame.hpp"
 
 namespace {
 
@@ -164,6 +166,28 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
     int second_capacity = 0;
     copy_model(768, second_capacity);
     EXPECT_GT(second_capacity, first_capacity);
+}
+
+// Every dungeon entry clears the sub-game character slots (InitDungeonMain -> InitSubGame) after the monsters are
+// bound and before the floor script's LoadDungeonMapFile binds them again, so no monster slot may lie among them.
+TEST(MonsterSlots, SurviveTheSubGameClear) {
+    auto                                          player = std::make_unique<CCharacter2>();
+    auto                                          monsters = std::make_unique<CActiveMonster[]>(MONSTER_ACTIVE_MAX);
+    std::unique_ptr<CScene, decltype(&std::free)> scene(
+        static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
+    ASSERT_NE(scene, nullptr);
+    scene->chara_num = std::extent_v<decltype(CScene::chara)>;
+    ASSERT_NE(scene->AssignChara(DNG_CHARA_SLOT_PARTY, player.get(), nullptr), -1);
+    for (int i = 0; i < MONSTER_ACTIVE_MAX; ++i) {
+        ASSERT_NE(scene->AssignChara(DNG_CHARA_SLOT_MONSTER + i, &monsters[i], nullptr), -1) << i;
+    }
+
+    InitSubGame(scene.get());
+
+    EXPECT_LE(DNG_CHARA_SLOT_MONSTER_END, SUBGAME_CHARA_BASE);
+    for (int i = 0; i < MONSTER_ACTIVE_MAX; ++i) {
+        EXPECT_EQ(scene->GetCharacter(DNG_CHARA_SLOT_MONSTER + i), &monsters[i]) << i;
+    }
 }
 
 INSTANTIATE_TEST_SUITE_P(MoreMonsters, MonsterMemory, testing::Bool(),

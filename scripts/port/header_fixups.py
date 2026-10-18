@@ -33,8 +33,9 @@ FIXUPS = [
     ("dng_main.hpp", "    DNG_CHARA_SLOT_MONSTER = 24, /**< First slot of the MONSTER_ACTIVE_MAX active monsters. */",
      "    DNG_CHARA_SLOT_MONSTER = 24, /**< First slot of the MONSTER_ACTIVE_MAX active monsters. */"
      " DNG_CHARA_SLOT_MONSTER_END = DNG_CHARA_SLOT_MONSTER + MONSTER_ACTIVE_MAX,"),
-    # A dungeon floor holds up to 60 monsters with game.more_monsters; the floors use retail's 24 slots otherwise.
-    ("monster.hpp", "    MONSTER_ACTIVE_MAX = 24,", "    MONSTER_ACTIVE_MAX = 60,"),
+    # A dungeon floor holds up to 40 monsters with game.more_monsters; the floors use retail's 24 slots otherwise.
+    # Their scene slots must end at SUBGAME_CHARA_BASE (64): every dungeon entry clears the sub-game slots from there.
+    ("monster.hpp", "    MONSTER_ACTIVE_MAX = 24,", "    MONSTER_ACTIVE_MAX = 40,"),
     ("dng_hud.hpp", "    virtual void Draw();", "    virtual int Draw();"),
     # The quick loadout's "Equip Slot" command wraps the item command list; retail's routine stays under this name.
     ("menusys.hpp", "    int MenuItemCommandSelect(int select_key, int push_button);",

@@ -33,7 +33,7 @@ struct Config : HostSettings {
     bool auto_use_event_item = false;
     // game.floor_info_monsters: Triangle on a dungeon floor's information lists its monsters and their drops.
     bool floor_info_monsters = false;
-    // game.more_monsters: a dungeon floor holds up to 60 monsters instead of 24, and all of them in range show and act.
+    // game.more_monsters: a dungeon floor holds up to 40 monsters instead of 24, and all of them in range show and act.
     bool         more_monsters = false;
     ConfigAspect aspect = ConfigAspect::Auto;
     float        ui_scale = 1.0f;

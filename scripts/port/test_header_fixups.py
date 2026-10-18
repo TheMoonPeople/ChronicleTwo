@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 import header_fixups
@@ -110,6 +111,19 @@ class UnitFixups(unittest.TestCase):
             result = header_fixups.fixup_unit_text(unit, (root / unit).read_text(encoding="latin-1"))
             self.assertNotIn("MONSTER_ACTIVE_MAX * 2", result)
             self.assertNotRegex(result, r"(?<!DNG_CHARA_SLOT_MONSTER) \+ MONSTER_ACTIVE_MAX\b|[=-] MONSTER_ACTIVE_MAX;")
+
+    def test_monster_scene_slots_end_before_the_subgame_slots(self):
+        mirror = header_fixups.build_mirror(Path(__file__).resolve().parents[2] / "ps2/include")
+
+        def value(header, name):
+            match = re.search(rf"\b{name} = (0x[0-9A-Fa-f]+|\d+),", mirror[header].decode("latin-1"))
+            self.assertIsNotNone(match, name)
+            return int(match.group(1), 0)
+
+        active = value("monster.hpp", "MONSTER_ACTIVE_MAX")
+        self.assertGreater(active, 24)
+        self.assertLessEqual(value("dng_main.hpp", "DNG_CHARA_SLOT_MONSTER") + active,
+                             value("subgame.hpp", "SUBGAME_CHARA_BASE"))
 
     def test_georama_tables_grow_with_the_town(self):
         source = Path(__file__).resolve().parents[2] / "ps2/include"

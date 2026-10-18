@@ -187,7 +187,7 @@ std::span<const Page> Pages() {
                              Choice<&Config::skip_intro>("game.skip_intro", "Skip intro", "Boots past the Sony text, the copyright notice\nand the Level-5 logo to the title screen.", {"Off", "On"}),
                              Choice<&Config::auto_use_event_item>("game.auto_use_event_item", "Auto-use event items", "An event that asks for one item you carry\nis handed it without the item picker.", {"Off", "On"}),
                              Choice<&Config::floor_info_monsters>("game.floor_info_monsters", "Floor monster list", "Triangle on a floor's info lists its monsters, drops and\ngate key carrier (spoilers). Off is the original game.", {"Off", "On"}),
-                             Choice<&Config::more_monsters>("game.more_monsters", "More monsters", "Floors hold up to 60 monsters instead of 24, and all of\nthem in range show and act. Applies from the next floor.", {"Off", "On"}),
+                             Choice<&Config::more_monsters>("game.more_monsters", "More monsters", "Floors hold up to 40 monsters instead of 24, and all of\nthem in range show and act. Applies from the next floor.", {"Off", "On"}),
                              Choice<&Config::debug_mode>("game.debug_mode", "Debug mode", "Unlocks the developer menu and debug controls.\nThe boot unlock applies from the next start.", {"Off", "On"}),
                          }        },
         {.name = "Bindings", .rows = Bindings()           },

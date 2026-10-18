@@ -29,6 +29,7 @@
 #include "platform/model_assets.hpp"
 #include "snd_mngr.hpp"
 #include "sound_port.hpp"
+#include "subgame.hpp"
 #include "swordeffect.hpp"
 
 namespace {
@@ -184,6 +185,11 @@ constexpr int kRetailPriorityLimit = 5;
 int active_monsters = kRetailActiveMonsters;
 
 } // namespace
+
+// InitDungeonMain's InitSubGame clears the sub-game slots after the monsters are bound, and LoadDungeonMapFile's
+// CMonsterMan::Initialize then reads every monster slot back.
+static_assert(static_cast<int>(DNG_CHARA_SLOT_MONSTER_END) <= static_cast<int>(SUBGAME_CHARA_BASE),
+              "monster scene slots overlap the sub-game slots");
 
 int PortMonsterLatchLimits() {
     const bool more = ConfigGet().more_monsters;

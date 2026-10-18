@@ -616,7 +616,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.auto_use_event_item` | bool | false | | an event that asks for one item the bag holds is handed it without the item picker; see "Auto-use event items" |
 | `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
-| `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
+| `game.more_monsters` | bool | false | | a dungeon floor holds up to 40 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true | | interpolate display frames between ticks |
 | `video.max_fps` | number | 0 | 0 or more | display frame cap; 0 is unlimited |
@@ -1169,9 +1169,13 @@ on in the save root's `config.json`.
 
 Retail keeps 24 monster slots, scene characters `DNG_CHARA_SLOT_MONSTER` (24) to 47, and only the five nearest
 monsters (`CMonsterMan::priority_limit`) show and act; `CActiveMonster::CheckView` fades the rest out and `ThinkHost`
-skips them. The port's mirror of `monster.hpp` raises `MONSTER_ACTIVE_MAX` to 60, so the slots run to scene character
-83 of 128. `CMonsterMan::Initialize` reads `game.more_monsters` once per floor through `PortMonsterLatchLimits`
-(`port/src/monster.cpp`): off, the floor uses 24 slots and a priority limit of 5, exactly as retail; on, it uses all 60
+skips them. The port's mirror of `monster.hpp` raises `MONSTER_ACTIVE_MAX` to 40, so the slots run to scene character
+63. They must stay below the sub-game slots (`SUBGAME_CHARA_BASE`, 64): `InitDungeonMain` clears those through
+`InitSubGame` after binding the monsters, so a monster slot there reads back empty and the floor's
+`CMonsterMan::Initialize` crashes; a static assert in `port/src/monster.cpp` holds the range below them.
+`CMonsterMan::Initialize` reads `game.more_monsters` once per floor through `PortMonsterLatchLimits`
+(`port/src/monster.cpp`): off, the floor spawns into retail's 24 slots with its priority limit of 5, though all 40 monster objects are still
+initialised and scanned; on, it uses all 40
 and every monster in range shows and acts. Unit fixups hold `AutoSetMonster`'s spawn count,
 `CMonsterMan::SearchActiveMonsterBlock` and the event scene's slot memory to that limit, and `PrepareMonsterMemory`
 (`port/src/dng_event.cpp`) carves script memory only for the slots in use. A floor's placement list holds at most 32
