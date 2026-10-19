@@ -47,6 +47,13 @@ FIXUPS = [
      "    void PortRetailDraw();"),
     # The player's effects are tagged for the playerless pause picture around retail's draws, which stay under these names.
     ("actionchara.hpp", "    virtual void DrawEffect();", "    virtual void DrawEffect();\n    void PortRetailDrawEffect();"),
+    # The recovery effect's sprite incarnations end with the effect, or with its manager, around retail's delete and
+    # reset, which stay under these names.
+    ("effscript.hpp", "    void Initialize(mgCMemory *memory, int texb_start, int texb_num);",
+     "    void Initialize(mgCMemory *memory, int texb_start, int texb_num);\n"
+     "    void PortRetailInitialize(mgCMemory *memory, int texb_start, int texb_num);"),
+    ("effscript.hpp", "    void DeleteEffSpt(_EFF_SCRIPT *script);",
+     "    void DeleteEffSpt(_EFF_SCRIPT *script);\n    void PortRetailDeleteEffSpt(_EFF_SCRIPT *script);"),
     ("dng_effect.hpp",
      "     * @mangled Draw__14CSwordLuminousFv\n     * @address 0x1C2E40\n     * @size 0x200\n     */\n    void Draw();",
      "     * @mangled Draw__14CSwordLuminousFv\n     * @address 0x1C2E40\n     * @size 0x200\n     */\n    void Draw();\n"

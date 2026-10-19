@@ -65,6 +65,12 @@ RETAIL_BRIDGES = {
     ],
     "menucls1.cpp": [("CDC2Mes::DrawMsg()", "DrawMsg", "PortRetailDrawMsg")],
     "actionchara.cpp": [("CActionChara::DrawEffect()", "DrawEffect", "PortRetailDrawEffect")],
+    "effscript.cpp": [
+        ("CEffectScriptMan::Initialize(mgCMemory*,int,int)", "Initialize", "PortRetailInitialize"),
+        ("CEffectScriptMan::DeleteEffSpt(_EFF_SCRIPT*)", "DeleteEffSpt", "PortRetailDeleteEffSpt"),
+        ("_SPT_ASSIGN_SPRITE(RS_STACKDATA*,int)", "_SPT_ASSIGN_SPRITE", "PortRetailSptAssignSprite"),
+        ("_SPT_INIT_SPRITE(RS_STACKDATA*,int)", "_SPT_INIT_SPRITE", "PortRetailSptInitSprite"),
+    ],
     "dng_effect.cpp": [
         ("CSwordLuminous::Draw()", "Draw", "PortRetailDraw"),
         ("CAfterWire::DrawWire(float(*)[4])", "DrawWire", "PortRetailDrawWire"),

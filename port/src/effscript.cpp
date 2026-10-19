@@ -1,8 +1,11 @@
 #include "common.h"
+#include "mw_runtime.h"
 
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
+#include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -11,26 +14,105 @@
 #include <print>
 #include <span>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "asset_directory.hpp"
 #include "character.hpp"
 #include "dataread_port.hpp"
 #include "effscript.hpp"
+#include "effscript_port.hpp"
 #include "log/log.hpp"
+#include "map.hpp"
+#include "mg_drawenv.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
 #include "mg_memory.hpp"
+#include "mg_sprite.hpp"
+#include "mg_sprite_port.hpp"
 #include "mg_texture.hpp"
 #include "mg_texture_port.hpp"
 #include "mglib.hpp"
+#include "mglib_port.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/model_assets.hpp"
+#include "scenesnd.hpp"
 #include "script_timing.hpp"
 
 int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory);
+// Retail's sprite commands under their bridge names (port/include/stubs/effscript.hpp).
+int PortRetailSptAssignSprite(RS_STACKDATA *stack, int argument_count) asm("EffScript_SptAssignSprite");
+int PortRetailSptInitSprite(RS_STACKDATA *stack, int argument_count) asm("EffScript_SptInitSprite");
+// The effect whose script is running (port/src/effscript_config_bridge.inc).
+_EFF_SCRIPT *PortRunningEffect();
 
 namespace {
 constexpr int Quadwords(std::size_t bytes) {
     return static_cast<int>((bytes + 15) / 16);
+}
+
+/**
+ * The sprite incarnations of a running recovery effect. A slot's incarnation is a serial that no sprite has had
+ * before, renewed when the script assigns the effect's sprites or resets the slot, so a particle reset and shown again
+ * in place between two game frames never blends from the one it replaced.
+ */
+struct RecoveryEffect {
+    const CEffectScriptMan *manager = nullptr; /**< Manager that started the effect. */
+    const _ES_SPRITE       *sprites = nullptr; /**< Sprites the incarnations number; null before any are assigned. */
+    std::vector<uint64_t>   incarnations;      /**< One per sprite slot. */
+};
+
+/**
+ * Recovery effects only. CreateEffSpt adds one and replaces any entry left at the same address; DeleteEffSpt, which
+ * every stop and clear goes through, removes it. Effects a game mode leaves behind when it retires its arena without
+ * clearing them go when their manager is reset (Initialize, which its construction runs). Until then their entries are
+ * inspected by that cleanup but never used to dereference a retired effect. Built on first use, so a manager
+ * constructed during static initialisation finds it.
+ */
+std::unordered_map<const _EFF_SCRIPT *, RecoveryEffect> &RecoveryEffects() {
+    static std::unordered_map<const _EFF_SCRIPT *, RecoveryEffect> effects;
+    return effects;
+}
+
+uint64_t next_incarnation = 0;
+
+void Renumber(RecoveryEffect &effect, const _EFF_SCRIPT *script) {
+    effect.sprites = script->sprite;
+    effect.incarnations.resize(script->sprite != nullptr ? static_cast<std::size_t>(std::max(0, script->sprite_num)) : 0);
+    for (uint64_t &incarnation : effect.incarnations) {
+        incarnation = ++next_incarnation;
+    }
+}
+
+// The effect's entry, its incarnations numbering its current sprites, or null for an effect that is not one.
+RecoveryEffect *Recovery(const _EFF_SCRIPT *script) {
+    const auto found = RecoveryEffects().find(script);
+    if (found == RecoveryEffects().end()) {
+        return nullptr;
+    }
+    RecoveryEffect &effect = found->second;
+    const auto      count = static_cast<std::size_t>(script->sprite != nullptr ? std::max(0, script->sprite_num) : 0);
+    if (effect.sprites != script->sprite || effect.incarnations.size() != count) {
+        Renumber(effect, script);
+    }
+    return &effect;
+}
+
+// Retail's GetStackInt: a float argument converts through fptosi, which saturates and takes NaN to 0.
+int StackInt(const RS_STACKDATA &slot) {
+    return slot.type == RS_FLOAT ? fptosi(slot.val.f) : slot.val.i;
+}
+
+/**
+ * The recovery effect (the healing point, food and drink, Resurrection Powder, items used from the menu) and the
+ * sparkles it starts. Their sprites drift, spin and fade while the effect follows its character.
+ */
+bool SpritesInterpolate(int base_no) {
+    if (base_no < 0 || base_no >= EFF_SPT_BASE_DEF_NUM) {
+        return false;
+    }
+    const char *script = eff_spt_base_def[base_no].script;
+    return std::strcmp(script, "n_heal") == 0 || std::strcmp(script, "n_heal_sub") == 0;
 }
 } // namespace
 
@@ -137,6 +219,11 @@ PORT_OVERRIDE _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group
 
     if (register_in_group == 1) {
         slot[group][owner_slot] = effect;
+    }
+    if (SpritesInterpolate(base_no)) {
+        RecoveryEffects()[effect] = {.manager = this};
+    } else {
+        RecoveryEffects().erase(effect);
     }
     _EFF_SCRIPT *previous = nullptr;
     _EFF_SCRIPT *following = head;
@@ -412,4 +499,250 @@ PORT_OVERRIDE int CEffectScriptMan::GetNeedFilePath(int base_no, char *resource,
                  definition->type == EFF_SPT_BASE_CHR ? "gltf" : "json");
     std::sprintf(script, "dungeon/eff_script/%s.stb", definition->script);
     return 1;
+}
+
+gfx::Interp2D PortEffectSpriteTag(const _EFF_SCRIPT *script, int index) {
+    const RecoveryEffect *effect = Recovery(script);
+    if (effect == nullptr || index < 0 || static_cast<std::size_t>(index) >= effect->incarnations.size()) {
+        return {};
+    }
+    return {.key = static_cast<gfx::InterpKey>(reinterpret_cast<uintptr_t>(&script->sprite[index])),
+            .generation = effect->incarnations[static_cast<std::size_t>(index)],
+            .world_corners = true,
+            .teleport_distance = kMgPortFrameTeleportDistance};
+}
+
+std::size_t PortRecoveryEffectCount() {
+    return RecoveryEffects().size();
+}
+
+// A new sprite array, even one allocated where the last was, numbers every slot afresh. A refused assignment (the
+// effect already has sprites, or the work memory is full) changes nothing, so neither does it here.
+PORT_OVERRIDE int _SPT_ASSIGN_SPRITE(RS_STACKDATA *stack, int argument_count) {
+    const int    result = PortRetailSptAssignSprite(stack, argument_count);
+    _EFF_SCRIPT *script = PortRunningEffect();
+    if (const auto found = RecoveryEffects().find(script); result != 0 && found != RecoveryEffects().end()) {
+        Renumber(found->second, script);
+    }
+    return result;
+}
+
+// A reset slot is a new particle. Retail resets the slots it reaches before an invalid one; so does this.
+PORT_OVERRIDE int _SPT_INIT_SPRITE(RS_STACKDATA *stack, int argument_count) {
+    const int       result = PortRetailSptInitSprite(stack, argument_count);
+    RecoveryEffect *effect = Recovery(PortRunningEffect());
+    if (effect != nullptr) {
+        const int first = StackInt(stack[0]);
+        const int count = argument_count >= 2 ? StackInt(stack[1]) : 1;
+        for (int i = first; i < first + count && i >= 0 && static_cast<std::size_t>(i) < effect->incarnations.size(); i++) {
+            effect->incarnations[static_cast<std::size_t>(i)] = ++next_incarnation;
+        }
+    }
+    return result;
+}
+
+// Every stop and clear of an effect comes here, so a stopped recovery effect leaves no entry.
+PORT_OVERRIDE void CEffectScriptMan::DeleteEffSpt(_EFF_SCRIPT *script) {
+    RecoveryEffects().erase(script);
+    PortRetailDeleteEffSpt(script);
+}
+
+// A reset manager has no effects: those it ran are gone with the arena or the mode that held them.
+PORT_OVERRIDE void CEffectScriptMan::Initialize(mgCMemory *memory, int texb_start, int texb_num) {
+    std::erase_if(RecoveryEffects(), [this](const auto &entry) { return entry.second.manager == this; });
+    PortRetailInitialize(memory, texb_start, texb_num);
+}
+
+// Retail's DrawEffSptSprite batches every sprite of an effect that shares a blend into one draw at the tick's screen
+// corners, so the sprites' drift, spin and fade moved at the game rate. An interpolated effect's sprites are each a batch
+// of their own, keyed by the sprite, so display frames blend their world corners; a hidden or culled sprite leaves no
+// gap that would shift another's match. The images drawn are unchanged.
+void PortDrawEffectSprites(_EFF_SCRIPT *script, mgCTexture *texture, float *offset, mgC3DSprite *renderer) {
+    _ES_SPRITE *sprites = script->sprite;
+    const int   count = script->sprite_num;
+    int         alpha = sprites->alpha;
+    // A tag already current (the player's effects on the dungeon pause frame) is kept for every sprite.
+    const bool keyed = gfx::CurrentInterp2D().key == 0 && PortEffectSpriteTag(script, 0).key != 0;
+    auto       begin = [&](int blend) {
+        mgCDrawEnv environment(*mgGetpDrawEnv(0));
+        sceGsTest *test = &environment.test;
+        test->bits.zte = 1;
+        test->bits.ztst = 2;
+        environment.SetZBuf(MG_ZBUF_NO_WRITE);
+        environment.SetAlpha(blend);
+        renderer->CPSetDrawEnv(&environment);
+        renderer->CPSetTexture(texture);
+        renderer->BeginCPSprite();
+    };
+    begin(alpha);
+
+    for (int i = 0; i < count; i++) {
+        if (sprites[i].draw_flag == 0) {
+            continue;
+        }
+
+        _ES_SPRITE *sprite = &sprites[i];
+
+        if (alpha != sprite->alpha || keyed) {
+            alpha = sprite->alpha;
+            renderer->EndCPSprite();
+            begin(alpha);
+        }
+
+        if (keyed) {
+            mgPortTag3DSpriteBatch(renderer, PortEffectSpriteTag(script, i));
+        }
+
+        sceVu0FVECTOR size = {0.0f, 0.0f, 0.0f, 0.0f};
+        sceVu0FVECTOR uv0, uv1, position;
+        sceVu0FVECTOR color;
+        mgZeroVector(uv0);
+        mgZeroVector(uv1);
+        sceVu0AddVector(position, sprite->pos, offset);
+        position[3] = 1.0f;
+        *(u_long128 *) color = *(u_long128 *) sprite->color;
+
+        if (0.0f != sprite->blink_speed) {
+            for (int component = 0; component < 4; component++) {
+                color[component] += sinf(sprite->blink_phase) * sprite->blink_amp[component];
+                color[component] = std::clamp(color[component], 0.0f, 255.0f);
+            }
+
+            sprite->blink_phase += sprite->blink_speed;
+            sprite->blink_phase = mgAngleLimit(sprite->blink_phase);
+        } else {
+            for (int component = 0; component < 4; component++) {
+                color[component] = std::clamp(color[component], 0.0f, 255.0f);
+            }
+        }
+
+        if (script->light_flag) {
+            sceVu0FMATRIX light_direction, light_color;
+            sceVu0FVECTOR ambient;
+            mgGetLight(light_direction, light_color);
+            mgGetAmbient(ambient);
+            color[0] = 0.3 * light_color[0][0] + ambient[0];
+            color[1] = light_color[0][1] * 0.3 + ambient[1];
+            color[2] = light_color[0][2] * 0.3 + ambient[2];
+        }
+
+        size[0] = sprite->put_size[0] * sprite->scale[0];
+        size[1] = sprite->put_size[1] * sprite->scale[1];
+        size[2] = mgAngleLimit(sprite->rotz);
+        uv0[0] = sprite->uv[0];
+        uv0[1] = sprite->uv[1];
+        uv1[0] = sprite->uv[0] + sprite->uv[2];
+        uv1[1] = sprite->uv[1] + sprite->uv[3];
+        renderer->CPSetSprite(position, size, color, uv0, uv1);
+    }
+
+    renderer->EndCPSprite();
+}
+
+namespace {
+/**
+ * Where an effect's model and sprites are placed: its origin, plus its target character's position, or that of the
+ * character's named frame, when the effect follows it. Retail's Draw computes it for the models and the sprites alike.
+ */
+void EffectOffset(_EFF_SCRIPT *script, sceVu0FVECTOR offset) {
+    mgZeroVector(offset);
+
+    // Retail tests target_id >= 0 || target_id < 128, which every id passes.
+    if (script->auto_offset) {
+        CCharacter2 *character = now_scene->GetCharacter(script->target_id);
+
+        if (character != nullptr) {
+            sceVu0FVECTOR character_position;
+            character->GetPosition(character_position);
+
+            if (std::strcmp(script->offset_frame, "") != 0) {
+                mgCFrame *frame = character->CObjectFrame::frame;
+
+                if (frame != nullptr) {
+                    frame = frame->SearchFrame(script->offset_frame);
+
+                    if (frame != nullptr) {
+                        sceVu0FVECTOR frame_position;
+                        frame->GetWorldPosition0(frame_position);
+                        *(u_long128 *) character_position = *(u_long128 *) frame_position;
+                    }
+                }
+            }
+
+            *(u_long128 *) offset = *(u_long128 *) character_position;
+        }
+    }
+
+    sceVu0AddVector(offset, offset, script->origin);
+    offset[3] = 0.0f;
+}
+
+bool Hidden(const _EFF_SCRIPT *script) {
+    return script->state == EFF_SPT_STATE_HIDE_STOP || script->state == EFF_SPT_STATE_HIDE;
+}
+} // namespace
+
+// Retail's Draw: every effect's models, then every effect's sprites, the sprites built by PortDrawEffectSprites.
+PORT_OVERRIDE void CEffectScriptMan::Draw() {
+    mgCTextureManager *textures = &mgTexManager;
+    CMap              *map = now_scene->GetMap(now_scene->active_map);
+    CMapLightingInfo   lighting;
+
+    if (map != nullptr) {
+        map->GetLightInfo(&lighting);
+    }
+
+    for (_EFF_SCRIPT *script = head; script != nullptr; script = script->next) {
+        if (Hidden(script) || script->chara == nullptr) {
+            continue;
+        }
+
+        sceVu0FVECTOR offset;
+        EffectOffset(script, offset);
+        textures->ReloadTexture(script->texb, (sceVif1Packet *) nullptr);
+        sceVu0FVECTOR position;
+        script->chara->GetPosition(position);
+        sceVu0AddVector(position, position, offset);
+        position[3] = 1.0f;
+        script->chara->SetPosition(position);
+        script->chara->DrawDirect();
+        sceVu0SubVector(position, position, offset);
+        position[3] = 1.0f;
+        script->chara->SetPosition(position);
+
+        for (CCharacter2 *sub : script->sub_chara) {
+            if (sub != nullptr) {
+                sceVu0FVECTOR sub_position;
+                sub->GetPosition(sub_position);
+                sceVu0AddVector(sub_position, sub_position, offset);
+                sub_position[3] = 1.0f;
+                sub->SetPosition(sub_position);
+                sub->DrawDirect();
+                sceVu0SubVector(sub_position, sub_position, offset);
+                sub_position[3] = 1.0f;
+                sub->SetPosition(sub_position);
+            }
+        }
+    }
+
+    for (_EFF_SCRIPT *script = head; script != nullptr; script = script->next) {
+        if (Hidden(script) || script->sprite == nullptr) {
+            continue;
+        }
+
+        sceVu0FVECTOR offset;
+        EffectOffset(script, offset);
+        textures->ReloadTexture(script->texb, (sceVif1Packet *) nullptr);
+        mgCTexture *texture = textures->GetTexture(script->tex_name, script->texb);
+
+        if (texture != nullptr) {
+            sprite.Initialize();
+            sprite.BeginCreatePacket(1, nullptr);
+            PortDrawEffectSprites(script, texture, offset, &sprite);
+            sprite.EndCreatePacket();
+            sceVu0FMATRIX matrix;
+            mgUnitMatrix(matrix);
+            mgDrawDirect(&sprite, matrix);
+        }
+    }
 }

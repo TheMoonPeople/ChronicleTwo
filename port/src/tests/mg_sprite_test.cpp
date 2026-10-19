@@ -21,6 +21,7 @@ struct Batch {
     std::vector<gfx::Vertex2D> vertices;
     gfx::TextureBinding        texture;
     gfx::DrawState             state;
+    gfx::Interp2D              tag{}; /**< Interpolation tag current at the draw; billboard rigs only. */
 };
 
 class SinkRig {
@@ -197,7 +198,7 @@ public:
                                      const gfx::TextureBinding &texture, const gfx::DrawState &state) {
             batches.push_back({
                 .primitive = primitive, .vertices = {vertices.begin(), vertices.end()},
-                     .texture = texture, .state = state
+                     .texture = texture, .state = state, .tag = gfx::CurrentInterp2D()
             });
         });
     }
@@ -406,4 +407,41 @@ TEST(MgSprite, DrawWithoutBuiltPacketSubmitsNothing) {
     mgC3DSprite sprite;
     EXPECT_EQ(sprite.Draw(nullptr, kIdentity, &manager), 0);
     EXPECT_TRUE(rig.batches.empty());
+}
+
+TEST(MgSprite, TaggedBatchDrawsUnderItsTagAndOthersUnderTheCurrentOne) {
+    ScreenOffsetScope screen_offset(0x800, 0x800);
+    BillboardRig      rig;
+
+    mgRENDER_INFO render_info{};
+    SetOriginCamera(render_info, 4.0f, 1.0f, 200.0f);
+    mgCDrawManager manager;
+    manager.render_info = &render_info;
+
+    const gfx::Interp2D own{.key = 73, .generation = 4, .world_corners = true, .teleport_distance = 50.0f};
+    mgC3DSprite         sprite;
+    sprite.BeginCreatePacket(MG_3DSPRITE_MODE_ROTATE, &manager);
+    mgPortTag3DSpriteBatch(&sprite, own); // No batch is open yet, so this tags nothing.
+    sprite.BeginCPSprite();
+    mgPortTag3DSpriteBatch(&sprite, own);
+    AddBillboard(sprite, 0.0f);
+    sprite.EndCPSprite();
+    sprite.BeginCPSprite();
+    AddBillboard(sprite, 0.5f);
+    sprite.EndCPSprite();
+    sprite.EndCreatePacket();
+    {
+        const gfx::Interp2DScope outer({.key = 9, .generation = 2});
+        sprite.Draw(nullptr, kIdentity, &manager);
+        EXPECT_EQ(gfx::CurrentInterp2D().key, 9u);
+    }
+
+    ASSERT_EQ(rig.batches.size(), 2u);
+    EXPECT_EQ(rig.batches[0].tag.key, 73u);
+    EXPECT_EQ(rig.batches[0].tag.generation, 4u);
+    EXPECT_TRUE(rig.batches[0].tag.world_corners);
+    EXPECT_EQ(rig.batches[0].tag.teleport_distance, 50.0f);
+    EXPECT_EQ(rig.batches[1].tag.key, 9u);
+    EXPECT_EQ(rig.batches[1].tag.generation, 2u);
+    EXPECT_FALSE(rig.batches[1].tag.world_corners);
 }

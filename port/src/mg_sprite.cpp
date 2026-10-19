@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <optional>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -41,6 +42,8 @@ struct BillboardBatch {
     uint64_t                         tex0 = 0;
     uint64_t                         tex1 = 0;
     std::vector<vu1::Sprite3dRecord> billboards;
+    // Set by mgPortTag3DSpriteBatch: the batch is drawn under this tag rather than the one current at the draw.
+    std::optional<gfx::Interp2D> interpolation;
 };
 
 struct BillboardPacket {
@@ -111,7 +114,7 @@ gfx::Vertex2D SpriteVertex(const vu1::Sprite3dVertexF &s, const float *rgba, con
 }
 
 // Submitted as depth-tested 2D at the tick's screen corners, so a billboard's own motion is not interpolated
-// (docs/PC.md "Ticks and display frames").
+// (docs/PC.md "Ticks and display frames") unless mgPortTag3DSpriteBatch gave its batch a keyed tag.
 void SubmitSpriteBatch(const BillboardBatch &batch, const BillboardSetup &setup) {
     const vu1::Sprite3dParams  params{.ls = setup.local_screen, .vs0 = setup.vs0, .vs1 = setup.vs1, .fog = setup.fog, .guard_min = setup.guard_min, .guard_max = setup.guard_max};
     const int                  geom_mode = batch.rotated ? 1 : 0;
@@ -166,6 +169,12 @@ void SubmitSpriteBatch(const BillboardBatch &batch, const BillboardSetup &setup)
     const gfx::TextureBinding binding =
         batch.has_texture ? mgPortBinding(batch.tex0, batch.tex1) : gfx::TextureBinding{};
     const gfx::Primitive primitive = batch.rotated ? gfx::Primitive::Triangles : gfx::Primitive::Quads;
+
+    std::optional<gfx::Interp2DScope> tag;
+
+    if (batch.interpolation) {
+        tag.emplace(*batch.interpolation);
+    }
 
     if (sprite_sink) {
         sprite_sink(primitive, vertices, binding, state);
@@ -323,6 +332,14 @@ PORT_OVERRIDE int mgC3DSprite::Draw(u_int * /*tag*/, float (*matrix)[4], mgCDraw
 
 void mgPortSet3DSpriteSink(mgPortPrimSink sink) {
     sprite_sink = std::move(sink);
+}
+
+void mgPortTag3DSpriteBatch(mgC3DSprite *sprite, const gfx::Interp2D &interpolation) {
+    BillboardPacket &state = PacketOf(sprite);
+
+    if (state.batch_open && !state.batches.empty()) {
+        state.batches.back().interpolation = interpolation;
+    }
 }
 
 // No DMA chain on PC: returning 0 leaves the caller's VIF cursor where it was, and the draw is already submitted.
