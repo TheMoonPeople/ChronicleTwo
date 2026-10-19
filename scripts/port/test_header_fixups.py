@@ -53,6 +53,19 @@ class UnitFixups(unittest.TestCase):
         self.assertEqual(entries[46:], ["-1"] * 4)
         self.assertEqual(result.count("\n"), source.count("\n"))
 
+    def test_floor_list_debug_line_fits_four_floor_ids(self):
+        root = Path(__file__).resolve().parents[2]
+        source = (root / "ps2/src/dngmenu.cpp").read_text(encoding="latin-1")
+        self.assertEqual(source.count(r'sprintf(line, "Normal:%d\nSun:%d\n Moon :%d\n Star :%d", normal, sun, moon,'), 1)
+        result = header_fixups.fixup_unit_text("dngmenu.cpp", source)
+        self.assertEqual(result.count("char line[FONT_STR_MAX];"), 1)
+        self.assertNotIn("char line[32];", result)
+        self.assertEqual(result.count("\n"), source.count("\n"))
+        font = (root / "ps2/include/font.hpp").read_text(encoding="latin-1")
+        limit = int(re.search(r"FONT_STR_MAX\s*=\s*(0x[0-9A-Fa-f]+|\d+),", font).group(1), 0)
+        self.assertGreater(len("Normal:%d\nSun:%d\n Moon :%d\n Star :%d" % (0, 0, 0, 0)) + 1, 32)
+        self.assertLess(len("Normal:%d\nSun:%d\n Moon :%d\n Star :%d" % ((-(2**31),) * 4)), limit)
+
     def test_password_generator_avoids_host_random_without_changing_its_body(self):
         source = (Path(__file__).resolve().parents[2] / "ps2/src/password.cpp").read_text()
         result = header_fixups.fixup_unit_text("password.cpp", source)
