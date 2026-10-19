@@ -183,10 +183,8 @@ UNIT_FIXUPS = [
     ("menuop.cpp", "static short manual_boot_event_no[47] = {", "static short manual_boot_event_no[50] = {"),
     ("menuop.cpp", "SAVE_FLAG_FINNY_FRENZY_UNLOCKED, SAVE_FLAG_FINNY_FRENZY_UNLOCKED, -1};",
      "SAVE_FLAG_FINNY_FRENZY_UNLOCKED, SAVE_FLAG_FINNY_FRENZY_UNLOCKED, -1, -1, -1, -1};"),
-    # The floor list's debug panel (R3 with DebugFlag) prints a room's four next-floor IDs into a 32-byte line, but
-    # one-digit IDs already take 33 bytes. Retail wrote the terminator into padding. Release builds place the panel's
-    # font string there, so SetStr's strcpy copies over its own terminator until it runs off the stack. FONT_STR_MAX,
-    # SetStr's own limit, holds any four IDs.
+    # The floor list's debug panel (R3 with DebugFlag) prints a room's four next-floor IDs into its line; one-digit IDs
+    # already need 33 bytes. FONT_STR_MAX, SetStr's own limit, holds any four IDs and the terminator.
     ("dngmenu.cpp", "                char line[32];", "                char line[FONT_STR_MAX];"),
     # Fusion colours can target a float-aligned ambient field rather than a quadword boundary.
     ("menusys.cpp", "*(u_long128 *) color = *(u_long128 *) fusion_ambient;",
