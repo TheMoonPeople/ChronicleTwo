@@ -47,9 +47,14 @@ def _bool(value: bool) -> str:
 
 
 def _param(param: dict) -> str:
-    """Render one parameter as a Param initializer; a tagged parameter's type is the call's choice."""
-    tagged = ", true" if param.get("tagged") else ""
-    return f"{{{DIRECTIONS[param['dir']]}, {TYPES[param['type']]}{tagged}}}"
+    """Render one parameter as a Param initializer; a tagged parameter's type is the call's choice, and a deferred
+    output is written after the call."""
+    flags = ""
+    if param.get("deferred"):
+        flags = f", {_bool(bool(param.get('tagged')))}, true"
+    elif param.get("tagged"):
+        flags = ", true"
+    return f"{{{DIRECTIONS[param['dir']]}, {TYPES[param['type']]}{flags}}}"
 
 
 def _validate_kinds(catalog: dict, kinds: list[str]) -> None:

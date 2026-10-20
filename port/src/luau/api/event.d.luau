@@ -9,8 +9,8 @@ declare event: {
 	GetPaddown: () -> s32?,
 	GetPaddown_1: () -> s32?,
 	--- Pushes the buttons newly released on the pad onto the stack.
-	GetPadup: () -> any?,
-	GetPadup_1: () -> any?,
+	GetPadup: () -> s32?,
+	GetPadup_1: () -> s32?,
 	--- Pushes the analog stick axes onto the stack, one value per requested argument.
 	GetApad: () -> (f32?, f32?, f32?, f32?),
 	GetApad_2: () -> (f32?, f32?),
@@ -64,9 +64,9 @@ declare event: {
 	LoadMotion: (stack_no: s32, pack_name: string, motion_name: string, chara_no: s32) -> (),
 	LoadMotion_4: (stack_no: s32, pack_name: string, motion_name: string, chara_no: s32) -> (),
 	--- Requests a move to a map, named by number or by name, from a jump point.
-	MapJump: ((arg1: s32, arg2: string) -> ()) & ((arg1: s32, arg2: string, arg3: s32) -> ()),
-	MapJump_2: (arg1: s32, arg2: string) -> (),
-	MapJump_3: (arg1: s32, arg2: string, arg3: s32) -> (),
+	MapJump: ((arg1: s32, arg2: s32 | string) -> ()) & ((arg1: s32, arg2: s32 | string, arg3: s32) -> ()),
+	MapJump_2: (arg1: s32, arg2: s32 | string) -> (),
+	MapJump_3: (arg1: s32, arg2: s32 | string, arg3: s32) -> (),
 	--- Starts the event rain when the argument is nonzero, otherwise stops it.
 	SetRain: (arg1: s32) -> (),
 	SetRain_1: (arg1: s32) -> (),
@@ -101,8 +101,8 @@ declare event: {
 	LoadItem_4: (arg1: s32, arg2: s32, arg3: string, arg4: s32) -> (),
 	LoadItem_5: (stack_no: s32, item_no: s32, name: string, chara_no: s32, index: s32) -> (),
 	--- Opens the use item menu for the item in the given stack slot, passing the remaining values as menu parameters.
-	GotoUseItem: (arg2: s32) -> s32?,
-	GotoUseItem_2: (arg2: s32) -> s32?,
+	GotoUseItem: (arg2: s32) -> (),
+	GotoUseItem_2: (arg2: s32) -> (),
 	--- Sets a local event flag to the given value.
 	SetLocalFlag: (index: s32, arg2: s32) -> (),
 	SetLocalFlag_2: (index: s32, arg2: s32) -> (),
@@ -113,13 +113,13 @@ declare event: {
 	GotoSelectParty: () -> (),
 	GotoSelectParty_0: () -> (),
 	--- Loads each listed background file into the read buffer in sequence.
-	SetLoadbgFile: ((arg1: string) -> ()) & ((arg1: string, arg2: string) -> ()) & ((item_no: s32, arg2: s32, name: string) -> ()) & ((arg1: string, arg2: string, arg3: string, arg4: string) -> ()) & ((arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string) -> ()) & ((arg1: any, arg2: s32, arg3: s32, arg4: s32, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string, arg10: string) -> ()),
-	SetLoadbgFile_1: (arg1: string) -> (),
-	SetLoadbgFile_2: (arg1: string, arg2: string) -> (),
-	SetLoadbgFile_3: (item_no: s32, arg2: s32, name: string) -> (),
-	SetLoadbgFile_4: (arg1: string, arg2: string, arg3: string, arg4: string) -> (),
-	SetLoadbgFile_9: (arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string) -> (),
-	SetLoadbgFile_10: (arg1: any, arg2: s32, arg3: s32, arg4: s32, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string, arg10: string) -> (),
+	SetLoadbgFile: ((arg1: s32 | string) -> ()) & ((arg1: s32 | string, arg2: s32 | string) -> ()) & ((item_no: s32 | string, arg2: s32 | string, name: s32 | string) -> ()) & ((arg1: s32 | string, arg2: s32 | string, arg3: s32 | string, arg4: s32 | string) -> ()) & ((arg1: s32 | string, arg2: s32 | string, arg3: s32 | string, arg4: s32 | string, arg5: s32 | string, arg6: s32 | string, arg7: s32 | string, arg8: s32 | string, arg9: s32 | string) -> ()) & ((arg1: s32 | string, arg2: s32 | string, arg3: s32 | string, arg4: s32 | string, arg5: s32 | string, arg6: s32 | string, arg7: s32 | string, arg8: s32 | string, arg9: s32 | string, arg10: s32 | string) -> ()),
+	SetLoadbgFile_1: (arg1: s32 | string) -> (),
+	SetLoadbgFile_2: (arg1: s32 | string, arg2: s32 | string) -> (),
+	SetLoadbgFile_3: (item_no: s32 | string, arg2: s32 | string, name: s32 | string) -> (),
+	SetLoadbgFile_4: (arg1: s32 | string, arg2: s32 | string, arg3: s32 | string, arg4: s32 | string) -> (),
+	SetLoadbgFile_9: (arg1: s32 | string, arg2: s32 | string, arg3: s32 | string, arg4: s32 | string, arg5: s32 | string, arg6: s32 | string, arg7: s32 | string, arg8: s32 | string, arg9: s32 | string) -> (),
+	SetLoadbgFile_10: (arg1: s32 | string, arg2: s32 | string, arg3: s32 | string, arg4: s32 | string, arg5: s32 | string, arg6: s32 | string, arg7: s32 | string, arg8: s32 | string, arg9: s32 | string, arg10: s32 | string) -> (),
 	--- Pushes the result of the pending background file read onto the stack.
 	CheckLoadbgFile: () -> s32?,
 	CheckLoadbgFile_1: () -> s32?,
@@ -140,8 +140,8 @@ declare event: {
 	GetItemType: (arg1: s32) -> s32?,
 	GetItemType_2: (arg1: s32) -> s32?,
 	--- Pushes the amount of used inventory space onto the stack.
-	GetItemSpace: () -> any?,
-	GetItemSpace_1: () -> any?,
+	GetItemSpace: () -> s32?,
+	GetItemSpace_1: () -> s32?,
 	--- Pushes the polygon scale that fits a character frame to the given size.
 	GetAdjustPolygonScale: (chara_no: s32, size: f32) -> f32?,
 	GetAdjustPolygonScale_3: (chara_no: s32, size: f32) -> f32?,
@@ -304,8 +304,8 @@ declare event: {
 	CopyChara: (stack_no: s32, src_no: s32, dst_no: s32) -> (),
 	CopyChara_3: (stack_no: s32, src_no: s32, dst_no: s32) -> (),
 	--- Pushes the start button setting onto the stack.
-	GetStartButton: () -> any?,
-	GetStartButton_1: () -> any?,
+	GetStartButton: () -> s32?,
+	GetStartButton_1: () -> s32?,
 	--- Requests a move to an interior map from a jump point, with an optional event number.
 	MoveInterior: (jump_point: s32, arg2: string, event_no: s32) -> (),
 	MoveInterior_3: (jump_point: s32, arg2: string, event_no: s32) -> (),
@@ -314,8 +314,8 @@ declare event: {
 	GetMonsterTalkData_2: () -> (s32?, s32?),
 	GetMonsterTalkData_3: () -> (s32?, s32?, s32?),
 	--- Sets whether a function point is enabled, found by name in a map or in its parts.
-	FuncPointShow: (arg1: string, arg2: string, arg3: s32) -> (),
-	FuncPointShow_3: (arg1: string, arg2: string, arg3: s32) -> (),
+	FuncPointShow: (arg1: s32 | string, arg2: string, arg3: s32) -> (),
+	FuncPointShow_3: (arg1: s32 | string, arg2: string, arg3: s32) -> (),
 	--- Pushes the current map number onto the stack.
 	GetNowMapNo: () -> s32?,
 	GetNowMapNo_1: () -> s32?,
@@ -397,8 +397,8 @@ declare event: {
 	SetCharaShow_2: (arg1: s32, arg2: s32) -> (),
 	SetCharaShow_4: (arg1: s32, show: s32, fade: s32, fade_speed: f32) -> (),
 	--- Gives whether a character is shown, and its fade when two values are requested.
-	GetCharaShow: (arg1: s32) -> (any?, any?),
-	GetCharaShow_3: (arg1: s32) -> (any?, any?),
+	GetCharaShow: (arg1: s32) -> (s32?, s32?),
+	GetCharaShow_3: (arg1: s32) -> (s32?, s32?),
 	--- Sets whether a character's D-animation is enabled.
 	CharaDaEnable: (arg1: s32, arg2: s32) -> (),
 	CharaDaEnable_2: (arg1: s32, arg2: s32) -> (),
@@ -418,9 +418,9 @@ declare event: {
 	ActchrSoundInfoCopy: (arg1: s32) -> (),
 	ActchrSoundInfoCopy_1: (arg1: s32) -> (),
 	--- Makes a message window from a message number or a string on the stack, optionally giving its character count.
-	MesMake: (arg1: s32, arg2: any) -> s32?,
-	MesMake_2: (arg1: s32, arg2: string) -> (),
-	MesMake_3: (arg1: s32, arg2: any) -> s32?,
+	MesMake: (arg1: s32, arg2: s32 | string) -> s32?,
+	MesMake_2: (arg1: s32, arg2: s32 | string) -> (),
+	MesMake_3: (arg1: s32, arg2: s32 | string) -> s32?,
 	--- Closes a message window and resets its state.
 	MesClose: (arg1: s32) -> (),
 	MesClose_1: (arg1: s32) -> (),
@@ -918,8 +918,8 @@ declare event: {
 	GetBpotPos: () -> (f32?, f32?, f32?),
 	GetBpotPos_3: () -> (f32?, f32?, f32?),
 	--- Pushes the state of the breakable pot onto the stack.
-	GetBpotStatus: () -> any?,
-	GetBpotStatus_1: () -> any?,
+	GetBpotStatus: () -> s32?,
+	GetBpotStatus_1: () -> s32?,
 	--- Does nothing and fails.
 	GetPersonStatus: (arg1: s32) -> s32?,
 	GetPersonStatus_2: (arg1: s32) -> s32?,
@@ -1036,11 +1036,11 @@ declare event: {
 	GetFcameraAngle: () -> f32?,
 	GetFcameraAngle_1: () -> f32?,
 	--- Gives the height of the active follow camera.
-	GetFcameraHeight: () -> any?,
-	GetFcameraHeight_1: () -> any?,
+	GetFcameraHeight: () -> f32?,
+	GetFcameraHeight_1: () -> f32?,
 	--- Gives the distance of the active follow camera.
-	GetFcameraDist: () -> any?,
-	GetFcameraDist_1: () -> any?,
+	GetFcameraDist: () -> f32?,
+	GetFcameraDist_1: () -> f32?,
 	--- Gives whether the invention with the id on the stack has already been created.
 	GetInventionId: (invention_id: s32) -> s32?,
 	GetInventionId_2: (invention_id: s32) -> s32?,
@@ -1076,8 +1076,8 @@ declare event: {
 	CheckInventPhoto_2: (id: s32) -> s32?,
 	CheckInventPhoto_3: (id: s32, check: s32) -> s32?,
 	--- Gives the number of pictures the player holds.
-	GetPhotoNum: () -> any?,
-	GetPhotoNum_1: () -> any?,
+	GetPhotoNum: () -> s32?,
+	GetPhotoNum_1: () -> s32?,
 	--- Does nothing.
 	SetContentsEtc: () -> (),
 	SetContentsEtc_0: () -> (),
@@ -1162,10 +1162,10 @@ declare event: {
 	GetQuestEtc: (command: s32, quest_no: s32) -> s32?,
 	GetQuestEtc_3: (command: s32, quest_no: s32) -> s32?,
 	--- Finds the collision points of a radius-wide pipe swept along a segment against the event's collision polygons and treasure boxes.
-	ChkIntersectionPointPipe: (ignore_mask: s32, from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32, radius: f32, check_box: s32) -> (any?, any?, any?, f32?, f32?, f32?, s32?, s32?),
+	ChkIntersectionPointPipe: (ignore_mask: s32, from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32, radius: f32, check_box: s32) -> (f32?, f32?, f32?, f32?, f32?, f32?, s32?, s32?),
 	ChkIntersectionPointPipe_12: (ignore_mask: s32, from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32, radius: f32, check_box: s32) -> (s32?, s32?, f32?),
-	ChkIntersectionPointPipe_14: (ignore_mask: s32, from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32, radius: f32, check_box: s32) -> (any?, any?, any?, s32?, s32?),
-	ChkIntersectionPointPipe_17: (ignore_mask: s32, from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32, radius: f32, check_box: s32) -> (any?, any?, any?, f32?, f32?, f32?, s32?, s32?),
+	ChkIntersectionPointPipe_14: (ignore_mask: s32, from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32, radius: f32, check_box: s32) -> (f32?, f32?, f32?, s32?, s32?),
+	ChkIntersectionPointPipe_17: (ignore_mask: s32, from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32, radius: f32, check_box: s32) -> (f32?, f32?, f32?, f32?, f32?, f32?, s32?, s32?),
 	--- Gives the number of the previous interior map.
 	GetOldInteriorMapNo: () -> s32?,
 	GetOldInteriorMapNo_1: () -> s32?,
@@ -1208,9 +1208,9 @@ declare event: {
 	SndInitPort: (arg1: s32) -> (),
 	SndInitPort_1: (arg1: s32) -> (),
 	--- Loads a sound effect from a default event SE file or a named file into a sound port and records its sound ID.
-	SndLoadSound: ((arg1: s32) -> s32?) & ((arg1: s32, arg2: string) -> s32?),
-	SndLoadSound_2: (arg1: s32) -> s32?,
-	SndLoadSound_3: (arg1: s32, arg2: string) -> s32?,
+	SndLoadSound: ((arg1: s32 | string) -> s32?) & ((arg1: s32, arg2: s32 | string) -> s32?),
+	SndLoadSound_2: (arg1: s32 | string) -> s32?,
+	SndLoadSound_3: (arg1: s32, arg2: s32 | string) -> s32?,
 	--- Plays a sound effect on a voice, with optional volume and pan.
 	SndSePlay: ((se_id: s32, voice: s32) -> ()) & ((se_id: s32, voice: s32, volume: s32) -> ()),
 	SndSePlay_2: (se_id: s32, voice: s32) -> (),
@@ -1225,8 +1225,14 @@ declare event: {
 	SndSeStop: (se_id: s32, arg2: s32) -> (),
 	SndSeStop_2: (se_id: s32, arg2: s32) -> (),
 	--- Sets a sound effect volume, given as an integer or a float.
-	SndSetSeVol: (se_id: s32, voice: s32, arg3: s32) -> (),
-	SndSetSeVol_3: (se_id: s32, voice: s32, arg3: s32) -> (),
+	SndSetSeVol: (se_id: s32, voice: s32, volume: s32) -> (),
+	SndSetSeVol_3: (se_id: s32, voice: s32, volume: s32) -> (),
+	--- SndSetSeVol with its value as an integer.
+	SndSetSeVolInt: (se_id: s32, voice: s32, volume: s32) -> (),
+	SndSetSeVolInt_3: (se_id: s32, voice: s32, volume: s32) -> (),
+	--- SndSetSeVol with its value as a float.
+	SndSetSeVolFloat: (se_id: s32, voice: s32, volume: f32) -> (),
+	SndSetSeVolFloat_3: (se_id: s32, voice: s32, volume: f32) -> (),
 	--- Sets a sound effect pan over a time.
 	SndSetSePan: (se_id: s32, pan: s32, time: s32) -> (),
 	SndSetSePan_3: (se_id: s32, pan: s32, time: s32) -> (),
@@ -1247,8 +1253,8 @@ declare event: {
 	StopBgm: (arg1: s32) -> (),
 	StopBgm_1: (arg1: s32) -> (),
 	--- Opens the event voice stream from a voice number, voice pack or file name.
-	StreamOpen: (arg1: s32, arg2: any) -> (),
-	StreamOpen_2: (arg1: s32, arg2: any) -> (),
+	StreamOpen: (arg1: s32, arg2: s32 | string) -> (),
+	StreamOpen_2: (arg1: s32, arg2: s32 | string) -> (),
 	--- Plays the event voice stream with an optional volume.
 	StreamPlay: (arg1: s32) -> (),
 	StreamPlay_1: (arg1: s32) -> (),
@@ -1322,8 +1328,14 @@ declare event: {
 	FadeOutBgm: (frames60: s32) -> (),
 	FadeOutBgm_1: (frames60: s32) -> (),
 	--- Sets the background music volume from an integer, or from a float scaled by the current volume.
-	SetBgmVol: (arg1: s32) -> (),
-	SetBgmVol_1: (arg1: s32) -> (),
+	SetBgmVol: (volume: s32) -> (),
+	SetBgmVol_1: (volume: s32) -> (),
+	--- SetBgmVol with its value as an integer.
+	SetBgmVolInt: (volume: s32) -> (),
+	SetBgmVolInt_1: (volume: s32) -> (),
+	--- SetBgmVol with its value as a float.
+	SetBgmVolFloat: (volume: f32) -> (),
+	SetBgmVolFloat_1: (volume: f32) -> (),
 	--- Does nothing and fails.
 	SndSetReverb: () -> (),
 	SndSetReverb_0: () -> (),
@@ -1432,10 +1444,10 @@ declare event: {
 	EohSyncChara: (slot: s32, chara_no: s32) -> (),
 	EohSyncChara_2: (slot: s32, chara_no: s32) -> (),
 	--- Attaches an event object handle to a map part or to a piece of one.
-	EohSyncObj: ((arg1: s32, arg2: string) -> ()) & ((arg1: s32, arg2: string, arg3: string) -> ()) & ((arg1: s32, arg2: string, arg3: string, arg4: string) -> ()),
-	EohSyncObj_2: (arg1: s32, arg2: string) -> (),
-	EohSyncObj_3: (arg1: s32, arg2: string, arg3: string) -> (),
-	EohSyncObj_4: (arg1: s32, arg2: string, arg3: string, arg4: string) -> (),
+	EohSyncObj: ((arg1: s32, arg2: s32 | string) -> ()) & ((arg1: s32, arg2: s32 | string, arg3: string) -> ()) & ((arg1: s32, arg2: s32 | string, arg3: string, arg4: string) -> ()),
+	EohSyncObj_2: (arg1: s32, arg2: s32 | string) -> (),
+	EohSyncObj_3: (arg1: s32, arg2: s32 | string, arg3: string) -> (),
+	EohSyncObj_4: (arg1: s32, arg2: s32 | string, arg3: string, arg4: string) -> (),
 	--- Sets an event object position from direct arguments or an argument list.
 	EohSetPos: (slot: s32, pos_x: f32, pos_y: f32, pos_z: f32) -> (),
 	EohSetPos_4: (slot: s32, pos_x: f32, pos_y: f32, pos_z: f32) -> (),
@@ -1459,9 +1471,9 @@ declare event: {
 	EohSetStep: (argc: s32, arg2: f32) -> (),
 	EohSetStep_2: (argc: s32, arg2: f32) -> (),
 	--- Sets an event object texture animation from one name, or from an off name and an on name.
-	EohSetTexAnim: ((arg1: s32, arg2: s32) -> ()) & ((arg1: s32, arg2: s32, arg3: string) -> ()),
-	EohSetTexAnim_2: (arg1: s32, arg2: s32) -> (),
-	EohSetTexAnim_3: (arg1: s32, arg2: s32, arg3: string) -> (),
+	EohSetTexAnim: ((arg1: s32, arg2: s32 | string) -> ()) & ((arg1: s32, arg2: s32 | string, arg3: string) -> ()),
+	EohSetTexAnim_2: (arg1: s32, arg2: s32 | string) -> (),
+	EohSetTexAnim_3: (arg1: s32, arg2: s32 | string, arg3: string) -> (),
 	--- Sets an event object scale.
 	EohSetScale: (no: s32, x: f32, y: f32, z: f32) -> (),
 	EohSetScale_4: (no: s32, x: f32, y: f32, z: f32) -> (),
@@ -1520,14 +1532,14 @@ declare event: {
 	EohNormalDrive: (arg1: s32) -> (),
 	EohNormalDrive_1: (arg1: s32) -> (),
 	--- Attaches an event object handle to an edit map part or to a piece of one.
-	EohSyncEditObj: (arg1: s32, arg2: string, arg3: string) -> (),
-	EohSyncEditObj_3: (arg1: s32, arg2: string, arg3: string) -> (),
+	EohSyncEditObj: (arg1: s32, arg2: s32 | string, arg3: string) -> (),
+	EohSyncEditObj_3: (arg1: s32, arg2: s32 | string, arg3: string) -> (),
 	--- Sets the alpha of a frame of an event object.
 	EohSetFrameAlpha: (no: s32, name: string, alpha: f32) -> (),
 	EohSetFrameAlpha_3: (no: s32, name: string, alpha: f32) -> (),
 	--- Attaches an event object handle to a function point of a map or of a map part.
-	EohSyncFuncp: (arg1: s32, arg2: s32, arg3: string) -> (),
-	EohSyncFuncp_3: (arg1: s32, arg2: s32, arg3: string) -> (),
+	EohSyncFuncp: (arg1: s32, arg2: s32 | string, arg3: string) -> (),
+	EohSyncFuncp_3: (arg1: s32, arg2: s32 | string, arg3: string) -> (),
 	--- Sets an event object footstep effect identifier and returns the update status.
 	EohSetFootSeId: (slot: s32, arg2: s32) -> (),
 	EohSetFootSeId_2: (slot: s32, arg2: s32) -> (),
@@ -1635,8 +1647,8 @@ declare event: {
 	SphidaSetLastChallenge: (last_challenge: s32) -> (),
 	SphidaSetLastChallenge_1: (last_challenge: s32) -> (),
 	--- Pushes the last Sphida challenge.
-	SphidaGetLastChallenge: () -> any?,
-	SphidaGetLastChallenge_1: () -> any?,
+	SphidaGetLastChallenge: () -> s32?,
+	SphidaGetLastChallenge_1: () -> s32?,
 	--- Pushes the Sphida bonus course mode.
 	SphidaGetOmakeMode: () -> s32?,
 	SphidaGetOmakeMode_1: () -> s32?,
@@ -1698,8 +1710,14 @@ declare event: {
 	AngleLimit: (angle: f32) -> f32?,
 	AngleLimit_1: (angle: f32) -> f32?,
 	--- Pushes a random float or integer in the range given, depending on the type of the range argument.
-	GetRand: (arg1: f32) -> f32?,
-	GetRand_2: (arg1: f32) -> f32?,
+	GetRand: (range: f32) -> f32?,
+	GetRand_2: (range: f32) -> f32?,
+	--- GetRand with its value as an integer.
+	GetRandInt: (range: s32) -> s32?,
+	GetRandInt_2: (range: s32) -> s32?,
+	--- GetRand with its value as a float.
+	GetRandFloat: (range: f32) -> f32?,
+	GetRandFloat_2: (range: f32) -> f32?,
 	--- Pushes the distance from a point to a line segment, or -1 when the point projects outside the segment.
 	LinePointDist: (arg1: f32, arg2: f32, arg3: f32, arg4: f32, arg5: f32, arg6: f32, arg7: f32, arg8: f32, arg9: f32) -> f32?,
 	LinePointDist_10: (arg1: f32, arg2: f32, arg3: f32, arg4: f32, arg5: f32, arg6: f32, arg7: f32, arg8: f32, arg9: f32) -> f32?,
@@ -1803,11 +1821,11 @@ declare event: {
 	DngResetTimer: () -> (),
 	DngResetTimer_0: () -> (),
 	--- Pushes the timer of the dungeon battle area.
-	DngGetTimer: () -> any?,
-	DngGetTimer_1: () -> any?,
+	DngGetTimer: () -> s32?,
+	DngGetTimer_1: () -> s32?,
 	--- Loads a character skin from a pack file into a scene stack slot.
-	LoadSkin: (stack_no: s32, arg2: s32, pack_file: string, info_name: string, chara_no: s32) -> (),
-	LoadSkin_5: (stack_no: s32, arg2: s32, pack_file: string, info_name: string, chara_no: s32) -> (),
+	LoadSkin: (stack_no: s32, pack_file: s32 | string, info_name: string, chara_no: s32) -> (),
+	LoadSkin_4: (stack_no: s32, pack_file: s32 | string, info_name: string, chara_no: s32) -> (),
 	--- Checks for map collision along a segment, pushing the hit position and the hit flag.
 	ChkCameraCol: (from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32) -> s32?,
 	ChkCameraCol_7: (from_x: f32, from_y: f32, from_z: f32, to_x: f32, to_y: f32, to_z: f32) -> s32?,
@@ -1842,8 +1860,8 @@ declare event: {
 	SetExitFlag: (exit_flag: s32) -> (),
 	SetExitFlag_1: (exit_flag: s32) -> (),
 	--- Pushes the scene exit flag.
-	GetExitFlag: () -> any?,
-	GetExitFlag_1: () -> any?,
+	GetExitFlag: () -> s32?,
+	GetExitFlag_1: () -> s32?,
 	--- Pushes the E3 version, which is always zero.
 	GetE3Version: () -> s32?,
 	GetE3Version_1: () -> s32?,
@@ -1876,8 +1894,8 @@ declare event: {
 	GetEventInfoSndid: (index: s32) -> s32?,
 	GetEventInfoSndid_2: (index: s32) -> s32?,
 	--- Pushes the position of a map parts, looked up by ID or name.
-	GetPartsPos: (parts_id: s32, parts_name: string) -> (f32?, f32?, f32?),
-	GetPartsPos_5: (parts_id: s32, parts_name: string) -> (f32?, f32?, f32?),
+	GetPartsPos: (parts_id: s32 | string, parts_name: string) -> (f32?, f32?, f32?),
+	GetPartsPos_5: (parts_id: s32 | string, parts_name: string) -> (f32?, f32?, f32?),
 	--- Cancels the current drama scene.
 	CancelDramaScene: () -> (),
 	CancelDramaScene_0: () -> (),
@@ -1940,9 +1958,9 @@ declare event: {
 	GetDebugMode: () -> s32?,
 	GetDebugMode_1: () -> s32?,
 	--- Pushes the type of a map, looked up by number or name.
-	GetMapType: (() -> s32?) & ((arg1: s32) -> s32?),
+	GetMapType: (() -> s32?) & ((arg1: s32 | string) -> s32?),
 	GetMapType_1: () -> s32?,
-	GetMapType_2: (arg1: s32) -> s32?,
+	GetMapType_2: (arg1: s32 | string) -> s32?,
 	--- Reinitializes all dungeon collision primitives.
 	DngCollisionAllClr: () -> (),
 	DngCollisionAllClr_0: () -> (),
@@ -1976,8 +1994,8 @@ declare event: {
 	EsmClear: () -> (),
 	EsmClear_0: () -> (),
 	--- Loads a base effect script by number or name.
-	EsmLoadBase: (arg1: s32) -> (),
-	EsmLoadBase_1: (arg1: s32) -> (),
+	EsmLoadBase: (arg1: s32 | string) -> (),
+	EsmLoadBase_1: (arg1: s32 | string) -> (),
 	--- Creates an effect script, optionally in a group.
 	EsmCreate: ((name: string) -> ()) & ((name: string, group: s32) -> s32?),
 	EsmCreate_1: (name: string) -> (),
@@ -2002,8 +2020,14 @@ declare event: {
 	EsmLoadBasePack: (pack_name: string, file_name: string) -> (),
 	EsmLoadBasePack_2: (pack_name: string, file_name: string) -> (),
 	--- Sets an integer or float value of an effect script, optionally for a group and slot.
-	EsmSetValue: (value_no: s32, arg2: s32) -> (),
-	EsmSetValue_2: (value_no: s32, arg2: s32) -> (),
+	EsmSetValue: (value_no: s32, value: s32) -> (),
+	EsmSetValue_2: (value_no: s32, value: s32) -> (),
+	--- EsmSetValue with its value as an integer.
+	EsmSetValueInt: (value_no: s32, value: s32) -> (),
+	EsmSetValueInt_2: (value_no: s32, value: s32) -> (),
+	--- EsmSetValue with its value as a float.
+	EsmSetValueFloat: (value_no: s32, value: f32) -> (),
+	EsmSetValueFloat_2: (value_no: s32, value: f32) -> (),
 	--- Sets a character battle attribute or status attribute.
 	SetCharaCondition: (chara_no: s32, attr: s32, value: s32) -> (),
 	SetCharaCondition_3: (chara_no: s32, attr: s32, value: s32) -> (),
@@ -2048,12 +2072,12 @@ declare event: {
 	ScrEffStopRaster: (amplitude: f32, speed: f32, pitch: f32, frames: s32) -> (),
 	ScrEffStopRaster_4: (amplitude: f32, speed: f32, pitch: f32, frames: s32) -> (),
 	--- Sets the motion of the character on a map piece of a map parts.
-	SetMpcharaMotion: ((arg1: string, arg2: string, arg3: string) -> ()) & ((arg1: s32, arg2: string, arg3: string, arg4: s32) -> ()),
-	SetMpcharaMotion_3: (arg1: string, arg2: string, arg3: string) -> (),
-	SetMpcharaMotion_4: (arg1: s32, arg2: string, arg3: string, arg4: s32) -> (),
+	SetMpcharaMotion: ((arg1: s32 | string, arg2: string, arg3: string) -> ()) & ((arg1: s32 | string, arg2: string, arg3: string, arg4: s32) -> ()),
+	SetMpcharaMotion_3: (arg1: s32 | string, arg2: string, arg3: string) -> (),
+	SetMpcharaMotion_4: (arg1: s32 | string, arg2: string, arg3: string, arg4: s32) -> (),
 	--- Sets the position of a function point, found by parts and name or by place and name.
-	FuncPointPos: (arg1: s32, arg2: string, arg3: f32, arg4: f32, arg5: f32) -> (),
-	FuncPointPos_5: (arg1: s32, arg2: string, arg3: f32, arg4: f32, arg5: f32) -> (),
+	FuncPointPos: (arg1: s32 | string, arg2: string, arg3: f32, arg4: f32, arg5: f32) -> (),
+	FuncPointPos_5: (arg1: s32 | string, arg2: string, arg3: f32, arg4: f32, arg5: f32) -> (),
 	--- Rotates the camera control back by an angle.
 	CtrlcRotBack: (angle: f32) -> (),
 	CtrlcRotBack_1: (angle: f32) -> (),
@@ -2067,11 +2091,11 @@ declare event: {
 	SetFloorEpisode: (arg1: s32) -> (),
 	SetFloorEpisode_1: (arg1: s32) -> (),
 	--- Pushes the position of a function point.
-	FuncPointGetPos: (arg1: string, arg2: string) -> (f32?, f32?, f32?),
-	FuncPointGetPos_5: (arg1: string, arg2: string) -> (f32?, f32?, f32?),
+	FuncPointGetPos: (arg1: s32 | string, arg2: string) -> (f32?, f32?, f32?),
+	FuncPointGetPos_5: (arg1: s32 | string, arg2: string) -> (f32?, f32?, f32?),
 	--- Pushes the rotation of a function point.
-	FuncPointGetRot: (arg1: string, arg2: string) -> f32?,
-	FuncPointGetRot_3: (arg1: string, arg2: string) -> f32?,
+	FuncPointGetRot: (arg1: s32 | string, arg2: string) -> f32?,
+	FuncPointGetRot_3: (arg1: s32 | string, arg2: string) -> f32?,
 	--- Resets an action character and sets its default motion.
 	ActchrSetDefMotion: ((arg1: s32) -> ()) & ((chara_no: s32, motion_arg: s32) -> ()),
 	ActchrSetDefMotion_1: (arg1: s32) -> (),
@@ -2150,8 +2174,8 @@ declare event: {
 	PlacePartsNameStrcmp: (arg1: s32, arg2: string) -> s32?,
 	PlacePartsNameStrcmp_3: (arg1: s32, arg2: string) -> s32?,
 	--- Opens the use item menu for a pointer and its parameters.
-	GotoUseItem2: (arg2: s32, arg3: s32) -> s32?,
-	GotoUseItem2_3: (arg2: s32, arg3: s32) -> s32?,
+	GotoUseItem2: (arg2: s32, arg3: s32) -> (),
+	GotoUseItem2_3: (arg2: s32, arg3: s32) -> (),
 	--- Sets an analyze flag of an edit data area.
 	DbgSetAnalyzeFlag: (arg1: s32, arg2: s32, arg3: s32) -> (),
 	DbgSetAnalyzeFlag_3: (arg1: s32, arg2: s32, arg3: s32) -> (),
@@ -2165,8 +2189,8 @@ declare event: {
 	SetMapEffectId: (map_effect_id: s32) -> (),
 	SetMapEffectId_1: (map_effect_id: s32) -> (),
 	--- Pushes the map effect ID of the dungeon.
-	GetMapEffectId: () -> any?,
-	GetMapEffectId_1: () -> any?,
+	GetMapEffectId: () -> s32?,
+	GetMapEffectId_1: () -> s32?,
 	--- Initializes the dungeon floor.
 	DngFloorInit: () -> (),
 	DngFloorInit_0: () -> (),
@@ -2234,6 +2258,10 @@ declare event: {
 	--- Forces the tour boot on the save data day.
 	ForceBootTour: () -> (),
 	ForceBootTour_0: () -> (),
+	--- What the handler of a deferred output wrote through it since the call, while the script waited; nil when it wrote nothing.
+	DeferredOutput: () -> number?,
 	--- Calls a command number that this kind does not register, or an arity the catalog does not list; it returns nothing.
 	Ext: (no: number, ...any) -> (),
+	--- Calls a command with the tags retail pushes; tags has one letter per argument: i for an integer, f for a float, s for a string, I or F for an output written as an integer or a float, which the call returns.
+	ExtTyped: (no: number, tags: string, ...any) -> ...number?,
 }

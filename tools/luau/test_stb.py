@@ -230,6 +230,12 @@ class CatalogTest(unittest.TestCase):
         self.assertEqual(command["luau"], "PlaySound")
         self.assertEqual([(p["name"], p["type"]) for p in command["signatures"][0]["params"]], [("bank", "s32"), ("sound", "u16")])
 
+    def test_curation_removes_a_signature_the_handler_never_takes(self):
+        curation = {"action": {"_SE_PLAY": {"signatures": {"2": {"remove": True}}}}}
+        document, _ = catalog.build(REPO, self.site_facts((35, (Argument("in", "s32", "value"), Argument("in", "s32", "value")))), curation)
+        command = next(c for c in document["kinds"]["action"]["commands"] if c["handler"] == "_SE_PLAY")
+        self.assertNotIn(2, [signature["argc"] for signature in command["signatures"]])
+
     def test_unregistered_commands_are_reported(self):
         _, findings = catalog.build(REPO, self.site_facts((6, (Argument("in", "s32", "value"),))))
         self.assertEqual(findings["unregistered"][0][:4], ("action", 6, 1, 1))
@@ -276,6 +282,17 @@ class CheckedInCatalogTest(unittest.TestCase):
                     self.assertEqual(len(signature["params"]), signature["argc"])
                     for param in signature["params"]:
                         self.assertIn(param["type"], catalog.TYPES + ["unknown"])
+
+    def test_load_skin_reads_four_slots(self):
+        # stack_no, then pack_file as an item number or a name by its tag, info_name and chara_no (_LOAD_SKIN).
+        document = json.loads((HERE / "commands.json").read_text(encoding="utf-8"))
+        command = next(c for c in document["kinds"]["event"]["commands"] if c["handler"] == "_LOAD_SKIN")
+        [signature] = command["signatures"]
+        params = [(p["name"], p["type"], bool(p.get("strings"))) for p in signature["params"]]
+        self.assertEqual(
+            params,
+            [("stack_no", "s32", False), ("pack_file", "s32", True), ("info_name", "string", False), ("chara_no", "s32", False)],
+        )
 
 
 if __name__ == "__main__":

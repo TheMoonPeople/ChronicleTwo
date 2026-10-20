@@ -25343,7 +25343,7 @@
         {
          "name": "get_pad_up",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -25351,7 +25351,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 3,
@@ -26438,10 +26440,11 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 1470
-         }
+         },
+         "strings": true
         }
        ]
       },
@@ -26465,7 +26468,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in s32": 96,
           "in string": 996
@@ -26476,7 +26479,8 @@
           102,
           82
          ],
-         "distinct_constants": 4
+         "distinct_constants": 4,
+         "strings": true
         },
         {
          "name": "arg3",
@@ -26499,7 +26503,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes the destination map's number or its name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 21,
@@ -27169,7 +27175,8 @@
          "type": "s32",
          "observed": {
           "out s32": 688
-         }
+         },
+         "deferred": true
         },
         {
          "name": "arg2",
@@ -27192,7 +27199,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Opens the use item menu; the handler keeps the reference and writes the item used through it when the menu closes, while the script waits.",
+     "curated": true
     },
     {
      "no": 32,
@@ -27331,10 +27340,11 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 507
-         }
+         },
+         "strings": true
         }
        ]
       },
@@ -27346,18 +27356,20 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 850
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 850
-         }
+         },
+         "strings": true
         }
        ]
       },
@@ -27374,7 +27386,8 @@
          "observed": {
           "in s32": 113,
           "in string": 909
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -27387,16 +27400,18 @@
          "constants": [
           1
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "strings": true
         },
         {
          "name": "name",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "name_source": "handler",
          "observed": {
           "in string": 1022
-         }
+         },
+         "strings": true
         }
        ]
       },
@@ -27408,34 +27423,38 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 108
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 108
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg3",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 108
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg4",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 108
-         }
+         },
+         "strings": true
         }
        ]
       },
@@ -27447,74 +27466,83 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg3",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg4",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg5",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg6",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg7",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg8",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg9",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         }
        ]
       },
@@ -27526,10 +27554,11 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "unknown",
+         "type": "s32",
          "observed": {
           "in unknown": 113
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -27541,7 +27570,8 @@
          "constants": [
           1
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "strings": true
         },
         {
          "name": "arg3",
@@ -27550,7 +27580,8 @@
          "observed": {
           "in s32": 108,
           "in unknown": 5
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg4",
@@ -27562,62 +27593,71 @@
          "constants": [
           1
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "strings": true
         },
         {
          "name": "arg5",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 113
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg6",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 113
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg7",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 113
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg8",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 113
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg9",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 113
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg10",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 113
-         }
+         },
+         "strings": true
         }
        ],
        "review": [
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "Each file is an item number followed by a variant number, or a path, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 36,
@@ -27906,7 +27946,7 @@
         {
          "name": "argc",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -27914,7 +27954,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 43,
@@ -31324,7 +31366,7 @@
         {
          "name": "start_button",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -31332,7 +31374,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 91,
@@ -31467,11 +31511,12 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in s32": 231,
           "in string": 2020
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -31496,7 +31541,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a map part's number or a place's name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 94,
@@ -33210,13 +33257,13 @@
         {
          "name": "get_show",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         },
         {
          "name": "fade",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -33225,7 +33272,9 @@
         "parameter 3: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes integers.",
+     "curated": true
     },
     {
      "no": 119,
@@ -33539,7 +33588,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in s32": 1892,
           "in string": 68574,
@@ -33555,7 +33604,8 @@
           7280163,
           6120170
          ],
-         "distinct_constants": 69
+         "distinct_constants": 69,
+         "strings": true
         }
        ]
       },
@@ -33576,10 +33626,11 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "unknown",
+         "type": "s32",
          "observed": {
           "in unknown": 966
-         }
+         },
+         "strings": true
         },
         {
          "name": "out3",
@@ -33594,7 +33645,9 @@
         "parameter 2: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "Takes a message number or the text itself, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 193,
@@ -44547,7 +44600,7 @@
         {
          "name": "state",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -44555,7 +44608,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 504,
@@ -47000,7 +47055,7 @@
         {
          "name": "get_height",
          "dir": "out",
-         "type": "unknown",
+         "type": "f32",
          "name_source": "handler"
         }
        ],
@@ -47008,7 +47063,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes a float.",
+     "curated": true
     },
     {
      "no": 542,
@@ -47030,7 +47087,7 @@
         {
          "name": "get_distance",
          "dir": "out",
-         "type": "unknown",
+         "type": "f32",
          "name_source": "handler"
         }
        ],
@@ -47038,7 +47095,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes a float.",
+     "curated": true
     },
     {
      "no": 543,
@@ -47523,7 +47582,7 @@
         {
          "name": "get_now_have_picture_num",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -47531,7 +47590,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 555,
@@ -48435,7 +48496,8 @@
          "constants": [
           322
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "values": true
         },
         {
          "name": "out3",
@@ -48444,6 +48506,12 @@
          "observed": {
           "out f32": 126,
           "out s32": 400
+         },
+         "by_arg": {
+          "position": 1,
+          "types": {
+           "2": "f32"
+          }
          }
         }
        ],
@@ -48451,7 +48519,9 @@
         "parameter 2: call sites pass both values and references"
        ]
       }
-     ]
+     ],
+     "notes": "The fish record (request 2) reads the fish's number in the second argument and writes its size, a float, into the third; the download step (7) reads a value there and writes an integer into the third; the other requests write both.",
+     "curated": true
     },
     {
      "no": 565,
@@ -49281,17 +49351,17 @@
         {
          "name": "out10",
          "dir": "out",
-         "type": "unknown"
+         "type": "f32"
         },
         {
          "name": "out11",
          "dir": "out",
-         "type": "unknown"
+         "type": "f32"
         },
         {
          "name": "out12",
          "dir": "out",
-         "type": "unknown"
+         "type": "f32"
         },
         {
          "name": "hit",
@@ -49374,17 +49444,17 @@
         {
          "name": "out10",
          "dir": "out",
-         "type": "unknown"
+         "type": "f32"
         },
         {
          "name": "out11",
          "dir": "out",
-         "type": "unknown"
+         "type": "f32"
         },
         {
          "name": "out12",
          "dir": "out",
-         "type": "unknown"
+         "type": "f32"
         },
         {
          "name": "reflection_x",
@@ -49423,7 +49493,9 @@
         "parameter 12: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The hit position is written as floats.",
+     "curated": true
     },
     {
      "no": 579,
@@ -50244,7 +50316,8 @@
           3829,
           2211
          ],
-         "distinct_constants": 209
+         "distinct_constants": 209,
+         "strings": true
         },
         {
          "name": "out2",
@@ -50279,7 +50352,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in s32": 13,
           "in string": 2009
@@ -50288,7 +50361,8 @@
           1813,
           1225
          ],
-         "distinct_constants": 2
+         "distinct_constants": 2,
+         "strings": true
         },
         {
          "name": "out3",
@@ -50300,7 +50374,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a sound file's number or its name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 602,
@@ -50570,17 +50646,21 @@
          "distinct_constants": 1
         },
         {
-         "name": "arg3",
+         "name": "volume",
          "dir": "in",
          "type": "s32",
          "observed": {
           "in f32": 14,
           "in s32": 296
-         }
+         },
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes the volume as an integer or a float, by its tag.",
+     "curated": true
     },
     {
      "no": 607,
@@ -50878,17 +50958,20 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "unknown",
+         "type": "s32",
          "observed": {
           "in unknown": 1922
-         }
+         },
+         "strings": true
         }
        ],
        "review": [
         "parameter 2: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "Takes a number or a name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 614,
@@ -51991,7 +52074,7 @@
        "files": 17,
        "params": [
         {
-         "name": "arg1",
+         "name": "volume",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -52003,11 +52086,15 @@
           0,
           -1
          ],
-         "distinct_constants": 3
+         "distinct_constants": 3,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes the volume as an integer, or as a float fraction of the master volume, by its tag.",
+     "curated": true
     },
     {
      "no": 638,
@@ -53303,11 +53390,12 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in s32": 233,
           "in string": 4078
-         }
+         },
+         "strings": true
         }
        ]
       },
@@ -53338,7 +53426,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in s32": 1708,
           "in string": 22873
@@ -53346,7 +53434,8 @@
          "constants": [
           34
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "strings": true
         },
         {
          "name": "arg3",
@@ -53382,10 +53471,11 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 48
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg3",
@@ -53405,7 +53495,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a map part's number or a place's name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 702,
@@ -54095,7 +54187,8 @@
          "constants": [
           0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "strings": true
         }
        ]
       },
@@ -54134,7 +54227,8 @@
           1,
           0
          ],
-         "distinct_constants": 2
+         "distinct_constants": 2,
+         "strings": true
         },
         {
          "name": "arg3",
@@ -54146,7 +54240,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a switch and a name, or the names alone, by the second argument's tag.",
+     "curated": true
     },
     {
      "no": 709,
@@ -55229,10 +55325,11 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 40
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg3",
@@ -55244,7 +55341,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a number or a name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 729,
@@ -55322,7 +55421,8 @@
          "observed": {
           "in s32": 72,
           "in string": 12
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg3",
@@ -55334,7 +55434,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a map part's number and a function point's name, or a name alone, by the second argument's tag.",
+     "curated": true
     },
     {
      "no": 731,
@@ -56651,7 +56753,7 @@
         {
          "name": "last_challenge",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -56659,7 +56761,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 784,
@@ -57775,7 +57879,7 @@
        "files": 210,
        "params": [
         {
-         "name": "arg1",
+         "name": "range",
          "dir": "in",
          "type": "f32",
          "observed": {
@@ -57792,20 +57896,26 @@
           6.0,
           24
          ],
-         "distinct_constants": 12
+         "distinct_constants": 12,
+         "tagged": true,
+         "name_source": "curated"
         },
         {
-         "name": "out2",
+         "name": "value",
          "dir": "out",
          "type": "f32",
          "observed": {
           "out f32": 1001,
           "out s32": 775
-         }
+         },
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "An integer range gives an integer, a float range a float.",
+     "curated": true
     },
     {
      "no": 1014,
@@ -59962,7 +60072,7 @@
         {
          "name": "timer",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -59970,7 +60080,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 1048,
@@ -59985,7 +60097,7 @@
      },
      "signatures": [
       {
-       "argc": 5,
+       "argc": 4,
        "sites": 0,
        "files": 0,
        "params": [
@@ -59993,34 +60105,32 @@
          "name": "stack_no",
          "dir": "in",
          "type": "s32",
-         "name_source": "handler"
-        },
-        {
-         "name": "arg2",
-         "dir": "in",
-         "type": "s32"
+         "name_source": "curated"
         },
         {
          "name": "pack_file",
          "dir": "in",
-         "type": "string",
-         "name_source": "handler"
+         "type": "s32",
+         "strings": true,
+         "name_source": "curated"
         },
         {
          "name": "info_name",
          "dir": "in",
          "type": "string",
-         "name_source": "handler"
+         "name_source": "curated"
         },
         {
          "name": "chara_no",
          "dir": "in",
          "type": "s32",
-         "name_source": "handler"
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads four slots: the stack, a pack file given as an item number or a name (by the slot's tag), the info name and the character.",
+     "curated": true
     },
     {
      "no": 1049,
@@ -60529,7 +60639,7 @@
         {
          "name": "exit_flag",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -60537,7 +60647,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 1061,
@@ -60994,7 +61106,8 @@
          "name": "parts_id",
          "dir": "in",
          "type": "s32",
-         "name_source": "handler"
+         "name_source": "handler",
+         "strings": true
         },
         {
          "name": "parts_name",
@@ -61022,7 +61135,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a number or a name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 1072,
@@ -61255,7 +61370,7 @@
          "distinct_constants": 4
         },
         {
-         "name": "out2",
+         "name": "member",
          "dir": "out",
          "type": "s32",
          "observed": {
@@ -61266,14 +61381,18 @@
           1,
           0
          ],
-         "distinct_constants": 2
+         "distinct_constants": 2,
+         "values": true,
+         "name_source": "curated"
         }
        ],
        "review": [
         "parameter 2: call sites pass both values and references"
        ]
       }
-     ]
+     ],
+     "notes": "Given a value, joins the character (1) or makes it leave; given a reference, writes whether it is a member.",
+     "curated": true
     },
     {
      "no": 1079,
@@ -61919,7 +62038,8 @@
          "type": "s32",
          "observed": {
           "in s32": 102
-         }
+         },
+         "strings": true
         },
         {
          "name": "out2",
@@ -61931,7 +62051,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a number or a name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 1093,
@@ -62340,11 +62462,14 @@
          "type": "s32",
          "observed": {
           "in string": 590
-         }
+         },
+         "strings": true
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes an effect script's number or its name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 1104,
@@ -62809,7 +62934,7 @@
          "distinct_constants": 2
         },
         {
-         "name": "arg2",
+         "name": "value",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -62825,11 +62950,15 @@
           1,
           240
          ],
-         "distinct_constants": 9
+         "distinct_constants": 9,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Stores the value as an integer or a float by its tag.",
+     "curated": true
     },
     {
      "no": 1200,
@@ -63544,11 +63673,12 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in s32": 36,
           "in string": 343
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -63579,7 +63709,8 @@
          "type": "s32",
          "observed": {
           "in s32": 12
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -63611,7 +63742,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a map part's number or a place's name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 1215,
@@ -63636,7 +63769,8 @@
          "type": "s32",
          "observed": {
           "in s32": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -63684,7 +63818,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a number or a name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 1216,
@@ -63846,10 +63982,11 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 18
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -63885,7 +64022,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a number or a name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 1221,
@@ -63911,10 +64050,11 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "s32",
          "observed": {
           "in string": 6
-         }
+         },
+         "strings": true
         },
         {
          "name": "arg2",
@@ -63934,7 +64074,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Takes a number or a name, by the argument's tag.",
+     "curated": true
     },
     {
      "no": 1222,
@@ -64988,7 +65130,8 @@
          "type": "s32",
          "observed": {
           "out s32": 24
-         }
+         },
+         "deferred": true
         },
         {
          "name": "arg2",
@@ -65016,7 +65159,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Opens the use item menu; the handler keeps the reference and writes the item used through it when the menu closes, while the script waits.",
+     "curated": true
     },
     {
      "no": 1248,
@@ -65235,7 +65380,7 @@
         {
          "name": "map_effect_id",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -65243,7 +65388,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 1253,
@@ -66155,7 +66302,8 @@
           38.720001,
           61.849998
          ],
-         "distinct_constants": 40
+         "distinct_constants": 40,
+         "kept": true
         },
         {
          "name": "f",
@@ -66176,7 +66324,8 @@
           34.919998,
           33.02
          ],
-         "distinct_constants": 29
+         "distinct_constants": 29,
+         "kept": true
         },
         {
          "name": "source",
@@ -66197,7 +66346,8 @@
           55.740002,
           -9.43
          ],
-         "distinct_constants": 42
+         "distinct_constants": 42,
+         "kept": true
         }
        ]
       },
@@ -66220,7 +66370,8 @@
           4,
           3
          ],
-         "distinct_constants": 5
+         "distinct_constants": 5,
+         "kept": true
         },
         {
          "name": "arg2",
@@ -66239,7 +66390,8 @@
           58.400002,
           28.34
          ],
-         "distinct_constants": 35
+         "distinct_constants": 35,
+         "kept": true
         },
         {
          "name": "arg3",
@@ -66258,7 +66410,8 @@
           -0.36,
           3.02
          ],
-         "distinct_constants": 29
+         "distinct_constants": 29,
+         "kept": true
         },
         {
          "name": "arg4",
@@ -66277,7 +66430,8 @@
           -39.220001,
           -107.07
          ],
-         "distinct_constants": 32
+         "distinct_constants": 32,
+         "kept": true
         }
        ]
       },
@@ -66296,7 +66450,8 @@
          "constants": [
           0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg2",
@@ -66308,7 +66463,8 @@
          "constants": [
           0.0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg3",
@@ -66320,7 +66476,8 @@
          "constants": [
           17.0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg4",
@@ -66332,7 +66489,8 @@
          "constants": [
           0.0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg5",
@@ -66346,7 +66504,8 @@
           -0.4,
           -0.2
          ],
-         "distinct_constants": 3
+         "distinct_constants": 3,
+         "kept": true
         },
         {
          "name": "arg6",
@@ -66360,7 +66519,8 @@
           8,
           5
          ],
-         "distinct_constants": 3
+         "distinct_constants": 3,
+         "kept": true
         }
        ]
       },
@@ -66379,7 +66539,8 @@
          "constants": [
           0.0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg2",
@@ -66391,7 +66552,8 @@
          "constants": [
           22.27
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg3",
@@ -66403,7 +66565,8 @@
          "constants": [
           41.0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg4",
@@ -66415,7 +66578,8 @@
          "constants": [
           0.0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg5",
@@ -66427,7 +66591,8 @@
          "constants": [
           14.27
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg6",
@@ -66439,7 +66604,8 @@
          "constants": [
           0.0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         },
         {
          "name": "arg7",
@@ -66451,11 +66617,14 @@
          "constants": [
           80
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "kept": true
         }
        ]
       }
-     ]
+     ],
+     "notes": "Keeps each argument with its integer, float or string tag.",
+     "curated": true
     },
     {
      "no": 1,
