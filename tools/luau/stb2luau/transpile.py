@@ -28,6 +28,7 @@ import functools
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -475,10 +476,28 @@ def format(texts: dict[Path, str]) -> dict[Path, str]:
     return {path: path.read_text(encoding="utf-8") for path in texts}
 
 
-def _support(scratch: Path, out: Path) -> None:
-    """Fills a scratch scripts root with the declarations, the libraries under out, and vm.luau when out lacks it."""
+# A module's require of a shared library or of vm.
+_REQUIRE = re.compile(r'require\("@lib/([^"]+)"\)')
+
+
+def _support(scratch: Path, out: Path, module: str | None = None) -> None:
+    """Fills a scratch scripts root with the declarations, the libraries under out (with a module's text, only those it
+    requires), and vm.luau when out lacks it."""
     shutil.copytree(OUTPUT / "api", scratch / "api")
-    if (out / "lib").is_dir():
+    if module is not None:
+        (scratch / "lib").mkdir()
+        pending, copied = [module], set()
+        while pending:
+            for name in _REQUIRE.findall(pending.pop()):
+                source = out / "lib" / f"{name}.luau"
+                if name in copied or not source.is_file():
+                    continue
+                copied.add(name)
+                target = scratch / "lib" / f"{name}.luau"
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+                pending.append(source.read_text(encoding="utf-8"))
+    elif (out / "lib").is_dir():
         shutil.copytree(out / "lib", scratch / "lib")
     else:
         (scratch / "lib").mkdir()
@@ -595,7 +614,7 @@ def _harness_job(job: tuple[Result, Module, dict[str, Any], range, Path]) -> Har
     try:
         with tempfile.TemporaryDirectory() as scratch:
             root = Path(scratch)
-            _support(root, out)
+            _support(root, out, module.text)
             target = root / f"{result.module}.luau"
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(module.text, encoding="utf-8", newline="\n")
