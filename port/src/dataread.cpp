@@ -182,6 +182,11 @@ const IndexedFile *Lookup(const std::string &key) {
                 return &file_index.emplace(relative, IndexedFile{.file = *replacement, .replaced = true, .relative = relative}).first->second;
             }
         }
+        // A texture outside any PACK is published below textures/ in its retail directory, while scripts
+        // still name it beside that directory, as every boss title card does.
+        if (key.ends_with(".json") && !key.starts_with("textures/")) {
+            return Lookup("textures/" + key);
+        }
     }
     return found == file_index.end() ? nullptr : &found->second;
 }

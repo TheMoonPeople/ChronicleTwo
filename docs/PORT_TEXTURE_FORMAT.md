@@ -53,7 +53,11 @@ register values, palettes, and redundant defaults. Physical texture paths cannot
 their document name. Components are escaped; long paths use a stable SHA-256
 suffix. Flattened names are disambiguated deterministically and checked for
 collisions. PACK tables retain logical member names and record their physical
-texture document paths in `pack.json`.
+texture document paths in `pack.json`. A texture outside any PACK keeps its
+retail directory and name below `textures/`, and is never disambiguated: when
+the game misses a relative `.json` name, it reads the same name below
+`textures/`. A script that changes to `event/e100/e110/` and loads
+`e110telop01_1.json` reads `textures/event/e100/e110/e110telop01_1.json`.
 
 ## Character and model textures
 

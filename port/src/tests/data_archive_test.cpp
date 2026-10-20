@@ -359,6 +359,32 @@ TEST_F(DataArchive, DataReadLoadsFromDataZipWithoutDirectories) {
     EXPECT_FALSE(DataReadFind("character_clips.json"));
 }
 
+TEST_F(DataArchive, ImageOutsideAnyPackIsFoundBelowTexturesFromItsRetailDirectory) {
+    const std::string document = R"({"schema_version":3,"groups":[0],"entries":[]})";
+    Write(tree / "textures/event/e100/e110/e110telop01_1.json", document);
+    Write(tree / "event/e100/e110/e110.txt", std::string("text"));
+    Pack(tree, root / "data.zip");
+    Write(root / "data.json", R"({"schema_version":1,"data_version":)" + std::to_string(KAZAROV_DATA_VERSION) + "}");
+    DataReadIndex(root / "data");
+
+    // The boss scene changes to its event directory and loads the title card by its bare name.
+    char directory[] = "event/e100/e110/";
+    ChangeDir(directory);
+    std::vector<std::uint8_t> buffer(4096, 0xAA);
+    int                       size = 0;
+    char                      name[] = "E110TELOP01_1.json";
+    ASSERT_EQ(LoadFile2(name, buffer.data(), &size, LOAD_FILE_READ), 1);
+    EXPECT_EQ(size, document.size());
+    EXPECT_EQ(DataReadAssetPath(name), "textures/event/e100/e110/e110telop01_1.json");
+    char text[] = "e110.txt";
+    EXPECT_EQ(DataReadAssetPath(text), "event/e100/e110/e110.txt");
+    char missing[] = "e110telop01_2.json";
+    EXPECT_FALSE(DataReadAssetPath(missing));
+    SetCurrentDir(nullptr);
+    EXPECT_EQ(DataReadAssetPath("textures/event/e100/e110/e110telop01_1.json"), "textures/event/e100/e110/e110telop01_1.json");
+    EXPECT_FALSE(DataReadAssetPath("e110telop01_1.json"));
+}
+
 TEST_F(DataArchive, GameplayDocumentsPreservePackPriorityAcrossNamespacedAndLegacyPaths) {
     const std::string relative = "menu/cfg7/wepdat.cfg.json";
     Write(tree / "gameplay" / relative, "base");

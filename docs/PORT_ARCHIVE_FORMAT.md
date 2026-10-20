@@ -26,7 +26,10 @@ Directories have no entries of their own. All PNGs and standalone texture JSON
 are under `textures/`, preserving ordinary source directories and removing
 extension-bearing container directory components. Character PNGs use the nearest
 `.chr` basename with sequential suffixes. Models and their `.game.json` sidecars
-keep their model locations and refer to the relocated images.
+keep their model locations and refer to the relocated images. A texture outside
+any PACK keeps its retail directory and name below `textures/`, where the game
+finds a relative `.json` name it misses
+([texture format](PORT_TEXTURE_FORMAT.md)).
 
 ## Container
 
