@@ -489,6 +489,7 @@ function script.on_land()
 		end
 		vm.wait()
 	end
+	return 0
 end
 
 return script

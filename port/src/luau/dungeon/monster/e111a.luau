@@ -2,47 +2,47 @@
 -- dungeon/monster/e111a.stb: monster script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_05dbc6c9 = require("@lib/monster/helper_05dbc6c9")
 local helper_125e5305 = require("@lib/monster/helper_125e5305")
 local helper_193f5239 = require("@lib/monster/helper_193f5239")
 local helper_1ef0d4b2 = require("@lib/monster/helper_1ef0d4b2")
 local helper_206033b2 = require("@lib/monster/helper_206033b2")
+local helper_2b3a726b = require("@lib/monster/helper_2b3a726b")
 local helper_2db2fc96 = require("@lib/monster/helper_2db2fc96")
 local helper_2e729f21 = require("@lib/monster/helper_2e729f21")
 local helper_2f2adeb4 = require("@lib/monster/helper_2f2adeb4")
 local helper_317bfc18 = require("@lib/monster/helper_317bfc18")
-local helper_36608329 = require("@lib/monster/helper_36608329")
 local helper_442b9962 = require("@lib/monster/helper_442b9962")
 local helper_48852a90 = require("@lib/monster/helper_48852a90")
 local helper_49610f43 = require("@lib/monster/helper_49610f43")
 local helper_56d63eae = require("@lib/monster/helper_56d63eae")
 local helper_5d37e9f4 = require("@lib/monster/helper_5d37e9f4")
-local helper_65df8bdc = require("@lib/monster/helper_65df8bdc")
-local helper_68e24e97 = require("@lib/monster/helper_68e24e97")
-local helper_6958e50d = require("@lib/monster/helper_6958e50d")
+local helper_650d7ff0 = require("@lib/monster/helper_650d7ff0")
+local helper_67b22fc1 = require("@lib/monster/helper_67b22fc1")
+local helper_68cf124d = require("@lib/monster/helper_68cf124d")
 local helper_72fec261 = require("@lib/monster/helper_72fec261")
 local helper_787df986 = require("@lib/monster/helper_787df986")
 local helper_7ca8a12f = require("@lib/monster/helper_7ca8a12f")
-local helper_8191476b = require("@lib/monster/helper_8191476b")
 local helper_83dc8947 = require("@lib/monster/helper_83dc8947")
 local helper_890ee63a = require("@lib/monster/helper_890ee63a")
+local helper_8d286580 = require("@lib/monster/helper_8d286580")
 local helper_905c94a1 = require("@lib/monster/helper_905c94a1")
 local helper_93495fdf = require("@lib/monster/helper_93495fdf")
+local helper_979584a7 = require("@lib/monster/helper_979584a7")
+local helper_99208cae = require("@lib/monster/helper_99208cae")
 local helper_a2d828a7 = require("@lib/monster/helper_a2d828a7")
+local helper_a48a6818 = require("@lib/monster/helper_a48a6818")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
+local helper_aa12e525 = require("@lib/monster/helper_aa12e525")
 local helper_ab4b367a = require("@lib/monster/helper_ab4b367a")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local helper_b0ab6794 = require("@lib/monster/helper_b0ab6794")
 local helper_b33c6f49 = require("@lib/monster/helper_b33c6f49")
-local helper_beda02f3 = require("@lib/monster/helper_beda02f3")
 local helper_c3e8ae39 = require("@lib/monster/helper_c3e8ae39")
-local helper_c8f4a8bd = require("@lib/monster/helper_c8f4a8bd")
 local helper_d30a9fa2 = require("@lib/monster/helper_d30a9fa2")
-local helper_d5ece76c = require("@lib/monster/helper_d5ece76c")
 local helper_e05438b5 = require("@lib/monster/helper_e05438b5")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
 local helper_f2f4e524 = require("@lib/monster/helper_f2f4e524")
-local helper_ff67a99d = require("@lib/monster/helper_ff67a99d")
+local helper_fafffc63 = require("@lib/monster/helper_fafffc63")
 
 local global1: f32 = 0
 
@@ -121,7 +121,7 @@ local function helper_1c6bc()
 		helper_890ee63a(vm.f32(4.8))
 		monster.SetMos("歩き", -1, 0)
 		var2 = monster.GetTargetDist() or var2
-		helper_65df8bdc(2.0, vm.f32(4.8), var1, var2, 35.0, 25.0, 60)
+		helper_fafffc63(2.0, vm.f32(4.8), var1, var2, 35.0, 25.0, 60)
 		monster.SetMos("歩き", -1, 0)
 		helper_890ee63a(vm.f32(2.4))
 		monster.SetMos("立ち", -1, 0)
@@ -133,7 +133,7 @@ end
 local function helper_18d58()
 	local pos_y: f32 = 0
 	local var4: f32 = 0
-	helper_6958e50d()
+	helper_68cf124d()
 	monster.SetMos("ガードin", -1, 6)
 	helper_f2f4e524(vm.f32(4.8))
 	do
@@ -146,12 +146,12 @@ local function helper_18d58()
 	end
 	if pos_y < var4 then
 		monster.SetMos("攻撃２", -1, 0)
-		helper_36608329(vm.f32(5.6), vm.f32(4.8), 0.0, 40.0, 10)
-		helper_d5ece76c(vm.f32(5.6), vm.f32(4.8), 0.0, 40.0, 0, 20)
+		helper_99208cae(vm.f32(5.6), vm.f32(4.8), 0.0, 40.0, 10)
+		helper_650d7ff0(vm.f32(5.6), vm.f32(4.8), 0.0, 40.0, 0, 20)
 	else
 		monster.SetMos("攻撃２", -1, 0)
-		helper_36608329(vm.f32(5.6), vm.f32(4.8), 0.0, 8.0, 10)
-		helper_d5ece76c(vm.f32(5.6), vm.f32(4.8), 0.0, 8.0, 0, 20)
+		helper_99208cae(vm.f32(5.6), vm.f32(4.8), 0.0, 8.0, 10)
+		helper_650d7ff0(vm.f32(5.6), vm.f32(4.8), 0.0, 8.0, 0, 20)
 	end
 	monster.SetMos("ガードout", -1, 6)
 	helper_56d63eae()
@@ -192,8 +192,8 @@ local function helper_1930c(arg0: f32, arg1: f32, arg2: s32, arg3: s32)
 	pos_x = vm.f32(pos_x + vm.f32(vm.sin(var8) * var9))
 	pos_y = global1
 	pos_z = vm.f32(pos_z + vm.f32(vm.cos(var8) * var9))
-	helper_68e24e97(pos_x, pos_y, pos_z, 4.0, 4.0, 5.0, vm.idiv(arg3, 2))
-	helper_68e24e97(pos_x, pos_y, pos_z, 4.0, 4.0, 25.0, vm.idiv(arg3, 2))
+	helper_a48a6818(pos_x, pos_y, pos_z, 4.0, 4.0, 5.0, vm.idiv(arg3, 2))
+	helper_a48a6818(pos_x, pos_y, pos_z, 4.0, 4.0, 25.0, vm.idiv(arg3, 2))
 end
 
 --- Helper function.
@@ -249,7 +249,7 @@ local function helper_1be38()
 		monster.SetMos("歩き", -1, 0)
 		var1 = monster.GetTargetDist() or var1
 		var1 = vm.f32(var1 + 10.0)
-		helper_65df8bdc(2.0, vm.f32(4.8), var2, var1, 35.0, 25.0, 60)
+		helper_fafffc63(2.0, vm.f32(4.8), var2, var1, 35.0, 25.0, 60)
 		monster.SetMos("歩き", -1, 0)
 		helper_890ee63a(vm.f32(2.4))
 		monster.SetMos("立ち", -1, 0)
@@ -296,16 +296,16 @@ local function helper_1b428()
 		if argc < 30 then
 			monster.SetMos("歩き", -1, 0)
 			helper_890ee63a(vm.f32(4.8))
-			helper_c8f4a8bd(3.0)
+			helper_67b22fc1(3.0)
 			monster.SetMos("立ち", -1, 0)
 		else
 			monster.SetMos("歩き", -1, 0)
 			helper_890ee63a(2.0)
 			argc = monster.GetRnd(100) or argc
 			if argc < 50 then
-				helper_beda02f3(2.0, 215.0, 100.0, 35.0, 25.0, 20)
+				helper_979584a7(2.0, 215.0, 100.0, 35.0, 25.0, 20)
 			else
-				helper_beda02f3(2.0, 145.0, 100.0, 35.0, 25.0, 20)
+				helper_979584a7(2.0, 145.0, 100.0, 35.0, 25.0, 20)
 			end
 		end
 	end
@@ -317,7 +317,7 @@ local function helper_1cc60()
 	local priority: s32 = 0
 	while true do
 		vm.wait()
-		helper_8191476b()
+		helper_8d286580()
 		var3 = monster.GetTargetDist() or var3
 		if var3 > 300.0 then
 			vm.wait()
@@ -325,7 +325,7 @@ local function helper_1cc60()
 		end
 		priority = monster.GetPriority() or priority
 		if priority > 1 then
-			helper_05dbc6c9()
+			helper_2b3a726b()
 			continue
 		end
 		if var3 < 300.0 and var3 >= 240.0 then
@@ -357,7 +357,7 @@ local function helper_1a27c()
 		var5 = -60.0
 	end
 	var1, var2, var3 = helper_125e5305(var5, var4, var1, var2, var3)
-	helper_68e24e97(var1, global1, var3, 3.0, 3.0, 25.0, 10)
+	helper_a48a6818(var1, global1, var3, 3.0, 3.0, 25.0, 10)
 	monster.SetAttrib(32, 0)
 	helper_b0ab6794(30)
 	monster.ResetMove()
@@ -409,12 +409,12 @@ function script.loop()
 	while true do
 		vm.wait()
 		monster.GetGekirin()
-		helper_8191476b()
+		helper_8d286580()
 		var1 = helper_e2fdabb9(var1)
 		if var1 < 300.0 then
 			helper_1cc60()
 		else
-			helper_ff67a99d()
+			helper_aa12e525()
 		end
 	end
 end

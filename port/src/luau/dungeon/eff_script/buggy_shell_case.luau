@@ -42,8 +42,24 @@ function script.on_start()
 				yaw = out2 or yaw
 				var14 = out3 or var14
 			end
-			print("POS = ", pos_x, ",", pos_y, ",", pos_z, "\n")
-			print("ROT = ", var12, ",", yaw, ",", var14, "\n")
+			print(
+				"POS = ",
+				string.format("%f", pos_x),
+				",",
+				string.format("%f", pos_y),
+				",",
+				string.format("%f", pos_z),
+				"\n"
+			)
+			print(
+				"ROT = ",
+				string.format("%f", var12),
+				",",
+				string.format("%f", yaw),
+				",",
+				string.format("%f", var14),
+				"\n"
+			)
 			effect.ChrSetPos2(var7, pos_x, pos_y + 30.0, pos_z)
 			var7 = var7 + 1
 			if var7 >= 2 then

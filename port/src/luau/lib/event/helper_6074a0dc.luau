@@ -1,0 +1,18 @@
+--!strict
+-- Shared event helper used by 2 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+
+--- Helper function.
+local function helper_6074a0dc()
+	local skip: (number) -> ...any
+	function skip(at: number) end
+	if vm.skipping() then
+		return skip(1)
+	end
+	event.CharaActive(0, 8)
+	event.CharaActive(0, 9)
+	event.CharaActive(0, 10)
+end
+
+return helper_6074a0dc

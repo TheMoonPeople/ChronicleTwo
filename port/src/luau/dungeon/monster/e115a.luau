@@ -2,7 +2,6 @@
 -- dungeon/monster/e115a.stb: monster script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_09cefb45 = require("@lib/monster/helper_09cefb45")
 local helper_0ba23e4e = require("@lib/monster/helper_0ba23e4e")
 local helper_125e5305 = require("@lib/monster/helper_125e5305")
 local helper_193f5239 = require("@lib/monster/helper_193f5239")
@@ -13,38 +12,39 @@ local helper_2db2fc96 = require("@lib/monster/helper_2db2fc96")
 local helper_2e729f21 = require("@lib/monster/helper_2e729f21")
 local helper_2f2adeb4 = require("@lib/monster/helper_2f2adeb4")
 local helper_317bfc18 = require("@lib/monster/helper_317bfc18")
+local helper_36c0d92d = require("@lib/monster/helper_36c0d92d")
 local helper_442b9962 = require("@lib/monster/helper_442b9962")
 local helper_48852a90 = require("@lib/monster/helper_48852a90")
 local helper_49610f43 = require("@lib/monster/helper_49610f43")
+local helper_4bc089d4 = require("@lib/monster/helper_4bc089d4")
 local helper_56d63eae = require("@lib/monster/helper_56d63eae")
 local helper_595cbf61 = require("@lib/monster/helper_595cbf61")
 local helper_5d37e9f4 = require("@lib/monster/helper_5d37e9f4")
-local helper_65df8bdc = require("@lib/monster/helper_65df8bdc")
-local helper_68e24e97 = require("@lib/monster/helper_68e24e97")
-local helper_6e272166 = require("@lib/monster/helper_6e272166")
+local helper_67b22fc1 = require("@lib/monster/helper_67b22fc1")
 local helper_72fec261 = require("@lib/monster/helper_72fec261")
 local helper_787df986 = require("@lib/monster/helper_787df986")
 local helper_7ca8a12f = require("@lib/monster/helper_7ca8a12f")
 local helper_7e925497 = require("@lib/monster/helper_7e925497")
-local helper_8191476b = require("@lib/monster/helper_8191476b")
 local helper_83dc8947 = require("@lib/monster/helper_83dc8947")
 local helper_890ee63a = require("@lib/monster/helper_890ee63a")
+local helper_8d286580 = require("@lib/monster/helper_8d286580")
 local helper_905c94a1 = require("@lib/monster/helper_905c94a1")
 local helper_93495fdf = require("@lib/monster/helper_93495fdf")
+local helper_979584a7 = require("@lib/monster/helper_979584a7")
 local helper_a2d828a7 = require("@lib/monster/helper_a2d828a7")
+local helper_a48a6818 = require("@lib/monster/helper_a48a6818")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
-local helper_a973d0cd = require("@lib/monster/helper_a973d0cd")
 local helper_ab4b367a = require("@lib/monster/helper_ab4b367a")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local helper_b0ab6794 = require("@lib/monster/helper_b0ab6794")
 local helper_b33c6f49 = require("@lib/monster/helper_b33c6f49")
-local helper_beda02f3 = require("@lib/monster/helper_beda02f3")
 local helper_c3e8ae39 = require("@lib/monster/helper_c3e8ae39")
-local helper_c8f4a8bd = require("@lib/monster/helper_c8f4a8bd")
 local helper_d30a9fa2 = require("@lib/monster/helper_d30a9fa2")
 local helper_e05438b5 = require("@lib/monster/helper_e05438b5")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
-local helper_f7a409dc = require("@lib/monster/helper_f7a409dc")
+local helper_ed6c4ce4 = require("@lib/monster/helper_ed6c4ce4")
+local helper_f231e64a = require("@lib/monster/helper_f231e64a")
+local helper_fafffc63 = require("@lib/monster/helper_fafffc63")
 
 local global1: f32 = 0
 
@@ -123,7 +123,7 @@ local function helper_1bd6c()
 		helper_890ee63a(vm.f32(4.8))
 		monster.SetMos("歩き", -1, 0)
 		var2 = monster.GetTargetDist() or var2
-		helper_65df8bdc(2.0, vm.f32(4.8), var1, var2, 35.0, 25.0, 60)
+		helper_fafffc63(2.0, vm.f32(4.8), var1, var2, 35.0, 25.0, 60)
 		monster.SetMos("歩き", -1, 0)
 		helper_890ee63a(vm.f32(2.4))
 		monster.SetMos("立ち", -1, 0)
@@ -166,8 +166,8 @@ local function helper_18b78(arg0: f32, arg1: f32, arg2: s32, arg3: s32)
 	pos_x = vm.f32(pos_x + vm.f32(vm.sin(var8) * var9))
 	pos_y = global1
 	pos_z = vm.f32(pos_z + vm.f32(vm.cos(var8) * var9))
-	helper_68e24e97(pos_x, pos_y, pos_z, 4.0, 4.0, 5.0, vm.idiv(arg3, 2))
-	helper_68e24e97(pos_x, pos_y, pos_z, 4.0, 4.0, 25.0, vm.idiv(arg3, 2))
+	helper_a48a6818(pos_x, pos_y, pos_z, 4.0, 4.0, 5.0, vm.idiv(arg3, 2))
+	helper_a48a6818(pos_x, pos_y, pos_z, 4.0, 4.0, 25.0, vm.idiv(arg3, 2))
 end
 
 --- Helper function.
@@ -219,7 +219,7 @@ local function helper_1b56c()
 		monster.SetMos("歩き", -1, 0)
 		var1 = monster.GetTargetDist() or var1
 		var1 = vm.f32(var1 + 10.0)
-		helper_65df8bdc(2.0, vm.f32(4.8), var2, var1, 35.0, 25.0, 60)
+		helper_fafffc63(2.0, vm.f32(4.8), var2, var1, 35.0, 25.0, 60)
 		monster.SetMos("歩き", -1, 0)
 		helper_890ee63a(vm.f32(2.4))
 		monster.SetMos("立ち", -1, 0)
@@ -262,16 +262,16 @@ local function helper_1abe0()
 		if argc < 30 then
 			monster.SetMos("歩き", -1, 0)
 			helper_890ee63a(vm.f32(4.8))
-			helper_c8f4a8bd(3.0)
+			helper_67b22fc1(3.0)
 			monster.SetMos("立ち", -1, 0)
 		else
 			monster.SetMos("歩き", -1, 0)
 			helper_890ee63a(2.0)
 			argc = monster.GetRnd(100) or argc
 			if argc < 50 then
-				helper_beda02f3(2.0, 215.0, 100.0, 35.0, 25.0, 20)
+				helper_979584a7(2.0, 215.0, 100.0, 35.0, 25.0, 20)
 			else
-				helper_beda02f3(2.0, 145.0, 100.0, 35.0, 25.0, 20)
+				helper_979584a7(2.0, 145.0, 100.0, 35.0, 25.0, 20)
 			end
 		end
 	end
@@ -283,7 +283,7 @@ local function helper_1c310()
 	local priority: s32 = 0
 	while true do
 		vm.wait()
-		helper_8191476b()
+		helper_8d286580()
 		var3 = helper_e2fdabb9(var3)
 		if var3 > 240.0 then
 			vm.wait()
@@ -291,7 +291,7 @@ local function helper_1c310()
 		end
 		priority = monster.GetPriority() or priority
 		if priority > 1 then
-			helper_f7a409dc()
+			helper_f231e64a()
 			continue
 		end
 		if var3 < 240.0 and var3 >= 200.0 then
@@ -359,7 +359,7 @@ local function helper_155c4()
 		var18 = monster.SearchArea(100.0, 0.0) or var18
 		var18 = vm.f32(var18 - 35.0)
 		if var18 > 0.0 then
-			helper_6e272166(vm.f32(4.8), 2.0, var7, var18, 35.0, 25.0, 30)
+			helper_4bc089d4(vm.f32(4.8), 2.0, var7, var18, 35.0, 25.0, 30)
 		end
 		monster.SetMos("立ち", -1, 0)
 	end
@@ -392,7 +392,7 @@ local function helper_155c4()
 					var22 = vm.f32(var22 + 30.0)
 				end
 				monster.SetMos("歩き", -1, 0)
-				helper_a973d0cd(place_pos_x, place_pos_y, place_pos_z, 2.0, vm.f32(4.8), var5, var22, 35.0, 25.0, 60)
+				helper_36c0d92d(place_pos_x, place_pos_y, place_pos_z, 2.0, vm.f32(4.8), var5, var22, 35.0, 25.0, 60)
 				var23 = monster.GetRndf(180.0) or var23
 				argc = monster.GetRnd(100) or argc
 				if argc < 50 then
@@ -456,7 +456,7 @@ local function helper_155c4()
 						var24 = vm.f32(var24 + 30.0)
 					end
 					monster.SetMos("歩き", -1, 0)
-					var1 = helper_65df8bdc(2.0, vm.f32(4.8), var24, var25, 35.0, 25.0, 60)
+					var1 = helper_fafffc63(2.0, vm.f32(4.8), var24, var25, 35.0, 25.0, 60)
 					var27 = monster.GetRndf(360.0) or var27
 					argc = monster.GetRnd(100) or argc
 					if argc < 50 then
@@ -479,7 +479,7 @@ local function helper_155c4()
 					if var7 <= vm.f32(-3.1415927) then
 						var7 = vm.f32(var7 + vm.f32(6.2831855))
 					end
-					helper_beda02f3(2.0, var7, 1000.0, 35.0, 25.0, 60)
+					helper_979584a7(2.0, var7, 1000.0, 35.0, 25.0, 60)
 					monster.SetMos("立ち", -1, 0)
 				end
 			else
@@ -497,7 +497,7 @@ local function helper_155c4()
 			var5 = monster.GetTargetDist() or var5
 			argc = vm.i32(argc + 15)
 			monster.SetMos("歩き", -1, 0)
-			helper_09cefb45(2.0, vm.f32(4.8), var5, 360.0, 40.0, 35.0, 25.0, argc)
+			helper_ed6c4ce4(2.0, vm.f32(4.8), var5, 360.0, 40.0, 35.0, 25.0, argc)
 			monster.SetMos("立ち", -1, 0)
 		end
 	end
@@ -517,7 +517,7 @@ local function helper_1a398()
 		end
 		priority = monster.GetPriority() or priority
 		if priority > 2 then
-			helper_f7a409dc()
+			helper_f231e64a()
 			continue
 		end
 		if var3 < 120.0 then
@@ -575,7 +575,7 @@ local function helper_19ae8()
 		var5 = -60.0
 	end
 	var1, var2, var3 = helper_125e5305(var5, var4, var1, var2, var3)
-	helper_68e24e97(var1, global1, var3, 3.0, 3.0, 25.0, 10)
+	helper_a48a6818(var1, global1, var3, 3.0, 3.0, 25.0, 10)
 	monster.SetAttrib(32, 0)
 	helper_b0ab6794(30)
 	monster.ResetMove()
@@ -627,7 +627,7 @@ function script.loop()
 		vm.wait()
 		gekirin = vm.float_bits(monster.GetGekirin()) or gekirin
 		if gekirin > 0 then
-			helper_8191476b()
+			helper_8d286580()
 			var1 = helper_e2fdabb9(var1)
 			if var1 < 240.0 then
 				helper_1c310()

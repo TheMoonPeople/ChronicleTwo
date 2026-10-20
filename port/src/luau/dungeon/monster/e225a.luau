@@ -2,16 +2,12 @@
 -- dungeon/monster/e225a.stb: monster script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_01663a12 = require("@lib/monster/helper_01663a12")
 local helper_09acbcc2 = require("@lib/monster/helper_09acbcc2")
 local helper_193f5239 = require("@lib/monster/helper_193f5239")
 local helper_1be0f106 = require("@lib/monster/helper_1be0f106")
 local helper_1ef0d4b2 = require("@lib/monster/helper_1ef0d4b2")
 local helper_2db2fc96 = require("@lib/monster/helper_2db2fc96")
 local helper_2e729f21 = require("@lib/monster/helper_2e729f21")
-local helper_34e0511a = require("@lib/monster/helper_34e0511a")
-local helper_3d0d0c5c = require("@lib/monster/helper_3d0d0c5c")
-local helper_3df77102 = require("@lib/monster/helper_3df77102")
 local helper_3e764841 = require("@lib/monster/helper_3e764841")
 local helper_4077f308 = require("@lib/monster/helper_4077f308")
 local helper_45797ccb = require("@lib/monster/helper_45797ccb")
@@ -21,22 +17,26 @@ local helper_49610f43 = require("@lib/monster/helper_49610f43")
 local helper_57b569a8 = require("@lib/monster/helper_57b569a8")
 local helper_5d37e9f4 = require("@lib/monster/helper_5d37e9f4")
 local helper_6a5c03b2 = require("@lib/monster/helper_6a5c03b2")
-local helper_6fca5c97 = require("@lib/monster/helper_6fca5c97")
+local helper_6c6f8499 = require("@lib/monster/helper_6c6f8499")
 local helper_7ea3f35f = require("@lib/monster/helper_7ea3f35f")
 local helper_83dc8947 = require("@lib/monster/helper_83dc8947")
+local helper_88e559d6 = require("@lib/monster/helper_88e559d6")
 local helper_895326d8 = require("@lib/monster/helper_895326d8")
 local helper_905c94a1 = require("@lib/monster/helper_905c94a1")
-local helper_91b30ebf = require("@lib/monster/helper_91b30ebf")
 local helper_9944827a = require("@lib/monster/helper_9944827a")
-local helper_9d1ba522 = require("@lib/monster/helper_9d1ba522")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
+local helper_aa0677dc = require("@lib/monster/helper_aa0677dc")
 local helper_ab4b367a = require("@lib/monster/helper_ab4b367a")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
+local helper_b6660b7e = require("@lib/monster/helper_b6660b7e")
 local helper_d30a9fa2 = require("@lib/monster/helper_d30a9fa2")
+local helper_d3619638 = require("@lib/monster/helper_d3619638")
+local helper_df9a3a05 = require("@lib/monster/helper_df9a3a05")
 local helper_e05438b5 = require("@lib/monster/helper_e05438b5")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
-local helper_e31a3310 = require("@lib/monster/helper_e31a3310")
+local helper_eaae24e6 = require("@lib/monster/helper_eaae24e6")
 local helper_f5727415 = require("@lib/monster/helper_f5727415")
+local helper_f8d070c9 = require("@lib/monster/helper_f8d070c9")
 
 --- Helper function.
 local function helper_1cec()
@@ -98,7 +98,7 @@ local function helper_1b3d0()
 	if argc < 80 then
 		argc = monster.GetRnd(100) or argc
 		if argc < 20 then
-			helper_e31a3310()
+			helper_6c6f8499()
 		else
 			helper_18f14()
 		end
@@ -107,7 +107,7 @@ local function helper_1b3d0()
 		if argc < 25 then
 			monster.SetMos("歩き", -1, 0)
 			helper_6a5c03b2(1.75, vm.f32(4.8), 90.0, 60)
-			helper_6fca5c97(1.75, vm.f32(4.8), 30.0, 30.0, 0, 90)
+			helper_88e559d6(1.75, vm.f32(4.8), 30.0, 30.0, 0, 90)
 			monster.SetMos("立ち", -1, 0)
 		else
 			monster.SetMos("立ち", -1, 0)
@@ -129,7 +129,7 @@ local function helper_1abe8()
 	else
 		argc = monster.GetRnd(100) or argc
 		if argc < 30 then
-			helper_e31a3310()
+			helper_6c6f8499()
 		else
 			argc = monster.GetRnd(100) or argc
 			if argc < 50 then
@@ -141,7 +141,7 @@ local function helper_1abe8()
 					var6 = vm.f32(var6 + 30.0)
 				end
 				monster.SetMos("歩き", -1, 0)
-				helper_9d1ba522(1.75, vm.f32(4.8), var6, 60.0, 1.0, 30.0, 75)
+				helper_df9a3a05(1.75, vm.f32(4.8), var6, 60.0, 1.0, 30.0, 75)
 				helper_f5727415(vm.f32(4.8))
 				monster.SetMos("立ち", -1, 0)
 				helper_45797ccb(9)
@@ -154,7 +154,7 @@ local function helper_1abe8()
 					var7 = 0
 					monster.SetMos("ステップ左", -1, 0)
 				end
-				helper_01663a12(1.75, 30.0, 30.0, var7, 60)
+				helper_aa0677dc(1.75, 30.0, 30.0, var7, 60)
 				monster.SetMos("立ち", -1, 0)
 			end
 		end
@@ -168,14 +168,14 @@ local function helper_1b850()
 	while true do
 		helper_461f64ff()
 		monster.GetMonsterLife()
-		helper_3d0d0c5c()
+		helper_b6660b7e()
 		var0 = helper_e2fdabb9(var0)
 		if var0 > 190.0 then
 			return
 		end
 		priority = monster.GetPriority() or priority
 		if priority > 1 then
-			helper_34e0511a()
+			helper_eaae24e6()
 			continue
 		end
 		if var0 < 190.0 and var0 >= 150.0 then
@@ -183,7 +183,7 @@ local function helper_1b850()
 		elseif var0 < 150.0 and var0 >= 90.0 then
 			helper_1abe8()
 		else
-			helper_91b30ebf()
+			helper_d3619638()
 		end
 	end
 end
@@ -236,12 +236,12 @@ function script.loop()
 	monster.SetActStatus(0)
 	while true do
 		helper_461f64ff()
-		helper_3d0d0c5c()
+		helper_b6660b7e()
 		var2 = helper_e2fdabb9(var2)
 		if var2 < 190.0 then
 			helper_1b850()
 		else
-			helper_3df77102()
+			helper_f8d070c9()
 		end
 	end
 end

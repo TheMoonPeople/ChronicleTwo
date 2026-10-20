@@ -653,7 +653,7 @@ local function helper_909c()
 	if prog == 1101 then
 		action.SetMos("持ち上げ", -1, 2)
 		var3 = action.NowMosWait() or var3
-		print("wait =", var3, "\n")
+		print("wait =", string.format("%f", var3), "\n")
 		if var3 >= vm.f32(0.14) and var3 < vm.f32(0.233) then
 			action.CheckCatch("nage")
 		end

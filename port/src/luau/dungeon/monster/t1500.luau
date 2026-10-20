@@ -9,6 +9,7 @@ local helper_28452e16 = require("@lib/monster/helper_28452e16")
 local helper_28faa04b = require("@lib/monster/helper_28faa04b")
 local helper_2e729f21 = require("@lib/monster/helper_2e729f21")
 local helper_2f2adeb4 = require("@lib/monster/helper_2f2adeb4")
+local helper_3ee294b9 = require("@lib/monster/helper_3ee294b9")
 local helper_442b9962 = require("@lib/monster/helper_442b9962")
 local helper_49610f43 = require("@lib/monster/helper_49610f43")
 local helper_56d63eae = require("@lib/monster/helper_56d63eae")
@@ -24,7 +25,7 @@ local helper_7e925497 = require("@lib/monster/helper_7e925497")
 local helper_890ee63a = require("@lib/monster/helper_890ee63a")
 local helper_8cdd6198 = require("@lib/monster/helper_8cdd6198")
 local helper_905c94a1 = require("@lib/monster/helper_905c94a1")
-local helper_9bdbdfd5 = require("@lib/monster/helper_9bdbdfd5")
+local helper_9de6d0ac = require("@lib/monster/helper_9de6d0ac")
 local helper_a0d4bba7 = require("@lib/monster/helper_a0d4bba7")
 local helper_a2d828a7 = require("@lib/monster/helper_a2d828a7")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
@@ -32,7 +33,6 @@ local helper_aada6ba2 = require("@lib/monster/helper_aada6ba2")
 local helper_ab4b367a = require("@lib/monster/helper_ab4b367a")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local helper_c3e8ae39 = require("@lib/monster/helper_c3e8ae39")
-local helper_de1504df = require("@lib/monster/helper_de1504df")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
 
 --- Helper function.
@@ -68,7 +68,7 @@ local function helper_d5ac(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: f32
 		var9 = out3 or var9
 	end
 	var19 = helper_57b569a8(var19)
-	print("ground=", var19, "---------------\n")
+	print("ground=", string.format("%f", var19), "---------------\n")
 	arg1 = vm.f32(var19 + arg5)
 	do
 		local out1, out2, out3 = monster.CopyVector(arg0, arg1, arg2)
@@ -114,7 +114,7 @@ local function helper_d5ac(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: f32
 			print("hit1------------------\n")
 			return 1
 		end
-		var24 = helper_de1504df(var7, var8, var9, arg3, var11)
+		var24 = helper_9de6d0ac(var7, var8, var9, arg3, var11)
 		if var24 ~= 0 then
 			print("hit2------------------\n")
 			return var24
@@ -296,7 +296,7 @@ local function helper_e1f8(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: s32
 		if var18 < vm.f32(arg0 + arg2) then
 			return
 		end
-		var23 = helper_de1504df(var8, var9, var10, arg0, var12)
+		var23 = helper_9de6d0ac(var8, var9, var10, arg0, var12)
 		if var23 ~= 0 then
 			print("hit------------------\n")
 			return
@@ -823,7 +823,7 @@ local function helper_1886c()
 		monster.SetMos("立ち", -1, 0)
 	else
 		monster.SetMos("歩き", -1, 0)
-		helper_9bdbdfd5(1.75, vm.f32(4.8), 50.0, 50.0, 0, 45)
+		helper_3ee294b9(1.75, vm.f32(4.8), 50.0, 50.0, 0, 45)
 		monster.SetMos("立ち", -1, 0)
 	end
 end
