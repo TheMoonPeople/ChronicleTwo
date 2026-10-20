@@ -377,7 +377,10 @@ TEST_F(LuauRuntime, CmathIsTheCLibrarysSinglePrecisionTrig) {
     ASSERT_EQ(calls.size(), 1u);
     EXPECT_EQ(calls[0].args[0].type, RS_FLOAT);
     // The interpreter's SIN calls sinf; rounding a double-precision sine differs in the last bit here.
-    EXPECT_EQ(calls[0].args[0].val.f, std::sin(0.779f));
+    // A volatile angle keeps the expected value a library call too: the compiler may fold a constant one with
+    // its own correctly rounded sine, which differs from the C library's.
+    volatile float angle = 0.779f;
+    EXPECT_EQ(calls[0].args[0].val.f, std::sin(angle));
 }
 
 TEST_F(LuauRuntime, ErrorsEndTheProgram) {
