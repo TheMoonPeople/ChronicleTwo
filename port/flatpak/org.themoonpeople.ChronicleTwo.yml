@@ -152,6 +152,7 @@ modules:
       - -DFETCHCONTENT_SOURCE_DIR_CPPTRACE=/run/build/chronicletwo/cpptrace
       - -DFETCHCONTENT_SOURCE_DIR_TRACY=/run/build/chronicletwo/tracy
       - -DFETCHCONTENT_SOURCE_DIR_LIBDWARF=/run/build/chronicletwo/libdwarf
+      - -DFETCHCONTENT_SOURCE_DIR_LUAU=/run/build/chronicletwo/luau
     # post-install runs in the build directory, not the source.
     post-install:
       - install -Dm644 -t ${FLATPAK_DEST}/share/applications ${FLATPAK_BUILDER_BUILDDIR}/port/flatpak/${FLATPAK_ID}.desktop
@@ -203,6 +204,12 @@ modules:
         url: https://github.com/jeremy-rifkin/libdwarf-lite/archive/5dfb2cd2aacf2bf473e5bfea79e41289f88b3a5f.tar.gz
         sha256: ba0f0325e671e5010acbff4a897cedfe29c7f71202a905ca4b10085cbb839e51
         dest: libdwarf
+      # The script VM, compiler and native code generator (port/cmake/luau.cmake).
+      - type: archive
+        archive-type: tar-gzip
+        url: https://codeload.github.com/luau-lang/luau/tar.gz/refs/tags/0.740
+        sha256: 419f96e4ecf5a0dd415a2625ea7ea9dc8a407e86d64b25e00936302b25a7afbd
+        dest: luau
       - type: archive
         url: https://github.com/corrosion-rs/corrosion/archive/refs/tags/v0.6.1.zip
         sha256: 5c1c5c6ab7196fe4466321c14e9698ec2d0a977c89fd9f1639a37fcffdf604f2
