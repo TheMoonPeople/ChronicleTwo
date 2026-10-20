@@ -7,7 +7,7 @@ Status: M0, M1 (transpiler), M2 (runtime) and M3 (effect and monster) are comple
 - `docs/PORT_LUAU.md`: script kinds, tools and catalog, plus a draft **Runtime contract** section. That section is the agreement between the transpiler and the runtime.
 - `tools/luau/stb/` (M0): decoder (`program.py`), CFG (`cfg.py`), abstract stack analysis (`analysis.py`), handler source parsing (`sources.py`), catalog (`catalog.py`), scan, report and fixture assembler.
 - `tools/luau/survey.py`, `commands.json` (1,081 commands), `REPORT.md`, `curation.json` (hand corrections of the generated catalogue: names, types, directions and the `tagged`, `copies` and `inout` marks).
-- `tools/luau/test_*.py`, run through CTest as `Luau.Tools`, with `Luau.Survey` and `Luau.Transpile` (`port/src/tests/cmake/luau.cmake`).
+- `tools/luau/test_*.py`, run through CTest as `Luau.Tools`, with `Luau.Survey`, `Luau.Transpile` and `Luau.Prune` (`port/src/tests/cmake/luau.cmake`).
 - The plan: `docs/port/luau-plan.md`. The user's decisions below override it.
 
 M2 added the runtime: `port/cmake/luau.cmake`, `port/src/luau_runtime.{hpp,cpp}`, `port/src/luau_bindings.hpp`, `tools/luau/bindings.py`, `port/src/luau/lib/vm.luau` and `dc2data export-scripts`. M1 writes the transpiler in `tools/luau/stb2luau/` and its output in `port/src/luau/`.
@@ -204,7 +204,7 @@ Action, effect and monster scripts run on Luau (effect and monster since M3); ev
   - **Interpreter.** The interpreter, `script_timing` and the `Set*Script` stack allocations stay until M6.
   - **Other kinds.** M3 did effect and monster (kinds, prefixes, `EffectScript` and `GetPackFile` members). M4 must add the event kind and its prefixes, map the language fallbacks and script-built names through `ModuleForScript`, and implement skip mode (`CRunScript::skip` currently resumes) and argument scripts.
   - **macOS.** macOS has not been built with Luau; CI covers it.
-  - **Packages.** The Windows zip (`tools/windows/package.ps1`), the macOS tarball (`pc.yml`) and the Flatpak (through CMake's install) ship `scripts/`; the zip and the tarball still leave out `glyphs/`. The runtime also never loads a module for a script on `tools/luau/fallback.json`, even if an old copy is present.
+  - **Packages.** The Windows zip (`tools/windows/package.ps1`), the macOS tarball (`pc.yml`) and the Flatpak (through CMake's install) ship `scripts/`; the zip and the tarball still leave out `glyphs/`. A build removes the copies it made of modules the transpiler no longer generates, and an install the modules it installed (`port/cmake/scripts/luau_prune.cmake`, which keeps a manifest of what it copied and leaves alone any file it did not copy or that was changed since). The runtime also never loads a module for a script on `tools/luau/fallback.json`, even if an old copy is present.
 
 ### Later coordinators
 

@@ -18,3 +18,10 @@ add_test(NAME Luau.Transpile
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/luau/stb2luau/transpile.py" --check --harness
         --kind action --kind effect --kind monster)
 set_tests_properties(Luau.Transpile PROPERTIES LABELS cpu SKIP_RETURN_CODE 77 TIMEOUT 900)
+
+# The build and install remove only the module copies they made whose sources are gone, never other files.
+add_test(NAME Luau.Prune
+    COMMAND ${CMAKE_COMMAND} -DPRUNE=${CMAKE_SOURCE_DIR}/port/cmake/scripts/luau_prune.cmake
+        -DROOT=${CMAKE_CURRENT_BINARY_DIR}/luau-prune -P ${CMAKE_SOURCE_DIR}/port/cmake/scripts/luau_prune_test.cmake)
+set_tests_properties(Luau.Prune PROPERTIES PASS_REGULAR_EXPRESSION "LUAU_PRUNE_OK" LABELS cpu TIMEOUT 60)
+
