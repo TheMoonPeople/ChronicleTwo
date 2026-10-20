@@ -22,7 +22,7 @@ target_compile_options(Luau.Analysis PRIVATE -include cstdlib)
 add_custom_target(ct_luau_tools DEPENDS Luau.Analyze.CLI Luau.Compile.CLI)
 
 # The native command tables for the kinds Luau runs, generated from the command catalog.
-set(CT_LUAU_KINDS action effect monster)
+set(CT_LUAU_KINDS action effect monster event event_arg)
 list(JOIN CT_LUAU_KINDS "," ct_luau_kinds)
 set(CT_LUAU_BINDINGS ${CMAKE_BINARY_DIR}/generated/luau/luau_bindings.cpp)
 add_custom_command(OUTPUT ${CT_LUAU_BINDINGS}

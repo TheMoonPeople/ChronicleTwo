@@ -19,6 +19,12 @@ add_test(NAME Luau.Transpile
         --kind action --kind effect --kind monster)
 set_tests_properties(Luau.Transpile PROPERTIES LABELS cpu SKIP_RETURN_CODE 77 TIMEOUT 900)
 
+# The same for the event and event argument modules, with skip mode; a separate test for their longer run.
+add_test(NAME Luau.TranspileEvent
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/luau/stb2luau/transpile.py" --check --harness
+        --kind event --kind event_arg --seeds 4)
+set_tests_properties(Luau.TranspileEvent PROPERTIES LABELS cpu SKIP_RETURN_CODE 77 TIMEOUT 3600)
+
 # The build and install remove only the module copies they made whose sources are gone, never other files.
 add_test(NAME Luau.Prune
     COMMAND ${CMAKE_COMMAND} -DPRUNE=${CMAKE_SOURCE_DIR}/port/cmake/scripts/luau_prune.cmake

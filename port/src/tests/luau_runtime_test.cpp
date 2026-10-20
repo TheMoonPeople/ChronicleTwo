@@ -14,6 +14,7 @@
 #include "luau_runtime.hpp"
 #include "monster.hpp"
 #include "runscript.hpp"
+#include "script_text.hpp"
 
 namespace {
 
@@ -29,6 +30,8 @@ enum class NativeCommand : int {
     MonsterVPop = 38,
     EsmSetValue = 155,
     Unregistered = 200,
+    EventGetRand = 1013,
+    EventJoinPartyMember = 1078,
 };
 
 // One native command invocation as the handler saw it.
@@ -41,7 +44,7 @@ struct RecordedCall {
 
 std::vector<RecordedCall> calls;
 int                       next_output = 0;
-int (*ext_table[256])(RS_STACKDATA *, int) = {};
+int (*ext_table[2048])(RS_STACKDATA *, int) = {};
 
 void Record(NativeCommand no, RS_STACKDATA *args, int argc) {
     RecordedCall call{.no = no, .argc = argc};
@@ -121,6 +124,26 @@ int HandleUnregistered(RS_STACKDATA *args, int argc) {
     return 1;
 }
 
+// Writes an integer below an integer range or a float below a float range, by the range's tag, as retail's GetRand.
+int HandleEventGetRand(RS_STACKDATA *args, int argc) {
+    Record(NativeCommand::EventGetRand, args, argc);
+    if (args[0].type == RS_FLOAT) {
+        args[1].val.p->val.f = args[0].val.f / 2;
+    } else {
+        args[1].val.p->val.i = args[0].val.i / 2;
+    }
+    return 1;
+}
+
+// Joins or leaves by a value, or writes membership through a reference, as retail's JoinPartyMember.
+int HandleEventJoinPartyMember(RS_STACKDATA *args, int argc) {
+    Record(NativeCommand::EventJoinPartyMember, args, argc);
+    if (args[1].type == RS_PTR) {
+        args[1].val.p->val.i = 1;
+    }
+    return 1;
+}
+
 void RegisterHandlers() {
     ext_table[static_cast<int>(NativeCommand::InitScript)] = HandleInitScript;
     ext_table[static_cast<int>(NativeCommand::ProgSet)] = HandleProgSet;
@@ -132,6 +155,8 @@ void RegisterHandlers() {
     ext_table[static_cast<int>(NativeCommand::MonsterVPop)] = HandleMonsterVPop;
     ext_table[static_cast<int>(NativeCommand::EsmSetValue)] = HandleEsmSetValue;
     ext_table[static_cast<int>(NativeCommand::Unregistered)] = HandleUnregistered;
+    ext_table[static_cast<int>(NativeCommand::EventGetRand)] = HandleEventGetRand;
+    ext_table[static_cast<int>(NativeCommand::EventJoinPartyMember)] = HandleEventJoinPartyMember;
 }
 
 // A script instance loaded with a Luau module and the native command table.
@@ -142,7 +167,7 @@ struct Loaded {
     CRunScript   script;
 
     explicit Loaded(std::string_view module) : handle(luau_runtime::MakeHandle(module)) {
-        script.ext_func(ext_table, 256);
+        script.ext_func(ext_table, 2048);
         script.load(reinterpret_cast<RS_PROG_HEADER *>(handle.data()), slots, 64, call_stack, 16);
     }
 };
@@ -244,6 +269,74 @@ TEST_F(LuauRuntime, MonsterWithoutStunProgramResumesSuspendedBehaviorAfterStun) 
     EXPECT_EQ(monster.mons_script.end, 1);
     EXPECT_EQ(monster.req_prog, MONSTER_PROG_MAIN);
     luau_runtime::Forget(&monster.mons_script);
+}
+
+TEST_F(LuauRuntime, SkipResumesInSkipModeUntilTheSkipEnd) {
+    Loaded      loaded("facade/basic");
+    CRunScript &script = loaded.script;
+    ASSERT_EQ(script.run(400), 1);
+    script.skip();
+    EXPECT_EQ(script.end, 0);
+    script.resume();
+    EXPECT_EQ(script.end, 1);
+    ASSERT_EQ(calls.size(), 3u);
+    EXPECT_EQ(calls[0].args[0].val.i, 1);
+    EXPECT_EQ(calls[1].args[0].val.i, 10);
+    EXPECT_EQ(calls[2].args[0].val.i, 31);
+}
+
+TEST_F(LuauRuntime, EventCallsPassTheTagsTheirHandlersBranchOn) {
+    Loaded      loaded("facade/natives");
+    CRunScript &script = loaded.script;
+    ASSERT_EQ(script.run(112), 0);
+    ASSERT_EQ(calls.size(), 7u);
+    // An integer range reaches GetRand as an integer, and its result comes back as one.
+    EXPECT_EQ(calls[0].args[0].type, RS_INT);
+    EXPECT_EQ(calls[1].args[0].val.i, 50);
+    EXPECT_EQ(calls[2].args[0].type, RS_FLOAT);
+    EXPECT_FLOAT_EQ(calls[3].args[0].val.f, 1.25F);
+    // A value joins the party; a reference reads membership back.
+    EXPECT_EQ(calls[4].args[1].type, RS_INT);
+    EXPECT_EQ(calls[4].args[1].val.i, 1);
+    EXPECT_EQ(calls[5].args[1].type, RS_PTR);
+    EXPECT_EQ(calls[6].args[0].val.i, 1);
+}
+
+TEST_F(LuauRuntime, EventStringsKeepPalCorrectionsWithoutChangingOtherScriptsOrCustomText) {
+    for (const std::string_view module : {"map/f/f04/f04_5", "map/s/s30/s30_5"}) {
+        const auto lines = script_text::Find(std::string(module) + ".stb");
+        ASSERT_FALSE(lines.empty());
+        const auto file = root / (std::string(module) + ".luau");
+        std::filesystem::create_directories(file.parent_path());
+        {
+            std::ofstream output(file);
+            ASSERT_TRUE(output);
+            output << "return {[100] = function()\n";
+            for (const script_text::Line &line : lines) {
+                output << "event.Ext(200, [==[" << line.retail << "]==])\n";
+                output << "event.Ext(200, [==[custom: " << line.retail << "]==])\n";
+            }
+            output << "end}\n";
+        }
+        // The same source under an unaffected key must retain its original strings, even when the
+        // corrected text is already interned. Load it first too, to cover both cache insertion orders.
+        const std::string other_module = "facade/pal_text_" + std::filesystem::path(module).filename().string();
+        const auto other = root / (other_module + ".luau");
+        std::filesystem::copy_file(file, other, std::filesystem::copy_options::overwrite_existing);
+        for (const bool corrected : {false, true, false}) {
+            luau_runtime::SetScriptsRoot(root);
+            calls.clear();
+            Loaded loaded(corrected ? module : std::string_view(other_module));
+            ASSERT_EQ(loaded.script.run(100), 0);
+            ASSERT_EQ(calls.size(), lines.size() * 2);
+            for (std::size_t i = 0; i < lines.size(); ++i) {
+                ASSERT_EQ(calls[i * 2].strings.size(), 1u);
+                EXPECT_EQ(calls[i * 2].strings[0], corrected ? lines[i].text : lines[i].retail);
+                ASSERT_EQ(calls[i * 2 + 1].strings.size(), 1u);
+                EXPECT_EQ(calls[i * 2 + 1].strings[0], std::string("custom: ") + lines[i].retail);
+            }
+        }
+    }
 }
 
 TEST_F(LuauRuntime, GlobalsPersistPerInstance) {
@@ -475,13 +568,13 @@ TEST_F(LuauRuntime, ModuleForScriptMapsTheKindsLuauRuns) {
 
     EXPECT_EQ(luau_runtime::ModuleForScript("mainchr/c01.stb"), std::optional<std::string>("mainchr/c01"));
     EXPECT_FALSE(luau_runtime::ModuleForScript("mainchr/c99.stb").has_value());
-    EXPECT_FALSE(luau_runtime::ModuleForScript("map/x.stb").has_value());
+    EXPECT_EQ(luau_runtime::ModuleForScript("map/x.stb"), std::optional<std::string>("map/x"));
     EXPECT_EQ(luau_runtime::ModuleForScript("dungeon/eff_script/menu_ice.pac/c02cold.stb"),
               std::optional<std::string>("dungeon/eff_script/menu_ice.pac/c02cold"));
     EXPECT_EQ(luau_runtime::ModuleForScript("dungeon/monster/b08a.stb"), std::optional<std::string>("dungeon/monster/b08a"));
-    // Effect scripts under event/tbox are pack members; the argument scripts beside the packs are not effects.
+    // Effect scripts under event/tbox are pack members; the argument scripts beside the packs are event arguments.
     EXPECT_EQ(luau_runtime::ModuleForScript("event/tbox/bomb.pack/tbox_exp.stb"), std::optional<std::string>("event/tbox/bomb.pack/tbox_exp"));
-    EXPECT_FALSE(luau_runtime::ModuleForScript("event/tbox/ntbox_arg.stb").has_value());
+    EXPECT_EQ(luau_runtime::ModuleForScript("event/tbox/ntbox_arg.stb"), std::optional<std::string>("event/tbox/ntbox_arg"));
 }
 
 TEST_F(LuauRuntime, FallbackScriptsIgnoreAStaleModule) {
