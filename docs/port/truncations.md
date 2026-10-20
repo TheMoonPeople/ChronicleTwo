@@ -31,8 +31,8 @@ Origin is where the pointer points, where the expression shows it: **image** (a 
 | round-trip | 0 | 2 | 2 |
 | resolved | 1 | 0 | 1 |
 | escapes | 31 | 4 | 35 |
-| low-bits | 4 | 6 | 10 |
-| **all** | 36 | 12 | 48 |
+| low-bits | 6 | 4 | 10 |
+| **all** | 38 | 10 | 48 |
 
 Open round trips by unit: ps2/src/movie.cpp 2.
 
@@ -88,8 +88,8 @@ the same literals in their **masked** column when the masked expression holds a 
 
 | line | function | state | class | expression | origin | use | phase |
 |---|---|---|---|---|---|---|---|
-| 303 | CEditMap::SaveData | open | low-bits | `(uptr)out` | local pointer | test | - |
-| 494 | CEditMap::LoadData | open | low-bits | `(uptr)in` | local pointer | test | - |
+| 303 | CEditMap::SaveData | replaced | low-bits | `(uptr)out` | local pointer | test | - |
+| 494 | CEditMap::LoadData | replaced | low-bits | `(uptr)in` | local pointer | test | - |
 
 ## ps2/src/mainloop.cpp (1 rows)
 
@@ -272,8 +272,8 @@ A pointer cast to a narrow integer, or a `uptr`/`sptr` value that a conversion n
 
 Narrowed expression is an address-alias mask (`& K`, `K` a non-negative 32-bit constant), a residue (`% K`), or a difference of two pointer-wide operands, bare or divided or shifted by a constant. Never fails `--check`.
 
-- `ps2/src/editdata.cpp:303 CEditMap::SaveData other`: benign:low-bits (open)
-- `ps2/src/editdata.cpp:494 CEditMap::LoadData other`: benign:low-bits (open)
+- `ps2/src/editdata.cpp:303 CEditMap::SaveData other`: benign:low-bits (replaced)
+- `ps2/src/editdata.cpp:494 CEditMap::LoadData other`: benign:low-bits (replaced)
 - `ps2/src/fishing.cpp:1328 CreateLoadThread local misalignment`: benign:low-bits (open)
 - `ps2/src/mainloop.cpp:557 MainLoop local alignment`: benign:residue (replaced)
 - `ps2/src/mainloop.cpp:1450 LoadFontTexture local misalign`: benign:low-bits (open)
