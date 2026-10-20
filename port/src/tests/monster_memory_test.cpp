@@ -28,10 +28,12 @@ class MonsterMemory : public testing::TestWithParam<bool> {
 protected:
     void SetUp() override {
         root = std::filesystem::temp_directory_path() / std::format("dc2_monster_memory_{}", dc::test::ProcessId());
-        PathsSetSaveRoot(root);
+        // config.json sits beside the save root, so each test process owns the one it writes.
+        PathsSetSaveRoot(root / "save");
         Config config;
         config.more_monsters = GetParam();
         ASSERT_TRUE(ConfigChange(config));
+        ASSERT_TRUE(std::filesystem::exists(root / "config.json"));
         PortMonsterLatchLimits();
     }
 
