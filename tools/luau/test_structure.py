@@ -225,6 +225,64 @@ class StructureTest(unittest.TestCase):
         ]
         self.assertEqual(structure(f), expected)
 
+    def test_numeric_for_rejected_for_an_exclusive_limit_that_may_be_a_float(self):
+        # i < n runs to 10 when n is 10.8, but a numeric for to n - 1 would stop at 9.
+        i = local(0)
+        limit = ir.Var(local(1), ir.ANY)
+        cond = ir.Compare(Compare.LT, num(0), limit)
+        increment = ir.Assign(i, ir.Binary("add", num(0), const(1), ir.INT))
+        f = function(
+            block(0, [ir.Assign(i, const(0))], STOP),
+            block(1, [], branch(cond, 2, 3)),
+            block(2, [mark(1), increment], jump(1)),
+            block(3, [mark(4)], STOP),
+        )
+        expected = [ir.Assign(i, const(0)), ir.While(cond, [mark(1), increment]), mark(4)]
+        self.assertEqual(structure(f), expected)
+
+    def test_numeric_for_rejected_when_the_step_may_overflow(self):
+        # i = 2147483647; while i <= 2147483647: the step wraps on the PS2, so the loop never ends there.
+        i = local(0)
+        cond = ir.Compare(Compare.LE, num(0), const(2147483647))
+        increment = ir.Assign(i, ir.Binary("add", num(0), const(1), ir.INT, wrap=True))
+        f = function(
+            block(0, [ir.Assign(i, const(2147483647))], STOP),
+            block(1, [], branch(cond, 2, 3)),
+            block(2, [mark(1), increment], jump(1)),
+            block(3, [mark(4)], STOP),
+        )
+        expected = [ir.Assign(i, const(2147483647)), ir.While(cond, [mark(1), increment]), mark(4)]
+        self.assertEqual(structure(f), expected)
+
+    def test_numeric_for_rejected_for_a_fractional_start(self):
+        # i = 0.5; while i < 3 runs 0.5, 1.5, 2.5, but for i = 0.5, 2 would stop at 1.5.
+        i = local(0)
+        var = ir.Var(i, ir.FLOAT)
+        cond = ir.Compare(Compare.LT, var, const(3))
+        increment = ir.Assign(i, ir.Binary("add", var, const(1), ir.FLOAT))
+        f = function(
+            block(0, [ir.Assign(i, ir.Const(0.5, ir.FLOAT))], STOP),
+            block(1, [], branch(cond, 2, 3)),
+            block(2, [mark(1), increment], jump(1)),
+            block(3, [mark(4)], STOP),
+        )
+        expected = [ir.Assign(i, ir.Const(0.5, ir.FLOAT)), ir.While(cond, [mark(1), increment]), mark(4)]
+        self.assertEqual(structure(f), expected)
+
+    def test_numeric_for_rejected_for_a_start_that_may_be_a_float(self):
+        i = local(0)
+        cond = ir.Compare(Compare.LE, num(0), const(3))
+        increment = ir.Assign(i, ir.Binary("add", num(0), const(1), ir.INT))
+        start = ir.Var(local(1), ir.ANY)
+        f = function(
+            block(0, [ir.Assign(i, start)], STOP),
+            block(1, [], branch(cond, 2, 3)),
+            block(2, [mark(1), increment], jump(1)),
+            block(3, [mark(4)], STOP),
+        )
+        expected = [ir.Assign(i, start), ir.While(cond, [mark(1), increment]), mark(4)]
+        self.assertEqual(structure(f), expected)
+
     def test_empty_forwarder_chain(self):
         # if c0 then b end, where the then-part reaches the join through empty blocks
         f = function(

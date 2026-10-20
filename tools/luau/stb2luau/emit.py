@@ -70,6 +70,9 @@ class Prec(enum.IntEnum):
 Text = tuple[str, Prec]
 
 _ANNOTATIONS = {ir.INT: "s32", ir.FLOAT: "f32", ir.STR: "string", ir.BOOL: "boolean", ir.ANY: "any"}
+FRAME = ir.FRAME
+# Slot spaces whose variables are tables: a local array, or the whole frame.
+TABLE_SPACES = frozenset(("array", "frame"))
 _DEFAULTS = {ir.STR: '""', ir.BOOL: "false"}
 _COMPARISONS = {
     opcodes.Compare.EQ: "==",
@@ -90,6 +93,8 @@ _LUAU_BUILTINS = frozenset(
     "loadstring collectgarbage".split()
 )
 NUMERIC_TYPES = frozenset("s8 u8 s16 u16 s32 u32 f32".split())
+# Expression types whose value may carry an integer tag, which a float load reinterprets bit for bit.
+_MAYBE_INT = frozenset((ir.INT, ir.BOOL, ir.ANY))
 _IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _POSITIONAL = re.compile(r"(arg|out)\d+")
 
@@ -106,6 +111,8 @@ class FunctionInput:
     body: list
     programs: list[int]
     is_main: bool
+    refs: tuple[int, ...] = ()
+    arrays: dict[ir.Slot, int] = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass
@@ -119,14 +126,17 @@ class ModuleInput:
     expose_globals: bool = False
     libraries: dict[int, str] = dataclasses.field(default_factory=dict)
     returns_value: set[int] = dataclasses.field(default_factory=set)
+    # For the differential harness: report the referenced values after each call that takes references.
+    probe_refs: bool = False
 
 
 @dataclasses.dataclass
 class Module:
-    """An emitted Luau module and the retail quirks it translates approximately."""
+    """An emitted Luau module, the retail quirks it translates approximately, and the call offsets it probes."""
 
     text: str
     diagnostics: list[str]
+    probes: list[int] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -221,6 +231,15 @@ def _kind_mismatch(position: int, param_type: str, arg: ir.Expr) -> str | None:
     return None
 
 
+def _wrapper(expr: ir.Binary | ir.Unary) -> str:
+    """The vm helper that wraps an operation marked to overflow: vm.i32 for integers, vm.wrap where it may hold a float."""
+    if expr.type == ir.INT:
+        return "vm.i32"
+    if expr.type == ir.ANY:
+        return "vm.wrap"
+    raise EmitError(f"{expr.op} of {expr.type} values is marked to wrap")
+
+
 def _nonnegative(expr: ir.Expr) -> bool:
     return isinstance(expr, ir.Const) and expr.type == ir.INT and expr.value >= 0
 
@@ -234,6 +253,8 @@ def _roots(stmts: list) -> Iterator[tuple[ir.Expr, bool]]:
     for stmt in stmts:
         if isinstance(stmt, ir.Assign):
             yield stmt.value, True
+            if isinstance(stmt.target, ir.Elem):
+                yield stmt.target, True
         elif isinstance(stmt, ir.ExtCall):
             for arg in stmt.args:
                 yield arg, True
@@ -261,15 +282,15 @@ def _roots(stmts: list) -> Iterator[tuple[ir.Expr, bool]]:
             yield from _roots(stmt.body)
 
 
-def _statements(stmts: list) -> Iterator:
+def statements(stmts: list) -> Iterator:
     """Every statement of a statement list, including those nested in its branches and loops."""
     for stmt in stmts:
         yield stmt
         if isinstance(stmt, ir.If):
-            yield from _statements(stmt.then)
-            yield from _statements(stmt.orelse)
+            yield from statements(stmt.then)
+            yield from statements(stmt.orelse)
         elif isinstance(stmt, (ir.While, ir.Repeat, ir.NumericFor)):
-            yield from _statements(stmt.body)
+            yield from statements(stmt.body)
 
 
 def called_blocks(stmts: list) -> set[int]:
@@ -291,10 +312,10 @@ def mentioned_slots(stmts: list) -> set[ir.Slot]:
     """Every variable slot a statement list reads, writes or passes by reference."""
     slots: set[ir.Slot] = set()
     for expr, _used in _roots(stmts):
-        slots.update(sub.slot for sub in ir.walk(expr) if isinstance(sub, (ir.Var, ir.Addr)))
-    for stmt in _statements(stmts):
-        if isinstance(stmt, ir.Assign) and not isinstance(stmt.target, ir.Temp):
-            slots.add(stmt.target)
+        slots.update(ir.reads(expr))
+    for stmt in statements(stmts):
+        if isinstance(stmt, ir.Assign) and (target := ir.target_slot(stmt.target)) is not None:
+            slots.add(target)
         elif isinstance(stmt, ir.NumericFor):
             slots.add(stmt.var)
     return slots
@@ -335,17 +356,34 @@ def _read(expr: ir.Expr, usage: _Usage, active: frozenset[ir.Slot]) -> None:
     for sub in ir.walk(expr):
         if isinstance(sub, (ir.Var, ir.Addr)):
             _mention(sub.slot, usage, active, read=True)
+        elif isinstance(sub, ir.Elem):
+            _mention(sub.array, usage, active, read=True)
         elif isinstance(sub, ir.Temp):
             usage.temp_reads.add(sub.index)
 
 
-def _collect(mod: _Module, stmts: list, usage: _Usage, active: frozenset[ir.Slot] = frozenset()) -> None:
-    """Records the variables a statement list mentions; active holds the loop variables of the enclosing loops."""
+def _write(target: ir.Slot | ir.Elem, usage: _Usage, active: frozenset[ir.Slot]) -> None:
+    """Records a write: the variable or array is mentioned, and an element's index is read."""
+    if isinstance(target, ir.Elem):
+        _read(target.index, usage, active)
+        _mention(target.array, usage, active)
+    else:
+        _mention(target, usage, active)
+
+
+def _collect(
+    mod: _Module, stmts: list, usage: _Usage, active: frozenset[ir.Slot] = frozenset(), keeps_return: bool = True
+) -> None:
+    """Records the variables a statement list mentions; active holds the loop variables of the enclosing loops.
+
+    keeps_return is False for a helper whose return value nobody uses, so that a variable read only by its dropped
+    return value is not declared.
+    """
     for stmt in stmts:
         if isinstance(stmt, ir.Assign):
             _read(stmt.value, usage, active)
             if not isinstance(stmt.target, ir.Temp):
-                _mention(stmt.target, usage, active)
+                _write(stmt.target, usage, active)
         elif isinstance(stmt, ir.ExtCall):
             plan = mod.resolve(stmt)
             for arg in plan.ins:
@@ -354,7 +392,10 @@ def _collect(mod: _Module, stmts: list, usage: _Usage, active: frozenset[ir.Slot
                 if out.slot in active:
                     continue
                 usage.mentioned.add(out.slot)
-                usage.out_names.setdefault(out.slot, set()).add(name)
+                if out.index is None:
+                    usage.out_names.setdefault(out.slot, set()).add(name)
+                else:
+                    _read(out.index, usage, active)
         elif isinstance(stmt, ir.CallStmt):
             for arg in stmt.call.args:
                 _read(arg, usage, active)
@@ -362,16 +403,17 @@ def _collect(mod: _Module, stmts: list, usage: _Usage, active: frozenset[ir.Slot
             for arg in stmt.args:
                 _read(arg, usage, active)
         elif isinstance(stmt, ir.Return):
-            _read(stmt.value, usage, active)
+            if keeps_return or ir.has_call(stmt.value):
+                _read(stmt.value, usage, active)
         elif isinstance(stmt, ir.If):
             _read(stmt.cond, usage, active)
-            _collect(mod, stmt.then, usage, active)
-            _collect(mod, stmt.orelse, usage, active)
+            _collect(mod, stmt.then, usage, active, keeps_return)
+            _collect(mod, stmt.orelse, usage, active, keeps_return)
         elif isinstance(stmt, ir.While):
             _read(stmt.cond, usage, active)
-            _collect(mod, stmt.body, usage, active)
+            _collect(mod, stmt.body, usage, active, keeps_return)
         elif isinstance(stmt, ir.Repeat):
-            _collect(mod, stmt.body, usage, active)
+            _collect(mod, stmt.body, usage, active, keeps_return)
             _read(stmt.cond, usage, active)
         elif isinstance(stmt, ir.NumericFor):
             for expr in (stmt.start, stmt.limit, stmt.step):
@@ -379,17 +421,34 @@ def _collect(mod: _Module, stmts: list, usage: _Usage, active: frozenset[ir.Slot
             if stmt.var[0] == "local":
                 # The loop's own variable is not a mention; only its uses outside the loop are.
                 usage.loop_vars.add(stmt.var)
-                _collect(mod, stmt.body, usage, active | {stmt.var})
+                _collect(mod, stmt.body, usage, active | {stmt.var}, keeps_return)
             else:
                 usage.mentioned.add(stmt.var)
-                _collect(mod, stmt.body, usage, active)
+                _collect(mod, stmt.body, usage, active, keeps_return)
+
+
+def _keeps_return(mod: _Module, fn: FunctionInput) -> bool:
+    """Whether a function's return statements keep their value: always for entries, for helpers when it is used."""
+    return fn.is_main or bool(fn.programs) or fn.block in mod.used_returns
+
+
+def _usage(mod: _Module, fn: FunctionInput) -> _Usage:
+    """The variables a function mentions and reads, including the frame table its returned references live in."""
+    usage = _Usage()
+    _collect(mod, fn.body, usage, keeps_return=_keeps_return(mod, fn))
+    if fn.refs and FRAME in fn.arrays:
+        usage.mentioned.add(FRAME)
+        usage.reads.add(FRAME)
+    return usage
 
 
 def _allocate_names(fn: FunctionInput, usage: _Usage, reserved: set[str]) -> dict[ir.Slot, str]:
     names: dict[ir.Slot, str] = {("local", n): f"arg{n}" for n in range(fn.arg)}
     for slot in usage.mentioned | usage.loop_vars:
-        if slot[0] == "local" and slot[1] >= fn.arg:
+        if slot[0] in ("local", "array") and slot[1] >= fn.arg:
             names[slot] = f"var{slot[1]}"
+    if FRAME in fn.arrays:
+        names[FRAME] = "frame"
     # A local written only as one catalogued, non-positional output takes that output's name.
     candidates: dict[ir.Slot, str] = {}
     for slot, found in usage.out_names.items():
@@ -442,6 +501,7 @@ class _Module:
     read_globals: set[int] = dataclasses.field(init=False, default_factory=set)
     used_libraries: set[str] = dataclasses.field(init=False, default_factory=set)
     handlers: dict[int, Handler] = dataclasses.field(init=False, default_factory=dict)
+    probes: set[int] = dataclasses.field(init=False, default_factory=set)
 
     def __post_init__(self) -> None:
         kind = self.catalog["kinds"].get(self.module.kind)
@@ -484,6 +544,8 @@ class _Module:
         if mains:
             targets[SETUP] = mains[0].block
         for fn in sorted(functions.values(), key=lambda f: f.block):
+            if fn.refs and (fn.is_main or fn.programs):
+                raise EmitError(f"entry function {fn.block:#x} takes references")
             for number in fn.programs:
                 if number in targets:
                     raise EmitError(f"program {number} has more than one entry")
@@ -532,11 +594,7 @@ class _Module:
             if block not in self.module.libraries:
                 self.used_returns |= used_call_blocks(self.function(block).body)
 
-        usages = {}
-        for block in local + inline:
-            usage = _Usage()
-            _collect(self, self.function(block).body, usage)
-            usages[block] = usage
+        usages = {block: _usage(self, self.function(block)) for block in local + inline}
         global_numbers = {slot[1] for u in usages.values() for slot in u.mentioned if slot[0] == "global"}
         global_numbers |= {slot[1] for slot in self.module.globals}
         self.read_globals = {slot[1] for u in usages.values() for slot in u.reads if slot[0] == "global"}
@@ -603,7 +661,7 @@ class _Module:
         for section in sections:
             lines.append("")
             lines.extend(section)
-        return Module("\n".join(lines) + "\n", list(self.diagnostics))
+        return Module("\n".join(lines) + "\n", list(self.diagnostics), sorted(self.probes))
 
     def run_library(self, function: FunctionInput, name: str, users: int) -> Module:
         """Emits a shared helper as a module that returns it, requiring the shared helpers it calls."""
@@ -617,8 +675,7 @@ class _Module:
                 raise EmitError(f"shared function {function.block:#x} calls {block:#x}, which is not shared")
             self.names[block] = self.module.libraries[block]
         self.used_returns = set(self.module.returns_value)
-        usage = _Usage()
-        _collect(self, function.body, usage)
+        usage = _usage(self, function)
         reserved = set(self.names.values()) | {self.namespace} | _LUAU_RESERVED | _LUAU_BUILTINS
         body = _Function(self, function, usage, reserved, f"local function {name}", ["--- Helper function."]).lines()
         requires = ['local vm = require("@lib/vm")'] if self.uses_vm else []
@@ -784,8 +841,12 @@ class _Function:
         self.temp_reads = usage.temp_reads
         self.names = _allocate_names(fn, usage, reserved)
         self.declared_slots = sorted(
-            (slot for slot in usage.reads if slot[0] == "local" and slot[1] >= fn.arg),
-            key=lambda slot: slot[1],
+            (
+                slot
+                for slot in usage.reads
+                if (slot[0] == "local" and slot[1] >= fn.arg) or slot[0] in TABLE_SPACES
+            ),
+            key=lambda slot: (slot[0] != "frame", slot[1]),
         )
         # A loop variable read outside its loop shares a name with the declaration, so the loop uses a distinct one.
         # A value written outside the loop and never read there is dead, since the loop sets the variable itself.
@@ -793,6 +854,8 @@ class _Function:
         # Control variables of the loops being printed, mapped to the names they take inside those loops.
         self.active_loops: dict[ir.Slot, str] = {}
         self.scopes: list[set[int]] = [set()]
+        # Retail quirks found while printing the current statement, which its first line notes.
+        self.notes: list[str] = []
         if fn.is_main:
             self.role = "main"
         elif fn.programs:
@@ -830,7 +893,7 @@ class _Function:
         """Whether a variable has a Luau declaration here, so that a value written to it is kept."""
         if slot[0] == "global":
             return self.mod.global_declared(slot[1])
-        if slot in self.active_loops or slot[1] < self.fn.arg:
+        if slot[0] == "local" and (slot in self.active_loops or slot[1] < self.fn.arg):
             return True
         return slot in self.reads
 
@@ -846,16 +909,51 @@ class _Function:
 
     def expr_type(self, expr: ir.Expr) -> str:
         """The type of an expression, using the storage type of variables."""
+        if isinstance(expr, ir.Addr) and expr.index is not None:
+            return expr.type
         if isinstance(expr, (ir.Var, ir.Addr)):
             return self.slot_type(expr.slot)
         if isinstance(expr, ir.Temp):
             return self.temp_type(expr.index)
         return expr.type
 
+    def may_be_int(self, expr: ir.Expr) -> bool:
+        """Whether a value may carry an integer tag: arithmetic with a float operand always yields a float."""
+        if isinstance(expr, ir.Binary) and expr.op in ("add", "sub", "mul", "div"):
+            if ir.FLOAT in (self.expr_type(expr.lhs), self.expr_type(expr.rhs)):
+                return False
+        return self.expr_type(expr) in _MAYBE_INT
+
     def _variable(self, expr: ir.Expr) -> tuple[str, str]:
         if isinstance(expr, ir.Temp):
             return self.temp_name(expr.index), self.temp_type(expr.index)
+        if isinstance(expr, ir.Elem):
+            return self.element(expr.array, expr.index), expr.type
+        if isinstance(expr, ir.Addr) and expr.index is not None:
+            return self.element(expr.slot, expr.index), expr.type
         return self.name_of(expr.slot), self.slot_type(expr.slot)
+
+    def element(self, array: ir.Slot, index: ir.Expr) -> str:
+        """An element of an array's or the frame's table, whose first element is at 1."""
+        name = self.name_of(array)
+        if array == FRAME and not isinstance(index, ir.Const):
+            # Only a frame holds an index that may leave it; vm.index raises an error there.
+            text = self._call_text("vm.index", self.value(index)[0], str(self.fn.arrays[FRAME]))[0]
+        else:
+            text = self.value(ir.add_const(index, 1))[0]
+        return f"{name}[{text}]"
+
+    def target_text(self, ref: ir.Addr) -> str:
+        """The assignable text of a variable or element that a reference names."""
+        if ref.index is not None:
+            return self.element(ref.slot, ref.index)
+        return self.name_of(ref.slot)
+
+    def ref_value(self, param: int) -> str:
+        """The current value of a reference parameter, which a frame table holds when the function has one."""
+        if FRAME in self.fn.arrays:
+            return self.element(FRAME, ir.Const(param, ir.INT))
+        return self.name_of(("local", param))
 
     def _call_text(self, name: str, *args: str) -> Text:
         if name.startswith("vm."):
@@ -867,8 +965,25 @@ class _Function:
         callee = self.mod.function(expr.function)
         args = []
         for index, arg in enumerate(expr.args):
+            if index in callee.refs:
+                args.append(self.value(arg)[0])
+                continue
             if index < callee.arg and callee.slot_types.get(("local", index)) == ir.BOOL:
                 args.append(self.cond(arg)[0])
+            elif (
+                callee.slot_types.get(("local", index)) == ir.FLOAT
+                and isinstance(arg, ir.Const)
+                and arg.type == ir.INT
+                and arg.value != 0
+            ):
+                # The callee loads the parameter as a float, which reinterprets the integer's bits.
+                args.append(_float_text(_bits_to_float(arg.value))[0])
+                self.notes.append(f"the integer {arg.value} is passed where the callee reads a float, so it reads its bits")
+            elif callee.slot_types.get(("local", index)) == ir.FLOAT and self.may_be_int(arg):
+                raise EmitError(
+                    f"a value that may be an integer is passed to parameter {index} of {self.mod.function_name(expr.function)}, "
+                    "which the callee loads as a float"
+                )
             else:
                 args.append(self.value(arg)[0])
         return self._call_text(self.mod.function_name(expr.function), *args)
@@ -893,7 +1008,7 @@ class _Function:
             return self._boolish(expr)
         if isinstance(expr, ir.Const) and expr.type in (ir.INT, ir.BOOL):
             return ("true" if expr.value != 0 else "false"), Prec.ATOM
-        if isinstance(expr, (ir.Var, ir.Addr, ir.Temp)):
+        if isinstance(expr, (ir.Var, ir.Addr, ir.Temp, ir.Elem)):
             name, storage = self._variable(expr)
             if storage == ir.BOOL:
                 return name, Prec.ATOM
@@ -924,7 +1039,7 @@ class _Function:
             return f"if {self.cond(expr)[0]} then 1 else 0", Prec.IF
         if isinstance(expr, ir.Const):
             return _const_text(expr)
-        if isinstance(expr, (ir.Var, ir.Addr, ir.Temp)):
+        if isinstance(expr, (ir.Var, ir.Addr, ir.Temp, ir.Elem)):
             name, storage = self._variable(expr)
             if storage == ir.BOOL:
                 return f"if {name} then 1 else 0", Prec.IF
@@ -940,6 +1055,8 @@ class _Function:
                 return f"if {self.cond(expr.lhs)[0]} then 1 else {self.value(expr.rhs)[0]}", Prec.IF
             raise EmitError(f"unknown logical operator {expr.op}")
         if isinstance(expr, ir.Call):
+            if self.mod.function(expr.function).refs:
+                raise EmitError("a call that copies references back is used inside an expression")
             return self.function_call(expr)
         raise EmitError(f"unknown expression {type(expr).__name__}")
 
@@ -949,6 +1066,9 @@ class _Function:
             inner = _wrap(self.value(operand), Prec.UNARY)
             if inner.startswith("-"):
                 inner = f"({inner})"
+            if expr.wrap:
+                # -(-2^31) overflows, and the PS2 wraps it back to -2^31.
+                return self._call_text(_wrapper(expr), f"-{inner}")
             return f"-{inner}", Prec.UNARY
         if expr.op == "itof":
             return self.value(operand)
@@ -963,19 +1083,27 @@ class _Function:
     def _binary(self, expr: ir.Binary) -> Text:
         lhs, rhs = self.value(expr.lhs), self.value(expr.rhs)
         both_int = self.expr_type(expr.lhs) == ir.INT and self.expr_type(expr.rhs) == ir.INT
+        # An integer operation the lifter could not keep inside 32 bits wraps, as on the PS2.
         if expr.op == "add":
-            return _infix(lhs, "+", rhs, Prec.ADD)
+            total = _infix(lhs, "+", rhs, Prec.ADD)
+            return self._call_text(_wrapper(expr), total[0]) if expr.wrap else total
         if expr.op == "sub":
-            return _infix(lhs, "-", rhs, Prec.ADD)
+            difference = _infix(lhs, "-", rhs, Prec.ADD)
+            return self._call_text(_wrapper(expr), difference[0]) if expr.wrap else difference
         if expr.op == "mul":
             product = _infix(lhs, "*", rhs, Prec.MUL)
+            if expr.wrap:
+                return self._call_text(_wrapper(expr), product[0])
             if both_int and not isinstance(expr.lhs, ir.Const) and not isinstance(expr.rhs, ir.Const):
                 return self._call_text("vm.i32", product[0])
             return product
         if expr.op == "div":
             if both_int:
                 return self._call_text("vm.idiv", lhs[0], rhs[0])
-            return _infix(lhs, "/", rhs, Prec.MUL)
+            if isinstance(expr.rhs, ir.Const) and (expr.rhs.value != 0 or math.copysign(1.0, expr.rhs.value) < 0):
+                return _infix(lhs, "/", rhs, Prec.MUL)
+            # Retail exits when the divisor's bits are zero, which a variable may hold.
+            return self._call_text("vm.fdiv", lhs[0], rhs[0])
         if expr.op == "mod":
             return self._call_text("vm.imod", lhs[0], rhs[0])
         if expr.op == "band":
@@ -1009,13 +1137,26 @@ class _Function:
             self.scopes.pop()
 
     def statement(self, stmt, depth: int, last: bool, tail: bool) -> list[str]:
-        """The lines of one statement."""
+        """The lines of one statement, the first of them noting the retail quirks its own expressions translate."""
+        outer, self.notes = self.notes, []
+        try:
+            lines = self._statement(stmt, depth, last, tail)
+            if self.notes and lines:
+                separator = "; " if " -- retail: " in lines[0] else " -- retail: "
+                lines[0] += separator + "; ".join(dict.fromkeys(self.notes))
+            return lines
+        finally:
+            self.notes = outer
+
+    def _statement(self, stmt, depth: int, last: bool, tail: bool) -> list[str]:
         ind = "\t" * depth
         if isinstance(stmt, ir.Assign):
             return self.assign(stmt, ind)
         if isinstance(stmt, ir.ExtCall):
             return self.ext_call(stmt, ind)
         if isinstance(stmt, ir.CallStmt):
+            if self.mod.function(stmt.call.function).refs:
+                return self.ref_call(stmt.call, None, ind)
             return [f"{ind}{self.function_call(stmt.call)[0]}"]
         if isinstance(stmt, ir.Print):
             return [f"{ind}print({', '.join(self.value(arg)[0] for arg in stmt.args)})"]
@@ -1068,23 +1209,47 @@ class _Function:
     def if_(self, stmt: ir.If, depth: int, tail: bool) -> list[str]:
         """An if statement, flattening a single nested if in the else branch to elseif."""
         ind = "\t" * depth
-        lines = [f"{ind}if {self.cond(stmt.cond)[0]} then", *self.nested(stmt.then, depth + 1, tail)]
+        first = self.cond(stmt.cond)[0]
+        lines = [f"{ind}if {first} then", *self.nested(stmt.then, depth + 1, tail)]
+        tested = {first}
         orelse = stmt.orelse
         while len(orelse) == 1 and isinstance(orelse[0], ir.If):
             branch = orelse[0]
-            lines.append(f"{ind}elseif {self.cond(branch.cond)[0]} then")
+            cond = self.cond(branch.cond)[0]
+            if cond in tested:
+                # A repeated test stays a nested if, which keeps the script's dead branch without a duplicate elseif.
+                break
+            tested.add(cond)
+            lines.append(f"{ind}elseif {cond} then")
             lines += self.nested(branch.then, depth + 1, tail)
             orelse = branch.orelse
         if orelse:
             lines.append(f"{ind}else")
+            if len(orelse) == 1 and isinstance(orelse[0], ir.If) and self.cond(orelse[0].cond)[0] in tested:
+                never = "" if ir.has_call(orelse[0].cond) else ", so its branch never runs"
+                lines.append(f"{ind}\t-- retail: the script tests this condition again{never}")
             lines += self.nested(orelse, depth + 1, tail)
         lines.append(f"{ind}end")
         return lines
 
     def return_(self, stmt: ir.Return, depth: int, last: bool, tail: bool) -> list[str]:
-        """A return statement; values nobody reads are dropped unless they carry a call."""
+        """A return statement; values nobody reads are dropped unless they carry a call.
+
+        A function that takes references returns their values after its own, which it returns when any caller uses it.
+        """
         ind = "\t" * depth
         expr = stmt.value
+        if self.fn.refs:
+            lines = []
+            values = [self.ref_value(p) for p in self.fn.refs]
+            if self.fn.block in self.mod.used_returns:
+                values.insert(0, self.value(expr)[0])
+            elif ir.has_call(expr):
+                lines.append(f"local _ = {self.value(expr)[0]}")
+            lines.append(f"return {', '.join(values)}")
+            if last:
+                return [f"{ind}{line}" for line in lines]
+            return [f"{ind}do", *(f"{ind}\t{line}" for line in lines), f"{ind}end"]
         if self.role == "helper":
             keep = self.fn.block in self.mod.used_returns
         else:
@@ -1094,6 +1259,41 @@ class _Function:
             return []
         text = f"return {self.value(expr)[0]}" if keep else "return"
         return [f"{ind}{text}"] if last else [f"{ind}do {text} end"]
+
+    def ref_call(self, call: ir.Call, result: ir.Temp | None, ind: str) -> list[str]:
+        """A call of a function that takes references: its result and the referenced values come back together."""
+        callee = self.mod.function(call.function)
+        lines: list[str] = []
+        targets: list[str] = []
+        if call.function in self.mod.used_returns:
+            if result is not None and result.index in self.temp_reads:
+                name = f"t{result.index}"
+                if not any(result.index in scope for scope in self.scopes):
+                    self.scopes[-1].add(result.index)
+                    lines.append(f"{ind}local {name}: {_ANNOTATIONS[self.temp_type(result.index)]}")
+                targets.append(name)
+            else:
+                targets.append("_")
+        refs = [call.args[p] for p in callee.refs]
+        for position, ref in zip(callee.refs, refs):
+            if not isinstance(ref, ir.Addr):
+                raise EmitError("a value is passed for a reference parameter")
+            if self.expr_type(ref) == ir.FLOAT and callee.slot_types.get(("local", position)) != ir.FLOAT:
+                # The callee may store an integer through the reference, whose bits the caller's float loads would read.
+                raise EmitError(
+                    f"float variable passed by reference to parameter {position} of "
+                    f"{self.mod.function_name(call.function)}, which may store an integer there"
+                )
+            targets.append(self.target_text(ref) if self.declared(ref.slot) else "_")
+        text = self.function_call(call)[0]
+        if all(target == "_" for target in targets):
+            lines.append(f"{ind}{text}")
+        else:
+            lines.append(f"{ind}{', '.join(targets)} = {text}")
+        if self.mod.module.probe_refs and all(self.declared(ref.slot) for ref in refs):
+            self.mod.probes.add(call.offset)
+            lines.append(f"{ind}__ref({call.offset}, {', '.join(self.target_text(ref) for ref in refs)})")
+        return lines
 
     def store(self, expr: ir.Expr, storage: str, name: str) -> tuple[str, str]:
         """The printed value stored into a variable of the given storage type, with its trailing comment."""
@@ -1105,13 +1305,27 @@ class _Function:
                     return "0", ""
                 number = _bits_to_float(expr.value)
                 return _float_text(number)[0], " -- retail: integer bits read as a float"
-            if self.expr_type(expr) in (ir.INT, ir.BOOL):
-                self.mod.diagnose(f"integer stored into float variable {name}")
+            if self.may_be_int(expr):
+                # The script loads this variable as a float, which would read an integer's bits; a constant is spelled
+                # as those bits above, but a computed integer cannot be.
+                raise EmitError(f"a value that may be an integer is stored into float variable {name}")
         return self.value(expr)[0], ""
 
     def assign(self, stmt: ir.Assign, ind: str) -> list[str]:
         """An assignment to a variable or a temporary."""
         target = stmt.target
+        if isinstance(stmt.value, ir.Call) and self.mod.function(stmt.value.function).refs:
+            if not isinstance(target, ir.Temp):
+                raise EmitError("a call that copies references back is stored straight into a variable")
+            return self.ref_call(stmt.value, target, ind)
+        if isinstance(target, ir.Elem):
+            if not self.declared(target.array):
+                if ir.has_call(stmt.value):
+                    return [f"{ind}local _ = {self.value(stmt.value)[0]}"]
+                return []
+            name = self.element(target.array, target.index)
+            text, comment = self.store(stmt.value, self.slot_type(target.array), name)
+            return [f"{ind}{name} = {text}{comment}"]
         if isinstance(target, ir.Temp):
             name = f"t{target.index}"
             text, comment = self.store(stmt.value, self.temp_type(target.index), name)
@@ -1129,30 +1343,44 @@ class _Function:
         text, comment = self.store(stmt.value, self.slot_type(target), name)
         return [f"{ind}{name} = {text}{comment}"]
 
-    def _out_assign(self, slot: ir.Slot, expr: str) -> str:
+    def _out_assign(self, out: ir.Addr, expr: str) -> str:
         # A call leaves an unwritten output nil, so the variable keeps its value.
-        name = self.name_of(slot)
-        if self.slot_type(slot) == ir.BOOL:
+        name = self.target_text(out)
+        if out.index is None and self.slot_type(out.slot) == ir.BOOL:
             return f"{name} = ({expr} or (if {name} then 1 else 0)) ~= 0"
         return f"{name} = {expr} or {name}"
+
+    def _past_frame(self, expr: ir.Expr) -> bool:
+        # An operand-stack slot past the frame, which a constant index reached. The lifter admits it only as a native
+        # output into a slot that is dead when the call returns, so dropping the value is exact.
+        return isinstance(expr, ir.Addr) and expr.slot[0] == "stack"
 
     def ext_call(self, stmt: ir.ExtCall, ind: str) -> list[str]:
         """An external command call, capturing the by-reference outputs that are declared."""
         plan = self.mod.resolve(stmt)
         for message in plan.diagnostics:
             self.mod.diagnose(message)
+        if any(self._past_frame(arg) for arg in plan.ins):
+            raise EmitError("a reference past the frame is passed where the handler reads a value")
         args = ", ".join(self.value(arg)[0] for arg in plan.ins)
         call = f"{plan.name}({args})"
-        comment = f" -- {plan.comment}" if plan.comment else ""
+        clauses = [plan.comment.removeprefix("retail: ")] if plan.comment else []
+        lost = [position for position, out in enumerate(plan.outs, 1) if self._past_frame(out)]
+        if lost:
+            self.mod.diagnose("output written past the frame")
+            clauses.append(
+                f"output {', '.join(map(str, lost))} points past the frame, at the operand stack, so the value is lost"
+            )
+        comment = f" -- retail: {'; '.join(clauses)}" if clauses else ""
         if not any(self.declared(out.slot) for out in plan.outs):
             return [f"{ind}{call}{comment}"]
         if len(plan.outs) == 1:
-            return [f"{ind}{self._out_assign(plan.outs[0].slot, call)}{comment}"]
+            return [f"{ind}{self._out_assign(plan.outs[0], call)}{comment}"]
         names = [f"out{index}" if self.declared(out.slot) else "_" for index, out in enumerate(plan.outs, 1)]
         lines = [f"{ind}do", f"{ind}\tlocal {', '.join(names)} = {call}{comment}"]
         for index, out in enumerate(plan.outs, 1):
             if self.declared(out.slot):
-                lines.append(f"{ind}\t{self._out_assign(out.slot, f'out{index}')}")
+                lines.append(f"{ind}\t{self._out_assign(out, f'out{index}')}")
         lines.append(f"{ind}end")
         return lines
 
@@ -1162,10 +1390,20 @@ class _Function:
         params = ", ".join(
             f"{self.name_of(('local', n))}: {_ANNOTATIONS[self.slot_type(('local', n))]}" for n in range(fn.arg)
         )
-        decls = [
-            f"\tlocal {self.name_of(slot)}: {_ANNOTATIONS[self.slot_type(slot)]} = {_default(self.slot_type(slot))}"
-            for slot in self.declared_slots
-        ]
+        decls = []
+        for slot in self.declared_slots:
+            name, storage = self.name_of(slot), self.slot_type(slot)
+            if slot[0] not in TABLE_SPACES:
+                decls.append(f"\tlocal {name}: {_ANNOTATIONS[storage]} = {_default(storage)}")
+                continue
+            if slot == FRAME:
+                decls.append(
+                    "\t-- retail: a computed index here may leave its array, so the frame's slots live in one table "
+                    "and such an index reaches the neighbouring variables, as it does on the PS2"
+                )
+            decls.append(f"\tlocal {name}: {{ {_ANNOTATIONS[storage]} }} = table.create({fn.arrays[slot]}, {_default(storage)})")
+            if slot == FRAME:
+                decls += [f"\t{self.element(FRAME, ir.Const(n, ir.INT))} = {self.name_of(('local', n))}" for n in range(fn.arg)]
         body = self.block(fn.body, 1, tail=True)
         return [
             *self.doc,

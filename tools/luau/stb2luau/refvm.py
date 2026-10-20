@@ -2,6 +2,16 @@
 
 Decoded SB2/STB programs run on a list of tagged slots, with pointers held as slot indices, so the results can be
 compared against the Luau translation of the same scripts.
+
+The machine follows retail wherever retail's behaviour is defined by the script and the stack, so it can serve as the
+oracle the translation is tested against. Retail never checks a local index, and neither does this machine: a local
+index below the frame reaches the caller's frame or the globals, and a load or a store past the frame reaches the
+operand stack, as on the PS2. Each such access is reported to outside_frame() first, which does nothing here; the
+differential harness uses it to stop comparing, since the translation does not model the operand stack. VMError is
+raised where retail exits, and where it would reach memory outside the stack or read a pointer's bits as a number.
+
+float32=False is not retail: it runs float arithmetic in double precision and reads float constants as the shortest
+decimal that rounds to them, which is the numeric model the Luau translation follows (docs/PORT_LUAU.md, Numbers).
 """
 
 from __future__ import annotations
@@ -150,7 +160,8 @@ class Machine:
         self.log: list[bytes] = []
         self.waits = 0
         self.steps = 0
-        self.trace: set[int] | None = None
+        # When set, the step at which each instruction offset first ran.
+        self.trace: dict[int, int] | None = None
 
     def read_arg(self, index: int) -> Slot:
         """Slot at an absolute stack or global index."""
@@ -193,6 +204,12 @@ class Machine:
         """Whether the program has a numbered entry."""
         return any(number == no for number, _ in self.program.programs)
 
+    def outside_frame(self, access: str, address: int) -> None:
+        """Called before a load or store reaches a slot outside the running function's frame, which retail allows."""
+
+    def returned(self, call: int, callee: int, frame: int) -> None:
+        """Called after a script function returns to the CALL at the given offset, with its frame still in memory."""
+
     def default_ext(self, base: int, argc: int) -> None:
         """Log an external call with no external functions registered, as retail does with an empty table."""
         self.log.append(b"not found ext %d\n" % _raw_int(self._read(base)))
@@ -205,11 +222,13 @@ class Machine:
             if self.steps > self.max_steps:
                 raise VMError("step budget exceeded")
             if self.trace is not None:
-                self.trace.add(self.pc)
+                self.trace.setdefault(self.pc, self.steps)
             op, a1, a2 = struct.unpack_from("<iii", self.program.data, self.pc)
             if op == Op.LOAD:
                 address = self._address(a2, a1)
                 if address is not None:
+                    if a2 not in GLOBAL_MODES and self._past_frame(address):
+                        self.outside_frame("load past the frame", address)
                     if a2 in FLOAT_MODES:
                         self._retag_float(address)
                     self._push(self._read(address))
@@ -226,6 +245,8 @@ class Machine:
                 target = self._pop()
                 if target.tag != Tag.PTR:
                     raise VMError("store through a non-pointer")
+                if self._past_frame(target.value):
+                    self.outside_frame("store past the frame", target.value)
                 self._write(target.value, value)
                 self._push(value)
             elif op == Op.JMP:
@@ -287,8 +308,10 @@ class Machine:
             elif op == Op.RET:
                 value = self._pop()
                 if self.call_stack:
+                    callee, callee_frame = self.func, self.frame
                     self.sp = self.frame
                     self.pc, self.frame, self.func = self.call_stack.pop()
+                    self.returned(self.pc, callee, callee_frame)
                     self._push(value)
                 else:
                     self.result = _raw_int(value)
@@ -376,13 +399,24 @@ class Machine:
             raise VMError("pointer index through a non-pointer")
         return base.value + self._int(self._pop())
 
+    def _locals(self) -> int:
+        """Number of local slots in the running function's frame."""
+        return struct.unpack_from("<i", self.program.data, self.func + 8)[0] if self.func is not None else 0
+
+    def _past_frame(self, address: int) -> bool:
+        """Whether an address lies above the running function's locals, in the operand stack; globals lie below."""
+        return address >= self.frame + self._locals()
+
     def _address(self, mode: int, arg: int) -> int | None:
         if mode not in _ADDRESS_MODES:
             return None
         if mode in POINTER_MODES:
             return self._pointer_index(arg)
         if mode in INDEXED_MODES:
-            return self.frame + arg + self._int(self._pop())
+            address = self.frame + arg + self._int(self._pop())
+            if address < self.frame:
+                self.outside_frame("local index below the frame", address)
+            return address
         if mode in GLOBAL_MODES:
             return self._global(arg)
         return self.frame + arg

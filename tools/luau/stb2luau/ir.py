@@ -10,6 +10,8 @@ from stb import opcodes
 INT, FLOAT, STR, BOOL, ANY = "int", "float", "str", "bool", "any"
 
 Slot = tuple[str, int]
+# The table that holds a whole frame when a computed index may leave its array.
+FRAME: Slot = ("frame", 0)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -30,9 +32,19 @@ class Var:
 
 @dataclasses.dataclass(frozen=True)
 class Addr:
-    """A by-reference argument naming a variable."""
+    """A by-reference argument naming a variable, or with an index, one element of a local array."""
 
     slot: Slot
+    type: str
+    index: Expr | None = None
+
+
+@dataclasses.dataclass(frozen=True)
+class Elem:
+    """A read of one element of a local array, held in a table and keyed by the array's slot."""
+
+    array: Slot
+    index: Expr
     type: str
 
 
@@ -46,21 +58,29 @@ class Temp:
 
 @dataclasses.dataclass(frozen=True)
 class Unary:
-    """An operation on one operand: neg, not, itof, ftoi, sin or cos."""
+    """An operation on one operand: neg, not, itof, ftoi, sin or cos.
+
+    wrap marks an integer negation that may overflow 32 bits, which the PS2 wraps.
+    """
 
     op: str
     operand: Expr
     type: str
+    wrap: bool = False
 
 
 @dataclasses.dataclass(frozen=True)
 class Binary:
-    """An arithmetic or bitwise operation on two operands."""
+    """An arithmetic or bitwise operation on two operands.
+
+    wrap marks an integer sum, difference or product that may overflow 32 bits, which the PS2 wraps.
+    """
 
     op: str
     lhs: Expr
     rhs: Expr
     type: str
+    wrap: bool = False
 
 
 @dataclasses.dataclass(frozen=True)
@@ -89,21 +109,25 @@ class Logical:
 
 @dataclasses.dataclass(frozen=True)
 class Call:
-    """A call of a script function, identified by its header block, yielding its return value."""
+    """A call of a script function, identified by its header block, yielding its return value.
+
+    The offset is the CALL instruction's, which the harness uses to match the values a call's references hold.
+    """
 
     function: int
     args: tuple[Expr, ...]
     type: str
+    offset: int = dataclasses.field(default=-1, compare=False)
 
 
-Expr = Const | Var | Addr | Temp | Unary | Binary | Compare | Logical | Call
+Expr = Const | Var | Addr | Elem | Temp | Unary | Binary | Compare | Logical | Call
 
 
 @dataclasses.dataclass(frozen=True)
 class Assign:
-    """A store of a value into a variable or a temporary."""
+    """A store of a value into a variable, an array element or a temporary."""
 
-    target: Slot | Temp
+    target: Slot | Temp | Elem
     value: Expr
     offset: int = -1
 
@@ -245,6 +269,9 @@ class LiftedFunction:
     blocks: dict[int, LiftedBlock]
     slot_types: dict[Slot, str]
     temps: list[str]
+    refs: tuple[int, ...] = ()
+    arrays: dict[Slot, int] = dataclasses.field(default_factory=dict)
+    folded: frozenset[int] = frozenset()
 
 
 def walk(expr: Expr) -> Iterator[Expr]:
@@ -258,13 +285,58 @@ def walk(expr: Expr) -> Iterator[Expr]:
     elif isinstance(expr, Call):
         for arg in expr.args:
             yield from walk(arg)
+    elif isinstance(expr, Elem) or (isinstance(expr, Addr) and expr.index is not None):
+        yield from walk(expr.index)
 
 
 def reads(expr: Expr) -> set[Slot]:
-    """Variables an expression reads, including the variables it takes by reference."""
-    return {sub.slot for sub in walk(expr) if isinstance(sub, (Var, Addr))}
+    """Variables and arrays an expression reads, including those it takes by reference."""
+    found: set[Slot] = set()
+    for sub in walk(expr):
+        if isinstance(sub, (Var, Addr)):
+            found.add(sub.slot)
+        elif isinstance(sub, Elem):
+            found.add(sub.array)
+    return found
+
+
+def target_slot(target: Slot | Temp | Elem) -> Slot | None:
+    """The variable or array an assignment writes, or None for a temporary."""
+    if isinstance(target, Temp):
+        return None
+    if isinstance(target, Elem):
+        return target.array
+    return target
 
 
 def has_call(expr: Expr) -> bool:
     """Whether evaluating an expression runs a script function."""
     return any(isinstance(sub, Call) for sub in walk(expr))
+
+
+def add_const(expr: Expr, amount: int) -> Expr:
+    """An integer expression plus a constant, folded into a constant or a trailing constant operand."""
+    if amount == 0:
+        return expr
+    if isinstance(expr, Const) and expr.type == INT:
+        return Const(_wrap32(expr.value + amount), INT)
+    if (
+        isinstance(expr, Binary)
+        and expr.op in ("add", "sub")
+        and not expr.wrap
+        and isinstance(expr.rhs, Const)
+        and expr.rhs.type == INT
+    ):
+        total = expr.rhs.value + amount if expr.op == "add" else amount - expr.rhs.value
+        if total == 0:
+            return expr.lhs
+        if total > 0:
+            return Binary("add", expr.lhs, Const(total, INT), expr.type)
+        return Binary("sub", expr.lhs, Const(-total, INT), expr.type)
+    if amount > 0:
+        return Binary("add", expr, Const(amount, INT), INT)
+    return Binary("sub", expr, Const(-amount, INT), INT)
+
+
+def _wrap32(value: int) -> int:
+    return ((value + 0x8000_0000) & 0xFFFF_FFFF) - 0x8000_0000

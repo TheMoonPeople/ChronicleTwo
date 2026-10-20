@@ -503,7 +503,7 @@ local function helper_77c4()
 	end
 	if prog == 821 then
 		action.SetMos("機関銃", -1, 4)
-		global1 = global1 + 1
+		global1 = vm.i32(global1 + 1)
 		if global1 >= 3 then
 			global1 = 0
 			action.SetShot(6, "n_gun", 2, 5)

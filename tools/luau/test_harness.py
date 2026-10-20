@@ -1,19 +1,23 @@
+import math
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from stb.assembler import assemble  # noqa: E402
-from stb.opcodes import AddrMode, Compare  # noqa: E402
+from stb.opcodes import AddrMode, Compare, Op  # noqa: E402
 from stb.program import decode  # noqa: E402
-from stb2luau import harness  # noqa: E402
+from stb2luau import harness, numbers, refvm  # noqa: E402
 
 REPO = HERE.parents[1]
-LOCAL = AddrMode.LOCAL
+LOCAL, LOCAL_INDEX = AddrMode.LOCAL, AddrMode.LOCAL_INDEX
+LOCAL_FLOAT, POINTER_INDEX = AddrMode.LOCAL_FLOAT, AddrMode.POINTER_INDEX
 CATALOG = {
     "namespace": "action",
     "commands": [{"no": 2, "luau": "ProgGet", "signatures": [{"argc": 1, "params": [{"name": "prog", "dir": "out", "type": "s32"}]}]}],
@@ -92,6 +96,122 @@ def set_then_get_fixture():
     return decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
 
 
+MONSTER_CATALOG = {
+    "namespace": "monster",
+    "commands": [
+        {"no": 35, "luau": "GetRnd", "signatures": [{"argc": 2, "params": [
+            {"name": "range", "dir": "in", "type": "s32"}, {"name": "argc", "dir": "out", "type": "s32"}]}]},
+        {"no": 37, "luau": "VPush", "signatures": [{"argc": 2, "params": [
+            {"name": "index", "dir": "in", "type": "s32"}, {"name": "value", "dir": "in", "type": "s32"}]}]},
+        {"no": 38, "luau": "VPop", "signatures": [{"argc": 2, "params": [
+            {"name": "index", "dir": "in", "type": "s32"}, {"name": "out2", "dir": "out", "type": "s32"}]}]},
+    ],
+}
+# Program 100 calls bump(&x) twice, printing x after each; bump adds one to the variable its reference names.
+REFERENCE_FUNCTIONS = {
+    "main": (0, 0, [("END",)]),
+    "p100": (1, 0, [
+        ("LOAD_ADDR", 0, LOCAL), ("CALL", "bump"), ("POP",), ("LOAD", 0, LOCAL), ("PRINT", 1),
+        ("LOAD_ADDR", 0, LOCAL), ("CALL", "bump"), ("POP",), ("LOAD", 0, LOCAL), ("PRINT", 1),
+        ("push", 0), ("RET",),
+    ]),
+    "bump": (1, 1, [
+        ("push", 0), ("LOAD_ADDR", 0, POINTER_INDEX), ("push", 0), ("LOAD", 0, POINTER_INDEX), ("push", 1), ("ADD",),
+        ("STORE",), ("POP",), ("push", 0), ("RET",),
+    ]),
+}
+REFERENCE_MODULE = """local function bump(arg0)
+    arg0 = arg0 + 1
+    return arg0
+end
+local script = {}
+script.setup = function() end
+script[100] = function()
+    local x = 0
+    x = bump(x)
+    __ref(CALL1, x)
+    print(x)
+    x = bump(x)
+    __ref(CALL2, x)
+    print(x)
+end
+return script
+"""
+
+
+def reference_fixture():
+    """Program 100 of REFERENCE_FUNCTIONS, with the offsets of its two CALL instructions."""
+    program = decode(assemble(REFERENCE_FUNCTIONS, "main", {100: "p100"}))
+    p100 = next(block for number, block in program.programs if number == 100)
+    calls = [i.offset for i in program.functions[p100].instructions if i.op == Op.CALL]
+    return program, calls
+
+
+def past_frame_fixture():
+    """Program 100 prints "a", stores 5 two slots past its one-slot frame, prints "b" and returns 0.
+
+    Retail writes the operand stack there and goes on; the translation raises an error, as b02a1.stb's function 0x1a80
+    does when a native output sends its index past the frame.
+    """
+    body = [
+        ("pushs", b"a"), ("PRINT", 1),
+        ("push", 2), ("LOAD_ADDR", 0, LOCAL_INDEX), ("push", 5), ("STORE",), ("POP",),
+        ("pushs", b"b"), ("PRINT", 1),
+        ("push", 0), ("RET",),
+    ]
+    return decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
+
+
+PAST_FRAME_MODULE = """local script = {}
+script.setup = function() end
+script[100] = function()
+    print("a")
+    error("slot index 2 is outside the frame of 1 slots")
+end
+return script
+"""
+
+
+PAST_FRAME_ERROR = '    error("slot index 2 is outside the frame of 1 slots")\n'
+# A module whose program 100 runs the given statements.
+PROGRAM_100 = """local script = {{}}
+script.setup = function() end
+script[100] = function()
+    {body}
+end
+return script
+"""
+
+
+def endless_fixture():
+    """Program 100 calls command 2 in a loop that never ends."""
+    body = [("label", "top"), ("push", 2), ("LOAD_ADDR", 0, LOCAL), ("EXT", 2), ("JMP", "top"), ("push", 0), ("RET",)]
+    return decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
+
+
+ENDLESS_MODULE = """local script = {}
+script.setup = function() end
+script[100] = function()
+    local x = 0
+    while true do
+        x = action.ProgGet() or x
+    end
+end
+return script
+"""
+
+
+def nested_fixture():
+    """Program 100 calls f, which calls g, which calls h: three calls deep."""
+    return decode(assemble({
+        "main": (0, 0, [("END",)]),
+        "p100": (0, 0, [("CALL", "f"), ("RET",)]),
+        "f": (0, 0, [("CALL", "g"), ("RET",)]),
+        "g": (0, 0, [("CALL", "h"), ("RET",)]),
+        "h": (0, 0, [("push", 0), ("RET",)]),
+    }, "main", {100: "p100"}))
+
+
 def float_fixture():
     """Main pushes the float 4.5 and ends."""
     return decode(assemble({"main": (0, 0, [("pushf", 4.5), ("POP",), ("END",)])}, "main"))
@@ -107,7 +227,8 @@ class RecordTest(unittest.TestCase):
                 break
         else:
             self.fail("no seed wrote the out value")
-        self.assertIsNone(scenario.inconclusive)
+        self.assertIsNone(scenario.cut)
+        self.assertEqual(scenario.compared, scenario.covered)
         self.assertEqual(scenario.globals, [])
         self.assertEqual(
             scenario.events,
@@ -183,6 +304,81 @@ class RecordTest(unittest.TestCase):
         read_back = [run.events[1][4][0] for run in runs]
         self.assertGreater(sum(value == 0 for value in read_back), 16, read_back)
 
+    def test_keyed_state_reads_back_the_value_stored_under_its_key(self):
+        body = [
+            ("push", 37), ("push", 5), ("push", 42), ("EXT", 3),
+            ("push", 37), ("push", 6), ("push", 7), ("EXT", 3),
+            ("push", 38), ("push", 5), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3),
+            ("push", 0), ("RET",),
+        ]
+        program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
+        runs = [harness.record(program, MONSTER_CATALOG, [100], seed, f"100/s{seed}", namespace="monster") for seed in range(64)]
+        read_back = [run.events[2][4][0] for run in runs]
+        self.assertGreater(sum(value == 42 for value in read_back), 32, read_back)
+
+    def test_random_command_stays_inside_its_range(self):
+        body = [("push", 35), ("push", 8), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3), ("push", 0), ("RET",)]
+        program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
+        runs = [harness.record(program, MONSTER_CATALOG, [100], seed, f"100/s{seed}", namespace="monster") for seed in range(64)]
+        values = {run.events[0][4][0] for run in runs}
+        self.assertTrue(values <= set(range(8)), values)
+        self.assertGreater(len(values), 2)
+
+    def test_output_takes_the_type_its_variable_is_read_as(self):
+        # The catalogue types the output as an integer, but the script loads the variable as a float.
+        body = [("push", 2), ("LOAD_ADDR", 0, LOCAL_FLOAT), ("EXT", 2), ("LOAD", 0, LOCAL_FLOAT), ("PRINT", 1), ("push", 0), ("RET",)]
+        program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
+        ext = next(i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.EXT)
+        views = harness.FloatViews({ext: (True,)}, frozenset())
+        for seed in range(16):
+            scenario = harness.record(program, CATALOG, [100], seed, f"100/s{seed}", views=views)
+            value = scenario.events[0][4][0]
+            if value is not None:
+                self.assertIsInstance(value, float)
+                self.assertEqual(scenario.events[1], ("print", (value,)))
+
+    def test_probed_call_records_the_referenced_values(self):
+        program, calls = reference_fixture()
+        scenario = harness.record(program, CATALOG, [100], 0, "100/s0", probes=frozenset(calls[:1]))
+        self.assertEqual(scenario.events, [("ref", calls[0], (1,)), ("print", (1,)), ("print", (2,)), ("end", 0)])
+
+    def test_folded_float_operation_is_spelled_as_the_module_spells_it(self):
+        body = [("pushf", 3.1415927), ("pushf", 2.0), ("DIV",), ("PRINT", 1), ("push", 0), ("RET",)]
+        program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (0, 0, body)}, "main", {100: "p100"}))
+        divide = next(i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.DIV)
+        exact = harness.record(program, CATALOG, [100], 0, "100/s0").events[0][1][0]
+        folded = harness.record(program, CATALOG, [100], 0, "100/s0", folded=frozenset({divide})).events[0][1][0]
+        self.assertEqual(folded, numbers.literal(refvm.f32(exact)))
+        self.assertNotEqual(folded, exact)
+
+    def test_store_past_the_frame_cuts_the_trace_where_retail_goes_on(self):
+        program = past_frame_fixture()
+        scenario = harness.record(program, CATALOG, [100], 0, "100/s0")
+        store = next(i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.STORE)
+        self.assertEqual(scenario.cut, f"store past the frame at {store:#x}")
+        self.assertTrue(scenario.unsupported)
+        self.assertEqual(scenario.events, [("print", ("a",)), ("cut", "frame")])
+        # The reference run went on to print "b", but only what ran before the first print was compared.
+        printed = [i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.PRINT]
+        self.assertIn(printed[1], scenario.covered)
+        self.assertNotIn(printed[1], scenario.compared)
+        self.assertIn(printed[0], scenario.compared)
+        self.assertLess(harness.coverage(program, [scenario], compared=True), harness.coverage(program, [scenario]))
+
+    def test_step_budget_cuts_the_trace_after_its_events(self):
+        with mock.patch.object(harness, "MAX_STEPS", 200):
+            scenario = harness.record(endless_fixture(), CATALOG, [100], 0, "100/s0")
+        self.assertEqual(scenario.cut, harness.BUDGET)
+        self.assertFalse(scenario.unsupported)
+        self.assertEqual(scenario.events[-1], ("cut", "budget"))
+        self.assertGreater(len(scenario.events), 10)
+        self.assertTrue(all(event[0] == "ext" for event in scenario.events[:-1]))
+
+    def test_effect_scripts_get_retails_call_depth_of_two(self):
+        effect = {"namespace": "effect", "commands": []}
+        self.assertEqual(harness.record(nested_fixture(), effect, [100], 0, "100/s0", namespace="effect").events, [("error",)])
+        self.assertEqual(harness.record(nested_fixture(), CATALOG, [100], 0, "100/s0").events, [("end", 0)])
+
     def test_scenarios_run_each_program_twice_in_one_instance(self):
         recorded = harness.scenarios(fixture(), CATALOG, range(2))
         names = {scenario.name: scenario for scenario in recorded}
@@ -222,9 +418,112 @@ class DifferentialTest(unittest.TestCase):
         result = harness.run(self.root, "prog", fixture(), CATALOG, "action", seeds=range(4))
         self.assertEqual(result["returncode"], 0, result["stderr"])
         self.assertEqual(result["fail"], [])
-        self.assertEqual(result["skip"], [])
+        self.assertEqual(result["prefix"], [])
+        self.assertEqual(result["unsupported"], [])
         self.assertEqual(result["pass"], 4 * 4)
         self.assertEqual(result["coverage"], 1.0)
+        self.assertEqual(result["compared"], 1.0)
+
+    def test_integers_compare_exactly(self):
+        self.write_module(GOOD_MODULE.replace("print(x)", "print(x + 0.0000001)"))
+        result = harness.run(self.root, "prog", fixture(), CATALOG, "action", seeds=range(4))
+        self.assertEqual(result["returncode"], 0, result["stderr"])
+        failed = [line for line in result["fail"] if "print" in line]
+        self.assertTrue(failed, result)
+
+    def test_unsupported_scenario_compares_its_prefix(self):
+        self.write_module(PAST_FRAME_MODULE)
+        result = harness.run(self.root, "prog", past_frame_fixture(), CATALOG, "action", seeds=range(1))
+        self.assertEqual(result["returncode"], 0, result["stderr"])
+        self.assertEqual(result["fail"], [])
+        self.assertEqual(len(result["unsupported"]), 3, result)
+        self.assertTrue(all(scenario.cut.startswith("store past the frame") for scenario in result["unsupported"]))
+        self.assertLess(result["compared"], result["coverage"])
+
+    def test_unsupported_scenario_fails_when_the_module_returns_instead(self):
+        self.write_module(PAST_FRAME_MODULE.replace(PAST_FRAME_ERROR, ""))
+        result = harness.run(self.root, "prog", past_frame_fixture(), CATALOG, "action", seeds=range(1))
+        self.assertEqual(result["unsupported"], [])
+        self.assertTrue(any("FAIL 100/s0" in line and "cut" in line for line in result["fail"]), result)
+
+    def test_unsupported_scenario_fails_on_an_unrelated_error(self):
+        self.write_module(PAST_FRAME_MODULE.replace("slot index 2 is outside the frame of 1 slots", "attempt to index nil"))
+        result = harness.run(self.root, "prog", past_frame_fixture(), CATALOG, "action", seeds=range(1))
+        self.assertEqual(result["unsupported"], [])
+        self.assertTrue(any("FAIL 100/s0" in line for line in result["fail"]), result)
+
+    def replay(self, module, events):
+        """Replays one hand-written trace of program 100 against a module; returns the host's output lines."""
+        self.write_module(module)
+        scenario = harness.Scenario("100/s0", [100], 0, events, [])
+        driver = self.root / "driver.luau"
+        driver.write_text(harness.driver("prog", "action", CATALOG, [scenario], {}), encoding="utf-8")
+        completed = subprocess.run([str(harness.HOST), str(self.root), str(driver)], capture_output=True, text=True, check=False)
+        return completed.stdout.splitlines()
+
+    def test_budget_cut_counts_as_a_prefix_whatever_the_module_does_next(self):
+        # Program 100 prints "a", counts to 50 and prints "b"; a budget of 400 steps cuts it after "a". The module that
+        # then prints "wrong" and the one that returns at once are not passed: they count as compared prefixes, as the
+        # right module does, since nothing after the cut is checked.
+        count = [
+            ("pushs", b"a"), ("PRINT", 1),
+            ("label", "top"),
+            ("LOAD", 0, LOCAL), ("push", 50), ("CMP", Compare.LT), ("JMP_FALSE", "done"),
+            ("LOAD_ADDR", 0, LOCAL), ("LOAD", 0, LOCAL), ("push", 1), ("ADD",), ("STORE",), ("POP",),
+            ("JMP", "top"),
+            ("label", "done"),
+            ("pushs", b"b"), ("PRINT", 1), ("push", 0), ("RET",),
+        ]
+        program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, count)}, "main", {100: "p100"}))
+        for body in ('print("a") print("wrong")', 'print("a") return 0', 'print("a") print("b")'):
+            self.write_module(PROGRAM_100.format(body=body))
+            with mock.patch.object(harness, "MAX_STEPS", 400):
+                result = harness.run(self.root, "prog", program, CATALOG, "action", seeds=range(1))
+            self.assertEqual(result["fail"], [], body)
+            self.assertEqual(result["pass"], 1, body)  # main/s0, which never runs program 100
+            self.assertEqual(sorted(scenario.name for scenario in result["prefix"]), ["100/s0", "100x2/s0", "all/s0"])
+
+    def test_infinity_matches_only_the_same_infinity(self):
+        program = decode(assemble(
+            {"main": (0, 0, [("END",)]), "p100": (0, 0, [("pushf", math.inf), ("PRINT", 1), ("push", 0), ("RET",)])},
+            "main", {100: "p100"},
+        ))
+        events = harness.record(program, CATALOG, [100], 0, "100/s0").events
+        self.assertEqual(events, [("print", (math.inf,)), ("end", 0)])
+        self.assertEqual(self.replay(PROGRAM_100.format(body="print(math.huge)"), events), ["PASS 100/s0"])
+        for wrong in ("print(0)", "print(-math.huge)", "print(0 / 0)", "print(1e300)"):
+            lines = self.replay(PROGRAM_100.format(body=wrong), events)
+            self.assertTrue(lines and lines[0].startswith("FAIL 100/s0"), (wrong, lines))
+
+    def test_nan_matches_only_nan(self):
+        events = [("print", (math.nan,)), ("end", 0)]
+        self.assertEqual(self.replay(PROGRAM_100.format(body="print(0 / 0)"), events), ["PASS 100/s0"])
+        lines = self.replay(PROGRAM_100.format(body="print(0)"), events)
+        self.assertTrue(lines and lines[0].startswith("FAIL 100/s0"), lines)
+        lines = self.replay(PROGRAM_100.format(body="print(0 / 0)"), [("print", (0.0,)), ("end", 0)])
+        self.assertTrue(lines and lines[0].startswith("FAIL 100/s0"), lines)
+
+    def test_unsupported_scenario_fails_when_its_prefix_differs(self):
+        self.write_module(PAST_FRAME_MODULE.replace('print("a")', 'print("c")'))
+        result = harness.run(self.root, "prog", past_frame_fixture(), CATALOG, "action", seeds=range(1))
+        self.assertEqual(result["unsupported"], [])
+        self.assertTrue(any("FAIL 100/s0" in line for line in result["fail"]), result)
+
+    def test_step_budget_scenario_compares_its_prefix(self):
+        self.write_module(ENDLESS_MODULE)
+        with mock.patch.object(harness, "MAX_STEPS", 2000):
+            result = harness.run(self.root, "prog", endless_fixture(), CATALOG, "action", seeds=range(1))
+        self.assertEqual(result["returncode"], 0, result["stderr"])
+        self.assertEqual(result["fail"], [])
+        self.assertTrue(result["prefix"], result)
+        self.assertTrue(all(scenario.cut == harness.BUDGET for scenario in result["prefix"]))
+
+    def test_step_budget_scenario_fails_when_its_prefix_differs(self):
+        self.write_module(ENDLESS_MODULE.replace("        x = action.ProgGet() or x\n", "        x = action.ProgGet() or x\n        print(x)\n"))
+        with mock.patch.object(harness, "MAX_STEPS", 2000):
+            result = harness.run(self.root, "prog", endless_fixture(), CATALOG, "action", seeds=range(1))
+        self.assertEqual(result["prefix"], [])
+        self.assertTrue(result["fail"], result)
 
     def test_wrong_module_fails_scenarios_with_prints(self):
         self.write_module(WRONG_MODULE)
@@ -233,6 +532,23 @@ class DifferentialTest(unittest.TestCase):
         failed = [line for line in result["fail"] if line.startswith("FAIL 100/s")]
         self.assertEqual(len(failed), 4, result["fail"])
         self.assertEqual(result["pass"], 4)
+
+    def test_module_that_copies_references_back_passes(self):
+        program, calls = reference_fixture()
+        source = REFERENCE_MODULE.replace("CALL1", str(calls[0])).replace("CALL2", str(calls[1]))
+        self.write_module(source)
+        result = harness.run(self.root, "prog", program, CATALOG, "action", seeds=range(2), probes=frozenset(calls))
+        self.assertEqual(result["returncode"], 0, result["stderr"])
+        self.assertEqual(result["fail"], [])
+        self.assertEqual(result["pass"], 2 * 4)
+
+    def test_module_that_loses_a_reference_fails_at_its_probe(self):
+        program, calls = reference_fixture()
+        source = REFERENCE_MODULE.replace("CALL1", str(calls[0])).replace("CALL2", str(calls[1]))
+        self.write_module(source.replace("    x = bump(x)\n    __ref(" + str(calls[1]), "    bump(x)\n    __ref(" + str(calls[1])))
+        result = harness.run(self.root, "prog", program, CATALOG, "action", seeds=range(1), probes=frozenset(calls))
+        self.assertEqual(result["returncode"], 0, result["stderr"])
+        self.assertTrue(any("ref" in line for line in result["fail"]), result["fail"])
 
 
 if __name__ == "__main__":

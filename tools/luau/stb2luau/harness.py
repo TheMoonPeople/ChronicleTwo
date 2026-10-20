@@ -2,7 +2,17 @@
 
 Each program of a script runs on the reference VM under a mock native API with seeded outputs, and the events it
 produces (native calls, prints, waits and ends) are recorded. The Luau module is then run under a mock that checks
-every call, print and yield against the same trace, and each scenario reports PASS, FAIL or SKIP.
+every call, print and yield against the same trace, and each scenario passes or fails.
+
+A scenario whose reference run cannot be compared to its end is cut: the trace ends with a cut event and only the
+events before it are compared. That happens when the reference run exceeds its step budget, and then nothing the
+module does from the cut on is checked, so the scenario counts only as a compared prefix. It also happens when the
+run loads or stores outside the running function's frame, which retail allows but the translation does not model:
+the module must raise vm.index's error there, and the scenario is unsupported, since retail goes on.
+
+A call of a script function that takes references is probed: when it returns, the reference VM records the values
+of the variables the references name, and the module, emitted with probes, reports the same values after it copies
+them back.
 """
 
 from __future__ import annotations
@@ -26,29 +36,69 @@ REPO = Path(__file__).resolve().parents[3]
 HOST = REPO / "port" / "build" / "luau-harness" / ("luau-harness.exe" if sys.platform == "win32" else "luau-harness")
 
 MAX_STEPS = 500_000
-CALL_STACK = 0x200
+BUDGET = "step budget exceeded"
+# Operand-stack slots and call depth that each kind's Set*Script gives its machine (actscript.cpp SetActionScript,
+# effscript.cpp SetEffectScript, runscript_opcodes.cpp SetMonsterScript); other kinds use the action sizes.
+STACKS = {"action": (0x80, 0x200), "effect": (0x40, 2), "monster": (128, 512)}
 MAX_DEREF = 8
 INT_CHOICES = (0, 0, 1, 1, 2, 3, -1, 7)
 FLOAT_CHOICES = (0.0, 0.25, 1.0, -1.0, 2.5, 30.0)
 STRING_CHOICES = ("", "a")
-# Per kind namespace, the commands that store their first input into a named slot ("set") and the commands whose
-# outputs read a named slot back ("get"), so a recorded program number follows the value the script last set.
-STATE = {"action": {"set": {1: "prog"}, "get": {2: "prog"}}}
+# Per kind namespace, the commands that store an input in a table of the engine ("set": command -> table, position of
+# the key input or None, position of the value input) and the commands whose output reads it back ("get": command ->
+# table, position of the key input or None), so a value read back follows the value the script last stored.
+STATE = {
+    "action": {"set": {1: ("prog", None, 0)}, "get": {2: ("prog", None)}},
+    "effect": {"set": {58: ("value", 0, 1)}, "get": {57: ("value", 0)}},
+    "monster": {
+        "set": {37: ("var", 0, 1), 54: ("flag", 0, 1), 59: ("var2", 0, 1)},
+        "get": {38: ("var", 0), 53: ("flag", 0), 60: ("var2", 0)},
+    },
+}
 STATE_CHOICES = 4
 ZERO_CHOICES = 2
+# Per kind namespace, the random-number commands and the position of their range input: the handler writes a value
+# from zero towards the range, so the mock does too.
+RANDOM = {"effect": {13: 0}, "monster": {35: 0, 36: 0}}
+# Fractions of a random command's range that the mock draws from.
+RANDOM_FRACTIONS = (0.0, 0.0, 0.25, 0.5, 0.75, 0.999)
 
 
 @dataclasses.dataclass
 class Scenario:
-    """One recorded run: the programs executed in order, the expected event trace and the final globals."""
+    """One recorded run: the programs executed in order, the expected event trace and the final globals.
+
+    cut gives the reason a trace ends with a cut event, before the run's end, and unsupported says the reason is an
+    access the translation does not model. covered holds the instructions the reference run executed, and compared
+    those it executed before its last compared event.
+    """
 
     name: str
     programs: list[int]
     seed: int
     events: list[tuple]
     globals: list | None
-    inconclusive: str | None
+    cut: str | None = None
+    unsupported: bool = False
     covered: frozenset[int] = frozenset()
+    compared: frozenset[int] = frozenset()
+
+
+@dataclasses.dataclass(frozen=True)
+class FloatViews:
+    """Which variables the script loads as floats: the arguments of each external or script call, by offset, and globals.
+
+    A float variable's slot may still hold an integer tag with a float's bits, when a native call wrote it before the
+    script first loaded it as a float, so the harness reads such variables as the script would.
+    """
+
+    calls: dict[int, tuple[bool, ...]]
+    globals: frozenset[int]
+
+    def argument(self, call: int, position: int) -> bool:
+        """Whether an argument of the call at the given offset names a variable loaded as a float."""
+        site = self.calls.get(call, ())
+        return position < len(site) and site[position]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -121,11 +171,46 @@ def _choose(rng: random.Random, type_name: str, pools: Pools) -> object:
     return rng.choice(pools.ints)
 
 
+def _as_type(value: object, type_name: str) -> object:
+    """A value stored in an engine table, read back as an integer or a float, as the table's union reads it."""
+    if type_name == "f32" and isinstance(value, int):
+        return refvm.bits_to_float(value)
+    if type_name != "f32" and isinstance(value, float):
+        return refvm.float_bits(value)
+    return value
+
+
+def _as_read(memory: list[Slot], slot: Slot, as_float: bool) -> object:
+    """Script value of a slot, read as a float when the script loads its variable as one."""
+    if as_float and slot.tag == Tag.INT:
+        return numbers.literal(refvm.bits_to_float(slot.value))
+    return _value(memory, slot)
+
+
+def _random_draw(rng: random.Random, range_: int | float, type_name: str) -> int | float:
+    """A value a random-number handler can return for a range: a fraction of it, truncated for an integer variable."""
+    value = range_ * rng.choice(RANDOM_FRACTIONS)
+    if type_name == "f32":
+        return float(int(value)) if isinstance(range_, int) else value
+    return int(value)
+
+
+def _target_tag(machine: refvm.Machine, slot: Slot) -> Tag | None:
+    """The tag of the variable a pointer argument names, or None when the argument is not a pointer."""
+    return machine.read_arg(slot.value).tag if slot.tag == Tag.PTR else None
+
+
 def _write(machine: refvm.Machine, slot: Slot, value: object) -> object:
-    """Store an output through a pointer argument, keeping the target's tag where it applies."""
+    """Store an output through a pointer argument, keeping the target's tag where it applies.
+
+    A handler writes a float32, so a float output is the float32 nearest the chosen value, spelled as the module spells
+    its constants; it then reads the same whether the target keeps its bits under an integer tag or holds a float.
+    """
     if value is None or slot.tag != Tag.PTR:
         return None
     target = machine.read_arg(slot.value)
+    if isinstance(value, float):
+        value = numbers.literal(refvm.f32(value))
     if isinstance(value, str):
         stored = Slot(Tag.STR, value.encode("cp932"))
     elif isinstance(value, float):
@@ -137,40 +222,96 @@ def _write(machine: refvm.Machine, slot: Slot, value: object) -> object:
 
 
 class _TracingMachine(refvm.Machine):
-    """Reference machine that also appends each PRINT to the scenario trace."""
+    """Reference machine that also appends each PRINT, and the references of each probed call, to the scenario trace."""
 
-    def __init__(self, program: Program, *, trace: list[tuple], **kwargs) -> None:
-        """Create the machine with the trace it records prints into."""
+    def __init__(
+        self,
+        program: Program,
+        *,
+        probes: frozenset[int] = frozenset(),
+        folded: frozenset[int] = frozenset(),
+        views: FloatViews | None = None,
+        **kwargs,
+    ) -> None:
+        """Create the machine with its trace, the CALL offsets whose references it reports and the folded operations."""
         super().__init__(program, **kwargs)
-        self.events = trace
+        self.events: list[tuple] = []
+        # The machine's step count when each event was recorded.
+        self.event_steps: list[int] = []
+        self.probes = probes
+        self.folded = folded
+        self.views = views or FloatViews({}, frozenset())
+        # The first access outside a frame, and the number of events recorded before it.
+        self.cut: tuple[str, int] | None = None
+
+    def emit(self, event: tuple) -> None:
+        """Append an event to the trace."""
+        self.events.append(event)
+        self.event_steps.append(self.steps)
+
+    def outside_frame(self, access: str, address: int) -> None:
+        """Note the first access outside a frame: the translation raises an error there, while retail goes on."""
+        if self.cut is None:
+            self.cut = (f"{access} at {self.pc:#x}", len(self.events))
+
+    def _arith(self, op: Op) -> None:
+        super()._arith(op)
+        self._spell_folded()
+
+    def _divide(self) -> None:
+        super()._divide()
+        self._spell_folded()
+
+    def _spell_folded(self) -> None:
+        # The module folds constant float operations in float32 and spells the result, so this run does the same.
+        if self.pc in self.folded:
+            slot = self.memory[self.sp - 1]
+            if slot.tag == Tag.FLOAT:
+                self.memory[self.sp - 1] = Slot(Tag.FLOAT, numbers.literal(refvm.f32(slot.value)))
+
+    def returned(self, call: int, callee: int, frame: int) -> None:
+        """Record the values the references of a probed call name, now that the callee has written them."""
+        if call not in self.probes:
+            return
+        args = self.memory[frame : frame + self.program.functions[callee].arg]
+        values = tuple(
+            _as_read(self.memory, self.memory[slot.value], self.views.argument(call, position))
+            for position, slot in enumerate(args)
+            if slot.tag == Tag.PTR
+        )
+        self.emit(("ref", call, values))
 
     def _print(self, count: int) -> None:
         """Print as the base machine does, then record the printed values."""
         super()._print(count)
         base = self.sp
-        self.events.append(("print", tuple(_value(self.memory, self.memory[index]) for index in range(base, base + count))))
+        self.emit(("print", tuple(_value(self.memory, self.memory[index]) for index in range(base, base + count))))
 
 
-def record(
+def _play(
     program: Program,
     kind_catalog: dict,
     programs: list[int],
     seed: int,
     name: str,
-    resumes: int = 160,
-    stack_num: int = 0x80,
-    pools: Pools | None = None,
-    namespace: str = "",
-) -> Scenario:
-    """Run the programs in order on the reference VM with seeded native outputs and record the event trace."""
-    if pools is None:
-        pools = value_pools(program)
-    trace: list[tuple] = []
+    resumes: int,
+    stack_num: int | None,
+    pools: Pools,
+    namespace: str,
+    probes: frozenset[int],
+    views: FloatViews | None,
+    folded: frozenset[int],
+    max_steps: int,
+) -> tuple[_TracingMachine, dict[int, int]]:
+    """Runs the programs on a fresh reference machine and mock; returns the machine and the step each offset first ran."""
+    default_stack, call_num = STACKS.get(namespace, STACKS["action"])
     call_index = 0
     state = STATE.get(namespace, {})
-    set_slots: dict[int, str] = state.get("set", {})
-    get_slots: dict[int, str] = state.get("get", {})
-    held = {slot: 0 for slot in (*set_slots.values(), *get_slots.values())}
+    sets: dict[int, tuple] = state.get("set", {})
+    gets: dict[int, tuple] = state.get("get", {})
+    randoms: dict[int, int] = RANDOM.get(namespace, {})
+    # Values stored by the "set" commands, keyed by table and key; an entry never stored reads as zero.
+    held: dict[tuple, object] = {}
 
     def mock(machine: refvm.Machine, base: int, argc: int) -> None:
         """Answer one native call with seeded outputs and record it."""
@@ -180,11 +321,16 @@ def record(
         command = machine.memory[base].value
         count = argc - 1
         args = machine.memory[base + 1 : base + 1 + count]
-        values = tuple(_value(machine.memory, slot) for slot in args)
+        values = tuple(
+            _as_read(machine.memory, machine.memory[slot.value], views.argument(machine.pc, i))
+            if slot.tag == Tag.PTR and views is not None
+            else _value(machine.memory, slot)
+            for i, slot in enumerate(args)
+        )
         signature = _signature(kind_catalog, command, count)
         # Unregistered, handler-rejected and kind-mismatched commands write nothing, so their trace keeps every argument.
         if signature is None or signature.get("handler_rejects") or _kind_mismatch(signature["params"], args):
-            trace.append(("ext", command, count, values, ()))
+            machine.emit(("ext", command, count, values, ()))
             return
         params = signature["params"]
         ins = tuple(values[i] for i, param in enumerate(params) if param["dir"] == "in")
@@ -193,80 +339,147 @@ def record(
         for i, param in enumerate(params):
             if param["dir"] != "out":
                 continue
-            if rng.randrange(8) == 0:
+            type_name = param["type"]
+            if views is not None and type_name != "string":
+                as_float = views.argument(machine.pc, i) or _target_tag(machine, args[i]) == Tag.FLOAT
+                type_name = "f32" if as_float else "s32"
+            range_ = ins[randoms[command]] if command in randoms and randoms[command] < len(ins) else None
+            if type_name != "string" and isinstance(range_, (int, float)):
+                value = _random_draw(rng, range_, type_name)
+            elif rng.randrange(8) == 0:
                 value = None
-            elif command in get_slots and param["type"] != "string" and rng.randrange(STATE_CHOICES) != 0:
-                value = held[get_slots[command]]
+            elif command in gets and type_name != "string" and rng.randrange(STATE_CHOICES) != 0:
+                table, key = gets[command]
+                value = _as_type(held.get((table, None if key is None else ins[key]), 0), type_name)
             else:
-                value = _choose(rng, param["type"], pools)
+                value = _choose(rng, type_name, pools)
                 # Zero keeps most scenarios on the branches a script takes when a flag or count is clear.
-                if param["type"] != "string" and rng.randrange(ZERO_CHOICES) == 0:
-                    value = 0.0 if param["type"] == "f32" else 0
+                if type_name != "string" and rng.randrange(ZERO_CHOICES) == 0:
+                    value = 0.0 if type_name == "f32" else 0
             outs.append(_write(machine, args[i], value))
-        if command in set_slots and ins and isinstance(ins[0], int):
-            held[set_slots[command]] = ins[0]
-        trace.append(("ext", command, count, ins, tuple(outs)))
+        if command in sets:
+            table, key, position = sets[command]
+            if position < len(ins) and isinstance(ins[position], (int, float)):
+                held[(table, None if key is None else ins[key])] = ins[position]
+        machine.emit(("ext", command, count, ins, tuple(outs)))
 
     machine = _TracingMachine(
         program,
-        trace=trace,
-        stack_num=stack_num,
-        call_num=CALL_STACK,
+        probes=probes,
+        folded=folded,
+        views=views,
+        stack_num=default_stack if stack_num is None else stack_num,
+        call_num=call_num,
         ext=mock,
         float32=False,
-        max_steps=MAX_STEPS,
+        max_steps=max_steps,
     )
-    covered: set[int] = set()
-    machine.trace = covered
-    inconclusive = None
+    first_steps: dict[int, int] = {}
+    machine.trace = first_steps
     try:
         for number in programs:
             machine.result = 0
             if machine.run(number) < 0:
-                trace.append(("missing", number))
+                machine.emit(("missing", number))
                 continue
             resumed = 0
             while not machine.end:
-                trace.append(("wait",))
+                machine.emit(("wait",))
                 if resumed == resumes:
-                    trace.append(("suspended",))
+                    machine.emit(("suspended",))
                     break
                 resumed += 1
                 machine.resume()
             else:
-                trace.append(("end", machine.result))
+                machine.emit(("end", machine.result))
     except refvm.VMError as exc:
-        if str(exc) == "step budget exceeded":
-            inconclusive = str(exc)
-        else:
-            trace.append(("error",))
+        if str(exc) != BUDGET:
+            machine.emit(("error",))
+        elif machine.cut is None:
+            machine.cut = (BUDGET, len(machine.events))
+    return machine, first_steps
+
+
+def record(
+    program: Program,
+    kind_catalog: dict,
+    programs: list[int],
+    seed: int,
+    name: str,
+    resumes: int = 160,
+    stack_num: int | None = None,
+    pools: Pools | None = None,
+    namespace: str = "",
+    probes: frozenset[int] = frozenset(),
+    views: FloatViews | None = None,
+    folded: frozenset[int] = frozenset(),
+) -> Scenario:
+    """Run the programs in order on the reference VM with seeded native outputs and record the event trace.
+
+    probes holds the CALL offsets whose references the module reports after the call returns. views says which
+    variables the script loads as floats. When it is given, a numeric output takes the type its variable is read as: a
+    float when the script loads it as one, otherwise the type its slot holds, and references and globals are reported
+    as the script reads them. Handlers differ in the type they write, and the translation receives outputs as numbers, so
+    this keeps the comparison on the script's own behaviour. folded holds the offsets of the float operations the
+    module folded into constants. The machine has the stack and call depth retail gives the namespace's kind, unless
+    stack_num is given.
+
+    A trace cut at an access outside a frame ends with ("cut", "frame"), and one cut at the step budget with
+    ("cut", "budget").
+    """
+    if pools is None:
+        pools = value_pools(program)
+    options = (program, kind_catalog, programs, seed, name, resumes, stack_num, pools, namespace, probes, views, folded)
+    machine, first_steps = _play(*options, MAX_STEPS)
     global_num = machine.global_num
-    globals_ = [_value(machine.memory, slot) for slot in machine.memory[:global_num]]
+    float_globals = views.globals if views is not None else frozenset()
+    globals_ = [_as_read(machine.memory, slot, n in float_globals) for n, slot in enumerate(machine.memory[:global_num])]
+    events = machine.events
+    compared = frozenset(first_steps)
+    cut = None
+    if machine.cut is not None:
+        cut, kept = machine.cut
+        # Only what ran up to the last event the comparison reaches is compared.
+        last = machine.event_steps[kept - 1] if kept else 0
+        compared = frozenset(offset for offset, step in first_steps.items() if step <= last)
+        events = [*events[:kept], ("cut", "budget" if cut == BUDGET else "frame")]
     return Scenario(
         name=name,
         programs=list(programs),
         seed=seed,
-        events=trace,
+        events=events,
         globals=globals_,
-        inconclusive=inconclusive,
-        covered=frozenset(covered),
+        cut=cut,
+        unsupported=cut is not None and cut != BUDGET,
+        covered=frozenset(first_steps),
+        compared=compared,
     )
 
 
-def scenarios(program: Program, kind_catalog: dict, seeds: range | list[int] = range(4)) -> list[Scenario]:
+def scenarios(
+    program: Program,
+    kind_catalog: dict,
+    seeds: range | list[int] = range(4),
+    probes: frozenset[int] = frozenset(),
+    views: FloatViews | None = None,
+    folded: frozenset[int] = frozenset(),
+) -> list[Scenario]:
     """Record one scenario per program, one running it twice, one for main and one running main then every program, for each seed."""
     numbers = sorted(number for number, _ in program.programs)
-    pools = value_pools(program)
-    namespace = kind_catalog["namespace"]
+    options = {
+        "pools": value_pools(program),
+        "namespace": kind_catalog["namespace"],
+        "probes": probes,
+        "views": views,
+        "folded": folded,
+    }
     recorded = []
     for seed in seeds:
         for number in numbers:
-            recorded.append(record(program, kind_catalog, [number], seed, f"{number}/s{seed}", pools=pools, namespace=namespace))
-            recorded.append(
-                record(program, kind_catalog, [number, number], seed, f"{number}x2/s{seed}", pools=pools, namespace=namespace)
-            )
-        recorded.append(record(program, kind_catalog, [-1], seed, f"main/s{seed}", pools=pools, namespace=namespace))
-        recorded.append(record(program, kind_catalog, [-1, *numbers], seed, f"all/s{seed}", pools=pools, namespace=namespace))
+            recorded.append(record(program, kind_catalog, [number], seed, f"{number}/s{seed}", **options))
+            recorded.append(record(program, kind_catalog, [number, number], seed, f"{number}x2/s{seed}", **options))
+        recorded.append(record(program, kind_catalog, [-1], seed, f"main/s{seed}", **options))
+        recorded.append(record(program, kind_catalog, [-1, *numbers], seed, f"all/s{seed}", **options))
     return recorded
 
 
@@ -285,10 +498,13 @@ def _reachable(program: Program) -> set[int]:
     return seen
 
 
-def coverage(program: Program, recorded: list[Scenario]) -> float:
-    """Fraction of the instructions of the reachable functions that the recorded scenarios executed."""
+def coverage(program: Program, recorded: list[Scenario], compared: bool = False) -> float:
+    """Fraction of the instructions of the reachable functions that the recorded scenarios executed.
+
+    With compared, only the instructions the scenarios executed before their last compared event count.
+    """
     total = {instruction.offset for block in _reachable(program) for instruction in program.functions[block].instructions}
-    executed = set().union(*(scenario.covered for scenario in recorded))
+    executed = set().union(*((scenario.compared if compared else scenario.covered) for scenario in recorded))
     return len(executed & total) / len(total) if total else 0.0
 
 
@@ -321,8 +537,15 @@ def _lit(value: object) -> str:
 
 
 def _list(values: tuple | list) -> str:
-    """Luau table literal holding a sequence with an explicit count, so nil entries survive."""
+    """Luau table literal holding a sequence with an explicit count, so nil entries survive.
+
+    Field i marks with "i" the positions that hold integers, which compare exactly; other numbers compare with a
+    tolerance.
+    """
     items = "".join(", " + _lit(value) for value in values)
+    exact = "".join("i" if isinstance(value, int) and not isinstance(value, bool) else "." for value in values)
+    if "i" in exact:
+        return '{ n = %d, i = "%s"%s }' % (len(values), exact, items)
     return "{ n = %d%s }" % (len(values), items)
 
 
@@ -331,10 +554,14 @@ def _event(event: tuple) -> str:
     tag = event[0]
     if tag in ("wait", "suspended", "error"):
         return '{ "%s" }' % tag
+    if tag == "cut":
+        return "{ %s }" % ", ".join(_lit(field) for field in event)
     if tag == "print":
         return '{ "print", %s }' % _list(event[1])
     if tag in ("end", "missing"):
         return '{ "%s", %s }' % (tag, _lit(event[1]))
+    if tag == "ref":
+        return '{ "ref", %d, %s }' % (event[1], _list(event[2]))
     if tag == "ext":
         _, command, count, ins, outs = event
         return '{ "ext", %d, %d, %s, %s }' % (command, count, _list(ins), _list(outs))
@@ -349,8 +576,6 @@ def _scenario_literal(scenario: Scenario) -> str:
         "globals = %s" % _list(scenario.globals or []),
         "events = { %s }" % ", ".join(_event(event) for event in scenario.events),
     ]
-    if scenario.inconclusive is not None:
-        fields.append("inconclusive = %s" % _string(scenario.inconclusive))
     return "{ %s }" % ", ".join(fields)
 
 
@@ -386,6 +611,8 @@ def _dispatch(name: str, namespace: str, command: dict) -> list[str]:
 
 
 _RUNTIME_HEAD = """local MISMATCH = {}
+-- Raised when the script reaches a cut event: the rest of the run is not compared.
+local CUT = {}
 local events, cursor, failure = {}, 1, nil
 
 -- Renders a trace value for mismatch messages.
@@ -406,8 +633,8 @@ local function fail(message)
     error(MISMATCH, 0)
 end
 
--- Compares an expected trace value with the value the script produced.
-local function same(expected, got)
+-- Compares an expected trace value with the value the script produced; with exact, numbers must be equal.
+local function same(expected, got, exact)
     if expected == nil or got == nil then
         return false
     end
@@ -415,8 +642,13 @@ local function same(expected, got)
         return true
     end
     if type(expected) == "number" and type(got) == "number" then
-        if expected ~= expected then
-            return got ~= got
+        if expected ~= expected or got ~= got then
+            -- NaN matches only NaN.
+            return expected ~= expected and got ~= got
+        end
+        if exact or math.abs(expected) == math.huge or math.abs(got) == math.huge then
+            -- An infinity matches only the same infinity, which the equality above accepted.
+            return false
         end
         local diff = math.abs(expected - got)
         return diff <= 1e-6 or diff <= 1e-5 * math.abs(expected)
@@ -429,26 +661,47 @@ local function same_list(expected, got)
     if expected.n ~= got.n then
         return false
     end
+    local exact = expected.i
     for i = 1, got.n do
-        if not same(expected[i], got[i]) then
+        if not same(expected[i], got[i], exact ~= nil and string.sub(exact, i, i) == "i") then
             return false
         end
     end
     return true
 end
 
--- Takes the next event of the trace.
-local function next_event()
+-- Whether the script, about to produce an event of the given kind (or to raise an error with the given message),
+-- reaches the place where the reference trace was cut.
+local function reaches(cut, kind, detail)
+    if cut[2] == "frame" then
+        -- The reference run left the frame here, where the translation's vm.index raises its error.
+        return kind == "error" and string.find(tostring(detail), "is outside the frame", 1, true) ~= nil
+    end
+    -- At the step budget the comparison only stops: what the script does from here on is not checked, and the
+    -- scenario counts as a compared prefix, never as a pass.
+    return true
+end
+
+-- Takes the next event of the trace, for a script about to produce an event of the given kind; at a cut, ends the
+-- comparison when the script reaches the place where the reference was cut, and fails otherwise.
+local function next_event(kind, detail)
     local event = events[cursor]
+    if event ~= nil and event[1] == "cut" then
+        if reaches(event, kind, detail) then
+            error(CUT, 0)
+        end
+        fail(("event %d: the reference was cut at %s, but the script produced %s"):format(
+            cursor, show(event), show({ kind, detail })))
+    end
     cursor = cursor + 1
     return event
 end
 
--- Consumes the next event, which must carry the given tag and field.
+-- Consumes the next event, which must carry the given tag and integer field.
 local function expect(tag, field)
     local at = cursor
-    local event = next_event()
-    if event == nil or event[1] ~= tag or (field ~= nil and not same(event[2], field)) then
+    local event = next_event(tag, field)
+    if event == nil or event[1] ~= tag or (field ~= nil and not same(event[2], field, true)) then
         local got = field == nil and table.pack(tag) or table.pack(tag, field)
         fail(("event %d: expected %s, got %s"):format(at, show(event), show(got)))
     end
@@ -457,18 +710,28 @@ end
 -- Checks a native call against the next event and returns the recorded outputs.
 local function ext_call(no, argc, args)
     local at = cursor
-    local event = next_event()
+    local event = next_event("ext", no)
     if event == nil or event[1] ~= "ext" or event[2] ~= no or event[3] ~= argc or not same_list(event[4], args) then
         fail(("event %d: expected %s, got %s"):format(at, show(event), show({ "ext", no, argc, args })))
     end
     return event[5]
 end
 
+-- Checks the values a call's references name, after the call copies them back, against the next event.
+__ref = function(call, ...)
+    local values = table.pack(...)
+    local at = cursor
+    local event = next_event("ref")
+    if event == nil or event[1] ~= "ref" or event[2] ~= call or not same_list(event[3], values) then
+        fail(("event %d: expected %s, got %s"):format(at, show(event), show({ "ref", call, values })))
+    end
+end
+
 -- Checks each printed value against the next event.
 print = function(...)
     local values = table.pack(...)
     local at = cursor
-    local event = next_event()
+    local event = next_event("print")
     if event == nil or event[1] ~= "print" or not same_list(event[2], values) then
         fail(("event %d: expected %s, got %s"):format(at, show(event), show(table.pack("print", values))))
     end
@@ -482,10 +745,14 @@ local function run_program(fn)
     local ok, result = coroutine.resume(co)
     while true do
         if not ok then
-            if result == MISMATCH then
-                error(MISMATCH, 0)
+            if result == MISMATCH or result == CUT then
+                error(result, 0)
             end
-            expect("error")
+            local at = cursor
+            local event = next_event("error", result)
+            if event == nil or event[1] ~= "error" then
+                fail(("event %d: expected %s, got error %s"):format(at, show(event), tostring(result)))
+            end
             return "errored"
         end
         if coroutine.status(co) == "dead" then
@@ -528,15 +795,17 @@ local function execute(scenario, m)
         if (got.n or #got) ~= count then
             fail("expected " .. count .. " globals, got " .. tostring(got.n or #got))
         end
+        local exact = scenario.globals.i
         for i = 1, count do
-            if not same(scenario.globals[i], got[i]) then
+            if not same(scenario.globals[i], got[i], exact ~= nil and string.sub(exact, i, i) == "i") then
                 fail("global " .. i .. ": expected " .. show(scenario.globals[i]) .. ", got " .. show(got[i]))
             end
         end
     end
 end
 
--- Runs one scenario against a fresh module instance; returns nil on success or the failure message.
+-- Runs one scenario against a fresh module instance; returns nil when it matched up to its end or its cut, or the
+-- failure message.
 local function run_scenario(scenario)
     events, cursor, failure = scenario.events, 1, nil
     resetbudget()
@@ -544,7 +813,7 @@ local function run_scenario(scenario)
         local m = loadmodule(MODULE)
         execute(scenario, m)
     end)
-    if ok then
+    if ok or err == CUT then
         return nil
     end
     if err == MISMATCH then
@@ -554,15 +823,11 @@ local function run_scenario(scenario)
 end
 
 for _, scenario in ipairs(SCENARIOS) do
-    if scenario.inconclusive ~= nil then
-        real_print("SKIP " .. scenario.name .. " " .. scenario.inconclusive)
+    local message = run_scenario(scenario)
+    if message == nil then
+        real_print("PASS " .. scenario.name)
     else
-        local message = run_scenario(scenario)
-        if message == nil then
-            real_print("PASS " .. scenario.name)
-        else
-            real_print("FAIL " .. scenario.name .. " " .. message)
-        end
+        real_print("FAIL " .. scenario.name .. " " .. message)
     end
 end
 """
@@ -609,13 +874,21 @@ def run(
     namespace: str,
     seeds: range | list[int] = range(4),
     names: dict[int, str] | None = None,
+    probes: frozenset[int] = frozenset(),
+    views: FloatViews | None = None,
+    folded: frozenset[int] = frozenset(),
 ) -> dict:
     """Record the scenarios, replay them against the module under luau-harness, and summarise the results.
 
     The names map program numbers to the handler names the module defines them under; other numbers are read as
-    script[number].
+    script[number]. probes holds the CALL offsets after which the module reports the values of the call's references,
+    views which variables the script loads as floats, and folded the float operations the module folded.
+
+    The summary counts the scenarios that matched to their end ("pass") and lists the scenarios that matched up to a
+    cut: "prefix" for a step budget and "unsupported" for an access outside a frame. "coverage" is the instruction
+    coverage of the reference runs, and "compared" that of the matching scenarios up to their last compared event.
     """
-    recorded = scenarios(program, kind_catalog, seeds)
+    recorded = scenarios(program, kind_catalog, seeds, probes, views, folded)
     source = driver(module, namespace, kind_catalog, recorded, names or {})
     with tempfile.TemporaryDirectory() as directory:
         driver_path = Path(directory) / "driver.luau"
@@ -629,21 +902,31 @@ def run(
             timeout=600,
             check=False,
         )
+    by_name = {scenario.name: scenario for scenario in recorded}
     passed = 0
     failed: list[str] = []
-    skipped: list[str] = []
+    prefix: list[Scenario] = []
+    unsupported: list[Scenario] = []
+    matched: list[Scenario] = []
     for line in completed.stdout.splitlines():
         if line.startswith("PASS "):
-            passed += 1
+            scenario = by_name[line[len("PASS ") :]]
+            matched.append(scenario)
+            if scenario.cut is None:
+                passed += 1
+            elif scenario.unsupported:
+                unsupported.append(scenario)
+            else:
+                prefix.append(scenario)
         elif line.startswith("FAIL "):
             failed.append(line)
-        elif line.startswith("SKIP "):
-            skipped.append(line)
     return {
         "pass": passed,
         "fail": failed,
-        "skip": skipped,
+        "prefix": prefix,
+        "unsupported": unsupported,
         "coverage": coverage(program, recorded),
+        "compared": coverage(program, matched, compared=True),
         "stderr": completed.stderr,
         "returncode": completed.returncode,
     }

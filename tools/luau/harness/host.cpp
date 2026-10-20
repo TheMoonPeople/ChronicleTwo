@@ -118,11 +118,15 @@ int lua_loadmodule(lua_State* L)
     return 1;
 }
 
-// Counts VM safepoints and aborts runaway scripts once the budget is spent.
+// Counts VM safepoints and aborts runaway scripts once the budget is spent. The count starts again at the error, so
+// the driver that catches it can go on.
 void interrupt(lua_State* L, int)
 {
     if (++g_interrupt_count > kInterruptBudget)
+    {
+        g_interrupt_count = 0;
         luaL_error(L, "interrupt budget exceeded");
+    }
 }
 
 // resetbudget(): restarts the interrupt budget for the next script run.

@@ -1,6 +1,6 @@
 # Luau migration handoff
 
-Status: M0 is complete. M1 (transpiler) and M2 (runtime) are complete for the action kind; see their sections below. The next milestones are M3 (effect and monster) and M4 (event).
+Status: M0 is complete. M1 (transpiler) and M2 (runtime) are complete for the action kind; see their sections below. M3 (effect and monster) has its transpilation done: every effect and monster script transpiles and checks, and every harness scenario matches up to its end or its cut. 70 monster scenarios, all in `dungeon/monster/b02a1.stb`, reach an access outside the frame that retail allows and the translation does not model (see the M3 section). Their modules are not yet in `port/src/luau`, since the runtime does not load those kinds yet. M4 (event) is next after the M3 runtime step.
 
 ## What exists
 
@@ -135,11 +135,11 @@ Done for the action kind. `docs/PORT_LUAU.md` "Transpiler" describes the pipelin
 - Output: `port/src/luau/{mainchr,dungeon/act_script}/*.luau` (27 modules), `lib/action/helper_*.luau` (20 shared helpers), `api/*.d.luau` for every kind, `.luaurc` and `manifest.json`.
 - Gate, run with `python tools/luau/stb2luau/transpile.py --data port/run/data.zip --harness --seeds 32`:
   - 27 of 27 scripts transpile, and `luau-check` (strict, lint as errors) reports 0 errors.
-  - 13,824 of 13,824 harness scenarios are trace-equal, with 86.4% mean instruction coverage of the reference runs. Coverage is lowest for the player scripts: 45% for `mainchr/c01`, 38% for `c02`. Their deep state-machine states need longer, input-driven runs.
+  - 13,824 of 13,824 harness scenarios are trace-equal to their end, with 86.4% mean instruction coverage of the reference runs and 86.4% of what was compared. Coverage is lowest for the player scripts: 45% for `mainchr/c01`, 38% for `c02`. Their deep state-machine states need longer, input-driven runs.
   - M2's eight replays gave screenshots identical to the interpreter's with the modules before named handlers. The rerun with the current modules is M2's.
 - Known approximations (documented in the contract):
   - Float literals are the shortest decimal, so a comparison with an engine float that equals a literal's exact float32 can differ from retail.
-  - Arithmetic is not wrapped to 32 bits except two-variable multiplication.
+  - Integer arithmetic wraps where the interval analysis cannot keep it inside 32 bits. A product of two integers beyond 2^53 loses its low bits in `vm.i32`, since Luau multiplies doubles.
   - A reference passed where a handler reads a value (`ProgSet` in `c01win`/`f204a`) passes the variable's value, where retail passed the pointer's bits.
 - Open:
   - Curate the auto names (`helper_<hash>`, `varN`) in M5.
@@ -148,20 +148,24 @@ Done for the action kind. `docs/PORT_LUAU.md` "Transpiler" describes the pipelin
 
 ### M3/M4 transpilation (effect, monster, event)
 
-Measured with `transpile.py --kind <kind>` on the published corpus:
+Measured with `transpile.py --data <dc2data export-scripts directory> --kind <kind> --harness --seeds 32` on the published corpus (`docs/PORT_LUAU.md` "Transpiler" describes references, arrays and the harness):
 
-| Kind | Transpile | Blocking |
-|---|---|---|
-| `effect` | 244 / 254 | dynamic array indices and pointer indices |
-| `monster` | 24 / 144 | 512 functions with pointer indices |
-| `event` | 11 / 969 | 2,429 pointer indices, 2,224 skip ends, 144 dynamic indices |
-| `event_arg` | 5 / 5 | none |
+| Kind | Transpile | `luau-check` | Harness (32 seeds) | Mean coverage, reference / compared |
+|---|---|---|---|---|
+| `action` | 27 / 27 | 0 errors | 13,824 pass | 86.4% / 86.4% |
+| `effect` | 254 / 254 | 0 errors | 62,680 pass, 232 prefix only (step budget), 0 fail | 96.0% / 96.0% |
+| `monster` | 144 / 144 | 0 errors | 114,042 pass, 70 unsupported, 0 fail | 71.5% / 71.5% |
+| `event` | 251 / 969 lift | not run | blocked, see below | |
+| `event_arg` | 5 / 5 | | | |
 
-- **Pointer and dynamic indices.** By-reference arrays and dynamic indexes into local arrays need table-backed variables in `lift.py`/`emit.py`. Arrays become Luau tables (the contract's "Arrays" bullet). Scalar references to script functions are copied in and out. Every remaining structuring shape in all kinds structures (0 `StructureError`s); multi-level breaks raise a distinct error and occur nowhere.
+"Pass" means the trace matched to its end. "Prefix only" means the reference run exceeded its step budget and the trace matched up to its last event; nothing the module does after that is checked, so these 232 effect scenarios (skipped uncompared before the review fixes) are not passes. "Unsupported" means the trace matched up to an access the translation does not model, after which it diverges from retail. An unsupported cut is accepted only where the module raises `vm.index`'s out-of-frame error (see `docs/PORT_LUAU.md` "Transpiler"). Since integer arithmetic that may overflow wraps, two checked-in action modules each wrap one global counter (`mainchr/c01`, `robo`); the other action modules are unchanged. `luau-harness` must be rebuilt from `tools/luau/harness` for these runs, since the host now restarts its interrupt count when it raises the budget error. `port/src/luau/lib/vm.luau` gained `vm.wrap`, which effect and monster modules use where a sum typed `any` may overflow; the runtime ships it with the other `vm` helpers.
+
+- **References and arrays** cover the action, effect and monster corpus, with known gaps. Every pointer index in the corpus is `*p` (index 0) on a parameter, so a reference parameter is copied in and back. Copying cannot express retail's retagging, where a callee's float load reads an integer's bits in its caller's variable. So emission refuses the integer values that could reach a float load that way (none in these kinds), but a native output that writes an integer into a variable the script reads as a float still depends on the runtime typing that output as the script reads it. The interval analysis does not track array elements. Computed local indices make their array a table; only `dungeon/monster/b02a1.stb` `0x1a80` (an index from a native output) needs its whole frame as one table. Its `var1[var10 - 1] = var11` takes `var10` from `VPop`. When the harness's `VPop` returns a value past the array (17, in scenario `900/s1`), retail stores into the operand stack and goes on (68 scenarios, store at `0x1ca4`). When the value is below it, retail indexes into the caller's frame (2 scenarios, `0x1c8c`). In both cases the translation's `vm.index` raises an error, so these 70 scenarios are compared only up to the access and are reported as unsupported. In the game, `VPop` returns what the script pushed, which presumably stays inside the array; that has not been checked. Remaining for M4: 142 event call sites pass a reference to a parameter the callee does not dereference (it forwards the pointer as a value), which the lifter refuses, and 48 lifted event scripts emit consecutive `break`s after a `break` (the structurer keeps unreachable statements), which StyLua rejects.
 - **Skip mode** (M4). `SKIP_END` lifts to an error today. Emit `vm.section`/`vm.skip_end` per the contract, and teach `refvm` scenarios to call `skip()`.
 - **Program names.** Effect programs 100 and 200 occur in every effect script, but `EFFECT_SCRIPT_PROG` names only 300. Add them to the enum and `programs.json`. Monster programs are all named.
 - **Shared code.** Event scripts embed a large common library (one body occurs in all 969 files). The shared-helper pass already handles that shape.
-- The harness `STATE` table, the stateful mock state such as `ProgSet`/`ProgGet` for action, needs entries for the new kinds.
+- The harness `STATE` table has the effect and monster entries (`VPush`/`VPop`, `VPush2`/`VPop2`, `SetBitFlag`/`GetBitFlag`, `SetValue`/`GetValue`); event needs its own.
+- **For the M3 runtime step.** Some handlers write an integer or a float regardless of the catalogue's output type: effect `GetRand` follows its range's type (68 effect and monster sites pass an integer range into an integer variable while the catalogue says `f32`), and monster `VPop`/`VPop2` and effect `GetValue` follow the type of the variable they write. The runtime seeds output slots with its own tag and reads them by the catalogue type, so these sites need the variable's type from the transpiler (or curated types) to return the value the script reads. Effect programs 100 and 200 are still unnamed (`script[100]`, `script[200]`).
 
 ### M2, runtime (done for the action kind)
 

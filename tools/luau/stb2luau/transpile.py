@@ -12,7 +12,9 @@ The output also holds `.luaurc` with the `lib` alias and `manifest.json`, which 
 and the SHA-256 of the timing-normalised script bytes, and lists each library with the scripts that use it.
 
 The exit status is 77 when no game data is found or, with --check, when luau-check or luau-harness is not built; 1 when
-a script fails to transpile, fails strict checking or fails the differential harness; and 0 otherwise.
+a script fails to transpile, fails strict checking or fails the differential harness, or with --check when an output
+is out of date; and 0 otherwise. A harness scenario that is compared only up to a step budget (prefix) or up to an
+access the translation does not model (unsupported) is reported but does not fail the run.
 """
 
 from __future__ import annotations
@@ -42,7 +44,7 @@ if str(TOOLS) not in sys.path:
 from stb import corpus as stb_corpus  # noqa: E402
 from stb.analysis import Analysis  # noqa: E402
 from stb.corpus import Kind, classify  # noqa: E402
-from stb.opcodes import Op  # noqa: E402
+from stb.opcodes import FLOAT_MODES, Op  # noqa: E402
 from stb.program import DecodeError, Program, decode  # noqa: E402
 from stb2luau import harness, ir, timing  # noqa: E402
 from stb2luau.emit import (  # noqa: E402
@@ -57,7 +59,7 @@ from stb2luau.emit import (  # noqa: E402
     mentioned_slots,
     used_call_blocks,
 )
-from stb2luau.lift import LiftError, lift  # noqa: E402
+from stb2luau.lift import LiftError, lift, references  # noqa: E402
 from stb2luau.structure import StructureError, structure  # noqa: E402
 from stb2luau.timing import TimingError  # noqa: E402
 from stb2luau.toolchain import executable  # noqa: E402
@@ -84,6 +86,9 @@ class Result:
     diagnostics: list[str]
     program: Program | None
     normalized: bytes | None = None
+    folded: frozenset[int] = frozenset()
+    float_refs: dict[int, tuple[bool, ...]] = dataclasses.field(default_factory=dict)
+    float_globals: frozenset[int] = frozenset()
 
 
 @dataclasses.dataclass
@@ -165,15 +170,18 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
 
     result = Result(path, name, None, None, [], program, normalized)
     analysis = Analysis(program)
+    refs = references(program)
     errors: list[str] = []
     functions: dict[int, FunctionInput] = {}
+    folded: set[int] = set()
     for block in _reachable(program):
         try:
-            lifted = lift(program, program.functions[block], analysis)
+            lifted = lift(program, program.functions[block], analysis, refs)
             body = structure(lifted)
         except (LiftError, StructureError) as error:
             errors.append(f"function {block:#x}: {error}")
             continue
+        folded |= lifted.folded
         functions[block] = FunctionInput(
             block=block,
             arg=lifted.arg,
@@ -183,10 +191,15 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
             body=body,
             programs=[number for number, target in program.programs if target == block],
             is_main=block == program.main,
+            refs=lifted.refs,
+            arrays=lifted.arrays,
         )
     if errors:
         result.error = "; ".join(errors)
         return result, None
+    result.folded = frozenset(folded)
+    result.float_refs = float_references(analysis)
+    result.float_globals = float_globals(analysis)
 
     module = ModuleInput(
         path=path,
@@ -220,13 +233,17 @@ class _Keys:
             f"temps={self.value(function.temps)}",
             f"body={self.value(function.body)}",
         ]
+        if function.refs:
+            parts.append(f"refs={self.value(function.refs)}")
+        if function.arrays:
+            parts.append(f"arrays={self.value(sorted(function.arrays.items()))}")
         self.active.discard(block)
         digest = hashlib.sha1("\n".join(parts).encode("utf-8")).hexdigest()
         self.memo[block] = digest
         return digest
 
     def value(self, value: Any) -> str:
-        """The canonical text of an IR value: calls name their callee by key, and offsets are left out."""
+        """The canonical text of an IR value: calls name their callee by key; offsets and defaulted fields are left out."""
         if isinstance(value, ir.Call):
             callee = self.functions.get(value.function)
             if callee is None:
@@ -236,7 +253,7 @@ class _Keys:
             fields = [
                 f"{field.name}={self.value(getattr(value, field.name))}"
                 for field in dataclasses.fields(value)
-                if field.name != "offset"
+                if field.name != "offset" and getattr(value, field.name) != field.default
             ]
             return f"{type(value).__name__}({','.join(fields)})"
         if isinstance(value, enum.Enum):
@@ -472,37 +489,103 @@ def _transpile_job(job: tuple[str, bytes]) -> tuple[Result, ModuleInput | None]:
 
 @dataclasses.dataclass
 class HarnessRow:
-    """The differential harness outcome of one script: pass, fail and skip counts, and the lines to report."""
+    """The differential harness outcome of one script, and the lines to report.
+
+    passed counts the scenarios compared to their end, and prefix those compared only up to the reference run's step
+    budget, where nothing the module does from there on is checked. unsupported counts those compared up to an access
+    outside a frame, where the translation diverges from retail.
+    coverage is the instruction coverage of the reference runs, and compared that of the comparisons that matched.
+    """
 
     path: str
     passed: int
     failed: int
-    skipped: int
     lines: list[str]
+    prefix: int = 0
+    unsupported: int = 0
     coverage: float = 0.0
+    compared: float = 0.0
 
 
-def _harness_job(job: tuple[Result, str, dict[str, Any], range, Path]) -> HarnessRow:
-    """Runs the differential harness for one script whose module text was emitted with its globals exposed."""
-    result, text, kind, seeds, out = job
+def float_globals(analysis: Analysis) -> frozenset[int]:
+    """The globals the script loads as floats."""
+    found = {n for n, type_ in analysis.global_types.items() if type_ == "float"}
+    for facts in analysis.facts.values():
+        found |= {n for space, n in facts.float_slots if space == "global"}
+    return frozenset(found)
+
+
+def float_references(analysis: Analysis) -> dict[int, tuple[bool, ...]]:
+    """For each external or script call, by offset, whether each argument names a variable the script loads as a float."""
+    globals_ = float_globals(analysis)
+    found: dict[int, tuple[bool, ...]] = {}
+    for facts in analysis.facts.values():
+
+        def is_float(value: Any, facts: Any = facts) -> bool:
+            if value.kind != "addr" or value.slot is None:
+                return False
+            if value.slot[0] == "global":
+                return value.slot[1] in globals_
+            return value.mode in FLOAT_MODES or value.slot in facts.float_slots
+
+        for site in facts.ext_sites.values():
+            found[site.offset] = tuple(is_float(value) for value in site.args)
+        for offset, (_callee, args) in facts.call_args.items():
+            found[offset] = tuple(is_float(value) for value in args)
+    return found
+
+
+def _harness_job(job: tuple[Result, Module, dict[str, Any], range, Path]) -> HarnessRow:
+    """Runs the differential harness for one script whose module was emitted with its globals exposed and probes."""
+    result, module, kind, seeds, out = job
     try:
         with tempfile.TemporaryDirectory() as scratch:
             root = Path(scratch)
             _support(root, out)
             target = root / f"{result.module}.luau"
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(text, encoding="utf-8", newline="\n")
+            target.write_text(module.text, encoding="utf-8", newline="\n")
             names = {no: info.name for no, info in handlers(classify(result.path).value).items()}
-            report = harness.run(root, result.module, result.program, kind, kind["namespace"], seeds, names=names)
+            report = harness.run(
+                root,
+                result.module,
+                result.program,
+                kind,
+                kind["namespace"],
+                seeds,
+                names,
+                frozenset(module.probes),
+                harness.FloatViews(result.float_refs, result.float_globals),
+                result.folded,
+            )
     except Exception as error:  # noqa: BLE001 - a harness crash is reported against its script
-        return HarnessRow(result.path, 0, 1, 0, [f"harness error: {error}"])
+        return HarnessRow(result.path, 0, 1, [f"harness error: {error}"])
     lines = list(report["fail"])
     failed = len(lines)
     if report["returncode"] != 0 and not lines:
         # The host exited without reporting a failed scenario, so the run itself failed.
         failed = 1
         lines.append(f"host exited {report['returncode']}: {report['stderr'].strip()[-300:]}")
-    return HarnessRow(result.path, report["pass"], failed, len(report["skip"]), lines, report["coverage"])
+    # Unsupported scenarios are listed by the access that cut them, with the events compared before it.
+    reasons: dict[str, list[harness.Scenario]] = {}
+    for scenario in report["unsupported"]:
+        reasons.setdefault(scenario.cut, []).append(scenario)
+    for reason, found in sorted(reasons.items()):
+        compared = sorted(len(scenario.events) - 1 for scenario in found)
+        lines.append(
+            f"unsupported: {reason}, in {len(found)} scenarios (first {found[0].name}), after {compared[0]} to "
+            f"{compared[-1]} compared events"
+        )
+    return HarnessRow(
+        result.path,
+        report["pass"],
+        failed,
+        lines,
+        len(report["prefix"]),
+        len(report["unsupported"]),
+        report["coverage"],
+        report["compared"],
+    )
 
 
 def _library_files(libraries: list[Library]) -> set[str]:
@@ -570,23 +653,43 @@ def _print_failures(results: list[Result]) -> None:
                 print(f"    {line}")
 
 
-def _check_mode(args: argparse.Namespace, results: list[Result], corpus_: Corpus, kinds: set[str]) -> int:
-    """Generates the outputs in a scratch directory and reports any file under the output that differs or is missing."""
-    with tempfile.TemporaryDirectory() as scratch:
-        root = Path(scratch)
-        _write_tree(root, results, corpus_, previous=args.out, kinds=kinds)
-        generated = sorted(path for path in root.rglob("*") if path.is_file())
-        stale = []
-        for path in generated:
-            relative = path.relative_to(root)
-            target = args.out / relative
-            if not target.is_file() or target.read_bytes() != path.read_bytes():
-                stale.append(relative.as_posix())
-    stale += _stale_libraries(args.out, kinds, _library_files(corpus_.libraries))
-    for name in stale:
-        print(f"out of date: {name}")
-    _print_failures(results)
-    return 1 if stale or any(result.error is not None for result in results) else 0
+def _out_of_date(generated_root: Path, out: Path) -> list[str]:
+    """Files generated under generated_root that are missing under out or differ from it, as relative paths."""
+    stale = []
+    for path in sorted(path for path in generated_root.rglob("*") if path.is_file()):
+        relative = path.relative_to(generated_root)
+        target = out / relative
+        if not target.is_file() or target.read_bytes() != path.read_bytes():
+            stale.append(relative.as_posix())
+    return stale
+
+
+def _harness_rows(
+    lifted: list[tuple[Result, ModuleInput | None]],
+    good: list[Result],
+    catalog: dict[str, Any],
+    seeds: int,
+    jobs: int,
+    out: Path,
+) -> list[HarnessRow]:
+    """Runs the differential harness for every transpiled script, with the libraries generated under out."""
+    rows: list[HarnessRow] = []
+    exposed = emit_corpus(
+        [
+            (result, dataclasses.replace(module, expose_globals=True, probe_refs=True) if module else None)
+            for result, module in lifted
+        ],
+        catalog,
+    )
+    work = []
+    for result in good:
+        module = exposed.modules.get(result.path)
+        if module is None:
+            rows.append(HarnessRow(result.path, 0, 1, [exposed.errors.get(result.path, "emit failed")]))
+            continue
+        kind = catalog["kinds"][classify(result.path).value]
+        work.append((result, module, kind, range(seeds), out))
+    return rows + _map(_harness_job, work, jobs)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -655,32 +758,30 @@ def main(argv: list[str] | None = None) -> int:
     lifted = _map(_transpile_job, selected, args.jobs)
     corpus_ = emit_corpus(lifted, catalog)
     results = _apply(lifted, corpus_)
-    if args.check:
-        return _check_mode(args, results, corpus_, kinds)
-
     good = [result for result in results if result.error is None]
-    args.out.mkdir(parents=True, exist_ok=True)
-    written = _write_tree(args.out, results, corpus_, previous=args.out, kinds=kinds)
-    for stale in _stale_libraries(args.out, kinds, _library_files(corpus_.libraries)):
-        (args.out / stale).unlink()
-    check_lines = check(written, root=args.out) if written else []
 
+    stale: list[str] = []
     harness_rows: list[HarnessRow] = []
-    if args.harness:
-        exposed = emit_corpus(
-            [(result, dataclasses.replace(module, expose_globals=True) if module else None) for result, module in lifted],
-            catalog,
-        )
-        jobs = []
-        for result in good:
-            module = exposed.modules.get(result.path)
-            if module is None:
-                harness_rows.append(HarnessRow(result.path, 0, 1, 0, [exposed.errors.get(result.path, "emit failed")]))
-                continue
-            kind = catalog["kinds"][classify(result.path).value]
-            jobs.append((result, module.text, kind, range(args.seeds), args.out))
-        harness_rows += _map(_harness_job, jobs, args.jobs)
+    if args.check:
+        # The outputs are generated, checked and tested in a scratch directory and compared with the output.
+        with tempfile.TemporaryDirectory() as scratch:
+            root = Path(scratch)
+            written = _write_tree(root, results, corpus_, previous=args.out, kinds=kinds)
+            stale = _out_of_date(root, args.out) + _stale_libraries(args.out, kinds, _library_files(corpus_.libraries))
+            check_lines = check(written, root=root) if written else []
+            if args.harness:
+                harness_rows = _harness_rows(lifted, good, catalog, args.seeds, args.jobs, root)
+    else:
+        args.out.mkdir(parents=True, exist_ok=True)
+        written = _write_tree(args.out, results, corpus_, previous=args.out, kinds=kinds)
+        for name in _stale_libraries(args.out, kinds, _library_files(corpus_.libraries)):
+            (args.out / name).unlink()
+        check_lines = check(written, root=args.out) if written else []
+        if args.harness:
+            harness_rows = _harness_rows(lifted, good, catalog, args.seeds, args.jobs, args.out)
 
+    for name in stale:
+        print(f"out of date: {name}")
     failed = [result for result in results if result.error is not None]
     print(f"transpiled {len(good)} of {len(results)} scripts; {len(failed)} failed")
     _print_failures(results)
@@ -699,15 +800,19 @@ def main(argv: list[str] | None = None) -> int:
         for row in harness_rows:
             harness_failed += row.failed
             print(
-                f"{row.path}: {row.passed} passed, {row.failed} failed, {row.skipped} skipped, "
-                f"{row.coverage * 100:.1f}% coverage"
+                f"{row.path}: {row.passed} passed, {row.prefix} prefix, {row.unsupported} unsupported, "
+                f"{row.failed} failed; coverage {row.coverage * 100:.1f}% reference, {row.compared * 100:.1f}% compared"
             )
             for line in row.lines:
                 print(f"    {line}")
-        mean = sum(r.coverage for r in harness_rows) / len(harness_rows) * 100 if harness_rows else 0.0
+        count = len(harness_rows) or 1
         print(
-            f"harness: {sum(r.passed for r in harness_rows)} passed, {harness_failed} failed, "
-            f"{sum(r.skipped for r in harness_rows)} skipped over {len(harness_rows)} scripts, {mean:.1f}% mean coverage"
+            f"harness: {sum(r.passed for r in harness_rows)} passed, "
+            f"{sum(r.prefix for r in harness_rows)} prefix only (step budget, unchecked after the cut), "
+            f"{sum(r.unsupported for r in harness_rows)} unsupported, {harness_failed} failed "
+            f"over {len(harness_rows)} scripts; mean coverage "
+            f"{sum(r.coverage for r in harness_rows) / count * 100:.1f}% reference, "
+            f"{sum(r.compared for r in harness_rows) / count * 100:.1f}% compared"
         )
 
     diagnostics = collections.Counter(d for result in results for d in result.diagnostics)
@@ -717,7 +822,7 @@ def main(argv: list[str] | None = None) -> int:
         for message, count in sorted(diagnostics.items(), key=lambda item: (-item[1], item[0])):
             print(f"    {count:6d}  {message}")
 
-    return 1 if failed or check_lines or harness_failed else 0
+    return 1 if stale or failed or check_lines or harness_failed else 0
 
 
 if __name__ == "__main__":

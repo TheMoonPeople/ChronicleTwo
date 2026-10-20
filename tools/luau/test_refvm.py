@@ -7,7 +7,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from stb.assembler import assemble  # noqa: E402
-from stb.opcodes import AddrMode, Compare  # noqa: E402
+from stb.opcodes import AddrMode, Compare, Op  # noqa: E402
 from stb.program import decode  # noqa: E402
 from stb2luau.refvm import Machine, Slot, Tag, VMError, f32, float_bits  # noqa: E402
 
@@ -250,6 +250,84 @@ class StoreTest(unittest.TestCase):
     def test_store_through_non_pointer_raises(self):
         with self.assertRaisesRegex(VMError, "non-pointer"):
             run_main([("push", 1), ("push", 2), ("STORE",)])
+
+    def test_store_through_a_reference_reaches_the_caller(self):
+        functions = {
+            "main": (1, 0, [("LOAD_ADDR", 0, LOCAL), ("CALL", "set"), ("POP",), ("LOAD", 0, LOCAL), ("RET",)]),
+            "set": (1, 1, [("push", 0), ("LOAD_ADDR", 0, POINTER_INDEX), ("push", 9), ("STORE",), ("POP",), ("push", 0), ("RET",)]),
+        }
+        machine = build(functions)
+        machine.run(-1)
+        self.assertEqual(machine.result, 9)
+
+
+class Reporting(Machine):
+    """A machine that records each access outside the running function's frame."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.reports = []
+
+    def outside_frame(self, access, address):
+        self.reports.append((access, address))
+
+
+class FrameTest(unittest.TestCase):
+    def test_index_past_an_array_reaches_the_next_local(self):
+        body = [*store(2, [("push", 6)]), ("push", 1), ("LOAD", 1, LOCAL_INDEX)]
+        self.assertEqual(top(run_main(body, local=3)), Slot(Tag.INT, 6))
+
+    def test_local_index_below_the_frame_reaches_the_callers_frame(self):
+        functions = {
+            "main": (1, 0, [*store(0, [("push", 42)]), ("CALL", "f"), ("RET",)]),
+            "f": (1, 0, [("push", -1), ("LOAD", 0, LOCAL_INDEX), ("RET",)]),
+        }
+        machine = Reporting(decode(assemble(functions, "main")))
+        machine.run(-1)
+        self.assertEqual(machine.result, 42)
+        self.assertEqual(machine.reports, [("local index below the frame", 0)])
+
+    def test_load_past_the_frame_reads_the_operand_stack(self):
+        body = [("push", 7), ("push", 8), ("POP",), ("POP",), ("push", 2), ("LOAD", 1, LOCAL_INDEX)]
+        machine = Reporting(decode(assemble({"main": (2, 0, [*body, ("RET",)])}, "main")))
+        machine.run(-1)
+        self.assertEqual(machine.result, 8)
+        self.assertEqual(machine.reports, [("load past the frame", 3)])
+
+    def test_store_past_the_frame_writes_the_operand_stack(self):
+        # Retail writes through the pointer, here into a free operand-stack slot above the stored value it pushes.
+        body = [("push", 2), ("LOAD_ADDR", 1, LOCAL_INDEX), ("push", 5), ("STORE",), ("POP",), ("push", 0)]
+        machine = Reporting(decode(assemble({"main": (2, 0, [*body, ("RET",)])}, "main")))
+        machine.run(-1)
+        self.assertEqual(machine.memory[3], Slot(Tag.INT, 5))
+        self.assertEqual(machine.reports, [("store past the frame", 3)])
+
+    def test_access_inside_the_frame_is_not_reported(self):
+        machine = Reporting(decode(assemble({"main": (2, 0, [*store(1, [("push", 3)]), ("push", 1), ("LOAD", 0, LOCAL_INDEX), ("RET",)])}, "main")))
+        machine.run(-1)
+        self.assertEqual(machine.result, 3)
+        self.assertEqual(machine.reports, [])
+
+    def test_address_past_the_frame_is_allowed(self):
+        machine = run_main([("push", 2), ("LOAD_ADDR", 1, LOCAL_INDEX)], local=2)
+        self.assertEqual(top(machine), Slot(Tag.PTR, 3))
+
+    def test_returned_reports_the_call_and_the_callee_frame(self):
+        functions = {
+            "main": (1, 0, [("LOAD_ADDR", 0, LOCAL), ("CALL", "f"), ("RET",)]),
+            "f": (1, 1, [("push", 0), ("RET",)]),
+        }
+        returns = []
+
+        class Recording(Machine):
+            def returned(self, call, callee, frame):
+                returns.append((call, callee, frame, self.memory[frame]))
+
+        program = decode(assemble(functions, "main"))
+        machine = Recording(program)
+        machine.run(-1)
+        call = next(i for i in program.functions[program.main].instructions if i.op == Op.CALL)
+        self.assertEqual(returns, [(call.offset, program.callee(call).block, 1, Slot(Tag.PTR, 0))])
 
 
 class ShortCircuitTest(unittest.TestCase):

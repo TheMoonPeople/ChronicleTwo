@@ -151,7 +151,7 @@ local function helper_20c8()
 			action.ProgSet(0)
 			return
 		else
-			global1 = global1 + 1
+			global1 = vm.i32(global1 + 1)
 			if global1 >= 3 then
 				global1 = 0
 				action.Shot() -- retail: argument 1 is a value where the handler writes an output; the output is discarded

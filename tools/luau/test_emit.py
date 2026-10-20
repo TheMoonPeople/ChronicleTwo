@@ -97,16 +97,30 @@ def ints(*numbers):
     return {("local", n): ir.INT for n in numbers}
 
 
-def function(block, body, *, arg=0, slots=None, temps=(), programs=(), main=False):
-    return FunctionInput(block, arg, 0, dict(slots or {}), list(temps), list(body), list(programs), main)
+def function(block, body, *, arg=0, slots=None, temps=(), programs=(), main=False, refs=(), arrays=None):
+    return FunctionInput(
+        block, arg, 0, dict(slots or {}), list(temps), list(body), list(programs), main, tuple(refs), dict(arrays or {})
+    )
 
 
 def main_function(body, slots=None, temps=()):
     return function(ANY_BLOCK, body, slots=slots, temps=temps, main=True)
 
 
-def module(*functions, globals_=None, expose=False):
-    return ModuleInput("test/a.stb", "action", dict(globals_ or {}), {f.block: f for f in functions}, expose)
+def module(*functions, globals_=None, expose=False, probe=False):
+    return ModuleInput(
+        "test/a.stb", "action", dict(globals_ or {}), {f.block: f for f in functions}, expose, probe_refs=probe
+    )
+
+
+ARRAY = ("array", 1)
+FRAME = ("frame", 0)
+
+
+def bump(returns=ir.Const(0, ir.INT)):
+    """Helper 0x30, which adds one to the variable its reference parameter names."""
+    body = [ir.Assign(("local", 0), ir.Binary("add", var(0), const(1), ir.INT)), ir.Return(returns)]
+    return function(0x30, body, arg=1, slots=ints(0), refs=(0,))
 
 
 def emit_text(*functions, **kwargs):
@@ -452,6 +466,148 @@ class EmitTest(unittest.TestCase):
         result = emit_text(function(0x40, body, slots={("local", 3): ir.FLOAT}, programs=[1]))
         self.assertIn("\tvar3 = 1.0 -- retail: integer bits read as a float\n", result.text)
 
+    def test_reference_parameter_is_copied_in_and_back(self):
+        caller = main_function([ir.CallStmt(ir.Call(0x30, (addr(2),), ir.INT)), ir.Print((var(2),))], slots=ints(2))
+        text = emit_text(bump(), caller).text
+        self.assertIn("local function helper_30(arg0: s32)\n\targ0 = arg0 + 1\n\treturn arg0\nend\n", text)
+        self.assertIn("\tvar2 = helper_30(var2)\n\tprint(var2)\n", text)
+
+    def test_used_result_comes_back_before_the_references(self):
+        caller = main_function(
+            [ir.Assign(ir.Temp(0, ir.INT), ir.Call(0x30, (addr(2),), ir.INT)), ir.Print((ir.Temp(0, ir.INT), var(2)))],
+            slots=ints(2),
+            temps=[ir.INT],
+        )
+        text = emit_text(bump(const(7)), caller).text
+        self.assertIn("\treturn 7, arg0\n", text)
+        self.assertIn("\tlocal t0: s32\n\tt0, var2 = helper_30(var2)\n\tprint(t0, var2)\n", text)
+
+    def test_probed_call_reports_its_references(self):
+        caller = main_function([ir.CallStmt(ir.Call(0x30, (addr(2),), ir.INT, 0x120)), ir.Print((var(2),))], slots=ints(2))
+        result = emit(module(bump(), caller, probe=True), CATALOG)
+        self.assertIn("\tvar2 = helper_30(var2)\n\t__ref(288, var2)\n", result.text)
+        self.assertEqual(result.probes, [0x120])
+
+    def test_reference_call_in_an_expression_is_rejected(self):
+        caller = main_function([ir.Print((ir.Call(0x30, (addr(2),), ir.INT),))], slots=ints(2))
+        with self.assertRaises(EmitError):
+            emit_text(bump(), caller)
+
+    def test_array_is_a_table_from_one(self):
+        body = [
+            ir.Assign(ir.Elem(ARRAY, var(0), ir.FLOAT), const(2.5, ir.FLOAT)),
+            ir.Assign(ir.Elem(ARRAY, ir.Binary("sub", var(0), const(1), ir.INT), ir.FLOAT), const(1.5, ir.FLOAT)),
+            ir.Print((ir.Elem(ARRAY, const(2), ir.FLOAT),)),
+        ]
+        slots = {**ints(0), ARRAY: ir.FLOAT}
+        result = emit_text(function(ANY_BLOCK, body, slots=slots, main=True, arrays={ARRAY: 3})).text
+        self.assertIn("\tlocal var1: { f32 } = table.create(3, 0)\n", result)
+        self.assertIn("\tvar1[var0 + 1] = 2.5\n", result)
+        self.assertIn("\tvar1[var0] = 1.5\n", result)
+        self.assertIn("\tprint(var1[3])\n", result)
+        self.assertNotIn("vm.", result)
+
+    def test_output_into_an_array_element(self):
+        body = [ir.ExtCall(2, (ir.Addr(ARRAY, ir.INT, var(0)),)), ir.Print((ir.Elem(ARRAY, const(0), ir.INT),))]
+        slots = {**ints(0), ARRAY: ir.INT}
+        text = emit_text(function(ANY_BLOCK, body, slots=slots, main=True, arrays={ARRAY: 2})).text
+        self.assertIn("\tvar1[var0 + 1] = action.ProgGet() or var1[var0 + 1]\n", text)
+
+    def test_frame_table_checks_computed_indices(self):
+        index = ir.Binary("add", ir.Elem(FRAME, const(0), ir.INT), const(1), ir.INT)
+        body = [ir.Assign(ir.Elem(FRAME, index, ir.INT), const(7)), ir.Return(ir.Elem(FRAME, const(2), ir.INT))]
+        helper = function(0x30, body, arg=1, slots={FRAME: ir.INT, **ints(0)}, arrays={FRAME: 4})
+        caller = main_function([ir.Print((ir.Call(0x30, (const(1),), ir.INT),))])
+        text = emit_text(helper, caller).text
+        self.assertIn("\t-- retail: a computed index here may leave its array", text)
+        self.assertIn("\tlocal frame: { s32 } = table.create(4, 0)\n\tframe[1] = arg0\n", text)
+        self.assertIn("\tframe[vm.index(frame[1] + 1, 4)] = 7\n\treturn frame[3]\n", text)
+        self.assertIn('local vm = require("@lib/vm")', text)
+
+    def test_reference_parameter_in_a_frame_comes_back_from_the_table(self):
+        body = [ir.Assign(ir.Elem(FRAME, const(0), ir.INT), const(3)), ir.Return(const(0))]
+        helper = function(0x30, body, arg=1, slots={FRAME: ir.INT, **ints(0)}, refs=(0,), arrays={FRAME: 2})
+        caller = main_function([ir.CallStmt(ir.Call(0x30, (addr(2),), ir.INT)), ir.Print((var(2),))], slots=ints(2))
+        text = emit_text(helper, caller).text
+        self.assertIn("\tframe[1] = 3\n\treturn frame[1]\n", text)
+
+    def test_output_past_the_frame_is_lost(self):
+        body = [
+            ir.ExtCall(53, (addr(4, ir.FLOAT), addr(5, ir.FLOAT), ir.Addr(("stack", 9), ir.FLOAT))),
+            ir.Print((var(4, ir.FLOAT), var(5, ir.FLOAT))),
+        ]
+        result = emit_text(main_function(body, slots={("local", 4): ir.FLOAT, ("local", 5): ir.FLOAT}))
+        self.assertIn(
+            "\t\tlocal out1, out2, _ = action.GetPos() -- retail: output 3 points past the frame, at the operand stack, "
+            "so the value is lost\n",
+            result.text,
+        )
+        self.assertIn("output written past the frame", result.diagnostics)
+
+    def test_dropped_return_value_declares_nothing(self):
+        helper = function(0x30, [ir.ExtCall(2, (addr(0),)), ir.Return(var(0))], slots=ints(0))
+        caller = main_function([ir.CallStmt(ir.Call(0x30, (), ir.INT))])
+        text = emit_text(helper, caller).text
+        self.assertIn("local function helper_30()\n\taction.ProgGet()\nend\n", text)
+
+    def test_repeated_condition_stays_a_nested_if(self):
+        cond = ir.Compare(opcodes.Compare.EQ, var(0), const(1))
+        body = [ir.If(cond, [ir.Print((const(1),))], [ir.If(cond, [ir.Print((const(2),))], [])])]
+        text = emit_text(main_function(body, slots=ints(0))).text
+        self.assertIn(
+            "\telse\n\t\t-- retail: the script tests this condition again, so its branch never runs\n"
+            "\t\tif var0 == 1 then\n\t\t\tprint(2)\n\t\tend\n\tend\n",
+            text,
+        )
+        self.assertNotIn("elseif", text)
+
+    def test_float_division_by_a_variable_checks_for_zero(self):
+        slots = {("local", n): ir.FLOAT for n in range(3)}
+        body = [
+            ir.Assign(("local", 1), ir.Binary("div", var(0, ir.FLOAT), var(2, ir.FLOAT), ir.FLOAT)),
+            ir.Assign(("local", 2), ir.Binary("div", var(1, ir.FLOAT), const(2.0, ir.FLOAT), ir.FLOAT)),
+            ir.Print((var(2, ir.FLOAT),)),
+        ]
+        text = emit_text(main_function(body, slots=slots)).text
+        self.assertIn("\tvar1 = vm.fdiv(var0, var2)\n", text)
+        self.assertIn("\tvar2 = var1 / 2.0\n", text)
+
+    def test_integer_constant_for_a_float_parameter_passes_its_bits(self):
+        helper = function(0x30, [ir.Print((var(0, ir.FLOAT),))], arg=1, slots={("local", 0): ir.FLOAT})
+        caller = main_function([ir.CallStmt(ir.Call(0x30, (const(0x3F800000),), ir.INT))])
+        text = emit_text(helper, caller).text
+        self.assertIn(
+            "\thelper_30(1.0) -- retail: the integer 1065353216 is passed where the callee reads a float, so it reads "
+            "its bits\n",
+            text,
+        )
+
+    def test_integer_value_stored_into_a_float_variable_is_rejected(self):
+        # The script loads the variable as a float, which reads the bits of an integer its helper returned.
+        helper = function(0x30, [ir.Return(const(1065353216))])
+        body = [ir.Assign(("local", 0), ir.Call(0x30, (), ir.INT)), ir.Print((var(0, ir.FLOAT),))]
+        caller = main_function(body, slots={("local", 0): ir.FLOAT})
+        with self.assertRaisesRegex(EmitError, "may be an integer is stored into float variable"):
+            emit_text(helper, caller)
+
+    def test_float_arithmetic_stored_into_a_float_variable_is_accepted(self):
+        value = ir.Binary("mul", var(1, ir.ANY), const(0.5, ir.FLOAT), ir.ANY)
+        body = [ir.Assign(("local", 0), value), ir.Print((var(0, ir.FLOAT),))]
+        text = emit_text(main_function(body, slots={("local", 0): ir.FLOAT, ("local", 1): ir.ANY})).text
+        self.assertIn("\tvar0 = var1 * 0.5\n", text)
+
+    def test_integer_variable_passed_to_a_float_parameter_is_rejected(self):
+        helper = function(0x30, [ir.Print((var(0, ir.FLOAT),))], arg=1, slots={("local", 0): ir.FLOAT})
+        caller = main_function([ir.CallStmt(ir.Call(0x30, (var(1),), ir.INT))], slots=ints(1))
+        with self.assertRaisesRegex(EmitError, "passed to parameter 0 of helper_30, which the callee loads as a float"):
+            emit_text(helper, caller)
+
+    def test_float_variable_passed_to_an_integer_reference_is_rejected(self):
+        # bump stores an integer through its reference, whose bits the caller's float loads would read.
+        caller = main_function([ir.CallStmt(ir.Call(0x30, (addr(0, ir.FLOAT),), ir.INT))], slots={("local", 0): ir.FLOAT})
+        with self.assertRaisesRegex(EmitError, "may store an integer there"):
+            emit_text(bump(), caller)
+
     def test_float_condition_is_always_true(self):
         body = [ir.If(var(3, ir.FLOAT), [ir.Print((const(1),))], [])]
         result = emit_text(function(0x40, body, slots={("local", 3): ir.FLOAT}, programs=[1]))
@@ -471,6 +627,22 @@ class EmitTest(unittest.TestCase):
     def test_end_statement_is_rejected(self):
         with self.assertRaisesRegex(EmitError, "end opcode unsupported"):
             emit_text(main_function([ir.End()]))
+
+    def test_integer_operations_that_may_overflow_wrap(self):
+        body = [
+            ir.Assign(("local", 0), ir.Binary("add", var(0), const(1), ir.INT, wrap=True)),
+            ir.Assign(("local", 1), ir.Binary("sub", var(1), var(0), ir.INT, wrap=True)),
+            ir.Assign(("local", 2), ir.Binary("mul", var(2), const(3), ir.INT, wrap=True)),
+            ir.Assign(("local", 3), ir.Unary("neg", var(3), ir.INT, wrap=True)),
+            ir.Assign(("local", 4), ir.Binary("add", var(4), const(1), ir.INT)),
+            ir.Print((var(0), var(1), var(2), var(3), var(4))),
+        ]
+        text = emit_text(main_function(body, slots=ints(0, 1, 2, 3, 4))).text
+        self.assertIn("\tvar0 = vm.i32(var0 + 1)\n", text)
+        self.assertIn("\tvar1 = vm.i32(var1 - var0)\n", text)
+        self.assertIn("\tvar2 = vm.i32(var2 * 3)\n", text)
+        self.assertIn("\tvar3 = vm.i32(-var3)\n", text)
+        self.assertIn("\tvar4 = var4 + 1\n", text)
 
     def test_precedence_parenthesises_only_when_needed(self):
         expr = ir.Binary("mul", ir.Binary("add", var(3), const(1), ir.INT), const(2), ir.INT)

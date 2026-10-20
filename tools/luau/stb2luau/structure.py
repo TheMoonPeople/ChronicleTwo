@@ -357,7 +357,13 @@ def _numeric_for(first: object, second: object, root: list) -> ir.NumericFor | N
         or step_expr.lhs.slot != var
         or not isinstance(step_expr.rhs, ir.Const)
         or not _is_positive_int(step_expr.rhs.value)
+        # A step the lifter could not keep inside 32 bits wraps on the PS2, where a numeric for would run past it.
+        or step_expr.wrap
     ):
+        return None
+    # A numeric for stands for the while loop only over an integral sequence: from a fractional start, i < 3 runs
+    # 0.5, 1.5, 2.5, but the inclusive limit 3 - 1 would stop at 1.5.
+    if first.value.type != INT or cond.lhs.type != INT:
         return None
     counting_up = step_expr.op == "add"
     if cond.op not in (_ADD_COMPARES if counting_up else _SUB_COMPARES):
@@ -377,6 +383,9 @@ def _numeric_for(first: object, second: object, root: list) -> ir.NumericFor | N
 
     # The while loop's limit is exclusive when counting up and the numeric for's is inclusive.
     if cond.op in (CompareOp.LT, CompareOp.GT):
+        # Moving an exclusive limit by one is only exact for an integer limit: i < 10.8 runs to 10, i <= 9.8 to 9.
+        if limit.type != INT:
+            return None
         delta = -1 if cond.op == CompareOp.LT else 1
         if isinstance(limit, ir.Const) and limit.type == INT:
             limit = ir.Const(limit.value + delta, INT)

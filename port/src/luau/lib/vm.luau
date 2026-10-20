@@ -28,6 +28,19 @@ function vm.i32(x: number): number
     return v
 end
 
+-- Wraps the result of an operation whose operands may be integers or floats: an integral value outside the signed
+-- 32-bit range wraps as an integer does on the PS2, and any other value is returned unchanged. An integral float
+-- outside that range, which retail keeps, wraps too.
+function vm.wrap(x: number): number
+    if x ~= x or x == math.huge or x == -math.huge or x ~= math.floor(x) then
+        return x
+    end
+    if x >= -2147483648 and x < 2147483648 then
+        return x
+    end
+    return vm.i32(x)
+end
+
 -- Converts a float to an integer by truncating toward zero, wrapped to 32 bits.
 function vm.ftoi(x: number): number
     return vm.i32(truncate(x))
@@ -41,12 +54,30 @@ function vm.idiv(a: number, b: number): number
     return vm.i32(truncate(a / b))
 end
 
+-- Divides two numbers when either is a float. A divisor whose bits are zero (integer 0 or +0.0) raises an error, where
+-- retail exits; -0.0 divides.
+function vm.fdiv(a: number, b: number): number
+    if b == 0 and 1 / b > 0 then
+        error("division by zero", 2)
+    end
+    return a / b
+end
+
 -- Computes the remainder of two integers with C semantics, where the sign follows the dividend.
 function vm.imod(a: number, b: number): number
     if b == 0 then
         error("modulo by zero", 2)
     end
     return vm.i32(math.fmod(a, b))
+end
+
+-- Maps a slot index computed at run time to its place in a frame table of n slots, which starts at 1.
+-- An index outside the frame would reach the operand stack or the caller's frame on the PS2, so it raises an error.
+function vm.index(i: number, n: number): number
+    if i < 0 or i >= n or i ~= math.floor(i) then
+        error(`slot index {i} is outside the frame of {n} slots`, 2)
+    end
+    return i + 1
 end
 
 -- Rounds a number to the nearest float32 value.
