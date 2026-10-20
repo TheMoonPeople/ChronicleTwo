@@ -14,9 +14,18 @@ local function truncate(x: number): number
     return math.ceil(x)
 end
 
--- Suspends the script until the engine resumes it on the next frame.
-function vm.wait(): ()
-    coroutine.yield()
+-- The coroutines in skip mode: the engine skipped the event (CRunScript::skip) where they were suspended, and they run
+-- their sweeps until a skip end.
+local skipping: { [thread]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+-- Suspends the script until the engine resumes it on the next frame. Returns true when the engine skips the event
+-- instead, which puts the script in skip mode; the caller then runs its sweep.
+function vm.wait(): boolean
+    local skipped = coroutine.yield() == true
+    if skipped then
+        skipping[coroutine.running()] = true
+    end
+    return skipped
 end
 
 -- Wraps an integral value to a signed 32-bit integer.
@@ -116,13 +125,25 @@ function vm.float_bits(x: number?): number?
     return value
 end
 
--- Runs a region of an event script that skip mode can jump over; skip mode arrives with event scripts, so body always runs for now.
-function vm.section(body: () -> ()): ()
-    body()
+-- Raises the error retail exits with where a push writes past the event script's operand stack, given the slot it
+-- writes, counted from the start of the stack's 0x80 slots.
+function vm.stack(slot: number): ()
+    if slot >= 128 then
+        error("stack overflow", 2)
+    end
 end
 
--- Marks the end of a skippable region of an event script.
-function vm.skip_end(): ()
+-- Whether the script is in skip mode: after a wait the engine skipped, until a skip end. A script function returns in
+-- skip mode when its sweep reaches its return, and one that a sweep calls runs its own sweep.
+function vm.skipping(): boolean
+    return skipping[coroutine.running()] == true
+end
+
+-- Stops a sweep at a skip end: leaves skip mode and suspends the script until the next frame. Returns true when the
+-- engine skips again, which sweeps on from the skip end.
+function vm.skip_end(): boolean
+    skipping[coroutine.running()] = nil
+    return vm.wait()
 end
 
 return vm

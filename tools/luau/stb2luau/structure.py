@@ -25,7 +25,19 @@ def structure(function: ir.LiftedFunction) -> list:
         # Relaxed decisions change earlier branch choices, so the whole function is restructured under them.
         body = _Structurer(function, relaxed=True)._range(0, count, count, [])
     body = _simplify(body)
-    return _numeric_fors(body, body)
+    # A sweep reads and writes the function's variables, not a numeric for's own control variable.
+    swept = {slot for sweep in function.sweeps for slot in _mentioned(sweep.body)}
+    return _numeric_fors(body, body, frozenset(swept))
+
+
+def _mentioned(stmts: list) -> set[ir.Slot]:
+    found: set[ir.Slot] = set()
+    for expr in _exprs(stmts, None):
+        found |= ir.reads(expr)
+    for stmt in stmts:
+        if isinstance(stmt, ir.Assign) and (slot := ir.target_slot(stmt.target)) is not None:
+            found.add(slot)
+    return found
 
 
 def _targets(exit_: ir.Jump | ir.Branch | ir.Stop | None) -> tuple[int, ...]:
@@ -110,6 +122,9 @@ class _Structurer:
                 # Falling out of the latch leaves the loop.
                 if not self._ends_with_back_jump(latch, i) and not self._terminates(latch):
                     body.append(ir.Break())
+                if body and isinstance(body[0], ir.Landing):
+                    # A sweep that resumes normal execution at the loop's head enters the loop there.
+                    out.append(body.pop(0))
                 out.append(ir.While(_TRUE, body))
                 i = latch + 1
             else:
@@ -212,7 +227,28 @@ class _Structurer:
 
 
 def _simplify(stmts: list) -> list:
-    return [_simplify_stmt(stmt) for stmt in stmts]
+    return [_simplify_stmt(stmt) for stmt in _reachable(stmts)]
+
+
+def _reachable(stmts: list) -> list:
+    """The statements up to the first that leaves the list: those after it never run, and Luau rejects them."""
+    for index, stmt in enumerate(stmts):
+        if _leaves(stmt):
+            return stmts[: index + 1]
+    return stmts
+
+
+def _leaves(stmt: object) -> bool:
+    """Whether a statement always leaves its list: a break, continue or return, or an if whose branches all do."""
+    if isinstance(stmt, (ir.Break, ir.Continue, ir.Return, ir.End)):
+        return True
+    return (
+        isinstance(stmt, ir.If)
+        and bool(stmt.then)
+        and bool(stmt.orelse)
+        and _leaves(stmt.then[-1])
+        and _leaves(stmt.orelse[-1])
+    )
 
 
 def _simplify_stmt(stmt: object) -> object:
@@ -308,38 +344,39 @@ def _is_positive_int(value: object) -> bool:
     return isinstance(value, int) and not isinstance(value, bool) and value > 0
 
 
-def _numeric_fors(stmts: list, root: list) -> list:
-    # root is the whole body, used to check whether a loop variable is read elsewhere.
+def _numeric_fors(stmts: list, root: list, swept: frozenset[ir.Slot] = frozenset()) -> list:
+    # root is the whole body, used to check whether a loop variable is read elsewhere; swept holds the variables the
+    # function's sweeps mention.
     out: list = []
     i = 0
     while i < len(stmts):
-        loop = _numeric_for(stmts[i], stmts[i + 1], root) if i + 1 < len(stmts) else None
+        loop = _numeric_for(stmts[i], stmts[i + 1], root, swept) if i + 1 < len(stmts) else None
         if loop is not None:
-            out.append(_numeric_for_children(loop, root))
+            out.append(_numeric_for_children(loop, root, swept))
             i += 2
         else:
-            out.append(_numeric_for_children(stmts[i], root))
+            out.append(_numeric_for_children(stmts[i], root, swept))
             i += 1
     return out
 
 
-def _numeric_for_children(stmt: object, root: list) -> object:
+def _numeric_for_children(stmt: object, root: list, swept: frozenset[ir.Slot]) -> object:
     if isinstance(stmt, ir.If):
-        return ir.If(stmt.cond, _numeric_fors(stmt.then, root), _numeric_fors(stmt.orelse, root))
+        return ir.If(stmt.cond, _numeric_fors(stmt.then, root, swept), _numeric_fors(stmt.orelse, root, swept))
     if isinstance(stmt, ir.While):
-        return ir.While(stmt.cond, _numeric_fors(stmt.body, root))
+        return ir.While(stmt.cond, _numeric_fors(stmt.body, root, swept))
     if isinstance(stmt, ir.Repeat):
-        return ir.Repeat(_numeric_fors(stmt.body, root), stmt.cond)
+        return ir.Repeat(_numeric_fors(stmt.body, root, swept), stmt.cond)
     if isinstance(stmt, ir.NumericFor):
-        return ir.NumericFor(stmt.var, stmt.start, stmt.limit, stmt.step, _numeric_fors(stmt.body, root))
+        return ir.NumericFor(stmt.var, stmt.start, stmt.limit, stmt.step, _numeric_fors(stmt.body, root, swept))
     return stmt
 
 
-def _numeric_for(first: object, second: object, root: list) -> ir.NumericFor | None:
+def _numeric_for(first: object, second: object, root: list, swept: frozenset[ir.Slot]) -> ir.NumericFor | None:
     if not isinstance(first, ir.Assign) or not isinstance(second, ir.While):
         return None
     var = first.target
-    if not isinstance(var, tuple) or var[0] != "local":
+    if not isinstance(var, tuple) or var[0] != "local" or var in swept:
         return None
     cond = second.cond
     if not isinstance(cond, ir.Compare) or not isinstance(cond.lhs, ir.Var) or cond.lhs.slot != var:

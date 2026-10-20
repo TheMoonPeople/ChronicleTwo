@@ -5,6 +5,11 @@ becomes a table holding the slots from its base up to the next variable the func
 cannot prove that every computed index stays inside its array, the function's whole frame becomes one table instead,
 so an index that runs past its array reaches the neighbouring variables as it does on the PS2. A parameter that the
 function dereferences with a pointer-index mode is a reference: its caller's variable is copied in and copied back.
+
+In an event script, the sweeps of skip mode (stb/cfg.py) are lifted too, each as straight-line statements: a sweep
+runs the instructions in layout order, so stores, prints and script calls run while jumps fall through, a conditional
+jump leaving its condition on the stack, and native calls drop their arguments. Normal code marks where a sweep may
+start (Wait.skip, SkipCheck) and where normal execution resumes after one (Landing).
 """
 
 from __future__ import annotations
@@ -14,6 +19,7 @@ import functools
 import math
 from collections import defaultdict
 
+from stb import cfg
 from stb.analysis import Analysis, Value, fold, join, wrap32
 from stb.opcodes import FLOAT_MODES, GLOBAL_MODES, INDEXED_MODES, JUMPS, POINTER_MODES, AddrMode, ConstType, Op
 from stb.opcodes import Compare as CompareOp
@@ -135,12 +141,13 @@ def _check_aliases(args: tuple[ir.Expr, ...], offset: int) -> None:
         seen.append(arg)
 
 
-def _check_mixed_stores(lifter: _Lifter) -> None:
+def _check_mixed_stores(lifter: _Lifter, sweeps: list[ir.Sweep]) -> None:
     """Refuses an integer constant stored into a variable the script loads both as an integer and as a float."""
     mixed = {key for key, kinds in lifter.load_kinds.items() if len(kinds) == 2}
     mixed |= {("global", n) for n in lifter.mixed_globals}
-    for block in lifter.blocks.values():
-        for statement in block.statements:
+    lists = [block.statements for block in lifter.blocks.values()] + [sweep.body for sweep in sweeps]
+    for statements in lists:
+        for statement in statements:
             if not isinstance(statement, ir.Assign):
                 continue
             value, target = statement.value, statement.target
@@ -175,6 +182,14 @@ def mixed_globals(program: Program) -> frozenset[int]:
     return _mixed_slots((i for function in program.functions.values() for i in function.instructions), "global")
 
 
+def _unused_params(function: Function) -> frozenset[int]:
+    """The parameters a function never reads, writes or takes the address of, with no computed index that may reach them."""
+    if any(i.op in (Op.LOAD, Op.LOAD_ADDR) and i.a2 in INDEXED_MODES for i in function.instructions):
+        return frozenset()
+    named = {i.a1 for i in function.instructions if i.op in (Op.LOAD, Op.LOAD_ADDR) and i.a2 not in GLOBAL_MODES}
+    return frozenset(n for n in range(function.arg) if n not in named)
+
+
 def _float_reads(function: Function) -> frozenset[int]:
     """The reference parameters a function loads through POINTER_INDEX_FLOAT, which retags the slot they name."""
     return frozenset(
@@ -201,21 +216,27 @@ def references(program: Program) -> dict[int, tuple[int, ...]]:
 def lift(
     program: Program, function: Function, analysis: Analysis, refs: dict[int, tuple[int, ...]] | None = None
 ) -> ir.LiftedFunction:
-    """Lift one decoded script function into blocks of statements with typed expression trees.
+    """Lift one decoded script function into blocks of statements with typed expression trees, and its sweeps.
 
     refs gives each function's reference parameters, as references() finds them; it is computed when omitted.
     """
     if refs is None:
         refs = references(program)
+    flow = analysis.flow
+    if flow is not None and function.block in flow.errors:
+        raise LiftError(f"skip mode: {flow.errors[function.block]}")
     lifter = _Lifter(program, function, analysis, refs)
     lifter.run()
+    sweeps = _sweeps(lifter)
     if lifter.dynamic:
         lifter = _Lifter(program, function, analysis, refs, regions=_regions(function, lifter.dynamic))
         lifter.run()
-        if not _indices_in_bounds(lifter):
+        sweeps = _sweeps(lifter)
+        if not _indices_in_bounds(lifter, sweeps):
             lifter = _Lifter(program, function, analysis, refs, frame=True)
             lifter.run()
-    _check_mixed_stores(lifter)
+            sweeps = _sweeps(lifter)
+    _check_mixed_stores(lifter, sweeps)
     return ir.LiftedFunction(
         block=function.block,
         arg=function.arg,
@@ -227,6 +248,10 @@ def lift(
         refs=refs.get(function.block, ()),
         arrays=lifter.arrays(),
         folded=frozenset(lifter.folded),
+        sweeps=_mark_sweeps(lifter, sweeps),
+        entered=flow is not None and function.block in flow.entered,
+        stacked=lifter.tracks,
+        overflowing=flow is not None and function.block in flow.overflowing_frames,
     )
 
 
@@ -299,6 +324,30 @@ class _Lifter:
         # For each variable, or array table, whether the function loads it as a float and whether as an integer.
         self.load_kinds: dict[ir.Slot, set[bool]] = defaultdict(set)
         self.mixed_globals = mixed_globals(program)
+        # Skip mode: where a sweep may start after a wait, after a branch on a call's value, or at the end of the
+        # statement of a call that may return in skip mode, and where normal execution resumes after a sweep.
+        flow = analysis.flow
+        seeds = flow.seeds.get(function.block, frozenset()) if flow is not None else frozenset()
+        self.landings = flow.landings.get(function.block, frozenset()) if flow is not None else frozenset()
+        previous = {
+            following.offset: instruction
+            for instruction, following in zip(function.instructions, function.instructions[1:])
+        }
+        self.wait_seeds = {o for o in seeds if o in previous and previous[o].op == Op.WAIT}
+        self.branch_seeds = {
+            o for o in seeds if o in previous and previous[o].op in (Op.JMP_FALSE, Op.JMP_TRUE) and not previous[o].a2
+        }
+        self.call_seeds = set(seeds) - self.wait_seeds - self.branch_seeds - {function.instructions[0].offset}
+        # Where skip mode may overflow the operand stack: the functions that track where their frame starts, this one's
+        # pushes that may overflow, and the highest slot those since the last statement write.
+        self.stacked = flow.stacked if flow is not None else frozenset()
+        self.tracks = function.block in self.stacked
+        self.risky = flow.overflows.get(function.block, frozenset()) if flow is not None else frozenset()
+        self.sweep_risky = flow.sweep_overflows.get(function.block, frozenset()) if flow is not None else frozenset()
+        self.depths = cfg.depths(program, function) if self.tracks else {}
+        self.check: int | None = None
+        # The element the last store to an array left on the stack, which retail does not compute again.
+        self.stored: ir.Elem | None = None
 
     def arrays(self) -> dict[ir.Slot, int]:
         """The tables of this function, with their lengths in slots."""
@@ -309,6 +358,15 @@ class _Lifter:
     def run(self) -> None:
         for instruction in self.function.instructions:
             offset = instruction.offset
+            if offset in self.call_seeds:
+                # The call whose statement ended here may have returned in skip mode, which sweeps on from here.
+                self._require_flat(offset)
+                if self.stack or self.current is None or self.current.exit is not None:
+                    raise LiftError(f"skip mode may start inside a statement at {offset:#x}")
+                self._flush_check()
+                self.current.statements.append(ir.SkipCheck(offset, offset))
+            if offset in self.risky:
+                self._risk(instruction)
             joined = self._resolve(offset)
             if self.pending or joined:
                 # Interior and join points of a short-circuit stay in the current block.
@@ -324,11 +382,41 @@ class _Lifter:
         if self.current is None or self.current.exit is None:
             raise LiftError("function falls off the end")
 
+    def _height(self, offset: int) -> int:
+        """The operand stack's height before an instruction, above the frame and what sweeps left there."""
+        return self.depths[offset]
+
+    def _risk(self, instruction: Instruction) -> None:
+        """Notes a push that may overflow the operand stack, which the next statement first checks.
+
+        Retail checks the push after evaluating what lies below it, so a call or an expression that may raise there is
+        evaluated first, with everything pushed before it, after the checks of the earlier pushes."""
+        if any(entry is not _LEAKED and _observable(entry) for entry in self.stack):
+            self._flush_check()
+            for i, entry in enumerate(self.stack):
+                if entry is _LEAKED or isinstance(entry, (ir.Const, ir.Temp)):
+                    continue
+                if isinstance(entry, ir.Addr):
+                    if entry.index is not None and not isinstance(entry.index, (ir.Const, ir.Temp)):
+                        self.stack[i] = dataclasses.replace(entry, index=self._spill(entry.index, instruction.offset))
+                    continue
+                self.stack[i] = self._spill(entry, instruction.offset)
+        pops, _ = cfg.stack_effect(self.program, instruction)
+        slot = self.function.local + self._height(instruction.offset) - pops
+        self.check = slot if self.check is None else max(self.check, slot)
+
+    def _flush_check(self) -> None:
+        if self.check is not None:
+            self.current.statements.append(ir.StackCheck(self.check))
+            self.check = None
+
     def _start_block(self, offset: int) -> None:
         if self.current is not None and self.current.exit is None:
             self._exit(ir.Jump(offset), offset)
         self.current = ir.LiftedBlock(offset, [])
         self.blocks[offset] = self.current
+        if offset in self.landings:
+            self.current.statements.append(ir.Landing(offset))
 
     def _require_flat(self, offset: int) -> None:
         if self.pending:
@@ -338,6 +426,7 @@ class _Lifter:
         self._require_flat(offset)
         if self.stack:
             raise LiftError(f"value crosses a block boundary at {offset:#x}")
+        self._flush_check()
         self.current.exit = exit_
 
     def _pop(self, offset: int) -> ir.Expr:
@@ -371,6 +460,7 @@ class _Lifter:
 
     def _emit(self, statement: ir.Statement, offset: int) -> None:
         self._require_flat(offset)
+        self._flush_check()
         written = _written(statement)
         calls = any(ir.has_call(expr) for expr in _expressions(statement))
 
@@ -448,13 +538,32 @@ class _Lifter:
                 self.stack.append(ir.Var(target.slot, target.type))
             else:
                 element = ir.Elem(target.slot, target.index, target.type)
-                self._emit(ir.Assign(element, value, offset), offset)
-                self.stack.append(element)
+                if self.next_op.get(offset) == Op.POP:
+                    self._emit(ir.Assign(element, value, offset), offset)
+                    self.stack.append(element)
+                    self.stored = element
+                else:
+                    # Retail pushes the value it stored; reading the element back would use the index after the store,
+                    # which the store may have changed. The index is read before the value, as retail pushes it.
+                    if not isinstance(target.index, (ir.Const, ir.Temp)) and (
+                        ir.may_raise(target.index) or ir.may_raise(value)
+                    ):
+                        index = self._temp(target.index.type)
+                        self._emit(ir.Assign(index, target.index, offset), offset)
+                        element = ir.Elem(target.slot, index, target.type)
+                    if not isinstance(value, (ir.Const, ir.Temp)):
+                        temp = self._temp(value.type)
+                        self._emit(ir.Assign(temp, value, offset), offset)
+                        value = temp
+                    self._emit(ir.Assign(element, value, offset), offset)
+                    self.stack.append(value)
         elif op == Op.POP:
             expr = self._pop(offset)
             if isinstance(expr, ir.Call):
                 self._emit(ir.CallStmt(expr, offset), offset)
-            elif ir.has_call(expr):
+            elif ir.may_raise(expr) and expr is not self.stored:
+                # Nothing reads the value, but retail still evaluates it, and it may run a function or end the script;
+                # the value a store leaves is already computed.
                 self._emit(ir.Assign(self._temp(expr.type), expr, offset), offset)
         elif op in _BINARY:
             rhs = self._pop(offset)
@@ -484,9 +593,11 @@ class _Lifter:
         elif op == Op.PRINT:
             self._emit(ir.Print(self._pop_many(instruction.a1, offset), offset), offset)
         elif op == Op.WAIT:
-            self._emit(ir.Wait(offset), offset)
+            start = offset + INSTRUCTION_SIZE
+            self._emit(ir.Wait(offset, start if start in self.wait_seeds else None), offset)
         elif op == Op.SKIP_END:
-            raise LiftError("skip end unsupported")
+            # Outside skip mode a skip end only counts itself; a sweep's stop there is lifted with the sweep.
+            pass
         elif op == Op.RET:
             self._emit(ir.Return(self._pop(offset), offset), offset)
             self._exit(ir.Stop(), offset)
@@ -530,6 +641,7 @@ class _Lifter:
     def _call(self, instruction: Instruction) -> None:
         offset = instruction.offset
         callee = self.program.callee(instruction)
+        height = self._height(offset) if callee.block in self.stacked else 0
         args = self._pop_many(callee.arg, offset)
         callee_refs = set(self.refs.get(callee.block, ()))
         float_reads = _float_reads(callee)
@@ -548,10 +660,13 @@ class _Lifter:
                         f"the callee loads as a float, at {offset:#x}"
                     )
             elif isinstance(arg, ir.Addr):
-                raise LiftError(
-                    f"reference passed for parameter {position} of {callee.block:#x}, which the callee does not "
-                    f"dereference, at {offset:#x}"
-                )
+                if position not in _unused_params(callee):
+                    raise LiftError(
+                        f"reference passed for parameter {position} of {callee.block:#x}, which the callee does not "
+                        f"dereference, at {offset:#x}"
+                    )
+                # The callee never reads the parameter, so the address it receives cannot matter.
+                args = (*args[:position], ir.Const(0, INT), *args[position + 1 :])
         _check_aliases(args, offset)
         mixed_params = _mixed_slots(callee.instructions, "local")
         for position, arg in enumerate(args):
@@ -564,7 +679,11 @@ class _Lifter:
             elif position in mixed_params and isinstance(arg, ir.Const) and arg.type == INT and arg.value != 0:
                 raise LiftError(_MIXED.format(what=f"parameter {position} of {callee.block:#x}", offset=offset))
         return_type = _static(self.analysis.return_types.get(callee.block, ANY))
-        call = ir.Call(callee.block, args, return_type, offset)
+        frame = None
+        if callee.block in self.stacked:
+            # The callee's frame starts where its arguments do.
+            frame = self.function.local + height - callee.arg
+        call = ir.Call(callee.block, args, return_type, offset, frame)
         if callee_refs and self.next_op.get(offset) != Op.POP:
             # The call copies its references back, so it runs as a statement before the expression that uses it.
             temp = self._temp(return_type)
@@ -705,10 +824,127 @@ class _Lifter:
             self.pending.append(_Frame(target, op, cond, len(self.stack)))
             return
         fallthrough = offset + INSTRUCTION_SIZE
+        if fallthrough in self.branch_seeds:
+            # The condition's call may return in skip mode, where the jump falls through into the sweep.
+            temp = self._temp(cond.type)
+            self._emit(ir.Assign(temp, cond, offset), offset)
+            self._emit(ir.SkipCheck(fallthrough, offset, 1), offset)
+            cond = temp
         if instruction.op == Op.JMP_FALSE:
             self._exit(ir.Branch(cond, fallthrough, target), offset)
         else:
             self._exit(ir.Branch(cond, target, fallthrough), offset)
+
+
+class _Leaked:
+    """A condition a jump left on the operand stack in skip mode, which nothing may read."""
+
+    type = ANY
+
+
+_LEAKED = _Leaked()
+
+
+def _may_raise(expr: ir.Expr) -> bool:
+    return ir.may_raise(expr)
+
+
+def _observable(entry: ir.Expr) -> bool:
+    """Whether evaluating an operand-stack entry may run a function or raise, so that its place in order matters."""
+    if isinstance(entry, ir.Addr):
+        return entry.index is not None and ir.may_raise(entry.index)
+    return ir.may_raise(entry)
+
+
+class _Sweeper(_Lifter):
+    """Lifts the sweeps of one function: each runs its instructions in layout order from its first start."""
+
+    def sweep(self, sweep: cfg.Sweep) -> ir.Sweep:
+        self.stack = []
+        self.current = ir.LiftedBlock(sweep.starts[0], [])
+        self.left = 0
+        starts = set(sweep.starts)
+        for instruction in self.function.instructions:
+            offset = instruction.offset
+            if not sweep.starts[0] <= offset <= sweep.stop:
+                continue
+            if offset in self.landings and offset > sweep.starts[0]:
+                # The call whose statement ended here may have suspended at a callee's skip end and returned in normal
+                # mode.
+                self._boundary(offset)
+                self.current.statements.append(ir.Land(offset))
+            if offset in starts:
+                self._boundary(offset)
+                self.current.statements.append(ir.SweepStart(offset))
+            if offset in self.sweep_risky:
+                self._risk(instruction)
+            self._skip_step(instruction)
+        return ir.Sweep(sweep.stop, self.current.statements)
+
+    def _height(self, offset: int) -> int:
+        # The values this run left that the function's count does not hold yet lie on the stack too.
+        return sum(1 for entry in self.stack if entry is not _LEAKED) + self.left
+
+    def _boundary(self, offset: int) -> None:
+        if any(entry is not _LEAKED for entry in self.stack):
+            raise LiftError(f"skip mode: a sweep starts or lands inside a statement at {offset:#x}")
+        self._flush_check()
+        self._count_left()
+
+    def _count_left(self) -> None:
+        if self.left and self.tracks:
+            self.current.statements.append(ir.Leave(self.left))
+        self.left = 0
+
+    def _pop(self, offset: int) -> ir.Expr:
+        value = super()._pop(offset)
+        if value is _LEAKED:
+            raise LiftError(f"skip mode reads a condition a jump left on the stack at {offset:#x}")
+        return value
+
+    def _exit(self, exit_: ir.Jump | ir.Branch | ir.Stop, offset: int) -> None:
+        # A sweep stops where retail stops it, whatever values it leaked.
+        self.current.exit = exit_
+
+    def _evaluate(self, expr: ir.Expr, offset: int) -> None:
+        """Evaluates here, as retail does, an expression nothing reads that may raise or run a script function."""
+        if _may_raise(expr):
+            self._emit(ir.Assign(self._temp(expr.type), expr, offset), offset)
+
+    def _skip_step(self, instruction: Instruction) -> None:
+        op, offset = instruction.op, instruction.offset
+        if op in (Op.JMP, Op.LABEL, Op.WAIT):
+            return
+        if op in (Op.JMP_FALSE, Op.JMP_TRUE):
+            self._evaluate(self._pop(offset), offset)
+            self.stack.append(_LEAKED)
+            self.left += 1
+        elif op == Op.EXT:
+            for value in self._pop_many(instruction.a1, offset):
+                if isinstance(value, ir.Addr):
+                    if value.index is not None:
+                        self._evaluate(value.index, offset)
+                else:
+                    self._evaluate(value, offset)
+        elif op == Op.SKIP_END:
+            self._flush_check()
+            self._count_left()
+            self.current.statements.append(ir.SkipEnd(offset))
+        else:
+            self._step(instruction)
+
+
+def _sweeps(lifter: _Lifter) -> list[ir.Sweep]:
+    """The sweeps of a function, lifted with its lifter's arrays, into its temporaries and slot types."""
+    flow = lifter.analysis.flow
+    if flow is None or not flow.sweeps.get(lifter.function.block):
+        return []
+    sweeper = _Sweeper(lifter.program, lifter.function, lifter.analysis, lifter.refs, lifter.regions, lifter.frame)
+    sweeper.temps = lifter.temps
+    sweeper.slot_types = lifter.slot_types
+    found = [sweeper.sweep(sweep) for sweep in flow.sweeps[lifter.function.block]]
+    lifter.folded |= sweeper.folded
+    return found
 
 
 Interval = tuple[float, float]
@@ -948,9 +1184,13 @@ def _ranges(lifter: _Lifter) -> dict[int, dict]:
         return []
 
     thresholds = _thresholds(lifter.blocks)
-    states: dict[int, dict] = {entry: entry_state}
+    # Normal execution resumes after a sweep with whatever the sweep stored, so nothing is known there.
+    landings = {
+        start: {} for start, block in lifter.blocks.items() if block.statements and isinstance(block.statements[0], ir.Landing)
+    }
+    states: dict[int, dict] = {entry: entry_state, **landings}
     visits: dict[int, int] = defaultdict(int)
-    work = [entry]
+    work = [entry, *landings]
     while work:
         start = work.pop()
         visits[start] += 1
@@ -967,7 +1207,7 @@ def _ranges(lifter: _Lifter) -> dict[int, dict]:
                 work.append(target)
     for _ in range(NARROW_PASSES):
         # Recomputing every block from its predecessors' current states keeps the result sound and only tightens it.
-        incoming: dict[int, dict] = {entry: entry_state}
+        incoming: dict[int, dict] = {entry: entry_state, **landings}
         for start in sorted(states):
             for target, out in edges(start, states[start]):
                 if out is not None:
@@ -1029,10 +1269,54 @@ def _mark_overflows(lifter: _Lifter) -> dict[int, ir.LiftedBlock]:
     return blocks
 
 
-def _indices_in_bounds(lifter: _Lifter) -> bool:
+def _sweep_states(lifter: _Lifter, sweeps: list[ir.Sweep]) -> list[list[dict]]:
+    """The scalar ranges before each statement of each sweep.
+
+    A sweep starts with the ranges normal execution has where it switches to skip mode: after a wait, after a call's
+    statement, or at the function's start. After a skip end nothing is known. Its statements then run in order.
+    """
+    states = _ranges(lifter)
+    function = lifter.function
+    entry = {("local", n): (0, 0) for n in range(function.arg, function.local)}
+    seeds: dict[int, dict] = {function.instructions[0].offset: entry}
+    for start, block in lifter.blocks.items():
+        state = states.get(start)
+        if state is None:
+            continue
+        for statement in block.statements:
+            state = _transfer(state, statement)
+            if isinstance(statement, ir.Wait) and statement.skip is not None:
+                seeds[statement.skip] = _join(seeds.get(statement.skip), state)
+            elif isinstance(statement, ir.SkipCheck):
+                seeds[statement.start] = _join(seeds.get(statement.start), state)
+    found = []
+    for sweep in sweeps:
+        state: dict | None = None
+        before = []
+        for statement in sweep.body:
+            if isinstance(statement, ir.SweepStart):
+                state = _join(state, seeds.get(statement.offset, {}))
+            current = state if state is not None else {}
+            before.append(current)
+            state = _transfer(current, statement)
+        found.append(before)
+    return found
+
+
+def _mark_sweeps(lifter: _Lifter, sweeps: list[ir.Sweep]) -> list[ir.Sweep]:
+    """The sweeps with every integer operation the interval analysis cannot keep in 32 bits marked to wrap."""
+    marked = []
+    for sweep, before in zip(sweeps, _sweep_states(lifter, sweeps)):
+        body = [_mark_statement(stmt, _before_statement(state, stmt)) for stmt, state in zip(sweep.body, before)]
+        marked.append(ir.Sweep(sweep.stop, body))
+    return marked
+
+
+def _indices_in_bounds(lifter: _Lifter, sweeps: list[ir.Sweep]) -> bool:
     """Whether every computed index into a local array provably stays inside that array, by the interval analysis.
 
-    While every index stays in bounds, no write reaches a scalar, so the analysis need not track array elements.
+    While every index stays in bounds, no write reaches a scalar, so the analysis need not track array elements. A
+    sweep's indices are checked with the ranges it starts with.
     """
     lengths = {region.key: region.length for region in (lifter.regions or {}).values()}
     states = _ranges(lifter)
@@ -1064,4 +1348,10 @@ def _indices_in_bounds(lifter: _Lifter) -> bool:
             state = _transfer(state, statement)
         if isinstance(block.exit, ir.Branch) and not in_bounds(block.exit.cond, _before_branch(state, block.exit.cond)):
             return False
+    for sweep, before in zip(sweeps, _sweep_states(lifter, sweeps)):
+        for statement, state in zip(sweep.body, before):
+            targets = [statement.target] if isinstance(statement, ir.Assign) and isinstance(statement.target, ir.Elem) else []
+            state = _before_statement(state, statement)
+            if not all(in_bounds(expr, state) for expr in (*targets, *_expressions(statement))):
+                return False
     return True
