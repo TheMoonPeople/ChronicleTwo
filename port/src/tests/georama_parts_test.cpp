@@ -52,6 +52,9 @@ public:
         info.attr = attr;
         info.edit_name = names.back().data();
         info.parts_name = model->data.name;
+        // Initialize leaves area3_box for the part's collision data to fill, as retail does.
+        std::ranges::fill(info.area3_box.max, 0.0f);
+        std::ranges::fill(info.area3_box.min, 0.0f);
         map->info_mngr.parts_info = infos.data();
         map->info_mngr.parts_info_num = static_cast<int>(infos.size());
         return info;
