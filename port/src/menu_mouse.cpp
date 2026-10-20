@@ -227,8 +227,9 @@ void MovePointer(MenuMouseSample &point, float dx, float dy) {
     if (std::isfinite(dy)) {
         point.y += dy * units_y;
     }
-    point.x = std::clamp(point.x, extent.left, extent.right - 1);
-    point.y = std::clamp(point.y, extent.top, extent.bottom - 1);
+    // An extent under one unit wide (no screen size set yet) pins the hand to its left or top edge.
+    point.x = std::clamp(point.x, extent.left, std::max(extent.left, extent.right - 1));
+    point.y = std::clamp(point.y, extent.top, std::max(extent.top, extent.bottom - 1));
 }
 
 void SetCapture(bool on) {
