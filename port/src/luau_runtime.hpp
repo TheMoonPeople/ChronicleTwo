@@ -10,7 +10,7 @@
 
 /**
  *
- * Runs action scripts as Luau modules in place of the retail script interpreter, exposing the native script commands to them.
+ * Runs action, effect and monster scripts as Luau modules in place of the retail script interpreter, exposing the native script commands to them.
  *
  */
 namespace luau_runtime {

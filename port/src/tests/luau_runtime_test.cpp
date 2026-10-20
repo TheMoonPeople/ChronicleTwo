@@ -419,16 +419,33 @@ TEST_F(LuauRuntime, HandlesRoundTrip) {
     EXPECT_FALSE(luau_runtime::HandleModule(retail.data()).has_value());
 }
 
-TEST_F(LuauRuntime, ModuleForScriptMapsActionKeys) {
-    std::filesystem::create_directories(root / "mainchr");
-    std::filesystem::create_directories(root / "map");
-    std::ofstream(root / "mainchr" / "c01.luau") << "return {}\n";
-    std::ofstream(root / "map" / "x.luau") << "return {}\n";
+TEST_F(LuauRuntime, ModuleForScriptMapsTheKindsLuauRuns) {
+    for (const char *directory : {"mainchr", "map", "dungeon/eff_script/menu_ice.pac", "dungeon/monster", "event/tbox/bomb.pack"}) {
+        std::filesystem::create_directories(root / directory);
+    }
+    for (const char *module : {"mainchr/c01", "map/x", "dungeon/eff_script/menu_ice.pac/c02cold", "dungeon/monster/b08a",
+                               "event/tbox/bomb.pack/tbox_exp", "event/tbox/ntbox_arg"}) {
+        std::ofstream(root / (std::string(module) + ".luau")) << "return {}\n";
+    }
     luau_runtime::SetScriptsRoot(root);
 
     EXPECT_EQ(luau_runtime::ModuleForScript("mainchr/c01.stb"), std::optional<std::string>("mainchr/c01"));
     EXPECT_FALSE(luau_runtime::ModuleForScript("mainchr/c99.stb").has_value());
     EXPECT_FALSE(luau_runtime::ModuleForScript("map/x.stb").has_value());
+    EXPECT_EQ(luau_runtime::ModuleForScript("dungeon/eff_script/menu_ice.pac/c02cold.stb"),
+              std::optional<std::string>("dungeon/eff_script/menu_ice.pac/c02cold"));
+    EXPECT_EQ(luau_runtime::ModuleForScript("dungeon/monster/b08a.stb"), std::optional<std::string>("dungeon/monster/b08a"));
+    // Effect scripts under event/tbox are pack members; the argument scripts beside the packs are not effects.
+    EXPECT_EQ(luau_runtime::ModuleForScript("event/tbox/bomb.pack/tbox_exp.stb"), std::optional<std::string>("event/tbox/bomb.pack/tbox_exp"));
+    EXPECT_FALSE(luau_runtime::ModuleForScript("event/tbox/ntbox_arg.stb").has_value());
+}
+
+TEST_F(LuauRuntime, FallbackScriptsIgnoreAStaleModule) {
+    // Monster Gaspard is on tools/luau/fallback.json; an old copy of its module must not bring it back to Luau.
+    std::filesystem::create_directories(root / "dungeon/monster");
+    std::ofstream(root / "dungeon/monster/p00_23a.luau") << "return {}\n";
+    luau_runtime::SetScriptsRoot(root);
+    EXPECT_FALSE(luau_runtime::ModuleForScript("dungeon/monster/p00_23a.stb").has_value());
 }
 
 TEST_F(LuauRuntime, PrintMatchesRetailPrint) {

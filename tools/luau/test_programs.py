@@ -24,7 +24,7 @@ LUAU_KEYWORDS = frozenset(
 def enum_programs(header: str, enum: str) -> dict[int, tuple[str, str]]:
     """Each non-negative entry of an enum in a header, as number to (entry name, doc comment text)."""
     text = (REPO / header).read_text(encoding="utf-8")
-    body = re.search(r"enum\s+" + enum + r"\s*\{(.*?)\};", text, re.DOTALL)
+    body = re.search(r"enum\s+(?:class\s+)?" + enum + r"(?:\s*:\s*\w+)?\s*\{(.*?)\};", text, re.DOTALL)
     if body is None:
         raise AssertionError(f"enum {enum} not found in {header}")
     return {int(value): (name, desc) for name, value, desc in ENTRY.findall(body.group(1)) if int(value) >= 0}
@@ -42,6 +42,9 @@ class ProgramsTest(unittest.TestCase):
         for kind, info in self.data["kinds"].items():
             with self.subTest(kind=kind):
                 expected = enum_programs(info["header"], info["enum"])
+                # Programs retail's enum leaves unnamed are named by a port enum.
+                if "port" in info:
+                    expected |= enum_programs(info["port"]["header"], info["port"]["enum"])
                 actual = {p["no"]: (p["enum"], p["description"]) for p in info["programs"]}
                 self.assertEqual(actual, expected)
                 self.assertEqual(len(info["programs"]), len(actual))

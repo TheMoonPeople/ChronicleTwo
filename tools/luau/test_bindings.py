@@ -66,6 +66,12 @@ class GenerateTest(unittest.TestCase):
         text = bindings.generate(catalog, ["test"])
         self.assertIn("constexpr Param kTest7Argc2[] = {{In, F32, true}, {Out, S32}};", text)
 
+    def test_fallback_modules_are_listed(self):
+        fallback = {"scripts": {"dungeon/monster/p00_23a.stb": "why", "mainchr/c02.stb_": "why"}}
+        text = bindings.generate(synthetic_catalog(), ["test"], None, fallback)
+        self.assertIn('constexpr std::string_view kFallback[] = {\n    "dungeon/monster/p00_23a",\n    "mainchr/c02_",\n};', text)
+        self.assertIn("std::span<const std::string_view> FallbackModules() { return kFallback; }", text)
+
     def test_inout_param_direction(self):
         catalog = synthetic_catalog()
         catalog["kinds"]["test"]["commands"][0]["signatures"][0]["params"][1]["dir"] = "inout"

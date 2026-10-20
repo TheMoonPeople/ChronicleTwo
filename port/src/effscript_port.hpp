@@ -4,6 +4,16 @@
 
 #include "gfx/gfx.hpp"
 
+/**
+ *
+ * Effect-script programs that retail's EFFECT_SCRIPT_PROG leaves unnamed.
+ *
+ */
+enum class EffectScriptProgram : int {
+    Init = 100,  /**< Initialisation program that every effect script defines empty; the engine never runs it. */
+    Start = 200, /**< Runs the effect from the frame it is created. */
+};
+
 class CEffectScriptMan;
 class mgC3DSprite;
 class mgCTexture;

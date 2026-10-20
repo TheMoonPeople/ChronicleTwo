@@ -23,6 +23,7 @@
 #include "effscript.hpp"
 #include "effscript_port.hpp"
 #include "log/log.hpp"
+#include "luau_runtime.hpp"
 #include "map.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_frame.hpp"
@@ -36,6 +37,7 @@
 #include "mglib_port.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/model_assets.hpp"
+#include "platform/vfs.hpp"
 #include "scenesnd.hpp"
 #include "script_timing.hpp"
 
@@ -209,7 +211,7 @@ PORT_OVERRIDE _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group
         effect->chara->SetRotation(0.0f, 0.0f, 0.0f);
     }
     SetEffectScript(&effect->run, definition->script, work_memory);
-    effect->prog_no = 200;
+    effect->prog_no = static_cast<int>(EffectScriptProgram::Start);
     effect->user_id = group;
     effect->slot = owner_slot;
     effect->work_vect1[3] = effect->work_vect2[3] = 1.0f;
@@ -266,9 +268,14 @@ struct EffectResource {
 };
 
 /**
- * Reads and validates one directly named compiled VM program with its timing conversion.
+ * Reads and validates one directly named compiled VM program with its timing conversion, or the handle of the Luau
+ * module that replaces it.
  */
 std::vector<unsigned char> EffectScript(const std::string &path) {
+    if (const auto module = luau_runtime::ModuleForScript(vfs::FoldKey(path))) {
+        const std::string handle = luau_runtime::MakeHandle(*module);
+        return {handle.begin(), handle.end()};
+    }
     for (const auto &candidate : datapacks::Candidates(path)) {
         std::vector<unsigned char> bytes;
         if (!datapacks::ReadFileBytes(candidate, bytes) || bytes.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {

@@ -87,10 +87,24 @@ def _named_programs(programs: dict | None, kind_name: str) -> list[dict]:
     return entries
 
 
-def generate(catalog: dict, kinds: list[str], programs: dict | None = None) -> str:
+def fallback_modules(fallback: dict | None) -> list[str]:
+    """The module keys of the scripts fallback.json keeps on the interpreter, as transpile.py names modules."""
+    modules = []
+    for path in (fallback or {}).get("scripts", {}):
+        if path.endswith(".stb_"):
+            modules.append(path[: -len(".stb_")] + "_")
+        elif path.endswith(".stb"):
+            modules.append(path[: -len(".stb")])
+        else:
+            raise SystemExit(f"fallback entry {path!r} is not a script path")
+    return sorted(set(modules))
+
+
+def generate(catalog: dict, kinds: list[str], programs: dict | None = None, fallback: dict | None = None) -> str:
     """Return the C++ source for the given kinds, in the order requested.
 
-    programs is the parsed programs.json; kinds it does not name get no program table.
+    programs is the parsed programs.json; kinds it does not name get no program table. fallback is the parsed
+    fallback.json, whose scripts the runtime never loads as modules.
     """
     _validate_kinds(catalog, kinds)
 
@@ -152,9 +166,18 @@ def generate(catalog: dict, kinds: list[str], programs: dict | None = None) -> s
     lines.extend(kind_rows)
     lines.append("};")
     lines.append("")
+    modules = fallback_modules(fallback)
+    lines.append("constexpr std::string_view kFallback[] = {")
+    lines.extend(f'    "{module}",' for module in modules)
+    if not modules:
+        lines.append('    "",')
+    lines.append("};")
+    lines.append("")
     lines.append("} // namespace")
     lines.append("")
     lines.append("std::span<const Kind> Kinds() { return kKinds; }")
+    lines.append("")
+    lines.append("std::span<const std::string_view> FallbackModules() { return kFallback; }")
     lines.append("")
     lines.append("} // namespace luau_bindings")
     return "\n".join(lines) + "\n"
@@ -167,11 +190,13 @@ def main() -> None:
     parser.add_argument("output", type=Path, help="Path of the generated C++ source.")
     parser.add_argument("--kinds", required=True, help="Comma-separated kind names, in output order.")
     parser.add_argument("--programs", required=True, type=Path, help="Path to programs.json.")
+    parser.add_argument("--fallback", type=Path, help="Path to fallback.json.")
     args = parser.parse_args()
 
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
     programs = json.loads(args.programs.read_text(encoding="utf-8"))
-    text = generate(catalog, [name.strip() for name in args.kinds.split(",")], programs)
+    fallback = json.loads(args.fallback.read_text(encoding="utf-8")) if args.fallback else None
+    text = generate(catalog, [name.strip() for name in args.kinds.split(",")], programs, fallback)
 
     try:
         with args.output.open(encoding="utf-8", newline="") as handle:

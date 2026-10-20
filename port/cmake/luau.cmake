@@ -28,9 +28,9 @@ set(CT_LUAU_BINDINGS ${CMAKE_BINARY_DIR}/generated/luau/luau_bindings.cpp)
 add_custom_command(OUTPUT ${CT_LUAU_BINDINGS}
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/luau/bindings.py
         ${CMAKE_SOURCE_DIR}/tools/luau/commands.json ${CT_LUAU_BINDINGS} --kinds ${ct_luau_kinds}
-        --programs ${CMAKE_SOURCE_DIR}/tools/luau/programs.json
+        --programs ${CMAKE_SOURCE_DIR}/tools/luau/programs.json --fallback ${CMAKE_SOURCE_DIR}/tools/luau/fallback.json
     DEPENDS ${CMAKE_SOURCE_DIR}/tools/luau/bindings.py ${CMAKE_SOURCE_DIR}/tools/luau/commands.json
-        ${CMAKE_SOURCE_DIR}/tools/luau/programs.json
+        ${CMAKE_SOURCE_DIR}/tools/luau/programs.json ${CMAKE_SOURCE_DIR}/tools/luau/fallback.json
     COMMENT "Generating the Luau native command tables"
     VERBATIM)
 target_sources(ct_port PRIVATE ${CT_LUAU_BINDINGS})

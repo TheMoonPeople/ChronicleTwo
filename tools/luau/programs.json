@@ -145,12 +145,28 @@
    "header": "ps2/include/effscript.hpp",
    "programs": [
     {
+     "no": 100,
+     "enum": "Init",
+     "name": "init",
+     "description": "Initialisation program that every effect script defines empty; the engine never runs it."
+    },
+    {
+     "no": 200,
+     "enum": "Start",
+     "name": "on_start",
+     "description": "Runs the effect from the frame it is created."
+    },
+    {
      "no": 300,
      "enum": "EFFECT_SCRIPT_PROG_FINISH",
      "name": "on_finish",
      "description": "Ends an effect."
     }
-   ]
+   ],
+   "port": {
+    "enum": "EffectScriptProgram",
+    "header": "port/src/effscript_port.hpp"
+   }
   }
  }
 }

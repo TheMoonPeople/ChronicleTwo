@@ -10,7 +10,9 @@
 #include <vector>
 
 #include "dataread_port.hpp"
+#include "luau_runtime.hpp"
 #include "platform/datapacks.hpp"
+#include "platform/vfs.hpp"
 #include "texture_source.hpp"
 
 namespace {
@@ -108,9 +110,37 @@ bool Valid(const Json &data, std::string_view kind) {
 }
 
 /**
- * Reads a selected asset, recording its logical lookup path and byte extent.
+ * Fills a member's storage with bytes and records its logical lookup path, releasing the bytes it held before.
+ */
+File *Store(const std::string &key, const fs::path &relative, std::string_view bytes) {
+    auto &file = files[key];
+    if (!file) {
+        file = std::make_unique<File>();
+    }
+    if (!file->bytes.empty()) {
+        TextureSourceForget(file->bytes.data());
+        DataReadRegisterBuffer(file->bytes.data(), 0);
+    }
+    const auto padded = std::max<std::size_t>(2048, (bytes.size() + 2047) / 2048 * 2048);
+    file->bytes.resize(padded / sizeof(u_long128));
+    std::memset(file->bytes.data(), 0, padded);
+    std::memcpy(file->bytes.data(), bytes.data(), bytes.size());
+    file->size = static_cast<int>(bytes.size());
+    file->name = relative.filename().generic_string();
+    DataReadRegisterAsset(file->bytes.data(), relative.generic_string(), bytes.size());
+    return file.get();
+}
+
+/**
+ * Reads a selected asset, recording its logical lookup path and byte extent. A script member with a Luau module reads
+ * as the handle naming it.
  */
 File *Read(fs::path relative, std::string_view kind = {}) {
+    if (Key(relative.extension().generic_string()) == ".stb") {
+        if (const auto module = luau_runtime::ModuleForScript(vfs::FoldKey(relative.generic_string()))) {
+            return Store("luau:" + Key(relative.generic_string()), relative, luau_runtime::MakeHandle(*module));
+        }
+    }
     auto candidates = Key(relative.extension().generic_string()) == ".json" ? datapacks::GameplayCandidates(relative) : datapacks::Candidates(relative);
     if (candidates.empty()) {
         relative /= "pack.json";

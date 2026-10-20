@@ -103,4 +103,11 @@ struct Kind {
  */
 std::span<const Kind> Kinds();
 
+/**
+ *
+ * Module keys of the scripts tools/luau/fallback.json keeps on the interpreter, which the runtime never loads as modules.
+ *
+ */
+std::span<const std::string_view> FallbackModules();
+
 } // namespace luau_bindings

@@ -12,6 +12,7 @@
 
 #include "dataread_port.hpp"
 #include "effscript.hpp"
+#include "luau_runtime.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
@@ -50,6 +51,8 @@ protected:
     }
 
     void SetUp() override {
+        // The fixture's programs run on the interpreter, so no Luau module may replace them.
+        luau_runtime::SetScriptsRoot(root);
         std::memcpy(script.data(), "SB2", 4);
         const auto put = [&](int offset, int value) { std::memcpy(script.data() + offset, &value, sizeof(value)); };
         put(4, 64);
@@ -113,6 +116,7 @@ protected:
     }
 
     void TearDown() override {
+        luau_runtime::SetScriptsRoot({});
         for (auto *base : manager.base) {
             if (base && base->chara) {
                 model_assets::DeleteCharacterTextures(*base->chara, 0, CHARA_IMAGE_MAX - 1);

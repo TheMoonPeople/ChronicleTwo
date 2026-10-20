@@ -13,7 +13,8 @@ target_compile_definitions(darkchronicle_tests PRIVATE
     CT_TEST_LUAU_DIR="${CMAKE_SOURCE_DIR}/port/src/tests/luau"
     CT_LUAU_SOURCE_DIR="${CMAKE_SOURCE_DIR}/port/src/luau")
 
-# The checked-in Luau action modules must match the transpiler's output and replay the reference VM's traces; skipped without game data or the harness tools.
+# The checked-in Luau action, effect and monster modules must match the transpiler's output and replay the reference VM's traces; skipped without game data or the harness tools.
 add_test(NAME Luau.Transpile
-    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/luau/stb2luau/transpile.py" --check --harness)
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/luau/stb2luau/transpile.py" --check --harness
+        --kind action --kind effect --kind monster)
 set_tests_properties(Luau.Transpile PROPERTIES LABELS cpu SKIP_RETURN_CODE 77 TIMEOUT 900)

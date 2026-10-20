@@ -50,14 +50,20 @@ constexpr std::size_t kMaxArguments = 32;
  *
  */
 struct ScriptPrefix {
-    std::string_view prefix; /**< Module path prefix, ending in a slash. */
-    std::string_view kind;   /**< Name of the kind in the command catalog. */
+    std::string_view prefix;         /**< Module path prefix, ending in a slash. */
+    std::string_view kind;           /**< Name of the kind in the command catalog. */
+    bool             nested = false; /**< Whether only modules in a directory below the prefix match, as pack members do. */
 };
 
-constexpr std::array<ScriptPrefix, 2> kScriptPrefixes = {
+constexpr std::array<ScriptPrefix, 7> kScriptPrefixes = {
     {
      {.prefix = "mainchr/", .kind = "action"},
      {.prefix = "dungeon/act_script/", .kind = "action"},
+     {.prefix = "dungeon/eff_script/", .kind = "effect"},
+     {.prefix = "dungeon/articles/", .kind = "effect"},
+     {.prefix = "dungeon/sphida/", .kind = "effect"},
+     {.prefix = "event/tbox/", .kind = "effect", .nested = true},
+     {.prefix = "dungeon/monster/", .kind = "monster"},
      }
 };
 
@@ -68,7 +74,7 @@ constexpr std::array<ScriptPrefix, 2> kScriptPrefixes = {
  */
 const luau_bindings::Kind *KindForModule(std::string_view module) {
     const auto *const prefix = std::ranges::find_if(kScriptPrefixes, [module](const ScriptPrefix &script_prefix) {
-        return module.starts_with(script_prefix.prefix);
+        return module.starts_with(script_prefix.prefix) && (!script_prefix.nested || module.substr(script_prefix.prefix.size()).contains('/'));
     });
     if (prefix == kScriptPrefixes.end()) {
         return nullptr;
@@ -1073,6 +1079,10 @@ std::optional<std::string> ModuleForScript(std::string_view key) {
     }
     std::string module(key.substr(0, key.size() - std::string_view(".stb").size()));
     if (KindForModule(module) == nullptr) {
+        return std::nullopt;
+    }
+    // A script on the fallback list runs on the interpreter even when an old copy of its module is still present.
+    if (std::ranges::find(luau_bindings::FallbackModules(), std::string_view(module)) != luau_bindings::FallbackModules().end()) {
         return std::nullopt;
     }
     EnsureIndex();

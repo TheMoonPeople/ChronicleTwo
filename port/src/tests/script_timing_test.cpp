@@ -19,6 +19,7 @@
 #include "dataread.hpp"
 #include "dataread_port.hpp"
 #include "log_capture.hpp"
+#include "luau_runtime.hpp"
 #include "runscript.hpp"
 #include "script_timing.hpp"
 
@@ -683,9 +684,12 @@ protected:
     void SetUp() override {
         InitFileCache(nullptr, FILE_CACHE_NONE);
         SetCurrentDir(nullptr);
+        // The timing conversion applies to interpreter programs, so no Luau module may replace them.
+        luau_runtime::SetScriptsRoot(base);
     }
 
     void TearDown() override {
+        luau_runtime::SetScriptsRoot({});
         std::error_code error;
         fs::remove_all(base, error);
     }
@@ -877,6 +881,30 @@ std::string ShardOf(const std::string &key) {
     return "other";
 }
 
+// Points the Luau runtime at an empty scripts directory while it lives, so the loader hands out interpreter
+// programs rather than module handles, and restores the default directory afterwards.
+class NoLuauModules {
+public:
+    NoLuauModules() {
+        fs::create_directories(root);
+        luau_runtime::SetScriptsRoot(root);
+    }
+
+    ~NoLuauModules() {
+        luau_runtime::SetScriptsRoot({});
+        std::error_code error;
+        fs::remove_all(root, error);
+    }
+
+    NoLuauModules(const NoLuauModules &) = delete;
+    NoLuauModules &operator=(const NoLuauModules &) = delete;
+    NoLuauModules(NoLuauModules &&) = delete;
+    NoLuauModules &operator=(NoLuauModules &&) = delete;
+
+private:
+    fs::path root = fs::temp_directory_path() / ("script_timing_no_modules_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+};
+
 // Every script of a shard decodes, shows exactly the inventory's counts, converts with an unchanged size
 // and to the same bytes again. The loader always hands out the converted NTSC bytes.
 void CheckShard(const std::string &shard) {
@@ -884,6 +912,8 @@ void CheckShard(const std::string &shard) {
     if (!scripts) {
         GTEST_SKIP() << "DC2_DATA supplies the extracted scripts";
     }
+    // The timing conversion applies to interpreter programs, so no Luau module may replace them.
+    const NoLuauModules no_modules;
 
     std::map<std::string, long> totals;
     int                         files = 0;
