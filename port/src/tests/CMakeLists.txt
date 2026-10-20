@@ -119,33 +119,42 @@ execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/g
 if(NOT gpu_label_result EQUAL 0)
     message(FATAL_ERROR "${gpu_label_output}${gpu_label_error}")
 endif()
+# Listing the cases runs the binary's static initialisers, which can outlast CMake's 5 second default on a
+# loaded CI runner.
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    DISCOVERY_TIMEOUT 60
     TEST_FILTER -PlatformClock.*:${CT_GPU_FILTER}:${CT_GPU_SLOW_FILTER}:${CT_CPU_FILTER}:${CT_CORPUS_FILTER}:${CT_CONFIG_PARITY_FILTER}
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT})
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    DISCOVERY_TIMEOUT 60
     TEST_FILTER PlatformClock.*
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} RUN_SERIAL TRUE)
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_CORPUS_FILTER}
     PROPERTIES TIMEOUT ${CT_CORPUS_TIMEOUT} RUN_SERIAL TRUE LABELS "cpu;corpus")
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_CONFIG_PARITY_FILTER}
     PROPERTIES TIMEOUT ${CT_CONFIG_PARITY_TIMEOUT} RUN_SERIAL TRUE LABELS "cpu;corpus")
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_CPU_FILTER}
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} LABELS cpu)
 
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_GPU_FILTER}-${CT_GPU_SLOW_FILTER}:${CT_CPU_FILTER}
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} LABELS gpu)
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_GPU_SLOW_FILTER}-${CT_CPU_FILTER}
     PROPERTIES TIMEOUT ${CT_GPU_SLOW_TIMEOUT} LABELS gpu)
 
