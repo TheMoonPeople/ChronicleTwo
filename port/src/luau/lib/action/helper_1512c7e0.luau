@@ -4,7 +4,7 @@
 local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
 
 --- Helper function.
-local function helper_9f2e9866()
+local function helper_1512c7e0()
 	print("DAMAGE!\n")
 	action.SetAccumeFlag(0)
 	action.BlowStart(5.0, 0.0, 3)
@@ -14,4 +14,4 @@ local function helper_9f2e9866()
 	action.ProgSet(0)
 end
 
-return helper_9f2e9866
+return helper_1512c7e0

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -22,7 +23,10 @@ enum class NativeCommand : int {
     ProgGet = 2,
     GetAttkType = 3,
     SetMoveSpeed = 5,
+    MonsterScaleVector = 4,
     SetPallet = 30,
+    MonsterVPop = 38,
+    EsmSetValue = 155,
     Unregistered = 200,
 };
 
@@ -85,6 +89,32 @@ int HandleSetPallet(RS_STACKDATA *args, int argc) {
     return 1;
 }
 
+// Scales the variables its references name, as retail's monster ScaleVector does.
+int HandleMonsterScaleVector(RS_STACKDATA *args, int argc) {
+    Record(NativeCommand::MonsterScaleVector, args, argc);
+    for (int i = 0; i < 3; ++i) {
+        args[i].val.p->val.f *= args[3].val.f;
+    }
+    return 1;
+}
+
+// Writes an integer or a float by the output's tag, as retail's monster VPop copies a variable.
+int HandleMonsterVPop(RS_STACKDATA *args, int argc) {
+    Record(NativeCommand::MonsterVPop, args, argc);
+    RS_STACKDATA &output = *args[1].val.p;
+    if (output.type == RS_FLOAT) {
+        output.val.f = 2.5f;
+    } else {
+        output.val.i = 7;
+    }
+    return 1;
+}
+
+int HandleEsmSetValue(RS_STACKDATA *args, int argc) {
+    Record(NativeCommand::EsmSetValue, args, argc);
+    return 1;
+}
+
 int HandleUnregistered(RS_STACKDATA *args, int argc) {
     Record(NativeCommand::Unregistered, args, argc);
     return 1;
@@ -97,6 +127,9 @@ void RegisterHandlers() {
     ext_table[static_cast<int>(NativeCommand::GetAttkType)] = HandleGetAttkType;
     ext_table[static_cast<int>(NativeCommand::SetMoveSpeed)] = HandleSetMoveSpeed;
     ext_table[static_cast<int>(NativeCommand::SetPallet)] = HandleSetPallet;
+    ext_table[static_cast<int>(NativeCommand::MonsterScaleVector)] = HandleMonsterScaleVector;
+    ext_table[static_cast<int>(NativeCommand::MonsterVPop)] = HandleMonsterVPop;
+    ext_table[static_cast<int>(NativeCommand::EsmSetValue)] = HandleEsmSetValue;
     ext_table[static_cast<int>(NativeCommand::Unregistered)] = HandleUnregistered;
 }
 
@@ -295,6 +328,56 @@ TEST_F(LuauRuntime, SuffixedAndAmbiguousArities) {
     ASSERT_EQ(calls.size(), 3u);
     EXPECT_EQ(calls[2].no, NativeCommand::InitScript);
     EXPECT_EQ(calls[2].argc, 1);
+}
+
+TEST_F(LuauRuntime, VariantsTypeTaggedParameters) {
+    Loaded loaded("facade/natives");
+    ASSERT_EQ(loaded.script.run(108), 0);
+    ASSERT_EQ(calls.size(), 3u);
+    for (const RecordedCall &call : calls) {
+        EXPECT_EQ(call.no, NativeCommand::EsmSetValue);
+        ASSERT_EQ(call.args.size(), 3u);
+        EXPECT_EQ(call.args[0].type, RS_INT);
+    }
+    // The catalogued type of the tagged value is an integer, so an integral float still passes as one.
+    EXPECT_EQ(calls[0].args[2].type, RS_INT);
+    EXPECT_EQ(calls[0].args[2].val.i, 12);
+    EXPECT_EQ(calls[1].args[2].type, RS_FLOAT);
+    EXPECT_FLOAT_EQ(calls[1].args[2].val.f, 12.0f);
+    EXPECT_EQ(calls[2].args[2].type, RS_INT);
+    EXPECT_EQ(calls[2].args[2].val.i, 3);
+}
+
+TEST_F(LuauRuntime, VariantsSeedTaggedOutputs) {
+    Loaded loaded("facade/natives");
+    ASSERT_EQ(loaded.script.run(109), 0);
+    ASSERT_EQ(calls.size(), 4u);
+    EXPECT_EQ(calls[0].no, NativeCommand::MonsterVPop);
+    // The handler wrote 7 for each integer read and 2.5 for the float one; the sum passes as a float.
+    EXPECT_EQ(calls[3].no, NativeCommand::EsmSetValue);
+    EXPECT_EQ(calls[3].args[2].type, RS_FLOAT);
+    EXPECT_FLOAT_EQ(calls[3].args[2].val.f, 16.5f);
+}
+
+TEST_F(LuauRuntime, InOutParametersPassTheirValueThroughTheReference) {
+    Loaded loaded("facade/natives");
+    ASSERT_EQ(loaded.script.run(110), 0);
+    ASSERT_EQ(calls.size(), 2u);
+    EXPECT_EQ(calls[0].no, NativeCommand::MonsterScaleVector);
+    ASSERT_EQ(calls[0].args.size(), 4u);
+    EXPECT_EQ(calls[0].args[0].type, RS_PTR);
+    // The scaled values reach ProgSet: 2 * (1 + 2 + 3).
+    EXPECT_EQ(calls[1].no, NativeCommand::ProgSet);
+    EXPECT_EQ(calls[1].args[0].val.i, 12);
+}
+
+TEST_F(LuauRuntime, CmathIsTheCLibrarysSinglePrecisionTrig) {
+    Loaded loaded("facade/natives");
+    ASSERT_EQ(loaded.script.run(111), 0);
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].args[0].type, RS_FLOAT);
+    // The interpreter's SIN calls sinf; rounding a double-precision sine differs in the last bit here.
+    EXPECT_EQ(calls[0].args[0].val.f, std::sin(0.779f));
 }
 
 TEST_F(LuauRuntime, ErrorsEndTheProgram) {

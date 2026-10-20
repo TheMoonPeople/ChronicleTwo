@@ -60,6 +60,18 @@ class GenerateTest(unittest.TestCase):
         self.assertIn('    {"Probe", 7, kTest7},', text)
         self.assertIn('    {"test", "test", 16, kTestCommands, {}},', text)
 
+    def test_tagged_param_is_marked(self):
+        catalog = synthetic_catalog()
+        catalog["kinds"]["test"]["commands"][0]["signatures"][0]["params"][0]["tagged"] = True
+        text = bindings.generate(catalog, ["test"])
+        self.assertIn("constexpr Param kTest7Argc2[] = {{In, F32, true}, {Out, S32}};", text)
+
+    def test_inout_param_direction(self):
+        catalog = synthetic_catalog()
+        catalog["kinds"]["test"]["commands"][0]["signatures"][0]["params"][1]["dir"] = "inout"
+        text = bindings.generate(catalog, ["test"])
+        self.assertIn("constexpr Param kTest7Argc2[] = {{In, F32}, {InOut, S32}};", text)
+
     def test_unknown_kind_exits(self):
         with self.assertRaises(SystemExit):
             bindings.generate(synthetic_catalog(), ["missing"])

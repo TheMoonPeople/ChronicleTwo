@@ -1,9 +1,11 @@
 --!strict
 -- Shared action helper used by 7 scripts, translated by tools/luau/stb2luau.
 
+local vm = require("@lib/vm")
+
 --- Helper function.
-local function helper_6322acfa()
-	local var0: s32 = 0
+local function helper_c97ab93c()
+	local result: s32 = 0
 	local prog: s32 = 0
 	local var2: f32 = 0
 	prog = action.ProgGet() or prog
@@ -13,14 +15,14 @@ local function helper_6322acfa()
 	end
 	if prog == 1001 then
 		var2 = action.NowMosWait() or var2
-		if var2 >= 0.45 and var2 < 0.5 then
+		if var2 >= vm.f32(0.45) and var2 < 0.5 then
 			action.ThrowHandObject()
 		end
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(0)
 		end
 	end
 end
 
-return helper_6322acfa
+return helper_c97ab93c

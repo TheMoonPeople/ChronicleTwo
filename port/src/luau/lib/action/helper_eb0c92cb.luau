@@ -1,10 +1,11 @@
 --!strict
 -- Shared action helper used by 3 scripts, translated by tools/luau/stb2luau.
 
+local vm = require("@lib/vm")
 local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
 
 --- Helper function.
-local function helper_f5a9cb5b()
+local function helper_eb0c92cb()
 	local var0: s32 = 0
 	local prog: s32 = 0
 	local var3: f32 = 0
@@ -15,7 +16,7 @@ local function helper_f5a9cb5b()
 	end
 	if prog == 201 then
 		var3 = action.NowMosWait() or var3
-		if var3 > 0.3 and var3 < 0.4 then
+		if var3 > vm.f32(0.3) and var3 < vm.f32(0.4) then
 			action.SetBlowMove(6.0, 0.0, 12)
 		end
 		var0 = action.GetMosStatus() or var0
@@ -27,4 +28,4 @@ local function helper_f5a9cb5b()
 	end
 end
 
-return helper_f5a9cb5b
+return helper_eb0c92cb

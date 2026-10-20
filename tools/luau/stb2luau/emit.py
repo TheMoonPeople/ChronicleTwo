@@ -14,12 +14,12 @@ import json
 import math
 import re
 import struct
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 from stb import opcodes
 
-from . import ir, numbers
+from . import api, ir, numbers
 
 PROGRAMS = Path(__file__).resolve().parents[1] / "programs.json"
 # Program number of the script's setup, which the engine runs when the script is loaded.
@@ -149,6 +149,10 @@ class _Plan:
     out_names: list[str]
     comment: str
     diagnostics: list[str]
+    dropped: bool = False
+    inouts: list[ir.Addr] = dataclasses.field(default_factory=list)
+    # Per output, the vm helper that reinterprets the bits the handler writes as the variable holds them, or None.
+    conversions: list[str | None] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -180,6 +184,14 @@ def _float_text(value: float) -> Text:
     if math.copysign(1.0, value) < 0:
         return f"-{text}", Prec.UNARY
     return text, Prec.ATOM
+
+
+def _inexact_float(const: ir.Const) -> bool:
+    """Whether a float constant's shortest spelling reads back in Luau as a double other than its float32."""
+    if const.type != ir.FLOAT:
+        return False
+    value = float(const.value)
+    return math.isfinite(value) and float(numbers.shortest(abs(value))) != abs(value)
 
 
 def _string_text(raw: bytes) -> str:
@@ -386,8 +398,12 @@ def _collect(
                 _write(stmt.target, usage, active)
         elif isinstance(stmt, ir.ExtCall):
             plan = mod.resolve(stmt)
+            if plan.dropped:
+                continue
             for arg in plan.ins:
-                _read(arg, usage, active)
+                # An in-out reference past the frame is passed as 0, so it reads no variable.
+                if not (isinstance(arg, ir.Addr) and arg.slot[0] == "stack"):
+                    _read(arg, usage, active)
             for out, name in zip(plan.outs, plan.out_names):
                 if out.slot in active:
                     continue
@@ -691,8 +707,12 @@ class _Module:
             lines.extend(section)
         return Module("\n".join(lines) + "\n", list(self.diagnostics))
 
-    def resolve(self, stmt: ir.ExtCall) -> _Plan:
-        """Maps an external call to its Luau function, input arguments and by-reference outputs."""
+    def resolve(self, stmt: ir.ExtCall, type_of: Callable[[ir.Expr], str] | None = None) -> _Plan:
+        """Maps an external call to its Luau function, input arguments and by-reference outputs.
+
+        type_of gives an argument's type at the call site; a command whose handler reads a parameter's integer or float
+        tag is then called through the variant for the type of its first tagged argument.
+        """
         args = list(stmt.args)
         number = ir.Const(stmt.command, ir.INT)
         command = self.commands.get(stmt.command)
@@ -720,12 +740,18 @@ class _Module:
         ins: list = []
         outs: list[ir.Addr] = []
         out_names: list[str] = []
+        inouts: list[ir.Addr] = []
         diagnostics: list[str] = []
         clauses: list[str] = []
         mismatched = False
+        refs_as_values: list[int] = []
         for position, (param, arg) in enumerate(zip(signature["params"], args), 1):
-            if param["dir"] == "out":
+            if param["dir"] in api.OUTPUTS:
                 if isinstance(arg, ir.Addr):
+                    # An in-out reference passes the variable's value in as well.
+                    if param["dir"] == "inout":
+                        ins.append(arg)
+                        inouts.append(arg)
                     outs.append(arg)
                     out_names.append(param["name"])
                 else:
@@ -738,6 +764,7 @@ class _Module:
                 if isinstance(arg, ir.Addr):
                     diagnostics.append(f"reference passed as input to {luau}")
                     clauses.append(f"argument {position} passes a reference where the handler reads a value")
+                    refs_as_values.append(position)
                 mismatch = _kind_mismatch(position, param["type"], arg)
                 if mismatch is not None:
                     mismatched = True
@@ -756,10 +783,105 @@ class _Module:
                 [],
             )
         if mismatched:
-            # A value of the wrong kind for its parameter goes to the raw command, which receives every argument.
-            return _Plan(f"{self.namespace}.Ext", [number, *args], [], [], comment, diagnostics)
+            # The handler reads a string's pointer as a number, or a number as a string's pointer, which on the PC are the
+            # bits of an address: the interpreter keeps the script.
+            raise EmitError(f"{luau}: {'; '.join(diagnostics)}; the interpreter reads an address there")
+        if api.ignores_reference(signature, args, lambda arg: isinstance(arg, ir.Addr)):
+            # The handler stores a tagged input only when it holds an integer or a float, so retail did nothing.
+            name = f"{self.namespace}.{self._dispatch_name(command, signature)}"
+            message = f"reference passed as the value {luau} stores"
+            return _Plan(name, args, [], [], "", [message], dropped=True)
+        if refs_as_values:
+            # The handler reads the reference's slot as a value: on the PC, the low bits of the variable's address.
+            positions = ", ".join(map(str, refs_as_values))
+            raise EmitError(f"{luau}: argument {positions} passes a reference the handler reads as a value, an address")
+        variant, conversions = self._typing(command, signature, args, stmt.tags, type_of)
         name = f"{self.namespace}.{self._dispatch_name(command, signature)}"
-        return _Plan(name, ins, outs, out_names, comment, diagnostics)
+        default = next((param["type"] for param in signature["params"] if param.get("tagged")), None)
+        if variant is not None and variant != default:
+            variants = [sig for sig in command["signatures"] if api.tagged(sig)]
+            suffixed = {**command, "luau": luau + api.VARIANTS[variant], "signatures": variants}
+            name = f"{self.namespace}.{self._dispatch_name(suffixed, signature)}"
+        out_conversions = [
+            conversions.get(position)
+            for position, (param, arg) in enumerate(zip(signature["params"], args), 1)
+            if param["dir"] in api.OUTPUTS and isinstance(arg, ir.Addr)
+        ]
+        return _Plan(name, ins, outs, out_names, comment, diagnostics, inouts=inouts, conversions=out_conversions)
+
+    def _typing(
+        self, command: dict, signature: dict, args: list, tags: tuple, type_of: Callable[[ir.Expr], str] | None
+    ) -> tuple[str | None, dict[int, str]]:
+        """The type a call gives its tagged parameters, and the reinterpretation of each output it writes.
+
+        A native output writes its bits without retagging the variable, so the script reads them as its loads say. The
+        tag analysis (tags) gives, per output, how every read of the written value interprets it; the module's variable
+        holds one interpretation, its type, so a write of the other type is reinterpreted (vm.bits_float or
+        vm.float_bits), and a value the script reads both ways, or that the analysis cannot follow, is refused. A tagged
+        handler branches on its input's tags, or on the tag its destination holds: these must be known.
+        """
+        luau = command["luau"]
+        params = signature["params"]
+        info = dict(enumerate(tags, 1)) if tags else {}
+
+        def single(found: tuple, what: str) -> str:
+            kinds = set(found)
+            if kinds == {"int"}:
+                return "s32"
+            if kinds == {"float"}:
+                return "f32"
+            raise EmitError(f"{luau}: {what} may be {' or '.join(sorted(kinds)) or 'unknown'}, on which its handler branches")
+
+        def held(arg: ir.Expr) -> str | None:
+            kind = type_of(arg) if type_of is not None else None
+            return "f32" if kind == ir.FLOAT else "s32" if kind in (ir.INT, ir.BOOL) else None
+
+        variant = None
+        positions = list(enumerate(params, 1))
+        tagged_in = [position for position, param in positions if param.get("tagged") and param["dir"] == "in"]
+        tagged_out = [position for position, param in positions if param.get("tagged") and param["dir"] in api.OUTPUTS]
+        if tagged_in:
+            position = tagged_in[0]
+            entry = info.get(position)
+            if entry is not None:
+                variant = single(entry[1], f"argument {position}")
+            elif type_of is not None:
+                variant = "f32" if type_of(args[position - 1]) == ir.FLOAT else "s32"
+        elif tagged_out and isinstance(args[tagged_out[0] - 1], ir.Addr):
+            position = tagged_out[0]
+            entry = info.get(position)
+            if params[position - 1].get("copies"):
+                # Either branch copies the same bits (VPop, GetValue), so the variant reads them as the variable holds
+                # them; the handler writes only into an integer or a float.
+                if entry is not None and not set(entry[1]) <= {"int", "float"}:
+                    single(entry[1], f"the variable argument {position} names")
+                variant = (held(args[position - 1]) if type_of is not None else None) or params[position - 1]["type"]
+            elif entry is not None:
+                variant = single(entry[1], f"the variable argument {position} names")
+            elif type_of is not None:
+                variant = held(args[position - 1]) or params[position - 1]["type"]
+        conversions: dict[int, str] = {}
+        if type_of is None:
+            # Usage collection needs only the arguments; the function's emission decides the typing.
+            return variant, conversions
+        for position, param in positions:
+            arg = args[position - 1]
+            if param["dir"] not in api.OUTPUTS or not isinstance(arg, ir.Addr) or param["type"] == "string":
+                continue
+            written = variant if param.get("tagged") and variant else ("f32" if param["type"] == "f32" else "s32")
+            target = held(arg)
+            entry = info.get(position)
+            reads = set(entry[2]) if entry is not None and entry[0] == "ref" else set()
+            if reads:
+                wanted = {"f32": "float", "s32": "int"}.get(target or "")
+                if wanted is None or reads != {wanted}:
+                    raise EmitError(
+                        f"{luau}: the script reads what argument {position} receives as {' and '.join(sorted(reads))}, "
+                        f"where its variable holds {target or 'an unknown type'}"
+                    )
+            if target is not None and written != target:
+                conversions[position] = "vm.bits_float" if written == "s32" else "vm.float_bits"
+        return variant, conversions
 
     def _dispatch_name(self, command: dict, signature: dict) -> str:
         # The unsuffixed name dispatches on the input count, so it is used only when no other signature of the
@@ -1038,6 +1160,9 @@ class _Function:
         if self.is_boolish(expr):
             return f"if {self.cond(expr)[0]} then 1 else 0", Prec.IF
         if isinstance(expr, ir.Const):
+            # A float constant takes its float32 value, as the PS2 holds it, where the spelling reads as another double.
+            if _inexact_float(expr):
+                return self._call_text("vm.f32", _const_text(expr)[0])
             return _const_text(expr)
         if isinstance(expr, (ir.Var, ir.Addr, ir.Temp, ir.Elem)):
             name, storage = self._variable(expr)
@@ -1077,10 +1202,17 @@ class _Function:
                 return self.value(operand)
             return self._call_text("vm.ftoi", self.value(operand)[0])
         if expr.op in ("sin", "cos"):
-            return self._call_text(f"math.{expr.op}", self.value(operand)[0])
+            return self._call_text(f"vm.{expr.op}", self.value(operand)[0])
         raise EmitError(f"unknown unary operator {expr.op}")
 
     def _binary(self, expr: ir.Binary) -> Text:
+        text = self._binary_text(expr)
+        # The PS2 rounds every float operation to float32; Luau computes in double, so the result is rounded the same.
+        if expr.type == ir.FLOAT and expr.op in ("add", "sub", "mul", "div"):
+            return self._call_text("vm.f32", text[0])
+        return text
+
+    def _binary_text(self, expr: ir.Binary) -> Text:
         lhs, rhs = self.value(expr.lhs), self.value(expr.rhs)
         both_int = self.expr_type(expr.lhs) == ir.INT and self.expr_type(expr.rhs) == ir.INT
         # An integer operation the lifter could not keep inside 32 bits wraps, as on the PS2.
@@ -1343,12 +1475,46 @@ class _Function:
         text, comment = self.store(stmt.value, self.slot_type(target), name)
         return [f"{ind}{name} = {text}{comment}"]
 
-    def _out_assign(self, out: ir.Addr, expr: str) -> str:
-        # A call leaves an unwritten output nil, so the variable keeps its value.
+    def _int_inout(self, plan: _Plan, arg: ir.Expr) -> bool:
+        # An integer variable passed in-out: the handler reads its bits as a float.
+        return any(arg is inout for inout in plan.inouts) and self.expr_type(arg) != ir.FLOAT
+
+    def _input(self, plan: _Plan, arg: ir.Expr) -> str:
+        # An in-out reference past the frame reads an operand-stack slot the module cannot name, and its result is lost,
+        # so it passes 0.
+        if self._past_frame(arg):
+            return "0"
+        if self._int_inout(plan, arg):
+            return f"{self._call_text('vm.bits_float', self.value(arg)[0])[0]} :: number"
+        return self._argument(arg)
+
+    def _out_assign(self, out: ir.Addr, expr: str, conversion: str | None = None) -> str:
+        # A call leaves an unwritten output nil, so the variable keeps its value. A conversion reinterprets the bits the
+        # handler writes as the variable holds them; it passes nil through.
         name = self.target_text(out)
+        if conversion is not None:
+            expr = self._call_text(conversion, expr)[0]
         if out.index is None and self.slot_type(out.slot) == ir.BOOL:
             return f"{name} = ({expr} or (if {name} then 1 else 0)) ~= 0"
         return f"{name} = {expr} or {name}"
+
+    def _argument(self, arg: ir.Expr) -> str:
+        # A native call receives a float as a float32, so neither a float constant nor the last operation of a float
+        # expression needs rounding of its own.
+        if isinstance(arg, ir.Const):
+            return _const_text(arg)[0]
+        if isinstance(arg, ir.Binary) and arg.type == ir.FLOAT and not self.is_boolish(arg):
+            return self._binary_text(arg)[0]
+        return self.value(arg)[0]
+
+    def _dropped_arg(self, arg: ir.Expr) -> str:
+        # A dropped call's reference may name a variable that nothing else declares; it keeps its automatic name.
+        if not isinstance(arg, ir.Addr):
+            return self._argument(arg)
+        try:
+            return self.target_text(arg)
+        except EmitError:
+            return f"var{arg.slot[1]}"
 
     def _past_frame(self, expr: ir.Expr) -> bool:
         # An operand-stack slot past the frame, which a constant index reached. The lifter admits it only as a native
@@ -1357,12 +1523,15 @@ class _Function:
 
     def ext_call(self, stmt: ir.ExtCall, ind: str) -> list[str]:
         """An external command call, capturing the by-reference outputs that are declared."""
-        plan = self.mod.resolve(stmt)
+        plan = self.mod.resolve(stmt, self.expr_type)
         for message in plan.diagnostics:
             self.mod.diagnose(message)
-        if any(self._past_frame(arg) for arg in plan.ins):
+        if plan.dropped:
+            args = ", ".join(self._dropped_arg(arg) for arg in plan.ins)
+            return [f"{ind}-- retail: {plan.name}({args}) does nothing, since its handler stores only an integer or a float"]
+        if any(self._past_frame(arg) and not any(arg is inout for inout in plan.inouts) for arg in plan.ins):
             raise EmitError("a reference past the frame is passed where the handler reads a value")
-        args = ", ".join(self.value(arg)[0] for arg in plan.ins)
+        args = ", ".join(self._input(plan, arg) for arg in plan.ins)
         call = f"{plan.name}({args})"
         clauses = [plan.comment.removeprefix("retail: ")] if plan.comment else []
         lost = [position for position, out in enumerate(plan.outs, 1) if self._past_frame(out)]
@@ -1374,13 +1543,14 @@ class _Function:
         comment = f" -- retail: {'; '.join(clauses)}" if clauses else ""
         if not any(self.declared(out.slot) for out in plan.outs):
             return [f"{ind}{call}{comment}"]
+        conversions = plan.conversions or [None] * len(plan.outs)
         if len(plan.outs) == 1:
-            return [f"{ind}{self._out_assign(plan.outs[0], call)}{comment}"]
+            return [f"{ind}{self._out_assign(plan.outs[0], call, conversions[0])}{comment}"]
         names = [f"out{index}" if self.declared(out.slot) else "_" for index, out in enumerate(plan.outs, 1)]
         lines = [f"{ind}do", f"{ind}\tlocal {', '.join(names)} = {call}{comment}"]
         for index, out in enumerate(plan.outs, 1):
             if self.declared(out.slot):
-                lines.append(f"{ind}\t{self._out_assign(out, f'out{index}')}")
+                lines.append(f"{ind}\t{self._out_assign(out, f'out{index}', conversions[index - 1])}")
         lines.append(f"{ind}end")
         return lines
 

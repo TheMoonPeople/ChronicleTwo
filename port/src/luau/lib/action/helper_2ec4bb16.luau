@@ -1,8 +1,10 @@
 --!strict
 -- Shared action helper used by 2 scripts, translated by tools/luau/stb2luau.
 
+local vm = require("@lib/vm")
+
 --- Helper function.
-local function helper_a815fafa()
+local function helper_2ec4bb16()
 	local var0: s32 = 0
 	local var1: s32 = 0
 	local prog: s32 = 0
@@ -13,10 +15,10 @@ local function helper_a815fafa()
 	if prog == 100 then
 		action.SetMos("5剣1", -1, 6)
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.38 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.38) then
 			action.SetBlowMove(1.2, 0.0, 1)
 		end
-		if var4 >= 0.65 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.65) and var4 <= 1.0 then
 			action.SetBlowMove(0.92, 0.0, 1)
 		end
 		acumu_pad = action.GetAcumuPad() or acumu_pad
@@ -25,7 +27,7 @@ local function helper_a815fafa()
 			action.ProgSet(1200)
 			return
 		end
-		if var4 >= 0.5 and var4 <= 0.65 then
+		if var4 >= 0.5 and var4 <= vm.f32(0.65) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5剣2", -1, 6)
@@ -45,14 +47,14 @@ local function helper_a815fafa()
 	if prog == 101 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.19 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.19) then
 			action.SetBlowMove(1.0, 0.0, 1)
 		end
-		if var4 >= 0.39 and var4 <= 0.51 then
+		if var4 >= vm.f32(0.39) and var4 <= vm.f32(0.51) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				var6 = action.CheckFrontKey() or var6
-				if var6 > 0.6 then
+				if var6 > vm.f32(0.6) then
 					action.SetMos("ふっとばし", -1, 6)
 					action.SetTrgAngle(40.0, 2.0)
 					action.ProgSet(105)
@@ -75,13 +77,13 @@ local function helper_a815fafa()
 	if prog == 102 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.35 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.35) then
 			action.SetBlowMove(1.5, 0.0, 1)
 		end
-		if var4 >= 0.63 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.63) and var4 <= 1.0 then
 			action.SetBlowMove(-0.919, 0.0, 1)
 		end
-		if var4 >= 0.5 and var4 <= 0.66 then
+		if var4 >= 0.5 and var4 <= vm.f32(0.66) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5剣4", -1, 6)
@@ -101,13 +103,13 @@ local function helper_a815fafa()
 	if prog == 103 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.36 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.36) then
 			action.SetBlowMove(1.1, 0.0, 1)
 		end
-		if var4 >= 0.37 and var4 <= 0.5 then
+		if var4 >= vm.f32(0.37) and var4 <= 0.5 then
 			action.SetBlowMove(1.4, 0.0, 1)
 		end
-		if var4 >= 0.6 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.6) and var4 <= 1.0 then
 			action.SetBlowMove(0.825, 0.0, 1)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -119,7 +121,7 @@ local function helper_a815fafa()
 	if prog == 105 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.22 and var4 <= 0.56 then
+		if var4 >= vm.f32(0.22) and var4 <= vm.f32(0.56) then
 			action.SetBlowMove(2.5, 0.0, 1)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -130,4 +132,4 @@ local function helper_a815fafa()
 	end
 end
 
-return helper_a815fafa
+return helper_2ec4bb16

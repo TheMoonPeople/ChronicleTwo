@@ -2,16 +2,16 @@
 -- mainchr/c02.stb_: action script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_5aa58089 = require("@lib/action/helper_5aa58089")
-local helper_5af6b30b = require("@lib/action/helper_5af6b30b")
-local helper_6322acfa = require("@lib/action/helper_6322acfa")
-local helper_8f2eb222 = require("@lib/action/helper_8f2eb222")
-local helper_9708d5ca = require("@lib/action/helper_9708d5ca")
-local helper_a815fafa = require("@lib/action/helper_a815fafa")
+local helper_21d040f0 = require("@lib/action/helper_21d040f0")
+local helper_2ec4bb16 = require("@lib/action/helper_2ec4bb16")
+local helper_969ab7e3 = require("@lib/action/helper_969ab7e3")
+local helper_9d1f223a = require("@lib/action/helper_9d1f223a")
+local helper_9da84b8b = require("@lib/action/helper_9da84b8b")
+local helper_b1d92b97 = require("@lib/action/helper_b1d92b97")
 local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
-local helper_bc2fe269 = require("@lib/action/helper_bc2fe269")
-local helper_e420fa85 = require("@lib/action/helper_e420fa85")
-local helper_ee2817e0 = require("@lib/action/helper_ee2817e0")
+local helper_c97ab93c = require("@lib/action/helper_c97ab93c")
+local helper_de5acdcc = require("@lib/action/helper_de5acdcc")
+local helper_dea24da5 = require("@lib/action/helper_dea24da5")
 
 local global0: s32 = 0
 local global1: f32 = 0
@@ -56,9 +56,9 @@ local function helper_7bc4()
 			var6 = out3 or var6
 		end
 		action.EsmSetVect1(global0, var4, var5, var6)
-		global1 = global1 + 0.008333334
-		if global1 >= 1.3 then
-			global1 = 1.3
+		global1 = vm.f32(global1 + vm.f32(0.008333334))
+		if global1 >= vm.f32(1.3) then
+			global1 = vm.f32(1.3)
 		end
 		if var2 ~= 0 then
 			if var3 ~= 0 then
@@ -81,13 +81,13 @@ local function helper_7bc4()
 		end
 		action.EsmSetVect1(global0, var7, var8, var9)
 		var10 = action.NowMosWait() or var10
-		if var10 >= 0.25 and var10 < 0.3 then
+		if var10 >= 0.25 and var10 < vm.f32(0.3) then
 			action.SetShot(6, "spell01", 2, 5, global1)
 			action.EsmFinish(global0)
-			global1 = 0.8
+			global1 = vm.f32(0.8)
 			return
 		end
-		if (if var2 ~= 0 then var3 else 0) ~= 0 and var10 > 0.65 then
+		if (if var2 ~= 0 then var3 else 0) ~= 0 and var10 > vm.f32(0.65) then
 			action.ResetMos()
 			action.ProgSet(801)
 			return
@@ -110,7 +110,7 @@ local function helper_7bc4()
 				var16 = out3 or var16
 			end
 			action.EsmSetVect2(global0, var14, var15, var16)
-			global1 = 0.8
+			global1 = vm.f32(0.8)
 			action.ProgSet(prog - 1)
 		end
 	end
@@ -118,7 +118,7 @@ end
 
 --- Helper function.
 local function helper_8648()
-	local var0: s32 = 0
+	local result: s32 = 0
 	local var1: s32 = 0
 	local var2: s32 = 0
 	local var3: s32 = 0
@@ -135,8 +135,8 @@ local function helper_8648()
 		action.SetMos("ガード入り", -1, 6)
 		action.SetGuardFlag(1)
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(prog + 1)
 		end
 		return
@@ -164,12 +164,12 @@ local function helper_8648()
 	if prog == 902 then
 		action.SetMos("持ち上げ", -1, 2)
 		var5 = action.NowMosWait() or var5
-		if var5 >= 0.14 and var5 < 0.233 then
+		if var5 >= vm.f32(0.14) and var5 < vm.f32(0.233) then
 			action.CheckCatch("nage")
 		end
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			hold_type = action.CheckHandObj() or hold_type
 			if hold_type == 3 or hold_type == 4 then
 				action.ProgSet(prog + 1)
@@ -191,11 +191,11 @@ local function helper_8648()
 		action.SetMos("投げ", -1, 6)
 		vm.wait()
 		var7 = action.NowMosWait() or var7
-		if var7 >= 0.3 then
+		if var7 >= vm.f32(0.3) then
 			action.ReleaseObj(1)
 		end
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(0)
 		end
 		return
@@ -203,14 +203,14 @@ local function helper_8648()
 	if prog == 910 then
 		var8 = action.NowMosWait() or var8
 		if global2 == 1 then
-			if var8 >= 0.35 and var8 <= 0.45 then
+			if var8 >= vm.f32(0.35) and var8 <= vm.f32(0.45) then
 				action.SetSpecialShot("dcol01")
 			end
-		elseif var8 >= 0.39 and var8 <= 0.42 then
+		elseif var8 >= vm.f32(0.39) and var8 <= vm.f32(0.42) then
 			action.SetSpecialShot("dcol01")
 		end
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(900)
 		end
 		return
@@ -219,7 +219,7 @@ end
 
 --- Helper function.
 local function helper_9778()
-	local var0: s32 = 0
+	local result: s32 = 0
 	local prog: s32 = 0
 	local var2: s32 = 0
 	local var3: f32 = 0
@@ -235,12 +235,12 @@ local function helper_9778()
 	if prog == 1101 then
 		action.SetMos("持ち上げ", -1, 2)
 		var3 = action.NowMosWait() or var3
-		if var3 >= 0.14 and var3 < 0.24 then
+		if var3 >= vm.f32(0.14) and var3 < vm.f32(0.24) then
 			action.CheckCatch("nage")
 		end
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			hold_type = action.CheckHandObj() or hold_type
 			if hold_type == 3 or hold_type == 4 then
 				action.ProgSet(prog + 1)
@@ -263,11 +263,11 @@ local function helper_9778()
 		action.SetMos("投げ", -1, 6)
 		vm.wait()
 		var5 = action.NowMosWait() or var5
-		if var5 >= 0.333 then
+		if var5 >= vm.f32(0.333) then
 			action.ReleaseObj(1)
 		end
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(0)
 		end
 		return
@@ -397,13 +397,13 @@ function script.loop()
 		end
 		if prog >= 100 and prog < 199 then
 			if global2 == 0 then
-				helper_8f2eb222()
+				helper_9d1f223a()
 			end
 			if global2 == 1 then
-				helper_a815fafa()
+				helper_2ec4bb16()
 			end
 			if global2 == 2 then
-				helper_5af6b30b()
+				helper_21d040f0()
 			end
 			action.SetNeba2()
 			if var1 ~= 0 then
@@ -434,25 +434,25 @@ function script.loop()
 					var12 = out3 or var12
 				end
 				action.EsmSetVect2(global0, var10, var11, var12)
-				global1 = 0.8
+				global1 = vm.f32(0.8)
 				prog = 800
 				action.ProgSet(prog)
 			end
 		end
 		if prog >= 200 and prog < 299 then
-			helper_e420fa85()
+			helper_969ab7e3()
 		end
 		if prog >= 1300 and prog < 1399 then
-			helper_5aa58089()
+			helper_dea24da5()
 			prog = 0
 			var1 = 0
 		end
 		if prog >= 1200 and prog < 1299 then
-			helper_bc2fe269()
+			helper_de5acdcc()
 		end
 		if prog >= 300 and prog < 399 then
 			action.SetTrgAngle(40.0, 2.0)
-			helper_9708d5ca()
+			helper_b1d92b97()
 		end
 		if prog >= 800 and prog < 899 then
 			helper_7bc4()
@@ -463,7 +463,7 @@ function script.loop()
 			action.SetNeba2()
 		end
 		if prog >= 1000 and prog < 1099 then
-			helper_6322acfa()
+			helper_c97ab93c()
 			action.SetNeba2()
 		end
 		if prog >= 1100 and prog < 1199 then
@@ -480,7 +480,7 @@ function script.loop()
 				else
 					var14 = action.CheckFrontKey() or var14
 					var15 = action.GetTrgDistance() or var15
-					if var14 > 0.85 and var15 > 40.0 and var15 < 100.0 then
+					if var14 > vm.f32(0.85) and var15 > 40.0 and var15 < 100.0 then
 						action.SetTrgAngle(40.0, 2.0)
 						prog = 200
 						action.SetMurderous(0, 3)
@@ -539,7 +539,7 @@ function script.loop()
 					var25 = out3 or var25
 				end
 				action.EsmSetVect2(global0, var23, var24, var25)
-				global1 = 0.8
+				global1 = vm.f32(0.8)
 				action.SetMenuFlag(0)
 			end
 			action.ProgSet(prog)
@@ -581,24 +581,24 @@ function script.on_large_damage()
 	action.SetBlowAngle()
 	action.ReleaseObj(0)
 	action.SetMos("吹っ飛び", -1, 6)
-	helper_ee2817e0()
+	helper_9da84b8b()
 	helper_bac4ec65(10)
 	action.SetMos("起き上がり", -1, 6)
-	helper_ee2817e0()
+	helper_9da84b8b()
 	helper_bac4ec65(2)
 	action.ProgSet(0)
 end
 
 --- Follows up a melee hit that the character has landed.
 function script.on_melee_hit()
-	local var0: s32 = 0
+	local result: s32 = 0
 	helper_2ec()
 	action.BlowStart(0.0, 0.0, 0)
 	action.SetMos("ガード後", -1, 2)
-	var0 = 0
-	while var0 == 0 do
+	result = 0
+	while result == 0 do
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
+		result = vm.float_bits(action.CheckMosEnd()) or result
 	end
 end
 
@@ -614,7 +614,7 @@ end
 function script.on_land()
 	helper_2ec()
 	action.ReleaseObj(0)
-	helper_ee2817e0()
+	helper_9da84b8b()
 	action.SetMos("バトル立ち")
 	vm.wait()
 end

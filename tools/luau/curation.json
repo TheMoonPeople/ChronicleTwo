@@ -1,8 +1,868 @@
 {
  "$comment": "Hand curation of tools/luau/commands.json, keyed by kind and handler name; see docs/PORT_LUAU.md.",
- "action": {},
- "effect": {},
- "monster": {},
- "event": {},
+ "action": {
+  "_ESM_SET_VALUE": {
+   "notes": "Stores the value as an integer or a float by its slot's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {},
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_CHECK_MOS_END": {
+   "notes": "The handler writes a float.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "result",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_NOW_MOS_CHGWAIT": {
+   "notes": "The handler writes a float.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SHOT": {
+   "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "left",
+       "dir": "in",
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "effect": {
+  "_GET_RAND": {
+   "notes": "An integer range gives an integer, a float range a float.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "name": "range",
+       "type": "f32",
+       "tagged": true
+      },
+      {
+       "name": "value",
+       "type": "f32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_GET_VALUE": {
+   "notes": "Copies the stored bits as an integer or a float by the output variable's tag; either branch copies the same bits.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "name": "index"
+      },
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true,
+       "copies": true
+      }
+     ]
+    }
+   }
+  },
+  "_SET_VALUE": {
+   "notes": "Stores the value as an integer or a float by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "name": "index"
+      },
+      {
+       "name": "value",
+       "type": "f32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_ES_SET_VALUE": {
+   "notes": "Stores the value as an integer or a float by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "name": "index"
+      },
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    },
+    "3": {
+     "params": [
+      {
+       "name": "target_id"
+      },
+      {
+       "name": "index"
+      },
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_NORMAL_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_ADD_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "6": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SUB_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "6": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SCALE_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "4": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_DIV_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "4": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_ANGLE_LIMIT": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "angle",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_ORIGIN": {
+   "notes": "The handler writes a float.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "type": "f32"
+      },
+      {
+       "type": "f32"
+      },
+      {
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_CHR_GET_SHOW": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "type": "s32"
+      },
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "monster": {
+  "_V_PUSH": {
+   "notes": "Stores the value as an integer or a float by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_V_POP": {
+   "notes": "Copies the stored bits as an integer or a float by the output variable's tag; either branch copies the same bits.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true,
+       "copies": true
+      }
+     ]
+    }
+   }
+  },
+  "_V_PUSH2": {
+   "notes": "Stores the value as an integer or a float by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_V_POP2": {
+   "notes": "Copies the stored bits as an integer or a float by the output variable's tag; either branch copies the same bits.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true,
+       "copies": true
+      }
+     ]
+    }
+   }
+  },
+  "_SET_MONSTER_LIFE": {
+   "notes": "An integer sets the life, a float sets it as a fraction of the maximum.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "life",
+       "type": "f32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_GET_MONSTER_LIFE": {
+   "notes": "An integer variable receives the life, a float variable the fraction of the maximum.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "life",
+       "type": "f32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_ESM_SET_VALUE": {
+   "notes": "Stores the value as an integer or a float by its slot's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {},
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_NORMAL_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_ADD_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "6": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SUB_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "6": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SCALE_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "4": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_DIV_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "4": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_ANGLE_LIMIT": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "angle",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_ANGLE_CMP": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "4": {
+     "params": [
+      {},
+      {},
+      {},
+      {
+       "name": "result",
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_MONSTER_ID": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "refer_no",
+       "type": "s16"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_ACTIVE_MONS_DIST": {
+   "notes": "The handler writes a float.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "name": "distance",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_GEKIRIN": {
+   "notes": "The handler writes the float gekirin.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "gekirin",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_NO_DAMAGE_CNT": {
+   "notes": "The handler writes the s16 no_damage_cnt.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "no_damage_cnt",
+       "type": "s16"
+      }
+     ]
+    }
+   }
+  },
+  "_CHECK_PAUSE": {
+   "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits. It writes the integer flags into the second argument.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "name": "flags",
+       "dir": "in",
+       "type": "s32"
+      },
+      {
+       "name": "result",
+       "type": "s32"
+      },
+      {}
+     ]
+    }
+   }
+  },
+  "_GET_EVENT_INFO": {
+   "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "name": "selector",
+       "dir": "in",
+       "type": "s32"
+      },
+      {
+       "name": "value",
+       "type": "s32"
+      },
+      {}
+     ]
+    }
+   }
+  },
+  "_MONS_SE_LOOP": {
+   "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "name": "monster_id",
+       "dir": "in",
+       "type": "s32"
+      },
+      {
+       "name": "sound",
+       "dir": "in",
+       "type": "s32"
+      },
+      {
+       "name": "flags",
+       "dir": "in",
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_INDEX_POS": {
+   "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "index",
+       "dir": "in",
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_SET_NEXT_POS": {
+   "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+   "signatures": {
+    "4": {
+     "params": [
+      {},
+      {},
+      {},
+      {
+       "name": "move_speed",
+       "dir": "in",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SET_STATUS": {
+   "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "status",
+       "dir": "in",
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "event": {
+  "_NORMAL_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_ADD_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "6": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SUB_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "6": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_SCALE_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "4": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_DIV_VECTOR": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "4": {
+     "params": [
+      {
+       "name": "x",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "y",
+       "dir": "inout",
+       "type": "f32"
+      },
+      {
+       "name": "z",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_ANGLE_LIMIT": {
+   "notes": "Reads the variables it writes, so they are passed in and returned.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "angle",
+       "dir": "inout",
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  }
+ },
  "event_arg": {}
 }

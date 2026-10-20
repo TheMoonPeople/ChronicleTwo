@@ -76,8 +76,8 @@ local function helper_2fd8()
 		end
 		status = action.GetMosStatus("arm") or status
 		result = action.NowMosWait("arm") or result
-		if result > 0.3 and result < 0.4 then
-			action.Shot() -- retail: argument 1 is a value where the handler writes an output; the output is discarded
+		if result > vm.f32(0.3) and result < vm.f32(0.4) then
+			action.Shot(global0)
 		end
 		if status == 4 then
 			action.ProgSet(0)
@@ -116,7 +116,7 @@ local function helper_1a3c()
 	if prog == 102 then
 		if global1 > 0 then
 			global1 = global1 - 1
-			action.Shot() -- retail: argument 1 is a value where the handler writes an output; the output is discarded
+			action.Shot(0)
 		else
 			action.SetMos("攻撃１out", -1, 6, "arm")
 			action.ProgSet(110)
@@ -154,7 +154,7 @@ local function helper_20c8()
 			global1 = vm.i32(global1 + 1)
 			if global1 >= 3 then
 				global1 = 0
-				action.Shot() -- retail: argument 1 is a value where the handler writes an output; the output is discarded
+				action.Shot(0)
 			end
 		end
 		return
@@ -186,7 +186,7 @@ local function helper_24ac()
 	if prog == 102 then
 		if global1 > 0 then
 			global1 = global1 - 1
-			action.Shot() -- retail: argument 1 is a value where the handler writes an output; the output is discarded
+			action.Shot(0)
 		else
 			action.SetMos("攻撃１out", -1, 6, "arm")
 			action.ProgSet(110)
@@ -218,8 +218,8 @@ local function helper_2b50()
 		end
 		status = action.GetMosStatus("arm") or status
 		result = action.NowMosWait("arm") or result
-		if result > 0.3 and result < 0.4 then
-			action.Shot() -- retail: argument 1 is a value where the handler writes an output; the output is discarded
+		if result > vm.f32(0.3) and result < vm.f32(0.4) then
+			action.Shot(global0)
 		end
 		if status == 4 then
 			action.ProgSet(0)
@@ -262,7 +262,7 @@ local function helper_3a20()
 		action.SetMos("蹴り", -1, 6, "leg")
 		vm.wait()
 		result = action.NowMosWait("leg") or result
-		if result > 0.35 then
+		if result > vm.f32(0.35) then
 			action.CheckCatch("keri_R", 1)
 			action.ProgSet(1001)
 		end
@@ -347,19 +347,19 @@ function script.loop()
 		if prog >= 100 and prog < 199 then
 			attack_type = action.GetAttkType() or attack_type
 			if attack_type == 0 then
-				helper_125c(0.462, 0.5, 0.341, 0.386)
+				helper_125c(vm.f32(0.462), 0.5, vm.f32(0.341), vm.f32(0.386))
 			end
 			if attack_type == 20 then
-				helper_125c(0.476, 0.529, 0.45, 0.5)
+				helper_125c(vm.f32(0.476), vm.f32(0.529), vm.f32(0.45), 0.5)
 			end
 			if attack_type == 50 then
-				helper_125c(0.462, 0.538, 0.386, 0.455)
+				helper_125c(vm.f32(0.462), vm.f32(0.538), vm.f32(0.386), vm.f32(0.455))
 			end
 			if attack_type == 60 then
-				helper_125c(0.6, 0.68, 0.72, 0.9)
+				helper_125c(vm.f32(0.6), vm.f32(0.68), vm.f32(0.72), vm.f32(0.9))
 			end
 			if attack_type == 80 then
-				helper_125c(0.65, 0.7, 0.65, 0.7)
+				helper_125c(vm.f32(0.65), vm.f32(0.7), vm.f32(0.65), vm.f32(0.7))
 			end
 			if attack_type == 10 then
 				helper_2fd8()

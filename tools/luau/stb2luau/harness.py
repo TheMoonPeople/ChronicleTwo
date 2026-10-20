@@ -28,7 +28,7 @@ from pathlib import Path
 from stb.opcodes import ConstType, Op
 from stb.program import Program
 
-from . import numbers, refvm
+from . import api, refvm
 from .emit import NUMERIC_TYPES, SETUP
 from .refvm import Slot, Tag
 
@@ -119,7 +119,7 @@ def value_pools(program: Program) -> Pools:
     ]
     ints = {instruction.a2 for instruction in pushed if instruction.a1 == ConstType.INT}
     floats = {
-        numbers.literal(instruction.a2_float)
+        instruction.a2_float
         for instruction in pushed
         if instruction.a1 == ConstType.FLOAT and math.isfinite(instruction.a2_float)
     }
@@ -183,7 +183,7 @@ def _as_type(value: object, type_name: str) -> object:
 def _as_read(memory: list[Slot], slot: Slot, as_float: bool) -> object:
     """Script value of a slot, read as a float when the script loads its variable as one."""
     if as_float and slot.tag == Tag.INT:
-        return numbers.literal(refvm.bits_to_float(slot.value))
+        return refvm.bits_to_float(slot.value)
     return _value(memory, slot)
 
 
@@ -200,17 +200,63 @@ def _target_tag(machine: refvm.Machine, slot: Slot) -> Tag | None:
     return machine.read_arg(slot.value).tag if slot.tag == Tag.PTR else None
 
 
+def _tag_read(machine: refvm.Machine, signature: dict, args: tuple[Slot, ...]) -> tuple[str, ...]:
+    """The integer or float tag a tagged handler branches on: its first tagged input's, else the tag its first tagged
+    output's destination holds (GetMonsterLife writes the life or the fraction by it); nothing for an untagged call.
+
+    The bit-copying outputs (VPop, GetValue, marked "copies") are not checked here: either branch copies the same bits,
+    which the trace records raw and the module's variant reads as its type.
+    """
+    params = signature["params"]
+    for i, param in enumerate(params):
+        if param.get("tagged") and param["dir"] == "in":
+            return ("f32" if args[i].tag == Tag.FLOAT else "s32",)
+    for i, param in enumerate(params):
+        if param.get("tagged") and param["dir"] in api.OUTPUTS and not param.get("copies"):
+            return ("f32" if _target_tag(machine, args[i]) == Tag.FLOAT else "s32",)
+    return ()
+
+
+def _written_type(
+    machine: refvm.Machine, params: list[dict], args: tuple[Slot, ...], position: int, views: FloatViews | None
+) -> str:
+    """The type a handler writes through an output: its catalogued type, or for a tagged output the tag the handler
+    branches on, its first tagged input's (GetRand) or else the destination's (VPop, GetValue, GetMonsterLife)."""
+    param = params[position]
+    if param["type"] == "string":
+        return "string"
+    if not param.get("tagged"):
+        return "f32" if param["type"] == "f32" else "s32"
+    for i, other in enumerate(params):
+        if other.get("tagged") and other["dir"] == "in":
+            return "f32" if args[i].tag == Tag.FLOAT else "s32"
+    if param.get("copies") and views is not None:
+        # Either branch copies the same bits, which the module's variant reads as the script reads its variable.
+        return "f32" if views.argument(machine.pc, position) or _target_tag(machine, args[position]) == Tag.FLOAT else "s32"
+    return "f32" if _target_tag(machine, args[position]) == Tag.FLOAT else "s32"
+
+
+def _inout_value(machine: refvm.Machine, slot: Slot) -> object:
+    """The float an in-out handler reads through a reference: the variable's bits as a float; 0 past the frame."""
+    if slot.tag != Tag.PTR or machine._past_frame(slot.value):
+        return 0
+    target = machine.read_arg(slot.value)
+    if target.tag == Tag.INT:
+        return refvm.bits_to_float(target.value)
+    return target.value
+
+
 def _write(machine: refvm.Machine, slot: Slot, value: object) -> object:
     """Store an output through a pointer argument, keeping the target's tag where it applies.
 
-    A handler writes a float32, so a float output is the float32 nearest the chosen value, spelled as the module spells
-    its constants; it then reads the same whether the target keeps its bits under an integer tag or holds a float.
+    A handler writes a float32, so a float output is the float32 nearest the chosen value; it then reads the same
+    whether the target keeps its bits under an integer tag or holds a float.
     """
     if value is None or slot.tag != Tag.PTR:
         return None
     target = machine.read_arg(slot.value)
     if isinstance(value, float):
-        value = numbers.literal(refvm.f32(value))
+        value = refvm.f32(value)
     if isinstance(value, str):
         stored = Slot(Tag.STR, value.encode("cp932"))
     elif isinstance(value, float):
@@ -263,11 +309,11 @@ class _TracingMachine(refvm.Machine):
         self._spell_folded()
 
     def _spell_folded(self) -> None:
-        # The module folds constant float operations in float32 and spells the result, so this run does the same.
+        # The module folds constant float operations in float32, as this run computes them.
         if self.pc in self.folded:
             slot = self.memory[self.sp - 1]
             if slot.tag == Tag.FLOAT:
-                self.memory[self.sp - 1] = Slot(Tag.FLOAT, numbers.literal(refvm.f32(slot.value)))
+                self.memory[self.sp - 1] = Slot(Tag.FLOAT, refvm.f32(slot.value))
 
     def returned(self, call: int, callee: int, frame: int) -> None:
         """Record the values the references of a probed call name, now that the callee has written them."""
@@ -332,21 +378,30 @@ def _play(
         if signature is None or signature.get("handler_rejects") or _kind_mismatch(signature["params"], args):
             machine.emit(("ext", command, count, values, ()))
             return
+        if api.ignores_reference(signature, args, lambda slot: slot.tag == Tag.PTR):
+            return
         params = signature["params"]
-        ins = tuple(values[i] for i, param in enumerate(params) if param["dir"] == "in")
+        # An in-out handler reads the float bits its reference names; one past the frame reads an operand-stack slot,
+        # which the module passes as 0.
+        values = tuple(
+            _inout_value(machine, args[i]) if param["dir"] == "inout" else value
+            for i, (param, value) in enumerate(zip(params, values))
+        )
+        ins = tuple(values[i] for i, param in enumerate(params) if param["dir"] in api.INPUTS)
         rng = random.Random(f"{seed}/{name}/{index}")
+        typed = _tag_read(machine, signature, args)
         outs = []
         for i, param in enumerate(params):
-            if param["dir"] != "out":
+            if param["dir"] not in api.OUTPUTS:
                 continue
-            type_name = param["type"]
-            if views is not None and type_name != "string":
-                as_float = views.argument(machine.pc, i) or _target_tag(machine, args[i]) == Tag.FLOAT
-                type_name = "f32" if as_float else "s32"
+            # The handler writes its own type through the reference, without retagging the variable, so the script's
+            # loads read the bits as the machine does.
+            type_name = _written_type(machine, params, args, i, views)
+            inout = param["dir"] == "inout"
             range_ = ins[randoms[command]] if command in randoms and randoms[command] < len(ins) else None
             if type_name != "string" and isinstance(range_, (int, float)):
                 value = _random_draw(rng, range_, type_name)
-            elif rng.randrange(8) == 0:
+            elif rng.randrange(8) == 0 and not inout:
                 value = None
             elif command in gets and type_name != "string" and rng.randrange(STATE_CHOICES) != 0:
                 table, key = gets[command]
@@ -356,12 +411,16 @@ def _play(
                 # Zero keeps most scenarios on the branches a script takes when a flag or count is clear.
                 if type_name != "string" and rng.randrange(ZERO_CHOICES) == 0:
                     value = 0.0 if type_name == "f32" else 0
-            outs.append(_write(machine, args[i], value))
+            written = _write(machine, args[i], value)
+            if param.get("copies") and isinstance(written, float):
+                # A bit copy is recorded as its raw bits; the module's variant reads them as its type.
+                written = refvm.float_bits(written)
+            outs.append(written)
         if command in sets:
             table, key, position = sets[command]
             if position < len(ins) and isinstance(ins[position], (int, float)):
                 held[(table, None if key is None else ins[key])] = ins[position]
-        machine.emit(("ext", command, count, ins, tuple(outs)))
+        machine.emit(("ext", command, count, ins, tuple(outs), *typed))
 
     machine = _TracingMachine(
         program,
@@ -371,7 +430,7 @@ def _play(
         stack_num=default_stack if stack_num is None else stack_num,
         call_num=call_num,
         ext=mock,
-        float32=False,
+        float32=True,
         max_steps=max_steps,
     )
     first_steps: dict[int, int] = {}
@@ -563,8 +622,9 @@ def _event(event: tuple) -> str:
     if tag == "ref":
         return '{ "ref", %d, %s }' % (event[1], _list(event[2]))
     if tag == "ext":
-        _, command, count, ins, outs = event
-        return '{ "ext", %d, %d, %s, %s }' % (command, count, _list(ins), _list(outs))
+        _, command, count, ins, outs, *typed = event
+        tail = "".join(", " + _string(type_name) for type_name in typed)
+        return '{ "ext", %d, %d, %s, %s%s }' % (command, count, _list(ins), _list(outs), tail)
     raise ValueError(f"unknown trace event {event!r}")
 
 
@@ -579,18 +639,39 @@ def _scenario_literal(scenario: Scenario) -> str:
     return "{ %s }" % ", ".join(fields)
 
 
-def _dispatch(name: str, namespace: str, command: dict) -> list[str]:
-    """Luau mock functions for every catalogued arity of a command, plus the unsuffixed dispatcher."""
+def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] | None = None) -> list[str]:
+    """Luau mock functions for every catalogued arity of a command, plus the unsuffixed dispatcher.
+
+    A mock of a tagged signature checks the type its call gives the parameter the handler branches on against the tag
+    the handler read, and reads a bit-copying output's recorded bits as its variant's type. signatures, when given,
+    replaces the command's own: the tagged signatures retyped for an Int or Float variant.
+    """
     lines = []
     chosen: dict[int, tuple[tuple[int, int], dict]] = {}
-    for signature in command.get("signatures", []):
+    for signature in command.get("signatures", []) if signatures is None else signatures:
         argc = signature["argc"]
         params = signature["params"]
-        inputs = sum(1 for param in params if param["dir"] == "in")
-        outputs = sum(1 for param in params if param["dir"] == "out")
+        inputs = sum(1 for param in params if param["dir"] in api.INPUTS)
+        outputs = sum(1 for param in params if param["dir"] in api.OUTPUTS)
+        typed = next((param["type"] for param in params if param.get("tagged") and param["dir"] == "in"), None)
+        if typed is None:
+            typed = next(
+                (
+                    param["type"]
+                    for param in params
+                    if param.get("tagged") and param["dir"] in api.OUTPUTS and not param.get("copies")
+                ),
+                None,
+            )
+        copies = [
+            f"[{index}] = {'true' if param['type'] == 'f32' else 'false'}"
+            for index, param in enumerate((param for param in params if param["dir"] in api.OUTPUTS), 1)
+            if param.get("copies")
+        ]
+        tag = ", " + (_string(typed) if typed is not None else "nil") + (", { " + ", ".join(copies) + " }" if copies else "")
         lines.append(
             f"{namespace}.{name}_{argc} = function(...)\n"
-            f"    local outs = ext_call({command['no']}, {argc}, table.pack(...))\n"
+            f"    local outs = ext_call({command['no']}, {argc}, table.pack(...){tag})\n"
             "    return table.unpack(outs, 1, outs.n)\n"
             "end"
         )
@@ -707,14 +788,28 @@ local function expect(tag, field)
     end
 end
 
--- Checks a native call against the next event and returns the recorded outputs.
-local function ext_call(no, argc, args)
+-- Checks a native call against the next event and returns the recorded outputs; typed is the integer or float
+-- type the call gives a tagged handler, checked against the tag the handler read, and copies maps the outputs a
+-- handler copies as raw bits to whether the call's variant reads them as a float.
+local function ext_call(no, argc, args, typed, copies)
     local at = cursor
     local event = next_event("ext", no)
     if event == nil or event[1] ~= "ext" or event[2] ~= no or event[3] ~= argc or not same_list(event[4], args) then
         fail(("event %d: expected %s, got %s"):format(at, show(event), show({ "ext", no, argc, args })))
     end
-    return event[5]
+    if typed ~= nil and event[6] ~= nil and event[6] ~= typed then
+        fail(("event %d: the handler read %s, the call passes %s"):format(at, event[6], typed))
+    end
+    local outs = event[5]
+    if copies ~= nil then
+        outs = table.clone(outs)
+        for index, as_float in copies do
+            if as_float and outs[index] ~= nil then
+                outs[index] = string.unpack("<f", string.pack("<i4", outs[index]))
+            end
+        end
+    end
+    return outs
 end
 
 -- Checks the values a call's references name, after the call copies them back, against the next event.
@@ -850,6 +945,10 @@ def driver(
     ]
     for command in kind_catalog["commands"]:
         lines.extend(_dispatch(command["luau"], namespace, command))
+        tagged = [signature for signature in command.get("signatures", []) if api.tagged(signature)]
+        for type_name, suffix in api.VARIANTS.items() if tagged else ():
+            retyped = [api.variant(signature, type_name) for signature in tagged]
+            lines.extend(_dispatch(command["luau"] + suffix, namespace, command, retyped))
     lines.append(
         f"{namespace}.Ext = function(no, ...)\n"
         "    local args = table.pack(...)\n"

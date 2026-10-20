@@ -2,9 +2,9 @@
 -- dungeon/act_script/f206a.stb: action script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_72d1daf9 = require("@lib/action/helper_72d1daf9")
-local helper_77acd540 = require("@lib/action/helper_77acd540")
-local helper_9f2e9866 = require("@lib/action/helper_9f2e9866")
+local helper_1512c7e0 = require("@lib/action/helper_1512c7e0")
+local helper_37f14ce7 = require("@lib/action/helper_37f14ce7")
+local helper_42e38fa0 = require("@lib/action/helper_42e38fa0")
 
 --- Helper function.
 local function helper_dcc()
@@ -41,7 +41,7 @@ local function helper_dcc()
 		action.SetMos("攻撃１out", -1, 6)
 		vm.wait()
 		var8 = action.NowMosWait() or var8
-		if var8 >= 0.224 and var8 < 0.288 then
+		if var8 >= vm.f32(0.224) and var8 < vm.f32(0.288) then
 			action.SePlay(-1, 6)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -122,19 +122,19 @@ function script.loop()
 end
 
 --- Reacts to a small hit.
-script.on_small_damage = helper_9f2e9866
+script.on_small_damage = helper_1512c7e0
 
 --- Holds the character in place.
-script.on_hold = helper_9f2e9866
+script.on_hold = helper_1512c7e0
 
 --- Reacts to a large hit.
-script.on_large_damage = helper_72d1daf9
+script.on_large_damage = helper_42e38fa0
 
 --- Follows up a melee hit that the character has landed.
 -- Defined empty, so the engine runs this instead of its default.
 function script.on_melee_hit() end
 
 --- Runs the character's death.
-script.on_death = helper_77acd540
+script.on_death = helper_37f14ce7
 
 return script

@@ -24,6 +24,7 @@ import collections
 import concurrent.futures
 import dataclasses
 import enum
+import functools
 import hashlib
 import json
 import os
@@ -46,7 +47,7 @@ from stb.analysis import Analysis  # noqa: E402
 from stb.corpus import Kind, classify  # noqa: E402
 from stb.opcodes import FLOAT_MODES, Op  # noqa: E402
 from stb.program import DecodeError, Program, decode  # noqa: E402
-from stb2luau import harness, ir, timing  # noqa: E402
+from stb2luau import harness, ir, tags, timing  # noqa: E402
 from stb2luau.emit import (  # noqa: E402
     EmitError,
     FunctionInput,
@@ -68,6 +69,7 @@ from survey import resolve_data  # noqa: E402
 OUTPUT = REPO / "port/src/luau"
 CHECK = REPO / "port/build/luau-harness" / ("luau-check.exe" if os.name == "nt" else "luau-check")
 CATALOG = TOOLS / "commands.json"
+FALLBACK = TOOLS / "fallback.json"
 LUAURC = '{"aliases": {"lib": "./lib"}}\n'
 STYLUA_ARGS = ("--indent-type", "Tabs", "--column-width", "120")
 BATCH = 100
@@ -159,6 +161,51 @@ def _reachable(program: Program) -> list[int]:
     return sorted(seen)
 
 
+@functools.cache
+def _directions(kind: str) -> dict[tuple[int, int], tuple[str, ...]]:
+    """Each parameter's direction, by command and argument count, for the arities a kind's handlers accept."""
+    catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+    found: dict[tuple[int, int], tuple[str, ...]] = {}
+    for command in catalog["kinds"].get(kind, {}).get("commands", []):
+        for signature in command["signatures"]:
+            if not signature.get("handler_rejects"):
+                found[(command["no"], signature["argc"])] = tuple(param["dir"] for param in signature["params"])
+    return found
+
+
+def _sorted_tags(found: frozenset) -> tuple[str, ...]:
+    return tuple(sorted(found))
+
+
+def _annotate(stmts: list, calls: dict[int, tags.CallFacts]) -> list:
+    """The statements with each external call carrying the tag analysis of its arguments."""
+    annotated = []
+    for stmt in stmts:
+        if isinstance(stmt, ir.ExtCall) and stmt.offset in calls:
+            facts = calls[stmt.offset]
+            entries = []
+            for position in range(1, len(stmt.args) + 1):
+                if position in facts.destinations:
+                    entries.append(
+                        ("ref", _sorted_tags(facts.destinations[position]), _sorted_tags(facts.reads.get(position, frozenset())))
+                    )
+                elif position in facts.values:
+                    entries.append(("value", _sorted_tags(facts.values[position])))
+                else:
+                    entries.append(None)
+            stmt = dataclasses.replace(stmt, tags=tuple(entries))
+        elif dataclasses.is_dataclass(stmt):
+            changes = {
+                field.name: _annotate(getattr(stmt, field.name), calls)
+                for field in dataclasses.fields(stmt)
+                if isinstance(getattr(stmt, field.name), list)
+            }
+            if changes:
+                stmt = dataclasses.replace(stmt, **changes)
+        annotated.append(stmt)
+    return annotated
+
+
 def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
     """Decodes and lifts one script of the published corpus; the module input is None when it failed."""
     name = module_name(path)
@@ -170,6 +217,7 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
 
     result = Result(path, name, None, None, [], program, normalized)
     analysis = Analysis(program)
+    call_tags = tags.analyse(program, _directions(classify(path).value)).calls
     refs = references(program)
     errors: list[str] = []
     functions: dict[int, FunctionInput] = {}
@@ -177,7 +225,7 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
     for block in _reachable(program):
         try:
             lifted = lift(program, program.functions[block], analysis, refs)
-            body = structure(lifted)
+            body = _annotate(structure(lifted), call_tags)
         except (LiftError, StructureError) as error:
             errors.append(f"function {block:#x}: {error}")
             continue
@@ -604,6 +652,11 @@ def _stale_libraries(out: Path, kinds: set[str], generated: set[str]) -> list[st
     return stale
 
 
+def fallback_scripts() -> dict[str, str]:
+    """The scripts the interpreter keeps, with the reason, from tools/luau/fallback.json."""
+    return json.loads(FALLBACK.read_text(encoding="utf-8"))["scripts"]
+
+
 def _write_manifest(
     target: Path,
     previous: Path,
@@ -611,15 +664,19 @@ def _write_manifest(
     libraries: list[Library],
     kinds: set[str],
 ) -> None:
-    """Merges the results into the previous manifest: successes are added, failures are removed.
+    """Merges the results into the previous manifest: successes are added, scripts the interpreter keeps are listed with
+    the reason, other failures are removed.
 
     The libraries of the processed kinds are replaced; those of other kinds are kept.
     """
     manifest = json.loads(previous.read_text(encoding="utf-8")) if previous.is_file() else {}
     shared = manifest.pop("libraries", {})
+    fallback = fallback_scripts()
     for result in results:
         if result.error is None and result.normalized is not None:
             manifest[result.path] = {"module": result.module, "sha256": _sha256(result.normalized)}
+        elif result.path in fallback:
+            manifest[result.path] = {"interpreter": fallback[result.path]}
         else:
             manifest.pop(result.path, None)
     shared = {name: entry for name, entry in shared.items() if name.split("/")[0] not in kinds}
@@ -759,6 +816,9 @@ def main(argv: list[str] | None = None) -> int:
     corpus_ = emit_corpus(lifted, catalog)
     results = _apply(lifted, corpus_)
     good = [result for result in results if result.error is None]
+    fallback = fallback_scripts()
+    kept = [result for result in results if result.error is not None and result.path in fallback]
+    unneeded = sorted(result.path for result in good if result.path in fallback)
 
     stale: list[str] = []
     harness_rows: list[HarnessRow] = []
@@ -768,6 +828,7 @@ def main(argv: list[str] | None = None) -> int:
             root = Path(scratch)
             written = _write_tree(root, results, corpus_, previous=args.out, kinds=kinds)
             stale = _out_of_date(root, args.out) + _stale_libraries(args.out, kinds, _library_files(corpus_.libraries))
+            stale += [f"{result.module}.luau" for result in kept if (args.out / f"{result.module}.luau").is_file()]
             check_lines = check(written, root=root) if written else []
             if args.harness:
                 harness_rows = _harness_rows(lifted, good, catalog, args.seeds, args.jobs, root)
@@ -776,15 +837,22 @@ def main(argv: list[str] | None = None) -> int:
         written = _write_tree(args.out, results, corpus_, previous=args.out, kinds=kinds)
         for name in _stale_libraries(args.out, kinds, _library_files(corpus_.libraries)):
             (args.out / name).unlink()
+        # A script the interpreter keeps has no module, so the runtime falls back to the interpreter.
+        for result in kept:
+            (args.out / f"{result.module}.luau").unlink(missing_ok=True)
         check_lines = check(written, root=args.out) if written else []
         if args.harness:
             harness_rows = _harness_rows(lifted, good, catalog, args.seeds, args.jobs, args.out)
 
     for name in stale:
         print(f"out of date: {name}")
-    failed = [result for result in results if result.error is not None]
-    print(f"transpiled {len(good)} of {len(results)} scripts; {len(failed)} failed")
-    _print_failures(results)
+    failed = [result for result in results if result.error is not None and result.path not in fallback]
+    print(f"transpiled {len(good)} of {len(results)} scripts; {len(kept)} kept on the interpreter; {len(failed)} failed")
+    _print_failures(failed)
+    for result in kept:
+        print(f"interpreter {result.path}: {result.error.splitlines()[0] if result.error else ''}")
+    for path in unneeded:
+        print(f"stale fallback entry: {path} transpiles; remove it from {FALLBACK.name}")
     print(f"libraries: {len(corpus_.libraries)} shared helpers")
     for lib in corpus_.libraries:
         print(f"    {lib.kind}/{lib.name}: {len(lib.users)} scripts")
@@ -822,7 +890,7 @@ def main(argv: list[str] | None = None) -> int:
         for message, count in sorted(diagnostics.items(), key=lambda item: (-item[1], item[0])):
             print(f"    {count:6d}  {message}")
 
-    return 1 if stale or failed or check_lines or harness_failed else 0
+    return 1 if stale or failed or unneeded or check_lines or harness_failed else 0
 
 
 if __name__ == "__main__":

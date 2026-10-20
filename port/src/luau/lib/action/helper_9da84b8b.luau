@@ -4,15 +4,15 @@
 local vm = require("@lib/vm")
 
 --- Helper function.
-local function helper_ee2817e0()
-	local var0: s32 = 0
+local function helper_9da84b8b()
+	local result: s32 = 0
 	while true do
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			return
 		end
 	end
 end
 
-return helper_ee2817e0
+return helper_9da84b8b

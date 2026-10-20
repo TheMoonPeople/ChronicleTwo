@@ -16,11 +16,14 @@ decimal that rounds to them, which is the numeric model the Luau translation fol
 
 from __future__ import annotations
 
+import ctypes
+import ctypes.util
 import dataclasses
 import enum
 import math
 import operator
 import struct
+import sys
 from collections.abc import Callable
 
 from stb.opcodes import FLOAT_MODES, GLOBAL_MODES, INDEXED_MODES, POINTER_MODES, AddrMode, Compare, ConstType, Op
@@ -61,6 +64,29 @@ def f32(value: float) -> float:
         return struct.unpack("<f", struct.pack("<f", value))[0]
     except OverflowError:
         return math.copysign(math.inf, value)
+
+
+def _libm() -> ctypes.CDLL:
+    """The C library whose sinf and cosf the game's interpreter calls: the UCRT on Windows, libm elsewhere."""
+    if sys.platform == "win32":
+        return ctypes.CDLL("ucrtbase")
+    return ctypes.CDLL(ctypes.util.find_library("m") or "libm.so.6")
+
+
+_LIBM = _libm()
+for _name in ("sinf", "cosf"):
+    getattr(_LIBM, _name).restype = ctypes.c_float
+    getattr(_LIBM, _name).argtypes = [ctypes.c_float]
+
+
+def sinf(value: float) -> float:
+    """The C library's single-precision sine of a float32, as the PC interpreter computes SIN."""
+    return float(_LIBM.sinf(value))
+
+
+def cosf(value: float) -> float:
+    """The C library's single-precision cosine of a float32, as the PC interpreter computes COS."""
+    return float(_LIBM.cosf(value))
 
 
 def bits_to_float(bits: int) -> float:
@@ -486,9 +512,8 @@ class Machine:
             argument = slot.value
         else:
             raise VMError(f"operand is not number at {op.name}")
-        function = math.sin if op == Op.SIN else math.cos
-        result = function(argument) if math.isfinite(argument) else math.nan
-        self._push(Slot(Tag.FLOAT, self._round(result)))
+        function = sinf if op == Op.SIN else cosf
+        self._push(Slot(Tag.FLOAT, function(argument)))
 
     def _itof(self) -> None:
         slot = self._pop()

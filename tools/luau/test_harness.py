@@ -13,7 +13,7 @@ sys.path.insert(0, str(HERE))
 from stb.assembler import assemble  # noqa: E402
 from stb.opcodes import AddrMode, Compare, Op  # noqa: E402
 from stb.program import decode  # noqa: E402
-from stb2luau import harness, numbers, refvm  # noqa: E402
+from stb2luau import harness, refvm  # noqa: E402
 
 REPO = HERE.parents[1]
 LOCAL, LOCAL_INDEX = AddrMode.LOCAL, AddrMode.LOCAL_INDEX
@@ -324,8 +324,31 @@ class RecordTest(unittest.TestCase):
         self.assertTrue(values <= set(range(8)), values)
         self.assertGreater(len(values), 2)
 
-    def test_output_takes_the_type_its_variable_is_read_as(self):
-        # The catalogue types the output as an integer, but the script loads the variable as a float.
+    def test_tagged_call_records_the_tag_its_handler_reads(self):
+        tagged = {
+            "namespace": "monster",
+            "commands": [
+                {"no": 37, "luau": "VPush", "signatures": [{"argc": 2, "params": [
+                    {"name": "index", "dir": "in", "type": "s32"},
+                    {"name": "value", "dir": "in", "type": "s32", "tagged": True}]}]},
+            ],
+        }
+        body = [
+            ("push", 37), ("push", 1), ("pushf", 2.5), ("EXT", 3),
+            ("push", 37), ("push", 2), ("push", 3), ("EXT", 3),
+            ("push", 37), ("push", 3), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3),
+            ("push", 0), ("RET",),
+        ]
+        program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
+        scenario = harness.record(program, tagged, [100], 0, "100/s0", namespace="monster")
+        # The reference makes the handler store nothing, so that call leaves no event.
+        self.assertEqual(
+            [event for event in scenario.events if event[0] == "ext"],
+            [("ext", 37, 2, (1, 2.5), (), "f32"), ("ext", 37, 2, (2, 3), (), "s32")],
+        )
+
+    def test_output_takes_the_handlers_type_and_loads_read_its_bits(self):
+        # ProgGet writes an integer; the script loads the variable as a float, which reads the integer's bits.
         body = [("push", 2), ("LOAD_ADDR", 0, LOCAL_FLOAT), ("EXT", 2), ("LOAD", 0, LOCAL_FLOAT), ("PRINT", 1), ("push", 0), ("RET",)]
         program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
         ext = next(i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.EXT)
@@ -334,22 +357,22 @@ class RecordTest(unittest.TestCase):
             scenario = harness.record(program, CATALOG, [100], seed, f"100/s{seed}", views=views)
             value = scenario.events[0][4][0]
             if value is not None:
-                self.assertIsInstance(value, float)
-                self.assertEqual(scenario.events[1], ("print", (value,)))
+                self.assertIsInstance(value, int)
+                self.assertEqual(scenario.events[1], ("print", (refvm.bits_to_float(value),)))
 
     def test_probed_call_records_the_referenced_values(self):
         program, calls = reference_fixture()
         scenario = harness.record(program, CATALOG, [100], 0, "100/s0", probes=frozenset(calls[:1]))
         self.assertEqual(scenario.events, [("ref", calls[0], (1,)), ("print", (1,)), ("print", (2,)), ("end", 0)])
 
-    def test_folded_float_operation_is_spelled_as_the_module_spells_it(self):
+    def test_folded_float_operation_is_the_float32_result(self):
         body = [("pushf", 3.1415927), ("pushf", 2.0), ("DIV",), ("PRINT", 1), ("push", 0), ("RET",)]
         program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (0, 0, body)}, "main", {100: "p100"}))
         divide = next(i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.DIV)
         exact = harness.record(program, CATALOG, [100], 0, "100/s0").events[0][1][0]
         folded = harness.record(program, CATALOG, [100], 0, "100/s0", folded=frozenset({divide})).events[0][1][0]
-        self.assertEqual(folded, numbers.literal(refvm.f32(exact)))
-        self.assertNotEqual(folded, exact)
+        self.assertEqual(folded, refvm.f32(refvm.f32(3.1415927) / 2.0))
+        self.assertEqual(folded, exact)
 
     def test_store_past_the_frame_cuts_the_trace_where_retail_goes_on(self):
         program = past_frame_fixture()
@@ -423,6 +446,52 @@ class DifferentialTest(unittest.TestCase):
         self.assertEqual(result["pass"], 4 * 4)
         self.assertEqual(result["coverage"], 1.0)
         self.assertEqual(result["compared"], 1.0)
+
+    def tagged_output_fixture(self, command, store):
+        """Program 100 gives local 0 a float or an integer tag, has the command write it, and prints it as a float."""
+        body = [
+            ("LOAD_ADDR", 0, LOCAL), store, ("STORE",), ("POP",),
+            ("push", command), ("LOAD_ADDR", 0, LOCAL), ("EXT", 2),
+            ("LOAD", 0, LOCAL_FLOAT), ("PRINT", 1), ("push", 0), ("RET",),
+        ]
+        return decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
+
+    TAGGED_CATALOG = {
+        "namespace": "action",
+        "commands": [
+            {"no": 163, "luau": "GetLife", "signatures": [{"argc": 1, "params": [
+                {"name": "life", "dir": "out", "type": "f32", "tagged": True}]}]},
+            {"no": 38, "luau": "VPop", "signatures": [{"argc": 1, "params": [
+                {"name": "value", "dir": "out", "type": "s32", "tagged": True, "copies": True}]}]},
+        ],
+    }
+
+    def tagged_module(self, call):
+        return (
+            'local script = {}\nscript.setup = function() end\n'
+            f'script[100] = function()\n    local x = 0.5\n    x = {call} or x\n    print(x)\n    return 0\nend\n'
+            'return script\n'
+        )
+
+    def test_wrong_variant_of_a_tag_branching_output_fails(self):
+        # The destination holds a float tag, so the handler writes the fraction; the Int variant asks for the life.
+        program = self.tagged_output_fixture(163, ("pushf", 0.5))
+        self.write_module(self.tagged_module("action.GetLife()"))
+        good = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(4))
+        self.assertEqual(good["fail"], [], good)
+        self.write_module(self.tagged_module("action.GetLifeInt()"))
+        bad = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(4))
+        self.assertTrue(any("the handler read f32, the call passes s32" in line for line in bad["fail"]), bad)
+
+    def test_wrong_variant_of_a_bit_copying_output_fails(self):
+        # VPop copies the stored bits; the script reads them as a float, which the Int variant reads as an integer.
+        program = self.tagged_output_fixture(38, ("pushf", 0.5))
+        self.write_module(self.tagged_module("action.VPopFloat()"))
+        good = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(8))
+        self.assertEqual(good["fail"], [], good)
+        self.write_module(self.tagged_module("action.VPopInt()"))
+        bad = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(8))
+        self.assertTrue(bad["fail"], bad)
 
     def test_integers_compare_exactly(self):
         self.write_module(GOOD_MODULE.replace("print(x)", "print(x + 0.0000001)"))

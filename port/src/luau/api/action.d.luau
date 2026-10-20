@@ -187,8 +187,8 @@ declare action: {
 	SetShot_4: (arg1: s32, arg2: string, arg3: s32, arg4: s32) -> (),
 	SetShot_5: (object_no: s32, arg2: string, arg3: s32, wait: s32, scale: f32) -> (),
 	--- Fires the ridepod's weapon from its muzzle frames.
-	Shot: () -> f32?,
-	Shot_1: () -> f32?,
+	Shot: (left: s32) -> (),
+	Shot_1: (left: s32) -> (),
 	--- Writes the world position of a named action object to script outputs.
 	GetObjectPos: (() -> s32?) & ((arg1: string) -> (f32?, f32?, f32?)),
 	GetObjectPos_1: () -> s32?,
@@ -220,8 +220,8 @@ declare action: {
 	SetMos_3: (arg1: string, arg2: s32, arg3: s32) -> (),
 	SetMos_4: (motion: string, speed: f32, flag: s32, chara_name: string) -> (),
 	--- Reports whether the current or named motion has ended.
-	CheckMosEnd: () -> s32?,
-	CheckMosEnd_1: () -> s32?,
+	CheckMosEnd: () -> f32?,
+	CheckMosEnd_1: () -> f32?,
 	--- Returns how far through its motion the character, or the named part, is.
 	NowMosWait: (() -> f32?) & ((name: string) -> f32?),
 	NowMosWait_1: () -> f32?,
@@ -246,8 +246,8 @@ declare action: {
 	SetDefaultMos: (default_motion: string) -> (),
 	SetDefaultMos_1: (default_motion: string) -> (),
 	--- Returns the action character motion change wait.
-	NowMosChgwait: () -> any?,
-	NowMosChgwait_1: () -> any?,
+	NowMosChgwait: () -> f32?,
+	NowMosChgwait_1: () -> f32?,
 	--- Slows the character's motion while its status condition slows it.
 	SetNeba2: () -> (),
 	SetNeba2_0: () -> (),
@@ -268,8 +268,14 @@ declare action: {
 	EsmDelete: (effect_id: s32) -> (),
 	EsmDelete_1: (effect_id: s32) -> (),
 	--- Sets an integer or float value in an effect script slot.
-	EsmSetValue: (effect_id: s32, value_no: s32, arg3: s32) -> (),
-	EsmSetValue_3: (effect_id: s32, value_no: s32, arg3: s32) -> (),
+	EsmSetValue: (effect_id: s32, value_no: s32, value: s32) -> (),
+	EsmSetValue_3: (effect_id: s32, value_no: s32, value: s32) -> (),
+	--- EsmSetValue with its value as an integer.
+	EsmSetValueInt: (effect_id: s32, value_no: s32, value: s32) -> (),
+	EsmSetValueInt_3: (effect_id: s32, value_no: s32, value: s32) -> (),
+	--- EsmSetValue with its value as a float.
+	EsmSetValueFloat: (effect_id: s32, value_no: s32, value: f32) -> (),
+	EsmSetValueFloat_3: (effect_id: s32, value_no: s32, value: f32) -> (),
 	--- Calls a command number that this kind does not register, or an arity the catalog does not list; it returns nothing.
 	Ext: (no: number, ...any) -> (),
 }

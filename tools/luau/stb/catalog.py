@@ -127,7 +127,8 @@ def _apply(command: dict, curation: dict) -> None:
             while len(signature["params"]) <= i:
                 signature["params"].append({"name": f"arg{len(signature['params']) + 1}", "dir": "in", "type": "unknown"})
             signature["params"][i].update(param)
-            signature["params"][i]["name_source"] = "curated"
+            if "name" in param:
+                signature["params"][i]["name_source"] = "curated"
         signature.pop("review", None) if overrides.get("reviewed") else None
     command["curated"] = True
 

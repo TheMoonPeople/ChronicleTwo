@@ -140,10 +140,9 @@ Done for the action kind. `docs/PORT_LUAU.md` "Transpiler" describes the pipelin
 - Known approximations (documented in the contract):
   - Float literals are the shortest decimal, so a comparison with an engine float that equals a literal's exact float32 can differ from retail.
   - Integer arithmetic wraps where the interval analysis cannot keep it inside 32 bits. A product of two integers beyond 2^53 loses its low bits in `vm.i32`, since Luau multiplies doubles.
-  - A reference passed where a handler reads a value (`ProgSet` in `c01win`/`f204a`) passes the variable's value, where retail passed the pointer's bits.
+  - A reference passed where a handler reads a value (`ProgSet` in `c01win`/`f204a`) is refused, and those scripts stay on the interpreter (see M3 runtime).
 - Open:
   - Curate the auto names (`helper_<hash>`, `varN`) in M5.
-  - `action.NowMosChgwait`'s output is `unknown` in the catalogue.
   - `transpile.py` still reads `data.zip` through 7-Zip. It could take `--dc2data` as `survey.py` now does.
 
 ### M3/M4 transpilation (effect, monster, event)
@@ -200,7 +199,6 @@ Action scripts (Max, Monica, the Ridepod and monster transformations) run on Lua
     - name effect programs 100 and 200, which `EFFECT_SCRIPT_PROG` leaves unnamed;
     - map pack members (`effscript.cpp` `GetPackFile`), the language fallbacks and script-built names through `ModuleForScript`;
     - implement skip mode (`CRunScript::skip` currently resumes) and argument scripts.
-  - **Catalogue.** `action.NowMosChgwait`'s output is `unknown` in the catalogue, although its handler writes a float. The runtime reads unknown outputs by their bits, so curate it as `f32` in `tools/luau/curation.json`.
   - **macOS.** macOS has not been built with Luau; CI covers it.
   - **Packages.** The Windows zip (`tools/windows/package.ps1`) and the macOS tarball (`pc.yml`) ship neither `scripts/` nor `glyphs/`, so those packages run the action scripts on the interpreter. The Flatpak installs both through CMake. Add `scripts/` to both packages before the interpreter is retired.
 

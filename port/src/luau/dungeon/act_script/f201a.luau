@@ -2,10 +2,10 @@
 -- dungeon/act_script/f201a.stb: action script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_72d1daf9 = require("@lib/action/helper_72d1daf9")
-local helper_77acd540 = require("@lib/action/helper_77acd540")
-local helper_9f2e9866 = require("@lib/action/helper_9f2e9866")
-local helper_cd42357d = require("@lib/action/helper_cd42357d")
+local helper_1512c7e0 = require("@lib/action/helper_1512c7e0")
+local helper_1eb83da1 = require("@lib/action/helper_1eb83da1")
+local helper_37f14ce7 = require("@lib/action/helper_37f14ce7")
+local helper_42e38fa0 = require("@lib/action/helper_42e38fa0")
 
 --- Helper function.
 local function helper_11b4()
@@ -17,7 +17,7 @@ local function helper_11b4()
 		action.SetMos("避け攻撃", -1, 6)
 		vm.wait()
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.01 and var4 <= 0.3 then
+		if var4 >= vm.f32(0.01) and var4 <= vm.f32(0.3) then
 			action.SetBlowMove(2.0, 0.0, 2)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -57,7 +57,7 @@ function script.loop()
 		prog = action.ProgGet() or prog
 		if prog >= 100 and prog < 199 then
 			action.SetTrgAngle(40.0, 5.0)
-			helper_cd42357d()
+			helper_1eb83da1()
 		end
 		if prog >= 200 and prog < 299 then
 			action.SetTrgAngle(40.0, 5.0)
@@ -81,19 +81,19 @@ function script.loop()
 end
 
 --- Reacts to a small hit.
-script.on_small_damage = helper_9f2e9866
+script.on_small_damage = helper_1512c7e0
 
 --- Holds the character in place.
-script.on_hold = helper_9f2e9866
+script.on_hold = helper_1512c7e0
 
 --- Reacts to a large hit.
-script.on_large_damage = helper_72d1daf9
+script.on_large_damage = helper_42e38fa0
 
 --- Follows up a melee hit that the character has landed.
 -- Defined empty, so the engine runs this instead of its default.
 function script.on_melee_hit() end
 
 --- Runs the character's death.
-script.on_death = helper_77acd540
+script.on_death = helper_37f14ce7
 
 return script

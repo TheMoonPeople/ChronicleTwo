@@ -88,6 +88,11 @@ export type u16 = number
 export type s32 = number
 export type u32 = number
 export type f32 = number
+-- The C library's single-precision sine and cosine, as the host links them.
+declare cmath: {{
+\tsinf: (x: number) -> number,
+\tcosf: (x: number) -> number,
+}}
 """
 
 
@@ -97,6 +102,37 @@ class DeclarationTest(unittest.TestCase):
         self.assertEqual(sorted(files), ["demo.d.luau", "types.d.luau"])
         self.assertEqual(files["demo.d.luau"], EXPECTED_DEMO)
         self.assertEqual(files["types.d.luau"], EXPECTED_TYPES)
+
+    def test_tagged_signatures_get_int_and_float_variants(self):
+        catalog = {
+            "kinds": {
+                "demo": {
+                    "namespace": "demo",
+                    "commands": [
+                        {
+                            "no": 3,
+                            "luau": "Rand",
+                            "description": "",
+                            "signatures": [
+                                {"argc": 1, "params": [{"name": "out1", "dir": "out", "type": "s32"}]},
+                                {
+                                    "argc": 2,
+                                    "params": [
+                                        {"name": "range", "dir": "in", "type": "f32", "tagged": True},
+                                        {"name": "value", "dir": "out", "type": "f32", "tagged": True},
+                                    ],
+                                },
+                            ],
+                        }
+                    ],
+                }
+            }
+        }
+        text = api.declarations(catalog)["demo.d.luau"]
+        self.assertIn("\t--- Rand with its value as an integer.\n\tRandInt: (range: s32) -> s32?,\n", text)
+        self.assertIn("\tRandInt_2: (range: s32) -> s32?,\n", text)
+        self.assertIn("\tRandFloat: (range: f32) -> f32?,\n\tRandFloat_2: (range: f32) -> f32?,\n", text)
+        self.assertNotIn("RandInt_1", text)
 
     def test_write_creates_files_and_reports_stale_ones(self):
         with tempfile.TemporaryDirectory() as directory:

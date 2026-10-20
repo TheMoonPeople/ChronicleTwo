@@ -2,13 +2,13 @@
 -- mainchr/c01.stb: action script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_1f0fc9e1 = require("@lib/action/helper_1f0fc9e1")
-local helper_2a4fd538 = require("@lib/action/helper_2a4fd538")
-local helper_6322acfa = require("@lib/action/helper_6322acfa")
+local helper_47e6f5ef = require("@lib/action/helper_47e6f5ef")
+local helper_9da84b8b = require("@lib/action/helper_9da84b8b")
 local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
-local helper_ca3a0d08 = require("@lib/action/helper_ca3a0d08")
-local helper_ee2817e0 = require("@lib/action/helper_ee2817e0")
-local helper_f5a9cb5b = require("@lib/action/helper_f5a9cb5b")
+local helper_c97ab93c = require("@lib/action/helper_c97ab93c")
+local helper_cc6c712f = require("@lib/action/helper_cc6c712f")
+local helper_d6400fa5 = require("@lib/action/helper_d6400fa5")
+local helper_eb0c92cb = require("@lib/action/helper_eb0c92cb")
 
 local global0: s32 = 0
 local global1: s32 = 0
@@ -31,10 +31,10 @@ local function helper_2734()
 	if prog == 100 then
 		action.SetMos("5連続攻撃1", -1, 2)
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.05 and var4 <= 0.4 then
+		if var4 >= vm.f32(0.05) and var4 <= vm.f32(0.4) then
 			action.SetBlowMove(0.6, 0.0, 1)
 		end
-		if var4 >= 0.714 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.714) and var4 <= 1.0 then
 			action.SetBlowMove(0.8, 0.0, 1)
 		end
 		acumu_pad = action.GetAcumuPad() or acumu_pad
@@ -43,7 +43,7 @@ local function helper_2734()
 			action.ProgSet(1200)
 			return
 		end
-		if var4 >= 0.33 and var4 <= 0.45 then
+		if var4 >= vm.f32(0.33) and var4 <= vm.f32(0.45) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃2", -1, 6)
@@ -63,14 +63,14 @@ local function helper_2734()
 	if prog == 101 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.409 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.409) then
 			action.SetBlowMove(0.93, 0.0, 1)
 		end
-		if var4 >= 0.464 and var4 <= 0.545 then
+		if var4 >= vm.f32(0.464) and var4 <= vm.f32(0.545) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				var7 = action.CheckFrontKey() or var7
-				if var7 > 0.6 then
+				if var7 > vm.f32(0.6) then
 					action.SetMos("3段目", -1, 6)
 					action.SetTrgAngle(40.0, 2.0)
 					action.ProgSet(105)
@@ -96,10 +96,10 @@ local function helper_2734()
 		if var4 >= 0.0 and var4 <= 0.375 then
 			action.SetBlowMove(0.63, 0.0, 1)
 		end
-		if var4 >= 0.675 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.675) and var4 <= 1.0 then
 			action.SetBlowMove(0.6, 0.0, 1)
 		end
-		if var4 >= 0.5 and var4 <= 0.55 then
+		if var4 >= 0.5 and var4 <= vm.f32(0.55) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃4", -1, 6)
@@ -119,10 +119,10 @@ local function helper_2734()
 	if prog == 103 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.339 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.339) then
 			action.SetBlowMove(0.787, 0.0, 1)
 		end
-		if var4 >= 0.47 and var4 <= 0.522 then
+		if var4 >= vm.f32(0.47) and var4 <= vm.f32(0.522) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃5", -1, 6)
@@ -140,10 +140,10 @@ local function helper_2734()
 	end
 	if prog == 104 then
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.24 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.24) then
 			action.SetBlowMove(0.85, 0.0, 1)
 		end
-		if var4 >= 0.7 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.7) and var4 <= 1.0 then
 			action.SetBlowMove(0.4, 0.0, 1)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -155,7 +155,7 @@ local function helper_2734()
 	if prog == 105 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.8 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.8) then
 			action.SetBlowMove(0.8, 0.0, 1)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -179,13 +179,13 @@ local function helper_3fb8()
 	if prog == 100 then
 		action.SetMos("5連続攻撃1", -1, 2)
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.05 and var4 <= 0.267 then
+		if var4 >= vm.f32(0.05) and var4 <= vm.f32(0.267) then
 			action.SetBlowMove(0.6, 0.0, 1)
 		end
-		if var4 >= 0.711 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.711) and var4 <= 1.0 then
 			action.SetBlowMove(0.8, 0.0, 1)
 		end
-		if var4 >= 0.41 and var4 < 0.44 then
+		if var4 >= vm.f32(0.41) and var4 < vm.f32(0.44) then
 			action.CameraQuake(4.0, 8)
 		end
 		acumu_pad = action.GetAcumuPad() or acumu_pad
@@ -194,7 +194,7 @@ local function helper_3fb8()
 			action.ProgSet(1200)
 			return
 		end
-		if var4 >= 0.45 and var4 <= 0.67 then
+		if var4 >= vm.f32(0.45) and var4 <= vm.f32(0.67) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃2", -1, 6)
@@ -214,14 +214,14 @@ local function helper_3fb8()
 	if prog == 101 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.22 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.22) then
 			action.SetBlowMove(0.93, 0.0, 1)
 		end
-		if var4 >= 0.5 and var4 <= 0.65 then
+		if var4 >= 0.5 and var4 <= vm.f32(0.65) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				var7 = action.CheckFrontKey() or var7
-				if var7 > 0.6 then
+				if var7 > vm.f32(0.6) then
 					action.SetMos("3段目", -1, 6)
 					action.SetTrgAngle(40.0, 2.0)
 					action.ProgSet(105)
@@ -244,13 +244,13 @@ local function helper_3fb8()
 	if prog == 102 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.23 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.23) then
 			action.SetBlowMove(0.63, 0.0, 1)
 		end
-		if var4 >= 0.966 and var4 <= 1.0 then
+		if var4 >= vm.f32(0.966) and var4 <= 1.0 then
 			action.SetBlowMove(0.6, 0.0, 1)
 		end
-		if var4 >= 0.5 and var4 <= 0.6 then
+		if var4 >= 0.5 and var4 <= vm.f32(0.6) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃4", -1, 6)
@@ -270,10 +270,10 @@ local function helper_3fb8()
 	if prog == 103 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.15 and var4 <= 0.406 then
+		if var4 >= vm.f32(0.15) and var4 <= vm.f32(0.406) then
 			action.SetBlowMove(1.8, 0.0, 1)
 		end
-		if var4 >= 0.41 and var4 < 0.44 then
+		if var4 >= vm.f32(0.41) and var4 < vm.f32(0.44) then
 			action.CameraQuake(5.0, 10)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -309,7 +309,7 @@ local function helper_5524()
 	if prog == 100 then
 		action.SetMos("5連続攻撃1", -1, 2)
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.05 and var4 <= 0.267 then
+		if var4 >= vm.f32(0.05) and var4 <= vm.f32(0.267) then
 			action.SetBlowMove(0.6, 0.0, 1)
 		end
 		acumu_pad = action.GetAcumuPad() or acumu_pad
@@ -318,7 +318,7 @@ local function helper_5524()
 			action.ProgSet(1200)
 			return
 		end
-		if var4 >= 0.52 and var4 <= 0.67 then
+		if var4 >= vm.f32(0.52) and var4 <= vm.f32(0.67) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃2", -1, 6)
@@ -338,14 +338,14 @@ local function helper_5524()
 	if prog == 101 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.42 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.42) then
 			action.SetBlowMove(0.93, 0.0, 1)
 		end
-		if var4 >= 0.6 and var4 <= 0.7 then
+		if var4 >= vm.f32(0.6) and var4 <= vm.f32(0.7) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				var7 = action.CheckFrontKey() or var7
-				if var7 > 0.6 then
+				if var7 > vm.f32(0.6) then
 					action.SetMos("3段目", -1, 6)
 					action.SetTrgAngle(40.0, 2.0)
 					action.ProgSet(105)
@@ -368,10 +368,10 @@ local function helper_5524()
 	if prog == 102 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.36 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.36) then
 			action.SetBlowMove(0.8, 0.0, 1)
 		end
-		if var4 >= 0.5 and var4 <= 0.65 then
+		if var4 >= 0.5 and var4 <= vm.f32(0.65) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃4", -1, 6)
@@ -391,10 +391,10 @@ local function helper_5524()
 	if prog == 103 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.0 and var4 <= 0.35 then
+		if var4 >= 0.0 and var4 <= vm.f32(0.35) then
 			action.SetBlowMove(0.8, 0.0, 1)
 		end
-		if var4 >= 0.6 and var4 <= 0.7 then
+		if var4 >= vm.f32(0.6) and var4 <= vm.f32(0.7) then
 			var0 = action.GetPadHistory() or var0
 			if var0 ~= 0 then
 				action.SetMos("5連続攻撃5", -1, 6)
@@ -414,7 +414,7 @@ local function helper_5524()
 	if prog == 104 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.34 and var4 <= 0.6 then
+		if var4 >= vm.f32(0.34) and var4 <= vm.f32(0.6) then
 			action.SetBlowMove(1.8, 0.0, 1)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -426,10 +426,10 @@ local function helper_5524()
 	if prog == 105 then
 		var1 = action.GetMosStatus() or var1
 		var4 = action.NowMosWait() or var4
-		if var4 >= 0.05 and var4 <= 0.236 then
+		if var4 >= vm.f32(0.05) and var4 <= vm.f32(0.236) then
 			action.SetBlowMove(1.0, 0.0, 1)
 		end
-		if var4 >= 0.236 and var4 <= 0.5 then
+		if var4 >= vm.f32(0.236) and var4 <= 0.5 then
 			action.SetBlowMove(1.8, 0.0, 1)
 		end
 		var1 = action.GetMosStatus() or var1
@@ -467,7 +467,7 @@ local function helper_724c()
 	if prog == 801 then
 		action.SetMos("発砲", -1, 6)
 		var4 = action.NowMosWait() or var4
-		if var4 > 0.1 and var4 < 0.2 then
+		if var4 > vm.f32(0.1) and var4 < vm.f32(0.2) then
 			action.SetShot(6, "n_gun", 2, 5)
 		end
 		var0 = action.GetMosStatus() or var0
@@ -541,7 +541,7 @@ local function helper_7cf4()
 	if prog == 841 then
 		action.SetMos("発砲", -1, 6)
 		var4 = action.NowMosWait() or var4
-		if var4 > 0.1 and var4 < 0.2 then
+		if var4 > vm.f32(0.1) and var4 < vm.f32(0.2) then
 			action.SetShot(6, "n_gun", 2, 5)
 		end
 		var0 = action.GetMosStatus() or var0
@@ -555,7 +555,7 @@ end
 
 --- Helper function.
 local function helper_8290()
-	local var0: s32 = 0
+	local result: s32 = 0
 	local prog: s32 = 0
 	local var2: s32 = 0
 	local var3: s32 = 0
@@ -571,8 +571,8 @@ local function helper_8290()
 		action.SetMos("ガード入り", -1, 6)
 		action.SetGuardFlag(1)
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(prog + 1)
 		end
 		return
@@ -595,12 +595,12 @@ local function helper_8290()
 	if prog == 902 then
 		action.SetMos("持ち上げ", -1, 2)
 		var5 = action.NowMosWait() or var5
-		if var5 >= 0.14 and var5 < 0.233 then
+		if var5 >= vm.f32(0.14) and var5 < vm.f32(0.233) then
 			action.CheckCatch("nage")
 		end
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			hold_type = action.CheckHandObj() or hold_type
 			if hold_type == 3 or hold_type == 4 then
 				action.ProgSet(prog + 1)
@@ -623,11 +623,11 @@ local function helper_8290()
 	if prog == 904 then
 		action.SetMos("投げ", -1, 6)
 		var7 = action.NowMosWait() or var7
-		if var7 >= 0.315 then
+		if var7 >= vm.f32(0.315) then
 			action.ReleaseObj(1)
 		end
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(0)
 		end
 		return
@@ -636,7 +636,7 @@ end
 
 --- Helper function.
 local function helper_909c()
-	local var0: s32 = 0
+	local result: s32 = 0
 	local prog: s32 = 0
 	local var2: s32 = 0
 	local var3: f32 = 0
@@ -654,12 +654,12 @@ local function helper_909c()
 		action.SetMos("持ち上げ", -1, 2)
 		var3 = action.NowMosWait() or var3
 		print("wait =", var3, "\n")
-		if var3 >= 0.14 and var3 < 0.233 then
+		if var3 >= vm.f32(0.14) and var3 < vm.f32(0.233) then
 			action.CheckCatch("nage")
 		end
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			hold_type = action.CheckHandObj() or hold_type
 			if hold_type == 3 or hold_type == 4 then
 				action.ProgSet(prog + 1)
@@ -681,11 +681,11 @@ local function helper_909c()
 	if prog == 1103 then
 		action.SetMos("投げ", -1, 6)
 		var5 = action.NowMosWait() or var5
-		if var5 >= 0.315 then
+		if var5 >= vm.f32(0.315) then
 			action.ReleaseObj(1)
 		end
-		var0 = action.CheckMosEnd() or var0
-		if var0 ~= 0 then
+		result = vm.float_bits(action.CheckMosEnd()) or result
+		if result ~= 0 then
 			action.ProgSet(0)
 		end
 		return
@@ -841,19 +841,19 @@ function script.loop()
 			end
 		end
 		if prog >= 200 and prog < 299 then
-			helper_f5a9cb5b()
+			helper_eb0c92cb()
 		end
 		if prog >= 1200 and prog < 1299 then
-			helper_ca3a0d08()
+			helper_d6400fa5()
 		end
 		if prog >= 1300 and prog < 1399 then
-			helper_1f0fc9e1()
+			helper_cc6c712f()
 			prog = 0
 			var1 = 0
 		end
 		if prog >= 300 and prog < 399 then
 			action.SetTrgAngle(40.0, 2.0)
-			helper_2a4fd538()
+			helper_47e6f5ef()
 		end
 		if prog >= 800 and prog < 819 then
 			helper_724c()
@@ -872,7 +872,7 @@ function script.loop()
 			action.SetNeba2()
 		end
 		if prog >= 1000 and prog < 1099 then
-			helper_6322acfa()
+			helper_c97ab93c()
 			action.SetNeba2()
 		end
 		if prog >= 1100 and prog < 1199 then
@@ -889,7 +889,7 @@ function script.loop()
 				else
 					var10 = action.CheckFrontKey() or var10
 					var11 = action.GetTrgDistance() or var11
-					if var10 > 0.85 and (var11 > 40.0 and var11 < 100.0) then
+					if var10 > vm.f32(0.85) and (var11 > 40.0 and var11 < 100.0) then
 						action.SetTrgAngle(40.0, 2.0)
 						prog = 200
 						action.SetMurderous(0, 3)
@@ -982,23 +982,23 @@ function script.on_large_damage()
 	action.SetBlowAngle()
 	action.ReleaseObj(0)
 	action.SetMos("吹っ飛び", -1, 6)
-	helper_ee2817e0()
+	helper_9da84b8b()
 	helper_bac4ec65(10)
 	action.SetMos("起き上がり", -1, 6)
-	helper_ee2817e0()
+	helper_9da84b8b()
 	helper_bac4ec65(2)
 	action.ProgSet(0)
 end
 
 --- Follows up a melee hit that the character has landed.
 function script.on_melee_hit()
-	local var0: s32 = 0
+	local result: s32 = 0
 	action.SetBlowMove(0.0, 0.0, 0)
 	action.SetMos("ガード後", -1, 2)
-	var0 = 0
-	while var0 == 0 do
+	result = 0
+	while result == 0 do
 		vm.wait()
-		var0 = action.CheckMosEnd() or var0
+		result = vm.float_bits(action.CheckMosEnd()) or result
 	end
 end
 
@@ -1013,7 +1013,7 @@ end
 --- Lands the character after a fall.
 function script.on_land()
 	action.ReleaseObj(0)
-	helper_ee2817e0()
+	helper_9da84b8b()
 	action.SetMos("バトル立ち")
 	vm.wait()
 end

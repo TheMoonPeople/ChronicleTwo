@@ -4,23 +4,23 @@ declare effect: {
 	ZeroVector: () -> (f32?, f32?, f32?),
 	ZeroVector_3: () -> (f32?, f32?, f32?),
 	--- Normalizes a vector stored in three effect script outputs.
-	NormalVector: () -> (f32?, f32?, f32?),
-	NormalVector_3: () -> (f32?, f32?, f32?),
+	NormalVector: (x: f32, y: f32, z: f32) -> (f32?, f32?, f32?),
+	NormalVector_3: (x: f32, y: f32, z: f32) -> (f32?, f32?, f32?),
 	--- Copies three script vector components to output slots.
 	CopyVector: (vector_x_2: f32, vector_y_2: f32, vector_z_2: f32) -> (f32?, f32?, f32?),
 	CopyVector_6: (vector_x_2: f32, vector_y_2: f32, vector_z_2: f32) -> (f32?, f32?, f32?),
 	--- Adds a script vector to three output components.
-	AddVector: (vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
-	AddVector_6: (vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
+	AddVector: (x: f32, y: f32, z: f32, vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
+	AddVector_6: (x: f32, y: f32, z: f32, vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
 	--- Subtracts a script vector from three output components.
-	SubVector: (vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
-	SubVector_6: (vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
+	SubVector: (x: f32, y: f32, z: f32, vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
+	SubVector_6: (x: f32, y: f32, z: f32, vector_x: f32, vector_y: f32, vector_z: f32) -> (f32?, f32?, f32?),
 	--- Scales three output vector components by a script value.
-	ScaleVector: (scale: f32) -> (f32?, f32?, f32?),
-	ScaleVector_4: (scale: f32) -> (f32?, f32?, f32?),
+	ScaleVector: (x: f32, y: f32, z: f32, scale: f32) -> (f32?, f32?, f32?),
+	ScaleVector_4: (x: f32, y: f32, z: f32, scale: f32) -> (f32?, f32?, f32?),
 	--- Divides three output vector components by a nonzero script value.
-	DivVector: (divisor: f32) -> (f32?, f32?, f32?),
-	DivVector_4: (divisor: f32) -> (f32?, f32?, f32?),
+	DivVector: (x: f32, y: f32, z: f32, divisor: f32) -> (f32?, f32?, f32?),
+	DivVector_4: (x: f32, y: f32, z: f32, divisor: f32) -> (f32?, f32?, f32?),
 	--- Returns the length of a script vector.
 	DistVector: (vector_x: f32, vector_y: f32, vector_z: f32) -> f32?,
 	DistVector_4: (vector_x: f32, vector_y: f32, vector_z: f32) -> f32?,
@@ -37,11 +37,17 @@ declare effect: {
 	AngleCmp: (first_angle: f32, second_angle: f32, c: f32) -> s32?,
 	AngleCmp_4: (first_angle: f32, second_angle: f32, c: f32) -> s32?,
 	--- Wraps a script angle into the engine angle range.
-	AngleLimit: () -> f32?,
-	AngleLimit_1: () -> f32?,
+	AngleLimit: (angle: f32) -> f32?,
+	AngleLimit_1: (angle: f32) -> f32?,
 	--- Returns a random integer or float within a script range.
-	GetRand: (arg1: f32) -> f32?,
-	GetRand_2: (arg1: f32) -> f32?,
+	GetRand: (range: f32) -> f32?,
+	GetRand_2: (range: f32) -> f32?,
+	--- GetRand with its value as an integer.
+	GetRandInt: (range: s32) -> s32?,
+	GetRandInt_2: (range: s32) -> s32?,
+	--- GetRand with its value as a float.
+	GetRandFloat: (range: f32) -> f32?,
+	GetRandFloat_2: (range: f32) -> f32?,
 	--- Returns the yaw or full rotation from one script position to another.
 	GetRefRot: (from_x: f32, from_y: f32, from_z: f32, dir_x: f32, dir_y: f32, dir_z: f32) -> (f32?, f32?, f32?),
 	GetRefRot_7: (from_x: f32, from_y: f32, from_z: f32, dir_x: f32, dir_y: f32, dir_z: f32) -> f32?,
@@ -53,8 +59,8 @@ declare effect: {
 	SetOrigin: (origin: f32, origin_2: f32, origin_3: f32) -> (),
 	SetOrigin_3: (origin: f32, origin_2: f32, origin_3: f32) -> (),
 	--- Returns the origin offset of the current effect script.
-	GetOrigin: () -> (any?, any?, any?),
-	GetOrigin_3: () -> (any?, any?, any?),
+	GetOrigin: () -> (f32?, f32?, f32?),
+	GetOrigin_3: () -> (f32?, f32?, f32?),
 	--- Configures automatic effect offset from a named frame.
 	AutoSetOffset: (offset: s32, name: string) -> (),
 	AutoSetOffset_2: (offset: s32, name: string) -> (),
@@ -71,19 +77,31 @@ declare effect: {
 	GetUserId: () -> s32?,
 	GetUserId_1: () -> s32?,
 	--- Returns a typed value from the current effect script.
-	GetValue: (arg1: s32) -> s32?,
-	GetValue_2: (arg1: s32) -> s32?,
+	GetValue: (index: s32) -> s32?,
+	GetValue_2: (index: s32) -> s32?,
+	--- GetValue with its value as an integer.
+	GetValueInt: (index: s32) -> s32?,
+	GetValueInt_2: (index: s32) -> s32?,
+	--- GetValue with its value as a float.
+	GetValueFloat: (index: s32) -> f32?,
+	GetValueFloat_2: (index: s32) -> f32?,
 	--- Stores a typed value in the current effect script.
-	SetValue: (arg1: s32, arg2: f32) -> (),
-	SetValue_2: (arg1: s32, arg2: f32) -> (),
+	SetValue: (index: s32, value: f32) -> (),
+	SetValue_2: (index: s32, value: f32) -> (),
+	--- SetValue with its value as an integer.
+	SetValueInt: (index: s32, value: s32) -> (),
+	SetValueInt_2: (index: s32, value: s32) -> (),
+	--- SetValue with its value as a float.
+	SetValueFloat: (index: s32, value: f32) -> (),
+	SetValueFloat_2: (index: s32, value: f32) -> (),
 	--- Changes primary effect character visibility with optional fading.
 	ChrSetShow: ((show: s32) -> ()) & ((arg1: s32, arg2: s32) -> ()) & ((arg1: s32, arg2: s32, arg3: f32) -> ()),
 	ChrSetShow_1: (show: s32) -> (),
 	ChrSetShow_2: (arg1: s32, arg2: s32) -> (),
 	ChrSetShow_3: (arg1: s32, arg2: s32, arg3: f32) -> (),
 	--- Returns primary effect character visibility and fade state.
-	ChrGetShow: () -> (any?, any?),
-	ChrGetShow_2: () -> (any?, any?),
+	ChrGetShow: () -> (s32?, s32?),
+	ChrGetShow_2: () -> (s32?, s32?),
 	--- Sets the primary effect character position.
 	ChrSetPos: (vector_x: f32, vector_y: f32, vector_z: f32) -> (),
 	ChrSetPos_3: (vector_x: f32, vector_y: f32, vector_z: f32) -> (),
@@ -412,9 +430,17 @@ declare effect: {
 	EsSetColprim: () -> (),
 	EsSetColprim_0: () -> (),
 	--- Sets a typed value in a child effect script.
-	EsSetValue: ((arg1: s32, arg2: s32) -> ()) & ((arg1: s32, arg2: s32, arg3: s32) -> ()),
-	EsSetValue_2: (arg1: s32, arg2: s32) -> (),
-	EsSetValue_3: (arg1: s32, arg2: s32, arg3: s32) -> (),
+	EsSetValue: ((index: s32, value: s32) -> ()) & ((target_id: s32, index: s32, value: s32) -> ()),
+	EsSetValue_2: (index: s32, value: s32) -> (),
+	EsSetValue_3: (target_id: s32, index: s32, value: s32) -> (),
+	--- EsSetValue with its value as an integer.
+	EsSetValueInt: ((index: s32, value: s32) -> ()) & ((target_id: s32, index: s32, value: s32) -> ()),
+	EsSetValueInt_2: (index: s32, value: s32) -> (),
+	EsSetValueInt_3: (target_id: s32, index: s32, value: s32) -> (),
+	--- EsSetValue with its value as a float.
+	EsSetValueFloat: ((index: s32, value: f32) -> ()) & ((target_id: s32, index: s32, value: f32) -> ()),
+	EsSetValueFloat_2: (index: s32, value: f32) -> (),
+	EsSetValueFloat_3: (target_id: s32, index: s32, value: f32) -> (),
 	--- Returns the position of an event object handle.
 	GetEohPos: (arg1: s32) -> (f32?, f32?, f32?),
 	GetEohPos_4: (arg1: s32) -> (f32?, f32?, f32?),

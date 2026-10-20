@@ -139,6 +139,9 @@ class ExtCall:
     command: int
     args: tuple[Expr, ...]
     offset: int = -1
+    # Per argument, from stb2luau/tags.py: ("value", tags) for a value, ("ref", tags at the call, interpretations of the
+    # reads of what the call writes) for a reference, or None; empty when the call was not analysed.
+    tags: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)

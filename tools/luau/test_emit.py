@@ -1,3 +1,4 @@
+import struct
 import sys
 import unittest
 from pathlib import Path
@@ -69,6 +70,32 @@ CATALOG = {
                                 {"name": "x", "dir": "out", "type": "f32"},
                                 {"name": "y", "dir": "out", "type": "f32"},
                                 {"name": "z", "dir": "out", "type": "f32"},
+                            ],
+                        }
+                    ],
+                },
+                {
+                    "no": 60,
+                    "luau": "VPush",
+                    "signatures": [
+                        {
+                            "argc": 2,
+                            "params": [
+                                {"name": "index", "dir": "in", "type": "s32"},
+                                {"name": "value", "dir": "in", "type": "s32", "tagged": True},
+                            ],
+                        }
+                    ],
+                },
+                {
+                    "no": 61,
+                    "luau": "VPop",
+                    "signatures": [
+                        {
+                            "argc": 2,
+                            "params": [
+                                {"name": "index", "dir": "in", "type": "s32"},
+                                {"name": "value", "dir": "out", "type": "s32", "tagged": True},
                             ],
                         }
                     ],
@@ -344,6 +371,20 @@ class EmitTest(unittest.TestCase):
         self.assertIn("\tprint(0.1, 2.0, 1e-05)\n", emit_text(main_function(body)).text)
         self.assertIn("\tprint(20.0)\n", emit_text(main_function([ir.Print((const(20.0, ir.FLOAT),))])).text)
 
+    def test_float_arithmetic_and_constants_are_float32(self):
+        tenth = struct.unpack("<f", struct.pack("<f", 0.1))[0]
+        slots = {("local", 0): ir.FLOAT, ("local", 1): ir.FLOAT}
+        body = [
+            ir.Assign(("local", 1), ir.Binary("mul", var(0, ir.FLOAT), const(tenth, ir.FLOAT), ir.FLOAT)),
+            ir.Assign(("local", 0), ir.Unary("sin", var(1, ir.FLOAT), ir.FLOAT)),
+            ir.ExtCall(60, (const(1), const(tenth, ir.FLOAT))),
+        ]
+        text = emit_text(main_function(body, slots=slots)).text
+        self.assertIn("\tvar1 = vm.f32(var0 * vm.f32(0.1))\n", text)
+        self.assertIn("\tvar0 = vm.sin(var1)\n", text)
+        # A native call rounds its float arguments itself.
+        self.assertIn("\taction.VPushFloat(1, 0.1)\n", text)
+
     def test_unread_temp_is_discarded_into_underscore(self):
         body = [ir.Assign(ir.Temp(0, ir.INT), const(2))]
         result = emit_text(function(0x40, body, temps=[ir.INT], programs=[1])).text
@@ -424,37 +465,81 @@ class EmitTest(unittest.TestCase):
         result = emit_text(function(0x40, body, programs=[1])).text
         self.assertIn("\taction.Ext(30, 0, 1, 2, 3, 4) -- retail: the handler rejects 5 arguments\n", result)
 
-    def test_reference_in_input_position_is_commented(self):
+    def test_reference_where_the_handler_reads_a_value_is_refused(self):
+        # The PC interpreter would read the low bits of the variable's address, so the script stays on it.
         body = [ir.ExtCall(30, (addr(3), const(b"x", ir.STR)))]
-        result = emit_text(function(0x40, body, slots=ints(3), programs=[1])).text
-        self.assertIn(
-            "\taction.SetPallet(var3, \"x\") -- retail: argument 1 passes a reference where the handler reads a value\n",
-            result,
-        )
+        with self.assertRaisesRegex(EmitError, "reference the handler reads as a value"):
+            emit_text(function(0x40, body, slots=ints(3), programs=[1]))
 
-    def test_number_where_handler_reads_string_calls_ext(self):
+    def test_number_where_handler_reads_string_is_refused(self):
         body = [ir.ExtCall(30, (const(1), const(2)))]
+        with self.assertRaisesRegex(EmitError, "argument 2 is a number where the handler reads a string"):
+            emit_text(function(0x40, body, programs=[1]))
+
+    def test_string_where_handler_reads_number_is_refused(self):
+        body = [ir.ExtCall(30, (const(b"x", ir.STR), const(b"y", ir.STR)))]
+        with self.assertRaisesRegex(EmitError, "argument 1 is a string where the handler reads a number"):
+            emit_text(function(0x40, body, programs=[1]))
+
+    def test_output_is_reinterpreted_as_the_script_reads_it(self):
+        # ProgGet writes an integer; the script reads its variable as a float, which reads the integer's bits.
+        slots = {("local", 3): ir.FLOAT}
+        call = ir.ExtCall(2, (addr(3, ir.FLOAT),), tags=(("ref", ("int",), ("float",)),))
+        result = emit_text(function(0x40, [call, ir.Print((var(3, ir.FLOAT),))], slots=slots, programs=[1])).text
+        self.assertIn("\tprog = vm.bits_float(action.ProgGet()) or prog\n", result)
+
+    def test_output_read_both_ways_is_refused(self):
+        call = ir.ExtCall(2, (addr(3),), tags=(("ref", ("int",), ("float", "int")),))
+        with self.assertRaisesRegex(EmitError, "reads what argument 1 receives as float and int"):
+            emit_text(function(0x40, [call, ir.Print((var(3),))], slots=ints(3), programs=[1]))
+
+    def test_tagged_output_follows_the_destination_tag(self):
+        # VPop on an integer-tagged variable read as a float: the variant follows the tag, the bits are reinterpreted.
+        slots = {("local", 3): ir.FLOAT}
+        call = ir.ExtCall(61, (const(1), addr(3, ir.FLOAT)), tags=(("value", ("int",)), ("ref", ("int",), ("float",))))
+        result = emit_text(function(0x40, [call, ir.Print((var(3, ir.FLOAT),))], slots=slots, programs=[1])).text
+        self.assertIn("\tvalue = vm.bits_float(action.VPop(1)) or value\n", result)
+        mixed = ir.ExtCall(61, (const(1), addr(3, ir.FLOAT)), tags=(("value", ("int",)), ("ref", ("float", "int"), ("float",))))
+        with self.assertRaisesRegex(EmitError, "may be float or int"):
+            emit_text(function(0x40, [mixed, ir.Print((var(3, ir.FLOAT),))], slots=slots, programs=[1]))
+
+    def test_tagged_command_takes_the_variant_of_its_argument_type(self):
+        slots = {("local", 3): ir.FLOAT, ("local", 4): ir.INT}
+        body = [
+            ir.ExtCall(60, (const(1), var(3, ir.FLOAT))),
+            ir.ExtCall(60, (const(2), var(4))),
+            ir.ExtCall(61, (const(1), addr(3, ir.FLOAT))),
+            ir.ExtCall(61, (const(2), addr(4))),
+            ir.Print((var(3, ir.FLOAT), var(4))),
+        ]
+        result = emit_text(function(0x40, body, slots=slots, programs=[1])).text
+        self.assertIn("\taction.VPushFloat(1, value)\n", result)
+        self.assertIn("\taction.VPush(2, value_2)\n", result)
+        self.assertIn("\tvalue = action.VPopFloat(1) or value\n", result)
+        self.assertIn("\tvalue_2 = action.VPop(2) or value_2\n", result)
+
+    def test_inout_reference_passes_the_value_and_assigns_the_result(self):
+        catalog = {"kinds": {"action": {**CATALOG["kinds"]["action"], "commands": [{
+            "no": 7, "luau": "AngleLimit",
+            "signatures": [{"argc": 1, "params": [{"name": "angle", "dir": "inout", "type": "f32"}]}],
+        }]}}}
+        body = [ir.ExtCall(7, (addr(3, ir.FLOAT),)), ir.Print((var(3, ir.FLOAT),))]
+        result = emit(module(function(0x40, body, slots={("local", 3): ir.FLOAT}, programs=[1])), catalog).text
+        self.assertIn("\tangle = action.AngleLimit(angle) or angle\n", result)
+        # An integer variable passes its bits as a float and reads back the bits of the float written into it.
+        body = [ir.ExtCall(7, (addr(3),)), ir.Print((var(3),))]
+        result = emit(module(function(0x40, body, slots=ints(3), programs=[1])), catalog).text
+        self.assertIn("\tangle = vm.float_bits(action.AngleLimit(vm.bits_float(angle) :: number)) or angle\n", result)
+
+    def test_reference_as_tagged_stored_value_does_nothing(self):
+        body = [ir.ExtCall(60, (const(1), addr(3)))]
         result = emit_text(function(0x40, body, programs=[1]))
         self.assertIn(
-            "\taction.Ext(30, 1, 2) -- retail: argument 2 is a number where the handler reads a string\n", result.text
+            "\t-- retail: action.VPush(1, var3) does nothing, since its handler stores only an integer or a float\n",
+            result.text,
         )
-        self.assertIn("argument 2 is a number where the handler reads a string", result.diagnostics)
-
-    def test_string_where_handler_reads_number_calls_ext(self):
-        body = [ir.ExtCall(30, (const(b"x", ir.STR), const(b"y", ir.STR)))]
-        result = emit_text(function(0x40, body, programs=[1])).text
-        self.assertIn(
-            '\taction.Ext(30, "x", "y") -- retail: argument 1 is a string where the handler reads a number\n', result
-        )
-
-    def test_mismatched_call_passes_reference_values(self):
-        body = [ir.ExtCall(30, (addr(3), const(2)))]
-        result = emit_text(function(0x40, body, slots=ints(3), programs=[1])).text
-        self.assertIn(
-            "\taction.Ext(30, var3, 2) -- retail: argument 1 passes a reference where the handler reads a value; "
-            "argument 2 is a number where the handler reads a string\n",
-            result,
-        )
+        self.assertNotIn("local var3", result.text)
+        self.assertIn("reference passed as the value VPush stores", result.diagnostics)
 
     def test_temp_is_declared_at_its_assignment(self):
         body = [ir.Assign(ir.Temp(0, ir.INT), const(2)), ir.Print((ir.Temp(0, ir.INT),))]
@@ -569,8 +654,8 @@ class EmitTest(unittest.TestCase):
             ir.Print((var(2, ir.FLOAT),)),
         ]
         text = emit_text(main_function(body, slots=slots)).text
-        self.assertIn("\tvar1 = vm.fdiv(var0, var2)\n", text)
-        self.assertIn("\tvar2 = var1 / 2.0\n", text)
+        self.assertIn("\tvar1 = vm.f32(vm.fdiv(var0, var2))\n", text)
+        self.assertIn("\tvar2 = vm.f32(var1 / 2.0)\n", text)
 
     def test_integer_constant_for_a_float_parameter_passes_its_bits(self):
         helper = function(0x30, [ir.Print((var(0, ir.FLOAT),))], arg=1, slots={("local", 0): ir.FLOAT})

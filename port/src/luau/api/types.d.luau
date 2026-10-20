@@ -7,3 +7,8 @@ export type u16 = number
 export type s32 = number
 export type u32 = number
 export type f32 = number
+-- The C library's single-precision sine and cosine, as the host links them.
+declare cmath: {
+	sinf: (x: number) -> number,
+	cosf: (x: number) -> number,
+}

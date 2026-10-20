@@ -80,9 +80,39 @@ function vm.index(i: number, n: number): number
     return i + 1
 end
 
--- Rounds a number to the nearest float32 value.
+-- Rounds a number to the nearest float32 value, as the PS2 rounds every float operation. A vector's components are
+-- float32s, which makes this a native conversion.
 function vm.f32(x: number): number
-    local value: number = string.unpack("<f", string.pack("<f", x)) :: any
+    return vector.create(x, 0, 0).x
+end
+
+-- The single-precision sine and cosine of the C library the game links, which the interpreter's SIN and COS call; the
+-- host provides them as cmath.sinf and cmath.cosf. Rounding a double-precision sine differs in the last bit.
+function vm.sin(x: number): number
+    return cmath.sinf(x)
+end
+
+function vm.cos(x: number): number
+    return cmath.cosf(x)
+end
+
+-- The float whose 32 bits are the integer's: what a float load of a variable reads after a handler wrote an integer
+-- into it, or a handler reading a float through a reference reads of an integer variable. nil stays nil.
+function vm.bits_float(x: number?): number?
+    if x == nil then
+        return nil
+    end
+    local value: number = string.unpack("<f", string.pack("<i4", vm.i32(x))) :: any
+    return value
+end
+
+-- The integer whose 32 bits are the float's: what an integer load of an integer-tagged variable reads after a handler
+-- wrote a float into it. nil stays nil.
+function vm.float_bits(x: number?): number?
+    if x == nil then
+        return nil
+    end
+    local value: number = string.unpack("<i4", string.pack("<f", x)) :: any
     return value
 end
 

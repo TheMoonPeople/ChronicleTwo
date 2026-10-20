@@ -510,21 +510,69 @@ int ClampToInt(double value) {
 
 /**
  *
- * Counts the parameters of a signature that have the given direction.
+ * Counts the parameters of a signature that take an input (In) or return an output (Out); an in-out parameter does both.
  *
  */
 std::size_t CountParams(const luau_bindings::Signature &signature, luau_bindings::Direction direction) {
     return static_cast<std::size_t>(std::count_if(signature.params.begin(), signature.params.end(), [direction](const luau_bindings::Param &param) {
-        return param.direction == direction;
+        return param.direction == direction || param.direction == luau_bindings::Direction::InOut;
     }));
 }
 
 /**
  *
- * Calls a native command with a signature's parameters, returning its outputs to the script.
+ * Integer or float type a command variant gives its tagged parameters, or none for the catalogued types.
  *
  */
-int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_bindings::Signature &signature) {
+enum class Variant : unsigned char {
+    Catalogued, /**< Every parameter keeps its catalogued type. */
+    Int,        /**< Tagged parameters are integers. */
+    Float,      /**< Tagged parameters are floats. */
+};
+
+/**
+ *
+ * Name suffix of a command variant, after the command's name and before any arity suffix.
+ *
+ */
+std::string_view VariantSuffix(Variant variant) {
+    switch (variant) {
+        case Variant::Int:
+            return "Int";
+        case Variant::Float:
+            return "Float";
+        default:
+            return "";
+    }
+}
+
+/**
+ *
+ * Type a parameter takes in a variant: its catalogued type, or the variant's type for a tagged parameter.
+ *
+ */
+luau_bindings::Type ParamType(const luau_bindings::Param &param, Variant variant) {
+    if (!param.tagged || variant == Variant::Catalogued) {
+        return param.type;
+    }
+    return variant == Variant::Float ? luau_bindings::Type::F32 : luau_bindings::Type::S32;
+}
+
+/**
+ *
+ * Reports whether a signature has a parameter whose integer or float type the call chooses.
+ *
+ */
+bool HasTagged(const luau_bindings::Signature &signature) {
+    return std::ranges::any_of(signature.params, &luau_bindings::Param::tagged);
+}
+
+/**
+ *
+ * Calls a native command with a signature's parameters, typed for a variant, returning its outputs to the script.
+ *
+ */
+int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_bindings::Signature &signature, Variant variant) {
     const std::size_t param_count = signature.params.size();
     if (param_count > kMaxArguments) {
         const std::string message = std::format("{} takes more than {} arguments", CommandLabel(command), kMaxArguments);
@@ -540,15 +588,22 @@ int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_
     int next_arg = 1;
     for (std::size_t index = 0; index < param_count; ++index) {
         const luau_bindings::Param &param = signature.params[index];
+        const luau_bindings::Type   type = ParamType(param, variant);
         RS_STACKDATA               &slot = slots[index + 1];
         if (param.direction == luau_bindings::Direction::In) {
-            MarshalValue(lua, next_arg++, param.type, slot, &command);
+            MarshalValue(lua, next_arg++, type, slot, &command);
             continue;
         }
+        // The output's tag is the variable's, which a tagged handler reads to choose what it writes. An in-out output
+        // holds the variable's value, which the handler reads through the reference.
         RS_STACKDATA &output = outputs[output_count];
-        output.type = param.type == luau_bindings::Type::F32 ? RS_FLOAT : RS_INT;
-        output.val.i = kUnwritten;
-        output_types[output_count] = param.type;
+        if (param.direction == luau_bindings::Direction::InOut) {
+            MarshalValue(lua, next_arg++, type, output, &command);
+        } else {
+            output.type = type == luau_bindings::Type::F32 ? RS_FLOAT : RS_INT;
+            output.val.i = kUnwritten;
+        }
+        output_types[output_count] = type;
         ++output_count;
         slot.type = RS_PTR;
         slot.val.p = &output;
@@ -585,27 +640,37 @@ int CallGeneric(lua_State *lua, int no, int first, const luau_bindings::Command 
 
 /**
  *
- * Lua entry point for one signature of a native command, with the command and signature as upvalues.
+ * Reads the variant a command closure was registered for from its upvalue.
+ *
+ */
+Variant UpvalueVariant(lua_State *lua, int index) {
+    return static_cast<Variant>(lua_tointegerx(lua, lua_upvalueindex(index), nullptr));
+}
+
+/**
+ *
+ * Lua entry point for one signature of a native command, with the command, signature and variant as upvalues.
  *
  */
 int CallSignature(lua_State *lua) {
     const auto &command = *static_cast<const luau_bindings::Command *>(lua_tolightuserdata(lua, lua_upvalueindex(1)));
     const auto &signature = *static_cast<const luau_bindings::Signature *>(lua_tolightuserdata(lua, lua_upvalueindex(2)));
-    return CallTyped(lua, command, signature);
+    return CallTyped(lua, command, signature, UpvalueVariant(lua, 3));
 }
 
 /**
  *
- * Lua entry point for a native command name, choosing the signature that matches the argument count.
+ * Lua entry point for a native command name, choosing the signature that matches the argument count; a variant chooses among the tagged signatures only.
  *
  */
 int CallCommand(lua_State *lua) {
     const auto                     &command = *static_cast<const luau_bindings::Command *>(lua_tolightuserdata(lua, lua_upvalueindex(1)));
+    const Variant                   variant = UpvalueVariant(lua, 2);
     const auto                      count = static_cast<std::size_t>(lua_gettop(lua));
     const luau_bindings::Signature *chosen = nullptr;
     std::size_t                     matches = 0;
     for (const luau_bindings::Signature &signature : command.signatures) {
-        if (CountParams(signature, luau_bindings::Direction::In) != count) {
+        if (CountParams(signature, luau_bindings::Direction::In) != count || (variant != Variant::Catalogued && !HasTagged(signature))) {
             continue;
         }
         ++matches;
@@ -617,12 +682,12 @@ int CallCommand(lua_State *lua) {
         return CallGeneric(lua, command.no, 1, &command);
     }
     if (matches > 1) {
-        const std::string label = CommandLabel(command);
+        const std::string label = std::format("{}{}", CommandLabel(command), VariantSuffix(variant));
         if (ambiguous_commands.insert(label).second) {
             CT_LOG_WARN(Script, "luau: {}: {} arguments match {} signatures; using the one with the most outputs", label, count, matches);
         }
     }
-    return CallTyped(lua, command, *chosen);
+    return CallTyped(lua, command, *chosen, variant);
 }
 
 /**
@@ -728,24 +793,42 @@ int Require(lua_State *lua) {
 
 /**
  *
- * Creates one read-only global table per native namespace, holding each command and its generic Ext entry.
+ * Adds a command's entries for one variant to the namespace table on top of lua: the arity-dispatching name and one name per signature; a variant covers only the tagged signatures.
+ *
+ */
+void RegisterCommand(lua_State *lua, const luau_bindings::Command &command, Variant variant) {
+    const std::string name = std::format("{}{}", command.name, VariantSuffix(variant));
+    for (const luau_bindings::Signature &signature : command.signatures) {
+        if (variant != Variant::Catalogued && !HasTagged(signature)) {
+            continue;
+        }
+        const std::string field = std::format("{}_{}", name, signature.argc);
+        lua_pushlightuserdata(lua, Userdata(&command));
+        lua_pushlightuserdata(lua, Userdata(&signature));
+        lua_pushinteger(lua, static_cast<int>(variant));
+        lua_pushcclosure(lua, CallSignature, field.c_str(), 3);
+        lua_setfield(lua, -2, field.c_str());
+    }
+    lua_pushlightuserdata(lua, Userdata(&command));
+    lua_pushinteger(lua, static_cast<int>(variant));
+    lua_pushcclosure(lua, CallCommand, name.c_str(), 2);
+    lua_setfield(lua, -2, name.c_str());
+}
+
+/**
+ *
+ * Creates one read-only global table per native namespace, holding each command, the Int and Float variants of commands with tagged parameters, and the generic Ext entry.
  *
  */
 void RegisterNamespaces(lua_State *lua) {
     for (const luau_bindings::Kind &kind : luau_bindings::Kinds()) {
         lua_createtable(lua, 0, 0);
         for (const luau_bindings::Command &command : kind.commands) {
-            const std::string name(command.name);
-            for (const luau_bindings::Signature &signature : command.signatures) {
-                const std::string field = std::format("{}_{}", name, signature.argc);
-                lua_pushlightuserdata(lua, Userdata(&command));
-                lua_pushlightuserdata(lua, Userdata(&signature));
-                lua_pushcclosure(lua, CallSignature, field.c_str(), 2);
-                lua_setfield(lua, -2, field.c_str());
+            RegisterCommand(lua, command, Variant::Catalogued);
+            if (std::ranges::any_of(command.signatures, HasTagged)) {
+                RegisterCommand(lua, command, Variant::Int);
+                RegisterCommand(lua, command, Variant::Float);
             }
-            lua_pushlightuserdata(lua, Userdata(&command));
-            lua_pushcclosure(lua, CallCommand, name.c_str(), 1);
-            lua_setfield(lua, -2, name.c_str());
         }
         lua_pushcclosure(lua, CallExt, "Ext", 0);
         lua_setfield(lua, -2, "Ext");
@@ -753,6 +836,41 @@ void RegisterNamespaces(lua_State *lua) {
         const std::string space(kind.space);
         lua_setfield(lua, LUA_GLOBALSINDEX, space.c_str());
     }
+}
+
+/**
+ *
+ * cmath.sinf: the C library's single-precision sine, which the interpreter's SIN calls.
+ *
+ */
+int Sinf(lua_State *lua) {
+    lua_pushnumber(lua, static_cast<double>(std::sin(static_cast<float>(luaL_checknumber(lua, 1)))));
+    return 1;
+}
+
+/**
+ *
+ * cmath.cosf: the C library's single-precision cosine, which the interpreter's COS calls.
+ *
+ */
+int Cosf(lua_State *lua) {
+    lua_pushnumber(lua, static_cast<double>(std::cos(static_cast<float>(luaL_checknumber(lua, 1)))));
+    return 1;
+}
+
+/**
+ *
+ * Creates the global cmath table of the C library's float functions the vm library calls.
+ *
+ */
+void RegisterCmath(lua_State *lua) {
+    lua_createtable(lua, 0, 2);
+    lua_pushcfunction(lua, Sinf, "sinf");
+    lua_setfield(lua, -2, "sinf");
+    lua_pushcfunction(lua, Cosf, "cosf");
+    lua_setfield(lua, -2, "cosf");
+    lua_setreadonly(lua, -1, 1);
+    lua_setglobal(lua, "cmath");
 }
 
 /**
@@ -776,6 +894,7 @@ lua_State *EnsureState() {
     lua_pushcfunction(state, Require, "require");
     lua_setglobal(state, "require");
     RegisterNamespaces(state);
+    RegisterCmath(state);
 
     lua_createtable(state, 0, 0);
     module_cache_ref = lua_ref(state, -1);

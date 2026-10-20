@@ -3349,9 +3349,9 @@
        "files": 3,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
-         "type": "f32",
+         "name": "left",
+         "dir": "in",
+         "type": "s32",
          "observed": {
           "in s32": 5,
           "out f32": 6
@@ -3359,14 +3359,17 @@
          "constants": [
           0
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "name_source": "curated"
         }
        ],
        "review": [
         "parameter 1: call sites pass both values and references"
        ]
       }
-     ]
+     ],
+     "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+     "curated": true
     },
     {
      "no": 103,
@@ -3834,16 +3837,19 @@
        "files": 25,
        "params": [
         {
-         "name": "out1",
+         "name": "result",
          "dir": "out",
-         "type": "s32",
+         "type": "f32",
          "observed": {
           "out s32": 131
-         }
+         },
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes a float.",
+     "curated": true
     },
     {
      "no": 132,
@@ -4116,7 +4122,7 @@
         {
          "name": "get_chg_step_wait",
          "dir": "out",
-         "type": "unknown",
+         "type": "f32",
          "name_source": "handler"
         }
        ],
@@ -4124,7 +4130,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes a float.",
+     "curated": true
     },
     {
      "no": 140,
@@ -4450,7 +4458,7 @@
          "distinct_constants": 2
         },
         {
-         "name": "arg3",
+         "name": "value",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -4462,11 +4470,15 @@
           10.0,
           2
          ],
-         "distinct_constants": 3
+         "distinct_constants": 3,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Stores the value as an integer or a float by its slot's tag.",
+     "curated": true
     }
    ]
   },
@@ -4531,35 +4543,37 @@
        "files": 99,
        "params": [
         {
-         "name": "vector_x",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 198
          }
         },
         {
-         "name": "vector_y",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 198
          }
         },
         {
-         "name": "vector_z",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 198
          }
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 2,
@@ -4676,28 +4690,31 @@
        "files": 97,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 180
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 180
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 180
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "vector_x",
@@ -4741,7 +4758,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 4,
@@ -4761,28 +4780,31 @@
        "files": 48,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 68
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 68
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 68
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "vector_x",
@@ -4817,7 +4839,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 5,
@@ -4837,28 +4861,31 @@
        "files": 103,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 257
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 257
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 257
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "scale",
@@ -4882,7 +4909,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 6,
@@ -4902,28 +4931,31 @@
        "files": 24,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 39
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 39
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 39
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "divisor",
@@ -4947,7 +4979,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 7,
@@ -5248,16 +5282,19 @@
        "files": 39,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "angle",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 122
-         }
+         },
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 13,
@@ -5277,7 +5314,7 @@
        "files": 85,
        "params": [
         {
-         "name": "arg1",
+         "name": "range",
          "dir": "in",
          "type": "f32",
          "observed": {
@@ -5294,20 +5331,26 @@
           10.0,
           0.01
          ],
-         "distinct_constants": 38
+         "distinct_constants": 38,
+         "tagged": true,
+         "name_source": "curated"
         },
         {
-         "name": "out2",
+         "name": "value",
          "dir": "out",
          "type": "f32",
          "observed": {
           "out f32": 425,
           "out s32": 43
-         }
+         },
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "An integer range gives an integer, a float range a float.",
+     "curated": true
     },
     {
      "no": 14,
@@ -5630,19 +5673,19 @@
         {
          "name": "origin_x",
          "dir": "out",
-         "type": "unknown",
+         "type": "f32",
          "name_source": "handler"
         },
         {
          "name": "origin_y",
          "dir": "out",
-         "type": "unknown",
+         "type": "f32",
          "name_source": "handler"
         },
         {
          "name": "origin_z",
          "dir": "out",
-         "type": "unknown",
+         "type": "f32",
          "name_source": "handler"
         }
        ],
@@ -5652,7 +5695,9 @@
         "parameter 3: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes a float.",
+     "curated": true
     },
     {
      "no": 52,
@@ -5861,7 +5906,7 @@
        "files": 166,
        "params": [
         {
-         "name": "arg1",
+         "name": "index",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -5877,20 +5922,26 @@
           5,
           6
          ],
-         "distinct_constants": 8
+         "distinct_constants": 8,
+         "name_source": "curated"
         },
         {
-         "name": "out2",
+         "name": "value",
          "dir": "out",
          "type": "s32",
          "observed": {
           "out f32": 106,
           "out s32": 205
-         }
+         },
+         "tagged": true,
+         "copies": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Copies the stored bits as an integer or a float by the output variable's tag; either branch copies the same bits.",
+     "curated": true
     },
     {
      "no": 58,
@@ -5910,7 +5961,7 @@
        "files": 6,
        "params": [
         {
-         "name": "arg1",
+         "name": "index",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -5925,10 +5976,11 @@
           6,
           7
          ],
-         "distinct_constants": 7
+         "distinct_constants": 7,
+         "name_source": "curated"
         },
         {
-         "name": "arg2",
+         "name": "value",
          "dir": "in",
          "type": "f32",
          "observed": {
@@ -5945,11 +5997,15 @@
           250.0,
           64.0
          ],
-         "distinct_constants": 10
+         "distinct_constants": 10,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Stores the value as an integer or a float by its slot's tag.",
+     "curated": true
     },
     {
      "no": 100,
@@ -6089,13 +6145,13 @@
         {
          "name": "get_show",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         },
         {
          "name": "fade",
          "dir": "out",
-         "type": "unknown",
+         "type": "s32",
          "name_source": "handler"
         }
        ],
@@ -6104,7 +6160,9 @@
         "parameter 2: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 102,
@@ -13934,7 +13992,7 @@
        "files": 29,
        "params": [
         {
-         "name": "arg1",
+         "name": "index",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -13944,10 +14002,11 @@
           0,
           1
          ],
-         "distinct_constants": 2
+         "distinct_constants": 2,
+         "name_source": "curated"
         },
         {
-         "name": "arg2",
+         "name": "value",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -13961,7 +14020,9 @@
           0,
           4
          ],
-         "distinct_constants": 5
+         "distinct_constants": 5,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       },
@@ -13971,15 +14032,16 @@
        "files": 2,
        "params": [
         {
-         "name": "arg1",
+         "name": "target_id",
          "dir": "in",
          "type": "s32",
          "observed": {
           "in s32": 8
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "arg2",
+         "name": "index",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -13990,10 +14052,11 @@
           0,
           1
          ],
-         "distinct_constants": 3
+         "distinct_constants": 3,
+         "name_source": "curated"
         },
         {
-         "name": "arg3",
+         "name": "value",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -14004,11 +14067,15 @@
           0,
           1
          ],
-         "distinct_constants": 2
+         "distinct_constants": 2,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Stores the value as an integer or a float by its slot's tag.",
+     "curated": true
     },
     {
      "no": 251,
@@ -14183,35 +14250,37 @@
        "files": 125,
        "params": [
         {
-         "name": "vec_x",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 746
          }
         },
         {
-         "name": "vec_y",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 746
          }
         },
         {
-         "name": "vec_z",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 746
          }
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 1,
@@ -14324,28 +14393,31 @@
        "files": 119,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 468
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 468
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 468
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "arg4",
@@ -14373,7 +14445,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 3,
@@ -14393,28 +14467,31 @@
        "files": 126,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 720
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 720
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 720
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "arg4",
@@ -14442,7 +14519,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 4,
@@ -14462,28 +14541,31 @@
        "files": 119,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 475
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 475
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 475
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "scale",
@@ -14502,7 +14584,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 5,
@@ -14522,19 +14606,22 @@
        "files": 0,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
-         "type": "unknown"
+         "name": "x",
+         "dir": "inout",
+         "type": "f32",
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
-         "type": "unknown"
+         "name": "y",
+         "dir": "inout",
+         "type": "f32",
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
-         "type": "unknown"
+         "name": "z",
+         "dir": "inout",
+         "type": "f32",
+         "name_source": "curated"
         },
         {
          "name": "divisor",
@@ -14549,7 +14636,9 @@
         "parameter 3: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 6,
@@ -14587,16 +14676,19 @@
          "name_source": "handler"
         },
         {
-         "name": "out4",
+         "name": "result",
          "dir": "out",
-         "type": "unknown"
+         "type": "s32",
+         "name_source": "curated"
         }
        ],
        "review": [
         "parameter 4: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 7,
@@ -14616,16 +14708,19 @@
        "files": 5,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "angle",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 30
-         }
+         },
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 8,
@@ -15961,14 +16056,17 @@
           2,
           -1
          ],
-         "distinct_constants": 30
+         "distinct_constants": 30,
+         "tagged": true
         }
        ],
        "review": [
         "parameter 2: call sites pass both values and references"
        ]
       }
-     ]
+     ],
+     "notes": "Stores the value as an integer or a float by its slot's tag.",
+     "curated": true
     },
     {
      "no": 38,
@@ -16012,17 +16110,22 @@
          "distinct_constants": 39
         },
         {
-         "name": "out2",
+         "name": "value",
          "dir": "out",
          "type": "s32",
          "observed": {
           "out f32": 41,
           "out s32": 318
-         }
+         },
+         "tagged": true,
+         "copies": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Copies the stored bits as an integer or a float by the output variable's tag; either branch copies the same bits.",
+     "curated": true
     },
     {
      "no": 39,
@@ -16107,15 +16210,17 @@
         {
          "name": "refer_no",
          "dir": "out",
-         "type": "unknown",
-         "name_source": "handler"
+         "type": "s16",
+         "name_source": "curated"
         }
        ],
        "review": [
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes an integer.",
+     "curated": true
     },
     {
      "no": 42,
@@ -16867,20 +16972,22 @@
        "files": 7,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
-         "type": "f32",
+         "name": "flags",
+         "dir": "in",
+         "type": "s32",
          "observed": {
           "out f32": 50
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
+         "name": "result",
          "dir": "out",
-         "type": "f32",
+         "type": "s32",
          "observed": {
           "out f32": 50
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "out3",
@@ -16892,7 +16999,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits. It writes the integer flags into the second argument.",
+     "curated": true
     },
     {
      "no": 53,
@@ -17322,11 +17431,14 @@
           16,
           32
          ],
-         "distinct_constants": 7
+         "distinct_constants": 7,
+         "tagged": true
         }
        ]
       }
-     ]
+     ],
+     "notes": "Stores the value as an integer or a float by its slot's tag.",
+     "curated": true
     },
     {
      "no": 60,
@@ -17385,17 +17497,22 @@
          "distinct_constants": 11
         },
         {
-         "name": "out2",
+         "name": "value",
          "dir": "out",
          "type": "s32",
          "observed": {
           "out f32": 164,
           "out s32": 399
-         }
+         },
+         "tagged": true,
+         "copies": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Copies the stored bits as an integer or a float by the output variable's tag; either branch copies the same bits.",
+     "curated": true
     },
     {
      "no": 61,
@@ -17671,20 +17788,22 @@
        "files": 7,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
-         "type": "f32",
+         "name": "selector",
+         "dir": "in",
+         "type": "s32",
          "observed": {
           "out f32": 7
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
+         "name": "value",
          "dir": "out",
-         "type": "f32",
+         "type": "s32",
          "observed": {
           "out f32": 7
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "out3",
@@ -17696,7 +17815,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+     "curated": true
     },
     {
      "no": 65,
@@ -17716,18 +17837,19 @@
        "files": 4,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
-         "type": "f32",
+         "name": "monster_id",
+         "dir": "in",
+         "type": "s32",
          "observed": {
           "in s32": 1,
           "out f32": 61
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
-         "type": "f32",
+         "name": "sound",
+         "dir": "in",
+         "type": "s32",
          "observed": {
           "in s32": 1,
           "out f32": 61
@@ -17735,12 +17857,13 @@
          "constants": [
           4
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
-         "type": "f32",
+         "name": "flags",
+         "dir": "in",
+         "type": "s32",
          "observed": {
           "in s32": 1,
           "out f32": 61
@@ -17748,7 +17871,8 @@
          "constants": [
           45
          ],
-         "distinct_constants": 1
+         "distinct_constants": 1,
+         "name_source": "curated"
         }
        ],
        "review": [
@@ -17799,7 +17923,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+     "curated": true
     },
     {
      "no": 66,
@@ -18198,12 +18324,13 @@
        "files": 3,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
-         "type": "f32",
+         "name": "index",
+         "dir": "in",
+         "type": "s32",
          "observed": {
           "out f32": 33
-         }
+         },
+         "name_source": "curated"
         }
        ]
       },
@@ -18254,7 +18381,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+     "curated": true
     },
     {
      "no": 75,
@@ -18772,12 +18901,13 @@
          }
         },
         {
-         "name": "out4",
-         "dir": "out",
+         "name": "move_speed",
+         "dir": "in",
          "type": "f32",
          "observed": {
           "out f32": 12
-         }
+         },
+         "name_source": "curated"
         }
        ]
       },
@@ -18873,7 +19003,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+     "curated": true
     },
     {
      "no": 81,
@@ -19940,16 +20072,19 @@
          "name_source": "handler"
         },
         {
-         "name": "out2",
+         "name": "distance",
          "dir": "out",
-         "type": "unknown"
+         "type": "f32",
+         "name_source": "curated"
         }
        ],
        "review": [
         "parameter 2: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes a float.",
+     "curated": true
     },
     {
      "no": 100,
@@ -21903,12 +22038,13 @@
        "files": 3,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "status",
+         "dir": "in",
          "type": "s32",
          "observed": {
           "out s32": 6
-         }
+         },
+         "name_source": "curated"
         }
        ],
        "review": [
@@ -21947,7 +22083,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler reads this argument as a value; a script passing a reference makes it read the pointer's bits.",
+     "curated": true
     },
     {
      "no": 129,
@@ -22145,15 +22283,17 @@
         {
          "name": "gekirin",
          "dir": "out",
-         "type": "s32",
-         "name_source": "handler",
+         "type": "f32",
+         "name_source": "curated",
          "observed": {
           "out s32": 226
          }
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes the float gekirin.",
+     "curated": true
     },
     {
      "no": 135,
@@ -22728,7 +22868,7 @@
        "files": 25,
        "params": [
         {
-         "name": "arg1",
+         "name": "life",
          "dir": "in",
          "type": "f32",
          "observed": {
@@ -22742,7 +22882,9 @@
           0.67,
           0.34
          ],
-         "distinct_constants": 4
+         "distinct_constants": 4,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       },
@@ -22818,7 +22960,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "An integer sets the life, a float sets it as a fraction of the maximum.",
+     "curated": true
     },
     {
      "no": 163,
@@ -22838,17 +22982,21 @@
        "files": 95,
        "params": [
         {
-         "name": "out1",
+         "name": "life",
          "dir": "out",
          "type": "f32",
          "observed": {
           "out f32": 200,
           "out s32": 11
-         }
+         },
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "An integer variable receives the life, a float variable the fraction of the maximum.",
+     "curated": true
     },
     {
      "no": 164,
@@ -22870,8 +23018,8 @@
         {
          "name": "no_damage_cnt",
          "dir": "out",
-         "type": "f32",
-         "name_source": "handler",
+         "type": "s16",
+         "name_source": "curated",
          "observed": {
           "out f32": 6,
           "out s32": 5
@@ -22954,7 +23102,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The handler writes the s16 no_damage_cnt.",
+     "curated": true
     },
     {
      "no": 165,
@@ -24547,7 +24697,7 @@
          "distinct_constants": 8
         },
         {
-         "name": "arg3",
+         "name": "value",
          "dir": "in",
          "type": "s32",
          "observed": {
@@ -24564,11 +24714,15 @@
           0.01,
           0.3
          ],
-         "distinct_constants": 15
+         "distinct_constants": 15,
+         "tagged": true,
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Stores the value as an integer or a float by its slot's tag.",
+     "curated": true
     },
     {
      "no": 203,
@@ -56818,35 +56972,37 @@
        "files": 115,
        "params": [
         {
-         "name": "vec_x",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 673
          }
         },
         {
-         "name": "vec_y",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 673
          }
         },
         {
-         "name": "vec_z",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
-         "name_source": "handler",
+         "name_source": "curated",
          "observed": {
           "out f32": 673
          }
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 1002,
@@ -56963,28 +57119,31 @@
        "files": 127,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 1415
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 1415
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 1415
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "operand_x",
@@ -57015,7 +57174,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 1004,
@@ -57035,28 +57196,31 @@
        "files": 145,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 530
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 530
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 530
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "operand_x",
@@ -57108,7 +57272,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 1005,
@@ -57128,28 +57294,31 @@
        "files": 127,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "x",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 1368
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
+         "name": "y",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 1368
-         }
+         },
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
+         "name": "z",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 1368
-         }
+         },
+         "name_source": "curated"
         },
         {
          "name": "scale",
@@ -57173,7 +57342,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 1006,
@@ -57193,19 +57364,22 @@
        "files": 0,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
-         "type": "unknown"
+         "name": "x",
+         "dir": "inout",
+         "type": "f32",
+         "name_source": "curated"
         },
         {
-         "name": "out2",
-         "dir": "out",
-         "type": "unknown"
+         "name": "y",
+         "dir": "inout",
+         "type": "f32",
+         "name_source": "curated"
         },
         {
-         "name": "out3",
-         "dir": "out",
-         "type": "unknown"
+         "name": "z",
+         "dir": "inout",
+         "type": "f32",
+         "name_source": "curated"
         },
         {
          "name": "divisor",
@@ -57220,7 +57394,9 @@
         "parameter 3: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 1007,
@@ -57567,16 +57743,19 @@
        "files": 964,
        "params": [
         {
-         "name": "out1",
-         "dir": "out",
+         "name": "angle",
+         "dir": "inout",
          "type": "f32",
          "observed": {
           "out f32": 5997
-         }
+         },
+         "name_source": "curated"
         }
        ]
       }
-     ]
+     ],
+     "notes": "Reads the variables it writes, so they are passed in and returned.",
+     "curated": true
     },
     {
      "no": 1013,

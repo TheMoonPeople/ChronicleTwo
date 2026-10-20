@@ -1662,23 +1662,23 @@ declare event: {
 	ZeroVector: () -> (f32?, f32?, f32?),
 	ZeroVector_3: () -> (f32?, f32?, f32?),
 	--- Normalizes a vector and pushes the result.
-	NormalVector: () -> (f32?, f32?, f32?),
-	NormalVector_3: () -> (f32?, f32?, f32?),
+	NormalVector: (x: f32, y: f32, z: f32) -> (f32?, f32?, f32?),
+	NormalVector_3: (x: f32, y: f32, z: f32) -> (f32?, f32?, f32?),
 	--- Pushes a copy of a vector.
 	CopyVector: (vector_x_2: f32, vector_y_2: f32, vector_z_2: f32) -> (f32?, f32?, f32?),
 	CopyVector_6: (vector_x_2: f32, vector_y_2: f32, vector_z_2: f32) -> (f32?, f32?, f32?),
 	--- Adds a vector to a vector variable and stores the result in the variable.
-	AddVector: (operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
-	AddVector_6: (operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
+	AddVector: (x: f32, y: f32, z: f32, operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
+	AddVector_6: (x: f32, y: f32, z: f32, operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
 	--- Subtracts a vector from a vector variable and stores the result in the variable.
-	SubVector: (operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
-	SubVector_6: (operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
+	SubVector: (x: f32, y: f32, z: f32, operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
+	SubVector_6: (x: f32, y: f32, z: f32, operand_x: f32, operand_y: f32, operand_z: f32) -> (f32?, f32?, f32?),
 	--- Scales a vector variable by a float and stores the result in the variable.
-	ScaleVector: (scale: f32) -> (f32?, f32?, f32?),
-	ScaleVector_4: (scale: f32) -> (f32?, f32?, f32?),
+	ScaleVector: (x: f32, y: f32, z: f32, scale: f32) -> (f32?, f32?, f32?),
+	ScaleVector_4: (x: f32, y: f32, z: f32, scale: f32) -> (f32?, f32?, f32?),
 	--- Divides a vector variable by a float and stores the result in the variable, failing on a zero divisor.
-	DivVector: (divisor: f32) -> (any?, any?, any?),
-	DivVector_4: (divisor: f32) -> (any?, any?, any?),
+	DivVector: (x: f32, y: f32, z: f32, divisor: f32) -> (f32?, f32?, f32?),
+	DivVector_4: (x: f32, y: f32, z: f32, divisor: f32) -> (f32?, f32?, f32?),
 	--- Pushes the length of a vector.
 	DistVector: (arg1: f32, arg2: f32, arg3: f32) -> f32?,
 	DistVector_4: (arg1: f32, arg2: f32, arg3: f32) -> f32?,
@@ -1695,8 +1695,8 @@ declare event: {
 	AngleCmp: (first_angle: f32, second_angle: f32, tolerance: f32) -> s32?,
 	AngleCmp_4: (first_angle: f32, second_angle: f32, tolerance: f32) -> s32?,
 	--- Pushes an angle limited to the angle range.
-	AngleLimit: () -> f32?,
-	AngleLimit_1: () -> f32?,
+	AngleLimit: (angle: f32) -> f32?,
+	AngleLimit_1: (angle: f32) -> f32?,
 	--- Pushes a random float or integer in the range given, depending on the type of the range argument.
 	GetRand: (arg1: f32) -> f32?,
 	GetRand_2: (arg1: f32) -> f32?,

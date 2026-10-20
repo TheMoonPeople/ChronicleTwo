@@ -2,12 +2,12 @@
 -- dungeon/act_script/f26a.stb: action script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
 
 local vm = require("@lib/vm")
-local helper_72d1daf9 = require("@lib/action/helper_72d1daf9")
-local helper_77acd540 = require("@lib/action/helper_77acd540")
-local helper_9f2e9866 = require("@lib/action/helper_9f2e9866")
-local helper_cd42357d = require("@lib/action/helper_cd42357d")
-local helper_e8fedd84 = require("@lib/action/helper_e8fedd84")
-local helper_ee2817e0 = require("@lib/action/helper_ee2817e0")
+local helper_1512c7e0 = require("@lib/action/helper_1512c7e0")
+local helper_1eb83da1 = require("@lib/action/helper_1eb83da1")
+local helper_37f14ce7 = require("@lib/action/helper_37f14ce7")
+local helper_42e38fa0 = require("@lib/action/helper_42e38fa0")
+local helper_9559fe61 = require("@lib/action/helper_9559fe61")
+local helper_9da84b8b = require("@lib/action/helper_9da84b8b")
 
 --- Helper function.
 local function helper_f7c()
@@ -19,7 +19,7 @@ local function helper_f7c()
 	local rot_z: f32 = 0
 	local var10: s32 = 0
 	action.SetMos("攻撃２", -1, 6)
-	helper_e8fedd84(0.48, 0.52)
+	helper_9559fe61(vm.f32(0.48), vm.f32(0.52))
 	do
 		local out1, out2, out3 = action.GetObjectPos("dcol02")
 		var4 = out1 or var4
@@ -37,7 +37,7 @@ local function helper_f7c()
 	action.EsmSetVect1(-1, var4, var5, var6)
 	action.EsmSetVect2(-1, rot_x, rot_y, rot_z)
 	action.EsmSetValue(-1, 0, var10)
-	helper_ee2817e0()
+	helper_9da84b8b()
 	action.ProgSet(0)
 end
 
@@ -61,7 +61,7 @@ function script.loop()
 		prog = action.ProgGet() or prog
 		if prog >= 100 and prog < 199 then
 			action.SetTrgAngle(40.0, 5.0)
-			helper_cd42357d()
+			helper_1eb83da1()
 		end
 		if prog >= 200 and prog < 299 then
 			action.SetTrgAngle(40.0, 5.0)
@@ -85,19 +85,19 @@ function script.loop()
 end
 
 --- Reacts to a small hit.
-script.on_small_damage = helper_9f2e9866
+script.on_small_damage = helper_1512c7e0
 
 --- Holds the character in place.
-script.on_hold = helper_9f2e9866
+script.on_hold = helper_1512c7e0
 
 --- Reacts to a large hit.
-script.on_large_damage = helper_72d1daf9
+script.on_large_damage = helper_42e38fa0
 
 --- Follows up a melee hit that the character has landed.
 -- Defined empty, so the engine runs this instead of its default.
 function script.on_melee_hit() end
 
 --- Runs the character's death.
-script.on_death = helper_77acd540
+script.on_death = helper_37f14ce7
 
 return script

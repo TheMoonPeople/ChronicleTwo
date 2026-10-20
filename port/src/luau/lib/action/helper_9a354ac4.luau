@@ -4,7 +4,7 @@
 local vm = require("@lib/vm")
 
 --- Helper function.
-local function helper_4ccf4adc()
+local function helper_9a354ac4()
 	local var1: s32 = 0
 	local prog: s32 = 0
 	prog = action.ProgGet() or prog
@@ -19,4 +19,4 @@ local function helper_4ccf4adc()
 	end
 end
 
-return helper_4ccf4adc
+return helper_9a354ac4

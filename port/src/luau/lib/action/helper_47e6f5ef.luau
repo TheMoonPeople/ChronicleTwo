@@ -1,15 +1,15 @@
 --!strict
--- Shared action helper used by 4 scripts, translated by tools/luau/stb2luau.
+-- Shared action helper used by 3 scripts, translated by tools/luau/stb2luau.
 
 local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
 
 --- Helper function.
-local function helper_9708d5ca()
+local function helper_47e6f5ef()
 	local var0: s32 = 0
 	local prog: s32 = 0
 	prog = action.ProgGet() or prog
 	if prog == 300 then
-		action.SetMos("ダウン･剣", -1, 6)
+		action.SetMos("ダウン･蹴り", -1, 6)
 		action.ProgSet(prog + 1)
 	end
 	if prog == 301 then
@@ -22,4 +22,4 @@ local function helper_9708d5ca()
 	end
 end
 
-return helper_9708d5ca
+return helper_47e6f5ef
