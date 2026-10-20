@@ -599,23 +599,47 @@ void FillRegisters(Capture &capture, const ucontext_t &context) {
     capture.register_count = n;
 }
 
-std::uint64_t ProgramCounter(const Capture &capture) {
+/**
+ * Reads a captured register by name, or 0 when the platform does not capture it.
+ */
+std::uint64_t RegisterValue(const Capture &capture, const char *name) {
     for (std::size_t i = 0; i < capture.register_count; i++) {
-        if (std::strcmp(capture.register_names[i], "rip") == 0 || std::strcmp(capture.register_names[i], "pc") == 0) {
+        if (std::strcmp(capture.register_names[i], name) == 0) {
             return capture.register_values[i];
         }
     }
     return 0;
 }
 
-// The unwind starts inside this handler; the frames above the faulting instruction are dropped.
+std::uint64_t ProgramCounter(const Capture &capture) {
+    const std::uint64_t rip = RegisterValue(capture, "rip");
+    return rip != 0 ? rip : RegisterValue(capture, "pc");
+}
+
+/**
+ * Drops the frames before index and makes the faulting instruction the trace's first frame.
+ */
+void StartAtFault(Capture &capture, std::size_t index, std::uint64_t pc) {
+    std::memmove(capture.frames, capture.frames + index, (capture.frame_count - index) * sizeof(capture.frames[0]));
+    capture.frame_count -= index;
+    capture.frames[0] = pc;
+}
+
+// The unwind starts inside this handler; the frames above the faulting instruction are dropped. macOS's unwinder
+// leaves the signal trampoline through the link register, so the faulting instruction is never among the frames;
+// it then goes in front of the link register's frame, the caller of a faulting leaf function.
 void TrimToFault(Capture &capture) {
     const std::uint64_t pc = ProgramCounter(capture);
     for (std::size_t i = 0; i < capture.frame_count; i++) {
         if (capture.frames[i] == pc || capture.frames[i] + 1 == pc) {
-            std::memmove(capture.frames, capture.frames + i, (capture.frame_count - i) * sizeof(capture.frames[0]));
-            capture.frame_count -= i;
-            capture.frames[0] = pc;
+            StartAtFault(capture, i, pc);
+            return;
+        }
+    }
+    const std::uint64_t lr = RegisterValue(capture, "lr");
+    for (std::size_t i = 1; lr != 0 && i < capture.frame_count; i++) {
+        if (capture.frames[i] + 1 == lr) {
+            StartAtFault(capture, i - 1, pc);
             return;
         }
     }
