@@ -18,5 +18,5 @@ PORT_OVERRIDE int GetChrFileSize(u32 *model, int /*unused*/) {
         return std::numeric_limits<int>::max();
     }
     const auto bytes = (*estimate + 1023) / 1024 * 1024;
-    return static_cast<int>(std::min(bytes, static_cast<std::uint64_t>(std::numeric_limits<int>::max())));
+    return static_cast<int>(std::min<std::size_t>(bytes, std::numeric_limits<int>::max()));
 }
