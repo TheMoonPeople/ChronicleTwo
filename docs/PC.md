@@ -46,6 +46,8 @@ The test build is separate. After a `build.bat` run has fetched the toolchain:
 ctest --test-dir port/build/windows-x64-tests --output-on-failure -j4
 ```
 
+The Luau corpus tests (`Luau.Survey`, `Luau.Transpile`, `Luau.TranspileEvent` and `Luau.Mutate`) need the game data (`DC2_DATA`) and the Luau harness tools (`docs/PORT_LUAU.md`, "Tools"), and are skipped without them. `Luau.TranspileEvent` checks every event and event argument module and takes about ten minutes; `ctest -R Luau` runs these tests alone.
+
 Windows builds include the SDL, FFmpeg, C++/Rust runtime DLLs and the pinned redistributable Vulkan loader beside the executables. Acquisition includes the loader by default. CMake restores the runtime files on every build, including direct `cmake --build` calls; `cmake --install` also installs them. Running the built game requires no separate application runtime installation. A compatible graphics driver is still required.
 
 `tools/windows/package.ps1 -BuildDirectory port/build/windows-x64-tests -Destination chronicletwo-windows-x64.zip` packages CMake's explicit list of executables and runtime DLLs together with a gameplay-only `data.zip`. It audits each binary's imports and fails if a non-Windows dependency is missing. Packaging and installation exclude extracted disc assets, saves and disc images. First-run setup combines the shipped gameplay JSON with the user's disc data after launch.
