@@ -88,7 +88,7 @@ for each entry, in name order:
 | Key | Meaning |
 | --- | --- |
 | `schema_version` | 1 |
-| `data_version` | Extractor data version (`tools/kazarov/data_version.json`); version 19 places gameplay documents under `gameplay/`; version 18 introduced `textures/` and relocated PACK members |
+| `data_version` | Extractor data version (`tools/kazarov/data_version.json`); version 20 renames bare script asset names by their converted extension and rebakes every action of a frame that is scaled but never rotated from its authored matrix; version 19 places gameplay documents under `gameplay/`; version 18 introduced `textures/` and relocated PACK members |
 | `layout` | `"zip"` |
 | `archive_size` | Size of `data.zip` in bytes |
 | `archive_entries` | Number of entries |
