@@ -49,11 +49,12 @@ jobs:
           rustup default 1.99.0
           tools/ci/prebuilt-deps.sh linux-x64
 
-      # Lavapipe renders on the CPU, so the unit tests' per-case limit is widened from its 5 second default.
+      # Lavapipe renders on the CPU, so the unit tests' per-case limit is widened from its 5 second default, and the
+      # cases that compile every pipeline get three minutes: GfxGpuMeshDc2's fog cases take 26 to 128 s under -j4.
       # CT_SYMBOLS=split also writes darkchronicle.debug with objcopy, which the symboliser check reads.
       # Debug keeps the Vulkan validation layer and assertions on; the Flatpak is the shipped, Release Linux build.
       - name: Configure
-        run: cmake --preset linux-x64 -DCT_TEST_TIMEOUT=60 -DCT_PAL_TIMING_BASE="$CT_PAL_TIMING_BASE" -DCT_SYMBOLS=split
+        run: cmake --preset linux-x64 -DCT_TEST_TIMEOUT=60 -DCT_GPU_SLOW_TIMEOUT=180 -DCT_PAL_TIMING_BASE="$CT_PAL_TIMING_BASE" -DCT_SYMBOLS=split
 
       - name: Build
         run: cmake --build --preset linux-x64

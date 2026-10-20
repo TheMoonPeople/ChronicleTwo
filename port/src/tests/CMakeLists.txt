@@ -42,7 +42,7 @@ target_link_libraries(darkchronicle_tests PRIVATE GTest::gtest nlohmann_json::nl
 # pipelines or create a device per case take longer than 5 s under a parallel run, on lavapipe and on Windows, so they get at least 30 s, or CT_TEST_TIMEOUT when it is larger.
 # Cases that need a Vulkan device carry the gpu label: hosted runners have none and exclude them with -LE gpu.
 set(CT_TEST_TIMEOUT 5 CACHE STRING "Seconds a test case may run before it is cut off")
-set(CT_GPU_SLOW_TIMEOUT 30)
+set(CT_GPU_SLOW_TIMEOUT 30 CACHE STRING "Seconds a case in CT_GPU_SLOW_TESTS may run before it is cut off")
 if(CT_TEST_TIMEOUT GREATER CT_GPU_SLOW_TIMEOUT)
     set(CT_GPU_SLOW_TIMEOUT ${CT_TEST_TIMEOUT})
 endif()
