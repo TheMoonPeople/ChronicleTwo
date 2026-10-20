@@ -188,8 +188,6 @@ TEST(MglibProjection, DepthRoundTrip) {
 }
 
 TEST(MglibFrameDeathTest, ExitAfterFramesWritesScreenshot) {
-    GTEST_FLAG_SET(death_test_style, "threadsafe");
-
     const std::filesystem::path png = std::filesystem::temp_directory_path() /
                                       ("mglib_frame_shot_" + std::to_string(ProcessId()) + ".png");
     // The death child re-runs this preamble in a new process with a new ProcessId(), so the path is handed over by
