@@ -175,9 +175,15 @@ def _bits_to_float(bits: int) -> float:
     return struct.unpack("<f", struct.pack("<I", bits & 0xFFFFFFFF))[0]
 
 
+def nan_text(value: float) -> str:
+    """A Luau expression for a float32 NaN with its sign and payload, which 0 / 0 would replace with the default NaN."""
+    bits = struct.unpack("<I", struct.pack("<f", value))[0]
+    return f'(string.unpack("<f", string.pack("<I4", {bits:#010x})))'
+
+
 def _float_text(value: float) -> Text:
     if math.isnan(value):
-        return "0 / 0", Prec.MUL
+        return nan_text(value), Prec.ATOM
     if math.isinf(value):
         return ("-math.huge", Prec.UNARY) if value < 0 else ("math.huge", Prec.ATOM)
     text = numbers.shortest(abs(value))

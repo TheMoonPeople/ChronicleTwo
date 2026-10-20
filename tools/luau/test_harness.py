@@ -1,5 +1,8 @@
+import dataclasses
+import json
 import math
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -13,7 +16,7 @@ sys.path.insert(0, str(HERE))
 from stb.assembler import assemble  # noqa: E402
 from stb.opcodes import AddrMode, Compare, Op  # noqa: E402
 from stb.program import decode  # noqa: E402
-from stb2luau import harness, refvm  # noqa: E402
+from stb2luau import harness, refvm, transpile  # noqa: E402
 
 REPO = HERE.parents[1]
 LOCAL, LOCAL_INDEX = AddrMode.LOCAL, AddrMode.LOCAL_INDEX
@@ -491,6 +494,132 @@ class DifferentialTest(unittest.TestCase):
         self.assertEqual(good["fail"], [], good)
         self.write_module(self.tagged_module("action.VPopInt()"))
         bad = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(8))
+        self.assertTrue(bad["fail"], bad)
+
+    PUT_CATALOG = {
+        "namespace": "action",
+        "commands": [{"no": 1, "luau": "Put", "signatures": [{"argc": 1, "params": [{"name": "x", "dir": "in", "type": "f32"}]}]}],
+    }
+
+    def native_float_input(self, body, expressions):
+        """Runs program 100 (body, then EXT 1 with one float) against a module passing each expression to Put."""
+        program = decode(assemble(
+            {"main": (0, 0, [("END",)]), "p100": (0, 0, [("push", 1), *body, ("EXT", 2), ("push", 0), ("RET",)])},
+            "main", {100: "p100"},
+        ))
+        results = []
+        for expression in expressions:
+            self.write_module('local vm = require("@lib/vm")\n' + PROGRAM_100.format(body=f"action.Put({expression})"))
+            results.append(harness.run(self.root, "prog", program, self.PUT_CATALOG, "action", seeds=range(4)))
+        return results
+
+    def test_a_sine_off_by_one_ulp_fails(self):
+        # With the Windows UCRT, sinf of float32(0.779) and the double sine rounded to float32 differ in the last bit; a
+        # C library whose sinf rounds correctly gives the same value, so there the mutant is the next float32 instead.
+        x = refvm.f32(0.779)
+        right = refvm.sinf(x)
+        if refvm.f32(math.sin(x)) != right:
+            wrong = "vm.f32(math.sin(vm.f32(0.779)))"
+        else:
+            wrong = repr(refvm.bits_to_float(refvm.float_bits(right) + 1))
+        good, bad = self.native_float_input([("pushf", 0.779), ("SIN",)], ["vm.sin(vm.f32(0.779))", wrong])
+        self.assertEqual(good["fail"], [], good)
+        self.assertEqual(good["pass"], 4 * 4)
+        self.assertTrue(any("event 1" in line for line in bad["fail"]), (wrong, bad))
+
+    def test_a_float_zero_of_the_other_sign_fails(self):
+        # The handler receives -0.0's bits, 0x80000000, which differ from 0.0's; integer zeros have no sign in Luau.
+        good, bad = self.native_float_input([("pushf", 0.0)], ["0.0", "-0.0"])
+        self.assertEqual(good["fail"], [], good)
+        self.assertTrue(bad["fail"], bad)
+
+    def monster_mutation(self, locals_, body, call, wrong_call):
+        """Transpiles monster program 100 with the real catalogue; runs the module and the one with call replaced."""
+        catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+        data = assemble({"main": (0, 0, [("push", 0), ("RET",)]), "p100": (locals_, 0, body)}, "main", {100: "p100"})
+        path = "dungeon/monster/zero.stb"
+        lifted, module = transpile.transpile(path, data)
+        self.assertIsNotNone(module, lifted.error)
+        module = dataclasses.replace(module, expose_globals=True, probe_refs=True)
+        emitted = transpile.emit_corpus([(lifted, module)], catalog).modules[path]
+        self.assertIn(call, emitted.text)
+        kind = catalog["kinds"]["monster"]
+        good, bad = (
+            transpile._harness_job((lifted, dataclasses.replace(emitted, text=text), kind, range(4), transpile.OUTPUT))
+            for text in (emitted.text, emitted.text.replace(call, wrong_call))
+        )
+        self.assertEqual((good.passed, good.failed), (16, 0), good.lines)
+        self.assertGreater(bad.failed, 0, bad.lines)
+
+    def test_a_signed_zero_stored_and_read_back_as_an_integer_fails(self):
+        # Monster VPush stores a float's bits and VPop copies them into an integer variable: 0.0 reads back as 0 and
+        # -0.0 as -2147483648, so a module that pushes the other zero is a wrong translation.
+        body = [
+            ("push", 37), ("push", 0), ("pushf", 0.0), ("EXT", 3),
+            ("push", 38), ("push", 0), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3),
+            ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+        ]
+        self.monster_mutation(1, body, "monster.VPushFloat(0, 0.0)", "monster.VPushFloat(0, -0.0)")
+
+    def test_a_negative_zero_passed_for_an_integer_zero_to_a_float_parameter_fails(self):
+        # Retail pushes the integer 0 to CopyVector, whose handler reads it as the float +0.0 and copies its bits into
+        # the integer output, which reads 0. The runtime passes -0.0 to the float parameter as is, and the output then
+        # reads -2147483648, although the trace marks the input as an integer.
+        body = [
+            ("push", 1), ("LOAD_ADDR", 0, LOCAL), ("LOAD_ADDR", 1, LOCAL), ("LOAD_ADDR", 2, LOCAL),
+            ("push", 0), ("push", 0), ("push", 0), ("EXT", 7),
+            ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+        ]
+        self.monster_mutation(3, body, "monster.CopyVector(0, 0, 0)", "monster.CopyVector(-0.0, 0, 0)")
+
+    VPUSH_BODY = [
+        ("push", 37), ("push", 0), "value", ("EXT", 3),
+        ("push", 38), ("push", 0), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3),
+        ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+    ]
+
+    def test_an_integer_passed_as_a_float_slot_to_a_tagged_handler_fails(self):
+        # Retail pushes INT 1, which VPush stores as is. 1.00000001 does not fit an integer, so the runtime passes FLOAT
+        # 1.0, which VPush stores as the bits 1065353216: the same float32, but another slot.
+        body = [("push", 1) if step == "value" else step for step in self.VPUSH_BODY]
+        self.monster_mutation(1, body, "monster.VPush(0, 1)", "monster.VPush(0, 1.00000001)")
+
+    def test_an_ext_call_that_changes_a_tagged_handlers_slot_fails(self):
+        # Ext marshals 1.0 as an unknown type, so as INT 1, where retail and VPushFloat pass FLOAT 1.0.
+        body = [("pushf", 1.0) if step == "value" else step for step in self.VPUSH_BODY]
+        self.monster_mutation(1, body, "monster.VPushFloat(0, 1.0)", "monster.Ext(37, 0, 1.0)")
+
+    def test_a_nan_of_another_payload_or_sign_stored_by_a_tagged_handler_fails(self):
+        # VPush stores the FLOAT's bits and VPop reads them into an integer: 0x7fc00001 reads back as 2143289345, and
+        # the NaNs 0x7fc00002 and 0xffc00001 as 2143289346 and -4194303.
+        nan = refvm.bits_to_float(0x7FC00001)
+        body = [("pushf", nan) if step == "value" else step for step in self.VPUSH_BODY]
+        right = 'monster.VPushFloat(0, (string.unpack("<f", string.pack("<I4", 0x7fc00001))))'
+        for wrong in ("0x7fc00002", "0xffc00001"):
+            with self.subTest(wrong=wrong):
+                self.monster_mutation(1, body, right, right.replace("0x7fc00001", wrong))
+
+    def test_host_trig_is_the_reference_machines(self):
+        # The host's cmath.sinf and cmath.cosf, which vm.sin and vm.cos call, give the reference machine's float32 bits.
+        values = [refvm.f32(x / 64.0) for x in range(-2000, 2001, 7)] + [refvm.f32(x) for x in (1e5, -3e6, 1e-30, 0.779)]
+        driver = self.root / "trig.luau"
+        driver.write_text(
+            "for _, x in { " + ", ".join(repr(value) for value in values) + " } do\n"
+            '    print((string.unpack("<I4", string.pack("<f", cmath.sinf(x)))), '
+            '(string.unpack("<I4", string.pack("<f", cmath.cosf(x)))))\n'
+            "end\n",
+            encoding="utf-8",
+        )
+        completed = subprocess.run([str(harness.HOST), str(self.root), str(driver)], capture_output=True, text=True, check=True)
+        bits = lambda value: struct.unpack("<I", struct.pack("<f", value))[0]  # noqa: E731
+        expected = [f"{bits(refvm.sinf(x))}\t{bits(refvm.cosf(x))}" for x in values]
+        self.assertEqual(completed.stdout.splitlines(), expected)
+
+    def test_a_float_input_one_ulp_off_fails(self):
+        good, rounded, bad = self.native_float_input([("pushf", 0.5)], ["0.5", "0.50000000001", "0.5000000596046448"])
+        self.assertEqual(good["fail"], [], good)
+        # The handler receives a float32, so a double that rounds to the same float32 is the same argument.
+        self.assertEqual(rounded["fail"], [], rounded)
         self.assertTrue(bad["fail"], bad)
 
     def test_integers_compare_exactly(self):

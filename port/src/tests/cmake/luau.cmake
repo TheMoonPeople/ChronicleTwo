@@ -25,3 +25,8 @@ add_test(NAME Luau.Prune
         -DROOT=${CMAKE_CURRENT_BINARY_DIR}/luau-prune -P ${CMAKE_SOURCE_DIR}/port/cmake/scripts/luau_prune_test.cmake)
 set_tests_properties(Luau.Prune PROPERTIES PASS_REGULAR_EXPRESSION "LUAU_PRUNE_OK" LABELS cpu TIMEOUT 60)
 
+# Every change to a native call argument of the sample modules that the handler would see must fail the harness;
+# skipped without game data or the harness tools.
+add_test(NAME Luau.Mutate
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/luau/stb2luau/mutate.py")
+set_tests_properties(Luau.Mutate PROPERTIES LABELS cpu SKIP_RETURN_CODE 77 TIMEOUT 1800)

@@ -29,7 +29,7 @@ from stb.opcodes import ConstType, Op
 from stb.program import Program
 
 from . import api, refvm
-from .emit import NUMERIC_TYPES, SETUP
+from .emit import NUMERIC_TYPES, SETUP, nan_text
 from .refvm import Slot, Tag
 
 REPO = Path(__file__).resolve().parents[3]
@@ -588,7 +588,8 @@ def _lit(value: object) -> str:
         return _string(value)
     if isinstance(value, float):
         if math.isnan(value):
-            return "(0/0)"
+            # Its sign and payload, which a handler storing the float's bits passes on.
+            return nan_text(value)
         if math.isinf(value):
             return "math.huge" if value > 0 else "-math.huge"
         return repr(value)
@@ -598,8 +599,8 @@ def _lit(value: object) -> str:
 def _list(values: tuple | list) -> str:
     """Luau table literal holding a sequence with an explicit count, so nil entries survive.
 
-    Field i marks with "i" the positions that hold integers, which compare exactly; other numbers compare with a
-    tolerance.
+    Field i marks with "i" the positions that hold integers. Every number compares exactly, and a float's zero by its
+    sign. A native call's inputs compare as the runtime marshals them, whatever the marks say (see same_inputs).
     """
     items = "".join(", " + _lit(value) for value in values)
     exact = "".join("i" if isinstance(value, int) and not isinstance(value, bool) else "." for value in values)
@@ -639,6 +640,39 @@ def _scenario_literal(scenario: Scenario) -> str:
     return "{ %s }" % ", ".join(fields)
 
 
+# The catalogue types the runtime holds in an integer slot (IsIntegerType), which take a number that fits as an INT.
+INTEGER_TYPES = frozenset({"s8", "u8", "s16", "u16", "s32", "u32", "unknown"})
+
+
+def _read(param: dict) -> str:
+    """How a handler reads a parameter, as the letter same_inputs compares it by."""
+    if param["dir"] == "inout":
+        return "r"
+    if param["dir"] != "in":
+        # Ext passes a value where the handler expects a reference: SetStack writes nothing, and a read is the slot.
+        return "t"
+    if param.get("tagged") or param["type"] in ("string", "unknown"):
+        return "t"
+    if param["type"] == "f32":
+        return "f"
+    return "i" if param["type"] in INTEGER_TYPES else "t"
+
+
+def _integer(param: dict) -> str:
+    """"1" when the runtime marshals a parameter as an integer type."""
+    return "1" if param["type"] in INTEGER_TYPES else "0"
+
+
+def _ext_reads(kind_catalog: dict) -> dict[int, dict[int, str]]:
+    """Per command and argument count the handler accepts, how it reads each argument an Ext call passes."""
+    table: dict[int, dict[int, str]] = {}
+    for command in kind_catalog["commands"]:
+        for signature in command.get("signatures", []):
+            if not signature.get("handler_rejects"):
+                table.setdefault(command["no"], {})[signature["argc"]] = "".join(_read(p) for p in signature["params"])
+    return table
+
+
 def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] | None = None) -> list[str]:
     """Luau mock functions for every catalogued arity of a command, plus the unsuffixed dispatcher.
 
@@ -668,7 +702,13 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
             for index, param in enumerate((param for param in params if param["dir"] in api.OUTPUTS), 1)
             if param.get("copies")
         ]
-        tag = ", " + (_string(typed) if typed is not None else "nil") + (", { " + ", ".join(copies) + " }" if copies else "")
+        inputs_ = [param for param in params if param["dir"] in api.INPUTS]
+        tag = (
+            ", " + (_string(typed) if typed is not None else "nil")
+            + ", " + ("{ " + ", ".join(copies) + " }" if copies else "nil")
+            + ", " + _string("".join(_read(param) for param in inputs_))
+            + ", " + _string("".join(_integer(param) for param in inputs_))
+        )
         lines.append(
             f"{namespace}.{name}_{argc} = function(...)\n"
             f"    local outs = ext_call({command['no']}, {argc}, table.pack(...){tag})\n"
@@ -714,27 +754,26 @@ local function fail(message)
     error(MISMATCH, 0)
 end
 
--- Compares an expected trace value with the value the script produced; with exact, numbers must be equal.
-local function same(expected, got, exact)
+-- Compares an expected trace value with the value the script produced. Both sides compute floats in float32, so
+-- numbers must be equal: a float one ulp off (a double sine rounded afterwards, say) fails. NaN matches only NaN. With
+-- float, the value is a float the script may store or pass on, whose bits a native handler can copy and an integer
+-- load read back, so a zero must also have the expected sign. An integer is a double in Luau, where -0 is 0.
+local function same(expected, got, float)
     if expected == nil or got == nil then
         return false
     end
     if expected == got then
-        return true
+        return not float or expected ~= 0 or 1 / expected == 1 / got
     end
     if type(expected) == "number" and type(got) == "number" then
-        if expected ~= expected or got ~= got then
-            -- NaN matches only NaN.
-            return expected ~= expected and got ~= got
-        end
-        if exact or math.abs(expected) == math.huge or math.abs(got) == math.huge then
-            -- An infinity matches only the same infinity, which the equality above accepted.
-            return false
-        end
-        local diff = math.abs(expected - got)
-        return diff <= 1e-6 or diff <= 1e-5 * math.abs(expected)
+        return expected ~= expected and got ~= got
     end
     return false
+end
+
+-- The float32 a native handler receives for a Luau number, as the runtime marshals a float argument.
+local function f32(value)
+    return (string.unpack("<f", string.pack("<f", value)))
 end
 
 -- Compares two counted lists element by element.
@@ -742,9 +781,126 @@ local function same_list(expected, got)
     if expected.n ~= got.n then
         return false
     end
-    local exact = expected.i
+    local integers = expected.i
     for i = 1, got.n do
-        if not same(expected[i], got[i], exact ~= nil and string.sub(exact, i, i) == "i") then
+        local value = got[i]
+        if not same(expected[i], value, type(value) == "number" and not (integers ~= nil and string.sub(integers, i, i) == "i")) then
+            return false
+        end
+    end
+    return true
+end
+
+-- Whether the runtime passes a number to an integer parameter as an integer (FitsInteger), which drops a zero's sign.
+local function fits_integer(value)
+    return math.floor(value) == value and value >= -2147483648 and value < 4294967296
+end
+
+-- The 32 bits of a float32, as a signed integer.
+local function float_bits(value)
+    return (string.unpack("<i4", string.pack("<f", value)))
+end
+
+-- An integer wrapped into 32 bits, as SetInteger stores it; a negative zero becomes 0.
+local function wrap(value)
+    value = value % 4294967296
+    return value >= 2147483648 and value - 4294967296 or value
+end
+
+-- The slot the runtime's MarshalValue makes of a Luau value for a parameter whose type is an integer type or not: its
+-- tag and its payload (an integer's value, a float's 32 bits or a string's text).
+local function marshal(value, integer)
+    local kind = type(value)
+    if kind == "number" then
+        if integer and fits_integer(value) then
+            return "int", wrap(value)
+        end
+        return "float", float_bits(value)
+    elseif kind == "string" then
+        return "str", value
+    elseif kind == "boolean" then
+        return "int", value and 1 or 0
+    elseif value == nil then
+        return "int", 0
+    end
+    return kind, tostring(value)
+end
+
+-- The slot retail pushed for a recorded input: an integer-marked number is an INT, any other number a FLOAT.
+local function pushed(value, integer)
+    if type(value) == "number" then
+        if integer then
+            return "int", wrap(value)
+        end
+        return "float", float_bits(value)
+    elseif type(value) == "string" then
+        return "str", value
+    end
+    return "int", 0
+end
+
+-- GetStackFloat: the float bits a handler reads from a slot, converting an integer.
+local function read_float(tag, payload)
+    return tag == "int" and float_bits(payload) or payload
+end
+
+-- GetStackInt: the integer a handler reads from a slot, truncating a float; out of range, as the PC's conversion does.
+local function read_int(tag, payload)
+    if tag ~= "float" then
+        return payload
+    end
+    local value = (string.unpack("<f", string.pack("<i4", payload)))
+    if value ~= value or value >= 2147483648 or value < -2147483648 then
+        return -2147483648
+    end
+    return value >= 0 and math.floor(value) or -math.floor(-value)
+end
+
+-- Whether two float payloads are equal: their 32 bits, so a NaN matches only the NaN of the same sign and payload,
+-- which a handler that stores the float's bits passes on.
+local function same_bits(a, b)
+    return a == b
+end
+
+-- The number a slot holds, for an input no handler reads.
+local function slot_number(tag, payload)
+    return tag == "float" and (string.unpack("<f", string.pack("<i4", payload))) or payload
+end
+
+-- Compares a native call's inputs as the handler sees them: the slot the runtime marshals from the Luau value against
+-- the slot retail pushed, each read the way the handler reads that parameter. reads has one letter per input:
+--   "f", "i": the handler reads the parameter with GetStackFloat or GetStackInt, which convert the other tag, so what
+--             compares is the float's bits (a zero's sign included) or the integer;
+--   "t":      the handler may read the tag and the payload as they are (a tagged parameter, one of unknown type or a
+--             string), so both compare;
+--   "r":      an in-out parameter, which the handler reads as float bits through the reference;
+--   "x":      no handler reads it (an Ext call of a command the kind does not register or of an arity the handler
+--             refuses), so the numbers compare, but not their tags.
+-- integers has a "1" for each input whose parameter type is an integer type (every input of Ext, which the runtime
+-- marshals as an unknown type): the runtime passes a number that fits an integer as an INT, which drops a zero's sign,
+-- and any other number as a FLOAT; for a float type it always passes a FLOAT.
+local function same_inputs(expected, got, reads, integers)
+    if expected.n ~= got.n then
+        return false
+    end
+    local marks = expected.i
+    for i = 1, got.n do
+        local read = reads ~= nil and string.sub(reads, i, i) or "t"
+        local want_tag, want = pushed(expected[i], marks ~= nil and string.sub(marks, i, i) == "i")
+        local got_tag, value = marshal(got[i], integers == nil or string.sub(integers, i, i) == "1")
+        local ok
+        if want_tag == "str" or got_tag == "str" or read == "t" then
+            ok = want_tag == got_tag and (want == value or want_tag == "float" and same_bits(want, value))
+        elseif read == "f" then
+            ok = same_bits(read_float(want_tag, want), read_float(got_tag, value))
+        elseif read == "i" then
+            ok = read_int(want_tag, want) == read_int(got_tag, value)
+        elseif read == "r" then
+            ok = same_bits(want, value)
+        else
+            ok = same(slot_number(want_tag, want), slot_number(got_tag, value), want_tag == "float" and got_tag == "float")
+        end
+        if not ok then
             return false
         end
     end
@@ -782,19 +938,21 @@ end
 local function expect(tag, field)
     local at = cursor
     local event = next_event(tag, field)
-    if event == nil or event[1] ~= tag or (field ~= nil and not same(event[2], field, true)) then
+    if event == nil or event[1] ~= tag or (field ~= nil and not same(event[2], field)) then
         local got = field == nil and table.pack(tag) or table.pack(tag, field)
         fail(("event %d: expected %s, got %s"):format(at, show(event), show(got)))
     end
 end
 
 -- Checks a native call against the next event and returns the recorded outputs; typed is the integer or float
--- type the call gives a tagged handler, checked against the tag the handler read, and copies maps the outputs a
--- handler copies as raw bits to whether the call's variant reads them as a float.
-local function ext_call(no, argc, args, typed, copies)
+-- type the call gives a tagged handler, checked against the tag the handler read, copies maps the outputs a
+-- handler copies as raw bits to whether the call's variant reads them as a float, and reads and integers say how the
+-- handler reads each input and whether the runtime marshals it as an integer type (see same_inputs).
+local function ext_call(no, argc, args, typed, copies, reads, integers)
     local at = cursor
     local event = next_event("ext", no)
-    if event == nil or event[1] ~= "ext" or event[2] ~= no or event[3] ~= argc or not same_list(event[4], args) then
+    if event == nil or event[1] ~= "ext" or event[2] ~= no or event[3] ~= argc
+        or not same_inputs(event[4], args, reads, integers) then
         fail(("event %d: expected %s, got %s"):format(at, show(event), show({ "ext", no, argc, args })))
     end
     if typed ~= nil and event[6] ~= nil and event[6] ~= typed then
@@ -890,9 +1048,9 @@ local function execute(scenario, m)
         if (got.n or #got) ~= count then
             fail("expected " .. count .. " globals, got " .. tostring(got.n or #got))
         end
-        local exact = scenario.globals.i
+        local integers = scenario.globals.i
         for i = 1, count do
-            if not same(scenario.globals[i], got[i], exact ~= nil and string.sub(exact, i, i) == "i") then
+            if not same(scenario.globals[i], got[i], not (integers ~= nil and string.sub(integers, i, i) == "i")) then
                 fail("global " .. i .. ": expected " .. show(scenario.globals[i]) .. ", got " .. show(got[i]))
             end
         end
@@ -949,10 +1107,17 @@ def driver(
         for type_name, suffix in api.VARIANTS.items() if tagged else ():
             retyped = [api.variant(signature, type_name) for signature in tagged]
             lines.extend(_dispatch(command["luau"] + suffix, namespace, command, retyped))
+    ext_reads = _ext_reads(kind_catalog)
+    lines.append("-- How the handler reads each argument of an Ext call it accepts; any other Ext call's arguments go unread.")
+    lines.append("local EXT_READS = {")
+    for no, arities in sorted(ext_reads.items()):
+        lines.append(f"    [{no}] = {{ " + ", ".join(f"[{argc}] = {_string(reads)}" for argc, reads in sorted(arities.items())) + " },")
+    lines.append("}")
     lines.append(
         f"{namespace}.Ext = function(no, ...)\n"
         "    local args = table.pack(...)\n"
-        "    local outs = ext_call(no, args.n, args)\n"
+        "    local reads = EXT_READS[no] and EXT_READS[no][args.n] or string.rep(\"x\", args.n)\n"
+        "    local outs = ext_call(no, args.n, args, nil, nil, reads, string.rep(\"1\", args.n))\n"
         "    if outs.n ~= 0 then\n"
         '        fail("ext " .. tostring(no) .. " returns no outputs")\n'
         "    end\n"
