@@ -1,8 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
+#include <format>
 #include <span>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "drawwin.hpp"
@@ -66,6 +70,55 @@ void ExpectAt(const gfx::Vertex2D &v, float x, float y) {
 
 std::array<uint8_t, 4> Rgba(const gfx::Vertex2D &v) {
     return {v.color[0], v.color[1], v.color[2], v.color[3]};
+}
+
+// Menu message 153, shown when an item is over its carrying limit.
+constexpr int kItemLimitLine = 153;
+constexpr std::uint16_t kCodeItemName = 0xFAF9;
+constexpr std::uint16_t kCodeValue = 0xFBFA;
+constexpr std::uint16_t kCodeTriangle = 0xFD07;
+
+// A message table with the header words of a menu file and one line, message 153, reading
+// "You {FD07}": like the PAL text, it names neither the item nor the limit.
+std::vector<short> ItemLimitTable(std::uint16_t count, std::uint16_t word1) {
+    // The header words, then an id and text offset per line; only the first line is used.
+    std::vector<short> table(2 + (count * 2), -1);
+    table[0] = static_cast<short>(count);
+    table[1] = static_cast<short>(word1);
+    table[2] = kItemLimitLine;
+    table[3] = static_cast<short>(count + 1);
+    const std::uint16_t text[] = {0x39, 0x4E, 0x54, MES_CODE_SPACE, kCodeTriangle, MES_CODE_END};
+    table.insert(table.end(), std::begin(text), std::end(text));
+    return table;
+}
+
+std::vector<std::uint16_t> Line(std::vector<short> &table, int line_id) {
+    ClsMes message;
+    message.SetBuff(table.data());
+    std::vector<std::uint16_t> codes;
+    for (const u16 *code = message.GetTextLineDataTop(line_id); code != nullptr && *code != MES_CODE_END; ++code) {
+        codes.push_back(*code);
+    }
+    return codes;
+}
+
+// ASCII letters as the message encoding stores them, any other code as {XXXX}.
+std::string Text(const std::vector<std::uint16_t> &codes) {
+    std::string text;
+    for (const auto code : codes) {
+        if (code == MES_CODE_NEWLINE) {
+            text += '\n';
+        } else if (code == MES_CODE_SPACE) {
+            text += ' ';
+        } else if (code > 0 && code < 0x3C) {
+            text += static_cast<char>(code + 0x20);
+        } else if (code >= 0x3C && code < 0x5E) {
+            text += static_cast<char>(code + 0x21);
+        } else {
+            text += std::format("{{{:04X}}}", code);
+        }
+    }
+    return text;
 }
 
 } // namespace
@@ -173,4 +226,33 @@ TEST(MesWinFillRect, ZeroHeightSelectedSideStillDrawsPositiveBacking) {
     }
     ASSERT_NE(backing, nullptr);
     ExpectAt(backing->vertices[2], 269.0f, 129.0f);
+}
+
+// Each PAL language's menu file, by its header words, names the item over its limit and the limit,
+// as the Japanese text does, so the player can tell what to throw away.
+TEST(ItemLimitMessage, NamesTheItemAndTheLimitInEveryPalLanguage) {
+    for (const auto [count, word1] : {
+             std::pair<std::uint16_t, std::uint16_t>{933, 14870},
+             {934, 16394},
+             {933, 11090},
+             {934, 17338},
+             {934, 20008}
+    }) {
+        auto       table = ItemLimitTable(count, word1);
+        const auto codes = Line(table, kItemLimitLine);
+        EXPECT_NE(std::ranges::find(codes, kCodeItemName), codes.end()) << word1;
+        EXPECT_NE(std::ranges::find(codes, kCodeValue), codes.end()) << word1;
+        EXPECT_NE(std::ranges::find(codes, kCodeTriangle), codes.end()) << word1;
+    }
+}
+
+TEST(ItemLimitMessage, EnglishText) {
+    auto table = ItemLimitTable(933, 14870);
+    EXPECT_EQ(Text(Line(table, kItemLimitLine)),
+              "You can only carry {FBFA} \"{FAF9}\".\nPress {FD07} to Move or use the\n\"Throw away\" command to tidy up.");
+}
+
+TEST(ItemLimitMessage, UnknownFileKeepsItsText) {
+    auto table = ItemLimitTable(933, 1);
+    EXPECT_EQ(Text(Line(table, kItemLimitLine)), "You {FD07}");
 }

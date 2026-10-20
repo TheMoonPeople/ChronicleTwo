@@ -13,7 +13,9 @@
 // The PAL disc's menu and system messages describe PS2 memory cards, their slots and the console.
 // The PC port keeps saves, the photo album and Extras data in folders, so the messages that
 // mention them are replaced here in every PAL language, as text in the message's own encoding.
-// The disc files are recognised by their header words; any other message file is left as it is.
+// Menu message 153, shown when an item is over its carrying limit, is replaced too, so that it
+// names the item and the limit as the Japanese text does and the PAL translations do not. The disc
+// files are recognised by their header words; any other message file is left as it is.
 
 namespace {
 
@@ -50,10 +52,12 @@ struct Replacement {
     std::string_view text;
 };
 
-// UTF-8. "\n" is a line break, "{XXXX}" a raw message code ({FBFA} the slot number, {FBF9} the
-// size in KB), and "{TAIL}" the original message's last line, which holds the button prompts.
+// UTF-8. "\n" is a line break, "{XXXX}" a raw message code ({FBFA} the slot number or the item
+// limit, {FBF9} the size in KB, {FAF9} the item name, {FD07} Triangle), and "{TAIL}" the original
+// message's last line, which holds the button prompts.
 constexpr Replacement kReplacements[] = {
     // English
+    {.file = MesFile::kAllMenu, .language = 1, .id = 153,  .text = "You can only carry {FBFA} \"{FAF9}\".\nPress {FD07} to Move or use the\n\"Throw away\" command to tidy up."            },
     {.file = MesFile::kAllMenu, .language = 1, .id = 670,  .text = "View Album?"                                                                                                           },
     {.file = MesFile::kAllMenu, .language = 1, .id = 671,  .text = "No Album data was found."                                                                                              },
     {.file = MesFile::kAllMenu, .language = 1, .id = 673,  .text = "Save current Album?"                                                                                                   },
@@ -107,6 +111,7 @@ constexpr Replacement kReplacements[] = {
     {.file = MesFile::kSysMes,  .language = 1, .id = 102,  .text = "Loading..."                                                                                                            },
 
     // French
+    {.file = MesFile::kAllMenu, .language = 2, .id = 153,  .text = "Tu ne peux porter que {FBFA} \"{FAF9}\".\nAppuie sur {FD07} pour en déplacer\nou utilise la commande \"Jeter\"."       },
     {.file = MesFile::kAllMenu, .language = 2, .id = 670,  .text = "Voir album ?"                                                                                                          },
     {.file = MesFile::kAllMenu, .language = 2, .id = 671,  .text = "Aucune donnée Album."                                                                                                  },
     {.file = MesFile::kAllMenu, .language = 2, .id = 673,  .text = "Sauvegarder l'album ?"                                                                                                 },
@@ -162,6 +167,7 @@ constexpr Replacement kReplacements[] = {
     {.file = MesFile::kSysMes,  .language = 2, .id = 102,  .text = "Chargement..."                                                                                                         },
 
     // German
+    {.file = MesFile::kAllMenu, .language = 3, .id = 153,  .text = "Du kannst nur {FBFA} \"{FAF9}\" tragen.\nBewegen mit {FD07}-Taste oder\nAufräumen mit \"Wegwerfen\"."                  },
     {.file = MesFile::kAllMenu, .language = 3, .id = 670,  .text = "Album öffnen?"                                                                                                         },
     {.file = MesFile::kAllMenu, .language = 3, .id = 671,  .text = "Keine Album-Daten gefunden."                                                                                           },
     {.file = MesFile::kAllMenu, .language = 3, .id = 673,  .text = "Akt. Album speichern?"                                                                                                 },
@@ -217,6 +223,7 @@ constexpr Replacement kReplacements[] = {
     {.file = MesFile::kSysMes,  .language = 3, .id = 102,  .text = "Lädt ..."                                                                                                              },
 
     // Italian
+    {.file = MesFile::kAllMenu, .language = 4, .id = 153,  .text = "Puoi portare solo {FBFA} \"{FAF9}\".\nPremi {FD07} per rimuoverli o\nusa il comando \"Getta\"."                        },
     {.file = MesFile::kAllMenu, .language = 4, .id = 670,  .text = "Visualizzare Album?"                                                                                                   },
     {.file = MesFile::kAllMenu, .language = 4, .id = 671,  .text = "Nessun dato Album trovato."                                                                                            },
     {.file = MesFile::kAllMenu, .language = 4, .id = 673,  .text = "Salvare Album?"                                                                                                        },
@@ -272,6 +279,7 @@ constexpr Replacement kReplacements[] = {
     {.file = MesFile::kSysMes,  .language = 4, .id = 102,  .text = "Caricamento..."                                                                                                        },
 
     // Spanish
+    {.file = MesFile::kAllMenu, .language = 5, .id = 153,  .text = "Sólo puedes llevar {FBFA} \"{FAF9}\".\nPulsa {FD07} para moverlos o\nusa el botón \"Eliminar\"."                       },
     {.file = MesFile::kAllMenu, .language = 5, .id = 670,  .text = "¿Ver Álbum?"                                                                                                           },
     {.file = MesFile::kAllMenu, .language = 5, .id = 671,  .text = "No hay datos del Álbum."                                                                                               },
     {.file = MesFile::kAllMenu, .language = 5, .id = 673,  .text = "¿Guardar el Álbum actual?"                                                                                             },

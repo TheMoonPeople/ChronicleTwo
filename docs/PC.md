@@ -472,6 +472,13 @@ override (`port/src/editloop.cpp`) records `item11` under flag 9, which no other
 chest of the town uses; the save layout is unchanged. A save whose flag 7 is
 already set offers `item11` again, which restores it to saves that lost it.
 
+Closing the item page while the bag holds more of an item than its limit shows
+menu message 153 and keeps the menu open. The Japanese text names the item and
+the limit; the PAL translations leave both out, so the player cannot tell what
+to move or throw away. `port/src/message_text.cpp` replaces the message in all
+five PAL languages with the translation's wording plus both, for example
+`You can only carry 999 "Thick Hide".`
+
 ### darkchronicle
 
 ```
