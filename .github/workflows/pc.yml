@@ -127,8 +127,10 @@ jobs:
           cat artifacts/vulkaninfo.txt
 
       # CT_SYMBOLS=split runs dsymutil after the link, for the symbol artifact.
+      # Homebrew's clang defaults to the Command Line Tools SDK while CMake's find modules search xcrun's (Xcode's);
+      # naming one SDK keeps a library found in it (Iconv) from adding its usr/include ahead of libc++'s headers.
       - name: Configure
-        run: cmake --preset macos-arm64-release -DCT_TEST_TIMEOUT=60 -DCT_SYMBOLS=split
+        run: cmake --preset macos-arm64-release -DCT_TEST_TIMEOUT=60 -DCT_SYMBOLS=split -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)"
 
       - name: Build
         run: cmake --build --preset macos-arm64-release
