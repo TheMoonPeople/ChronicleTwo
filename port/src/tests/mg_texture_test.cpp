@@ -1102,24 +1102,48 @@ TEST(MgTexture, StandaloneTextureDocumentUsesActualJsonBytes) {
     EXPECT_NE(texture->image[0], nullptr);
 }
 
-TEST(MgTexture, CatalogRejectsRgbPngAndLegacyPaletteMetadata) {
-    CatalogFixture             fixture;
-    const std::vector<uint8_t> pixels(2 * 2 * 4, 255);
-    ASSERT_TRUE(gfx::WritePng(fixture.directory / "rgb.png", pixels.data(), 2, 2));
-    fixture.Load(JsonTexture("rgb", 32, 2, 2, "[\"rgb.png\"]"));
+TEST(MgTexture, CatalogDecodesRgbPngAsOpaqueRgba) {
+    constexpr uint32_t   width = 3;
+    constexpr uint32_t   height = 2;
+    CatalogFixture       fixture;
+    std::vector<uint8_t> pixels(static_cast<size_t>(width) * height * 4);
+    for (size_t i = 0; i < pixels.size(); ++i) {
+        pixels[i] = static_cast<uint8_t>(i * 37 + 11);
+    }
+    // gfx::WritePng keeps red, green and blue only, so this is a colour type 2 PNG whose alpha must come back opaque.
+    ASSERT_TRUE(gfx::WritePng(fixture.directory / "rgb.png", pixels.data(), width, height));
+    std::ifstream              png(fixture.directory / "rgb.png", std::ios::binary);
+    const std::vector<uint8_t> header((std::istreambuf_iterator<char>(png)), std::istreambuf_iterator<char>());
+    ASSERT_GT(header.size(), 25u);
+    ASSERT_EQ(header[25], 2);
+    fixture.Load(JsonTexture("rgb", 32, width, height, "[\"rgb.png\"]"));
     const auto *source = texture_catalog::Find("fixture.json");
     ASSERT_NE(source, nullptr);
+    ASSERT_EQ(source->entries.size(), 1u);
+    EXPECT_EQ(source->entries[0].width, 3);
+    EXPECT_EQ(source->entries[0].height, 2);
     std::string error;
-    EXPECT_FALSE(texture_catalog::Decode(source->entries[0], "rgb", error).has_value());
+    const auto  decoded = texture_catalog::Decode(source->entries[0], "rgb", error);
+    ASSERT_TRUE(decoded.has_value()) << error;
+    ASSERT_FALSE(decoded->levels.empty());
+    const std::vector<uint8_t> &rgba = decoded->levels[0];
+    ASSERT_EQ(rgba.size(), static_cast<size_t>(width) * height * 4);
+    for (size_t pixel = 0; pixel < static_cast<size_t>(width) * height; ++pixel) {
+        for (size_t channel = 0; channel < 3; ++channel) {
+            EXPECT_EQ(rgba[pixel * 4 + channel], pixels[pixel * 4 + channel]) << "pixel " << pixel << " channel " << channel;
+        }
+        EXPECT_EQ(rgba[pixel * 4 + 3], 255) << "pixel " << pixel;
+    }
+}
 
-    std::string legacy = JsonTexture("rgb", 8, 2, 2, "[\"rgb.png\"]");
+TEST(MgTexture, CatalogRejectsLegacyPaletteMetadata) {
+    CatalogFixture fixture;
+    fixture.Rgba("picture.png", 2, 2, std::vector<uint8_t>(2 * 2 * 4, 255));
+    std::string legacy = JsonTexture("picture", 8, 2, 2, "[\"picture.png\"]");
     const auto  levels = legacy.find("\"levels\"");
     ASSERT_NE(levels, std::string::npos);
     legacy.insert(levels, "\"source_bpp\":8,");
-    std::ofstream(fixture.directory / "fixture.json")
-        << R"({"schema_version":3,"groups":[0],"entries":[)" << legacy << "]}";
-    texture_catalog::Clear();
-    ASSERT_TRUE(texture_catalog::Load(fixture.directory, error)) << error;
+    fixture.Load(legacy);
     EXPECT_EQ(texture_catalog::Find("fixture.json"), nullptr);
 }
 
