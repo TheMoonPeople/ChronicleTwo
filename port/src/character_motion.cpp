@@ -111,12 +111,21 @@ void Apply(mgCFrame &root, const Action &action, float local, mgCCamera *camera)
 } // namespace
 
 void Register(const Mot_List *anchor, std::vector<Action> actions) {
+    // An anchor allocated where a released one lay replaces its actions; poses recorded from those are stale.
+    std::erase_if(PosedActions(), [anchor](const auto &entry) { return entry.second.anchor == anchor; });
     Registry().insert_or_assign(anchor, std::move(actions));
 }
 
 void Forget(const Mot_List *anchor) {
+    if (!anchor) {
+        return;
+    }
     Registry().erase(anchor);
     std::erase_if(PosedActions(), [anchor](const auto &entry) { return entry.second.anchor == anchor; });
+}
+
+void ForgetPose(const mgCFrame *root) {
+    PosedActions().erase(root);
 }
 
 void Clear() {

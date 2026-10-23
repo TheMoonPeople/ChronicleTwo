@@ -2,6 +2,7 @@
 
 #include <cstdio>
 
+#include "character_motion.hpp"
 #include "dataread_port.hpp"
 #include "log/log.hpp"
 #include "mg_dataset.hpp"
@@ -39,4 +40,6 @@ void PortRetailCopyFrame(mgCFrame *, mgCFrame *, mgCMemory *, int, mgCFrame **) 
 PORT_OVERRIDE void CopyFrame(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table) {
     PortRetailCopyFrame(dst, src, memory, copy_visual, frame_table);
     model_assets::CopyFrameConvention(*dst, *src);
+    // An active monster's copy reuses its slot's storage, so the tree may sit where the previous monster's did.
+    character_motion::ForgetPose(dst);
 }

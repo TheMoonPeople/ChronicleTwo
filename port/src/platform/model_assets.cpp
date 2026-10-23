@@ -2463,6 +2463,7 @@ mgCFrame *Scene(const std::shared_ptr<Document> &source, std::size_t index, cons
     if (!frame) {
         throw std::runtime_error(error);
     }
+    character_motion::ForgetPose(frame);
     return frame;
 }
 

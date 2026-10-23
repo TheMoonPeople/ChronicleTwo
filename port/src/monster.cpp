@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "character_motion.hpp"
 #include "dataread.hpp"
 #include "dng_main.hpp"
 #include "gamedata.hpp"
@@ -78,6 +79,10 @@ PORT_OVERRIDE int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *ta
     model_assets::DeleteCharacterTextures(entry.chara, 0, CHARA_IMAGE_MAX - 1);
     mgTexManager.DeleteBlock(texture_block);
     std::strcpy(mgTexManager.name_suffix, "_m");
+    // The new monster reuses the slot's storage; its predecessor's actions would point into it.
+    for (auto &motion : entry.chara.motion) {
+        character_motion::Forget(motion.motion_list);
+    }
     entry.chara.Initialize();
     model_assets::CharacterLoadOptions options{.model_memory = memory, .motion_memory = memory, .image_memory = memory, .textures = &mgTexManager, .parent = nullptr, .texture_block = texture_block};
     options.outline = std::strcmp(table->model, "b11a") != 0 && std::strcmp(table->model, "b05a") != 0 && std::strcmp(table->model, "b07a") != 0 && std::strcmp(table->model, "b02a") != 0;

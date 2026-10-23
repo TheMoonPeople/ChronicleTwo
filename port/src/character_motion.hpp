@@ -39,6 +39,12 @@ void Register(const Mot_List *anchor, std::vector<Action> actions);
 void Forget(const Mot_List *anchor);
 
 /**
+ * Forgets the action last posed on a frame tree whose storage is new, so a tree rebuilt at a released
+ * tree's address does not blend from that tree's motion set.
+ */
+void ForgetPose(const mgCFrame *root);
+
+/**
  * Forgets every registered motion set and recorded pose.
  */
 void Clear();
