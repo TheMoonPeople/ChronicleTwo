@@ -64,6 +64,10 @@ FIXUPS = [
     ("menudraw.hpp", "    int StepMainMenuIconMove(int *icons, int select, int mode);",
      "    int StepMainMenuIconMove(int *icons, int select, int mode);\n"
      "    int PortRetailStepMainMenuIconMove(int *icons, int select, int mode);"),
+    # Deleting a map releases the event handles into it around retail's delete, which stays under this name.
+    ("scenesnd.hpp", "    int DeleteMap(int map_index, int clear_stack);",
+     "    int DeleteMap(int map_index, int clear_stack);\n"
+     "    int PortRetailDeleteMap(int map_index, int clear_stack);"),
     # A menu message window parked past the screen is clipped to it around retail's draw, which stays under this name.
     ("menucls1.hpp", "    void DrawMsg();",
      "    void DrawMsg();\n"

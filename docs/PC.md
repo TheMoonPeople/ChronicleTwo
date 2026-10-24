@@ -1402,6 +1402,18 @@ and every monster in range shows and acts. Unit fixups hold `AutoSetMonster`'s s
 monsters (`MONSTER_LOCATE_MAX`), so the setting raises a floor's opening count to at most 32; the remaining slots take
 monsters spawned later.
 
+### Event handles across a map change
+
+An event's object handles (`EventObjHandleMother`) are reset only when an event starts or a character is deleted, so a
+map deleted mid-event leaves the handles into it pointing at freed parts. After the Griffon fight in chapter 6, s35's
+event 500 loads the dungeon map `d06e01` (`LoadDungeonMapFile`) and then requests the next script; the event step in
+between still plays the object sequences of the parts `p04_s3501-0`, its piece `s350208-m0` and `p01_futa-0`. On the
+PS2 the freed parts still held a usable vtable; on PC the call through it faulted. `CScene::DeleteMap`
+(`port/src/sceneload.cpp`) first points every object, frame and function point handle inside the deleted map's stack
+at nothing, as `EventSeqInit` does, and then runs retail's delete through the `PortRetailDeleteMap` bridge. `GetPos`
+then fails for those handles and each sequence following one clears itself (`CSceneObjSeq::Play`), which is all the
+scripts expect: none uses such a handle after the map changes.
+
 ### Georama limits
 
 Retail caps a town at 256 edit part slots, a 1024-entry placement log, 32 houses,
@@ -1924,6 +1936,7 @@ MWCC accepts a `void Draw()` that hides the base's `int Draw()` and gives it a n
 - `collision.hpp`: `CCPOLY_PARTS_EDIT` is `0x8000` and `CCPOLY_PARTS_SLOT_MASK` `0x7FFF`, so collision polygons name Georama slots above 4095.
 - `editmenu.hpp`: `CMenuGeorama::place_no`, `place_name`, `placed_list` and `house_list` are pointers to the port's vectors, set to `NULL` by the constructor in place of its four `memset`s.
 - `dngmenu.hpp`: `CMenuTreeMap` declares `PortRetailStep` and `PortRetailDraw`, the retail bridges that the floor monster list's `Step` and `Draw` seams call (see "How `port/src` takes precedence").
+- `scenesnd.hpp`: `CScene` declares `PortRetailDeleteMap`, the retail bridge the map delete calls after it releases the event handles into the map (see "Event handles across a map change").
 - `nd_meswin.hpp`: `#ifndef MES_WINDOW_OUT_OF_LINE_INIT` becomes `#if 1`, so `ClsMes::Init` is inline in every unit. `dngmenu.cpp`'s out-of-line copy was a strong definition and collided with the COMDAT copies on COFF.
 - `collision.hpp`: `memset` takes `static_cast<void *>`, because `mgVu0FBOX` is not trivially copyable and `-Wnontrivial-memcall` rejects it.
 - `mapload.hpp`: `CFuncPoint` gets a memberwise copy assignment on its constructor's line. `InventData`'s `mgVu0FBOX` makes the union's implicit copy deleted under clang; MWCC generated it, and `CFuncPointMngr::GetLight` and `CMap::GetCharaLight` assign points with it. Retail's bodies then compile unchanged.

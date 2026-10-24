@@ -72,6 +72,13 @@ class RetailBridgeTests(unittest.TestCase):
         self.assertIn("camera->AddAngle(0.1f * -pad->Analog(PAD_ANALOG_RIGHT_X));", mirror)
         self.assertNotIn("void EditMode(", mirror)
 
+    def test_map_delete_keeps_retail_body_under_its_bridge(self):
+        source = Path(__file__).resolve().parents[2] / "ps2/src/sceneload.cpp"
+        mirror = unit_copy.retail_bridges(self.override, source, True)
+        self.assertEqual(mirror.count("int CScene::PortRetailDeleteMap(int map_index, int clear_stack) {"), 1)
+        self.assertIn("DeleteMap(index, 0);", mirror)
+        self.assertNotIn("CScene::DeleteMap(", mirror)
+
     def test_other_units_have_no_bridge(self):
         self.assertEqual(unit_copy.retail_bridges(self.override, Path("other.cpp"), True), "")
 

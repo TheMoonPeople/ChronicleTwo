@@ -18,9 +18,11 @@
 #include "dataread.hpp"
 #include "dataread_port.hpp"
 #include "editmap.hpp"
+#include "event_func.hpp"
 #include "log/log.hpp"
 #include "map.hpp"
 #include "mapsky.hpp"
+#include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "platform/clock.hpp"
@@ -292,4 +294,69 @@ u8 *PortMapLoadBuffer(const SCN_LOADMAP_INFO2 &info) {
     }
 
     return map_load_lines[0].bytes.data();
+}
+
+namespace {
+
+// The event handle a map deletion leaves dangling: an object, frame or function point inside the map's stack.
+bool EventHandleIn(const CEoh &handle, std::uintptr_t begin, std::uintptr_t end) {
+    const void *target = nullptr;
+
+    switch (handle.type) {
+        case EOH_TYPE_OBJECT:
+            target = handle.object;
+            break;
+        case EOH_TYPE_FRAME:
+            target = handle.frame;
+            break;
+        case EOH_TYPE_FUNC_POINT:
+            target = handle.func_point;
+            break;
+        default:
+            return false;
+    }
+
+    const auto address = reinterpret_cast<std::uintptr_t>(target);
+    return address >= begin && address < end;
+}
+
+// Points every event handle into the stack at nothing, as EventSeqInit does.
+void ForgetEventHandlesIn(const mgCMemory &memory) {
+    if (memory.stack == nullptr || memory.stack_size <= 0) {
+        return;
+    }
+
+    const auto begin = reinterpret_cast<std::uintptr_t>(memory.stack);
+    const auto end = begin + static_cast<std::uintptr_t>(memory.stack_size) * sizeof(u_long128);
+
+    for (int slot = 0; slot < EOH_NUM; slot++) {
+        CEoh &handle = EventObjHandleMother.eoh[slot];
+
+        if (!EventHandleIn(handle, begin, end)) {
+            continue;
+        }
+
+        CT_LOG_DEBUG(Data, "sceneload: event handle {} released with its map", slot);
+        handle.type = EOH_TYPE_NONE;
+        handle.scene_no = -1;
+        handle.world_coord = 1;
+        handle.object = NULL;
+    }
+}
+
+} // namespace
+
+// An event can replace a map while its handles still name the map's parts. After the Griffon fight, s35's event 500
+// loads the dungeon map d06e01 (LoadDungeonMapFile) and requests the next script, and the event step between the two
+// still plays the object sequences of three s35 parts. Retail reads the freed parts there, which on the PS2 still held
+// a usable vtable; the port finds it zeroed. Handles into the deleted map refer to nothing instead, so GetPos fails and
+// each such sequence clears itself (CSceneObjSeq::Play).
+PORT_OVERRIDE int CScene::DeleteMap(int map_index, int clear_stack) {
+    CSceneMap *slot = GetSceneMap(map_index);
+
+    if (slot != nullptr && slot->stack != nullptr && GetMap(map_index) != nullptr) {
+        ForgetEventHandlesIn(*slot->stack);
+    }
+
+    return PortRetailDeleteMap(map_index, clear_stack);
 }
