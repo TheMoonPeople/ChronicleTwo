@@ -119,6 +119,10 @@ def _apply(command: dict, curation: dict) -> None:
         if key in curation:
             command[key] = curation[key]
     for argc, overrides in curation.get("signatures", {}).items():
+        if overrides.get("remove"):
+            # The handler never takes this count: the generator counted two alternative reads as two arguments.
+            command["signatures"] = [s for s in command["signatures"] if s["argc"] != int(argc)]
+            continue
         signature = next((s for s in command["signatures"] if s["argc"] == int(argc)), None)
         if signature is None:
             signature = {"argc": int(argc), "sites": 0, "files": 0, "params": []}

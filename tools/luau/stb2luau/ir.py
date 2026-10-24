@@ -118,6 +118,9 @@ class Call:
     args: tuple[Expr, ...]
     type: str
     offset: int = dataclasses.field(default=-1, compare=False)
+    # For a callee that must know where its frame starts: that slot, relative to the caller's frame start plus what its
+    # sweeps left on the stack.
+    frame: int | None = None
 
 
 Expr = Const | Var | Addr | Elem | Temp | Unary | Binary | Compare | Logical | Call
@@ -158,13 +161,78 @@ class Print:
 
     args: tuple[Expr, ...]
     offset: int = -1
+    # Per argument, from stb2luau/tags.py, the tags the printed value may hold; empty when the print was not analysed.
+    tags: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
 class Wait:
-    """Yields control until the next frame."""
+    """Yields control until the next frame.
+
+    skip is the offset where the function's sweep starts when a skip resumes the script here, or None in a script
+    that never runs in skip mode.
+    """
 
     offset: int = -1
+    skip: int | None = None
+
+
+@dataclasses.dataclass(frozen=True)
+class SkipCheck:
+    """Runs the function's sweep from an offset when the script is in skip mode: after a call that may return in skip
+    mode, at the end of its statement."""
+
+    start: int
+    offset: int = -1
+    # The values skip mode leaves on the stack before the sweep starts: the condition of a branch on the call's value.
+    left: int = 0
+
+
+@dataclasses.dataclass(frozen=True)
+class Landing:
+    """Marks where normal execution resumes after a sweep, at an offset of the function."""
+
+    offset: int
+
+
+@dataclasses.dataclass(frozen=True)
+class SweepStart:
+    """Marks where a sweep may start, inside a sweep's statements."""
+
+    offset: int
+
+
+@dataclasses.dataclass(frozen=True)
+class Land:
+    """In a sweep, after the statement of a call that may suspend at a callee's skip end: unless the script is still
+    in skip mode, normal execution resumes at the offset."""
+
+    offset: int
+
+
+@dataclasses.dataclass(frozen=True)
+class StackCheck:
+    """Raises the error retail exits with when a push may overflow the operand stack: the highest slot the next pushes
+    write, relative to the frame's start plus what the function's sweeps left on the stack."""
+
+    slot: int
+    offset: int = -1
+
+
+@dataclasses.dataclass(frozen=True)
+class Leave:
+    """In a sweep, counts the conditions it left on the stack since the last count, which stay until the function
+    returns."""
+
+    count: int
+
+
+@dataclasses.dataclass(frozen=True)
+class SkipEnd:
+    """Stops a sweep at the SKIP_END at an offset: leaves skip mode and suspends the script, which resumes in normal
+    mode after it, or sweeps on from there when skipped again."""
+
+    offset: int
 
 
 @dataclasses.dataclass(frozen=True)
@@ -182,7 +250,9 @@ class End:
     offset: int = -1
 
 
-Statement = Assign | ExtCall | CallStmt | Print | Wait | Return | End
+Statement = (
+    Assign | ExtCall | CallStmt | Print | Wait | Return | End | SkipCheck | Landing | SweepStart | Land | SkipEnd | StackCheck | Leave
+)
 
 
 @dataclasses.dataclass
@@ -262,6 +332,15 @@ class LiftedBlock:
 
 
 @dataclasses.dataclass
+class Sweep:
+    """The statements of one sweep of skip mode, in layout order: SweepStart marks each place a sweep may start, Land
+    each place it may resume normal execution, and the last statement (a Return, End or SkipEnd) stops it."""
+
+    stop: int
+    body: list
+
+
+@dataclasses.dataclass
 class LiftedFunction:
     """A script function lifted to expression trees, with the types of its slots and temporaries."""
 
@@ -275,6 +354,13 @@ class LiftedFunction:
     refs: tuple[int, ...] = ()
     arrays: dict[Slot, int] = dataclasses.field(default_factory=dict)
     folded: frozenset[int] = frozenset()
+    # Skip mode: the function's sweeps, and whether a sweep may call it, so that it starts in skip mode.
+    sweeps: list[Sweep] = dataclasses.field(default_factory=list)
+    entered: bool = False
+    # Whether the function must know where its frame starts, to tell where skip mode overflows the operand stack, and
+    # whether its frame itself may not fit when a sweep calls it.
+    stacked: bool = False
+    overflowing: bool = False
 
 
 def walk(expr: Expr) -> Iterator[Expr]:
@@ -315,6 +401,24 @@ def target_slot(target: Slot | Temp | Elem) -> Slot | None:
 def has_call(expr: Expr) -> bool:
     """Whether evaluating an expression runs a script function."""
     return any(isinstance(sub, Call) for sub in walk(expr))
+
+
+def may_raise(expr: Expr) -> bool:
+    """Whether evaluating an expression may run a script function or end where retail exits: a division or remainder by
+    anything but a nonzero constant, or a computed index into a frame table."""
+    for sub in walk(expr):
+        if isinstance(sub, Call):
+            return True
+        if isinstance(sub, Binary) and sub.op in ("div", "mod"):
+            divisor = sub.rhs
+            while isinstance(divisor, Unary) and divisor.op in ("neg", "itof"):
+                divisor = divisor.operand
+            if not (isinstance(divisor, Const) and divisor.value != 0):
+                return True
+        if isinstance(sub, (Elem, Addr)) and getattr(sub, "array", getattr(sub, "slot", None)) == FRAME:
+            if sub.index is not None and not isinstance(sub.index, Const):
+                return True
+    return False
 
 
 def add_const(expr: Expr, amount: int) -> Expr:

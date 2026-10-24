@@ -17,4 +17,14 @@ return {
         vm.wait()
         action.ProgSet(3)
     end,
+    [400] = function()
+        action.ProgSet(1)
+        if vm.wait() then
+            action.ProgSet(if vm.skipping() then 10 else 11)
+            if vm.skip_end() then
+                action.ProgSet(20)
+            end
+            action.ProgSet(if vm.skipping() then 30 else 31)
+        end
+    end,
 }

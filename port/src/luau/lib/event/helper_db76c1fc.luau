@@ -1,0 +1,330 @@
+--!strict
+-- Shared event helper used by 2 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local helper_2b963b7e = require("@lib/event/helper_2b963b7e")
+local helper_4eedff96 = require("@lib/event/helper_4eedff96")
+local helper_635ee3fd = require("@lib/event/helper_635ee3fd")
+local helper_8d417a4e = require("@lib/event/helper_8d417a4e")
+local helper_e2d04ed9 = require("@lib/event/helper_e2d04ed9")
+local helper_ed0a80b8 = require("@lib/event/helper_ed0a80b8")
+
+--- Helper function.
+local function helper_db76c1fc(arg0: s32, arg1: s32)
+	local var2: any = 0
+	local var3: s32 = 0
+	local var7: s32 = 0
+	local var8: f32 = 0
+	local var9: f32 = 0
+	local var10: f32 = 0
+	local var11: f32 = 0
+	local var12: f32 = 0
+	local var13: f32 = 0
+	local var14: f32 = 0
+	local var15: f32 = 0
+	local var16: f32 = 0
+	local var17: f32 = 0
+	local var18: f32 = 0
+	local var19: f32 = 0
+	local var20: f32 = 0
+	local pos_x: f32 = 0
+	local pos_y: f32 = 0
+	local pos_z: f32 = 0
+	local pos_x_2: f32 = 0
+	local pos_y_2: f32 = 0
+	local pos_z_2: f32 = 0
+	local skip: (number) -> ...any
+	function skip(at: number)
+		if at <= 8 then
+			if at <= 1 then
+				helper_635ee3fd(0, -1, arg0, arg1, 0)
+			end
+			if at <= 2 then
+				helper_635ee3fd(0, -1, arg0, arg1, 0)
+			end
+			if at <= 3 then
+				helper_635ee3fd(0, -1, arg0, arg1, 0)
+			end
+			if at <= 4 then
+				helper_635ee3fd(0, -1, arg0, arg1, 0)
+			end
+			if at <= 5 then
+				helper_635ee3fd(0, -1, arg0, arg1, 0)
+			end
+			if at <= 6 then
+				helper_635ee3fd(0, -1, arg0, arg1, 0)
+			end
+			if at <= 7 then
+				var2 = helper_2b963b7e(0, -1, 5, 256, 208, 2, 1)
+			end
+			return
+		end
+		if at <= 9 then
+			return
+		end
+		if at <= 13 then
+			if at <= 10 then
+				helper_ed0a80b8(30)
+			end
+			if at <= 11 then
+				helper_635ee3fd(0, -1, arg0, arg1, 0)
+			end
+			if at <= 12 then
+				helper_ed0a80b8(15)
+			end
+			return
+		end
+		if at <= 14 then
+			helper_635ee3fd(0, -1, arg0, arg1, 0)
+		end
+		if at <= 15 then
+			helper_e2d04ed9(0)
+		end
+		if at <= 16 then
+			helper_635ee3fd(0, -1, arg0, arg1, 0)
+		end
+		if at <= 17 then
+			helper_ed0a80b8(15)
+		end
+		if at <= 18 then
+			helper_ed0a80b8(15)
+		end
+		if at <= 19 then
+			helper_635ee3fd(0, -1, arg0, arg1, 0)
+		end
+		if at <= 20 then
+			helper_635ee3fd(0, -1, arg0, arg1, 0)
+		end
+		if at <= 21 then
+			helper_8d417a4e()
+		end
+	end
+	event.SetMesPreset(0, 0)
+	helper_4eedff96(arg0, 0, 0)
+	if vm.skipping() then
+		return skip(1)
+	end
+	while true do
+		event.MesMake_2(0, "Hace mucho le di un broche\ncon su signo del zodiaco.")
+		helper_635ee3fd(0, -1, arg0, arg1, 0)
+		if vm.skipping() then
+			return skip(2)
+		end
+		event.MesMake_2(
+			0,
+			"Holly se encarg[UNI00f3] de todo,\nas[UNI00ed] que no me acuerdo exactamente,\npero estoy seguro de que era un animal de 4 patas..."
+		)
+		helper_635ee3fd(0, -1, arg0, arg1, 0)
+		if vm.skipping() then
+			return skip(3)
+		end
+		event.MesMake_2(
+			0,
+			"[UNI00bf]Que qu[UNI00e9] clase de\nregalos de cumplea[UNI00f1]os le he hecho?<page>Umm... Muchos abrigos\ny pa[UNI00f1]uelos, supongo.<page>Nunca s[UNI00e9] qu[UNI00e9] comprarle.\nTodos los a[UNI00f1]os es la misma historia."
+		)
+		helper_635ee3fd(0, -1, arg0, arg1, 0)
+		if vm.skipping() then
+			return skip(4)
+		end
+		event.MesMake_2(
+			0,
+			"[UNI00a1]Y tanto! El cumplea[UNI00f1]os de Claire siempre es un sufrimiento.\nCae siempre en el d[UNI00ed]a que recogen la basura\nque se puede quemar y la que no.<page>A m[UNI00ed] me toca sacar\nla basura de casa."
+		)
+		helper_635ee3fd(0, -1, arg0, arg1, 0)
+		if vm.skipping() then
+			return skip(5)
+		end
+		event.MesMake_2(
+			0,
+			"La basura que no se puede quemar\nse recoge los d[UNI00ed]as divisibles por 7<page>y la que s[UNI00ed] se puede quemar\nlos divisibles por tres."
+		)
+		helper_635ee3fd(0, -1, arg0, arg1, 0)
+		if vm.skipping() then
+			return skip(6)
+		end
+		event.MesMake_2(0, "[UNI00bf]A que t[UNI00fa] tampoco te olvidar[UNI00ed]as\nde eso, eh?")
+		helper_635ee3fd(0, -1, arg0, arg1, 0)
+		if vm.skipping() then
+			return skip(7)
+		end
+		event.SetMotion(arg0, "立ち")
+		event.MesMake_2(
+			0,
+			"[UNI00a1]Ya est[UNI00e1]! [UNI00a1]Misterio resuelto!\nLa combinaci[UNI00f3]n es... <page>No s[UNI00e9]... Vamos a escuchar un poco m[UNI00e1]s."
+		)
+		var2 = helper_2b963b7e(0, -1, 5, 256, 208, 2, 1)
+		if vm.skipping() then
+			return skip(8)
+		end
+		if var2 == 0 then
+			break
+		else
+			if var2 == -1 then
+				event.Finish()
+				return
+			end
+			event.SetMotion(arg0, "会話")
+		end
+	end
+	event.SetMenuEtc(0, "Introduce el c[UNI00f3]digo secreto.", "1221", 0)
+	event.GotoMenu(5)
+	if vm.wait() then
+		return skip(9)
+	end
+	event.SetFadeIn(15)
+	do
+		local out1, _, _, _ = event.GetMenuParam_4()
+		var3 = out1 or var3
+	end
+	if var3 == -1 then
+		event.Finish()
+		return
+	end
+	event.SetFadeOut(15)
+	helper_ed0a80b8(15)
+	if vm.skipping() then
+		return skip(10)
+	end
+	var7 = event.GetSndId(2) or var7
+	do
+		local out1, out2, out3 = event.GetCharaPos(arg0)
+		var8 = out1 or var8
+		var9 = out2 or var9
+		var10 = out3 or var10
+	end
+	do
+		local out1, out2, out3 = event.GetCharaRot(arg0)
+		var11 = out1 or var11
+		var12 = out2 or var12
+		var13 = out3 or var13
+	end
+	event.SetCharaPos(arg0, -100.0, 0.0, -110.0)
+	event.SetCharaRot(arg0, 0.0, 3.1415927, 0.0)
+	event.SetMotion(arg0, "立ち")
+	do
+		local out1, out2, out3 = event.GetCharaPos(0)
+		var14 = out1 or var14
+		var15 = out2 or var15
+		var16 = out3 or var16
+	end
+	do
+		local out1, out2, out3 = event.GetCharaRot(0)
+		var17 = out1 or var17
+		var18 = out2 or var18
+		var19 = out3 or var19
+	end
+	var20 = event.Atan2f(-100.0 - var14, -110.0 - var16) or var20
+	event.SetCharaRot(0, 0.0, var20, 0.0)
+	event.SetMotion(0, "立ち")
+	do
+		local out1, out2, out3 = event.GetCameraPos()
+		pos_x = out1 or pos_x
+		pos_y = out2 or pos_y
+		pos_z = out3 or pos_z
+	end
+	do
+		local out1, out2, out3 = event.GetCameraRef()
+		pos_x_2 = out1 or pos_x_2
+		pos_y_2 = out2 or pos_y_2
+		pos_z_2 = out3 or pos_z_2
+	end
+	event.SetCameraPos(64.64, 46.9, 92.64)
+	event.SetCameraRef(-100.0, 20.0, -110.0)
+	event.SetFadeIn(15)
+	helper_ed0a80b8(30)
+	if vm.skipping() then
+		return skip(11)
+	end
+	if var3 == 0 then
+		event.SetMotion(arg0, "会話")
+		event.MesMake_2(0, "Vaya, no se abre. Cachis la mar... <page>Dentro tengo documentos\nmuy importantes...")
+		helper_635ee3fd(0, -1, arg0, arg1, 0)
+		if vm.skipping() then
+			return skip(12)
+		end
+		event.SetMotion(arg0, "立ち")
+		event.SetFadeOut(15)
+		helper_ed0a80b8(15)
+		if vm.skipping() then
+			return skip(13)
+		end
+		event.SetCharaRot(0, var17, var18, var19)
+		event.SetCharaPos(arg0, var8, var9, var10)
+		event.SetCharaRot(arg0, var11, var12, var13)
+		event.SetCameraPos(pos_x, pos_y, pos_z)
+		event.SetCameraRef(pos_x_2, pos_y_2, pos_z_2)
+		event.SetFadeIn(15)
+		event.Finish()
+		return
+	end
+	event.SetMotion(arg0, "会話")
+	event.MesMake_2(0, "Esto... Um...\n1,<page>2,<page>2,<page>1...")
+	helper_635ee3fd(0, -1, arg0, arg1, 0)
+	if vm.skipping() then
+		return skip(14)
+	end
+	event.SetMotion(arg0, "立ち")
+	event.SndSePlay(var7, 66)
+	event.MesMake_2(0, "[UNI00a1]Yujuuuu!<page>Bien,\n[UNI00a1]ha funcionado!")
+	helper_635ee3fd(0, -1, arg0, arg1, 0)
+	if vm.skipping() then
+		return skip(15)
+	end
+	event.EohSyncChara(0, arg0)
+	event.ObjsInit(0, arg0)
+	event.ObjsSyncObj(0, 0)
+	event.ObjsSetMotion(0, "歩き")
+	event.ObjsReference(0, var14, var15, var16, 30)
+	helper_e2d04ed9(0)
+	if vm.skipping() then
+		return skip(16)
+	end
+	event.SetMotion(arg0, "会話")
+	event.MesMake_2(
+		0,
+		"[UNI00a1]Genial! Ahora podr[UNI00e9]\nsacar los documentos que necesito.<page>[UNI00a1]Muchas gracias!"
+	)
+	helper_635ee3fd(0, -1, arg0, arg1, 0)
+	if vm.skipping() then
+		return skip(17)
+	end
+	event.SetMotion(arg0, "立ち")
+	event.SetFadeOut(15)
+	helper_ed0a80b8(15)
+	if vm.skipping() then
+		return skip(18)
+	end
+	event.SetCharaRot(0, var17, var18, var19)
+	event.SetCharaPos(arg0, var8, var9, var10)
+	event.SetCharaRot(arg0, var11, var12, var13)
+	event.SetCameraPos(pos_x, pos_y, pos_z)
+	event.SetCameraRef(pos_x_2, pos_y_2, pos_z_2)
+	event.SetFadeIn(15)
+	helper_ed0a80b8(15)
+	if vm.skipping() then
+		return skip(19)
+	end
+	event.SetMotion(arg0, "会話")
+	event.MesMake_2(
+		0,
+		"[UNI00bf]Qu[UNI00e9] documentos?<page>Unos que ayudar[UNI00e1]n al Teniente Alcalde Morton\na sustituirme mientras estoy fuera.<page>Me preocupa un poco,\npero no creo que pase nada."
+	)
+	helper_635ee3fd(0, -1, arg0, arg1, 0)
+	if vm.skipping() then
+		return skip(20)
+	end
+	event.MesMake_2(0, "Ahora ya estoy listo para marcharme.<page>Cedric me lo ha contado todo.<page>Venga, vamos.")
+	helper_635ee3fd(0, -1, arg0, arg1, 0)
+	if vm.skipping() then
+		return skip(21)
+	end
+	event.SetMotion(arg0, "立ち")
+	helper_8d417a4e()
+	if vm.skipping() then
+		return skip(22)
+	end
+	event.Finish()
+	event.SetQuestEtc(1, 12, 1)
+end
+
+return helper_db76c1fc

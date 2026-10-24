@@ -62,9 +62,9 @@ function script.on_start()
 	end
 	effect.GetValue(0)
 	target_id = effect.GetTargetId() or target_id
-	print("pos[0] = ", var0, "----------------\n")
-	print("pos[1] = ", var1, "----------------\n")
-	print("pos[2] = ", var2, "----------------\n")
+	print("pos[0] = ", string.format("%f", var0), "----------------\n")
+	print("pos[1] = ", string.format("%f", var1), "----------------\n")
+	print("pos[2] = ", string.format("%f", var2), "----------------\n")
 	effect.ChrSetPos(var0, var1, var2)
 	effect.ChrSetRot(var3, var4, var5)
 	var24 = effect.SptAssignSprite_2(42) or var24

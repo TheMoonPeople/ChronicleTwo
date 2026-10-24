@@ -14,6 +14,9 @@ references, returns and globals agree across the program, and reports for each n
   the value written there: the union of the interpretations ("int", "float", or "?" when not followed) of every read the
   written value may reach before the variable is written again, in the function, in its callers through a reference
   parameter, and, for a global, anywhere in the program.
+
+The sweeps of skip mode (cfg.skip_flow) are interpreted too: their stores and float loads retag variables that
+normal execution reads again after the sweep, and their script calls run.
 """
 
 from __future__ import annotations
@@ -57,10 +60,13 @@ class CallFacts:
 
 @dataclasses.dataclass
 class Facts:
-    """The analysis of a whole program: per native call offset, its CallFacts."""
+    """The analysis of a whole program: per native call offset, its CallFacts; per function, the parameters it uses as
+    references; and per PRINT offset, the tags of each printed value by position (1 for the first), which choose how
+    retail formats it."""
 
     calls: dict[int, CallFacts]
     references: dict[int, tuple[int, ...]] = dataclasses.field(default_factory=dict)
+    prints: dict[int, dict[int, Tags]] = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass
@@ -129,12 +135,19 @@ def _join(a: _State, b: _State) -> _State:
 
 class _Analysis:
     def __init__(
-        self, program: Program, directions: dict[tuple[int, int], tuple[str, ...]], bounded_functions: frozenset[int]
+        self,
+        program: Program,
+        directions: dict[tuple[int, int], tuple[str, ...]],
+        bounded_functions: frozenset[int],
+        skip: bool,
+        optimistic: bool = True,
     ):
         self.program = program
         self.bounded_functions = bounded_functions
+        self.skip = skip
         self.directions = directions
-        self.graphs = {block: cfg.build(program, function) for block, function in program.functions.items()}
+        flow = cfg.skip_flow(program) if skip else None
+        self.graphs = {block: cfg.build(program, function, flow) for block, function in program.functions.items()}
         self.named: dict[int, set[int]] = {}
         # Summaries of the previous round, which each round reads.
         self.param_tags: dict[int, dict[int, Tags]] = {}
@@ -144,6 +157,24 @@ class _Analysis:
         self.global_reads: dict[int, Tags] = {}
         self.derefs: dict[int, dict[int, _Deref]] = {}
         self.calls: dict[int, CallFacts] = {}
+        self.prints: dict[int, dict[int, Tags]] = {}
+        # The functions some call reaches: their parameters, references and results start empty and grow with what the
+        # calls pass and return, so the rounds settle on the least tags that agree.
+        self.called = (
+            {
+                program.callee(instruction).block
+                for function in program.functions.values()
+                for instruction in function.instructions
+                if instruction.op == Op.CALL
+            }
+            if optimistic
+            else set()
+        )
+
+    def _unset(self, function: Function) -> Tags:
+        """The tags a parameter holds before any round has seen a call pass it: none for a called function, any for one
+        the engine runs."""
+        return Tags() if function.block in self.called else _UNKNOWN
 
     def run(self) -> Facts:
         for _ in range(_ROUNDS):
@@ -157,6 +188,7 @@ class _Analysis:
             )
             self.global_outputs: dict[int, set[OutputId]] = collections.defaultdict(set)
             self.calls = {}
+            self.prints = {}
             for function in self.program.functions.values():
                 self._function(function)
             previous = (
@@ -183,6 +215,11 @@ class _Analysis:
             )
             if current == previous:
                 break
+        else:
+            if self.called:
+                # Rounds that did not settle may stop short of the tags the calls pass, so the analysis starts again
+                # with every parameter, reference and result possibly anything.
+                return _Analysis(self.program, self.directions, self.bounded_functions, self.skip, optimistic=False).run()
         # A value written into a global reaches every read of that global, in any function and any later run.
         for number, outputs in self.global_outputs.items():
             for output in outputs:
@@ -195,7 +232,7 @@ class _Analysis:
             )
             for block, parameters in self.derefs.items()
         }
-        return Facts(self.calls, references)
+        return Facts(self.calls, references, self.prints)
 
     def _read(self, output: OutputId, tags: Tags) -> None:
         facts = self.calls.setdefault(output[0], CallFacts())
@@ -222,13 +259,13 @@ class _Analysis:
         entry_tags: dict[Slot, Tags] = {}
         for n in range(function.local):
             if n < function.arg:
-                entry_tags[("local", n)] = self.param_tags.get(function.block, {}).get(n, _UNKNOWN)
+                entry_tags[("local", n)] = self.param_tags.get(function.block, {}).get(n, self._unset(function))
             else:
                 entry_tags[("local", n)] = _INT
         for n in range(function.arg):
-            entry_tags[("ptr", n)] = self.ref_tags.get(function.block, {}).get(n, _UNKNOWN)
-        states: dict[int, _State] = {graph.entry: _State((), entry_tags, {})}
-        work = [graph.entry]
+            entry_tags[("ptr", n)] = self.ref_tags.get(function.block, {}).get(n, self._unset(function))
+        states: dict[int | tuple[str, int], _State] = {graph.entry: _State((), entry_tags, {})}
+        work: list[int | tuple[str, int]] = [graph.entry]
         visits = collections.Counter()
         while work:
             start = work.pop()
@@ -239,7 +276,10 @@ class _Analysis:
             stack = list(state.stack)
             tags = dict(state.tags)
             pending = dict(state.pending)
-            block = graph.blocks[start]
+            # A sweep runs its piece in layout order: jumps fall through, a conditional one leaving its condition on
+            # the stack, and native calls only pop their arguments.
+            skipping = isinstance(start, tuple)
+            block = graph.skip[start] if skipping else graph.blocks[start]
 
             def tag_of(slot: Slot) -> Tags:
                 if slot[0] == "global":
@@ -260,9 +300,16 @@ class _Analysis:
             def pop() -> _Value:
                 return stack.pop() if stack else _Value(_UNKNOWN)
 
-            successors: list[tuple[int, tuple[_Value, ...]]] = []
+            successors: list[tuple[int | tuple[str, int], tuple[_Value, ...], dict, dict]] = []
             for instruction in block.instructions:
                 op = instruction.op
+                if not skipping and instruction.offset in graph.seeds:
+                    successors.append((graph.seeds[instruction.offset], (), dict(tags), dict(pending)))
+                if skipping and op in (Op.JMP, Op.JMP_FALSE, Op.JMP_TRUE, Op.EXT):
+                    if op == Op.EXT:
+                        for _ in range(instruction.a1):
+                            pop()
+                    continue
                 if op in (Op.LOAD, Op.LOAD_ADDR):
                     mode = instruction.a2
                     dynamic = False
@@ -349,13 +396,13 @@ class _Analysis:
                     pop()
                     stack.append(_Value(_FLOAT))
                 elif op == Op.JMP:
-                    successors.append((program.jump_target(instruction), tuple(stack)))
+                    successors.append((program.jump_target(instruction), tuple(stack), dict(tags), dict(pending)))
                 elif op in (Op.JMP_FALSE, Op.JMP_TRUE):
                     pop()
                     taken = list(stack)
                     if instruction.a2:
                         taken.append(_Value(_INT))
-                    successors.append((program.jump_target(instruction), tuple(taken)))
+                    successors.append((program.jump_target(instruction), tuple(taken), dict(tags), dict(pending)))
                 elif op == Op.CALL:
                     callee = program.callee(instruction)
                     args = [pop() for _ in range(callee.arg)][::-1]
@@ -393,10 +440,11 @@ class _Analysis:
                                 passed.reads |= deref.reads
                                 passed.stores |= deref.stores
                                 passed.outputs |= deref.outputs
-                    stack.append(_Value(self.return_tags.get(callee.block, _UNKNOWN)))
+                    stack.append(_Value(self.return_tags.get(callee.block, Tags())))
                 elif op == Op.PRINT:
-                    for _ in range(instruction.a1):
-                        pop()
+                    printed = self.prints.setdefault(instruction.offset, {})
+                    for position, value in enumerate([pop() for _ in range(instruction.a1)][::-1], 1):
+                        printed[position] = printed.get(position, Tags()) | value.tags
                 elif op == Op.EXT:
                     values = [pop() for _ in range(instruction.a1)][::-1]
                     if not values:
@@ -430,21 +478,24 @@ class _Analysis:
                 elif op == Op.RET:
                     self.next_returns[function.block] = self.next_returns[function.block] | pop().tags
             last = block.instructions[-1]
-            if last.op in (Op.JMP_FALSE, Op.JMP_TRUE):
+            if skipping:
+                # Each piece starts at a statement boundary, where the values a sweep leaked are never read again.
+                successors.extend((successor, (), tags, pending) for successor in block.successors)
+            elif last.op in (Op.JMP_FALSE, Op.JMP_TRUE):
                 following = last.offset + 12
                 if following in graph.blocks:
-                    successors.append((following, tuple(stack)))
+                    successors.append((following, tuple(stack), tags, pending))
             elif last.op not in (Op.JMP, Op.RET, Op.END):
-                successors.extend((successor, tuple(stack)) for successor in block.successors)
-            for successor, out_stack in successors:
+                successors.extend((successor, tuple(stack), tags, pending) for successor in block.successors)
+            for successor, out_stack, out_tags, out_pending in successors:
                 current = states.get(successor)
                 if current is None:
-                    states[successor] = _State(out_stack, dict(tags), dict(pending))
+                    states[successor] = _State(out_stack, dict(out_tags), dict(out_pending))
                     work.append(successor)
                     continue
                 if len(current.stack) != len(out_stack):
                     continue
-                merged = _join(current, _State(out_stack, tags, pending))
+                merged = _join(current, _State(out_stack, out_tags, out_pending))
                 if merged.stack != current.stack or merged.tags != current.tags or merged.pending != current.pending:
                     states[successor] = merged
                     work.append(successor)
@@ -453,12 +504,14 @@ class _Analysis:
 def analyse(
     program: Program,
     directions: dict[tuple[int, int], tuple[str, ...]],
+    skip: bool = False,
     *,
     bounded_functions: frozenset[int] = frozenset(),
 ) -> Facts:
     """Tags and output reads of native calls, with directions by (command, argc).
 
-    bounded_functions names functions whose computed indices the lifter proved stay within their arrays; without
-    that proof an unknown index may reach any local in the frame.
+    With skip, the sweeps of skip mode, which only event scripts run, are analysed too. bounded_functions names
+    functions whose computed indices the lifter proved stay within their arrays; without that proof an unknown index
+    may reach any local in the frame.
     """
-    return _Analysis(program, directions, bounded_functions).run()
+    return _Analysis(program, directions, bounded_functions, skip).run()

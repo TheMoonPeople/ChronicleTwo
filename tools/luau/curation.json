@@ -862,7 +862,864 @@
      ]
     }
    }
+  },
+  "_MES_MAKE": {
+   "notes": "Takes a message number or the text itself, by the argument's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_ESM_LOAD_BASE": {
+   "notes": "Takes an effect script's number or its name, by the argument's tag.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_EOH_SYNC_FUNCP": {
+   "notes": "Takes a map part's number and a function point's name, or a name alone, by the second argument's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_SND_LOAD_SOUND": {
+   "notes": "Takes a sound file's number or its name, by the argument's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_SET_LOADBG_FILE": {
+   "notes": "Each file is an item number followed by a variant number, or a path, by the argument's tag.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "2": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "3": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "4": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "9": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "10": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_MAP_JUMP": {
+   "notes": "Takes the destination map's number or its name, by the argument's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_EOH_SYNC_OBJ": {
+   "notes": "Takes a map part's number or a place's name, by the argument's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "4": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_EOH_SET_TEX_ANIM": {
+   "notes": "Takes a switch and a name, or the names alone, by the second argument's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_FUNC_POINT_SHOW": {
+   "notes": "Takes a map part's number or a place's name, by the argument's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_SET_MPCHARA_MOTION": {
+   "notes": "Takes a map part's number or a place's name, by the argument's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    },
+    "4": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_GOTO_USE_ITEM": {
+   "notes": "Opens the use item menu; the handler keeps the reference and writes the item used through it when the menu closes, while the script waits.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "deferred": true
+      }
+     ]
+    }
+   }
+  },
+  "_GOTO_USE_ITEM2": {
+   "notes": "Opens the use item menu; the handler keeps the reference and writes the item used through it when the menu closes, while the script waits.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "deferred": true
+      }
+     ]
+    }
+   }
+  },
+  "_GET_RAND": {
+   "notes": "An integer range gives an integer, a float range a float.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "name": "range",
+       "type": "f32",
+       "tagged": true
+      },
+      {
+       "name": "value",
+       "type": "f32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_SET_BGM_VOL": {
+   "notes": "Takes the volume as an integer, or as a float fraction of the master volume, by its tag.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "name": "volume",
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_SND_SET_SE_VOL": {
+   "notes": "Takes the volume as an integer or a float, by its tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {},
+      {
+       "name": "volume",
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_ESM_SET_VALUE": {
+   "notes": "Stores the value as an integer or a float by its tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "name": "value",
+       "type": "s32",
+       "tagged": true
+      }
+     ]
+    }
+   }
+  },
+  "_STREAM_OPEN": {
+   "notes": "Takes a number or a name, by the argument's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_LOAD_SKIN": {
+   "notes": "Reads four slots: the stack, a pack file given as an item number or a name (by the slot's tag), the info name and the character.",
+   "signatures": {
+    "5": {
+     "remove": true
+    },
+    "4": {
+     "params": [
+      {
+       "name": "stack_no",
+       "dir": "in",
+       "type": "s32"
+      },
+      {
+       "name": "pack_file",
+       "dir": "in",
+       "type": "s32",
+       "strings": true
+      },
+      {
+       "name": "info_name",
+       "dir": "in",
+       "type": "string"
+      },
+      {
+       "name": "chara_no",
+       "dir": "in",
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_PARTS_POS": {
+   "notes": "Takes a number or a name, by the argument's tag.",
+   "signatures": {
+    "5": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_GET_MAP_TYPE": {
+   "notes": "Takes a number or a name, by the argument's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_FUNC_POINT_POS": {
+   "notes": "Takes a number or a name, by the argument's tag.",
+   "signatures": {
+    "5": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_FUNC_POINT_GET_ROT": {
+   "notes": "Takes a number or a name, by the argument's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_FUNC_POINT_GET_POS": {
+   "notes": "Takes a number or a name, by the argument's tag.",
+   "signatures": {
+    "5": {
+     "params": [
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_EOH_SYNC_EDIT_OBJ": {
+   "notes": "Takes a number or a name, by the argument's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32",
+       "strings": true
+      }
+     ]
+    }
+   }
+  },
+  "_GET_PADUP": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_ITEM_SPACE": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_START_BUTTON": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_BPOT_STATUS": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_PHOTO_NUM": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_SPHIDA_GET_LAST_CHALLENGE": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_DNG_GET_TIMER": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_EXIT_FLAG": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_MAP_EFFECT_ID": {
+   "notes": "The handler writes an integer.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_FCAMERA_HEIGHT": {
+   "notes": "The handler writes a float.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_FCAMERA_DIST": {
+   "notes": "The handler writes a float.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_GET_CHARA_SHOW": {
+   "notes": "The handler writes integers.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "s32"
+      },
+      {
+       "type": "s32"
+      }
+     ]
+    }
+   }
+  },
+  "_CHK_INTERSECTION_POINT_PIPE": {
+   "notes": "The hit position is written as floats.",
+   "signatures": {
+    "14": {
+     "params": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {
+       "type": "f32"
+      },
+      {
+       "type": "f32"
+      },
+      {
+       "type": "f32"
+      }
+     ]
+    },
+    "17": {
+     "params": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {
+       "type": "f32"
+      },
+      {
+       "type": "f32"
+      },
+      {
+       "type": "f32"
+      }
+     ]
+    }
+   }
+  },
+  "_JOIN_PARTY_MEMBER": {
+   "notes": "Given a value, joins the character (1) or makes it leave; given a reference, writes whether it is a member.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "name": "member",
+       "values": true
+      }
+     ]
+    }
+   }
+  },
+  "_GET_MENU_ETC": {
+   "notes": "The fish record (request 2) reads the fish's number in the second argument and writes its size, a float, into the third; the download step (7) reads a value there and writes an integer into the third; the other requests write both.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {
+       "values": true
+      },
+      {
+       "by_arg": {
+        "position": 1,
+        "types": {
+         "2": "f32"
+        }
+       }
+      }
+     ]
+    }
+   }
   }
  },
- "event_arg": {}
+ "event_arg": {
+  "_DATA": {
+   "notes": "Keeps each argument with its integer, float or string tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      }
+     ]
+    },
+    "4": {
+     "params": [
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      }
+     ]
+    },
+    "6": {
+     "params": [
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      }
+     ]
+    },
+    "7": {
+     "params": [
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      },
+      {
+       "kept": true
+      }
+     ]
+    }
+   }
+  }
+ }
 }

@@ -3,6 +3,7 @@
 Each function is interpreted over its control-flow graph with an abstract stack of Values. Variable types come
 from the address modes the compiler chose (the *_FLOAT modes mark float variables), from the values stored into
 each slot, and from the arguments callers pass; the analysis iterates over the whole program until those agree.
+The sweeps of skip mode (cfg.skip_flow) are interpreted too, since their stores, calls and returns run.
 """
 
 from __future__ import annotations
@@ -52,6 +53,8 @@ class FunctionFacts:
     stores: dict[tuple[str, int], set[str]] = dataclasses.field(default_factory=lambda: collections.defaultdict(set))
     float_slots: set[tuple[str, int]] = dataclasses.field(default_factory=set)
     returns: set[str] = dataclasses.field(default_factory=set)
+    # The arguments of the calls a sweep makes, by CALL offset, as call_args holds those of normal runs.
+    skip_call_args: dict[int, tuple[int, tuple[Value, ...]]] = dataclasses.field(default_factory=dict)
     stack_errors: list[str] = dataclasses.field(default_factory=list)
     counters: collections.Counter = dataclasses.field(default_factory=collections.Counter)
     graph: cfg.Graph | None = None
@@ -97,13 +100,15 @@ def _arith(lhs: Value, rhs: Value) -> str:
 class Analysis:
     """Whole-program stack interpretation with interprocedural slot typing."""
 
-    def __init__(self, program: Program):
+    def __init__(self, program: Program, skip: bool = False):
+        """Analyse a program; with skip, also the sweeps of skip mode, which only event scripts run."""
         self.program = program
         self.param_types: dict[int, dict[int, str]] = collections.defaultdict(dict)
         self.global_types: dict[int, str] = {}
         self.return_types: dict[int, str] = {}
         self.facts: dict[int, FunctionFacts] = {}
-        self.graphs = {block: cfg.build(program, function) for block, function in program.functions.items()}
+        self.flow = cfg.skip_flow(program) if skip else None
+        self.graphs = {block: cfg.build(program, function, self.flow) for block, function in program.functions.items()}
         for _ in range(6):
             facts = {block: self._interpret(function) for block, function in program.functions.items()}
             params, globals_, returns = self._summaries(facts)
@@ -118,7 +123,7 @@ class Analysis:
         globals_: dict[int, str] = {}
         returns: dict[int, str] = {}
         for block, fact in facts.items():
-            for callee, args in fact.call_args.values():
+            for callee, args in [*fact.call_args.values(), *fact.skip_call_args.values()]:
                 for i, value in enumerate(args):
                     previous = params[callee].get(i)
                     params[callee][i] = value.type if previous is None else join(previous, value.type)
@@ -154,8 +159,8 @@ class Analysis:
         previous = self.facts.get(function.block)
         fact = FunctionFacts(graph=self.graphs[function.block])
         graph = fact.graph
-        entry_stacks: dict[int, tuple[Value, ...]] = {graph.entry: ()}
-        work = [graph.entry]
+        entry_stacks: dict[int | tuple[str, int], tuple[Value, ...]] = {graph.entry: ()}
+        work: list[int | tuple[str, int]] = [graph.entry]
         visits = collections.Counter()
         recorded = set()
 
@@ -169,23 +174,34 @@ class Analysis:
                 fact.stack_errors.append(f"stack did not converge at {start:#x}")
                 continue
             stack = list(entry_stacks[start])
-            block = graph.blocks[start]
+            # A sweep runs its piece in layout order: jumps fall through, a conditional one leaving its condition on
+            # the stack, and native calls only pop their arguments. Leaked values lie below what the sweep uses.
+            skipping = isinstance(start, tuple)
+            block = graph.skip[start] if skipping else graph.blocks[start]
             first_visit = start not in recorded
             recorded.add(start)
 
             def pop() -> Value:
                 if not stack:
-                    fact.stack_errors.append(f"stack underflow at {instruction.offset:#x}")
+                    if not skipping:
+                        fact.stack_errors.append(f"stack underflow at {instruction.offset:#x}")
                     return Value("unknown", ANY)
                 return stack.pop()
 
             def count(name: str):
-                if first_visit:
+                if first_visit and not skipping:
                     fact.counters[name] += 1
 
-            successors: list[tuple[int, tuple[Value, ...]]] = []
+            successors: list[tuple[int | tuple[str, int], tuple[Value, ...]]] = []
             for instruction in block.instructions:
                 op = instruction.op
+                if not skipping and instruction.offset in graph.seeds:
+                    successors.append((graph.seeds[instruction.offset], ()))
+                if skipping and op in (Op.JMP, Op.JMP_FALSE, Op.JMP_TRUE, Op.EXT):
+                    if op == Op.EXT:
+                        for _ in range(instruction.a1):
+                            pop()
+                    continue
                 if op in (Op.LOAD, Op.LOAD_ADDR):
                     mode = instruction.a2
                     try:
@@ -302,7 +318,7 @@ class Analysis:
                 elif op == Op.CALL:
                     callee = program.callee(instruction)
                     args = tuple(pop() for _ in range(callee.arg))[::-1]
-                    fact.call_args[instruction.offset] = (callee.block, args)
+                    (fact.skip_call_args if skipping else fact.call_args)[instruction.offset] = (callee.block, args)
                     stack.append(Value("call", self.return_types.get(callee.block, ANY), const=callee.block))
                 elif op == Op.PRINT:
                     for _ in range(instruction.a1):
@@ -318,7 +334,10 @@ class Analysis:
                 elif op in (Op.END, Op.WAIT, Op.SKIP_END, Op.LABEL):
                     pass
             last = block.instructions[-1]
-            if last.op in (Op.JMP_FALSE, Op.JMP_TRUE):
+            if skipping:
+                # Each piece starts at a statement boundary, where the values a sweep leaked are never read again.
+                successors.extend((successor, ()) for successor in block.successors)
+            elif last.op in (Op.JMP_FALSE, Op.JMP_TRUE):
                 following = _fallthrough(graph, block)
                 if following is not None:
                     successors.append((following, tuple(stack)))

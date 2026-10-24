@@ -28,6 +28,7 @@ import functools
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -56,6 +57,7 @@ from stb2luau.emit import (  # noqa: E402
     called_blocks,
     emit,
     emit_library,
+    function_statements,
     handlers,
     mentioned_slots,
     used_call_blocks,
@@ -177,11 +179,17 @@ def _sorted_tags(found: frozenset) -> tuple[str, ...]:
     return tuple(sorted(found))
 
 
-def _annotate(stmts: list, calls: dict[int, tags.CallFacts]) -> list:
-    """The statements with each external call carrying the tag analysis of its arguments."""
+def _annotate(stmts: list, found: tags.Facts) -> list:
+    """The statements with each external call and print carrying the tag analysis of its arguments."""
+    calls = found.calls
     annotated = []
     for stmt in stmts:
-        if isinstance(stmt, ir.ExtCall) and stmt.offset in calls:
+        if isinstance(stmt, ir.Print) and stmt.offset in found.prints:
+            printed = found.prints[stmt.offset]
+            stmt = dataclasses.replace(
+                stmt, tags=tuple(_sorted_tags(printed.get(position, frozenset())) for position in range(1, len(stmt.args) + 1))
+            )
+        elif isinstance(stmt, ir.ExtCall) and stmt.offset in calls:
             facts = calls[stmt.offset]
             entries = []
             for position in range(1, len(stmt.args) + 1):
@@ -196,7 +204,7 @@ def _annotate(stmts: list, calls: dict[int, tags.CallFacts]) -> list:
             stmt = dataclasses.replace(stmt, tags=tuple(entries))
         elif dataclasses.is_dataclass(stmt):
             changes = {
-                field.name: _annotate(getattr(stmt, field.name), calls)
+                field.name: _annotate(getattr(stmt, field.name), found)
                 for field in dataclasses.fields(stmt)
                 if isinstance(getattr(stmt, field.name), list)
             }
@@ -216,9 +224,12 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
         return Result(path, name, None, str(error), [], None), None
 
     result = Result(path, name, None, None, [], program, normalized)
-    analysis = Analysis(program)
+    kind = classify(path)
+    # Only event scripts run in skip mode (CRunScript::skip is called on EventScript alone).
+    skippable = kind == Kind.EVENT
+    analysis = Analysis(program, skip=skippable)
     refs = references(program)
-    pointer_flow = tags.analyse(program, _directions(classify(path).value)).references
+    pointer_flow = tags.analyse(program, _directions(kind.value), skip=skippable).references
     for block, positions in pointer_flow.items():
         refs[block] = tuple(sorted(set(refs.get(block, ())) | set(positions)))
     errors: list[str] = []
@@ -243,14 +254,19 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
             is_main=block == program.main,
             refs=lifted.refs,
             arrays=lifted.arrays,
+            sweeps=lifted.sweeps,
+            entered=lifted.entered,
+            stacked=lifted.stacked,
+            overflowing=lifted.overflowing,
         )
     if errors:
         result.error = "; ".join(errors)
         return result, None
     bounded = frozenset(block for block, function in functions.items() if ir.FRAME not in function.arrays)
-    call_tags = tags.analyse(program, _directions(classify(path).value), bounded_functions=bounded).calls
+    tag_facts = tags.analyse(program, _directions(kind.value), skip=skippable, bounded_functions=bounded)
     for function in functions.values():
-        function.body = _annotate(function.body, call_tags)
+        function.body = _annotate(function.body, tag_facts)
+        function.sweeps = [dataclasses.replace(sweep, body=_annotate(sweep.body, tag_facts)) for sweep in function.sweeps]
     result.folded = frozenset(folded)
     result.float_refs = float_references(analysis)
     result.float_globals = float_globals(analysis)
@@ -289,6 +305,14 @@ class _Keys:
         ]
         if function.refs:
             parts.append(f"refs={self.value(function.refs)}")
+        if function.sweeps:
+            parts.append(f"sweeps={self.value(function.sweeps)}")
+        if function.entered:
+            parts.append("entered")
+        if function.stacked:
+            parts.append("stacked")
+        if function.overflowing:
+            parts.append("overflowing")
         if function.arrays:
             parts.append(f"arrays={self.value(sorted(function.arrays.items()))}")
         self.active.discard(block)
@@ -303,6 +327,9 @@ class _Keys:
             if callee is None:
                 raise EmitError(f"call to unknown function {value.function:#x}")
             return f"Call(function={self.key(callee)},args={self.value(value.args)},type={self.value(value.type)})"
+        if isinstance(value, ir.Print) and all(set(found) <= {"int", "str"} for found in value.tags):
+            # Integers and strings print as the runtime prints them, so only other tags change the emitted print.
+            value = dataclasses.replace(value, tags=())
         if dataclasses.is_dataclass(value) and not isinstance(value, type):
             fields = [
                 f"{field.name}={self.value(getattr(value, field.name))}"
@@ -331,16 +358,20 @@ def shareable_blocks(functions: dict[int, FunctionInput]) -> set[int]:
             # A call cycle is rejected by emission, so an entry is provisionally false while it is visited.
             memo[block] = False
             function = functions[block]
-            touches_global = any(slot[0] == "global" for slot in mentioned_slots(function.body) | set(function.slot_types))
+            statements = function_statements(function)
+            touches_global = any(slot[0] == "global" for slot in mentioned_slots(statements) | set(function.slot_types))
             local = not function.is_main and not function.programs and not touches_global
-            memo[block] = local and all(visit(callee) for callee in sorted(called_blocks(function.body)))
+            memo[block] = local and all(visit(callee) for callee in sorted(called_blocks(statements)))
         return memo[block]
 
     return {block for block in functions if visit(block)}
 
 
-def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[_Shared]]:
-    """Chooses the shared helpers of one kind: returns each script's block-to-library names and the libraries."""
+def _share(
+    modules: list[ModuleInput],
+) -> tuple[dict[str, dict[int, str]], dict[str, set[int]], list[_Shared]]:
+    """Chooses the shared helpers of one kind: returns each script's block-to-library names, the blocks of its libraries
+    that return their value, and the libraries."""
     keys: dict[str, dict[int, str]] = {}
     shareable: dict[str, set[int]] = {}
     occurrences: dict[str, list[tuple[str, int]]] = collections.defaultdict(list)
@@ -367,7 +398,7 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
     returns: set[str] = set()
     for module in modules:
         for function in module.functions.values():
-            for callee in used_call_blocks(function.body):
+            for callee in used_call_blocks(function_statements(function)):
                 key = keys[module.path][callee]
                 if key in shared_keys:
                     returns.add(key)
@@ -380,6 +411,9 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
         }
         for module in modules
     }
+    module_returns = {
+        path: {block for block in blocks if keys[path][block] in returns} for path, blocks in module_names.items()
+    }
     shared = [
         _Shared(
             key=key,
@@ -391,7 +425,7 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
         )
         for key in sorted(shared_keys)
     ]
-    return module_names, shared
+    return module_names, module_returns, shared
 
 
 def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[str, Any]) -> Corpus:
@@ -401,10 +435,13 @@ def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[s
     errors: dict[str, str] = {}
     libraries: list[Library] = []
     names: dict[str, dict[int, str]] = {}
+    # A call of a library that returns its value takes the value first, even where the caller drops it.
+    returning: dict[str, set[int]] = {}
     for kind in sorted({module.kind for module in modules}):
         kind_modules = [module for module in modules if module.kind == kind]
-        kind_names, shared = _share(kind_modules)
+        kind_names, kind_returning, shared = _share(kind_modules)
         names.update(kind_names)
+        returning.update(kind_returning)
         for item in shared:
             source = by_path[item.path]
             try:
@@ -415,6 +452,7 @@ def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[s
                     source.functions,
                     kind_names[item.path],
                     item.returns_value,
+                    kind_returning[item.path],
                     len(item.users),
                     catalog,
                 )
@@ -434,7 +472,14 @@ def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[s
         if module.path in errors:
             continue
         try:
-            emitted[module.path] = emit(dataclasses.replace(module, libraries=names.get(module.path, {})), catalog)
+            emitted[module.path] = emit(
+                dataclasses.replace(
+                    module,
+                    libraries=names.get(module.path, {}),
+                    returns_value=module.returns_value | returning.get(module.path, set()),
+                ),
+                catalog,
+            )
         except EmitError as error:
             errors[module.path] = str(error)
     return Corpus(emitted, errors, libraries)
@@ -475,10 +520,28 @@ def format(texts: dict[Path, str]) -> dict[Path, str]:
     return {path: path.read_text(encoding="utf-8") for path in texts}
 
 
-def _support(scratch: Path, out: Path) -> None:
-    """Fills a scratch scripts root with the declarations, the libraries under out, and vm.luau when out lacks it."""
+# A module's require of a shared library or of vm.
+_REQUIRE = re.compile(r'require\("@lib/([^"]+)"\)')
+
+
+def _support(scratch: Path, out: Path, module: str | None = None) -> None:
+    """Fills a scratch scripts root with the declarations, the libraries under out (with a module's text, only those it
+    requires), and vm.luau when out lacks it."""
     shutil.copytree(OUTPUT / "api", scratch / "api")
-    if (out / "lib").is_dir():
+    if module is not None:
+        (scratch / "lib").mkdir()
+        pending, copied = [module], set()
+        while pending:
+            for name in _REQUIRE.findall(pending.pop()):
+                source = out / "lib" / f"{name}.luau"
+                if name in copied or not source.is_file():
+                    continue
+                copied.add(name)
+                target = scratch / "lib" / f"{name}.luau"
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+                pending.append(source.read_text(encoding="utf-8"))
+    elif (out / "lib").is_dir():
         shutil.copytree(out / "lib", scratch / "lib")
     else:
         (scratch / "lib").mkdir()
@@ -595,7 +658,7 @@ def _harness_job(job: tuple[Result, Module, dict[str, Any], range, Path]) -> Har
     try:
         with tempfile.TemporaryDirectory() as scratch:
             root = Path(scratch)
-            _support(root, out)
+            _support(root, out, module.text)
             target = root / f"{result.module}.luau"
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(module.text, encoding="utf-8", newline="\n")

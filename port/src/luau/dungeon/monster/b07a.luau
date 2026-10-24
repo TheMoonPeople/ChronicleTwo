@@ -680,7 +680,7 @@ function script.loop()
 			pos_z = out3 or pos_z
 		end
 		var3 = monster.GetDistVector2(pos_x, 0.0, pos_z, var0, 0.0, var2) or var3
-		print("dist=", var3, "---------------\n")
+		print("dist=", string.format("%f", var3), "---------------\n")
 		if var3 > 380.0 then
 			argc_2 = monster.GetRnd(100) or argc_2
 			if argc_2 < 15 then

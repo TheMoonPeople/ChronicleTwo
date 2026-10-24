@@ -76,6 +76,8 @@ declare demo: {{
 \tPair_1: (text: string, values: {{number}}, flag: boolean) -> (f32?, any?),
 \t{EXT_DOC}
 \tExt: (no: number, ...any) -> (),
+\t{api.EXT_TYPED_DOC}
+\t{api.EXT_TYPED}
 }}
 """
 

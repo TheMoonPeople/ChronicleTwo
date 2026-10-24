@@ -128,7 +128,7 @@ class ShareableTest(unittest.TestCase):
 class EmitLibraryTest(unittest.TestCase):
     def test_tiny_helper_returns_itself(self):
         helper = function(0x10, [ir.Print((var(0),))], arg=1, slots={("local", 0): ir.INT})
-        module = emit_library("helper_abcd1234", "action", helper, {0x10: helper}, {}, False, 3, CATALOG)
+        module = emit_library("helper_abcd1234", "action", helper, {0x10: helper}, {}, False, set(), 3, CATALOG)
         self.assertEqual(
             module.text,
             "--!strict\n"
@@ -152,6 +152,7 @@ class EmitLibraryTest(unittest.TestCase):
             {0x10: helper, 0x30: callee},
             {0x10: "helper_abcd1234", 0x30: "helper_11112222"},
             True,
+            set(),
             2,
             CATALOG,
         )
@@ -161,7 +162,7 @@ class EmitLibraryTest(unittest.TestCase):
 
     def test_return_value_is_kept_when_used(self):
         helper = function(0x10, [ir.Return(const(7))])
-        module = emit_library("helper_abcd1234", "action", helper, {0x10: helper}, {}, True, 2, CATALOG)
+        module = emit_library("helper_abcd1234", "action", helper, {0x10: helper}, {}, True, set(), 2, CATALOG)
         self.assertIn("\treturn 7\n", module.text)
 
     def test_uncalled_callee_outside_the_libraries_is_rejected(self):
@@ -170,7 +171,7 @@ class EmitLibraryTest(unittest.TestCase):
         from stb2luau.emit import EmitError
 
         with self.assertRaises(EmitError):
-            emit_library("helper_abcd1234", "action", helper, {0x10: helper, 0x30: callee}, {}, False, 2, CATALOG)
+            emit_library("helper_abcd1234", "action", helper, {0x10: helper, 0x30: callee}, {}, False, set(), 2, CATALOG)
 
 
 def _write_texts(texts):
@@ -238,6 +239,57 @@ class ScriptTest(unittest.TestCase):
             "read": (1, 1, [("push", 0), ("LOAD", 0, AddrMode.POINTER_INDEX_FLOAT), ("PRINT", 1), ("push", 0), ("RET",)]),
         }
         self.assertIn("may be an integer is stored into float variable", emit_script(functions))
+
+    def test_printed_float_keeps_its_decimals(self):
+        # Retail prints a float slot with %f, so 2.0 prints 2.000000, where the runtime's print would show 2.
+        functions = {"main": (1, 0, [
+            ("LOAD_ADDR", 0, AddrMode.LOCAL_FLOAT), ("pushf", 2.0), ("STORE",), ("POP",),
+            ("LOAD", 0, AddrMode.LOCAL_FLOAT), ("PRINT", 1), ("push", 0), ("RET",),
+        ])}
+        text = emit_script(functions)
+        self.assertIn('print(string.format("%f", var0))', text)
+        if transpile.harness.HOST.exists():
+            self.assertEqual(differential(functions).failed, 0)
+            result, module = transpile.transpile(SCRIPT, assemble(functions, "main"))
+            catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+            exposed = transpile.emit_corpus([(result, dataclasses.replace(module, expose_globals=True, probe_refs=True))], catalog)
+            changed = dataclasses.replace(
+                exposed.modules[SCRIPT], text=exposed.modules[SCRIPT].text.replace('string.format("%f", var0)', "var0")
+            )
+            with tempfile.TemporaryDirectory() as scratch:
+                row = transpile._harness_job((result, changed, catalog["kinds"]["action"], range(2), Path(scratch)))
+            self.assertGreater(row.failed, 0)
+
+    def test_print_of_an_integer_or_a_float_is_rejected(self):
+        h = (1, 1, [
+            ("LOAD", 0, AddrMode.LOCAL), ("JMP_FALSE", "int"), ("pushf", 1.5), ("RET",),
+            ("label", "int"), ("push", 2), ("RET",),
+        ])
+        functions = {"main": (1, 0, [
+            ("LOAD_ADDR", 0, AddrMode.LOCAL), ("push", 1), ("CALL", "h"), ("STORE",), ("POP",),
+            ("LOAD", 0, AddrMode.LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+        ]), "h": h}
+        self.assertIn("print argument 1 may hold float or int", emit_script(functions))
+
+    def test_dropped_value_of_a_shared_helper_another_script_uses_is_skipped(self):
+        # set(&x) stores 5 through x and returns 7. One script prints the value, the other drops it: the shared helper
+        # returns 7 and then x, so the second script must take x from the second result.
+        def script(use):
+            call = [("LOAD_ADDR", 0, AddrMode.LOCAL), ("CALL", "set")] + ([("PRINT", 1)] if use else [("POP",)])
+            return {
+                "main": (1, 0, [*call, ("LOAD", 0, AddrMode.LOCAL), ("PRINT", 1), ("push", 0), ("RET",)]),
+                "set": (1, 1, [
+                    ("push", 0), ("LOAD_ADDR", 0, AddrMode.POINTER_INDEX), ("push", 5), ("STORE",), ("POP",),
+                    ("push", 7), ("RET",),
+                ]),
+            }
+
+        catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+        paths = ("dungeon/act_script/t01.stb", "dungeon/act_script/t02.stb")
+        lifted = [transpile.transpile(path, assemble(script(path == paths[0]), "main")) for path in paths]
+        corpus_ = transpile.emit_corpus(lifted, catalog)
+        self.assertEqual(corpus_.errors, {})
+        self.assertIn("\t_, var0 = helper_", corpus_.modules[paths[1]].text)
 
     def test_integer_constant_read_as_an_integer_and_later_as_a_float_is_rejected(self):
         # x = 1065353216; print(x); read(&x); print(x as a float): retail prints 1065353216, then 1.0 twice, but the
@@ -330,7 +382,7 @@ class WrapTest(unittest.TestCase):
             self.assertEqual((row.failed, row.lines), (0, []))
 
     def test_sum_that_may_hold_an_integer_or_a_float_wraps_only_an_integer(self):
-        # h(0) returns 2147483647 and h(1) returns 1.5, so x is typed any: print(x + 1) prints -2147483648, then 2.5.
+        # h(0) returns 2147483647 and h(1) returns 1.5, so x is typed any: x + 1 stores -2147483648, then 2.5.
         h = (1, 1, [
             ("LOAD", 0, AddrMode.LOCAL), ("JMP_FALSE", "int"), ("pushf", 1.5), ("RET",),
             ("label", "int"), ("push", 2147483647), ("RET",),
@@ -339,13 +391,343 @@ class WrapTest(unittest.TestCase):
         for which in (0, 1):
             body += [
                 ("LOAD_ADDR", 0, AddrMode.LOCAL), ("push", which), ("CALL", "h"), ("STORE",), ("POP",),
-                ("LOAD", 0, AddrMode.LOCAL), ("push", 1), ("ADD",), ("PRINT", 1),
+                ("LOAD_ADDR", which, AddrMode.GLOBAL), ("LOAD", 0, AddrMode.LOCAL), ("push", 1), ("ADD",), ("STORE",),
+                ("POP",),
             ]
         functions = {"main": (1, 0, [*body, ("push", 0), ("RET",)]), "h": h}
-        self.assertIn("print(vm.wrap(var0 + 1))", emit_script(functions))
+        result, module = transpile.transpile(SCRIPT, assemble(functions, "main", global_num=2))
+        catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+        exposed = transpile.emit_corpus([(result, dataclasses.replace(module, expose_globals=True))], catalog)
+        self.assertIn("global0 = vm.wrap(var0 + 1)", exposed.modules[SCRIPT].text)
         if transpile.harness.HOST.exists():
-            row = differential(functions)
+            row = differential(functions, global_num=2)
             self.assertEqual((row.failed, row.lines), (0, []))
+
+
+EVENT = "map/t/t01.stb"
+SET_RAIN = 21
+LOCAL, LOCAL_FLOAT = AddrMode.LOCAL, AddrMode.LOCAL_FLOAT
+
+
+def event_script(functions, programs):
+    """Transpiles and emits one assembled event script; returns the result and the module text or the error."""
+    result, module = transpile.transpile(EVENT, assemble(functions, "main", programs))
+    if module is None:
+        return result, result.error
+    catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+    exposed = transpile.emit_corpus([(result, dataclasses.replace(module, expose_globals=True, probe_refs=True))], catalog)
+    return result, exposed.errors.get(EVENT) or exposed.modules[EVENT]
+
+
+def event_differential(functions, programs, seeds=2):
+    """Runs the differential harness, skip scenarios included, on one assembled event script."""
+    result, module = event_script(functions, programs)
+    if isinstance(module, str):
+        raise AssertionError(module)
+    catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+    with tempfile.TemporaryDirectory() as scratch:
+        return transpile._harness_job((result, module, catalog["kinds"]["event"], range(seeds), Path(scratch)))
+
+
+def store(slot, *value, mode=LOCAL):
+    return [("LOAD_ADDR", slot, mode), *value, ("STORE",), ("POP",)]
+
+
+def rain(*value):
+    return [("push", SET_RAIN), *value, ("EXT", 2)]
+
+
+# A helper that waits three frames, counting in local 0; its sweep counts once more and returns.
+WAITER = (1, 0, [
+    ("label", "loop"),
+    ("LOAD", 0, LOCAL), ("push", 3), ("CMP", Compare.LT), ("JMP_FALSE", "done"),
+    *rain(("LOAD", 0, LOCAL)),
+    ("WAIT",),
+    *store(0, ("LOAD", 0, LOCAL), ("push", 1), ("ADD",)),
+    ("JMP", "loop"),
+    ("label", "done"),
+    ("LOAD", 0, LOCAL), ("RET",),
+])
+
+
+@unittest.skipUnless(transpile.harness.HOST.exists(), "luau-harness is not built")
+class SkipModeTest(unittest.TestCase):
+    def test_sweep_runs_both_branches_and_stops_at_the_skip_end(self):
+        # A skip during the waiter sweeps on in layout order: the if's two stores both run, the second winning, and the
+        # native calls do not; the skip end then suspends, and the script prints after it.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (2, 0, [
+                *store(0, ("CALL", "waiter")),
+                ("LOAD", 0, LOCAL), ("push", 2), ("CMP", Compare.GT), ("JMP_FALSE", "else"),
+                *store(1, ("push", 10)), *rain(("push", 1)), ("JMP", "join"),
+                ("label", "else"), *store(1, ("push", 20)),
+                ("label", "join"),
+                ("SKIP_END",),
+                ("LOAD", 0, LOCAL), ("LOAD", 1, LOCAL), ("PRINT", 2), ("WAIT",),
+                ("LOAD", 1, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+            ]),
+            "waiter": WAITER,
+        }
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+        self.assertGreater(row.passed, 0)
+
+    def test_sweep_that_calls_a_skip_end_resumes_normal_execution_after_the_call(self):
+        # The skip in the waiter sweeps on into cut, which runs in skip mode up to its skip end and suspends there; the
+        # next frame finishes cut normally, and p100 goes on normally after the call.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (1, 0, [
+                ("CALL", "waiter"), ("POP",),
+                ("CALL", "cut"), ("POP",),
+                *rain(("push", 7)), ("WAIT",),
+                ("push", 0), ("RET",),
+            ]),
+            "cut": (1, 0, [
+                *store(0, ("push", 5)), *rain(("push", 1)),
+                ("SKIP_END",),
+                ("LOAD", 0, LOCAL), ("PRINT", 1), ("WAIT",), *rain(("push", 2)),
+                ("push", 0), ("RET",),
+            ]),
+            "waiter": WAITER,
+        }
+        result, module = event_script(functions, {100: "p100"})
+        self.assertIn("if not vm.skipping() then", module.text)
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def test_store_through_a_leaked_condition_is_refused(self):
+        # x = a && b in skip mode stores b through a, the condition the jump left on the stack.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (3, 0, [
+                ("WAIT",),
+                ("LOAD_ADDR", 0, LOCAL), ("LOAD", 1, LOCAL), ("JMP_FALSE", "short", 1), ("LOAD", 2, LOCAL),
+                ("label", "short"), ("STORE",), ("POP",),
+                ("push", 0), ("RET",),
+            ]),
+        }
+        _, error = event_script(functions, {100: "p100"})
+        self.assertIn("skip mode reads a condition a jump left on the stack", error)
+
+    def test_sweep_that_overflows_the_stack_raises_where_retail_exits(self):
+        # Each if leaks its condition in skip mode, so a skip overflows the 128 slots; the helper's frame starts above
+        # p100's, which passes where its frame starts.
+        leaks = []
+        for n in range(110):
+            leaks += [("LOAD", 0, LOCAL), ("JMP_FALSE", f"skip{n}"), *store(0, ("push", n)), ("label", f"skip{n}")]
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (20, 0, [("WAIT",), ("push", 1), ("CALL", "leaky"), ("POP",), ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",)]),
+            "leaky": (8, 1, [*rain(("push", 2)), ("WAIT",), *leaks, *rain(("push", 3)), ("LOAD", 1, LOCAL), ("PRINT", 1), ("push", 0), ("RET",)]),
+        }
+        _, module = event_script(functions, {100: "p100"})
+        self.assertIn("vm.stack(sp + ", module.text)
+        self.assertIn("sp: number", module.text)
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def test_deferred_output_is_read_after_the_wait(self):
+        # GotoUseItem keeps the reference and writes the item used when its menu closes, during the wait after it.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (1, 0, [
+                ("push", 31), ("LOAD_ADDR", 0, LOCAL), ("push", 376), ("EXT", 3), ("WAIT",),
+                ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+            ]),
+        }
+        _, module = event_script(functions, {100: "p100"})
+        self.assertIn("var0 = event.DeferredOutput() or var0", module.text)
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def test_deferred_output_into_a_float_variable_reads_its_bits(self):
+        # GotoUseItem writes an integer through the reference without retagging; a float load reads its bits.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (1, 0, [
+                ("push", 31), ("LOAD_ADDR", 0, LOCAL_FLOAT), ("push", 376), ("EXT", 3), ("WAIT",),
+                ("LOAD", 0, LOCAL_FLOAT), ("PRINT", 1), ("push", 0), ("RET",),
+            ]),
+        }
+        _, module = event_script(functions, {100: "p100"})
+        self.assertIn("vm.bits_float(event.DeferredOutput())", module.text)
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def test_condition_a_skipped_call_leaves_on_the_stack_counts(self):
+        # Skipping the waiter returns 1, which the skipped branch leaves on the stack at slot 126; the native call's
+        # command then fills the last slot, and its argument overflows, where retail exits.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (126, 0, [("CALL", "waiter"), ("JMP_FALSE", "done"), *rain(("push", 7)), ("label", "done"), ("push", 0), ("RET",)]),
+            "waiter": (0, 0, [("WAIT",), ("push", 1), ("RET",)]),
+        }
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def test_division_a_sweep_stores_into_an_unread_local_still_runs(self):
+        # Normal execution jumps over 1 / 0; a skip runs it, where retail exits.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (1, 0, [
+                ("WAIT",), ("push", 1), ("JMP_FALSE", "bad"), ("JMP", "done"),
+                ("label", "bad"), *store(0, ("push", 1), ("push", 0), ("DIV",)),
+                ("label", "done"), ("push", 0), ("RET",),
+            ]),
+        }
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def mutated(self, functions, old, new):
+        """The harness row of the script's module with one text replaced."""
+        result, module = event_script(functions, {100: "p100"})
+        self.assertIn(old, module.text)
+        catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+        changed = dataclasses.replace(module, text=module.text.replace(old, new))
+        with tempfile.TemporaryDirectory() as scratch:
+            return transpile._harness_job((result, changed, catalog["kinds"]["event"], range(2), Path(scratch)))
+
+    def test_party_join_passes_its_value_and_the_query_reads_it_back(self):
+        # JoinPartyMember joins with the value 1 and answers whether a character is a member through a reference.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (1, 0, [
+                ("push", 1078), ("push", 2), ("push", 1), ("EXT", 3),
+                ("push", 1078), ("push", 2), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3),
+                ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+            ]),
+        }
+        _, module = event_script(functions, {100: "p100"})
+        self.assertIn('event.ExtTyped(1078, "ii", 2, 1)', module.text)
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+        # Calling the query form instead of the join fails the harness.
+        row = self.mutated(functions, 'event.ExtTyped(1078, "ii", 2, 1)', "event.JoinPartyMember(2)")
+        self.assertGreater(row.failed, 0)
+
+    def test_fish_record_returns_the_float_size_after_the_value_it_reads(self):
+        # GetMenuEtc(2, fish, &size) reads the fish's number and writes its size, a float; GetMenuEtc(7, step, &result)
+        # reads the step and writes an integer. The call returns only what the handler writes.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (2, 0, [
+                ("push", 564), ("push", 2), ("push", 322), ("LOAD_ADDR", 0, LOCAL), ("EXT", 4),
+                ("LOAD", 0, AddrMode.LOCAL_FLOAT), ("PRINT", 1),
+                ("push", 564), ("push", 7), ("push", 3), ("LOAD_ADDR", 1, LOCAL), ("EXT", 4),
+                ("LOAD", 1, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
+            ]),
+        }
+        _, module = event_script(functions, {100: "p100"})
+        self.assertIn('event.ExtTyped(564, "iiF", 2, 322)', module.text)
+        self.assertIn('event.ExtTyped(564, "iiI", 7, 3)', module.text)
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+        row = self.mutated(functions, 'event.ExtTyped(564, "iiF", 2, 322)', 'event.ExtTyped(564, "iiI", 2, 322)')
+        self.assertGreater(row.failed, 0)
+
+    def test_integer_range_takes_the_integer_branch_of_get_rand(self):
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (1, 0, [
+                ("push", 1013), ("push", 100), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3),
+                ("LOAD", 0, LOCAL), ("push", 2), ("MOD",), ("PRINT", 1), ("push", 0), ("RET",),
+            ]),
+        }
+        _, module = event_script(functions, {100: "p100"})
+        self.assertIn("event.GetRandInt(100)", module.text)
+        self.assertNotIn("float_bits", module.text)
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+        row = self.mutated(functions, "event.GetRandInt(100)", "vm.float_bits(event.GetRandFloat(100))")
+        self.assertGreater(row.failed, 0)
+
+    def test_a_float_where_map_jump_switches_on_the_tag_fails(self):
+        # MapJump takes a map's number or name by the tag; a float, which the runtime passes as a FLOAT, it rejects.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (0, 0, [("push", 20), ("push", 0), ("push", 1), ("EXT", 3), ("push", 0), ("RET",)]),
+        }
+        row = self.mutated(functions, "event.MapJump(0, 1)", "event.MapJump(0, 1 + 2 ^ -40)")
+        self.assertGreater(row.failed, 0)
+
+    def test_a_call_that_prints_runs_before_a_later_push_overflows(self):
+        # Skipped at the wait, the branch leaves its condition: with 125 locals, h prints 77 from the last slots, and the
+        # push of 9 after it overflows, so retail prints before it exits. With 124 locals everything fits.
+        printer = (0, 0, [("push", 77), ("PRINT", 1), ("push", 1), ("RET",)])
+        for local in (124, 125):
+            body = [
+                ("WAIT",), ("push", 1), ("JMP_FALSE", "next"), ("label", "next"),
+                ("push", SET_RAIN), ("CALL", "h"), ("push", 9), ("ADD",), ("EXT", 2), ("push", 0), ("RET",),
+            ]
+            functions = {"main": (0, 0, [("push", 0), ("RET",)]), "p100": (local, 0, body), "h": printer}
+            row = event_differential(functions, {100: "p100"})
+            self.assertEqual(row.failed, 0, (local, row.lines))
+
+    def test_a_call_that_prints_runs_before_a_later_division(self):
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (0, 0, [
+                ("WAIT",), ("push", SET_RAIN), ("CALL", "h"), ("push", 1), ("push", 0), ("DIV",), ("ADD",), ("EXT", 2),
+                ("push", 0), ("RET",),
+            ]),
+            "h": (0, 0, [("push", 77), ("PRINT", 1), ("push", 1), ("RET",)]),
+        }
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def test_the_index_of_a_store_nothing_reads_still_divides(self):
+        # Skip mode reaches a[1 / 0] = 9, which retail evaluates and exits on; with a divisor of 1 it stores and goes on.
+        for divisor, local in ((0, 1), (1, 2)):
+            body = [
+                ("WAIT",), ("push", 1), ("JMP_FALSE", "bad"), ("JMP", "done"), ("label", "bad"),
+                ("push", 1), ("push", divisor), ("DIV",), ("LOAD_ADDR", 0, AddrMode.LOCAL_INDEX), ("push", 9), ("STORE",),
+                ("POP",), ("label", "done"), ("push", 0), ("RET",),
+            ]
+            functions = {"main": (0, 0, [("push", 0), ("RET",)]), "p100": (local, 0, body)}
+            row = event_differential(functions, {100: "p100"})
+            self.assertEqual(row.failed, 0, (divisor, row.lines))
+
+    def test_an_expression_of_a_stored_element_uses_the_stored_value(self):
+        # local0 = 0; then a[local0] = 9 stores into local0 itself, and NEG or ADD takes the value the store pushed.
+        # Reading the element back would index it by 9, outside the frame; retail goes on and prints 42.
+        for value in (9, 0):
+            for tail in ([], [("NEG",)], [("push", 1), ("ADD",)]):
+                body = [
+                    ("LOAD_ADDR", 0, LOCAL), ("push", 0), ("STORE",), ("POP",), ("WAIT",),
+                    ("LOAD", 0, LOCAL), ("LOAD_ADDR", 0, AddrMode.LOCAL_INDEX), ("push", value), ("STORE",), *tail, ("POP",),
+                    ("push", 42), ("PRINT", 1), ("push", 0), ("RET",),
+                ]
+                functions = {"main": (0, 0, [("push", 0), ("RET",)]), "p100": (1, 0, body)}
+                row = event_differential(functions, {100: "p100"})
+                self.assertEqual(row.failed, 0, (value, tail, row.lines))
+
+    def test_a_popped_division_still_divides(self):
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (0, 0, [("WAIT",), ("push", 1), ("push", 0), ("DIV",), ("POP",), ("push", 0), ("RET",)]),
+        }
+        row = event_differential(functions, {100: "p100"})
+        self.assertEqual(row.failed, 0, row.lines)
+
+    def test_a_division_passed_for_an_output_is_refused(self):
+        # GetFlag(0, 1 / 0): retail divides before the call, where the handler writes through a value it ignores.
+        functions = {
+            "main": (0, 0, [("push", 0), ("RET",)]),
+            "p100": (0, 0, [("push", 14), ("push", 0), ("push", 1), ("push", 0), ("DIV",), ("EXT", 3), ("push", 0), ("RET",)]),
+        }
+        _, module = event_script(functions, {100: "p100"})
+        self.assertIsInstance(module, str)
+        self.assertIn("a value passed where the handler writes an output, may raise", module)
+
+    def test_action_scripts_have_no_skip_mode(self):
+        result, module = transpile.transpile(SCRIPT, assemble({"main": (0, 0, [("WAIT",), ("push", 0), ("RET",)])}, "main"))
+        self.assertIsNotNone(module)
+        catalog = json.loads(transpile.CATALOG.read_text(encoding="utf-8"))
+        text = transpile.emit_corpus([(result, module)], catalog).modules[SCRIPT].text
+        self.assertIn("vm.wait()", text)
+        self.assertNotIn("skip", text)
 
 
 class MainTest(unittest.TestCase):

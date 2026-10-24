@@ -29,6 +29,7 @@ local helper_890ee63a = require("@lib/monster/helper_890ee63a")
 local helper_8cdd6198 = require("@lib/monster/helper_8cdd6198")
 local helper_905c94a1 = require("@lib/monster/helper_905c94a1")
 local helper_97663440 = require("@lib/monster/helper_97663440")
+local helper_9de6d0ac = require("@lib/monster/helper_9de6d0ac")
 local helper_a2d828a7 = require("@lib/monster/helper_a2d828a7")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
 local helper_aada6ba2 = require("@lib/monster/helper_aada6ba2")
@@ -36,7 +37,6 @@ local helper_ab4b367a = require("@lib/monster/helper_ab4b367a")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local helper_b3b48995 = require("@lib/monster/helper_b3b48995")
 local helper_c3e8ae39 = require("@lib/monster/helper_c3e8ae39")
-local helper_de1504df = require("@lib/monster/helper_de1504df")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
 
 --- Helper function.
@@ -116,7 +116,7 @@ local function helper_f3c4(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: f32
 		if var20 < vm.f32(arg3 + arg4) then
 			return 1
 		end
-		var24 = helper_de1504df(var7, var8, var9, arg3, var11)
+		var24 = helper_9de6d0ac(var7, var8, var9, arg3, var11)
 		if var24 ~= 0 then
 			return var24
 		end
@@ -289,7 +289,7 @@ local function helper_10b10(arg0: f32, arg1: any, arg2: f32, arg3: f32, arg4: s3
 		if var18 < vm.f32(arg0 + arg2) then
 			return 1
 		end
-		var22 = helper_de1504df(var9, var10, var11, arg0, var13)
+		var22 = helper_9de6d0ac(var9, var10, var11, arg0, var13)
 		if var22 ~= 0 then
 			print("hit------------------\n")
 			return var22

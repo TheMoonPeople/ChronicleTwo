@@ -31,13 +31,13 @@ local helper_83dc8947 = require("@lib/monster/helper_83dc8947")
 local helper_8cdd6198 = require("@lib/monster/helper_8cdd6198")
 local helper_905c94a1 = require("@lib/monster/helper_905c94a1")
 local helper_97f462c5 = require("@lib/monster/helper_97f462c5")
+local helper_9de6d0ac = require("@lib/monster/helper_9de6d0ac")
 local helper_a25c5b2e = require("@lib/monster/helper_a25c5b2e")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
 local helper_ab4b367a = require("@lib/monster/helper_ab4b367a")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local helper_c0339fe8 = require("@lib/monster/helper_c0339fe8")
 local helper_d30a9fa2 = require("@lib/monster/helper_d30a9fa2")
-local helper_de1504df = require("@lib/monster/helper_de1504df")
 local helper_e05438b5 = require("@lib/monster/helper_e05438b5")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
 local helper_fbc2528f = require("@lib/monster/helper_fbc2528f")
@@ -173,7 +173,7 @@ local function helper_10984(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: f3
 		if var20 < vm.f32(arg3 + arg4) then
 			return 1
 		end
-		var24 = helper_de1504df(var7, var8, var9, arg3, var11)
+		var24 = helper_9de6d0ac(var7, var8, var9, arg3, var11)
 		if var24 ~= 0 then
 			return var24
 		end
@@ -346,7 +346,7 @@ local function helper_120d0(arg0: f32, arg1: any, arg2: f32, arg3: f32, arg4: s3
 		if var18 < vm.f32(arg0 + arg2) then
 			return 1
 		end
-		var22 = helper_de1504df(var9, var10, var11, arg0, var13)
+		var22 = helper_9de6d0ac(var9, var10, var11, arg0, var13)
 		if var22 ~= 0 then
 			print("hit------------------\n")
 			return var22
@@ -578,7 +578,7 @@ local function helper_1001c(arg0: f32, arg1: f32, arg2: f32, arg3: s32)
 			local _, out2, _ = monster.GetRot()
 			var8 = out2 or var8
 		end
-		var21 = helper_de1504df(var4, var5, var6, arg1, var8)
+		var21 = helper_9de6d0ac(var4, var5, var6, arg1, var8)
 		if var21 ~= 0 then
 			return
 		end
@@ -801,7 +801,7 @@ local function helper_11520(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: s3
 		if var18 < vm.f32(arg0 + arg2) then
 			return
 		end
-		var23 = helper_de1504df(var8, var9, var10, arg0, var12)
+		var23 = helper_9de6d0ac(var8, var9, var10, arg0, var12)
 		if var23 ~= 0 then
 			print("hit------------------\n")
 			return

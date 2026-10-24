@@ -245,7 +245,7 @@ local function helper_376c()
 		action.SetMos("投げ", -1, 6)
 		var7 = action.NowMosWait() or var7
 		if var7 >= vm.f32(0.289) then
-			print(var7, "\n")
+			print(string.format("%f", var7), "\n")
 			action.ReleaseObj(1)
 		end
 		result = vm.float_bits(action.CheckMosEnd()) or result

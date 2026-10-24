@@ -1,0 +1,28 @@
+--!strict
+-- Shared event helper used by 3 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local helper_9d142a11 = require("@lib/event/helper_9d142a11")
+
+--- Helper function.
+local function helper_f67016a9(arg0: s32, arg1: any)
+	local var2: s32 = 0
+	local skip: (number) -> ...any
+	function skip(at: number) end
+	event.SetMesPreset(0, 0)
+	var2 = event.GetChapter() or var2
+	if var2 ~= 8 then
+		event.MesMake_2(0, "私もいつの日か、\n表彰台の真ん中に\n立ってみたいものです。")
+	else
+		event.MesMake_2(
+			0,
+			"フラビンたら、少しは釣り以外の\nことにも興味を持って欲しいわ。"
+		)
+	end
+	helper_9d142a11(arg0, -1, 0, 0)
+	if vm.skipping() then
+		return skip(1)
+	end
+end
+
+return helper_f67016a9

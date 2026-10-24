@@ -235,7 +235,7 @@ class RecordTest(unittest.TestCase):
         self.assertEqual(scenario.globals, [])
         self.assertEqual(
             scenario.events,
-            [("ext", 2, 1, (), (value,)), ("wait",), ("print", (value,)), ("end", value)],
+            [("ext", 2, 1, (), (value,)), ("wait",), ("print", (value,), "d"), ("end", value)],
         )
 
     def test_pushed_constants_are_output_candidates(self):
@@ -245,7 +245,7 @@ class RecordTest(unittest.TestCase):
     def test_compared_constant_takes_branch_for_some_seed(self):
         program = compare_fixture()
         runs = [harness.record(program, CATALOG, [101], seed, f"101/s{seed}") for seed in range(64)]
-        taken = [run for run in runs if ("print", ("hit",)) in run.events]
+        taken = [run for run in runs if ("print", ("hit",), "s") in run.events]
         self.assertTrue(taken, "no seed wrote the compared value")
         self.assertLess(len(taken), len(runs))
 
@@ -261,7 +261,7 @@ class RecordTest(unittest.TestCase):
             ],
         }
         scenario = harness.record(fixture(), catalog, [100], 0, "100/s0")
-        self.assertEqual(scenario.events, [("ext", 2, 1, (0,), ()), ("wait",), ("print", (0,)), ("end", 0)])
+        self.assertEqual(scenario.events, [("ext", 2, 1, (0,), ()), ("wait",), ("print", (0,), "d"), ("end", 0)])
 
     def test_kind_mismatched_command_is_recorded_without_writes(self):
         catalog = {
@@ -361,12 +361,12 @@ class RecordTest(unittest.TestCase):
             value = scenario.events[0][4][0]
             if value is not None:
                 self.assertIsInstance(value, int)
-                self.assertEqual(scenario.events[1], ("print", (refvm.bits_to_float(value),)))
+                self.assertEqual(scenario.events[1], ("print", (refvm.bits_to_float(value),), "f"))
 
     def test_probed_call_records_the_referenced_values(self):
         program, calls = reference_fixture()
         scenario = harness.record(program, CATALOG, [100], 0, "100/s0", probes=frozenset(calls[:1]))
-        self.assertEqual(scenario.events, [("ref", calls[0], (1,)), ("print", (1,)), ("print", (2,)), ("end", 0)])
+        self.assertEqual(scenario.events, [("ref", calls[0], (1,)), ("print", (1,), "d"), ("print", (2,), "d"), ("end", 0)])
 
     def test_folded_float_operation_is_the_float32_result(self):
         body = [("pushf", 3.1415927), ("pushf", 2.0), ("DIV",), ("PRINT", 1), ("push", 0), ("RET",)]
@@ -383,7 +383,7 @@ class RecordTest(unittest.TestCase):
         store = next(i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.STORE)
         self.assertEqual(scenario.cut, f"store past the frame at {store:#x}")
         self.assertTrue(scenario.unsupported)
-        self.assertEqual(scenario.events, [("print", ("a",)), ("cut", "frame")])
+        self.assertEqual(scenario.events, [("print", ("a",), "s"), ("cut", "frame")])
         # The reference run went on to print "b", but only what ran before the first print was compared.
         printed = [i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.PRINT]
         self.assertIn(printed[1], scenario.covered)
@@ -422,7 +422,7 @@ class RecordTest(unittest.TestCase):
     def test_unrun_branch_leaves_coverage_partial(self):
         program = compare_fixture()
         runs = [harness.record(program, CATALOG, [101], seed, f"101/s{seed}") for seed in range(64)]
-        not_taken = next(run for run in runs if ("print", ("hit",)) not in run.events)
+        not_taken = next(run for run in runs if ("print", ("hit",), "s") not in run.events)
         self.assertLess(harness.coverage(program, [not_taken]), 1.0)
         self.assertEqual(harness.coverage(program, harness.scenarios(program, CATALOG, range(64))), 1.0)
 
@@ -472,7 +472,7 @@ class DifferentialTest(unittest.TestCase):
     def tagged_module(self, call):
         return (
             'local script = {}\nscript.setup = function() end\n'
-            f'script[100] = function()\n    local x = 0.5\n    x = {call} or x\n    print(x)\n    return 0\nend\n'
+            f'script[100] = function()\n    local x = 0.5\n    x = {call} or x\n    print(string.format("%f", x))\n    return 0\nend\n'
             'return script\n'
         )
 
@@ -687,18 +687,19 @@ class DifferentialTest(unittest.TestCase):
             "main", {100: "p100"},
         ))
         events = harness.record(program, CATALOG, [100], 0, "100/s0").events
-        self.assertEqual(events, [("print", (math.inf,)), ("end", 0)])
+        self.assertEqual(events, [("print", (math.inf,), "f"), ("end", 0)])
         self.assertEqual(self.replay(PROGRAM_100.format(body="print(math.huge)"), events), ["PASS 100/s0"])
         for wrong in ("print(0)", "print(-math.huge)", "print(0 / 0)", "print(1e300)"):
             lines = self.replay(PROGRAM_100.format(body=wrong), events)
             self.assertTrue(lines and lines[0].startswith("FAIL 100/s0"), (wrong, lines))
 
     def test_nan_matches_only_nan(self):
-        events = [("print", (math.nan,)), ("end", 0)]
-        self.assertEqual(self.replay(PROGRAM_100.format(body="print(0 / 0)"), events), ["PASS 100/s0"])
+        events = [("print", (math.nan,), "f"), ("end", 0)]
+        nan = f'string.format("%f", {harness.nan_text(math.nan)})'
+        self.assertEqual(self.replay(PROGRAM_100.format(body=f"print({nan})"), events), ["PASS 100/s0"])
         lines = self.replay(PROGRAM_100.format(body="print(0)"), events)
         self.assertTrue(lines and lines[0].startswith("FAIL 100/s0"), lines)
-        lines = self.replay(PROGRAM_100.format(body="print(0 / 0)"), [("print", (0.0,)), ("end", 0)])
+        lines = self.replay(PROGRAM_100.format(body=f"print({nan})"), [("print", (0.0,), "f"), ("end", 0)])
         self.assertTrue(lines and lines[0].startswith("FAIL 100/s0"), lines)
 
     def test_unsupported_scenario_fails_when_its_prefix_differs(self):

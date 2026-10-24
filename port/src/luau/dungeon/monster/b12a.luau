@@ -18,12 +18,12 @@ local helper_82cb5588 = require("@lib/monster/helper_82cb5588")
 local helper_8971d3b6 = require("@lib/monster/helper_8971d3b6")
 local helper_93495fdf = require("@lib/monster/helper_93495fdf")
 local helper_9821a9e1 = require("@lib/monster/helper_9821a9e1")
+local helper_9de6d0ac = require("@lib/monster/helper_9de6d0ac")
 local helper_9df6409a = require("@lib/monster/helper_9df6409a")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
 local helper_ab4b367a = require("@lib/monster/helper_ab4b367a")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local helper_dd45b7cf = require("@lib/monster/helper_dd45b7cf")
-local helper_de1504df = require("@lib/monster/helper_de1504df")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
 
 --- Helper function.
@@ -294,7 +294,7 @@ local function helper_18bbc()
 				break
 			else
 				var6 = monster.GetDistVector2(var20, 0.0, var22, var0, 0.0, var2) or var6
-				print("dist=", var6, "-----------------------------\n")
+				print("dist=", string.format("%f", var6), "-----------------------------\n")
 				if var6 < vm.f32(var31 + 10.0) then
 					var24 = 0
 					var23 = var23 + 1
@@ -568,7 +568,7 @@ local function helper_1c03c(arg0: f32, arg1: f32, arg2: f32)
 	monster.GetRefAngle(arg0, arg1, arg2) -- retail: argument 4 is a value where the handler writes an output; the output is discarded
 	var8 = monster.GetHigh() or var8
 	if var8 > 20.0 then
-		if helper_de1504df(arg0, vm.f32(arg1 + 1.0), arg2, var3, var7) ~= 0 then
+		if helper_9de6d0ac(arg0, vm.f32(arg1 + 1.0), arg2, var3, var7) ~= 0 then
 			return 0
 		end
 	end

@@ -40,4 +40,10 @@ return {
     [111] = function()
         action.SetMoveSpeed(cmath.sinf(0.779))
     end,
+    [112] = function()
+        action.ProgSet(event.GetRandInt(100))
+        action.ProgSet(event.GetRandFloat(2.5))
+        event.ExtTyped(1078, "ii", 2, 1)
+        action.ProgSet(event.ExtTyped(1078, "iI", 2))
+    end,
 }

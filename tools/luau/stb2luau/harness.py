@@ -13,6 +13,9 @@ the module must raise vm.index's error there, and the scenario is unsupported, s
 A call of a script function that takes references is probed: when it returns, the reference VM records the values
 of the variables the references name, and the module, emitted with probes, reports the same values after it copies
 them back.
+
+An event script is also skipped: its skip scenarios call skip() instead of resume() at chosen waits, as SkipEvent
+does, and the trace marks each such wait with a skip event, after which the module is resumed with true.
 """
 
 from __future__ import annotations
@@ -54,14 +57,26 @@ STATE = {
         "set": {37: ("var", 0, 1), 54: ("flag", 0, 1), 59: ("var2", 0, 1)},
         "get": {38: ("var", 0), 53: ("flag", 0), 60: ("var2", 0)},
     },
+    # Story and local flags, quest states keyed by quest and field, and party membership: JoinPartyMember given a value
+    # joins (1) or leaves (anything else), and given a reference reads it back.
+    "event": {
+        "set": {13: ("flag", 0, 1), 32: ("local", 0, 1), 576: ("quest", (0, 1), 2), 1078: ("party", 0, 1)},
+        "get": {14: ("flag", 0), 33: ("local", 0), 577: ("quest", (0, 1)), 1078: ("party", 0)},
+        "normalize": {1078: lambda value: 1 if value == 1 else 0},
+    },
 }
 STATE_CHOICES = 4
 ZERO_CHOICES = 2
 # Per kind namespace, the random-number commands and the position of their range input: the handler writes a value
 # from zero towards the range, so the mock does too.
-RANDOM = {"effect": {13: 0}, "monster": {35: 0, 36: 0}}
+RANDOM = {"effect": {13: 0}, "monster": {35: 0, 36: 0}, "event": {1013: 0}}
 # Fractions of a random command's range that the mock draws from.
 RANDOM_FRACTIONS = (0.0, 0.0, 0.25, 0.5, 0.75, 0.999)
+# The kinds whose scripts the engine skips (CRunScript::skip runs only on EventScript), and the waits of a program, from
+# its first, at which a skip scenario skips; ALL skips at every wait.
+SKIPPED_KINDS = frozenset(("event",))
+SKIP_AT = (0, 1, 2, 4, 8)
+ALL = -1
 
 
 @dataclasses.dataclass
@@ -129,6 +144,9 @@ def value_pools(program: Program) -> Pools:
     )
 
 
+_PRINT_FORMATS = {Tag.INT: "d", Tag.FLOAT: "f", Tag.STR: "s"}
+
+
 def _value(memory: list[Slot], slot: Slot, depth: int = 0) -> object:
     """Script value of a slot, following pointers and decoding strings as cp932."""
     if slot.tag == Tag.PTR:
@@ -151,9 +169,10 @@ def _signature(kind_catalog: dict, command: int, argc: int) -> dict | None:
 
 
 def _kind_mismatch(params: list[dict], args: tuple[Slot, ...]) -> bool:
-    """Whether an input holds a number where its parameter reads a string, or a string where it reads a number."""
+    """Whether an input holds a number where its parameter reads a string, or a string where it reads a number; a
+    parameter marked strings takes either."""
     for param, slot in zip(params, args):
-        if param["dir"] != "in":
+        if param["dir"] != "in" or param.get("strings") or param.get("kept"):
             continue
         if param["type"] == "string" and slot.tag in (Tag.INT, Tag.FLOAT):
             return True
@@ -200,6 +219,19 @@ def _target_tag(machine: refvm.Machine, slot: Slot) -> Tag | None:
     return machine.read_arg(slot.value).tag if slot.tag == Tag.PTR else None
 
 
+# The letters ExtTyped spells a kept argument's tag with.
+_KEPT_LETTERS = {Tag.INT: "i", Tag.FLOAT: "f", Tag.STR: "s"}
+
+
+def _state_key(ins: tuple, key: int | tuple[int, ...] | None) -> object:
+    """The key of a stored value: none, one input, or a tuple of inputs."""
+    if key is None:
+        return None
+    if isinstance(key, tuple):
+        return tuple(ins[position] if position < len(ins) else None for position in key)
+    return ins[key] if key < len(ins) else None
+
+
 def _tag_read(machine: refvm.Machine, signature: dict, args: tuple[Slot, ...]) -> tuple[str, ...]:
     """The integer or float tag a tagged handler branches on: its first tagged input's, else the tag its first tagged
     output's destination holds (GetMonsterLife writes the life or the fraction by it); nothing for an untagged call.
@@ -208,6 +240,8 @@ def _tag_read(machine: refvm.Machine, signature: dict, args: tuple[Slot, ...]) -
     which the trace records raw and the module's variant reads as its type.
     """
     params = signature["params"]
+    if any(param.get("kept") for param in params):
+        return ("".join(_KEPT_LETTERS.get(slot.tag, "?") for slot in args),)
     for i, param in enumerate(params):
         if param.get("tagged") and param["dir"] == "in":
             return ("f32" if args[i].tag == Tag.FLOAT else "s32",)
@@ -226,7 +260,9 @@ def _written_type(
     if param["type"] == "string":
         return "string"
     if not param.get("tagged"):
-        return "f32" if param["type"] == "f32" else "s32"
+        selector = param.get("by_arg")
+        request = args[selector["position"] - 1].value if selector is not None else None
+        return "f32" if api.selected_type(param, request) == "f32" else "s32"
     for i, other in enumerate(params):
         if other.get("tagged") and other["dir"] == "in":
             return "f32" if args[i].tag == Tag.FLOAT else "s32"
@@ -328,10 +364,13 @@ class _TracingMachine(refvm.Machine):
         self.emit(("ref", call, values))
 
     def _print(self, count: int) -> None:
-        """Print as the base machine does, then record the printed values."""
+        """Print as the base machine does, then record the printed values and how retail formats each: "d" an integer,
+        "f" a float (with %f, even where it is integral), "s" a string, "-" anything else, which prints nothing."""
         super()._print(count)
         base = self.sp
-        self.emit(("print", tuple(_value(self.memory, self.memory[index]) for index in range(base, base + count))))
+        slots = [self.memory[index] for index in range(base, base + count)]
+        formats = "".join(_PRINT_FORMATS.get(slot.tag, "-") for slot in slots)
+        self.emit(("print", tuple(_value(self.memory, slot) for slot in slots), formats))
 
 
 def _play(
@@ -348,13 +387,18 @@ def _play(
     views: FloatViews | None,
     folded: frozenset[int],
     max_steps: int,
+    skip_at: int | None = None,
 ) -> tuple[_TracingMachine, dict[int, int]]:
-    """Runs the programs on a fresh reference machine and mock; returns the machine and the step each offset first ran."""
+    """Runs the programs on a fresh reference machine and mock; returns the machine and the step each offset first ran.
+
+    skip_at, when given, is the wait of each program at which the engine skips instead of resuming, or ALL.
+    """
     default_stack, call_num = STACKS.get(namespace, STACKS["action"])
     call_index = 0
     state = STATE.get(namespace, {})
     sets: dict[int, tuple] = state.get("set", {})
     gets: dict[int, tuple] = state.get("get", {})
+    normalize: dict = state.get("normalize", {})
     randoms: dict[int, int] = RANDOM.get(namespace, {})
     # Values stored by the "set" commands, keyed by table and key; an entry never stored reads as zero.
     held: dict[tuple, object] = {}
@@ -387,12 +431,28 @@ def _play(
             _inout_value(machine, args[i]) if param["dir"] == "inout" else value
             for i, (param, value) in enumerate(zip(params, values))
         )
-        ins = tuple(values[i] for i, param in enumerate(params) if param["dir"] in api.INPUTS)
+        valued = any(
+            param.get("values") and param["dir"] == "out" and slot.tag != Tag.PTR for param, slot in zip(params, args)
+        )
+        if valued:
+            # The module passes these values through ExtTyped, with the tags retail pushed, and gets the outputs back.
+            ins = tuple(value for value, slot in zip(values, args) if slot.tag != Tag.PTR)
+        else:
+            ins = tuple(values[i] for i, param in enumerate(params) if param["dir"] in api.INPUTS)
         rng = random.Random(f"{seed}/{name}/{index}")
         typed = _tag_read(machine, signature, args)
+        if valued:
+            letters = "".join(
+                ("F" if _written_type(machine, params, args, i, views) == "f32" else "I")
+                if slot.tag == Tag.PTR
+                else _KEPT_LETTERS.get(slot.tag, "?")
+                for i, slot in enumerate(args)
+            )
+            typed = (letters,)
         outs = []
         for i, param in enumerate(params):
-            if param["dir"] not in api.OUTPUTS:
+            if param["dir"] not in api.OUTPUTS or (valued and args[i].tag != Tag.PTR):
+                # A value passed for an output is read, not written.
                 continue
             # The handler writes its own type through the reference, without retagging the variable, so the script's
             # loads read the bits as the machine does.
@@ -405,7 +465,7 @@ def _play(
                 value = None
             elif command in gets and type_name != "string" and rng.randrange(STATE_CHOICES) != 0:
                 table, key = gets[command]
-                value = _as_type(held.get((table, None if key is None else ins[key]), 0), type_name)
+                value = _as_type(held.get((table, _state_key(ins, key)), 0), type_name)
             else:
                 value = _choose(rng, type_name, pools)
                 # Zero keeps most scenarios on the branches a script takes when a flag or count is clear.
@@ -419,7 +479,8 @@ def _play(
         if command in sets:
             table, key, position = sets[command]
             if position < len(ins) and isinstance(ins[position], (int, float)):
-                held[(table, None if key is None else ins[key])] = ins[position]
+                stored = normalize[command](ins[position]) if command in normalize else ins[position]
+                held[(table, _state_key(ins, key))] = stored
         machine.emit(("ext", command, count, ins, tuple(outs), *typed))
 
     machine = _TracingMachine(
@@ -447,6 +508,11 @@ def _play(
                 if resumed == resumes:
                     machine.emit(("suspended",))
                     break
+                if skip_at is not None and (skip_at == ALL or skip_at == resumed):
+                    machine.emit(("skip",))
+                    resumed += 1
+                    machine.skip()
+                    continue
                 resumed += 1
                 machine.resume()
             else:
@@ -472,6 +538,7 @@ def record(
     probes: frozenset[int] = frozenset(),
     views: FloatViews | None = None,
     folded: frozenset[int] = frozenset(),
+    skip_at: int | None = None,
 ) -> Scenario:
     """Run the programs in order on the reference VM with seeded native outputs and record the event trace.
 
@@ -481,7 +548,7 @@ def record(
     as the script reads them. Handlers differ in the type they write, and the translation receives outputs as numbers, so
     this keeps the comparison on the script's own behaviour. folded holds the offsets of the float operations the
     module folded into constants. The machine has the stack and call depth retail gives the namespace's kind, unless
-    stack_num is given.
+    stack_num is given. skip_at, when given, is the wait of each program at which the engine skips the event, or ALL.
 
     A trace cut at an access outside a frame ends with ("cut", "frame"), and one cut at the step budget with
     ("cut", "budget").
@@ -489,7 +556,7 @@ def record(
     if pools is None:
         pools = value_pools(program)
     options = (program, kind_catalog, programs, seed, name, resumes, stack_num, pools, namespace, probes, views, folded)
-    machine, first_steps = _play(*options, MAX_STEPS)
+    machine, first_steps = _play(*options, MAX_STEPS, skip_at)
     global_num = machine.global_num
     float_globals = views.globals if views is not None else frozenset()
     globals_ = [_as_read(machine.memory, slot, n in float_globals) for n, slot in enumerate(machine.memory[:global_num])]
@@ -523,7 +590,8 @@ def scenarios(
     views: FloatViews | None = None,
     folded: frozenset[int] = frozenset(),
 ) -> list[Scenario]:
-    """Record one scenario per program, one running it twice, one for main and one running main then every program, for each seed."""
+    """Record one scenario per program, one running it twice, one for main and one running main then every program, for each
+    seed; for a kind the engine skips, also each program and main skipped at each wait of SKIP_AT and at every wait."""
     numbers = sorted(number for number, _ in program.programs)
     options = {
         "pools": value_pools(program),
@@ -539,6 +607,12 @@ def scenarios(
             recorded.append(record(program, kind_catalog, [number, number], seed, f"{number}x2/s{seed}", **options))
         recorded.append(record(program, kind_catalog, [-1], seed, f"main/s{seed}", **options))
         recorded.append(record(program, kind_catalog, [-1, *numbers], seed, f"all/s{seed}", **options))
+        if kind_catalog["namespace"] in SKIPPED_KINDS:
+            for number in [-1, *numbers]:
+                label = "main" if number < 0 else str(number)
+                for at in (*SKIP_AT, ALL):
+                    name = f"{label}/skip{'all' if at == ALL else at}/s{seed}"
+                    recorded.append(record(program, kind_catalog, [number], seed, name, **options, skip_at=at))
     return recorded
 
 
@@ -612,12 +686,12 @@ def _list(values: tuple | list) -> str:
 def _event(event: tuple) -> str:
     """Luau table literal for one trace event."""
     tag = event[0]
-    if tag in ("wait", "suspended", "error"):
+    if tag in ("wait", "suspended", "error", "skip"):
         return '{ "%s" }' % tag
     if tag == "cut":
         return "{ %s }" % ", ".join(_lit(field) for field in event)
     if tag == "print":
-        return '{ "print", %s }' % _list(event[1])
+        return '{ "print", %s, %s }' % (_list(event[1]), _string(event[2]))
     if tag in ("end", "missing"):
         return '{ "%s", %s }' % (tag, _lit(event[1]))
     if tag == "ref":
@@ -651,7 +725,8 @@ def _read(param: dict) -> str:
     if param["dir"] != "in":
         # Ext passes a value where the handler expects a reference: SetStack writes nothing, and a read is the slot.
         return "t"
-    if param.get("tagged") or param["type"] in ("string", "unknown"):
+    if param.get("tagged") or param.get("strings") or param.get("kept") or param["type"] in ("string", "unknown"):
+        # The handler branches on the slot's tag, so tag and payload compare.
         return "t"
     if param["type"] == "f32":
         return "f"
@@ -703,16 +778,25 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
             if param.get("copies")
         ]
         inputs_ = [param for param in params if param["dir"] in api.INPUTS]
+        # A deferred output is held back for DeferredOutput, which the module calls after the wait that follows.
+        deferred = next(
+            (index for index, param in enumerate((p for p in params if p["dir"] in api.OUTPUTS), 1) if param.get("deferred")),
+            None,
+        )
         tag = (
             ", " + (_string(typed) if typed is not None else "nil")
             + ", " + ("{ " + ", ".join(copies) + " }" if copies else "nil")
             + ", " + _string("".join(_read(param) for param in inputs_))
             + ", " + _string("".join(_integer(param) for param in inputs_))
         )
+        if deferred is None:
+            body = "    return table.unpack(outs, 1, outs.n)\n"
+        else:
+            body = f"    deferred_output = outs[{deferred}]\n    return\n"
         lines.append(
             f"{namespace}.{name}_{argc} = function(...)\n"
             f"    local outs = ext_call({command['no']}, {argc}, table.pack(...){tag})\n"
-            "    return table.unpack(outs, 1, outs.n)\n"
+            f"{body}"
             "end"
         )
         key = (outputs, -argc)
@@ -732,6 +816,8 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
 
 
 _RUNTIME_HEAD = """local MISMATCH = {}
+-- The output a deferred handler wrote, which DeferredOutput hands the module after the wait that follows the call.
+local deferred_output = nil
 -- Raised when the script reaches a cut event: the rest of the run is not compared.
 local CUT = {}
 local events, cursor, failure = {}, 1, nil
@@ -980,12 +1066,51 @@ __ref = function(call, ...)
     end
 end
 
--- Checks each printed value against the next event.
+-- The text the runtime's print writes for one value: a string as it is, an integral number in the int32 range as %d
+-- and any other number as %f.
+local function printed(value)
+    if type(value) == "string" then
+        return value
+    elseif type(value) == "number" then
+        local integral = math.floor(value) == value and value >= -2147483648 and value < 2147483648
+        return integral and string.format("%d", value) or string.format("%f", value)
+    end
+    return ""
+end
+
+-- The text retail's print writes for one slot, by its format letter (see _print).
+local function retail_printed(value, format)
+    if format == "d" then
+        return string.format("%d", value)
+    elseif format == "f" then
+        return string.format("%f", value)
+    elseif format == "s" then
+        return value
+    end
+    return ""
+end
+
+-- Checks each printed value against the next event, as text and as a value. A float the module formats itself (one
+-- retail prints with %f) compares only as text.
 print = function(...)
     local values = table.pack(...)
     local at = cursor
     local event = next_event("print")
-    if event == nil or event[1] ~= "print" or not same_list(event[2], values) then
+    local ok = event ~= nil and event[1] == "print" and event[2].n == values.n
+    if ok then
+        local integers = event[2].i
+        for i = 1, values.n do
+            local value, expected = values[i], event[2][i]
+            local formatted = type(value) == "string" and type(expected) == "number"
+            local integer = integers ~= nil and string.sub(integers, i, i) == "i"
+            if printed(value) ~= retail_printed(expected, string.sub(event[3], i, i)) then
+                ok = false
+            elseif not formatted and not same(expected, value, type(value) == "number" and not integer) then
+                ok = false
+            end
+        end
+    end
+    if not ok then
         fail(("event %d: expected %s, got %s"):format(at, show(event), show(table.pack("print", values))))
     end
 end
@@ -1024,7 +1149,13 @@ local function run_program(fn)
             cursor = cursor + 1
             return "done"
         end
-        ok, result = coroutine.resume(co)
+        if following ~= nil and following[1] == "skip" then
+            -- The engine skips the event here (CRunScript::skip), which resumes the script in skip mode.
+            cursor = cursor + 1
+            ok, result = coroutine.resume(co, true)
+        else
+            ok, result = coroutine.resume(co)
+        end
     end
 end
 
@@ -1113,6 +1244,24 @@ def driver(
     for no, arities in sorted(ext_reads.items()):
         lines.append(f"    [{no}] = {{ " + ", ".join(f"[{argc}] = {_string(reads)}" for argc, reads in sorted(arities.items())) + " },")
     lines.append("}")
+    lines.append(
+        f"{namespace}.ExtTyped = function(no, tags, ...)\n"
+        "    local args = table.pack(...)\n"
+        "    -- Each input's slot carries the tag retail pushed, so tag and payload compare; i marshals as an integer.\n"
+        '    local inputs = (string.gsub(tags, "[IF]", ""))\n'
+        '    local reads = string.rep("t", #inputs)\n'
+        '    local integers = (string.gsub((string.gsub(inputs, "[^i]", "0")), "i", "1"))\n'
+        "    local outs = ext_call(no, #tags, args, tags, nil, reads, integers)\n"
+        "    return table.unpack(outs, 1, outs.n)\n"
+        "end"
+    )
+    lines.append(
+        f"{namespace}.DeferredOutput = function()\n"
+        "    local value = deferred_output\n"
+        "    deferred_output = nil\n"
+        "    return value\n"
+        "end"
+    )
     lines.append(
         f"{namespace}.Ext = function(no, ...)\n"
         "    local args = table.pack(...)\n"

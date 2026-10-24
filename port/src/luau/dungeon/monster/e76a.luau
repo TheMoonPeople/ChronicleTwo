@@ -28,6 +28,7 @@ local helper_83dc8947 = require("@lib/monster/helper_83dc8947")
 local helper_83e135e0 = require("@lib/monster/helper_83e135e0")
 local helper_8cdd6198 = require("@lib/monster/helper_8cdd6198")
 local helper_905c94a1 = require("@lib/monster/helper_905c94a1")
+local helper_9de6d0ac = require("@lib/monster/helper_9de6d0ac")
 local helper_9df6409a = require("@lib/monster/helper_9df6409a")
 local helper_a25c5b2e = require("@lib/monster/helper_a25c5b2e")
 local helper_a551797e = require("@lib/monster/helper_a551797e")
@@ -40,7 +41,6 @@ local helper_b765e6cd = require("@lib/monster/helper_b765e6cd")
 local helper_b9fff8e1 = require("@lib/monster/helper_b9fff8e1")
 local helper_ba87ea88 = require("@lib/monster/helper_ba87ea88")
 local helper_cbe4d8e2 = require("@lib/monster/helper_cbe4d8e2")
-local helper_de1504df = require("@lib/monster/helper_de1504df")
 local helper_e2fdabb9 = require("@lib/monster/helper_e2fdabb9")
 local helper_e62edeb2 = require("@lib/monster/helper_e62edeb2")
 local helper_ee5b84d4 = require("@lib/monster/helper_ee5b84d4")
@@ -126,7 +126,7 @@ local function helper_108f4(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: f3
 		if var20 < vm.f32(arg3 + arg4) then
 			return 1
 		end
-		var24 = helper_de1504df(var7, var8, var9, arg3, var11)
+		var24 = helper_9de6d0ac(var7, var8, var9, arg3, var11)
 		if var24 ~= 0 then
 			return var24
 		end
@@ -370,7 +370,7 @@ local function helper_12040(arg0: f32, arg1: any, arg2: f32, arg3: f32, arg4: s3
 		if var18 < vm.f32(arg0 + arg2) then
 			return
 		end
-		var22 = helper_de1504df(var9, var10, var11, arg0, var13)
+		var22 = helper_9de6d0ac(var9, var10, var11, arg0, var13)
 		if var22 ~= 0 then
 			print("hit------------------\n")
 			return
@@ -493,7 +493,7 @@ local function helper_11490(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: s3
 		if var18 < vm.f32(arg0 + arg2) then
 			return
 		end
-		var23 = helper_de1504df(var8, var9, var10, arg0, var12)
+		var23 = helper_9de6d0ac(var8, var9, var10, arg0, var12)
 		if var23 ~= 0 then
 			print("hit------------------\n")
 			return
@@ -748,7 +748,7 @@ local function helper_1e45c()
 		return
 	end
 	var3 = helper_e2fdabb9(var3)
-	print("dist=", var3, "--------------\n")
+	print("dist=", string.format("%f", var3), "--------------\n")
 	if var3 < 250.0 and var3 >= 160.0 then
 		helper_1df90()
 	elseif var3 < 160.0 and var3 >= 120.0 then

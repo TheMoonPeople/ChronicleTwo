@@ -278,4 +278,6 @@ declare action: {
 	EsmSetValueFloat_3: (effect_id: s32, value_no: s32, value: f32) -> (),
 	--- Calls a command number that this kind does not register, or an arity the catalog does not list; it returns nothing.
 	Ext: (no: number, ...any) -> (),
+	--- Calls a command with the tags retail pushes; tags has one letter per argument: i for an integer, f for a float, s for a string, I or F for an output written as an integer or a float, which the call returns.
+	ExtTyped: (no: number, tags: string, ...any) -> ...number?,
 }

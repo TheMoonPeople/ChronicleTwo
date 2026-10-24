@@ -10,6 +10,7 @@ local helper_56d63eae = require("@lib/monster/helper_56d63eae")
 local helper_57b569a8 = require("@lib/monster/helper_57b569a8")
 local helper_84a6a4c4 = require("@lib/monster/helper_84a6a4c4")
 local helper_8971d3b6 = require("@lib/monster/helper_8971d3b6")
+local helper_9de6d0ac = require("@lib/monster/helper_9de6d0ac")
 local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local helper_b3b48995 = require("@lib/monster/helper_b3b48995")
 local helper_b44b0a55 = require("@lib/monster/helper_b44b0a55")
@@ -18,7 +19,6 @@ local helper_c3e8ae39 = require("@lib/monster/helper_c3e8ae39")
 local helper_cea0e31f = require("@lib/monster/helper_cea0e31f")
 local helper_d742309a = require("@lib/monster/helper_d742309a")
 local helper_dd45b7cf = require("@lib/monster/helper_dd45b7cf")
-local helper_de1504df = require("@lib/monster/helper_de1504df")
 
 --- Helper function.
 local function helper_2a70()
@@ -405,16 +405,16 @@ local function helper_5ef0(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: f32
 		var13 = out2 or var13
 		var14 = out3 or var14
 	end
-	print("x=", arg0, "------------------\n")
-	print("y=", arg1, "------------------\n")
-	print("z=", arg2, "------------------\n")
-	print("pos[0]=", var6, "------------------\n")
-	print("pos[1]=", var7, "------------------\n")
-	print("pos[2]=", var8, "------------------\n")
-	print("speed=", arg3, "---------------------\n")
-	print("velo[0]=", var12, "------------------\n")
-	print("velo[1]=", var13, "------------------\n")
-	print("velo[2]=", var14, "------------------\n")
+	print("x=", string.format("%f", arg0), "------------------\n")
+	print("y=", string.format("%f", arg1), "------------------\n")
+	print("z=", string.format("%f", arg2), "------------------\n")
+	print("pos[0]=", string.format("%f", var6), "------------------\n")
+	print("pos[1]=", string.format("%f", var7), "------------------\n")
+	print("pos[2]=", string.format("%f", var8), "------------------\n")
+	print("speed=", string.format("%f", arg3), "---------------------\n")
+	print("velo[0]=", string.format("%f", var12), "------------------\n")
+	print("velo[1]=", string.format("%f", var13), "------------------\n")
+	print("velo[2]=", string.format("%f", var14), "------------------\n")
 	var16 = 0
 	while var16 < arg5 do
 		do
@@ -942,7 +942,7 @@ local function helper_17e7c(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: f3
 		if var20 < vm.f32(arg3 + arg4) then
 			return
 		end
-		var24 = helper_de1504df(var7, var8, var9, arg3, var11)
+		var24 = helper_9de6d0ac(var7, var8, var9, arg3, var11)
 		if var24 ~= 0 then
 			return
 		end

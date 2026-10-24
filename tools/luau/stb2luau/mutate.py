@@ -53,6 +53,8 @@ SAMPLE = (
     "dungeon/eff_script/m_smoke.stb",
     "event/tbox/bomb.pack/tbox_exp.stb",
     "dungeon/sphida/mizu_eff.assets/foot_splatter.stb",
+    "map/s/s58/s58.stb",
+    "event/tbox/ntbox_arg.stb",
 )
 # The mutations that can change what a handler reads, by how it reads the input (harness._read) and whether the
 # runtime marshals it as an integer type: a float zero's sign survives only a float slot, a fraction changes only an
@@ -255,6 +257,14 @@ def _resolve(
         no = int(number) if number.isdigit() else None
         reads = harness._ext_reads(kind_catalog).get(no, {}).get(len(args) - 1, "x" * (len(args) - 1))
         return Call(name, start, name_end, args, "x" + reads, "1" * len(args), None, None)
+    if name == "ExtTyped":
+        # The command number and the tag letters are not mutated; each input takes the tag its letter gives, an integer
+        # truncated as SetInteger does, so a neighbouring float or a fraction leaves an integer slot unchanged.
+        letters = text[args[1][0] + 1 : args[1][1] - 1] if len(args) > 1 else ""
+        inputs = [letter for letter in letters if letter in "ifs"]
+        reads = "xx" + "".join({"i": "i", "f": "f"}.get(letter, "x") for letter in inputs)
+        integers = "11" + "".join("1" if letter == "i" else "0" for letter in inputs)
+        return Call(name, start, name_end, args, reads, integers, None, None)
     match = re.fullmatch(r"(\w+?)(Int|Float)?(?:_(\d+))?", name)
     base, suffix, argc = match.group(1), match.group(2), match.group(3)
     command = next((entry for entry in kind_catalog["commands"] if entry["luau"] == base), None)
@@ -341,7 +351,7 @@ def sweep(path: str, data: bytes, catalog: dict, seeds: range, jobs: int) -> Rep
         for index in range(max(1, jobs)):
             root = Path(scratch) / f"root{index}"
             root.mkdir()
-            transpile._support(root, transpile.OUTPUT)
+            transpile._support(root, transpile.OUTPUT, emitted.text)
             (root / f"{result.module}.luau").parent.mkdir(parents=True, exist_ok=True)
             roots.append(root)
         driver_path = Path(scratch) / "driver.luau"

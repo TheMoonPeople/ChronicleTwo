@@ -73,6 +73,13 @@ void Resume(CRunScript *script);
 
 /**
  *
+ * Resumes a suspended program of a script instance in skip mode, as when the player skips an event.
+ *
+ */
+void Skip(CRunScript *script);
+
+/**
+ *
  * Reports whether the instance's program table holds a program under the number.
  *
  */
