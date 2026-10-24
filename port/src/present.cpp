@@ -15,6 +15,7 @@
 #include "exitcodes.hpp"
 #include "gfx/gfx.hpp"
 #include "log/log.hpp"
+#include "luau_runtime.hpp"
 #include "menu_mouse.hpp"
 #include "mglib_port.hpp"
 #include "platform/clock.hpp"
@@ -448,10 +449,54 @@ void PresentTickRendered() {
     tick_shown = false;
 }
 
+namespace {
+
+// With KZ_FRAME_STATS set, where the game thread's time went, logged every five seconds beside Kazarov's frame
+// stats: the time between one game frame's wait and the next is the frame's own work, scripts included.
+struct GameStats {
+    std::uint64_t     frames = 0;
+    double            busy_ms = 0;
+    double            longest_ms = 0;
+    double            wait_ms = 0;
+    Clock::time_point wait_end{};
+    Clock::time_point since = Clock::now();
+};
+
+GameStats game_stats;
+
+} // namespace
+
 void PresentWaitFrame(int start, int frames) {
     wait_start = start;
     wait_frames = frames;
+    static const bool stats_on = std::getenv("KZ_FRAME_STATS") != nullptr;
+    if (!stats_on) {
+        mgTimeWaitTicks(start, frames, BetweenTicks);
+        return;
+    }
+    const Clock::time_point wait_begin = Clock::now();
+    if (game_stats.wait_end != Clock::time_point{}) {
+        const double busy = std::chrono::duration<double, std::milli>(wait_begin - game_stats.wait_end).count();
+        ++game_stats.frames;
+        game_stats.busy_ms += busy;
+        game_stats.longest_ms = std::max(game_stats.longest_ms, busy);
+    }
     mgTimeWaitTicks(start, frames, BetweenTicks);
+    game_stats.wait_end = Clock::now();
+    game_stats.wait_ms += std::chrono::duration<double, std::milli>(game_stats.wait_end - wait_begin).count();
+    if (game_stats.wait_end - game_stats.since >= std::chrono::seconds(5) && game_stats.frames > 0) {
+        const double seconds = std::chrono::duration<double>(game_stats.wait_end - game_stats.since).count();
+        const double count = static_cast<double>(game_stats.frames);
+        const double script_ms = static_cast<double>(luau_runtime::TakeScriptNanoseconds()) / 1e6;
+        CT_LOG_INFO(Gfx,
+                    "game stats: {:.1f} game frames a second, {:.2f} ms of work a frame (longest {:.1f}), of which "
+                    "{:.2f} in Luau scripts and the commands they call; {:.2f} ms waiting a frame",
+                    count / seconds, game_stats.busy_ms / count, game_stats.longest_ms, script_ms / count,
+                    game_stats.wait_ms / count);
+        const Clock::time_point wait_end = game_stats.wait_end;
+        game_stats = {};
+        game_stats.wait_end = wait_end;
+    }
 }
 
 void PresentPublishTick(int start, int frames) {

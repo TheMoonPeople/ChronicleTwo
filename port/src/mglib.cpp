@@ -22,6 +22,7 @@
 #include "exitcodes.hpp"
 #include "gfx/gfx.hpp"
 #include "log/log.hpp"
+#include "hang_watchdog.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
 #include "menu_world.hpp"
@@ -1449,6 +1450,7 @@ PORT_OVERRIDE void mgBeginPacket(mgCDrawManager *manager) {
 }
 
 PORT_OVERRIDE void mgEndFrame(mgCDrawManager *manager) {
+    HangWatchdogFrame();
     bool queued[4] = {};
 
     {

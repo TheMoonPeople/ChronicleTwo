@@ -3,6 +3,10 @@
 #include <string>
 #include <string_view>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "log/log_config.hpp"
 #include "platform/settings.hpp"
 
@@ -29,8 +33,16 @@ enum class ConfigRenderThread {
     Async,
 };
 
+// video.interpolation's default. On iOS each interpolated display frame costs the render thread a full replay
+// through MoltenVK, which cannot keep up in a busy dungeon, so the game presents its own 30 frames as the PS2 did.
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+inline constexpr bool kConfigInterpolationDefault = false;
+#else
+inline constexpr bool kConfigInterpolationDefault = true;
+#endif
+
 struct Config : HostSettings {
-    bool               interpolation = true;
+    bool               interpolation = kConfigInterpolationDefault;
     ConfigRenderThread render_thread = ConfigRenderThread::Async;
     bool               debug_mode = false;
     bool               autosave = true;

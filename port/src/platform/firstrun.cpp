@@ -16,6 +16,10 @@
 #include "kazarov/data_version.hpp"
 #include "log/log.hpp"
 #include "platform/firstrun.hpp"
+#ifdef SDL_PLATFORM_IOS
+#include "ios/data.hpp"
+#include "ios/ios.hpp"
+#endif
 #include "platform/paths.hpp"
 
 namespace fs = std::filesystem;
@@ -61,6 +65,19 @@ std::string FirstRunDataMessage(const fs::path &root) {
 }
 
 void FirstRunRequireData(const fs::path &root, bool headless) {
+#ifdef SDL_PLATFORM_IOS
+    // An iOS app does not quit itself: the launcher stays up until the data is current and the player starts the
+    // game.
+    if (!headless) {
+        IosLeaveNote();
+        if (FirstRunDataMissing(root)) {
+            CT_LOG_INFO(Main, "No current game data at {}: the launcher offers its extraction",
+                        PathsDisplay(root));
+        }
+        IosLauncherRun(root);
+        return;
+    }
+#endif
     if (!FirstRunDataMissing(root)) {
         return;
     }

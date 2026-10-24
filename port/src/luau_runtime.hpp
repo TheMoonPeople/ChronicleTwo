@@ -87,6 +87,13 @@ void SetScriptsRoot(const std::filesystem::path &root);
 
 /**
  *
+ * Returns the time Luau programs ran since the last call, in nanoseconds, and starts counting again.
+ *
+ */
+std::uint64_t TakeScriptNanoseconds();
+
+/**
+ *
  * Sets how many interrupts one program entry may take before the script is stopped.
  *
  */

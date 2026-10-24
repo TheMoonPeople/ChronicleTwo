@@ -8,7 +8,20 @@
 #include "platform/config.hpp"
 #include "platform/window.hpp"
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 namespace options {
+
+// iOS has no window to size, no mouse and no DualSense speaker: there the page leaves those rows out and is
+// called APP SETTINGS.
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+inline constexpr bool kAppPage = true;
+#else
+inline constexpr bool kAppPage = false;
+#endif
+inline constexpr const char *kPageTitle = kAppPage ? "APP SETTINGS" : "PC SETTINGS";
 
 struct Row {
     std::string                                key;

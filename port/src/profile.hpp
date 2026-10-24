@@ -29,7 +29,8 @@ inline void RefreshEnabled() {
 }
 } // namespace ct::profile
 
-#define CT_PROFILE_ZONE(name) ZoneNamedN(ct_profile_zone, name, ::ct::profile::Enabled())
+// KZ_FRAME_STATS adds each zone's time to the renderer's frame stats log too (gfx/profile.hpp).
+#define CT_PROFILE_ZONE(name)     KZ_STATS_ZONE_(name);        ZoneNamedN(ct_profile_zone, name, ::ct::profile::Enabled())
 #define CT_PROFILE_TEXT(text, size)                 \
     do {                                            \
         if (::ct::profile::Enabled()) {             \

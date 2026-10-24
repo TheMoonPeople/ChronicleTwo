@@ -80,6 +80,46 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "ios",
+            "hidden": true,
+            "inherits": "pc",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_SYSTEM_NAME": "iOS",
+                "CMAKE_SYSTEM_PROCESSOR": "arm64",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+                "CMAKE_OSX_SYSROOT": "iphoneos",
+                "CMAKE_MACOSX_BUNDLE": "OFF",
+                "CMAKE_OSX_DEPLOYMENT_TARGET": "16.3",
+                "CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH": "NO",
+                "CMAKE_CXX_FLAGS": "-D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES"
+            }
+        },
+        {
+            "name": "ios-arm64",
+            "displayName": "iOS arm64, Debug",
+            "inherits": "ios",
+            "binaryDir": "${sourceDir}/port/build/ios-arm64",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "ios-arm64-release",
+            "displayName": "iOS arm64, Release",
+            "inherits": "ios",
+            "binaryDir": "${sourceDir}/port/build/ios-arm64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ],
     "buildPresets": [

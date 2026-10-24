@@ -6,6 +6,7 @@
 #include <format>
 #include <iterator>
 #include <ranges>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -286,10 +287,27 @@ void TakeFromOthers(Config &config, std::string_view action, const std::vector<s
     }
 }
 
-} // namespace
+// The rows kAppPage leaves out.
+bool PcOnly(std::string_view key) {
+    static constexpr std::string_view keys[] = {
+        "video.fullscreen",
+        "video.width",
+        "video.present_mode",
+        "audio.dualsense_speaker",
+        "audio.controller_volume",
+        "input.mouse_sensitivity",
+        "input.mouse_invert_y",
+        "input.mouse_capture",
+        "input.menu_pointer_speed",
+        "input.menu_pointer_acceleration",
+        "input.mouse_zoom",
+        "input.mouse_fixed_look",
+    };
+    return std::ranges::find(keys, key) != std::end(keys);
+}
 
-std::span<const Page> Pages() {
-    static const std::vector<Page> pages{
+std::vector<Page> MakePages() {
+    std::vector<Page> pages{
         {.name = "Display",  .rows = {
                                 Choice<&Config::fullscreen>("video.fullscreen", "Window mode", "Applies immediately. Fullscreen uses the desktop.", {"Windowed", "Fullscreen"}),
                                 Resolution(),
@@ -342,6 +360,18 @@ std::span<const Page> Pages() {
         {.name = "Keyboard", .rows = Bindings()           },
         {.name = "Gamepad",  .rows = PadBindings()        },
     };
+    if (kAppPage) {
+        for (Page &page : pages) {
+            std::erase_if(page.rows, [](const Row &row) { return PcOnly(row.key); });
+        }
+    }
+    return pages;
+}
+
+} // namespace
+
+std::span<const Page> Pages() {
+    static const std::vector<Page> pages = MakePages();
     return pages;
 }
 

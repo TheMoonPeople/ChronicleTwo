@@ -63,6 +63,44 @@ add_custom_target(ct_luau_prune
         -P ${CMAKE_SOURCE_DIR}/port/cmake/scripts/luau_prune.cmake
     COMMENT "Removing obsolete script copies"
     VERBATIM)
+
+# CT_LUAU_PRECOMPILE also compiles each copy to bytecode, scripts/<module>.luauc, which the game loads instead of
+# compiling the source when the module first runs (port/src/luau_bytecode.hpp). It is on for iOS, where the scripts run
+# interpreted and the compile would land mid-game on the device. luau-precompile is built for the build machine from
+# the same Luau sources, at CT_LUAU_PRECOMPILE_LEVEL (the game compiles at -O1; -O2 adds inlining and loop unrolling).
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    set(ct_luau_precompile_default ON)
+else()
+    set(ct_luau_precompile_default OFF)
+endif()
+option(CT_LUAU_PRECOMPILE "Ship the Luau scripts compiled to bytecode" ${ct_luau_precompile_default})
+set(CT_LUAU_PRECOMPILE_LEVEL 2 CACHE STRING "The Luau optimisation level of precompiled scripts: 0, 1 or 2")
+if(CT_LUAU_PRECOMPILE)
+    include(ExternalProject)
+    set(ct_luau_host_dir ${CMAKE_BINARY_DIR}/luau-host)
+    set(ct_luau_precompiler ${ct_luau_host_dir}/luau-precompile${CMAKE_HOST_EXECUTABLE_SUFFIX})
+    # The iOS build's environment names a deployment target, which would make the host compiler target iOS too.
+    set(ct_luau_host_env ${CMAKE_COMMAND} -E env --unset=IPHONEOS_DEPLOYMENT_TARGET --unset=SDKROOT)
+    ExternalProject_Add(ct_luau_host
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/tools/luau/precompile
+        BINARY_DIR ${ct_luau_host_dir}
+        CONFIGURE_COMMAND ${ct_luau_host_env} ${CMAKE_COMMAND} -S <SOURCE_DIR> -B <BINARY_DIR> -G ${CMAKE_GENERATOR}
+            -DCMAKE_BUILD_TYPE=Release -DLUAU_SOURCE_DIR=${luau_SOURCE_DIR} -DCT_PORT_SOURCE_DIR=${CMAKE_SOURCE_DIR}/port/src
+        BUILD_COMMAND ${ct_luau_host_env} ${CMAKE_COMMAND} --build <BINARY_DIR> --target luau-precompile
+        INSTALL_COMMAND ""
+        # The inner build decides what is out of date, and leaves the tool untouched when nothing is.
+        BUILD_ALWAYS ON
+        BUILD_BYPRODUCTS ${ct_luau_precompiler})
+    foreach(relative IN LISTS CT_LUAU_RELATIVES)
+        set(compiled ${CMAKE_BINARY_DIR}/scripts/${relative}c)
+        add_custom_command(OUTPUT ${compiled}
+            COMMAND ${ct_luau_precompiler} -O${CT_LUAU_PRECOMPILE_LEVEL} ${CMAKE_SOURCE_DIR}/port/src/luau/${relative} ${compiled}
+            DEPENDS ${CMAKE_SOURCE_DIR}/port/src/luau/${relative} ${ct_luau_precompiler} ct_luau_host
+            COMMENT "Precompiling the script ${relative}"
+            VERBATIM)
+        list(APPEND CT_LUAU_COPIES ${compiled})
+    endforeach()
+endif()
 add_custom_target(ct_luau_scripts DEPENDS ${CT_LUAU_COPIES})
 add_dependencies(ct_luau_scripts ct_luau_prune)
 add_dependencies(darkchronicle ct_luau_scripts)

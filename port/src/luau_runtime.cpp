@@ -3,8 +3,13 @@
 #include "luacodegen.h"
 #include "lualib.h"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -27,6 +32,7 @@
 
 #include "log/log.hpp"
 #include "luau_bindings.hpp"
+#include "luau_bytecode.hpp"
 #include "luau_runtime.hpp"
 #include "platform/legacy_encoding.hpp"
 #include "platform/paths.hpp"
@@ -96,6 +102,8 @@ int                                                       module_cache_ref = LUA
 int                                                       required_ref = LUA_NOREF;
 std::int64_t                                              budget = kDefaultBudget;
 std::int64_t                                              remaining = kDefaultBudget;
+std::uint64_t                                             step_nanoseconds = 0;
+int                                                       step_depth = 0;
 CRunScript                                               *current = nullptr;
 std::unordered_map<std::string, std::unique_ptr<char[]> > interned;
 std::unordered_set<std::string>                           ambiguous_commands;
@@ -708,6 +716,31 @@ int CallExt(lua_State *lua) {
 
 /**
  *
+ * The .luauc files that may hold a module's precompiled bytecode: the one beside its source, then, when the scripts
+ * load from a directory beside the data (a copy made by hand), the one the build put beside the executable. Either
+ * serves only while it was compiled from the same source.
+ *
+ */
+std::vector<std::filesystem::path> PrecompiledFiles(const std::filesystem::path &file) {
+    std::filesystem::path beside = file;
+    beside += "c";
+    std::vector<std::filesystem::path>         files{beside};
+    const std::optional<std::filesystem::path> root = ScriptsRoot();
+    const std::filesystem::path                executable = PathsExecutable();
+    if (root && !executable.empty()) {
+        const std::filesystem::path bundled_root = executable.parent_path() / "scripts";
+        const std::filesystem::path relative = file.lexically_relative(*root);
+        if (bundled_root != *root && !relative.empty() && *relative.begin() != "..") {
+            std::filesystem::path bundled = bundled_root / relative;
+            bundled += "c";
+            files.push_back(std::move(bundled));
+        }
+    }
+    return files;
+}
+
+/**
+ *
  * Pushes a module's compiled chunk onto lua, reusing the cached function when the file already compiled.
  *
  */
@@ -728,12 +761,33 @@ bool PushModuleFunction(lua_State *lua, const std::filesystem::path &file, std::
     }
     const std::string source((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
 
-    lua_CompileOptions options{};
-    options.optimizationLevel = 1;
-    options.debugLevel = 1;
-    std::size_t                                   bytecode_size = 0;
-    char                                         *bytecode = luau_compile(source.data(), source.size(), &options, &bytecode_size);
-    const std::unique_ptr<char, void (*)(void *)> bytecode_owner(bytecode, std::free);
+    // A build with CT_LUAU_PRECOMPILE ships the bytecode beside the source; it serves while it matches the source.
+    std::string                     precompiled;
+    std::optional<std::string_view> precompiled_bytecode;
+    for (const std::filesystem::path &precompiled_file : PrecompiledFiles(file)) {
+        std::ifstream precompiled_input(precompiled_file, std::ios::binary);
+        if (!precompiled_input) {
+            continue;
+        }
+        precompiled.assign(std::istreambuf_iterator<char>(precompiled_input), std::istreambuf_iterator<char>());
+        precompiled_bytecode = luau_bytecode::Bytecode(precompiled, source);
+        if (precompiled_bytecode) {
+            break;
+        }
+        CT_LOG_INFO(Script, "luau: {} was compiled from another source", PathsDisplay(precompiled_file));
+    }
+
+    std::size_t                             bytecode_size = 0;
+    const char                             *bytecode = nullptr;
+    std::unique_ptr<char, void (*)(void *)> bytecode_owner(nullptr, std::free);
+    if (precompiled_bytecode) {
+        bytecode = precompiled_bytecode->data();
+        bytecode_size = precompiled_bytecode->size();
+    } else {
+        lua_CompileOptions options = luau_bytecode::RuntimeOptions();
+        bytecode_owner.reset(luau_compile(source.data(), source.size(), &options, &bytecode_size));
+        bytecode = bytecode_owner.get();
+    }
     if (bytecode == nullptr) {
         CT_LOG_ERROR(Script, "luau: {}: cannot compile {}", label, PathsDisplay(file));
         return false;
@@ -750,7 +804,7 @@ bool PushModuleFunction(lua_State *lua, const std::filesystem::path &file, std::
     if (codegen) {
         luau_codegen_compile(lua, -1);
     }
-    CT_LOG_INFO(Script, "luau: compiled {}", PathsDisplay(file));
+    CT_LOG_INFO(Script, "luau: {} {}", precompiled_bytecode ? "loaded precompiled" : "compiled", PathsDisplay(file));
 
     lua_getref(lua, module_cache_ref);
     lua_pushvalue(lua, -2);
@@ -910,7 +964,13 @@ lua_State *EnsureState() {
     lua_pop(state, 1);
 
     luaL_sandbox(state);
+    // iOS lets an app make no executable memory without a JIT entitlement a sideloaded app does not get, so the
+    // scripts stay interpreted there.
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    codegen = false;
+#else
     codegen = luau_codegen_supported() != 0;
+#endif
     if (codegen) {
         luau_codegen_create(state);
     }
@@ -989,6 +1049,20 @@ bool PushProgram(lua_State *lua, const Instance &instance, int no) {
  *
  */
 void Step(CRunScript *script, Instance &instance, lua_State *co, int nargs) {
+    // The time scripts take, for TakeScriptNanoseconds: a program a native command starts from a script counts once.
+    struct StepTimer {
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+        StepTimer() { ++step_depth; }
+
+        ~StepTimer() {
+            if (--step_depth == 0) {
+                step_nanoseconds += static_cast<std::uint64_t>(
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count());
+            }
+        }
+    } const timer;
+
     const CurrentGuard guard(script);
     remaining = budget;
     const int status = lua_resume(co, nullptr, nargs);
@@ -1186,6 +1260,10 @@ void SetScriptsRoot(const std::filesystem::path &root) {
     }
     modules.clear();
     modules_indexed = false;
+}
+
+std::uint64_t TakeScriptNanoseconds() {
+    return std::exchange(step_nanoseconds, 0);
 }
 
 void SetInterruptBudget(std::int64_t interrupts) {

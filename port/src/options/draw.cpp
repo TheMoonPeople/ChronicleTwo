@@ -96,7 +96,7 @@ void Draw() {
     }
     if (!g_screen.open) {
         Plate(284, 51, 160, 25, hit.kind == HitKind::Entry);
-        Text(ButtonName("select", config) + ": PC SETTINGS", 291, 54, 147, true, 13);
+        Text(ButtonName("select", config) + ": " + kPageTitle, 291, 54, 147, true, 13);
     } else {
         Backdrop();
         // The original scrollbar remains a useful track, with this page's own thumb and count.
@@ -108,7 +108,7 @@ void Draw() {
         const int   thumb_h = 221 * shown / count;
         const int   thumb_y = 100 + (count > shown ? (221 - thumb_h) * first / (count - shown) : 0);
         Fill(447, thumb_y, 3, thumb_h, 95, 67, 35);
-        Text("PC SETTINGS", 83, 55, 190, true, 18);
+        Text(kPageTitle, 83, 55, 190, true, 18);
         Text(std::format("{} / {}", g_screen.page + 1, Pages().size()), 385, 56, 60, false, 14);
         for (int p = 0; p < kPages; ++p) {
             const int  x = kLeft + p * kTabStep;

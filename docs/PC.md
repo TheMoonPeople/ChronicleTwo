@@ -132,6 +132,8 @@ Help movie extraction first appears in Kazarov `2e6ef96` (data version 14). The 
 
 Never edit `data.json` to claim the new version: the marker would pass, but the older `data.zip` still lacks the newly extracted assets.
 
+On iOS a launcher (`port/src/ios/Launcher.swift`; the iOS code is Swift under `port/src/ios`, calling the game through `ios/bridge.hpp` with Swift's C++ interoperability) comes up on every start, before the game's window. It shows whether the data is current and offers **Play** only then. Without data it finds a disc image (`.iso`) in the app's Documents folder or its Inbox, where the Files app and Open In put it, or lets the player choose one in Files, opened in place rather than copied; it then extracts into the data root on a worker thread and draws the progress. **Extract Again…** re-extracts over current data, saves and settings untouched. **Settings** lists the APP SETTINGS rows, apart from the bindings, and **Help** explains where the disc image goes, LiveContainer included. The on-screen gamepad starts after the launcher.
+
 `run.sh` and `run.bat` pass `--run-dir <checkout>/port/run`, giving them the data root `port/run/data`, whose parent holds `data.zip`, and `port/run/saves`. A direct executable launch defaults to the per-user `chronicletwo` application data root with the same layout. They also set `DC2_LOG=debug` when it is unset, so the console shows debug lines ([logging](LOGGING.md)).
 
 The game reads its data through a read-only file system of mounts (`platform/vfs.hpp`). The base asset mount is `<game-root>/data.zip` when it exists; otherwise the unified `data/` directory is mounted, so directory fixtures and hand-edited data keep working. Gameplay documents live under `gameplay/` in either mount; directory fixtures supply their own documents. All names match ignoring ASCII case. The archive's central directory is read once at startup and its entries are read in place: Zstandard entries are decompressed on demand, and stored PNG and MP4 entries are copied from, or for movies streamed from, their offsets in the archive through FFmpeg custom I/O. Reads are thread-safe. Explicit `--run-dir DIR` selects a different root.
@@ -539,6 +541,7 @@ Environment, with the `DC2` prefix that `GameSetIdentity` sets:
 - `DC2_SCRIPT_VM=interpreter`: run every script on the retail interpreter, including those with a Luau module ([PORT_LUAU.md](PORT_LUAU.md)).
 - `DC2_CRASH_TEST=MODE[:early]`: as `--crash-test` (see "Test hooks"); the option outranks it.
 - `DC2_VULKAN_VALIDATION`: has no effect. `main` ORs its presence into `gfx::RendererConfig::validation`, which is already on in a Debug build, and a Release build never requests the layer.
+- `DC2_RENDER_SCALE`: pixels per PS2 line of the render targets (`gfx::RendererConfig::render_scale`), up to 8; `0`, the default, derives it from the window height over 480.
 
 Debug builds request the validation layer (`gfx::RendererConfig::validation`, on unless `NDEBUG` is defined). Release builds never request it. Without the layer installed, the renderer prints `gfx: validation requested but VK_LAYER_KHRONOS_validation is not installed` and goes on.
 
@@ -627,7 +630,7 @@ Fixtures and extracted game data stay outside the repository.
 2a. `LogInit` starts the logger with stderr only, at the level of `--log-level` or `DC2_LOG`, and routes Kazarov's diagnostics into it. `LogShutdown` is registered with `atexit` before anything else that `main` registers, so it runs last. The session header goes to the log (see [LOGGING.md](LOGGING.md)).
 2b. `CrashInit` installs the crash handlers and starts the crash report writer; runs with `--headless`, `--frames` or `--input` never show a crash dialog (see [CRASH_REPORTS.md](CRASH_REPORTS.md)). `--crash-test` (or `DC2_CRASH_TEST`) is parsed here.
 3. `ConfigLoad` reads `config.json` from the save root's parent directory (see "config.json"). `LogAttachFile` then applies its `log` section and opens `<save root>/../logs/darkchronicle-<session>.log`, which starts with every line logged since `LogInit`. `CrashSetBundleRoot` then puts crash bundles under `<save root>/crashes/<session>/`, and an early `--crash-test` fires.
-4. `FirstRunRequireData` checks the data root and opens setup when extraction is needed, or exits with status 3 in headless mode (see "Game data and first run").
+4. `FirstRunRequireData` checks the data root and opens setup when extraction is needed, or exits with status 3 in headless mode; on iOS it shows the launcher every time (see "Game data and first run").
 4a. `InitCDFile` indexes the data root, printing `dataread: indexed N files under <dir>`. NTSC script validation runs before the window, renderer, audio and clock. Incompatible scripts are named in the log and startup exits with status 5; desktop runs also show an error dialog.
 5. The window opens, or the offscreen surface with `--headless`. A windowed run then shows the notice of a crash in an earlier session, if there is one not yet shown. Input initialises, and the input script is installed.
 6. The renderer starts (`gfx::RendererInit`) with a logical size of 512x480 at a 4:3 display aspect. It builds every pipeline, uses `<save root>/pipeline_cache.bin` as its pipeline cache, and prints `compiling shaders n/total` as it goes.
@@ -674,7 +677,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
-| `video.interpolation` | bool | true | | interpolate display frames between ticks |
+| `video.interpolation` | bool | true (false on iOS) | | interpolate display frames between ticks |
 | `video.render_thread` | string | async | off, lockstep, async | `async` (default) renders and presents display frames on a separate render thread while the game ticks, and follows the mouse between ticks so the menu pointer and the fixed-camera look move at the display rate; `off` runs everything on the game thread; `lockstep` runs device work on a worker while the caller waits; `DC2_RENDER_THREAD` overrides it; headless and screenshot runs always use `off`; applies at startup |
 | `video.max_fps` | number | 0 | 0 or more | display frame cap; 0 is unlimited |
 | `video.width` | int | 0 | 0 or more | window width; 0 is the monitor's |
@@ -752,6 +755,8 @@ without a guessed migration factor.
 ### PC SETTINGS
 
 Open **Options**, then press **SELECT** (Backspace with the default keyboard bindings), or click **PC SETTINGS** above the list. The original Options page still edits the retail save's options. Its confirm, cancel, reset, and L1/R1 page scrolling are unchanged; returning from PC SETTINGS keeps its cursor and choices.
+
+On iOS the page is called **APP SETTINGS** and leaves out the rows that have nothing to act on there: window mode, resolution, present mode, the mouse rows and the DualSense speaker. The launcher's **Settings** shows the same rows, without the bindings, before the game starts.
 
 The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Down selects a row, Left/Right changes a value, and confirm advances a choice or opens binding capture. Cancel returns to Options; Japanese retains its reversed confirm/cancel layout. The mouse can click tabs and value arrows, scroll rows, restore a binding, and return to Options. Hit targets follow aspect ratio, UI scale and window DPI.
 

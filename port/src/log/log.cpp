@@ -26,6 +26,12 @@
 #ifndef _WIN32
 #include <pthread.h>
 #endif
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE
+#include <sys/qos.h>
+#endif
+#endif
 
 #include "kazarov/log.hpp"
 #include "log/log_internal.hpp"
@@ -181,6 +187,12 @@ protected:
                    std::string_view /*log_level_description*/, std::string_view /*log_level_short_code*/,
                    const std::vector<std::pair<std::string, std::string> > * /*named_args*/,
                    std::string_view log_message, std::string_view /*log_statement*/) final {
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        // Sinks run on the ct-log thread, which writes in the background: on iOS it takes the utility class the first
+        // time, so the scheduler prefers the efficiency cores for it over the game's and the renderer's cores.
+        static thread_local const bool background = [] { return pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0) == 0; }();
+        (void) background;
+#endif
         Take({.timestamp_ns = log_timestamp,
               .level = PortLevel(log_level),
               .thread = Named(thread_name) ? thread_name : thread_id,

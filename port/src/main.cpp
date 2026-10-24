@@ -3,11 +3,19 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <vector>
+
+#include <SDL3/SDL_platform.h>
+#ifdef SDL_PLATFORM_IOS
+// main stays this file's own entry point (and the PORT_OVERRIDE of the game's), so SDL must not rename it.
+#define SDL_MAIN_HANDLED
+#include <SDL3/SDL_main.h>
+#endif
 
 #include "audio/soundtrack.hpp"
 #include "audio_init.hpp"
@@ -29,6 +37,9 @@
 #include "platform/input.hpp"
 #include "platform/input_script.hpp"
 #include "platform/input_startup.hpp"
+#ifdef SDL_PLATFORM_IOS
+#include "ios/ios.hpp"
+#endif
 #include "platform/paths.hpp"
 #include "platform/settings.hpp"
 #include "platform/window.hpp"
@@ -354,6 +365,10 @@ int Run(int argc, const char **argv) {
         CrashTestArm(*crash_test, CrashTestWhen::Early);
     }
     FirstRunRequireData(PathsDataRoot(), options.headless);
+#ifdef SDL_PLATFORM_IOS
+    // After the launcher, which the on-screen gamepad would cover.
+    IosTouchOverlayStart();
+#endif
     InitCDFile();
     if (!options.headless) {
         GameSetDataIcon();
@@ -387,6 +402,14 @@ int Run(int argc, const char **argv) {
     renderer.layout = Layout(ConfigGet());
     renderer.prog0_meshes = true;
     renderer.validation = renderer.validation || SettingsEnv("VULKAN_VALIDATION") != nullptr;
+    // DC2_RENDER_SCALE: pixels per PS2 line of the render targets, 0 for the window's height over 480.
+    if (const char *setting = SettingsEnv("RENDER_SCALE")) {
+        char       *end = nullptr;
+        const float scale = std::strtof(setting, &end);
+        if (end != setting && scale >= 0.0f && scale <= 8.0f) {
+            renderer.render_scale = scale;
+        }
+    }
     renderer.render_thread = RenderThread(ConfigGet().render_thread);
     if (const char *setting = SettingsEnv("RENDER_THREAD")) {
         if (auto mode = gfx::ParseRenderThreadMode(setting)) {
@@ -436,8 +459,44 @@ int Run(int argc, const char **argv) {
 
 } // namespace
 
+#ifdef SDL_PLATFORM_IOS
+// UIKit owns the process: SDL_RunApp starts the application delegate, which calls back into Run once it is up.
+static int IosMain(int argc, char **argv) {
+    // iOS shows no console: stderr goes to Documents, where the Files app reaches it, from the first line on.
+    if (const char *home = std::getenv("HOME")) {
+        const std::string log = std::string(home) + "/Documents/stderr.log";
+        if (std::freopen(log.c_str(), "w", stderr) != nullptr) {
+            std::setvbuf(stderr, nullptr, _IONBF, 0);
+            std::fprintf(stderr, "darkchronicle: started\n");
+        }
+        // iOS has no way to start the game with environment variables, so chronicletwo/env.txt in Documents
+        // holds them, one KEY=VALUE a line: the DC2_ settings, or MoltenVK's MVK_CONFIG_ and Metal's MTL_ ones for
+        // diagnosing the renderer. Each is set before SDL and the renderer start.
+        std::ifstream env(std::string(home) + "/Documents/chronicletwo/env.txt");
+        for (std::string line; std::getline(env, line);) {
+            if (!line.empty() && line.back() == '\r') {
+                line.pop_back();
+            }
+            const std::size_t equals = line.find('=');
+            if (line.empty() || line.front() == '#' || equals == std::string::npos || equals == 0) {
+                continue;
+            }
+            const std::string key = line.substr(0, equals);
+            const std::string value = line.substr(equals + 1);
+            setenv(key.c_str(), value.c_str(), 1);
+            std::fprintf(stderr, "darkchronicle: env %s=%s\n", key.c_str(), value.c_str());
+        }
+    }
+    return Run(argc, const_cast<const char **>(argv));
+}
+#endif
+
 PORT_OVERRIDE int main(int argc, const char **argv) {
+#ifdef SDL_PLATFORM_IOS
+    return SDL_RunApp(argc, const_cast<char **>(argv), IosMain, nullptr);
+#else
     return Run(argc, argv);
+#endif
 }
 
 #ifdef _WIN32

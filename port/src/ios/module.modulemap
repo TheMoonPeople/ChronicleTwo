@@ -1,0 +1,6 @@
+// The game's side of the iOS port, imported into its Swift code with `import ChronicleBridge`.
+module ChronicleBridge {
+    header "bridge.hpp"
+    requires cplusplus
+    export *
+}
