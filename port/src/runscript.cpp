@@ -81,10 +81,9 @@ PORT_OVERRIDE int CRunScript::check_program(int no) {
     return 0;
 }
 
-// Skip mode is an event-script feature; Luau modules run their action programs through resume.
 PORT_OVERRIDE void CRunScript::skip() {
     if (luau_runtime::Owns(this)) {
-        luau_runtime::Resume(this);
+        luau_runtime::Skip(this);
         return;
     }
     PortRetailSkip();

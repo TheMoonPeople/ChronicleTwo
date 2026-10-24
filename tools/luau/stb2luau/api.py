@@ -126,6 +126,11 @@ def _types() -> str:
         "\tsinf: (x: number) -> number,",
         "\tcosf: (x: number) -> number,",
         "}",
+        "-- The machine state of skip mode, which the host owns: whether the running script is skipping, and the skip end.",
+        "declare vmhost: {",
+        "\tskipping: () -> boolean,",
+        "\tskip_end: () -> boolean,",
+        "}",
     ]
     return "\n".join(lines) + "\n"
 

@@ -55,7 +55,7 @@ struct ScriptPrefix {
     bool             nested = false; /**< Whether only modules in a directory below the prefix match, as pack members do. */
 };
 
-constexpr std::array<ScriptPrefix, 7> kScriptPrefixes = {
+constexpr std::array<ScriptPrefix, 10> kScriptPrefixes = {
     {
      {.prefix = "mainchr/", .kind = "action"},
      {.prefix = "dungeon/act_script/", .kind = "action"},
@@ -64,8 +64,24 @@ constexpr std::array<ScriptPrefix, 7> kScriptPrefixes = {
      {.prefix = "dungeon/sphida/", .kind = "effect"},
      {.prefix = "event/tbox/", .kind = "effect", .nested = true},
      {.prefix = "dungeon/monster/", .kind = "monster"},
+     // Event scripts follow the effect pack members under event/tbox/, which the nested rule claims first.
+        {.prefix = "map/", .kind = "event"},
+     {.prefix = "dungeon/sys_script/", .kind = "event"},
+     {.prefix = "event/", .kind = "event"},
      }
 };
+
+/**
+ *
+ * Reports whether a module is an event argument script: a file under event/ whose name holds "_arg", as in e209_arg_1.
+ *
+ */
+bool IsEventArgumentModule(std::string_view module) {
+    if (!module.starts_with("event/")) {
+        return false;
+    }
+    return module.substr(module.rfind('/') + 1).contains("_arg");
+}
 
 /**
  *
@@ -73,6 +89,12 @@ constexpr std::array<ScriptPrefix, 7> kScriptPrefixes = {
  *
  */
 const luau_bindings::Kind *KindForModule(std::string_view module) {
+    const std::string_view argument_kind = "event_arg";
+    if (IsEventArgumentModule(module)) {
+        const auto kinds = luau_bindings::Kinds();
+        const auto found = std::ranges::find(kinds, argument_kind, &luau_bindings::Kind::name);
+        return found == kinds.end() ? nullptr : &*found;
+    }
     const auto *const prefix = std::ranges::find_if(kScriptPrefixes, [module](const ScriptPrefix &script_prefix) {
         return module.starts_with(script_prefix.prefix) && (!script_prefix.nested || module.substr(script_prefix.prefix.size()).contains('/'));
     });
@@ -615,7 +637,15 @@ int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_
         slot.val.p = &output;
     }
 
-    ActiveScript(lua)->ext(slots.data(), static_cast<int>(param_count + 1));
+    CRunScript *script = ActiveScript(lua);
+    if (script->skip_wait != 0) {
+        // Skip mode drops the call, so every output stays as the script left it.
+        for (std::size_t index = 0; index < output_count; ++index) {
+            lua_pushnil(lua);
+        }
+        return static_cast<int>(output_count);
+    }
+    script->ext(slots.data(), static_cast<int>(param_count + 1));
 
     for (std::size_t index = 0; index < output_count; ++index) {
         PushOutput(lua, outputs[index], output_types[index]);
@@ -640,7 +670,10 @@ int CallGeneric(lua_State *lua, int no, int first, const luau_bindings::Command 
     for (int offset = 0; offset < count; ++offset) {
         MarshalValue(lua, first + offset, luau_bindings::Type::Unknown, slots[static_cast<std::size_t>(offset) + 1], command);
     }
-    ActiveScript(lua)->ext(slots.data(), count + 1);
+    CRunScript *script = ActiveScript(lua);
+    if (script->skip_wait == 0) {
+        script->ext(slots.data(), count + 1);
+    }
     return 0;
 }
 
@@ -866,6 +899,45 @@ int Cosf(lua_State *lua) {
 
 /**
  *
+ * vmhost.skipping: whether the running script is in skip mode, running through its waits to the next skip end.
+ *
+ */
+int VmHostSkipping(lua_State *lua) {
+    lua_pushboolean(lua, ActiveScript(lua)->skip_wait != 0 ? 1 : 0);
+    return 1;
+}
+
+/**
+ *
+ * vmhost.skip_end: counts a skip end; when the script was skipping it leaves skip mode and returns true, telling the module to suspend.
+ *
+ */
+int VmHostSkipEnd(lua_State *lua) {
+    CRunScript *script = ActiveScript(lua);
+    ++script->skip_end_count;
+    const bool was_skipping = script->skip_wait != 0;
+    script->skip_wait = 0;
+    lua_pushboolean(lua, was_skipping ? 1 : 0);
+    return 1;
+}
+
+/**
+ *
+ * Creates the global vmhost table, the machine state the vm library reads and writes for skip mode.
+ *
+ */
+void RegisterVmHost(lua_State *lua) {
+    lua_createtable(lua, 0, 2);
+    lua_pushcfunction(lua, VmHostSkipping, "skipping");
+    lua_setfield(lua, -2, "skipping");
+    lua_pushcfunction(lua, VmHostSkipEnd, "skip_end");
+    lua_setfield(lua, -2, "skip_end");
+    lua_setreadonly(lua, -1, 1);
+    lua_setglobal(lua, "vmhost");
+}
+
+/**
+ *
  * Creates the global cmath table of the C library's float functions the vm library calls.
  *
  */
@@ -901,6 +973,7 @@ lua_State *EnsureState() {
     lua_setglobal(state, "require");
     RegisterNamespaces(state);
     RegisterCmath(state);
+    RegisterVmHost(state);
 
     lua_createtable(state, 0, 0);
     module_cache_ref = lua_ref(state, -1);
@@ -999,6 +1072,10 @@ void Step(CRunScript *script, Instance &instance, lua_State *co, int nargs) {
     script->end = 1;
     if (status == LUA_OK) {
         script->result = lua_type(co, 1) == LUA_TNUMBER ? ClampToInt(lua_tonumberx(co, 1, nullptr)) : 0;
+    } else if (script->skip_wait != 0 && lua_type(co, -1) != LUA_TSTRING) {
+        // A skip sentinel (a non-string error value raised by a wait in skip mode) that no section caught: retail would run on
+        // linearly to the end of the program without calling anything, so the program ends quietly.
+        CT_LOG_TRACE(Script, "luau: {}: skip reached the end of {}", ScriptLabel(instance.module), HandlerLabel(instance, instance.running_no));
     } else {
         const char       *raw = lua_tostring(co, -1);
         const std::string message = raw != nullptr ? raw : "unknown error";
@@ -1043,6 +1120,174 @@ void StartInstance(CRunScript *script, Instance &instance, const std::filesystem
         }
     }
     lua_settop(thread, 0);
+}
+
+/**
+ *
+ * Returns the length of a table that is a dense array of values keyed 1 through n, or nullopt when it has any other key.
+ *
+ */
+std::optional<std::size_t> DenseArrayLength(lua_State *lua, int index) {
+    const int         absolute_index = index < 0 ? lua_gettop(lua) + index + 1 : index;
+    const std::size_t length = lua_objlen(lua, absolute_index);
+    std::size_t       key_count = 0;
+    lua_pushnil(lua);
+    while (lua_next(lua, absolute_index) != 0) {
+        int          is_integer = 0;
+        const int    key = lua_tointegerx(lua, -2, &is_integer);
+        const double number = lua_tonumberx(lua, -2, nullptr);
+        if (lua_type(lua, -2) != LUA_TNUMBER || is_integer == 0 || number != static_cast<double>(key) || key < 1 ||
+            std::cmp_greater(key, length)) {
+            lua_pop(lua, 2);
+            return std::nullopt;
+        }
+        ++key_count;
+        lua_pop(lua, 1);
+    }
+    if (key_count != length) {
+        return std::nullopt;
+    }
+    return length;
+}
+
+/**
+ *
+ * Reads the number at a stack index as a 32-bit integer, or nullopt when it is not an integral number in range.
+ *
+ */
+std::optional<std::int32_t> IntegerAt(lua_State *lua, int index) {
+    int          is_number = 0;
+    const double number = lua_tonumberx(lua, index, &is_number);
+    if (is_number == 0 || std::trunc(number) != number || number < -2147483648.0 || number > 2147483647.0) {
+        return std::nullopt;
+    }
+    return static_cast<std::int32_t>(number);
+}
+
+/**
+ *
+ * The value types an argument-data entry may declare.
+ *
+ */
+enum class EventArgType {
+    Int,
+    Float,
+    String,
+    Unknown,
+};
+
+/**
+ *
+ * Reads the declared type name at a stack index, or Unknown when it is not one of the argument value types.
+ *
+ */
+EventArgType EventArgTypeAt(lua_State *lua, int index) {
+    if (lua_type(lua, index) != LUA_TSTRING) {
+        return EventArgType::Unknown;
+    }
+    std::size_t            length = 0;
+    const char            *text = lua_tolstring(lua, index, &length);
+    const std::string_view name(text, length);
+    if (name == "int") {
+        return EventArgType::Int;
+    }
+    if (name == "float") {
+        return EventArgType::Float;
+    }
+    if (name == "string") {
+        return EventArgType::String;
+    }
+    return EventArgType::Unknown;
+}
+
+/**
+ *
+ * Reads the typed values of an entry's args table, which sits at an absolute stack index, or nullopt when one is malformed.
+ *
+ */
+std::optional<std::vector<luau_runtime::EventArgValue> > ParseEventArgValues(lua_State *lua, int table) {
+    const std::optional<std::size_t> count = DenseArrayLength(lua, table);
+    if (!count) {
+        return std::nullopt;
+    }
+    std::vector<luau_runtime::EventArgValue> values;
+    values.reserve(*count);
+    for (std::size_t index = 1; index <= *count; ++index) {
+        lua_rawgeti(lua, table, static_cast<int>(index));
+        if (lua_type(lua, -1) != LUA_TTABLE) {
+            return std::nullopt;
+        }
+        lua_getfield(lua, -1, "type");
+        const EventArgType type = EventArgTypeAt(lua, -1);
+        lua_pop(lua, 1);
+        lua_getfield(lua, -1, "value");
+        switch (type) {
+            case EventArgType::Int: {
+                const std::optional<std::int32_t> value = IntegerAt(lua, -1);
+                if (!value) {
+                    return std::nullopt;
+                }
+                values.emplace_back(*value);
+                break;
+            }
+            case EventArgType::Float: {
+                int          is_number = 0;
+                const double value = lua_tonumberx(lua, -1, &is_number);
+                if (is_number == 0) {
+                    return std::nullopt;
+                }
+                values.emplace_back(static_cast<float>(value));
+                break;
+            }
+            case EventArgType::String: {
+                if (lua_type(lua, -1) != LUA_TSTRING) {
+                    return std::nullopt;
+                }
+                std::size_t length = 0;
+                const char *text = lua_tolstring(lua, -1, &length);
+                values.emplace_back(std::string(text, length));
+                break;
+            }
+            case EventArgType::Unknown:
+                return std::nullopt;
+        }
+        lua_pop(lua, 2);
+    }
+    return values;
+}
+
+/**
+ *
+ * Reads the ordered commands of an argument-data array, which sits at an absolute stack index, or nullopt when one is malformed.
+ *
+ */
+std::optional<std::vector<luau_runtime::EventArgAction> > ParseEventArgActions(lua_State *lua, int table) {
+    const std::optional<std::size_t> count = DenseArrayLength(lua, table);
+    if (!count) {
+        return std::nullopt;
+    }
+    std::vector<luau_runtime::EventArgAction> actions;
+    actions.reserve(*count);
+    for (std::size_t index = 1; index <= *count; ++index) {
+        lua_rawgeti(lua, table, static_cast<int>(index));
+        if (lua_type(lua, -1) != LUA_TTABLE) {
+            return std::nullopt;
+        }
+        lua_getfield(lua, -1, "command");
+        const std::optional<std::int32_t> command = IntegerAt(lua, -1);
+        lua_pop(lua, 1);
+        lua_getfield(lua, -1, "args");
+        if (!command || lua_type(lua, -1) != LUA_TTABLE) {
+            return std::nullopt;
+        }
+        std::optional<std::vector<luau_runtime::EventArgValue> > args = ParseEventArgValues(lua, lua_gettop(lua));
+        if (!args) {
+            return std::nullopt;
+        }
+        lua_pop(lua, 2);
+        actions.push_back(luau_runtime::EventArgAction{*command, std::move(*args)});
+    }
+    return actions;
 }
 
 } // namespace
@@ -1092,6 +1337,55 @@ std::optional<std::string> ModuleForScript(std::string_view key) {
     return module;
 }
 
+std::optional<std::vector<EventArgAction> > ReadEventArgData(std::string_view module) {
+    if (EnsureState() == nullptr) {
+        return std::nullopt;
+    }
+    EnsureIndex();
+    const auto found = modules.find(std::string(module));
+    if (found == modules.end()) {
+        CT_LOG_ERROR(Script, "luau: {}: module not found", ScriptLabel(module));
+        return std::nullopt;
+    }
+
+    // The data module runs on a throwaway sandboxed thread, released when the read ends.
+    lua_State *thread = lua_newthread(state);
+
+    struct ThreadReference {
+        int ref;
+
+        ~ThreadReference() {
+            ReleaseRef(ref);
+        }
+    } thread_reference{lua_ref(state, -1)};
+
+    luaL_sandboxthread(thread);
+    lua_pop(state, 1);
+
+    if (!PushModuleFunction(thread, found->second, ScriptLabel(module))) {
+        return std::nullopt;
+    }
+    lua_clonefunction(thread, -1);
+    lua_pushvalue(thread, LUA_GLOBALSINDEX);
+    lua_setfenv(thread, -2);
+    remaining = budget;
+    if (lua_pcall(thread, 0, 1, 0) != LUA_OK) {
+        const char       *raw = lua_tostring(thread, -1);
+        const std::string message = raw != nullptr ? raw : "unknown error";
+        CT_LOG_ERROR(Script, "luau: {}: {}", ScriptLabel(module), message);
+        return std::nullopt;
+    }
+    if (lua_type(thread, -1) != LUA_TTABLE) {
+        CT_LOG_ERROR(Script, "luau: {}: argument data must return an array", ScriptLabel(module));
+        return std::nullopt;
+    }
+    std::optional<std::vector<EventArgAction> > actions = ParseEventArgActions(thread, lua_gettop(thread));
+    if (!actions) {
+        CT_LOG_ERROR(Script, "luau: {}: malformed argument data, expected {{command, args}} entries of typed values", ScriptLabel(module));
+    }
+    return actions;
+}
+
 void Load(CRunScript *script, std::string_view module) {
     instances.erase(script);
     auto instance = std::make_shared<Instance>();
@@ -1113,6 +1407,7 @@ void Load(CRunScript *script, std::string_view module) {
         }
     }
     script->end = 0;
+    script->skip_wait = 0;
     script->pc = nullptr;
 }
 
@@ -1149,6 +1444,8 @@ int Run(CRunScript *script, int no) {
 
     script->end = 0;
     script->result = 0;
+    script->skip_wait = 0;
+    script->skip_end_count = 0;
     Step(script, *instance, co, 0);
     return script->end != 0 ? 0 : 1;
 }
@@ -1165,6 +1462,11 @@ void Resume(CRunScript *script) {
         return;
     }
     Step(script, *instance, co, 0);
+}
+
+void Skip(CRunScript *script) {
+    script->skip_wait = 1;
+    Resume(script);
 }
 
 bool HasProgram(const CRunScript *script, int no) {

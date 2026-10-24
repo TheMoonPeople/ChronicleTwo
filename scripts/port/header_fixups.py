@@ -92,6 +92,9 @@ FIXUPS = [
      "    void PortRetailResume();\n"
      "    int  PortRetailRun(int no);\n"
      "    void PortRetailSkip();"),
+    ("event_func.hpp", "    void BuildArgData(unsigned int *program);",
+     "    void BuildArgData(unsigned int *program);\n"
+     "    void PortRetailBuildArgData(unsigned int *program);"),
     # Collision polygons name placed Georama parts beyond slot 4095.
     ("collision.hpp", "    CCPOLY_PARTS_EDIT = 0x1000,     /**< The polygon belongs to a placed Georama part. */",
      "    CCPOLY_PARTS_EDIT = 0x8000,     /**< The polygon belongs to a placed Georama part. */"),

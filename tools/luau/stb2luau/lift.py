@@ -151,6 +151,16 @@ def _check_mixed_stores(lifter: _Lifter) -> None:
                 raise LiftError(_MIXED.format(what=f"{key[0]} {key[1]}", offset=statement.offset))
 
 
+def _reads_slot(function: Function, slot: int) -> bool:
+    """Whether a function names a local slot in any load or address, directly or through a computed index."""
+    return any(
+        instruction.op in (Op.LOAD, Op.LOAD_ADDR)
+        and instruction.a2 not in GLOBAL_MODES
+        and (instruction.a1 == slot or (instruction.a2 in INDEXED_MODES and instruction.a1 <= slot))
+        for instruction in function.instructions
+    )
+
+
 def _int_reads(function: Function) -> frozenset[int]:
     """The reference parameters a function loads through POINTER_INDEX, reading the slot they name as it is tagged."""
     return frozenset(
@@ -486,9 +496,16 @@ class _Lifter:
         elif op == Op.WAIT:
             self._emit(ir.Wait(offset), offset)
         elif op == Op.SKIP_END:
-            raise LiftError("skip end unsupported")
+            self._emit(ir.SkipEnd(offset), offset)
         elif op == Op.RET:
-            self._emit(ir.Return(self._pop(offset), offset), offset)
+            value = self._pop(offset)
+            if self.stack and self.function.block >= ir.SYNTHETIC_BASE:
+                # Values that skipped jumps left on the stack are dropped, but their calls still run.
+                for junk in self.stack:
+                    if ir.has_call(junk):
+                        self._emit(ir.Assign(self._temp(junk.type), junk, offset), offset)
+                self.stack.clear()
+            self._emit(ir.Return(value, offset), offset)
             self._exit(ir.Stop(), offset)
         elif op == Op.END:
             self._emit(ir.End(offset), offset)
@@ -548,10 +565,13 @@ class _Lifter:
                         f"the callee loads as a float, at {offset:#x}"
                     )
             elif isinstance(arg, ir.Addr):
-                raise LiftError(
-                    f"reference passed for parameter {position} of {callee.block:#x}, which the callee does not "
-                    f"dereference, at {offset:#x}"
-                )
+                if _reads_slot(callee, position):
+                    raise LiftError(
+                        f"reference passed for parameter {position} of {callee.block:#x}, which the callee reads as a "
+                        f"value, at {offset:#x}"
+                    )
+                # A parameter the callee never touches ignores the address it is given.
+                args = args[:position] + (ir.Const(0, INT),) + args[position + 1 :]
         _check_aliases(args, offset)
         mixed_params = _mixed_slots(callee.instructions, "local")
         for position, arg in enumerate(args):

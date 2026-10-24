@@ -24,7 +24,7 @@ def structure(function: ir.LiftedFunction) -> list:
     except StructureError:
         # Relaxed decisions change earlier branch choices, so the whole function is restructured under them.
         body = _Structurer(function, relaxed=True)._range(0, count, count, [])
-    body = _simplify(body)
+    body = _prune_dead(_simplify(body))
     return _numeric_fors(body, body)
 
 
@@ -209,6 +209,39 @@ class _Structurer:
             raise StructureError(f"unstructured branch at {self.starts[i]:#x}")
         then = self._range(i + 1, t, r if r < hi else follow, loops)
         return [ir.If(then_cond, then, [])], t
+
+
+def _prune_dead(stmts: list) -> list:
+    # Luau rejects statements after break, continue, return or end in the same block, and they can never run.
+    out: list = []
+    for stmt in stmts:
+        out.append(_prune_dead_stmt(stmt))
+        if _ends_block(stmt):
+            break
+    return out
+
+
+def _ends_block(stmt: object) -> bool:
+    """Whether control never reaches the statement after this one: a jump out, or a conditional that jumps out both ways."""
+    if isinstance(stmt, (ir.Break, ir.Continue, ir.Return, ir.End)):
+        return True
+    return isinstance(stmt, ir.If) and bool(stmt.then) and bool(stmt.orelse) and _ends_list(stmt.then) and _ends_list(stmt.orelse)
+
+
+def _ends_list(stmts: list) -> bool:
+    return any(_ends_block(stmt) for stmt in stmts)
+
+
+def _prune_dead_stmt(stmt: object) -> object:
+    if isinstance(stmt, ir.If):
+        return ir.If(stmt.cond, _prune_dead(stmt.then), _prune_dead(stmt.orelse))
+    if isinstance(stmt, ir.Repeat):
+        return ir.Repeat(_prune_dead(stmt.body), stmt.cond)
+    if isinstance(stmt, ir.While):
+        return ir.While(stmt.cond, _prune_dead(stmt.body))
+    if isinstance(stmt, ir.NumericFor):
+        return ir.NumericFor(stmt.var, stmt.start, stmt.limit, stmt.step, _prune_dead(stmt.body))
+    return stmt
 
 
 def _simplify(stmts: list) -> list:

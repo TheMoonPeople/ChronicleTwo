@@ -5,15 +5,34 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
+#include <vector>
 
 #include "runscript.hpp"
 
 /**
  *
- * Runs action, effect and monster scripts as Luau modules in place of the retail script interpreter, exposing the native script commands to them.
+ * Runs action, effect, monster and event scripts as Luau modules in place of the retail script interpreter, exposing the native script commands to them.
  *
  */
 namespace luau_runtime {
+
+/**
+ *
+ * A tagged value emitted by an argument-data module.
+ *
+ */
+using EventArgValue = std::variant<std::int32_t, float, std::string>;
+
+/**
+ *
+ * One ordered command emitted by an argument-data module.
+ *
+ */
+struct EventArgAction {
+    int                        command = 0; /**< Numeric argument command identifier. */
+    std::vector<EventArgValue> args;        /**< Typed values passed to the command. */
+};
 
 /**
  *
@@ -35,6 +54,13 @@ std::optional<std::string> HandleModule(const void *program);
  *
  */
 std::optional<std::string> ModuleForScript(std::string_view key);
+
+/**
+ *
+ * Loads the ordered argument commands of an event argument-data module, or nullopt when the module is missing or malformed.
+ *
+ */
+std::optional<std::vector<EventArgAction> > ReadEventArgData(std::string_view module);
 
 /**
  *
@@ -70,6 +96,13 @@ int Run(CRunScript *script, int no);
  *
  */
 void Resume(CRunScript *script);
+
+/**
+ *
+ * Enters skip mode and resumes a suspended program, which runs through its waits to the next skip end.
+ *
+ */
+void Skip(CRunScript *script);
 
 /**
  *

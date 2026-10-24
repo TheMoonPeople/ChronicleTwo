@@ -12,3 +12,8 @@ declare cmath: {
 	sinf: (x: number) -> number,
 	cosf: (x: number) -> number,
 }
+-- The machine state of skip mode, which the host owns: whether the running script is skipping, and the skip end.
+declare vmhost: {
+	skipping: () -> boolean,
+	skip_end: () -> boolean,
+}

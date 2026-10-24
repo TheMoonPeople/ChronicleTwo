@@ -14,9 +14,71 @@ local function truncate(x: number): number
     return math.ceil(x)
 end
 
--- Suspends the script until the engine resumes it on the next frame.
-function vm.wait(): ()
+-- The metatable of the error that skip mode raises at a wait, which sections and guarded functions catch.
+local SKIPPED = {}
+
+-- What skip mode raises: the number of the wait it stopped at and, once a guarded function has run its tail, the values
+-- that function returns (its result first, then its references) for its caller to continue with.
+export type Skipped = { site: number, values: { any }? }
+
+local function skipped(site: number, values: { any }?): Skipped
+    return setmetatable({ site = site, values = values }, SKIPPED) :: any
+end
+
+-- Suspends the script until the engine resumes it on the next frame. In skip mode a wait raises instead of suspending,
+-- and a script that was suspended here when skip mode began raises as soon as it resumes. Waits of event scripts carry
+-- their number.
+function vm.wait(site: number?): ()
+    if site ~= nil and vmhost.skipping() then
+        error(skipped(site), 0)
+    end
     coroutine.yield()
+    if site ~= nil and vmhost.skipping() then
+        error(skipped(site), 0)
+    end
+end
+
+-- Runs a region of an event script up to a skip end. When skip mode stops it at a wait, skip (if the region has one)
+-- runs the rest of the region as skip mode would, with the values the call it stopped in handed back; it returns
+-- false when the region is left by a return, which skip mode continues in the caller. Reaching the skip end in skip
+-- mode ends it: the script suspends here and carries on after the region. The region's return values come back packed.
+function vm.section(body: () -> ...any, skip: (({ any }) -> boolean)?): any?
+    local results = table.pack(pcall(body))
+    if results[1] then
+        -- Reaching the skip end with the skip flag set (skip mode was requested at the previous skip end) suspends too.
+        if vmhost.skip_end() then
+            coroutine.yield()
+        end
+        return results[2]
+    end
+    local err = results[2]
+    if getmetatable(err) ~= SKIPPED then
+        error(err, 0)
+    end
+    local stop = err :: Skipped
+    if skip ~= nil and not skip(stop.values or {}) then
+        error(err, 0)
+    end
+    if vmhost.skip_end() then
+        coroutine.yield()
+    end
+    return nil
+end
+
+-- Runs the body of a function that skip mode must not pass through silently. When skip mode stops it at a wait, tail
+-- runs the rest of the function as skip mode would and returns what the function returns (its result, then its
+-- references), and the stop goes on to the caller carrying those values.
+function vm.guard(body: () -> ...any, tail: ({ any }) -> ...any): ...any
+    local results = table.pack(pcall(body))
+    if results[1] then
+        return table.unpack(results, 2, results.n)
+    end
+    local err = results[2]
+    if getmetatable(err) ~= SKIPPED then
+        error(err, 0)
+    end
+    local stop = err :: Skipped
+    error(skipped(stop.site, table.pack(tail(stop.values or {}))), 0)
 end
 
 -- Wraps an integral value to a signed 32-bit integer.
@@ -116,13 +178,11 @@ function vm.float_bits(x: number?): number?
     return value
 end
 
--- Runs a region of an event script that skip mode can jump over; skip mode arrives with event scripts, so body always runs for now.
-function vm.section(body: () -> ()): ()
-    body()
-end
-
--- Marks the end of a skippable region of an event script.
+-- A skip end outside a section. It counts, and when skip mode was running the script to it, the script suspends here.
 function vm.skip_end(): ()
+    if vmhost.skip_end() then
+        coroutine.yield()
+    end
 end
 
 return vm

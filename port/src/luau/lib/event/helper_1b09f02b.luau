@@ -1,0 +1,55 @@
+--!strict
+-- Shared event helper used by 5 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local helper_0958ca60 = require("@lib/event/helper_0958ca60")
+local helper_25abe6d2 = require("@lib/event/helper_25abe6d2")
+
+--- Helper function.
+local function helper_1b09f02b()
+	local var0: s32 = 0
+	vm.section(function()
+		event.SetFlag(600, 1)
+		event.Initialize()
+		event.SetMesWindowMode(0, 7)
+		event.LoadSound(4527)
+		var0 = event.SndLoadSound_2(4527) or var0
+		event.AssignStack(5)
+		event.ClearStack(5)
+		event.GetActiveChrNo()
+		event.CharaActive(0, 0)
+		event.EohSyncObj_2(0, "p01_train01")
+		event.ObjsInit(0)
+		event.ObjsSyncObj(0, 0)
+		event.EohSyncObj_2(1, "s58_2")
+		event.ObjsInit(1)
+		event.ObjsSyncObj(1, 1)
+		event.EohSetPos(0, 0.0, -120.0, -20000.0)
+		event.EohSetPos(1, 0.0, 0.0, -20000.0)
+		event.ScrEffInitRaster(0.0, 0.0, 0.0)
+		event.ScrEffStartRaster(4.0, 0.15707964, 0.10471976, 0)
+		event.ObjsMove(0, 0.0, -120.0, 2800.0, 120)
+		event.ObjsMove(1, 0.0, 0.0, 2800.0, 120)
+		event.CmrsInit()
+		event.CmrsSetPos(146.6, -71.67, 641.16)
+		event.CmrsSetRef(119.77, -62.2, 581.41)
+		event.SetFadeIn(30)
+		helper_25abe6d2(60)
+		event.SndSePlay(var0, 2)
+		helper_0958ca60(0)
+		event.SetFadeOut(10)
+		helper_25abe6d2(10)
+	end)
+	event.CancelDramaScene()
+	event.ScrEffStopRaster(0.0, 0.0, 0.0, 0)
+	event.CharaActive(0)
+	event.SetSavedataEtc(0, 8)
+	event.SeAllStop()
+	event.SndInReverb(0)
+	event.GotoDrawChapter(6)
+	vm.wait(4)
+	event.SndInReverb(1)
+	event.SetFadeOut(0)
+end
+
+return helper_1b09f02b

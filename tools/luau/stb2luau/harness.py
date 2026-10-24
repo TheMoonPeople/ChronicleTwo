@@ -36,6 +36,8 @@ REPO = Path(__file__).resolve().parents[3]
 HOST = REPO / "port" / "build" / "luau-harness" / ("luau-harness.exe" if sys.platform == "win32" else "luau-harness")
 
 MAX_STEPS = 500_000
+# Distinct waits of a scenario at which an event script's skip variants skip.
+SKIP_SITES = 12
 BUDGET = "step budget exceeded"
 # Operand-stack slots and call depth that each kind's Set*Script gives its machine (actscript.cpp SetActionScript,
 # effscript.cpp SetEffectScript, runscript_opcodes.cpp SetMonsterScript); other kinds use the action sizes.
@@ -50,6 +52,24 @@ STRING_CHOICES = ("", "a")
 STATE = {
     "action": {"set": {1: ("prog", None, 0)}, "get": {2: ("prog", None)}},
     "effect": {"set": {58: ("value", 0, 1)}, "get": {57: ("value", 0)}},
+    "event": {
+        "set": {
+            13: ("flag", 0, 1),
+            32: ("local_flag", 0, 1),
+            71: ("npc_status", 0, 1),
+            581: ("event_data", 0, 1),
+            590: ("omake_flag", None, 0),
+            764: ("par_count", None, 0),
+        },
+        "get": {
+            14: ("flag", 0),
+            33: ("local_flag", 0),
+            70: ("npc_status", 0),
+            1035: ("event_data", 0),
+            588: ("omake_flag", None),
+            765: ("par_count", None),
+        },
+    },
     "monster": {
         "set": {37: ("var", 0, 1), 54: ("flag", 0, 1), 59: ("var2", 0, 1)},
         "get": {38: ("var", 0), 53: ("flag", 0), 60: ("var2", 0)},
@@ -82,6 +102,8 @@ class Scenario:
     unsupported: bool = False
     covered: frozenset[int] = frozenset()
     compared: frozenset[int] = frozenset()
+    # The offset each suspension stopped at, for choosing where a skip variant skips.
+    wait_pcs: tuple[int, ...] = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -289,6 +311,9 @@ class _TracingMachine(refvm.Machine):
         self.views = views or FloatViews({}, frozenset())
         # The first access outside a frame, and the number of events recorded before it.
         self.cut: tuple[str, int] | None = None
+        # The offset each suspension stopped at, and the message of the error that ended the run, if any.
+        self.wait_pcs: list[int] = []
+        self.error: str | None = None
 
     def emit(self, event: tuple) -> None:
         """Append an event to the trace."""
@@ -317,7 +342,8 @@ class _TracingMachine(refvm.Machine):
 
     def returned(self, call: int, callee: int, frame: int) -> None:
         """Record the values the references of a probed call name, now that the callee has written them."""
-        if call not in self.probes:
+        # Skip mode makes the calls too, but the module does not run them, so their references are not reported.
+        if call not in self.probes or self.skip_wait:
             return
         args = self.memory[frame : frame + self.program.functions[callee].arg]
         values = tuple(
@@ -348,6 +374,7 @@ def _play(
     views: FloatViews | None,
     folded: frozenset[int],
     max_steps: int,
+    skip_at: frozenset[int] = frozenset(),
 ) -> tuple[_TracingMachine, dict[int, int]]:
     """Runs the programs on a fresh reference machine and mock; returns the machine and the step each offset first ran."""
     default_stack, call_num = STACKS.get(namespace, STACKS["action"])
@@ -435,6 +462,7 @@ def _play(
     )
     first_steps: dict[int, int] = {}
     machine.trace = first_steps
+    suspension = 0
     try:
         for number in programs:
             machine.result = 0
@@ -442,17 +470,32 @@ def _play(
                 machine.emit(("missing", number))
                 continue
             resumed = 0
+            ended_skipping = False
             while not machine.end:
                 machine.emit(("wait",))
+                machine.wait_pcs.append(machine.pc)
                 if resumed == resumes:
                     machine.emit(("suspended",))
                     break
                 resumed += 1
-                machine.resume()
+                if suspension in skip_at:
+                    # Skip mode runs the script on to its next skip end, or to its end.
+                    machine.emit(("skip",))
+                    machine.skip()
+                    if machine.end:
+                        machine.emit(("end_skipped",))
+                        ended_skipping = True
+                else:
+                    machine.resume()
+                suspension += 1
             else:
-                machine.emit(("end", machine.result))
+                if not ended_skipping:
+                    machine.emit(("end", machine.result))
+            if machine.skip_end_count:
+                machine.emit(("skipends", machine.skip_end_count))
     except refvm.VMError as exc:
         if str(exc) != BUDGET:
+            machine.error = str(exc)
             machine.emit(("error",))
         elif machine.cut is None:
             machine.cut = (BUDGET, len(machine.events))
@@ -472,6 +515,7 @@ def record(
     probes: frozenset[int] = frozenset(),
     views: FloatViews | None = None,
     folded: frozenset[int] = frozenset(),
+    skip_at: frozenset[int] = frozenset(),
 ) -> Scenario:
     """Run the programs in order on the reference VM with seeded native outputs and record the event trace.
 
@@ -484,12 +528,13 @@ def record(
     stack_num is given.
 
     A trace cut at an access outside a frame ends with ("cut", "frame"), and one cut at the step budget with
-    ("cut", "budget").
+    ("cut", "budget"). skip_at holds the numbers of the suspensions (counted over all programs) at which the run skips
+    instead of resuming.
     """
     if pools is None:
         pools = value_pools(program)
     options = (program, kind_catalog, programs, seed, name, resumes, stack_num, pools, namespace, probes, views, folded)
-    machine, first_steps = _play(*options, MAX_STEPS)
+    machine, first_steps = _play(*options, MAX_STEPS, skip_at)
     global_num = machine.global_num
     float_globals = views.globals if views is not None else frozenset()
     globals_ = [_as_read(machine.memory, slot, n in float_globals) for n, slot in enumerate(machine.memory[:global_num])]
@@ -512,6 +557,7 @@ def record(
         unsupported=cut is not None and cut != BUDGET,
         covered=frozenset(first_steps),
         compared=compared,
+        wait_pcs=tuple(machine.wait_pcs),
     )
 
 
@@ -522,8 +568,16 @@ def scenarios(
     probes: frozenset[int] = frozenset(),
     views: FloatViews | None = None,
     folded: frozenset[int] = frozenset(),
+    skip_sites: int = SKIP_SITES,
+    exits: list[str] | None = None,
 ) -> list[Scenario]:
-    """Record one scenario per program, one running it twice, one for main and one running main then every program, for each seed."""
+    """Record one scenario per program, one running it twice, one for main and one running main then every program, for each seed.
+
+    An event script also has skip variants of the scenarios that run each program once: one per distinct wait the run
+    stops at (the first suspension at each, up to skip_sites of them), which skips at that suspension. A variant in
+    which skip mode makes the reference machine exit (retail calls exit(-1) there, which ends the game) has no behaviour
+    to match: it is left out and its name is appended to exits.
+    """
     numbers = sorted(number for number, _ in program.programs)
     options = {
         "pools": value_pools(program),
@@ -534,11 +588,34 @@ def scenarios(
     }
     recorded = []
     for seed in seeds:
+        singles = []
         for number in numbers:
-            recorded.append(record(program, kind_catalog, [number], seed, f"{number}/s{seed}", **options))
+            singles.append(record(program, kind_catalog, [number], seed, f"{number}/s{seed}", **options))
+            recorded.append(singles[-1])
             recorded.append(record(program, kind_catalog, [number, number], seed, f"{number}x2/s{seed}", **options))
-        recorded.append(record(program, kind_catalog, [-1], seed, f"main/s{seed}", **options))
-        recorded.append(record(program, kind_catalog, [-1, *numbers], seed, f"all/s{seed}", **options))
+        singles.append(record(program, kind_catalog, [-1], seed, f"main/s{seed}", **options))
+        singles.append(record(program, kind_catalog, [-1, *numbers], seed, f"all/s{seed}", **options))
+        recorded += singles[-2:]
+        if kind_catalog["namespace"] != "event":
+            continue
+        for base in singles:
+            seen: set[int] = set()
+            for index, pc in enumerate(base.wait_pcs):
+                if pc in seen or len(seen) >= skip_sites:
+                    continue
+                seen.add(pc)
+                # The same skip, and one that skips again at the next suspension, which is the skip end it stopped at.
+                for repeats, suffix in ((1, ""), (2, "k")):
+                    at = frozenset(range(index, index + repeats))
+                    variant = record(
+                        program, kind_catalog, base.programs, seed, f"{base.name}/k{index}{suffix}", skip_at=at, **options
+                    )
+                    skipped = next((i for i, event in enumerate(variant.events) if event[0] == "skip"), len(variant.events))
+                    if any(event[0] == "error" for event in variant.events[skipped:]):
+                        if exits is not None:
+                            exits.append(variant.name)
+                        continue
+                    recorded.append(variant)
     return recorded
 
 
@@ -612,13 +689,13 @@ def _list(values: tuple | list) -> str:
 def _event(event: tuple) -> str:
     """Luau table literal for one trace event."""
     tag = event[0]
-    if tag in ("wait", "suspended", "error"):
+    if tag in ("wait", "suspended", "error", "skip", "end_skipped"):
         return '{ "%s" }' % tag
     if tag == "cut":
         return "{ %s }" % ", ".join(_lit(field) for field in event)
     if tag == "print":
         return '{ "print", %s }' % _list(event[1])
-    if tag in ("end", "missing"):
+    if tag in ("end", "missing", "skipends"):
         return '{ "%s", %s }' % (tag, _lit(event[1]))
     if tag == "ref":
         return '{ "ref", %d, %s }' % (event[1], _list(event[2]))
@@ -709,8 +786,13 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
             + ", " + _string("".join(_read(param) for param in inputs_))
             + ", " + _string("".join(_integer(param) for param in inputs_))
         )
+        dropped = ", ".join(["nil"] * outputs)
         lines.append(
             f"{namespace}.{name}_{argc} = function(...)\n"
+            # Skip mode drops the call, so every output stays as the script left it.
+            "    if vmhost.skipping() then\n"
+            f"        return {dropped}\n"
+            "    end\n"
             f"    local outs = ext_call({command['no']}, {argc}, table.pack(...){tag})\n"
             "    return table.unpack(outs, 1, outs.n)\n"
             "end"
@@ -992,14 +1074,35 @@ end
 """
 
 _RUNTIME_TAIL = """
+-- Checks the number of skip ends the program reached against the trace.
+local function check_skip_ends()
+    local count = vmhost.skip_end_count()
+    local event = events[cursor]
+    if event ~= nil and event[1] == "skipends" then
+        cursor = cursor + 1
+        if event[2] ~= count then
+            fail("expected " .. event[2] .. " skip ends, got " .. count)
+        end
+    elseif count ~= 0 then
+        fail("expected no skip ends, got " .. count)
+    end
+end
+
 -- Runs one program to its end, checking each wait; returns "errored" when the script raised an error.
 local function run_program(fn)
+    vmhost.reset()
     local co = coroutine.create(fn)
     local ok, result = coroutine.resume(co)
     while true do
         if not ok then
             if result == MISMATCH or result == CUT then
                 error(result, 0)
+            end
+            if type(result) == "table" and result.site ~= nil then
+                -- Skip mode ran past the last skip end, so the program ends.
+                expect("end_skipped")
+                check_skip_ends()
+                return "done"
             end
             local at = cursor
             local event = next_event("error", result)
@@ -1015,14 +1118,26 @@ local function run_program(fn)
             if result == nil then
                 result = 0
             end
-            expect("end", result)
+            local following = events[cursor]
+            if following ~= nil and following[1] == "end_skipped" then
+                -- Skip mode ended the program: the reference ran it on linearly, the module ran it structured.
+                cursor = cursor + 1
+            else
+                expect("end", result)
+            end
+            check_skip_ends()
             return "done"
         end
         expect("wait")
         local following = events[cursor]
         if following ~= nil and following[1] == "suspended" then
             cursor = cursor + 1
+            check_skip_ends()
             return "done"
+        end
+        if following ~= nil and following[1] == "skip" then
+            cursor = cursor + 1
+            vmhost.set_skipping(true)
         end
         ok, result = coroutine.resume(co)
     end
@@ -1115,6 +1230,9 @@ def driver(
     lines.append("}")
     lines.append(
         f"{namespace}.Ext = function(no, ...)\n"
+        "    if vmhost.skipping() then\n"
+        "        return\n"
+        "    end\n"
         "    local args = table.pack(...)\n"
         "    local reads = EXT_READS[no] and EXT_READS[no][args.n] or string.rep(\"x\", args.n)\n"
         "    local outs = ext_call(no, args.n, args, nil, nil, reads, string.rep(\"1\", args.n))\n"
@@ -1152,7 +1270,8 @@ def run(
     cut: "prefix" for a step budget and "unsupported" for an access outside a frame. "coverage" is the instruction
     coverage of the reference runs, and "compared" that of the matching scenarios up to their last compared event.
     """
-    recorded = scenarios(program, kind_catalog, seeds, probes, views, folded)
+    exits: list[str] = []
+    recorded = scenarios(program, kind_catalog, seeds, probes, views, folded, exits=exits)
     source = driver(module, namespace, kind_catalog, recorded, names or {})
     with tempfile.TemporaryDirectory() as directory:
         driver_path = Path(directory) / "driver.luau"
@@ -1191,6 +1310,7 @@ def run(
         "unsupported": unsupported,
         "coverage": coverage(program, recorded),
         "compared": coverage(program, matched, compared=True),
+        "retail_exits": exits,
         "stderr": completed.stderr,
         "returncode": completed.returncode,
     }

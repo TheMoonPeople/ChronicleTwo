@@ -1,0 +1,41 @@
+--!strict
+-- Shared event helper used by 6 scripts, translated by tools/luau/stb2luau.
+
+--- Helper function.
+local function helper_482d9cfc()
+	event.Initialize()
+	event.SetMesWindowMode(0, 7)
+	event.AssignStack(5)
+	event.ClearStack(5)
+	event.ChangeDir("event/e200/e204/")
+	event.LoadChara(5, "e204_buggy.gltf", "info", 33)
+	event.CharaActive(0, 33)
+	event.EohSyncChara(1, 33)
+	event.ObjsInit(1)
+	event.ObjsSyncObj(1, 1)
+	event.LoadChara(5, "e204_polcurse.gltf", "info", 32)
+	event.CharaActive(0, 32)
+	event.EohSyncChara(0, 32)
+	event.ObjsInit(0)
+	event.ObjsSyncObj(0, 0)
+	event.SetReference(33, "polcurse_chair", 32)
+	event.LoadChara(5, "e204_macho.gltf", "info", 34)
+	event.CharaActive(0, 34)
+	event.SetReference(33, "macho_chair", 34)
+	event.ChangeDir("")
+	event.LoadChara(5, "event/e200/e206/e206_bbaku.gltf", "info", 36)
+	event.CharaActive(0, 36)
+	event.LoadChara(5, "event/e200/e205/e205_hibana.gltf", "info", 35)
+	event.CharaActive(0, 35)
+	event.ObjsSetPos(1, 215.71, 0.0, -731.44)
+	event.ObjsSetRot(1, 0.0, 0.0, 0.0)
+	event.EsmInitialize(5)
+	event.EsmLoadBase("列車煙")
+	event.EsmInitFix(5)
+	event.EohSyncObj_2(4, "p01_train01")
+	event.EsmCreate("列車煙")
+	event.EsmSetValue(0, 4)
+	event.SetMpcharaMotion("p01_s03t", "kikan-m", "機関")
+end
+
+return helper_482d9cfc

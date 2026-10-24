@@ -47,7 +47,7 @@ from stb.analysis import Analysis  # noqa: E402
 from stb.corpus import Kind, classify  # noqa: E402
 from stb.opcodes import FLOAT_MODES, Op  # noqa: E402
 from stb.program import DecodeError, Program, decode  # noqa: E402
-from stb2luau import harness, ir, tags, timing  # noqa: E402
+from stb2luau import event_args, harness, ir, skip, tags, timing  # noqa: E402
 from stb2luau.emit import (  # noqa: E402
     EmitError,
     FunctionInput,
@@ -206,6 +206,62 @@ def _annotate(stmts: list, calls: dict[int, tags.CallFacts]) -> list:
     return annotated
 
 
+def _apply_skip(
+    program: Program,
+    original: Program,
+    function: Any,
+    plan: skip.Plan,
+    body: list,
+    lifted: ir.LiftedFunction,
+    analysis: Analysis,
+    refs: dict[int, tuple[int, ...]],
+) -> tuple[list, ir.Tail | None]:
+    """The function body with its sections, and the tail a guarded function runs when skip mode unwinds through it.
+
+    Each run that has something to execute has a synthetic stream function, lifted here and cut into chunks.
+    """
+    function_plan = plan.functions[function.block]
+    guarded = {block: found.guarded for block, found in plan.functions.items()}
+    chunks: dict[int, skip.Chunks] = {}
+    for run in function_plan.runs:
+        if run.stream is None:
+            continue
+        facts, source = analysis.facts[run.stream], analysis.facts[function.block]
+        for slot, kinds in source.stores.items():
+            facts.stores[slot] |= kinds
+        facts.float_slots |= source.float_slots
+        refs[run.stream] = refs.get(function.block, ())
+        lifted_stream = lift(program, program.functions[run.stream], analysis, refs)
+        if lifted_stream.arrays:
+            raise skip.SkipError("a skipped stream indexes an array")
+        base = len(lifted.temps)
+        lifted.temps.extend(lifted_stream.temps)
+        chunks[id(run)] = skip.build_chunks(function, run, structure(lifted_stream), base, refs, guarded, original)
+    wanted: list[bool] = []
+    skips: list[ir.Skip | None] = []
+    for run, returning in skip.regions(function_plan):
+        wanted.append(bool(run.resumes))
+        escape = max((resume.ordinal for other in returning for resume in other.resumes), default=0)
+        found = chunks.get(id(run))
+        if not run.resumes:
+            skips.append(None)
+        elif found is not None or escape:
+            skips.append(ir.Skip(found.chunks if found else [], escape, found.prologues if found else {}))
+        else:
+            skips.append(None)
+    body = skip.split_sections(body, wanted, skips)
+    tail = None
+    if function_plan.guarded:
+        runs = []
+        for run in function_plan.runs:
+            if run.terminal == "return" and run.resumes:
+                found = chunks.get(id(run))
+                last = max(resume.ordinal for resume in run.resumes)
+                runs.append(ir.TailRun(last, found.chunks if found else [], found.value if found else None, found.prologues if found else {}))
+        tail = ir.Tail(runs) if runs else None
+    return body, tail
+
+
 def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
     """Decodes and lifts one script of the published corpus; the module input is None when it failed."""
     name = module_name(path)
@@ -216,19 +272,40 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
         return Result(path, name, None, str(error), [], None), None
 
     result = Result(path, name, None, None, [], program, normalized)
-    analysis = Analysis(program)
+    if classify(path) is Kind.EVENT_ARG:
+        # An argument script is data: its commands are read at load time, so it needs no functions.
+        try:
+            result.text = event_args.transpile(path, normalized)
+        except (DecodeError, EmitError) as error:
+            result.error = str(error)
+        return result, None
+    # Skip mode exists for event scripts only; their skip streams are lifted as synthetic functions of the program.
+    skipping = classify(path) in (Kind.EVENT, Kind.EVENT_ARG)
     refs = references(program)
     pointer_flow = tags.analyse(program, _directions(classify(path).value)).references
     for block, positions in pointer_flow.items():
         refs[block] = tuple(sorted(set(refs.get(block, ())) | set(positions)))
+    plan = skip.plan(program, refs) if skipping else skip.Plan({}, {}, {})
+    whole = skip.with_synthetic(program, plan)
+    analysis = Analysis(whole)
+    for synthetic, found in references(whole).items():
+        refs[synthetic] = tuple(sorted(set(refs.get(synthetic, ())) | set(found)))
+    for callee, twin in plan.twins.items():
+        refs[twin] = tuple(sorted(set(refs.get(twin, ())) | set(refs.get(callee, ()))))
     errors: list[str] = []
     functions: dict[int, FunctionInput] = {}
     folded: set[int] = set()
     for block in _reachable(program):
         try:
-            lifted = lift(program, program.functions[block], analysis, refs)
+            if block in plan.errors:
+                raise skip.SkipError(plan.errors[block])
+            lifted = lift(whole, program.functions[block], analysis, refs)
             body = structure(lifted)
-        except (LiftError, StructureError) as error:
+            tail = None
+            temps_before = len(lifted.temps)
+            if block in plan.functions:
+                body, tail = _apply_skip(whole, program, program.functions[block], plan, body, lifted, analysis, refs)
+        except (LiftError, StructureError, skip.SkipError) as error:
             errors.append(f"function {block:#x}: {error}")
             continue
         folded |= lifted.folded
@@ -243,7 +320,27 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
             is_main=block == program.main,
             refs=lifted.refs,
             arrays=lifted.arrays,
+            resumes=plan.functions[block].by_offset if block in plan.functions else {},
+            tail=tail,
+            hoisted=tuple(range(temps_before, len(lifted.temps))),
         )
+    for callee, twin in plan.twins.items():
+        try:
+            lifted_twin = lift(whole, whole.functions[twin], analysis, refs)
+            functions[twin] = FunctionInput(
+                block=twin,
+                arg=lifted_twin.arg,
+                local=lifted_twin.local,
+                slot_types=lifted_twin.slot_types,
+                temps=lifted_twin.temps,
+                body=structure(lifted_twin),
+                programs=[],
+                is_main=False,
+                refs=lifted_twin.refs,
+                arrays=lifted_twin.arrays,
+            )
+        except (LiftError, StructureError) as error:
+            errors.append(f"twin of function {callee:#x}: {error}")
     if errors:
         result.error = "; ".join(errors)
         return result, None
@@ -287,6 +384,10 @@ class _Keys:
             f"temps={self.value(function.temps)}",
             f"body={self.value(function.body)}",
         ]
+        if function.tail is not None:
+            parts.append(f"tail={self.value(function.tail)}")
+        if function.hoisted:
+            parts.append(f"hoisted={self.value(function.hoisted)}")
         if function.refs:
             parts.append(f"refs={self.value(function.refs)}")
         if function.arrays:
@@ -331,16 +432,18 @@ def shareable_blocks(functions: dict[int, FunctionInput]) -> set[int]:
             # A call cycle is rejected by emission, so an entry is provisionally false while it is visited.
             memo[block] = False
             function = functions[block]
-            touches_global = any(slot[0] == "global" for slot in mentioned_slots(function.body) | set(function.slot_types))
+            touches_global = any(slot[0] == "global" for slot in mentioned_slots(function.statements) | set(function.slot_types))
             local = not function.is_main and not function.programs and not touches_global
-            memo[block] = local and all(visit(callee) for callee in sorted(called_blocks(function.body)))
+            memo[block] = local and all(visit(callee) for callee in sorted(called_blocks(function.statements)))
         return memo[block]
 
     return {block for block in functions if visit(block)}
 
 
-def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[_Shared]]:
-    """Chooses the shared helpers of one kind: returns each script's block-to-library names and the libraries."""
+def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[_Shared], dict[str, set[int]]]:
+    """Chooses the shared helpers of one kind: returns each script's block-to-library names, the libraries, and the
+    blocks of each script whose library returns a value (a call anywhere in the kind uses it), which every caller must
+    take into account when it receives the library's results."""
     keys: dict[str, dict[int, str]] = {}
     shareable: dict[str, set[int]] = {}
     occurrences: dict[str, list[tuple[str, int]]] = collections.defaultdict(list)
@@ -367,7 +470,7 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
     returns: set[str] = set()
     for module in modules:
         for function in module.functions.values():
-            for callee in used_call_blocks(function.body):
+            for callee in used_call_blocks(function.statements):
                 key = keys[module.path][callee]
                 if key in shared_keys:
                     returns.add(key)
@@ -378,6 +481,10 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
             for block in shareable[module.path]
             if keys[module.path][block] in shared_keys
         }
+        for module in modules
+    }
+    returning = {
+        module.path: {block for block, key in keys[module.path].items() if key in returns and key in shared_keys}
         for module in modules
     }
     shared = [
@@ -391,7 +498,7 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
         )
         for key in sorted(shared_keys)
     ]
-    return module_names, shared
+    return module_names, shared, returning
 
 
 def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[str, Any]) -> Corpus:
@@ -403,7 +510,9 @@ def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[s
     names: dict[str, dict[int, str]] = {}
     for kind in sorted({module.kind for module in modules}):
         kind_modules = [module for module in modules if module.kind == kind]
-        kind_names, shared = _share(kind_modules)
+        kind_names, shared, returning = _share(kind_modules)
+        for path, blocks in returning.items():
+            by_path[path] = dataclasses.replace(by_path[path], returns_value=set(by_path[path].returns_value) | blocks)
         names.update(kind_names)
         for item in shared:
             source = by_path[item.path]
@@ -434,6 +543,7 @@ def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[s
         if module.path in errors:
             continue
         try:
+            module = by_path[module.path]
             emitted[module.path] = emit(dataclasses.replace(module, libraries=names.get(module.path, {})), catalog)
         except EmitError as error:
             errors[module.path] = str(error)
@@ -746,6 +856,10 @@ def _harness_rows(
     )
     work = []
     for result in good:
+        if classify(result.path) is Kind.EVENT_ARG:
+            difference = event_args.verify(result.program) if result.program is not None else "script did not decode"
+            rows.append(HarnessRow(result.path, 0 if difference else 1, 1 if difference else 0, [difference] if difference else []))
+            continue
         module = exposed.modules.get(result.path)
         if module is None:
             rows.append(HarnessRow(result.path, 0, 1, [exposed.errors.get(result.path, "emit failed")]))

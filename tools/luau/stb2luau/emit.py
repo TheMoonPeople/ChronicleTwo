@@ -113,6 +113,18 @@ class FunctionInput:
     is_main: bool
     refs: tuple[int, ...] = ()
     arrays: dict[ir.Slot, int] = dataclasses.field(default_factory=dict)
+    # Ordinal of each resume point (a wait, or a call of a function that may wait) by instruction offset, for event
+    # scripts, whose waits are numbered and whose sections record where they were suspended.
+    resumes: dict[int, int] = dataclasses.field(default_factory=dict)
+    # For a guarded function, what it runs when skip mode unwinds through it.
+    tail: ir.Tail | None = None
+    # Temporaries of skip functions, which are declared with the function's variables since chunks share them.
+    hoisted: tuple[int, ...] = ()
+
+    @property
+    def statements(self) -> list:
+        """The body and, for a guarded function, the statements of its tail."""
+        return [*self.body, *_tail_statements(self.tail)]
 
 
 @dataclasses.dataclass
@@ -153,6 +165,9 @@ class _Plan:
     inouts: list[ir.Addr] = dataclasses.field(default_factory=list)
     # Per output, the vm helper that reinterprets the bits the handler writes as the variable holds them, or None.
     conversions: list[str | None] = dataclasses.field(default_factory=list)
+    # The positions, among all the handler's outputs, whose argument is a value: the call returns them but nothing
+    # receives them.
+    discarded: tuple[int, ...] = ()
 
 
 @dataclasses.dataclass
@@ -163,6 +178,7 @@ class _Usage:
     reads: set[ir.Slot] = dataclasses.field(default_factory=set)
     out_names: dict[ir.Slot, set[str]] = dataclasses.field(default_factory=dict)
     temp_reads: set[int] = dataclasses.field(default_factory=set)
+    assigned: set[ir.Slot] = dataclasses.field(default_factory=set)
     loop_vars: set[ir.Slot] = dataclasses.field(default_factory=set)
 
 
@@ -205,6 +221,8 @@ def _string_text(raw: bytes) -> str:
         text = raw.decode("cp932")
     except UnicodeDecodeError as error:
         raise EmitError("string is not valid cp932") from error
+    if text.encode("cp932") != raw:
+        raise EmitError("string does not round-trip through UTF-8")
     pieces = []
     for char in text:
         if char in _ESCAPES:
@@ -266,6 +284,37 @@ def _default(type_name: str) -> str:
     return _DEFAULTS.get(type_name, "0")
 
 
+def _skip_statements(skip: ir.Skip | None) -> list:
+    """Every statement a skip function runs."""
+    if skip is None:
+        return []
+    return [stmt for _, chunk in skip.chunks for stmt in chunk] + [stmt for part in skip.prologues.values() for stmt in part]
+
+
+def _tail_statements(tail: ir.Tail | None) -> list:
+    """Every statement a guarded function's tail runs, with its return values as returns."""
+    found: list = []
+    for run in tail.runs if tail else ():
+        found += [stmt for _, chunk in run.chunks for stmt in chunk]
+        found += [stmt for part in run.prologues.values() for stmt in part]
+        if run.value is not None:
+            found.append(ir.Return(run.value))
+    return found
+
+
+def _children(expr: ir.Expr) -> list[ir.Expr]:
+    """The operands of an expression in the order they are evaluated."""
+    if isinstance(expr, ir.Unary):
+        return [expr.operand]
+    if isinstance(expr, (ir.Binary, ir.Compare, ir.Logical)):
+        return [expr.lhs, expr.rhs]
+    if isinstance(expr, ir.Call):
+        return list(expr.args)
+    if isinstance(expr, ir.Elem) or (isinstance(expr, ir.Addr) and expr.index is not None):
+        return [expr.index]
+    return []
+
+
 def _roots(stmts: list) -> Iterator[tuple[ir.Expr, bool]]:
     """Every expression of a statement list, paired with whether the call at its root has its result used."""
     for stmt in stmts:
@@ -298,6 +347,9 @@ def _roots(stmts: list) -> Iterator[tuple[ir.Expr, bool]]:
             yield stmt.limit, True
             yield stmt.step, True
             yield from _roots(stmt.body)
+        elif isinstance(stmt, ir.Section):
+            yield from _roots(stmt.body)
+            yield from _roots(_skip_statements(stmt.skip))
 
 
 def statements(stmts: list) -> Iterator:
@@ -309,6 +361,9 @@ def statements(stmts: list) -> Iterator:
             yield from statements(stmt.orelse)
         elif isinstance(stmt, (ir.While, ir.Repeat, ir.NumericFor)):
             yield from statements(stmt.body)
+        elif isinstance(stmt, ir.Section):
+            yield from statements(stmt.body)
+            yield from statements(_skip_statements(stmt.skip))
 
 
 def called_blocks(stmts: list) -> set[int]:
@@ -390,7 +445,12 @@ def _write(target: ir.Slot | ir.Elem, usage: _Usage, active: frozenset[ir.Slot])
 
 
 def _collect(
-    mod: _Module, stmts: list, usage: _Usage, active: frozenset[ir.Slot] = frozenset(), keeps_return: bool = True
+    mod: _Module,
+    stmts: list,
+    usage: _Usage,
+    active: frozenset[ir.Slot] = frozenset(),
+    keeps_return: bool = True,
+    dead: frozenset[ir.Slot] = frozenset(),
 ) -> None:
     """Records the variables a statement list mentions; active holds the loop variables of the enclosing loops.
 
@@ -399,7 +459,11 @@ def _collect(
     """
     for stmt in stmts:
         if isinstance(stmt, ir.Assign):
-            _read(stmt.value, usage, active)
+            if isinstance(stmt.target, tuple):
+                usage.assigned.add(stmt.target)
+            # A store to a variable that nothing reads is dropped, so its value reads nothing.
+            if not (isinstance(stmt.target, tuple) and stmt.target in dead and not ir.has_call(stmt.value)):
+                _read(stmt.value, usage, active)
             if not isinstance(stmt.target, ir.Temp):
                 _write(stmt.target, usage, active)
         elif isinstance(stmt, ir.ExtCall):
@@ -429,24 +493,27 @@ def _collect(
                 _read(stmt.value, usage, active)
         elif isinstance(stmt, ir.If):
             _read(stmt.cond, usage, active)
-            _collect(mod, stmt.then, usage, active, keeps_return)
-            _collect(mod, stmt.orelse, usage, active, keeps_return)
+            _collect(mod, stmt.then, usage, active, keeps_return, dead)
+            _collect(mod, stmt.orelse, usage, active, keeps_return, dead)
         elif isinstance(stmt, ir.While):
             _read(stmt.cond, usage, active)
-            _collect(mod, stmt.body, usage, active, keeps_return)
+            _collect(mod, stmt.body, usage, active, keeps_return, dead)
         elif isinstance(stmt, ir.Repeat):
-            _collect(mod, stmt.body, usage, active, keeps_return)
+            _collect(mod, stmt.body, usage, active, keeps_return, dead)
             _read(stmt.cond, usage, active)
+        elif isinstance(stmt, ir.Section):
+            _collect(mod, stmt.body, usage, active, keeps_return, dead)
+            _collect(mod, _skip_statements(stmt.skip), usage, active, keeps_return, dead)
         elif isinstance(stmt, ir.NumericFor):
             for expr in (stmt.start, stmt.limit, stmt.step):
                 _read(expr, usage, active)
             if stmt.var[0] == "local":
                 # The loop's own variable is not a mention; only its uses outside the loop are.
                 usage.loop_vars.add(stmt.var)
-                _collect(mod, stmt.body, usage, active | {stmt.var}, keeps_return)
+                _collect(mod, stmt.body, usage, active | {stmt.var}, keeps_return, dead)
             else:
                 usage.mentioned.add(stmt.var)
-                _collect(mod, stmt.body, usage, active, keeps_return)
+                _collect(mod, stmt.body, usage, active, keeps_return, dead)
 
 
 def _keeps_return(mod: _Module, fn: FunctionInput) -> bool:
@@ -456,12 +523,20 @@ def _keeps_return(mod: _Module, fn: FunctionInput) -> bool:
 
 def _usage(mod: _Module, fn: FunctionInput) -> _Usage:
     """The variables a function mentions and reads, including the frame table its returned references live in."""
-    usage = _Usage()
-    _collect(mod, fn.body, usage, keeps_return=_keeps_return(mod, fn))
-    if fn.refs and FRAME in fn.arrays:
-        usage.mentioned.add(FRAME)
-        usage.reads.add(FRAME)
-    return usage
+    dead: frozenset[ir.Slot] = frozenset()
+    while True:
+        usage = _Usage()
+        _collect(mod, fn.body, usage, keeps_return=_keeps_return(mod, fn), dead=dead)
+        _collect(mod, _tail_statements(fn.tail), usage, dead=dead)
+        if fn.refs and FRAME in fn.arrays:
+            usage.mentioned.add(FRAME)
+            usage.reads.add(FRAME)
+        found = frozenset(
+            slot for slot in usage.assigned if slot[0] == "local" and slot[1] >= fn.arg and slot not in usage.reads
+        )
+        if found <= dead or mod.kind_name != "event":
+            return usage
+        dead |= found
 
 
 def _allocate_names(fn: FunctionInput, usage: _Usage, reserved: set[str]) -> dict[ir.Slot, str]:
@@ -578,7 +653,7 @@ class _Module:
         order = self._post_order(list(owners))
         called: set[int] = set()
         for block in order:
-            called |= called_blocks(self.function(block).body)
+            called |= called_blocks(self.function(block).statements)
 
         for block in order:
             if block in self.module.libraries:
@@ -614,7 +689,7 @@ class _Module:
         self.used_returns |= set(self.module.returns_value)
         for block in order:
             if block not in self.module.libraries:
-                self.used_returns |= used_call_blocks(self.function(block).body)
+                self.used_returns |= used_call_blocks(self.function(block).statements)
 
         usages = {block: _usage(self, self.function(block)) for block in local + inline}
         global_numbers = {slot[1] for u in usages.values() for slot in u.mentioned if slot[0] == "global"}
@@ -673,7 +748,8 @@ class _Module:
                 for n in declared_globals
             ])
         sections += [texts[block] for block in local]
-        sections.append(["local script = {}"])
+        # Entry functions that skip mode guards return what the guard returns, so the table holds any kind of function.
+        sections.append(["local script: { [any]: (...any) -> ...any } = {}" if self.kind_name == "event" else "local script = {}"])
         sections += handler_sections
         if tail:
             sections.append(tail)
@@ -696,7 +772,7 @@ class _Module:
             if block not in self.module.libraries:
                 raise EmitError(f"shared function {function.block:#x} calls {block:#x}, which is not shared")
             self.names[block] = self.module.libraries[block]
-        self.used_returns = set(self.module.returns_value)
+        self.used_returns = set(self.module.returns_value) | used_call_blocks(function.statements)
         usage = _usage(self, function)
         reserved = set(self.names.values()) | {self.namespace} | _LUAU_RESERVED | _LUAU_BUILTINS
         body = _Function(self, function, usage, reserved, f"local function {name}", ["--- Helper function."]).lines()
@@ -751,8 +827,11 @@ class _Module:
         clauses: list[str] = []
         mismatched = False
         refs_as_values: list[int] = []
+        discarded: list[int] = []
+        output_position = -1
         for position, (param, arg) in enumerate(zip(signature["params"], args), 1):
             if param["dir"] in api.OUTPUTS:
+                output_position += 1
                 if isinstance(arg, ir.Addr):
                     # An in-out reference passes the variable's value in as well.
                     if param["dir"] == "inout":
@@ -761,6 +840,7 @@ class _Module:
                     outs.append(arg)
                     out_names.append(param["name"])
                 else:
+                    discarded.append(output_position)
                     diagnostics.append(f"value passed as output of {luau}")
                     clauses.append(
                         f"argument {position} is a value where the handler writes an output; "
@@ -813,7 +893,10 @@ class _Module:
             for position, (param, arg) in enumerate(zip(signature["params"], args), 1)
             if param["dir"] in api.OUTPUTS and isinstance(arg, ir.Addr)
         ]
-        return _Plan(name, ins, outs, out_names, comment, diagnostics, inouts=inouts, conversions=out_conversions)
+        return _Plan(
+            name, ins, outs, out_names, comment, diagnostics, inouts=inouts, conversions=out_conversions,
+            discarded=tuple(discarded),
+        )
 
     def _typing(
         self, command: dict, signature: dict, args: list, tags: tuple, type_of: Callable[[ir.Expr], str] | None
@@ -896,7 +979,13 @@ class _Module:
             return sum(param["dir"] != "out" for param in sig["params"])
 
         same = [sig for sig in command["signatures"] if inputs(sig) == inputs(signature)]
-        if len(same) == 1:
+        # An input of any type matches whatever the other arities take, which Luau reports as an ambiguous overload.
+        untyped = len(command["signatures"]) > 1 and any(
+            param["type"] == "unknown" and param["dir"] != "out"
+            for sig in command["signatures"]
+            for param in sig["params"]
+        )
+        if len(same) == 1 and not untyped:
             return command["luau"]
         return f"{command['luau']}_{signature['argc']}"
 
@@ -942,7 +1031,7 @@ class _Module:
             if block in active:
                 raise EmitError("recursive script functions are unsupported")
             active.add(block)
-            for expr, _used in _roots(self.function(block).body):
+            for expr, _used in _roots(self.function(block).statements):
                 for sub in ir.walk(expr):
                     if isinstance(sub, ir.Call):
                         visit(sub.function)
@@ -981,9 +1070,21 @@ class _Function:
         self.renamed_loops = {slot for slot in usage.loop_vars if slot in usage.reads}
         # Control variables of the loops being printed, mapped to the names they take inside those loops.
         self.active_loops: dict[ir.Slot, str] = {}
-        self.scopes: list[set[int]] = [set()]
+        self.scopes: list[set[int]] = [set(fn.hoisted)]
         # Retail quirks found while printing the current statement, which its first line notes.
         self.notes: list[str] = []
+        # Depth of the section closures being printed, inside which a return packs its values for the section.
+        self.in_section = 0
+        self.valued_return = mod.kind_name == "event" and any(
+            isinstance(stmt, ir.Return)
+            and not (isinstance(stmt.value, ir.Const) and stmt.value.type == ir.INT and stmt.value.value == 0)
+            for stmt in statements(fn.statements)
+        )
+        # The resume point the statement being printed notes before it runs; None when each of its calls notes itself.
+        self.primary: int | None = 0
+        self.needs_at = fn.tail is not None or any(
+            isinstance(stmt, ir.Section) and stmt.skip is not None for stmt in fn.body
+        )
         if fn.is_main:
             self.role = "main"
         elif fn.programs:
@@ -1114,7 +1215,14 @@ class _Function:
                 )
             else:
                 args.append(self.value(arg)[0])
-        return self._call_text(self.mod.function_name(expr.function), *args)
+        name = self.mod.function_name(expr.function)
+        ordinal = self.fn.resumes.get(expr.offset, 0) if self.needs_at else 0
+        if ordinal and ordinal != self.primary:
+            # Another call of the statement runs first, so this one notes where it is suspended once its arguments are
+            # evaluated, which a closure that takes them as parameters does.
+            params = ", ".join(f"p{index}" for index in range(len(args)))
+            return f"(function({params}) at = {ordinal}; return {name}({params}) end)({', '.join(args)})", Prec.ATOM
+        return self._call_text(name, *args)
 
     # Expressions.
 
@@ -1189,6 +1297,8 @@ class _Function:
             if self.mod.function(expr.function).refs:
                 raise EmitError("a call that copies references back is used inside an expression")
             return self.function_call(expr)
+        if isinstance(expr, ir.Received):
+            return f"(received[{expr.index + 1}] :: number)", Prec.ATOM
         raise EmitError(f"unknown expression {type(expr).__name__}")
 
     def _unary(self, expr: ir.Unary) -> Text:
@@ -1277,14 +1387,20 @@ class _Function:
     def statement(self, stmt, depth: int, last: bool, tail: bool) -> list[str]:
         """The lines of one statement, the first of them noting the retail quirks its own expressions translate."""
         outer, self.notes = self.notes, []
+        outer_primary = self.primary
+        ordinal = self.resume_of(stmt) if self.needs_at else 0
         try:
             lines = self._statement(stmt, depth, last, tail)
+            if ordinal:
+                # A skip function finds the resume point the script was suspended at in `at`.
+                lines.insert(0, f"{'	' * depth}at = {ordinal}")
             if self.notes and lines:
                 separator = "; " if " -- retail: " in lines[0] else " -- retail: "
                 lines[0] += separator + "; ".join(dict.fromkeys(self.notes))
             return lines
         finally:
             self.notes = outer
+            self.primary = outer_primary
 
     def _statement(self, stmt, depth: int, last: bool, tail: bool) -> list[str]:
         ind = "\t" * depth
@@ -1300,7 +1416,13 @@ class _Function:
             return [f"{ind}print({', '.join(self.value(arg)[0] for arg in stmt.args)})"]
         if isinstance(stmt, ir.Wait):
             self.mod.uses_vm = True
-            return [f"{ind}vm.wait()"]
+            site = self.fn.resumes.get(stmt.offset)
+            return [f"{ind}vm.wait({site})" if site else f"{ind}vm.wait()"]
+        if isinstance(stmt, ir.Section):
+            return self.section(stmt, depth, last)
+        if isinstance(stmt, ir.SkipEnd):
+            self.mod.uses_vm = True
+            return [f"{ind}vm.skip_end()"]
         if isinstance(stmt, ir.Return):
             return self.return_(stmt, depth, last, tail)
         if isinstance(stmt, ir.If):
@@ -1344,6 +1466,116 @@ class _Function:
             raise EmitError("end opcode unsupported")
         raise EmitError(f"unknown statement {type(stmt).__name__}")
 
+    def resume_of(self, stmt) -> int:
+        """The ordinal of the resume point a statement runs first, which it notes before running, or 0.
+
+        The other calls of the statement that may wait note themselves after their arguments are evaluated. A loop
+        condition runs on every pass, so each of its calls does.
+        """
+        self.primary = 0
+        if isinstance(stmt, ir.Section):
+            return 0
+        if isinstance(stmt, ir.Wait):
+            self.primary = self.fn.resumes.get(stmt.offset, 0)
+            return self.primary
+        if isinstance(stmt, (ir.If, ir.While, ir.Repeat, ir.NumericFor)):
+            heads = {
+                ir.If: lambda s: (s.cond,),
+                ir.While: lambda s: (s.cond,),
+                ir.Repeat: lambda s: (s.cond,),
+                ir.NumericFor: lambda s: (s.start, s.limit, s.step),
+            }[type(stmt)](stmt)
+        else:
+            heads = tuple(expr for expr, _ in _roots([stmt]))
+        found: list[int] = []
+
+        def visit(expr: ir.Expr) -> None:
+            for child in _children(expr):
+                visit(child)
+            if isinstance(expr, ir.Call) and expr.offset in self.fn.resumes:
+                found.append(self.fn.resumes[expr.offset])
+
+        for expr in heads:
+            visit(expr)
+        if not found:
+            return 0
+        if isinstance(stmt, (ir.While, ir.Repeat)):
+            self.primary = None
+            return 0
+        self.primary = found[0]
+        return found[0]
+
+    def skip_lines(self, skip: ir.Skip, depth: int) -> list[str]:
+        """The body of a section's skip function: its escape test, prologues and chunks, then true for a skip end."""
+        ind = "\t" * depth
+        lines: list[str] = []
+        if skip.escape:
+            lines += [f"{ind}if at <= {skip.escape} then", f"{ind}\treturn false", f"{ind}end"]
+        lines += self.chunk_lines(skip.chunks, skip.prologues, depth)
+        lines.append(f"{ind}return true")
+        return lines
+
+    def chunk_lines(
+        self, chunks: list[tuple[int, list]], prologues: dict[int, list], depth: int, always: int = 0
+    ) -> list[str]:
+        """The prologues, which run for one resume point, then the chunks, each running from its resume point on.
+
+        A chunk numbered from always on runs whatever resume point the caller already established.
+        """
+        ind = "\t" * depth
+        lines: list[str] = []
+        for ordinal, part in sorted(prologues.items()):
+            lines += [f"{ind}if at == {ordinal} then", *self.nested(part, depth + 1), f"{ind}end"]
+        for ordinal, chunk in chunks:
+            if always and ordinal >= always:
+                lines += self.nested(chunk, depth)
+            else:
+                lines += [f"{ind}if at <= {ordinal} then", *self.nested(chunk, depth + 1), f"{ind}end"]
+        return lines
+
+    def tail_lines(self, tail: ir.Tail, depth: int) -> list[str]:
+        """The body of a guarded function's tail: for the run skip mode was in, its chunks, then what it returns."""
+        ind = "\t" * depth
+        refs = [self.ref_value(p) for p in self.fn.refs]
+        lines: list[str] = []
+        for run in tail.runs:
+            value = self.value(run.value)[0] if run.value is not None else "nil"
+            lines += [f"{ind}if at <= {run.last} then", *self.chunk_lines(run.chunks, run.prologues, depth + 1, run.last)]
+            lines += [f"{ind}\treturn {', '.join([value, *refs])}", f"{ind}end"]
+        lines.append(f"{ind}return {', '.join(['nil', *refs])}")
+        return lines
+
+    def section(self, stmt: ir.Section, depth: int, last: bool) -> list[str]:
+        """A region between skip ends: a closure that skip mode can leave, and the function that skips the rest of it."""
+        self.mod.uses_vm = True
+        ind = "\t" * depth
+        returns = any(isinstance(sub, ir.Return) for sub in statements(stmt.body))
+        self.in_section += 1
+        try:
+            body = self.nested(stmt.body, depth + 2 if returns else depth + 1)
+        finally:
+            self.in_section -= 1
+        inner = ind + ("\t" if returns else "")
+        if returns:
+            body.append(f"{inner}	return nil")
+        lines = [f"{inner}{'local ret = ' if returns else ''}vm.section(function()", *body]
+        if stmt.skip is None:
+            lines.append(f"{inner}end)")
+        else:
+            lines.append(f"{inner}end, function(received: {{ any }}): boolean")
+            lines += self.skip_lines(stmt.skip, depth + (2 if returns else 1))
+            lines.append(f"{inner}end)")
+        if returns:
+            lines = [
+                f"{ind}do",
+                *lines,
+                f"{ind}\tif ret ~= nil then",
+                f"{ind}\t\treturn table.unpack(ret, 1, ret.n)",
+                f"{ind}\tend",
+                f"{ind}end",
+            ]
+        return lines
+
     def if_(self, stmt: ir.If, depth: int, tail: bool) -> list[str]:
         """An if statement, flattening a single nested if in the else branch to elseif."""
         ind = "\t" * depth
@@ -1374,9 +1606,16 @@ class _Function:
         """A return statement; values nobody reads are dropped unless they carry a call.
 
         A function that takes references returns their values after its own, which it returns when any caller uses it.
+        Inside a section the values are packed, since the closure's return must tell the function to return.
         """
-        ind = "\t" * depth
+        ind = "	" * depth
         expr = stmt.value
+
+        def ret(values: list[str]) -> str:
+            if self.in_section:
+                return f"return table.pack({', '.join(values)})"
+            return f"return {', '.join(values)}" if values else "return"
+
         if self.fn.refs:
             lines = []
             values = [self.ref_value(p) for p in self.fn.refs]
@@ -1384,18 +1623,19 @@ class _Function:
                 values.insert(0, self.value(expr)[0])
             elif ir.has_call(expr):
                 lines.append(f"local _ = {self.value(expr)[0]}")
-            lines.append(f"return {', '.join(values)}")
+            lines.append(ret(values))
             if last:
                 return [f"{ind}{line}" for line in lines]
-            return [f"{ind}do", *(f"{ind}\t{line}" for line in lines), f"{ind}end"]
+            return [f"{ind}do", *(f"{ind}	{line}" for line in lines), f"{ind}end"]
         if self.role == "helper":
             keep = self.fn.block in self.mod.used_returns
         else:
-            keep = not (isinstance(expr, ir.Const) and expr.type == ir.INT and expr.value == 0)
+            # An entry that returns a number on some path returns it on every path, so the function has one type.
+            keep = self.valued_return or not (isinstance(expr, ir.Const) and expr.type == ir.INT and expr.value == 0)
         keep = keep or ir.has_call(expr)
-        if not keep and tail:
+        if not keep and tail and not self.in_section:
             return []
-        text = f"return {self.value(expr)[0]}" if keep else "return"
+        text = ret([self.value(expr)[0]] if keep else [])
         return [f"{ind}{text}"] if last else [f"{ind}do {text} end"]
 
     def ref_call(self, call: ir.Call, result: ir.Temp | None, ind: str) -> list[str]:
@@ -1426,9 +1666,11 @@ class _Function:
         text = self.function_call(call)[0]
         if all(target == "_" for target in targets):
             lines.append(f"{ind}{text}")
+        elif "_" in targets:
+            lines += [f"{ind}do", f"{ind}\tlocal _: any", f"{ind}\t{', '.join(targets)} = {text}", f"{ind}end"]
         else:
             lines.append(f"{ind}{', '.join(targets)} = {text}")
-        if self.mod.module.probe_refs and all(self.declared(ref.slot) for ref in refs):
+        if self.mod.module.probe_refs and call.offset < ir.SYNTHETIC_BASE and all(self.declared(ref.slot) for ref in refs):
             self.mod.probes.add(call.offset)
             lines.append(f"{ind}__ref({call.offset}, {', '.join(self.target_text(ref) for ref in refs)})")
         return lines
@@ -1550,13 +1792,21 @@ class _Function:
         if not any(self.declared(out.slot) for out in plan.outs):
             return [f"{ind}{call}{comment}"]
         conversions = plan.conversions or [None] * len(plan.outs)
-        if len(plan.outs) == 1:
+        if len(plan.outs) == 1 and not plan.discarded:
             return [f"{ind}{self._out_assign(plan.outs[0], call, conversions[0])}{comment}"]
-        names = [f"out{index}" if self.declared(out.slot) else "_" for index, out in enumerate(plan.outs, 1)]
-        lines = [f"{ind}do", f"{ind}\tlocal {', '.join(names)} = {call}{comment}"]
+        # The call returns every output of the handler in order; a discarded one is received by nothing.
+        names: list[str] = []
+        kept = iter(enumerate(plan.outs, 1))
+        for position in range(len(plan.outs) + len(plan.discarded)):
+            if position in plan.discarded:
+                names.append("_")
+                continue
+            index, out = next(kept)
+            names.append(f"out{index}" if self.declared(out.slot) else "_")
+        lines = [f"{ind}do", f"{ind}	local {', '.join(names)} = {call}{comment}"]
         for index, out in enumerate(plan.outs, 1):
             if self.declared(out.slot):
-                lines.append(f"{ind}\t{self._out_assign(out, f'out{index}', conversions[index - 1])}")
+                lines.append(f"{ind}	{self._out_assign(out, f'out{index}', conversions[index - 1])}")
         lines.append(f"{ind}end")
         return lines
 
@@ -1580,7 +1830,21 @@ class _Function:
             decls.append(f"\tlocal {name}: {{ {_ANNOTATIONS[storage]} }} = table.create({fn.arrays[slot]}, {_default(storage)})")
             if slot == FRAME:
                 decls += [f"\t{self.element(FRAME, ir.Const(n, ir.INT))} = {self.name_of(('local', n))}" for n in range(fn.arg)]
-        body = self.block(fn.body, 1, tail=True)
+        if self.needs_at:
+            decls.append("	local at: number = 0")
+        for index in (i for i in fn.hoisted if i in self.temp_reads):
+            decls.append(f"	local t{index}: {_ANNOTATIONS[self.temp_type(index)]} = {_default(self.temp_type(index))}")
+        if fn.tail is not None:
+            self.mod.uses_vm = True
+            body = [
+                "	return vm.guard(function()",
+                *self.block(fn.body, 2, tail=False),
+                "	end, function(received: { any })",
+                *self.tail_lines(fn.tail, 2),
+                "	end)",
+            ]
+        else:
+            body = self.block(fn.body, 1, tail=True)
         return [
             *self.doc,
             f"{self.head}({params})",

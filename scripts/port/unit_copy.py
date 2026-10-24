@@ -103,6 +103,9 @@ RETAIL_BRIDGES = {
         ("CRunScript::run(int)", "run", "PortRetailRun"),
         ("CRunScript::skip()", "skip", "PortRetailSkip"),
     ],
+    "event_func.cpp": [
+        ("CEventScriptArg::BuildArgData(u32*)", "BuildArgData", "PortRetailBuildArgData"),
+    ],
 }
 
 

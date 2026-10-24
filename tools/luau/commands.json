@@ -26438,7 +26438,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in string": 1470
          }
@@ -26465,7 +26465,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in s32": 96,
           "in string": 996
@@ -26499,7 +26499,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Arg 2 is a map number (integer) or a map name (string), chosen by its slot's tag.",
+     "curated": true
     },
     {
      "no": 21,
@@ -27369,7 +27371,7 @@
         {
          "name": "item_no",
          "dir": "in",
-         "type": "s32",
+         "type": "unknown",
          "name_source": "handler",
          "observed": {
           "in s32": 113,
@@ -27379,7 +27381,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "s32",
+         "type": "unknown",
          "observed": {
           "in s32": 113,
           "in string": 909
@@ -27617,7 +27619,9 @@
         "parameter 1: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "Each argument is a string, or an integer pair (item number and flag), chosen by the slot's tag.",
+     "curated": true
     },
     {
      "no": 36,
@@ -31467,7 +31471,7 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in s32": 231,
           "in string": 2020
@@ -31496,7 +31500,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Arg 1 is a parts number (integer) or a place name (string), chosen by its slot's tag.",
+     "curated": true
     },
     {
      "no": 94,
@@ -33539,7 +33545,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in s32": 1892,
           "in string": 68574,
@@ -33589,12 +33595,11 @@
           "out s32": 966
          }
         }
-       ],
-       "review": [
-        "parameter 2: type unknown"
        ]
       }
-     ]
+     ],
+     "notes": "Arg 2 is a message number (integer) or the message text (string), chosen by its slot's tag.",
+     "curated": true
     },
     {
      "no": 193,
@@ -50230,7 +50235,7 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "s32",
+         "type": "unknown",
          "observed": {
           "in s32": 1547
          },
@@ -50279,7 +50284,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in s32": 13,
           "in string": 2009
@@ -50300,7 +50305,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "The file is a default event sound number (integer) or a file name (string), chosen by its slot's tag.",
+     "curated": true
     },
     {
      "no": 602,
@@ -53303,7 +53310,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in s32": 233,
           "in string": 4078
@@ -53338,7 +53345,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in s32": 1708,
           "in string": 22873
@@ -53382,7 +53389,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "string",
+         "type": "unknown",
          "observed": {
           "in string": 48
          }
@@ -53405,7 +53412,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Arg 2 is a parts id (integer) or a parts name (string), chosen by its slot's tag.",
+     "curated": true
     },
     {
      "no": 702,
@@ -55318,7 +55327,7 @@
         {
          "name": "arg2",
          "dir": "in",
-         "type": "s32",
+         "type": "unknown",
          "observed": {
           "in s32": 72,
           "in string": 12
@@ -55334,7 +55343,9 @@
         }
        ]
       }
-     ]
+     ],
+     "notes": "Arg 2 is a parts number (integer) or a place name (string), chosen by its slot's tag.",
+     "curated": true
     },
     {
      "no": 731,
@@ -62337,14 +62348,16 @@
         {
          "name": "arg1",
          "dir": "in",
-         "type": "s32",
+         "type": "unknown",
          "observed": {
           "in string": 590
          }
         }
        ]
       }
-     ]
+     ],
+     "notes": "The argument is a base effect script number (integer) or its name (string), chosen by its slot's tag.",
+     "curated": true
     },
     {
      "no": 1104,

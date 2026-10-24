@@ -1,0 +1,58 @@
+--!strict
+-- Shared event helper used by 5 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local helper_25abe6d2 = require("@lib/event/helper_25abe6d2")
+local helper_669c752b = require("@lib/event/helper_669c752b")
+local helper_96e2a628 = require("@lib/event/helper_96e2a628")
+local helper_e34416e2 = require("@lib/event/helper_e34416e2")
+
+--- Helper function.
+local function helper_701ece99()
+	local var0: s32 = 0
+	vm.section(function()
+		event.SetFlag(205, 1)
+		event.Initialize()
+		event.LoadSound(2206)
+		var0 = event.SndLoadSound_2(2206) or var0
+		helper_96e2a628()
+		event.StopBgm(0)
+		event.SetFadeIn(30)
+		event.CharaActive(1, 32)
+		event.CharaActive(1, 33)
+		event.CharaActive(1, 34)
+		event.CmrsSetPos(26.2, 66.14, -50.83)
+		event.CmrsSetRef(13.28, 59.7, -9.45)
+		event.ObjsSetPos(0, 24.27, 36.08, -15.66)
+		event.ObjsSetRot(0, 0.0, -3.12, 0.0)
+		event.ObjsSetPos(1, -25.76, 36.08, 14.84)
+		event.ObjsSetRot(1, 0.0, 1.6, 0.0)
+		event.ObjsSetPos(2, -5.4, 36.08, 70.48)
+		event.ObjsSetRot(2, 0.0, -2.64, 0.0)
+		event.ObjsSetMotion(0, "だめじゃ", 4)
+		event.ObjsSetMotion(1, "気絶", 4)
+		event.ObjsSetMotion(2, "錯乱", 4)
+		event.ObjsTexAnime(0, 0)
+		event.ObjsTexAnime(0, 1, "おこり顔")
+		event.ObjsTexAnime(0, 1, "通常目パチ")
+		event.ObjsTexAnime(2, 0)
+		event.ObjsTexAnime(2, 1, "目パチ")
+		event.SndSePlay(var0, 0)
+		event.CmrsQuake(0.0, 0.5, 0.1, -1)
+		event.SetPakuAnim(0, "大口パク")
+		helper_e34416e2(2050010)
+		event.ResetPakuAnim()
+		event.SetPakuAnim(0, "口パク")
+		helper_e34416e2(2050020)
+		event.ResetPakuAnim()
+		event.SetFadeOut(30)
+		helper_25abe6d2(30)
+	end)
+	event.CancelDramaScene()
+	event.SndSeStop(var0, 0)
+	event.CmrsInit()
+	helper_669c752b()
+	event.SetFadeIn(30)
+end
+
+return helper_701ece99

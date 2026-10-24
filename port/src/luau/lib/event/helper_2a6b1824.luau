@@ -1,0 +1,46 @@
+--!strict
+-- Shared event helper used by 6 scripts, translated by tools/luau/stb2luau.
+
+local helper_0958ca60 = require("@lib/event/helper_0958ca60")
+local helper_c624bc16 = require("@lib/event/helper_c624bc16")
+
+--- Helper function.
+local function helper_2a6b1824(arg0: any)
+	event.CmrsSetPos(-337.21, 57.28, -2006.87)
+	event.CmrsSetRef(-278.59, 71.17, -1908.74)
+	event.CharaActive(1, 33)
+	event.ObjsSetPos(1, -247.36, 36.72, -1936.73)
+	event.ObjsSetRot(1, 0.0, 0.04, 0.0)
+	event.ObjsSetMotion(1, "走り", 4)
+	event.CharaActive(1, 34)
+	event.ObjsSetPos(2, -257.07, 36.72, -1857.99)
+	event.ObjsSetRot(2, 0.0, -3.12, 0.0)
+	event.ObjsSetMotion(2, "走り", 4)
+	event.CharaActive(1, 35)
+	event.ObjsSetPos(3, -281.38, 36.72, -1863.87)
+	event.ObjsSetRot(3, 0.0, 2.92, 0.0)
+	event.ObjsSetMotion(3, "走り", 4)
+	event.ObjsMove(1, -264.97, 36.87, -1753.54, 80)
+	event.ObjsRotation(1, 0.0, 0.04, 0.0, 150)
+	event.ObjsMotionDelay(1, 95)
+	event.ObjsSetMotion(1, "立ち", 4)
+	event.ObjsRotation(2, 0.0, 0.06, 0.0, 10)
+	event.ObjsPosDelay(2, 10)
+	event.ObjsMove(2, -221.09, 36.72, -1531.87, 80)
+	event.ObjsMotionDelay(2, 95)
+	event.ObjsSetMotion(2, "立ち", 4)
+	event.ObjsRotation(3, 0.0, 0.16, 0.0, 10)
+	event.ObjsPosDelay(3, 10)
+	event.ObjsMove(3, -272.59, 36.72, -1640.34, 80)
+	event.ObjsMotionDelay(3, 95)
+	event.ObjsSetMotion(3, "立ち", 4)
+	event.CmrsFadeInit()
+	event.CmrsFadeDelay(45)
+	event.CmrsFadeOut(50, 0.0, 0.0, 0.0)
+	helper_0958ca60(1)
+	helper_0958ca60(2)
+	helper_0958ca60(3)
+	helper_c624bc16()
+end
+
+return helper_2a6b1824

@@ -36,10 +36,12 @@ class ProgramsTest(unittest.TestCase):
 
     def test_schema(self):
         self.assertEqual(self.data["schema"], 1)
-        self.assertEqual(sorted(self.data["kinds"]), ["action", "effect", "monster"])
+        self.assertEqual(sorted(self.data["kinds"]), ["action", "effect", "event", "monster"])
 
     def test_entries_match_headers(self):
         for kind, info in self.data["kinds"].items():
+            if info["enum"] is None:
+                continue
             with self.subTest(kind=kind):
                 expected = enum_programs(info["header"], info["enum"])
                 # Programs retail's enum leaves unnamed are named by a port enum.
@@ -59,10 +61,17 @@ class ProgramsTest(unittest.TestCase):
                     self.assertNotIn(name, LUAU_KEYWORDS)
                     self.assertNotEqual(name, "setup")
 
+    def test_event_programs_are_named_by_number_unless_the_engine_names_them(self):
+        for program in self.data["kinds"]["event"]["programs"]:
+            with self.subTest(no=program["no"]):
+                self.assertTrue(program["name"] == f"event_{program['no']}" or program["enum"] is None)
+                self.assertGreater(len(program["description"]), 10)
+
     def test_handlers_load_from_manifest(self):
         self.assertEqual(handlers("action")[100].name, "init")
         self.assertEqual(handlers("effect")[300].name, "on_finish")
-        self.assertEqual(handlers("event"), {})
+        self.assertEqual(handlers("event")[150].name, "key_open")
+        self.assertEqual(handlers("event")[99].name, "event_99")
         self.assertEqual(SETUP, -1)
 
 

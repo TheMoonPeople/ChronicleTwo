@@ -21,6 +21,7 @@ enum class NativeCommand : int {
     InitScript = 0,
     ProgSet = 1,
     ProgGet = 2,
+    GetFlag = 14,
     GetAttkType = 3,
     SetMoveSpeed = 5,
     MonsterScaleVector = 4,
@@ -74,6 +75,13 @@ int HandleProgGet(RS_STACKDATA *args, int argc) {
     return 1;
 }
 
+// Answers an event flag read with 77 through the output reference.
+int HandleGetFlag(RS_STACKDATA *args, int argc) {
+    Record(NativeCommand::GetFlag, args, argc);
+    args[1].val.p->val.i = 77;
+    return 1;
+}
+
 int HandleGetAttkType(RS_STACKDATA *args, int argc) {
     Record(NativeCommand::GetAttkType, args, argc);
     return 1;
@@ -124,6 +132,7 @@ void RegisterHandlers() {
     ext_table[static_cast<int>(NativeCommand::InitScript)] = HandleInitScript;
     ext_table[static_cast<int>(NativeCommand::ProgSet)] = HandleProgSet;
     ext_table[static_cast<int>(NativeCommand::ProgGet)] = HandleProgGet;
+    ext_table[static_cast<int>(NativeCommand::GetFlag)] = HandleGetFlag;
     ext_table[static_cast<int>(NativeCommand::GetAttkType)] = HandleGetAttkType;
     ext_table[static_cast<int>(NativeCommand::SetMoveSpeed)] = HandleSetMoveSpeed;
     ext_table[static_cast<int>(NativeCommand::SetPallet)] = HandleSetPallet;
@@ -434,13 +443,13 @@ TEST_F(LuauRuntime, ModuleForScriptMapsTheKindsLuauRuns) {
 
     EXPECT_EQ(luau_runtime::ModuleForScript("mainchr/c01.stb"), std::optional<std::string>("mainchr/c01"));
     EXPECT_FALSE(luau_runtime::ModuleForScript("mainchr/c99.stb").has_value());
-    EXPECT_FALSE(luau_runtime::ModuleForScript("map/x.stb").has_value());
+    EXPECT_EQ(luau_runtime::ModuleForScript("map/x.stb"), std::optional<std::string>("map/x"));
     EXPECT_EQ(luau_runtime::ModuleForScript("dungeon/eff_script/menu_ice.pac/c02cold.stb"),
               std::optional<std::string>("dungeon/eff_script/menu_ice.pac/c02cold"));
     EXPECT_EQ(luau_runtime::ModuleForScript("dungeon/monster/b08a.stb"), std::optional<std::string>("dungeon/monster/b08a"));
     // Effect scripts under event/tbox are pack members; the argument scripts beside the packs are not effects.
     EXPECT_EQ(luau_runtime::ModuleForScript("event/tbox/bomb.pack/tbox_exp.stb"), std::optional<std::string>("event/tbox/bomb.pack/tbox_exp"));
-    EXPECT_FALSE(luau_runtime::ModuleForScript("event/tbox/ntbox_arg.stb").has_value());
+    EXPECT_EQ(luau_runtime::ModuleForScript("event/tbox/ntbox_arg.stb"), std::optional<std::string>("event/tbox/ntbox_arg"));
 }
 
 TEST_F(LuauRuntime, FallbackScriptsIgnoreAStaleModule) {
@@ -470,4 +479,167 @@ TEST_F(LuauRuntime, InterpreterKeepsRetailPrograms) {
 
     EXPECT_FALSE(luau_runtime::Owns(&script));
     EXPECT_EQ(script.check_program(1), 0);
+}
+
+TEST_F(LuauRuntime, EventKindPrefixesMapToModules) {
+    for (const char *directory : {"map/d/d01", "dungeon/sys_script", "event/e200/e209", "event/tbox/bomb.pack"}) {
+        std::filesystem::create_directories(root / directory);
+    }
+    for (const char *module : {"map/d/d01/d01_sfida_0", "dungeon/sys_script/d06", "event/e200/e209/e209_arg_1", "event/tbox/ntbox_arg",
+                               "event/e200/e209/e209_arg", "event/tbox/bomb.pack/tbox_exp"}) {
+        std::ofstream(root / (std::string(module) + ".luau")) << "return {}\n";
+    }
+    luau_runtime::SetScriptsRoot(root);
+
+    EXPECT_EQ(luau_runtime::ModuleForScript("map/d/d01/d01_sfida_0.stb"), std::optional<std::string>("map/d/d01/d01_sfida_0"));
+    EXPECT_EQ(luau_runtime::ModuleForScript("dungeon/sys_script/d06.stb"), std::optional<std::string>("dungeon/sys_script/d06"));
+    EXPECT_EQ(luau_runtime::ModuleForScript("event/e200/e209/e209_arg_1.stb"), std::optional<std::string>("event/e200/e209/e209_arg_1"));
+    EXPECT_EQ(luau_runtime::ModuleForScript("event/tbox/ntbox_arg.stb"), std::optional<std::string>("event/tbox/ntbox_arg"));
+    EXPECT_EQ(luau_runtime::ModuleForScript("event/e200/e209/e209_arg.stb"), std::optional<std::string>("event/e200/e209/e209_arg"));
+    EXPECT_EQ(luau_runtime::ModuleForScript("event/tbox/bomb.pack/tbox_exp.stb"), std::optional<std::string>("event/tbox/bomb.pack/tbox_exp"));
+    // Without a module the script stays on the interpreter, whatever its language.
+    EXPECT_FALSE(luau_runtime::ModuleForScript("map/d/d01/d01_5.stb").has_value());
+}
+
+TEST_F(LuauRuntime, EventModuleRunsNumberedPrograms) {
+    Loaded      loaded("map/event_basic");
+    CRunScript &script = loaded.script;
+    EXPECT_EQ(script.check_program(3), 1);
+    EXPECT_EQ(script.check_program(4), 0);
+
+    ASSERT_EQ(script.run(3), 1);
+    EXPECT_EQ(script.end, 0);
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].no, NativeCommand::ProgSet);
+    EXPECT_EQ(calls[0].args[0].val.i, 1);
+
+    script.resume();
+    EXPECT_EQ(script.end, 1);
+    ASSERT_EQ(calls.size(), 2u);
+    EXPECT_EQ(calls[1].args[0].val.i, 2);
+
+    EXPECT_EQ(script.run(-1), 0);
+    ASSERT_EQ(calls.size(), 3u);
+    EXPECT_EQ(calls[2].args[0].val.i, 50);
+}
+
+TEST_F(LuauRuntime, SkipRunsToTheNextSkipEnd) {
+    Loaded      loaded("facade/skip");
+    CRunScript &script = loaded.script;
+    ASSERT_EQ(script.run(1), 1);
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].args[0].val.i, 1);
+
+    // The site-10 wait ends the skip; its skip function's call is dropped.
+    script.skip();
+    EXPECT_EQ(calls.size(), 1u);
+    EXPECT_EQ(script.skip_end_count, 1);
+    EXPECT_EQ(script.skip_wait, 0);
+    EXPECT_EQ(script.end, 0);
+
+    script.resume();
+    EXPECT_EQ(script.end, 1);
+    EXPECT_EQ(script.result, 10);
+    ASSERT_EQ(calls.size(), 2u);
+    EXPECT_EQ(calls[1].args[0].val.i, 99);
+}
+
+TEST_F(LuauRuntime, SkipFromALaterWaitUsesThatSite) {
+    Loaded      loaded("facade/skip");
+    CRunScript &script = loaded.script;
+    ASSERT_EQ(script.run(1), 1);
+    script.resume();
+    ASSERT_EQ(calls.size(), 2u);
+
+    script.skip();
+    EXPECT_EQ(calls.size(), 2u);
+    EXPECT_EQ(script.end, 0);
+
+    script.resume();
+    EXPECT_EQ(script.end, 1);
+    EXPECT_EQ(script.result, 11);
+    ASSERT_EQ(calls.size(), 3u);
+    EXPECT_EQ(calls[2].args[0].val.i, 99);
+}
+
+TEST_F(LuauRuntime, NormalSkipEndOnlyCounts) {
+    Loaded      loaded("facade/skip");
+    CRunScript &script = loaded.script;
+    EXPECT_EQ(script.run(2), 0);
+    EXPECT_EQ(script.skip_end_count, 1);
+    ASSERT_EQ(calls.size(), 2u);
+    EXPECT_EQ(calls[0].args[0].val.i, 5);
+    EXPECT_EQ(calls[1].args[0].val.i, 7);
+}
+
+TEST_F(LuauRuntime, SkipSentinelOutsideSectionEndsTheScript) {
+    Loaded      loaded("facade/skip");
+    CRunScript &script = loaded.script;
+    ASSERT_EQ(script.run(3), 1);
+    script.skip();
+    EXPECT_EQ(script.end, 1);
+    EXPECT_TRUE(calls.empty());
+}
+
+TEST_F(LuauRuntime, RunResetsSkipState) {
+    Loaded      loaded("facade/skip");
+    CRunScript &script = loaded.script;
+    ASSERT_EQ(script.run(1), 1);
+    script.skip();
+    ASSERT_EQ(script.skip_end_count, 1);
+
+    EXPECT_EQ(script.run(1), 1);
+    EXPECT_EQ(script.skip_wait, 0);
+    EXPECT_EQ(script.skip_end_count, 0);
+}
+
+TEST_F(LuauRuntime, NativeOutputsAreNilWhileSkipping) {
+    Loaded loaded("facade/skip");
+    ASSERT_EQ(loaded.script.run(4), 1);
+    loaded.script.skip();
+    EXPECT_TRUE(calls.empty());
+    EXPECT_EQ(loaded.script.skip_wait, 0);
+    EXPECT_EQ(loaded.script.end, 0);
+
+    loaded.script.resume();
+    EXPECT_EQ(loaded.script.end, 1);
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].no, NativeCommand::GetFlag);
+    // The dropped call returned nil inside the skip, and the call after the section reached the handler.
+    EXPECT_EQ(loaded.script.result, 11);
+}
+
+TEST_F(LuauRuntime, NestedHelpersLoadNativeCommandsAndResumeInTheInstanceSandbox) {
+    std::ofstream(root / "lib/boss_command.luau") << R"(
+local set_program = action.ProgSet
+return function(value) set_program(value) end
+)";
+    std::ofstream(root / "lib/boss_setup.luau") << R"(
+local vm = require("@lib/vm")
+local set_program = require("@lib/boss_command")
+return function()
+    set_program(1)
+    vm.wait()
+    set_program(2)
+end
+)";
+    const auto module = root / "dungeon/monster/boss_sandbox.luau";
+    std::filesystem::create_directories(module.parent_path());
+    std::ofstream(module) << R"(
+local setup = require("@lib/boss_setup")
+return { setup = setup }
+)";
+
+    Loaded loaded("dungeon/monster/boss_sandbox");
+    ASSERT_EQ(loaded.script.run(-1), 1);
+    ASSERT_EQ(calls.size(), 1u);
+    EXPECT_EQ(calls[0].no, NativeCommand::ProgSet);
+    EXPECT_EQ(calls[0].args[0].val.i, 1);
+    EXPECT_EQ(loaded.script.end, 0);
+
+    loaded.script.resume();
+    ASSERT_EQ(calls.size(), 2u);
+    EXPECT_EQ(calls[1].no, NativeCommand::ProgSet);
+    EXPECT_EQ(calls[1].args[0].val.i, 2);
+    EXPECT_EQ(loaded.script.end, 1);
 }

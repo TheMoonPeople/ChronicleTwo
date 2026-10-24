@@ -862,6 +862,172 @@
      ]
     }
    }
+  },
+  "_MES_MAKE": {
+   "notes": "Arg 2 is a message number (integer) or the message text (string), chosen by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      }
+     ],
+     "reviewed": true
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      }
+     ],
+     "reviewed": true
+    }
+   }
+  },
+  "_ESM_LOAD_BASE": {
+   "notes": "The argument is a base effect script number (integer) or its name (string), chosen by its slot's tag.",
+   "signatures": {
+    "1": {
+     "params": [
+      {
+       "type": "unknown"
+      }
+     ],
+     "reviewed": true
+    }
+   }
+  },
+  "_SET_LOADBG_FILE": {
+   "notes": "Each argument is a string, or an integer pair (item number and flag), chosen by the slot's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "type": "unknown"
+      },
+      {
+       "type": "unknown"
+      },
+      {}
+     ],
+     "reviewed": true
+    }
+   }
+  },
+  "_EOH_SYNC_OBJ": {
+   "notes": "Arg 2 is a parts id (integer) or a parts name (string), chosen by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      }
+     ],
+     "reviewed": true
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      },
+      {}
+     ],
+     "reviewed": true
+    },
+    "4": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      },
+      {},
+      {}
+     ],
+     "reviewed": true
+    }
+   }
+  },
+  "_SND_LOAD_SOUND": {
+   "notes": "The file is a default event sound number (integer) or a file name (string), chosen by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {
+       "type": "unknown"
+      },
+      {}
+     ],
+     "reviewed": true
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      },
+      {}
+     ],
+     "reviewed": true
+    }
+   }
+  },
+  "_MAP_JUMP": {
+   "notes": "Arg 2 is a map number (integer) or a map name (string), chosen by its slot's tag.",
+   "signatures": {
+    "2": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      }
+     ],
+     "reviewed": true
+    },
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      },
+      {}
+     ],
+     "reviewed": true
+    }
+   }
+  },
+  "_FUNC_POINT_SHOW": {
+   "notes": "Arg 1 is a parts number (integer) or a place name (string), chosen by its slot's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {
+       "type": "unknown"
+      },
+      {},
+      {}
+     ],
+     "reviewed": true
+    }
+   }
+  },
+  "_EOH_SYNC_FUNCP": {
+   "notes": "Arg 2 is a parts number (integer) or a place name (string), chosen by its slot's tag.",
+   "signatures": {
+    "3": {
+     "params": [
+      {},
+      {
+       "type": "unknown"
+      },
+      {}
+     ],
+     "reviewed": true
+    }
+   }
   }
  },
  "event_arg": {}

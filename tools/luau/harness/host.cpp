@@ -40,6 +40,14 @@ fs::path g_scripts_root;
  * Safepoints executed since the interrupt budget was reset.
  */
 long long g_interrupt_count = 0;
+/**
+ * Mirrors the game runtime's native skip mode flag, exposed to drivers through vmhost.
+ */
+bool g_skipping = false;
+/**
+ * Number of skip ends counted through vmhost.skip_end since the last reset.
+ */
+long long g_skip_end_count = 0;
 
 /**
  * Reads a complete module or driver source file.
@@ -181,6 +189,50 @@ int lua_resetbudget([[maybe_unused]] lua_State *lua) {
 }
 
 /**
+ * vmhost.skipping(): reports whether native skip mode is active.
+ */
+int lua_skipping(lua_State *lua) {
+    lua_pushboolean(lua, g_skipping);
+    return 1;
+}
+
+/**
+ * vmhost.skip_end(): counts a skip end, leaves skip mode and reports whether skip mode was active.
+ */
+int lua_skip_end(lua_State *lua) {
+    ++g_skip_end_count;
+    const bool was_skipping = g_skipping;
+    g_skipping = false;
+    lua_pushboolean(lua, was_skipping);
+    return 1;
+}
+
+/**
+ * vmhost.set_skipping(b): sets native skip mode from a boolean argument.
+ */
+int lua_set_skipping(lua_State *lua) {
+    g_skipping = lua_toboolean(lua, 1);
+    return 0;
+}
+
+/**
+ * vmhost.skip_end_count(): reports how many skip ends have been counted since the last reset.
+ */
+int lua_skip_end_count(lua_State *lua) {
+    lua_pushnumber(lua, static_cast<double>(g_skip_end_count));
+    return 1;
+}
+
+/**
+ * vmhost.reset(): clears native skip mode and the skip end count.
+ */
+int lua_vmhost_reset([[maybe_unused]] lua_State *lua) {
+    g_skipping = false;
+    g_skip_end_count = 0;
+    return 0;
+}
+
+/**
  * Error handler that replaces the error message with its message and a traceback.
  */
 int traceback_handler(lua_State *lua) {
@@ -227,6 +279,18 @@ int run(int argc, char **argv) {
     lua_pushcfunction(lua, lua_cosf, "cosf");
     lua_setfield(lua, -2, "cosf");
     lua_setglobal(lua, "cmath");
+    lua_createtable(lua, 0, 5);
+    lua_pushcfunction(lua, lua_skipping, "skipping");
+    lua_setfield(lua, -2, "skipping");
+    lua_pushcfunction(lua, lua_skip_end, "skip_end");
+    lua_setfield(lua, -2, "skip_end");
+    lua_pushcfunction(lua, lua_set_skipping, "set_skipping");
+    lua_setfield(lua, -2, "set_skipping");
+    lua_pushcfunction(lua, lua_skip_end_count, "skip_end_count");
+    lua_setfield(lua, -2, "skip_end_count");
+    lua_pushcfunction(lua, lua_vmhost_reset, "reset");
+    lua_setfield(lua, -2, "reset");
+    lua_setglobal(lua, "vmhost");
 
     int exit_code = 0;
     lua_pushcfunction(lua, traceback_handler, "traceback");

@@ -1,0 +1,15 @@
+--!strict
+-- Shared event helper used by 7 scripts, translated by tools/luau/stb2luau.
+
+local helper_125385ee = require("@lib/event/helper_125385ee")
+local helper_82705ce2 = require("@lib/event/helper_82705ce2")
+
+--- Helper function.
+local function helper_3a927053()
+	helper_125385ee(1, 7)
+	event.SetMesPreset(1, 2)
+	event.MesMake_2(1, "It stops with (O) button.")
+	helper_82705ce2(1, -1, 15, 0, 0)
+end
+
+return helper_3a927053

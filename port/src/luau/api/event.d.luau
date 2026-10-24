@@ -64,9 +64,9 @@ declare event: {
 	LoadMotion: (stack_no: s32, pack_name: string, motion_name: string, chara_no: s32) -> (),
 	LoadMotion_4: (stack_no: s32, pack_name: string, motion_name: string, chara_no: s32) -> (),
 	--- Requests a move to a map, named by number or by name, from a jump point.
-	MapJump: ((arg1: s32, arg2: string) -> ()) & ((arg1: s32, arg2: string, arg3: s32) -> ()),
-	MapJump_2: (arg1: s32, arg2: string) -> (),
-	MapJump_3: (arg1: s32, arg2: string, arg3: s32) -> (),
+	MapJump: ((arg1: s32, arg2: any) -> ()) & ((arg1: s32, arg2: any, arg3: s32) -> ()),
+	MapJump_2: (arg1: s32, arg2: any) -> (),
+	MapJump_3: (arg1: s32, arg2: any, arg3: s32) -> (),
 	--- Starts the event rain when the argument is nonzero, otherwise stops it.
 	SetRain: (arg1: s32) -> (),
 	SetRain_1: (arg1: s32) -> (),
@@ -113,10 +113,10 @@ declare event: {
 	GotoSelectParty: () -> (),
 	GotoSelectParty_0: () -> (),
 	--- Loads each listed background file into the read buffer in sequence.
-	SetLoadbgFile: ((arg1: string) -> ()) & ((arg1: string, arg2: string) -> ()) & ((item_no: s32, arg2: s32, name: string) -> ()) & ((arg1: string, arg2: string, arg3: string, arg4: string) -> ()) & ((arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string) -> ()) & ((arg1: any, arg2: s32, arg3: s32, arg4: s32, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string, arg10: string) -> ()),
+	SetLoadbgFile: ((arg1: string) -> ()) & ((arg1: string, arg2: string) -> ()) & ((item_no: any, arg2: any, name: string) -> ()) & ((arg1: string, arg2: string, arg3: string, arg4: string) -> ()) & ((arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string) -> ()) & ((arg1: any, arg2: s32, arg3: s32, arg4: s32, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string, arg10: string) -> ()),
 	SetLoadbgFile_1: (arg1: string) -> (),
 	SetLoadbgFile_2: (arg1: string, arg2: string) -> (),
-	SetLoadbgFile_3: (item_no: s32, arg2: s32, name: string) -> (),
+	SetLoadbgFile_3: (item_no: any, arg2: any, name: string) -> (),
 	SetLoadbgFile_4: (arg1: string, arg2: string, arg3: string, arg4: string) -> (),
 	SetLoadbgFile_9: (arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string) -> (),
 	SetLoadbgFile_10: (arg1: any, arg2: s32, arg3: s32, arg4: s32, arg5: string, arg6: string, arg7: string, arg8: string, arg9: string, arg10: string) -> (),
@@ -314,8 +314,8 @@ declare event: {
 	GetMonsterTalkData_2: () -> (s32?, s32?),
 	GetMonsterTalkData_3: () -> (s32?, s32?, s32?),
 	--- Sets whether a function point is enabled, found by name in a map or in its parts.
-	FuncPointShow: (arg1: string, arg2: string, arg3: s32) -> (),
-	FuncPointShow_3: (arg1: string, arg2: string, arg3: s32) -> (),
+	FuncPointShow: (arg1: any, arg2: string, arg3: s32) -> (),
+	FuncPointShow_3: (arg1: any, arg2: string, arg3: s32) -> (),
 	--- Pushes the current map number onto the stack.
 	GetNowMapNo: () -> s32?,
 	GetNowMapNo_1: () -> s32?,
@@ -419,7 +419,7 @@ declare event: {
 	ActchrSoundInfoCopy_1: (arg1: s32) -> (),
 	--- Makes a message window from a message number or a string on the stack, optionally giving its character count.
 	MesMake: (arg1: s32, arg2: any) -> s32?,
-	MesMake_2: (arg1: s32, arg2: string) -> (),
+	MesMake_2: (arg1: s32, arg2: any) -> (),
 	MesMake_3: (arg1: s32, arg2: any) -> s32?,
 	--- Closes a message window and resets its state.
 	MesClose: (arg1: s32) -> (),
@@ -1208,9 +1208,9 @@ declare event: {
 	SndInitPort: (arg1: s32) -> (),
 	SndInitPort_1: (arg1: s32) -> (),
 	--- Loads a sound effect from a default event SE file or a named file into a sound port and records its sound ID.
-	SndLoadSound: ((arg1: s32) -> s32?) & ((arg1: s32, arg2: string) -> s32?),
-	SndLoadSound_2: (arg1: s32) -> s32?,
-	SndLoadSound_3: (arg1: s32, arg2: string) -> s32?,
+	SndLoadSound: ((arg1: any) -> s32?) & ((arg1: s32, arg2: any) -> s32?),
+	SndLoadSound_2: (arg1: any) -> s32?,
+	SndLoadSound_3: (arg1: s32, arg2: any) -> s32?,
 	--- Plays a sound effect on a voice, with optional volume and pan.
 	SndSePlay: ((se_id: s32, voice: s32) -> ()) & ((se_id: s32, voice: s32, volume: s32) -> ()),
 	SndSePlay_2: (se_id: s32, voice: s32) -> (),
@@ -1432,10 +1432,10 @@ declare event: {
 	EohSyncChara: (slot: s32, chara_no: s32) -> (),
 	EohSyncChara_2: (slot: s32, chara_no: s32) -> (),
 	--- Attaches an event object handle to a map part or to a piece of one.
-	EohSyncObj: ((arg1: s32, arg2: string) -> ()) & ((arg1: s32, arg2: string, arg3: string) -> ()) & ((arg1: s32, arg2: string, arg3: string, arg4: string) -> ()),
-	EohSyncObj_2: (arg1: s32, arg2: string) -> (),
-	EohSyncObj_3: (arg1: s32, arg2: string, arg3: string) -> (),
-	EohSyncObj_4: (arg1: s32, arg2: string, arg3: string, arg4: string) -> (),
+	EohSyncObj: ((arg1: s32, arg2: any) -> ()) & ((arg1: s32, arg2: any, arg3: string) -> ()) & ((arg1: s32, arg2: any, arg3: string, arg4: string) -> ()),
+	EohSyncObj_2: (arg1: s32, arg2: any) -> (),
+	EohSyncObj_3: (arg1: s32, arg2: any, arg3: string) -> (),
+	EohSyncObj_4: (arg1: s32, arg2: any, arg3: string, arg4: string) -> (),
 	--- Sets an event object position from direct arguments or an argument list.
 	EohSetPos: (slot: s32, pos_x: f32, pos_y: f32, pos_z: f32) -> (),
 	EohSetPos_4: (slot: s32, pos_x: f32, pos_y: f32, pos_z: f32) -> (),
@@ -1526,8 +1526,8 @@ declare event: {
 	EohSetFrameAlpha: (no: s32, name: string, alpha: f32) -> (),
 	EohSetFrameAlpha_3: (no: s32, name: string, alpha: f32) -> (),
 	--- Attaches an event object handle to a function point of a map or of a map part.
-	EohSyncFuncp: (arg1: s32, arg2: s32, arg3: string) -> (),
-	EohSyncFuncp_3: (arg1: s32, arg2: s32, arg3: string) -> (),
+	EohSyncFuncp: (arg1: s32, arg2: any, arg3: string) -> (),
+	EohSyncFuncp_3: (arg1: s32, arg2: any, arg3: string) -> (),
 	--- Sets an event object footstep effect identifier and returns the update status.
 	EohSetFootSeId: (slot: s32, arg2: s32) -> (),
 	EohSetFootSeId_2: (slot: s32, arg2: s32) -> (),
@@ -1976,8 +1976,8 @@ declare event: {
 	EsmClear: () -> (),
 	EsmClear_0: () -> (),
 	--- Loads a base effect script by number or name.
-	EsmLoadBase: (arg1: s32) -> (),
-	EsmLoadBase_1: (arg1: s32) -> (),
+	EsmLoadBase: (arg1: any) -> (),
+	EsmLoadBase_1: (arg1: any) -> (),
 	--- Creates an effect script, optionally in a group.
 	EsmCreate: ((name: string) -> ()) & ((name: string, group: s32) -> s32?),
 	EsmCreate_1: (name: string) -> (),
