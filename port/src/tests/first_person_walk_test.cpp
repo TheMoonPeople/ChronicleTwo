@@ -670,8 +670,11 @@ TEST(TownSprint, HoldingR2SpeedsUpWalkingAndATapStillEntersEyeView) {
     InputResetBindings();
     CPadControl pad{};
     pad.analog[PAD_ANALOG_LEFT_Y_2].value = 1;
+    bool last = false;
     auto tick = [&](bool held, bool pressed) {
+        GamePad__2.previous_pad[0].button = last ? PAD_R2 : 0;
         GamePad__2.pad[0].button = held ? PAD_R2 : 0;
+        last = held;
         pad.btn[PAD_BTN_R2].value = pressed;
         const float x = chara.position[0];
         const float z = chara.position[2];
@@ -690,6 +693,11 @@ TEST(TownSprint, HoldingR2SpeedsUpWalkingAndATapStillEntersEyeView) {
         tick(true, false);
     }
     EXPECT_NEAR(tick(false, false), walk, 0.01f * walk);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);
+    // A press on the frame a menu opens, released while EditControl is not called, is no tap.
+    tick(true, true);
+    last = false;
+    tick(false, false);
     EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);
     tick(true, true);
     EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);

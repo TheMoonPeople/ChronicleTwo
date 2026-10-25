@@ -97,7 +97,9 @@ bool TownSprintInput(CScene *scene, CPadControl *pad) {
         return true;
     }
     g_r2_tracking = false;
-    if (g_r2_fields < kSprintTapFields) {
+    // Only a release on this frame is a tap. Control suspended since the press (a menu opened on the
+    // same frame) leaves a stale press, which is dropped.
+    if (GamePad__2.Up(PAD_R2) && g_r2_fields < kSprintTapFields) {
         pad->btn[PAD_BTN_R2].value = 1;
     }
     return false;
