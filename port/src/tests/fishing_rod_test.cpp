@@ -133,6 +133,20 @@ TEST_F(FishingRod, TheLureRodTakesOnlyLures) {
     EXPECT_EQ(user_->GetUsedDataPtr(0)->item_no, kWorm);
 }
 
+TEST_F(FishingRod, AnEmptyHookIsLoadedAgainFromWhatIsLeftOnTheRod) {
+    // After a catch the hook is empty and the rod still holds the rest of the stack, with none left in the bag.
+    CGameDataUsed &mimi = Bag(0, kMinnow, 5);
+    Bait().CopyGameData(&mimi);
+    mimi.Init();
+    const FishingRebait result = FishingRodRebait(user_, kMinnow, Lookup);
+    EXPECT_EQ(result, FISHING_REBAIT_NONE);
+    EXPECT_TRUE(FishingRodReloads(result, true, Bait().GetNum()));
+    // A loaded hook only reloads for a new bait; an empty rod has nothing to load.
+    EXPECT_FALSE(FishingRodReloads(FISHING_REBAIT_TOP_UP, false, 5));
+    EXPECT_FALSE(FishingRodReloads(FISHING_REBAIT_NONE, true, 0));
+    EXPECT_TRUE(FishingRodReloads(FISHING_REBAIT_CHANGED, false, 5));
+}
+
 TEST_F(FishingRod, TheFallbackWeaponIsMaxsFirstMeleeWeaponOnTheBoard) {
     EXPECT_EQ(FishingRodFallbackWeapon(user_, Lookup), nullptr);
     Bag(2, kStone, 1);

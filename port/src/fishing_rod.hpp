@@ -21,5 +21,9 @@ enum FishingRebait {
 // else the first item that fits the rod (bait on the Fishing Rod, a lure on the Lure Rod), as the menu puts it on.
 FishingRebait FishingRodRebait(CUserDataManager *user, int last_bait, FishingItemLookup lookup);
 
+// Whether L3 has fishing load the rod's bait again: a new bait went on, or the hook is empty while the rod still holds
+// some. A catch or a lost bait empties the hook but takes only one from the stack on the rod.
+bool FishingRodReloads(FishingRebait result, bool hook_empty, int bait_left);
+
 // The first of Max's melee weapons on the item board, for putting the rod away when the weapon it replaced is unknown.
 CGameDataUsed *FishingRodFallbackWeapon(CUserDataManager *user, FishingItemLookup lookup);

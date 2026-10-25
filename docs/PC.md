@@ -853,7 +853,9 @@ skip the menu:
 
 - **L3** fills the rod from the item board. Bait on the rod is topped up from the same kind, up to its stack
   limit. An empty rod takes the kind last used on it, else the first item that fits: bait on the Fishing Rod,
-  a lure on the Lure Rod. A new bait restarts fishing with it, as setting it from the menu does.
+  a lure on the Lure Rod. A new bait restarts fishing with it, as setting it from the menu does. A catch or
+  a lost bait empties the hook but takes only one from the stack on the rod, so L3 on an empty hook also
+  restarts fishing with what is left on the rod.
 - **R3** puts Max's weapon back in place of the rod: the one the rod replaced (the game keeps it as
   `FishGamePreEquip`), else, when that is unknown, his first melee weapon on the item board. In a dungeon Max
   is loaded again holding it, as a quick loadout change does, and fishing ends as the menu closes. In a town,

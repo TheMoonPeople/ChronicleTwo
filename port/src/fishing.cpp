@@ -193,6 +193,10 @@ FishingRebait FishingRodRebait(CUserDataManager *user, int last_bait, FishingIte
     return FISHING_REBAIT_CHANGED;
 }
 
+bool FishingRodReloads(FishingRebait result, bool hook_empty, int bait_left) {
+    return result == FISHING_REBAIT_CHANGED || (hook_empty && bait_left > 0);
+}
+
 CGameDataUsed *FishingRodFallbackWeapon(CUserDataManager *user, FishingItemLookup lookup) {
     CGameDataUsed *items = user->GetUsedDataPtr(0);
     const int      count = user->GetItemBoardMaxNum(ITEM_BOARD_MAIN);
@@ -237,12 +241,15 @@ PORT_OVERRIDE int sgLoopFishing(SubGameInfo *info) {
     // Only while Max walks with the rod, the state in which the menu may open; casting and a fish on the line keep L3/R3.
     if (fgLoopMode == 1 && CharaMode == FISHING_CHARA_MODE_CONTROL && !GamePad__2.key_lock) {
         if (GamePad__2.Down(PAD_L3)) {
+            const bool          hook_empty = LocalEsaNo < 0;
             const FishingRebait result = FishingRodRebait(user, LastBait(rod), GetCommonItemData);
-            if (result == FISHING_REBAIT_CHANGED) {
+            CGameDataUsed      *bait = user->GetActiveEsa(rod);
+            const bool          reload = FishingRodReloads(result, hook_empty, bait != nullptr ? bait->GetNum() : 0);
+            if (reload) {
                 info->esa_no = user->GetFishBait();
                 sgRestartFishing(info);
             }
-            PlaySe(result == FISHING_REBAIT_NONE ? SYSTEM_SE_CANCEL : SYSTEM_SE_DECIDE);
+            PlaySe(result == FISHING_REBAIT_NONE && !reload ? SYSTEM_SE_CANCEL : SYSTEM_SE_DECIDE);
         } else if (GamePad__2.Down(PAD_R3)) {
             if (!PutRodAway(user)) {
                 PlaySe(SYSTEM_SE_CANCEL);
