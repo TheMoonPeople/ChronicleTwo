@@ -13,8 +13,16 @@
 #include <vector>
 
 #include "fishing.hpp"
+#include "fishing_rod.hpp"
+#include "gamedata.hpp"
+#include "gamepad.hpp"
+#include "mainloop.hpp"
 #include "mg_memory.hpp"
+#include "quick_loadout.hpp"
+#include "snd_mngr.hpp"
 #include "stubs/fishing.hpp"
+#include "subgame.hpp"
+#include "userdata.hpp"
 
 namespace {
 
@@ -133,4 +141,123 @@ PORT_OVERRIDE void LoadFishPlaceData(char *script, int /*size*/, mgCMemory *stac
         }
         ++filled;
     }
+}
+
+// L3 and R3 while Max walks with a rod out (port/src/fishing_rod.hpp).
+
+FishingRebait FishingRodRebait(CUserDataManager *user, int last_bait, FishingItemLookup lookup) {
+    const int      rod = user->GetFishingRodNo();
+    CGameDataUsed *bait = user->GetActiveEsa(rod);
+    if (bait == nullptr) {
+        return FISHING_REBAIT_NONE;
+    }
+    auto fits = [&](CGameDataUsed *item) {
+        CDataCommon *common = item->item_no > 0 ? lookup(item->item_no) : nullptr;
+        return common != nullptr &&
+               (rod == ITEM_ID_LURE_ROD ? common->type == ITEM_DATA_LURE : (common->attribute & ITEM_ATTRIBUTE_BAIT) != 0);
+    };
+    CGameDataUsed *items = user->GetUsedDataPtr(0);
+    const int      count = user->GetItemBoardMaxNum(ITEM_BOARD_MAIN);
+    auto           find = [&](int item_no) -> CGameDataUsed * {
+        for (int i = 0; i < count; ++i) {
+            if (items[i].item_no == item_no && fits(&items[i])) {
+                return &items[i];
+            }
+        }
+        return nullptr;
+    };
+    if (bait->GetNum() > 0) {
+        CGameDataUsed *more = find(bait->item_no);
+        if (more == nullptr) {
+            return FISHING_REBAIT_NONE;
+        }
+        const int before = bait->GetNum();
+        const int moved = bait->AddNum(more->GetNum(), 0) - before;
+        if (moved <= 0) {
+            return FISHING_REBAIT_NONE;
+        }
+        more->AddNum(-moved, 1);
+        return FISHING_REBAIT_TOP_UP;
+    }
+    CGameDataUsed *next = last_bait > 0 ? find(last_bait) : nullptr;
+    for (int i = 0; next == nullptr && i < count; ++i) {
+        if (fits(&items[i])) {
+            next = &items[i];
+        }
+    }
+    if (next == nullptr) {
+        return FISHING_REBAIT_NONE;
+    }
+    bait->CopyGameData(next);
+    next->Init();
+    return FISHING_REBAIT_CHANGED;
+}
+
+CGameDataUsed *FishingRodFallbackWeapon(CUserDataManager *user, FishingItemLookup lookup) {
+    CGameDataUsed *items = user->GetUsedDataPtr(0);
+    const int      count = user->GetItemBoardMaxNum(ITEM_BOARD_MAIN);
+    for (int i = 0; i < count; ++i) {
+        CDataCommon *common = items[i].item_no > 0 ? lookup(items[i].item_no) : nullptr;
+        if (common != nullptr && common->type == ITEM_DATA_MAX_MELEE) {
+            return &items[i];
+        }
+    }
+    return nullptr;
+}
+
+void ExitFishing(CScene *scene);
+
+namespace {
+
+int last_bait[2]; // the bait last seen on each rod: the Fishing Rod, the Lure Rod
+
+int &LastBait(int rod) { return last_bait[rod == ITEM_ID_LURE_ROD ? 1 : 0]; }
+
+// Puts Max's weapon back in place of the rod: the one it replaced, else his first melee weapon on the item board.
+bool PutRodAway(CUserDataManager *user) {
+    ReEquipFishingGameWeapon();
+    if (!user->chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_MELEE].IsFishingRod()) {
+        return true;
+    }
+    CGameDataUsed *weapon = FishingRodFallbackWeapon(user, GetCommonItemData);
+    return weapon != nullptr && user->SetChrEquip(USER_CHARA_MAX, weapon) &&
+           !user->chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_MELEE].IsFishingRod();
+}
+
+void PlaySe(int se) { sndSePlay(SystemSND_ID, se, 0); }
+
+} // namespace
+
+PORT_OVERRIDE int sgLoopFishing(SubGameInfo *info) {
+    CUserDataManager *user = GetUserDataMan();
+    const int         rod = user->GetFishingRodNo();
+    if (CGameDataUsed *bait = user->GetActiveEsa(rod); bait != nullptr && bait->item_no > 0) {
+        LastBait(rod) = bait->item_no;
+    }
+    // Only while Max walks with the rod, the state in which the menu may open; casting and a fish on the line keep L3/R3.
+    if (fgLoopMode == 1 && CharaMode == FISHING_CHARA_MODE_CONTROL && !GamePad__2.key_lock) {
+        if (GamePad__2.Down(PAD_L3)) {
+            const FishingRebait result = FishingRodRebait(user, LastBait(rod), GetCommonItemData);
+            if (result == FISHING_REBAIT_CHANGED) {
+                info->esa_no = user->GetFishBait();
+                sgRestartFishing(info);
+            }
+            PlaySe(result == FISHING_REBAIT_NONE ? SYSTEM_SE_CANCEL : SYSTEM_SE_DECIDE);
+        } else if (GamePad__2.Down(PAD_R3)) {
+            if (!PutRodAway(user)) {
+                PlaySe(SYSTEM_SE_CANCEL);
+            } else if (GetNowLoopNo() == LOOP_DUNGEON) {
+                // Max is loaded again holding the weapon, as quick loadout changes equipment; the menu's close ends
+                // fishing, since the rod is no longer in hand.
+                PlaySe(SYSTEM_SE_EQUIP);
+                PortQuickLoadoutReloadEquipment(USER_CHARA_MAX);
+                return 0;
+            } else {
+                // In town Max carries no weapon: ending the game puts the rod out of his hands.
+                PlaySe(SYSTEM_SE_EQUIP);
+                ExitFishing(info->scene);
+            }
+        }
+    }
+    return PortRetailLoopFishing(info);
 }

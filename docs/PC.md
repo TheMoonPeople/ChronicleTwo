@@ -846,6 +846,26 @@ still work beside these.
 
 With **Auto-use event items** (`game.auto_use_event_item`, PC SETTINGS > Game), an event that asks for exactly one item the bag holds is handed it without opening its item picker, and uses it up when the event asks; requests for several items and the fish tournament's picker are unchanged.
 
+### Fishing rod shortcuts
+
+While Max walks with a fishing rod out (the fishing game's control mode, where the menu may open), L3 and R3
+skip the menu:
+
+- **L3** fills the rod from the item board. Bait on the rod is topped up from the same kind, up to its stack
+  limit. An empty rod takes the kind last used on it, else the first item that fits: bait on the Fishing Rod,
+  a lure on the Lure Rod. A new bait restarts fishing with it, as setting it from the menu does.
+- **R3** puts Max's weapon back in place of the rod: the one the rod replaced (the game keeps it as
+  `FishGamePreEquip`), else, when that is unknown, his first melee weapon on the item board. In a dungeon Max
+  is loaded again holding it, as a quick loadout change does, and fishing ends as the menu closes. In a town,
+  where Max carries no weapon, the fishing game ends at once.
+
+Casting, a float in the water and a fish on the line keep L3 and R3; a dungeon's quick change (L3, R3) is
+not reached while fishing runs, and a town's is off. A refused press plays the cancel sound.
+
+`sgLoopFishing` (`port/src/fishing.cpp`) handles the presses before the retail step, preserved as the
+`PortRetailLoopFishing` bridge; `FishingRodRebait` and `FishingRodFallbackWeapon` (`port/src/fishing_rod.hpp`)
+take the item lookup as an argument, so `FishingRod.*` covers them without the retail item table.
+
 ### Keyboard menu controls
 
 With the default bindings, Tab sends Triangle, Enter sends Start, E sends Square,

@@ -24,6 +24,10 @@ void PortQuickLoadoutReset();
 bool PortQuickLoadoutReloading();
 void PortQuickLoadoutReloadDone();
 
+// Has the character in play loaded again with the equipment it now has, as a slot's press does: the quick change's
+// effect plays on it, and the dungeon is in that load once this returns.
+void PortQuickLoadoutReloadEquipment(int chara);
+
 // Whose slots an item can go in and which row: 0 for Square and Triangle, 1 for Cross and Circle.
 bool PortQuickLoadoutTarget(const CGameDataUsed *item, int *chara, int *row);
 

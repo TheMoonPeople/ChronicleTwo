@@ -58,6 +58,12 @@ class RetailBridgeTests(unittest.TestCase):
             with self.assertRaises(self.override.Error):
                 unit_copy.retail_bridges(self.override, source, True)
 
+    def test_fishing_step_keeps_retail_body_under_its_bridge(self):
+        source = Path(__file__).resolve().parents[2] / "ps2/src/fishing.cpp"
+        mirror = unit_copy.retail_bridges(self.override, source, True)
+        self.assertEqual(mirror.count("int PortRetailLoopFishing(SubGameInfo *info) {"), 1)
+        self.assertNotIn("int sgLoopFishing(", mirror)
+
     def test_town_clear_keeps_retail_body_under_its_bridge(self):
         source = Path(__file__).resolve().parents[2] / "ps2/src/editmap.cpp"
         mirror = unit_copy.retail_bridges(self.override, source, True)
