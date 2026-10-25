@@ -9,6 +9,7 @@
 #include "editloop.hpp"
 #include "first_person_walk.hpp"
 #include "mainloop.hpp"
+#include "mglib.hpp"
 #include "mglib_port.hpp"
 #include "photo.hpp"
 #include "platform/config.hpp"
@@ -55,13 +56,72 @@ void TownMouseEyeAfterControl(CScene *scene, CPadControl *pad) {
     }
 }
 
+void PortRetailEditMoveChara(CScene *, sceVu0FVECTOR, EditMoveCharaInfo *) asm("EditCtrl_MoveChara");
+
+namespace {
+
+// Town sprint: holding R2 while walking speeds up the retail walk, and a short tap still enters the
+// first-person view. The tap is decided on release, so first-person entry waits for it.
+constexpr float kSprintSpeed = 1.8f;    // ground speed while sprinting
+constexpr float kSprintStep = 1.4f;     // motion speed, so the run keeps up with the ground
+constexpr float kSprintTapFields = 15;  // a release sooner than this (0.25 s) is a tap
+
+bool  g_sprint_move = false;  // set around the retail CharaControl step while sprinting
+bool  g_r2_tracking = false;  // an R2 press in walking view is being timed
+float g_r2_fields = 0;
+
+bool SprintAllowed(CScene *scene, CPadControl *pad) {
+    return scene && pad && GetNowLoopNo() == LOOP_EDIT && !IsEditMode() && PortEditViewMode == EDIT_VIEW_MODE_WALK &&
+           PortEditLadderMode == EDIT_LADDER_MODE_NONE && !scene->event_run && !GamePad__2.key_lock &&
+           !SubGameRunning();
+}
+
+// Takes R2 from the retail eye-view toggle while walking: a press starts timing, holding sprints, and
+// a quick release hands the retail toggle its press. Returns whether this frame sprints.
+bool TownSprintInput(CScene *scene, CPadControl *pad) {
+    if (!SprintAllowed(scene, pad)) {
+        g_r2_tracking = false;
+        return false;
+    }
+    const bool held = GamePad__2.On(PAD_R2) != 0;
+    if (pad->btn[PAD_BTN_R2].value != 0) {
+        g_r2_tracking = true;
+        g_r2_fields = 0;
+    }
+    pad->btn[PAD_BTN_R2].value = 0;
+    if (!g_r2_tracking) {
+        return false;
+    }
+    if (held) {
+        g_r2_fields += mgGetNowFrameRate();
+        return true;
+    }
+    g_r2_tracking = false;
+    if (g_r2_fields < kSprintTapFields) {
+        pad->btn[PAD_BTN_R2].value = 1;
+    }
+    return false;
+}
+
+} // namespace
+
+PORT_OVERRIDE void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {
+    if (g_sprint_move) {
+        velocity[0] *= kSprintSpeed;
+        velocity[2] *= kSprintSpeed;
+    }
+    PortRetailEditMoveChara(scene, velocity, info);
+}
+
 PORT_OVERRIDE int EditControl(CScene *scene, CPadControl *pad) {
     // Retail movement, ladder, eye entry/exit and photo behaviour run first; native eye look is
     // granted only once they have settled this frame's owner.
     if (PortEditLadderMode != EDIT_LADDER_MODE_NONE) {
+        g_r2_tracking = false;
         PortEditLadderControl(scene, pad);
     } else {
         const bool eye_owned = TownFirstPersonOwns(scene, pad);
+        const bool sprint = TownSprintInput(scene, pad);
         if (!TownFirstPersonWalk(scene, pad)) {
             auto         *chara = eye_owned ? scene->GetCharacter(scene->player_chara) : nullptr;
             sceVu0FVECTOR before;
@@ -69,7 +129,21 @@ PORT_OVERRIDE int EditControl(CScene *scene, CPadControl *pad) {
             if (chara) {
                 chara->GetPosition(before);
             }
+            auto         *player = sprint ? scene->GetCharacter(scene->player_chara) : nullptr;
+            sceVu0FVECTOR start;
+            if (player) {
+                player->GetPosition(start);
+            }
+            g_sprint_move = sprint;
             PortEditCharaControl(scene, pad);
+            g_sprint_move = false;
+            if (player) {
+                sceVu0FVECTOR end;
+                player->GetPosition(end);
+                if (end[0] != start[0] || end[2] != start[2]) {
+                    player->SetStep(player->GetStep() * kSprintStep);
+                }
+            }
             if (chara) {
                 chara->GetPosition(after);
                 FirstPersonShiftSavedEye(PortTownSavedEye, before, after);

@@ -40,7 +40,10 @@ def load_port_override(path: Path):
 # Preserve these retail routines under native link-name bridges. Only their names
 # change; all calls in the original unit still reach the native public seam.
 RETAIL_BRIDGES = {
-    "editctrl.cpp": [("ResetViewMode(CScene*)", "ResetViewMode", "PortRetailResetViewMode")],
+    "editctrl.cpp": [
+        ("ResetViewMode(CScene*)", "ResetViewMode", "PortRetailResetViewMode"),
+        ("EditMoveChara(CScene*,sceVu0FVECTOR,EditMoveCharaInfo*)", "EditMoveChara", "PortRetailEditMoveChara"),
+    ],
     "editmap.cpp": [("CEditMap::ClearAllParts()", "ClearAllParts", "PortRetailClearAllParts")],
     "editmode.cpp": [("EditMode(CScene*)", "EditMode", "PortRetailEditMode")],
     "editloop.cpp": [

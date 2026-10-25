@@ -31,14 +31,20 @@ class RetailBridgeTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         self.override = unit_copy.load_port_override(root / "tools/kazarov/scripts/build/port_override.py")
 
+    # editctrl.cpp's other bridged routine, so fixtures of that unit hold every body it bridges.
+    MOVE = "void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {}"
+
     def test_bridge_preserves_body_and_public_calls(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "editctrl.cpp"
             body = "void ResetViewMode(CScene *scene) { ResetViewMode(scene); scene->Reset(); }"
-            source.write_text(body + "\nvoid Caller(CScene *scene) { ResetViewMode(scene); }")
+            source.write_text(body + "\nvoid Caller(CScene *scene) { ResetViewMode(scene); }\n" + self.MOVE)
             mirror = unit_copy.retail_bridges(self.override, source, True)
-            self.assertEqual(mirror, f'#line 1 "{source.resolve().as_posix()}"\n' +
-                             body.replace("void ResetViewMode(", "void PortRetailResetViewMode(", 1))
+            location = source.resolve().as_posix()
+            self.assertEqual(mirror, f'#line 1 "{location}"\n' +
+                             body.replace("void ResetViewMode(", "void PortRetailResetViewMode(", 1) +
+                             f'\n#line 3 "{location}"\n' +
+                             self.MOVE.replace("void EditMoveChara(", "void PortRetailEditMoveChara(", 1))
             stripped = self.override.strip_unit(source, {"ResetViewMode(CScene*)"}, {}, (), True)
             self.assertIn("void Caller(CScene *scene) { ResetViewMode(scene); }", stripped)
             self.assertNotIn(body, stripped)
@@ -46,10 +52,19 @@ class RetailBridgeTests(unittest.TestCase):
     def test_bridge_maps_to_the_retail_definition_line(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "editctrl.cpp"
-            source.write_text("// retail declarations\n\n\nvoid ResetViewMode(CScene *scene) {\n    scene->Reset();\n}")
+            source.write_text("// retail declarations\n\n\nvoid ResetViewMode(CScene *scene) {\n    scene->Reset();\n}\n" +
+                              self.MOVE)
             mirror = unit_copy.retail_bridges(self.override, source, True)
             self.assertTrue(mirror.startswith(f'#line 4 "{source.resolve().as_posix()}"\n'))
             self.assertIn("void PortRetailResetViewMode(CScene *scene) {\n    scene->Reset();\n}", mirror.replace("\r\n", "\n"))
+            self.assertIn(f'#line 7 "{source.resolve().as_posix()}"\nvoid PortRetailEditMoveChara(', mirror)
+
+    def test_town_move_keeps_retail_body_under_its_bridge(self):
+        source = Path(__file__).resolve().parents[2] / "ps2/src/editctrl.cpp"
+        mirror = unit_copy.retail_bridges(self.override, source, True)
+        self.assertEqual(mirror.count("void PortRetailEditMoveChara(CScene *scene, sceVu0FVECTOR velocity, "
+                                      "EditMoveCharaInfo *info) {"), 1)
+        self.assertNotIn("void EditMoveChara(", mirror)
 
     def test_missing_retail_body_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:

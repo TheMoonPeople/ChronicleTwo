@@ -1023,6 +1023,19 @@ and exercises yaw, vertical motion and a parts-menu interruption; its comments
 give capture frames. `GeoramaMouse.*` covers the stick parity, the distance
 limits and the ownership checks.
 
+### Town sprint
+
+Holding R2 (R by default) while walking in a town sprints: the retail walk moves 1.8 times as far
+each step and its animation plays 1.4 times as fast, only while the player actually moves. A tap
+shorter than a quarter of a second still enters the first-person view, on release instead of on press.
+Ladders, events, Georama, subgames, first-person and photo view keep their retail R2 handling.
+
+`EditControl` (`port/src/editctrl.cpp`) takes R2 from the retail eye-view toggle while walking and
+times the press. The retail walk step runs unchanged; the `EditMoveChara` seam scales its ground
+velocity before delegating to the retail routine, preserved as the `PortRetailEditMoveChara` bridge,
+so collision sees the sprint step. Other callers of `EditMoveChara` (the ridepod, fishing) are unaffected.
+`TownSprint.*` covers the speed, the hold and the tap.
+
 ### First-person walking
 
 Keyboard movement in normal first-person view (R by default) is always enabled:
