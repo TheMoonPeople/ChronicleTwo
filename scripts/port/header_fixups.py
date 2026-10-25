@@ -47,6 +47,8 @@ FIXUPS = [
      "    void PortRetailDraw();"),
     # The player's effects are tagged for the playerless pause picture around retail's draws, which stay under these names.
     ("actionchara.hpp", "    virtual void DrawEffect();", "    virtual void DrawEffect();\n    void PortRetailDrawEffect();"),
+    # Dungeon sprint scales the walk set by retail's step on foot, which stays under this name.
+    ("actionchara.hpp", "    int HumanMoveIF();", "    int HumanMoveIF();\n    int PortRetailHumanMoveIF();"),
     # The recovery effect's sprite incarnations end with the effect, or with its manager, around retail's delete and
     # reset, which stay under these names.
     ("effscript.hpp", "    void Initialize(mgCMemory *memory, int texb_start, int texb_num);",
