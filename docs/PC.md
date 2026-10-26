@@ -693,6 +693,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
+| `game.fishing_rod_shortcuts` | bool | false | | with a fishing rod out, L3 fills its bait and R3 puts the weapon back; see "Fishing rod shortcuts" |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true (false on iOS) | | interpolate display frames between ticks |
 | `video.render_thread` | string | async | off, lockstep, async | `async` (default) renders and presents display frames on a separate render thread while the game ticks, and follows the mouse between ticks so the menu pointer and the fixed-camera look move at the display rate; `off` runs everything on the game thread; `lockstep` runs device work on a worker while the caller waits; `DC2_RENDER_THREAD` overrides it; headless and screenshot runs always use `off`; applies at startup |
@@ -845,6 +846,31 @@ still work beside these.
 ### Auto-use event items
 
 With **Auto-use event items** (`game.auto_use_event_item`, PC SETTINGS > Game), an event that asks for exactly one item the bag holds is handed it without opening its item picker, and uses it up when the event asks; requests for several items and the fish tournament's picker are unchanged.
+
+### Fishing rod shortcuts
+
+With **Fishing rod shortcuts** (`game.fishing_rod_shortcuts`, PC SETTINGS > Game, off by default), while Max
+walks with a fishing rod out (the fishing game's control mode, where the menu may open), L3 and R3 skip the
+menu:
+
+- **L3** fills the rod from the item board. Bait on the rod is topped up from the same kind, up to its stack
+  limit. An empty rod takes the kind last used on it, else the first item that fits: bait on the Fishing Rod,
+  a lure on the Lure Rod. A new bait restarts fishing with it, as setting it from the menu does. A catch or
+  a lost bait empties the hook but takes only one from the stack on the rod, so L3 on an empty hook also
+  restarts fishing with what is left on the rod.
+- **R3** puts Max's weapon back in place of the rod: the one the rod replaced (the game keeps it as
+  `FishGamePreEquip`), else, when that is unknown, his first melee weapon on the item board. In a dungeon fishing
+  ends first, then Max is loaded again holding it, as a quick loadout change does; the fishing game's exit
+  drops every motion set but the first from the player in the scene, so it must run on the Max with the rod
+  and not on the one loaded afresh. In a town,
+  where Max carries no weapon, the fishing game ends at once.
+
+Casting, a float in the water and a fish on the line keep L3 and R3; a dungeon's quick change (L3, R3) is
+not reached while fishing runs, and a town's is off. A refused press plays the cancel sound.
+
+`sgLoopFishing` (`port/src/fishing.cpp`) handles the presses before the retail step, preserved as the
+`PortRetailLoopFishing` bridge; `FishingRodRebait` and `FishingRodFallbackWeapon` (`port/src/fishing_rod.hpp`)
+take the item lookup as an argument, so `FishingRod.*` covers them without the retail item table.
 
 ### Keyboard menu controls
 

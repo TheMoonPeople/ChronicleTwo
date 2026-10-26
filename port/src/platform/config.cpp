@@ -272,6 +272,9 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "game.auto_use_event_item") {
         return ReadBool(value, config.auto_use_event_item);
     }
+    if (name == "game.fishing_rod_shortcuts") {
+        return ReadBool(value, config.fishing_rod_shortcuts);
+    }
     if (name == "video.present_mode") {
         return ReadEnum(value, kPresentModeNames, s.present_mode);
     }
@@ -545,6 +548,7 @@ std::string ConfigSerialize(const Config &config) {
     root["game"]["auto_use_event_item"] = config.auto_use_event_item;
     root["game"]["floor_info_monsters"] = config.floor_info_monsters;
     root["game"]["more_monsters"] = config.more_monsters;
+    root["game"]["fishing_rod_shortcuts"] = config.fishing_rod_shortcuts;
     root["game"]["transformation_stats"] = config.transformation_stats;
     root["game"]["transformation_exp"] = config.transformation_exp;
     root["game"]["shared_badge_exp"] = config.shared_badge_exp;

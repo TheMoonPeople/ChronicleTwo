@@ -335,6 +335,13 @@ bool Equip(int slot) {
         return false;
     }
     PlaySe(SYSTEM_SE_EQUIP);
+    PortQuickLoadoutReloadEquipment(chara);
+    return true;
+}
+
+} // namespace
+
+void PortQuickLoadoutReloadEquipment(int chara) {
     Close();
     fade = 0;
     reloading = true;
@@ -352,8 +359,9 @@ bool Equip(int slot) {
     WarningGage2.warning[1] = false;
     WarningGage2.warning[2] = false;
     LockOnModel.pos[3] = 0.0f;
-    return true;
 }
+
+namespace {
 
 // Stretches the texture's rectangle (u, v, tw, th) over (x, y, w, h).
 void Piece(CPreSprite &sprite, int x, int y, int w, int h, int u, int v, int tw, int th) {

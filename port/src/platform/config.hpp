@@ -56,6 +56,8 @@ struct Config : HostSettings {
     bool floor_info_monsters = false;
     // game.more_monsters: a dungeon floor holds up to 60 monsters instead of 24, and all of them in range show and act.
     bool         more_monsters = false;
+    // game.fishing_rod_shortcuts: with a rod out, L3 fills its bait and R3 puts the weapon back, without the menu.
+    bool         fishing_rod_shortcuts = false;
     bool         transformation_stats = false; /**< Applies faster badge attack growth and Monica's defence when higher. */
     bool         transformation_exp = false;   /**< Doubles absorption earned by the active transformation badge. */
     bool         shared_badge_exp = false;     /**< Shares a quarter of Monica's absorption with other unlocked badges. */
