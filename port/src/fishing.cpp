@@ -18,6 +18,7 @@
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "mg_memory.hpp"
+#include "platform/config.hpp"
 #include "quick_loadout.hpp"
 #include "snd_mngr.hpp"
 #include "stubs/fishing.hpp"
@@ -239,7 +240,8 @@ PORT_OVERRIDE int sgLoopFishing(SubGameInfo *info) {
         LastBait(rod) = bait->item_no;
     }
     // Only while Max walks with the rod, the state in which the menu may open; casting and a fish on the line keep L3/R3.
-    if (fgLoopMode == 1 && CharaMode == FISHING_CHARA_MODE_CONTROL && !GamePad__2.key_lock) {
+    if (ConfigGet().fishing_rod_shortcuts && fgLoopMode == 1 && CharaMode == FISHING_CHARA_MODE_CONTROL &&
+        !GamePad__2.key_lock) {
         if (GamePad__2.Down(PAD_L3)) {
             const bool          hook_empty = LocalEsaNo < 0;
             const FishingRebait result = FishingRodRebait(user, LastBait(rod), GetCommonItemData);

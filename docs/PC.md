@@ -693,6 +693,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
+| `game.fishing_rod_shortcuts` | bool | false | | with a fishing rod out, L3 fills its bait and R3 puts the weapon back; see "Fishing rod shortcuts" |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
 | `video.interpolation` | bool | true (false on iOS) | | interpolate display frames between ticks |
 | `video.render_thread` | string | async | off, lockstep, async | `async` (default) renders and presents display frames on a separate render thread while the game ticks, and follows the mouse between ticks so the menu pointer and the fixed-camera look move at the display rate; `off` runs everything on the game thread; `lockstep` runs device work on a worker while the caller waits; `DC2_RENDER_THREAD` overrides it; headless and screenshot runs always use `off`; applies at startup |
@@ -848,8 +849,9 @@ With **Auto-use event items** (`game.auto_use_event_item`, PC SETTINGS > Game), 
 
 ### Fishing rod shortcuts
 
-While Max walks with a fishing rod out (the fishing game's control mode, where the menu may open), L3 and R3
-skip the menu:
+With **Fishing rod shortcuts** (`game.fishing_rod_shortcuts`, PC SETTINGS > Game, off by default), while Max
+walks with a fishing rod out (the fishing game's control mode, where the menu may open), L3 and R3 skip the
+menu:
 
 - **L3** fills the rod from the item board. Bait on the rod is topped up from the same kind, up to its stack
   limit. An empty rod takes the kind last used on it, else the first item that fits: bait on the Fishing Rod,

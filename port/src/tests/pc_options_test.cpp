@@ -62,6 +62,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "game.transformation_stats",
         "game.transformation_exp",
         "game.shared_badge_exp",
+        "game.fishing_rod_shortcuts",
     };
     std::set<std::string> actual;
     for (const auto &page : options::Pages()) {

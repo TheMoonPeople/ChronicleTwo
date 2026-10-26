@@ -239,6 +239,16 @@ TEST_F(PlatformConfig, AutoUseEventItemDefaultsToOffAndRoundTrips) {
     ASSERT_TRUE(parsed == config);
 }
 
+TEST_F(PlatformConfig, FishingRodShortcutsDefaultToOffAndRoundTrip) {
+    ASSERT_FALSE(Config{}.fishing_rod_shortcuts);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"fishing_rod_shortcuts": 1}})").fishing_rod_shortcuts);
+    Config config;
+    config.fishing_rod_shortcuts = true;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.fishing_rod_shortcuts);
+    ASSERT_TRUE(parsed == config);
+}
+
 TEST_F(PlatformConfig, DebugModeRoundTripsThroughSerialize) {
     Config config;
     config.debug_mode = true;
