@@ -859,8 +859,10 @@ menu:
   a lost bait empties the hook but takes only one from the stack on the rod, so L3 on an empty hook also
   restarts fishing with what is left on the rod.
 - **R3** puts Max's weapon back in place of the rod: the one the rod replaced (the game keeps it as
-  `FishGamePreEquip`), else, when that is unknown, his first melee weapon on the item board. In a dungeon Max
-  is loaded again holding it, as a quick loadout change does, and fishing ends as the menu closes. In a town,
+  `FishGamePreEquip`), else, when that is unknown, his first melee weapon on the item board. In a dungeon fishing
+  ends first, then Max is loaded again holding it, as a quick loadout change does; the fishing game's exit
+  drops every motion set but the first from the player in the scene, so it must run on the Max with the rod
+  and not on the one loaded afresh. In a town,
   where Max carries no weapon, the fishing game ends at once.
 
 Casting, a float in the water and a fish on the line keep L3 and R3; a dungeon's quick change (L3, R3) is

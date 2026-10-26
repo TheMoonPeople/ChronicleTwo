@@ -256,11 +256,14 @@ PORT_OVERRIDE int sgLoopFishing(SubGameInfo *info) {
             if (!PutRodAway(user)) {
                 PlaySe(SYSTEM_SE_CANCEL);
             } else if (GetNowLoopNo() == LOOP_DUNGEON) {
-                // Max is loaded again holding the weapon, as quick loadout changes equipment; the menu's close ends
-                // fishing, since the rod is no longer in hand.
+                // Fishing ends before Max is loaded again holding the weapon, as quick loadout changes equipment. Its
+                // exit drops every motion set but the first from the player in the scene, which must be the Max with
+                // the rod, not the one loaded afresh; the reload's close then finds no fishing game to end.
                 PlaySe(SYSTEM_SE_EQUIP);
+                ExitFishing(info->scene);
+                const int finished = PortRetailLoopFishing(info);
                 PortQuickLoadoutReloadEquipment(USER_CHARA_MAX);
-                return 0;
+                return finished;
             } else {
                 // In town Max carries no weapon: ending the game puts the rod out of his hands.
                 PlaySe(SYSTEM_SE_EQUIP);
