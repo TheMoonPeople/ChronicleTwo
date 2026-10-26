@@ -65,7 +65,8 @@ bool        g_sprint_move = false;  // set around the retail CharaControl step w
 SprintTimer g_sprint_r2;
 
 bool SprintAllowed(CScene *scene, CPadControl *pad) {
-    return scene && pad && GetNowLoopNo() == LOOP_EDIT && !IsEditMode() && PortEditViewMode == EDIT_VIEW_MODE_WALK &&
+    return ConfigGet().sprint && scene && pad && GetNowLoopNo() == LOOP_EDIT && !IsEditMode() &&
+           PortEditViewMode == EDIT_VIEW_MODE_WALK &&
            PortEditLadderMode == EDIT_LADDER_MODE_NONE && !scene->event_run && !GamePad__2.key_lock &&
            !SubGameRunning();
 }

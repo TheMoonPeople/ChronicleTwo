@@ -6,6 +6,7 @@
 #include "gamepad.hpp"
 #include "mglib.hpp"
 #include "sprint.hpp"
+#include "sprint_setting.hpp"
 
 TEST(SprintTimer, HoldSprintsAQuickReleaseTapsAndAStalePressIsDropped) {
     SprintTimer timer;
@@ -53,6 +54,7 @@ struct RestoreDungeonSprint {
 
 TEST(DungeonSprint, R2HoldSprintsOnFootAndOnlyATapReachesRetailFirstPerson) {
     RestoreDungeonSprint restore;
+    SprintSetting        setting(true);
     CActionChara         chara;
     chara.next = nullptr;
     chara.lock_on = 0;
@@ -118,5 +120,15 @@ TEST(DungeonSprint, R2HoldSprintsOnFootAndOnlyATapReachesRetailFirstPerson) {
     DngStatus.eye_view = 1;
     key(true);
     EXPECT_EQ(retail_presses, 1);
+    key(false);
+    // With the setting off, the press reaches retail at once and a hold does not sprint.
+    DngStatus.eye_view = 0;
+    setting.Set(false);
+    retail_presses = 0;
+    key(true);
+    EXPECT_EQ(retail_presses, 1);
+    move(0.5f);
+    EXPECT_FLOAT_EQ(chara.velocity[0], 1);
+    EXPECT_FLOAT_EQ(chara.GetStep(), 0.5f);
     key(false);
 }

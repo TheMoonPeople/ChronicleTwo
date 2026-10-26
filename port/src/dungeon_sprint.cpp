@@ -6,6 +6,7 @@
 #include "dng_main.hpp"
 #include "gamepad.hpp"
 #include "mglib.hpp"
+#include "platform/config.hpp"
 #include "sprint.hpp"
 #include "subgame.hpp"
 
@@ -19,7 +20,7 @@ CActionChara *g_scaled_chara = nullptr;
 float         g_scaled_step = 0;
 
 bool Allowed() {
-    return DngStatus.mode == DNG_STATUS_FIELD && !DngStatus.eye_view && MainChara__2 != nullptr &&
+    return ConfigGet().sprint && DngStatus.mode == DNG_STATUS_FIELD && !DngStatus.eye_view && MainChara__2 != nullptr &&
            !GamePad__2.key_lock && !SubGameRunning();
 }
 

@@ -18,6 +18,7 @@
 #include "photo.hpp"
 #include "platform/input_script.hpp"
 #include "stubs/photo.hpp"
+#include "sprint_setting.hpp"
 #include "userdata.hpp"
 
 extern sceVu0FVECTOR PortDungeonSavedEye asm("DngMain_SavedEye");
@@ -633,6 +634,7 @@ TEST(FirstPersonWalk, TownReleasedWalkFallsLandsAndRestoresFollowOffset) {
 
 TEST(TownSprint, HoldingR2SpeedsUpWalkingAndATapStillEntersEyeView) {
     RestoreFirstPersonState restore;
+    SprintSetting           setting(true);
     const int               old_rate = mgFrameRate;
     mgFrameRate = 2;
     auto        save = std::make_unique<CSaveData>();
@@ -702,6 +704,14 @@ TEST(TownSprint, HoldingR2SpeedsUpWalkingAndATapStillEntersEyeView) {
     tick(true, true);
     EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);
     tick(false, false);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_EYE);
+    // With the setting off, holding R2 walks and its press enters the first-person view at once, as in retail.
+    PortEditViewMode = EDIT_VIEW_MODE_WALK;
+    setting.Set(false);
+    tick(false, false);
+    EXPECT_NEAR(tick(true, false), walk, 0.01f * walk);
+    tick(false, false);
+    tick(true, true);
     EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_EYE);
     PortEditViewMode = old_view;
     DebugInfo.chara_move = old_chara_move;

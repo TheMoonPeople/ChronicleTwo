@@ -647,6 +647,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.quick_loadout_title` | string | bar | bar, plate | the quick loadout panel's title on a bar, or on a plate like the EXP gauge's; see [QUICK_LOADOUT.md](QUICK_LOADOUT.md) |
 | `game.auto_use_event_item` | bool | false | | an event that asks for one item the bag holds is handed it without the item picker; see "Auto-use event items" |
 | `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
+| `game.sprint` | bool | false | | holding R2 while walking in a town or on a dungeon floor sprints; a tap still enters the first-person view; see "Sprint" |
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
@@ -1025,7 +1026,8 @@ limits and the ownership checks.
 
 ### Sprint
 
-Holding R2 (R by default) while walking in a town or on a dungeon floor sprints: the retail walk moves
+With **Sprint** (`game.sprint`, PC SETTINGS > Game, off by default; off leaves R2 to the retail game), holding
+R2 (R by default) while walking in a town or on a dungeon floor sprints: the retail walk moves
 1.8 times as far each step and its animation plays 1.4 times as fast, only while the player actually
 moves. A tap shorter than a quarter of a second still enters the first-person view, on release instead
 of on press; only a release seen on the current frame is a tap, so a press left over from a menu is

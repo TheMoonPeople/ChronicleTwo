@@ -235,6 +235,16 @@ TEST_F(PlatformConfig, AutoUseEventItemDefaultsToOffAndRoundTrips) {
     ASSERT_TRUE(parsed == config);
 }
 
+TEST_F(PlatformConfig, SprintDefaultsToOffAndRoundTrips) {
+    ASSERT_FALSE(Config{}.sprint);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"sprint": 1}})").sprint);
+    Config config;
+    config.sprint = true;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.sprint);
+    ASSERT_TRUE(parsed == config);
+}
+
 TEST_F(PlatformConfig, DebugModeRoundTripsThroughSerialize) {
     Config config;
     config.debug_mode = true;
