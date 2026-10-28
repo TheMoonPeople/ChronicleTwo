@@ -15,6 +15,8 @@
 #include "menumain.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
+#include "stubs/subgame.hpp"
+#include "subgame.hpp"
 
 namespace {
 
@@ -72,6 +74,30 @@ TEST(MenuWorld, OtherMenusOpenUnchanged) {
     EXPECT_FALSE(menuworld::FillWithBackdrop());
     EXPECT_FALSE(menuworld::SelectionAnchor().has_value());
     EXPECT_FLOAT_EQ(menuworld::RetailPointerX(123.5f), 123.5f);
+}
+
+// A rod out runs the fishing game, whose menu still opens over the paused world; other sub games keep retail's.
+TEST(MenuWorld, FishingWalkFramesTheMenuButOtherSubGamesDoNot) {
+    const int saved_loop_mode = PortTownLoopMode;
+    const int saved_sub_game = SubGame;
+    PortTownLoopMode = EDIT_LOOP_WALK_MENU;
+    MENU_INIT_ARG arg{};
+    arg.open_type = MENU_OPEN_MAIN_TOWN;
+
+    SubGame = SUBGAME_FISHING;
+    menuworld::MenuOpening(&arg);
+    menuworld::ItemOpening();
+    EXPECT_EQ(menuworld::PlayerDissolveAlpha(), 128);
+    menuworld::MenuClosed();
+
+    SubGame = SUBGAME_BUGGY;
+    menuworld::MenuOpening(&arg);
+    menuworld::ItemOpening();
+    EXPECT_EQ(menuworld::PlayerDissolveAlpha(), 0);
+    menuworld::MenuClosed();
+
+    SubGame = saved_sub_game;
+    PortTownLoopMode = saved_loop_mode;
 }
 
 TEST(MenuWorld, SpreadPointerReachesLeftPanelPartsUpToTheSplit) {

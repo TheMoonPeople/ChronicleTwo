@@ -1,5 +1,8 @@
 #pragma once
 
+#include <array>
+
+class CCharacter2;
 struct INIT_LOOP_ARG;
 
 /**
@@ -25,3 +28,8 @@ int PortReadMovieList(const PortMovieEntry **entries);
  * Loads the development gyorace configuration from the host save directory.
  */
 void PortLoadDebugGyoraceConfiguration();
+
+/**
+ * The fishing game's rod, float, lure, hook and bait models, each null until the game loads it.
+ */
+std::array<const CCharacter2 *, 6> PortFishingGear();

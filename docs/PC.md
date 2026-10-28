@@ -1243,7 +1243,7 @@ opens the Battle Wrench's two targets; its comments give capture frames.
 
 ### Item page over the paused world
 
-The town and dungeon main menus capture the exact field frame at the pause instant (`port/src/menu_world.cpp`). The renderer replays that frame's recorded draws once with the player removed, and the same frame is then drawn in full. The playerless copy leaves out the player's meshes, shadow and outline, the effects the player owns, and the town's exit markers. Subgame menus retain retail behavior.
+The town and dungeon main menus capture the exact field frame at the pause instant (`port/src/menu_world.cpp`). The renderer replays that frame's recorded draws once with the player removed, and the same frame is then drawn in full. The playerless copy leaves out the player's meshes, shadow and outline, the effects the player owns, the town's exit markers, and the fishing game's rod, float, lure, hook and bait (`PortFishingGear`, `port/src/fishing_config_bridge.inc`). Subgame menus retain retail behavior, except the fishing game's: walking with a rod out runs it, and its main menu opens over the paused world like any other walk.
 
 Entering Items runs the native orb close. The orb shows the scene dissolving as it converges on the backdrop, and the retail bg16 background fades. Returning to the root menu uses the native open. The menu character is framed on the left, its feet above the name and centred on the HP bar, and fades in after the orb closes. The Item title is centred, and on the town and dungeon menus the quick-select slots sit higher.
 

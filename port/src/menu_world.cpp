@@ -9,6 +9,7 @@
 
 #include "actionchara.hpp"
 #include "cameracontrol.hpp"
+#include "config_bridges.hpp"
 #include "dng_main.hpp"
 #include "editctrl_port.hpp"
 #include "editloop.hpp"
@@ -238,6 +239,13 @@ PlayerlessFilter CollectPlayerKeys() {
         }
     }
 
+    // A rod out runs the fishing game, which draws the rod, float, lure, hook and bait as models of its own.
+    if (GetSubGameNo() == SUBGAME_FISHING) {
+        for (const CCharacter2 *gear : PortFishingGear()) {
+            CollectCharaKeys(gear, keys);
+        }
+    }
+
     // The blue marker is drawn only on the player. The red one is also drawn for NPCs earlier in the frame, so only
     // its last run of meshes, the player's, is left out.
     if (PortTownLoopMode == EDIT_LOOP_WALK_MENU) {
@@ -418,7 +426,8 @@ const CActionChara *PausingPlayer() {
 }
 
 void MenuOpening(const MENU_INIT_ARG *arg) {
-    if (arg == nullptr || SubGameRunning()) {
+    // Walking with a rod out runs the fishing game, which lets the main menu open over its field frame like any walk.
+    if (arg == nullptr || (SubGameRunning() && GetSubGameNo() != SUBGAME_FISHING)) {
         return;
     }
     const bool town = arg->open_type == MENU_OPEN_MAIN_TOWN && PortTownLoopMode == EDIT_LOOP_WALK_MENU;
