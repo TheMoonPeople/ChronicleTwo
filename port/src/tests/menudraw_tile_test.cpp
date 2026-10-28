@@ -2,7 +2,10 @@
 
 #include <cmath>
 
+#include "gfx/gfx.hpp"
+#include "menudraw.hpp"
 #include "menudraw_port.hpp"
+#include "mg_drawprim.hpp"
 
 TEST(MenuTileTest, GridPreservesPhaseAndCoversBothAxesAtExtremeExtents) {
     for (int tile : {64, 128, 256}) {
@@ -44,4 +47,27 @@ TEST(MenuTileTest, FourThreeVisibleColumnsRetainTheirQuantizedPhase) {
 TEST(MenuTileTest, ZeroSizeProducesNoTiles) {
     EXPECT_EQ(MenuTilePatternCount(-256, 0, 768), 0);
     EXPECT_FLOAT_EQ(MenuTilePatternFirst(-100, 0, -426), -100);
+}
+
+// A colour box follows a HUD anchor only once it is depthless; textured pieces already are, and unanchored colour
+// boxes keep retail's depth test.
+TEST(MenuSpriteEnv, ColourBoxesUnderAUiAnchorDrawDepthless) {
+    mgCDrawPrim prim;
+    SetSpriteEnv(&prim, MENU_SPRITE_ENV_COLOR);
+    EXPECT_NE(prim.draw_env.test.bits.ztst, 1);
+    {
+        const gfx::UiAnchorScope spread(gfx::UiAnchor{.left_until = 240.0f, .right_from = 240.0f});
+        SetSpriteEnv(&prim, MENU_SPRITE_ENV_COLOR);
+        EXPECT_EQ(prim.draw_env.test.bits.ztst, 1);
+        SetSpriteEnv(&prim, MENU_SPRITE_ENV_TEXTURE);
+        EXPECT_EQ(prim.draw_env.test.bits.ztst, 1);
+    }
+    {
+        // A whole form sent to one side, as the Item page's character panels are.
+        const gfx::UiAnchorScope side(gfx::UiAnchor::Side(-1, 0, true));
+        SetSpriteEnv(&prim, MENU_SPRITE_ENV_COLOR);
+        EXPECT_EQ(prim.draw_env.test.bits.ztst, 1);
+    }
+    SetSpriteEnv(&prim, MENU_SPRITE_ENV_COLOR);
+    EXPECT_NE(prim.draw_env.test.bits.ztst, 1);
 }

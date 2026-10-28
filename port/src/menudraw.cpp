@@ -15,6 +15,7 @@
 #include "actionchara.hpp"
 #include "asset_directory.hpp"
 #include "dataread_port.hpp"
+#include "gfx/gfx.hpp"
 #include "log/log.hpp"
 #include "menu_mouse_item.hpp"
 #include "menu_world.hpp"
@@ -36,6 +37,16 @@
 #include "platform/texture_bundle.hpp"
 #include "stubs/menudraw.hpp"
 
+namespace {
+// Whether the current UI anchor moves draws towards a side of the window.
+bool UiAnchored() {
+    const gfx::UiAnchor anchor = gfx::CurrentUiAnchor();
+    const gfx::UiAnchor none{};
+    return anchor.left_until != none.left_until || anchor.right_from != none.right_from ||
+           anchor.top_until != none.top_until || anchor.bottom_from != none.bottom_from;
+}
+} // namespace
+
 PORT_OVERRIDE void MenuReloadCLUT(int index) {
     MgTextureSetDrawVariant(MenuCharaChangeBase_Tex, index == 0 ? MenuCharaChangeCLUT_Tex : nullptr);
 }
@@ -43,6 +54,15 @@ PORT_OVERRIDE void MenuReloadCLUT(int index) {
 PORT_OVERRIDE void DrawMenuFillBox(int alpha, int red, int green, int blue) {
     if (!menuworld::FillWithBackdrop()) {
         PortRetailDrawMenuFillBox(alpha, red, green, blue);
+    }
+}
+
+PORT_OVERRIDE void SetSpriteEnv(mgCDrawPrim *prim, int mode) {
+    PortRetailSetSpriteEnv(prim, mode);
+    // Only depthless 2D follows a HUD anchor, so a colour box retail depth-tests would stay at its 4:3 place while
+    // the panel it backs moves, as the Ridepod's fuel gauge fill did on the spread Item page.
+    if (prim != nullptr && mode == MENU_SPRITE_ENV_COLOR && UiAnchored()) {
+        prim->DepthTestEnable(0);
     }
 }
 

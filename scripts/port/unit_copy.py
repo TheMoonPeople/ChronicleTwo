@@ -63,6 +63,7 @@ RETAIL_BRIDGES = {
         ("MenuMainFrameStep()", "MenuMainFrameStep", "PortRetailMenuMainFrameStep"),
         ("MenuMainFrameImgDraw(int&)", "MenuMainFrameImgDraw", "PortRetailMenuMainFrameImgDraw"),
         ("CMenuPosDataManage::StepMainMenuIconMove(int*,int,int)", "StepMainMenuIconMove", "PortRetailStepMainMenuIconMove"),
+        ("SetSpriteEnv(mgCDrawPrim*,int)", "SetSpriteEnv", "PortRetailSetSpriteEnv"),
     ],
     "menucls1.cpp": [("CDC2Mes::DrawMsg()", "DrawMsg", "PortRetailDrawMsg")],
     "actionchara.cpp": [("CActionChara::DrawEffect()", "DrawEffect", "PortRetailDrawEffect")],
