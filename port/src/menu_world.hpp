@@ -180,6 +180,11 @@ bool HidesForm(const CMenuPosDataForm &form);
 float ItemPanelSplit(const CMenuPosDataForm *board);
 
 /**
+ * True when one of a form's drawn parts spans the whole screen width, which no panel side can hold.
+ */
+bool ScreenWideForm(const CMenuPosDataForm &form);
+
+/**
  * The side a form occupies at its inward action's resting position.
  */
 int ItemPanelSide(const CMenuPosDataForm &form, float split);

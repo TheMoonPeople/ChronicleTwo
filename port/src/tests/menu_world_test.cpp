@@ -74,6 +74,37 @@ TEST(MenuWorld, OtherMenusOpenUnchanged) {
     EXPECT_FLOAT_EQ(menuworld::RetailPointerX(123.5f), 123.5f);
 }
 
+// Spectrumise's dimmer (SPEFADE, 512x416 or 512x480) covers both sides, so it keeps no panel side; a gauge fill does.
+TEST(MenuWorld, ScreenWideFormsAreTheOnesThatSpanTheScreen) {
+    const int saved_width = mgScreenWidth;
+    mgScreenWidth = 512;
+    MENUFORMPARTS_TYPE part{};
+    part.active = 1;
+    part.draw_flag = 1;
+    CMenuPosDataForm form{};
+    form.parts = &part;
+    form.parts_num = 1;
+
+    for (float height : {416.0f, 480.0f}) {
+        part.w = static_cast<float>(mgScreenWidth);
+        part.h = height;
+        EXPECT_TRUE(menuworld::ScreenWideForm(form));
+    }
+    part.w = 174.0f;
+    part.h = 8.0f;
+    EXPECT_FALSE(menuworld::ScreenWideForm(form));
+    // A hidden or empty slot does not count.
+    part.w = static_cast<float>(mgScreenWidth);
+    part.draw_flag = 0;
+    EXPECT_FALSE(menuworld::ScreenWideForm(form));
+    part.draw_flag = 1;
+    part.active = 0;
+    EXPECT_FALSE(menuworld::ScreenWideForm(form));
+    form.parts = nullptr;
+    form.parts_num = 0;
+    mgScreenWidth = saved_width;
+}
+
 TEST(MenuWorld, SpreadPointerReachesLeftPanelPartsUpToTheSplit) {
     // At 16:9 the left panels move 106.7 left and the bag 106.7 right of the split at 240.
     const float shift = -106.7f;

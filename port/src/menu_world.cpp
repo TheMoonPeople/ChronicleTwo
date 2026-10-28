@@ -618,6 +618,16 @@ int ItemPanelSide(const CMenuPosDataForm &form, float split) {
     return x >= split - kPanelFlipWidth ? 1 : -1;
 }
 
+bool ScreenWideForm(const CMenuPosDataForm &form) {
+    for (int i = 0; i < form.parts_num; ++i) {
+        const MENUFORMPARTS_TYPE &part = form.parts[i];
+        if (part.active && part.draw_flag && part.w >= mgScreenWidth) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RootChromeUnanchored(const CMenuPosDataForm &form) {
     if (form.name == nullptr) {
         return false;
@@ -636,7 +646,8 @@ std::optional<gfx::UiAnchor> FormAnchor(const CMenuPosDataForm &form) {
     }
     // The main frame keeps the root menu's placement, its backdrop widened past the frame, while the orb moves it.
     const bool main_chrome = form.dtype == MENUFORM_DTYPE_MAINFRM || form.dtype == MENUFORM_DTYPE_MAINIMG;
-    if (main_chrome || RootChromeUnanchored(form)) {
+    // A screen-wide overlay, such as the dimmer behind Spectrumise's result (SPEFADE), covers both sides at once.
+    if (main_chrome || RootChromeUnanchored(form) || ScreenWideForm(form)) {
         return gfx::UiAnchor{};
     }
     // The command popup moves with the panel of the item it is for.
