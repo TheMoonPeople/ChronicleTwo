@@ -413,6 +413,18 @@ PlayerEffectScope::PlayerEffectScope(bool player_owned) {
     }
 }
 
+HeldGearScope::HeldGearScope() {
+    if (PausingDungeonFrame() || PausingTownFrame()) {
+        tag.emplace(gfx::Interp2D{.key = kPlayerEffectKey, .generation = static_cast<std::uint64_t>(mgPortFrameCount())});
+    }
+}
+
+// EditLoop raises the draw flag for the tick that asks for a menu, draws the town, then opens the menu, whose
+// capture takes that tick's frame.
+bool PausingTownFrame() {
+    return state.stage == Stage::Idle && GetNowLoopNo() == LOOP_EDIT && (EditDrawFlag & 0x1) != 0;
+}
+
 bool PausingDungeonFrame() {
     return state.stage == Stage::Idle && GetNowLoopNo() == LOOP_DUNGEON && DngStatus.mode == DNG_STATUS_MENU;
 }

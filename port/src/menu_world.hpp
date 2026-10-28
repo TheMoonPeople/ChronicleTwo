@@ -55,9 +55,28 @@ private:
 };
 
 /**
+ * Tags the 2D draws made while it is alive as the player's on the town or dungeon frame the main menu pauses on, for
+ * gear in the player's hands, such as the fishing line.
+ */
+class HeldGearScope {
+public:
+    HeldGearScope();
+    HeldGearScope(const HeldGearScope &) = delete;
+    HeldGearScope &operator=(const HeldGearScope &) = delete;
+
+private:
+    std::optional<gfx::Interp2DScope> tag; /**< Tag of the draws, present only on a pause frame. */
+};
+
+/**
  * True on the dungeon frame that opens the main menu, while its world is still being recorded.
  */
 bool PausingDungeonFrame();
+
+/**
+ * True on the town frame that opens a menu, while its world is still being recorded.
+ */
+bool PausingTownFrame();
 
 /**
  * The player whose effects are drawn on the dungeon pause frame, or null on any other frame.
