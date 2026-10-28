@@ -15,6 +15,9 @@
 #include "menumain.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
+#include "stubs/editloop.hpp"
+#include "stubs/subgame.hpp"
+#include "subgame.hpp"
 
 namespace {
 
@@ -72,6 +75,30 @@ TEST(MenuWorld, OtherMenusOpenUnchanged) {
     EXPECT_FALSE(menuworld::FillWithBackdrop());
     EXPECT_FALSE(menuworld::SelectionAnchor().has_value());
     EXPECT_FLOAT_EQ(menuworld::RetailPointerX(123.5f), 123.5f);
+}
+
+// A rod out runs the fishing game, whose menu still opens over the paused world; other sub games keep retail's.
+TEST(MenuWorld, FishingWalkFramesTheMenuButOtherSubGamesDoNot) {
+    const int saved_loop_mode = PortTownLoopMode;
+    const int saved_sub_game = SubGame;
+    PortTownLoopMode = EDIT_LOOP_WALK_MENU;
+    MENU_INIT_ARG arg{};
+    arg.open_type = MENU_OPEN_MAIN_TOWN;
+
+    SubGame = SUBGAME_FISHING;
+    menuworld::MenuOpening(&arg);
+    menuworld::ItemOpening();
+    EXPECT_EQ(menuworld::PlayerDissolveAlpha(), 128);
+    menuworld::MenuClosed();
+
+    SubGame = SUBGAME_BUGGY;
+    menuworld::MenuOpening(&arg);
+    menuworld::ItemOpening();
+    EXPECT_EQ(menuworld::PlayerDissolveAlpha(), 0);
+    menuworld::MenuClosed();
+
+    SubGame = saved_sub_game;
+    PortTownLoopMode = saved_loop_mode;
 }
 
 TEST(MenuWorld, SpreadPointerReachesLeftPanelPartsUpToTheSplit) {
@@ -429,4 +456,48 @@ TEST(MenuWorld, PlayerEffectScopeTagsOnlyTheDungeonPauseFrame) {
 
     PortLoopNo = saved_loop;
     DngStatus = saved_status;
+}
+
+// The fishing line is tagged on the frame either field loop pauses on for its menu, and on no other.
+TEST(MenuWorld, HeldGearScopeTagsTheTownAndDungeonPauseFrames) {
+    const int           saved_loop = PortLoopNo;
+    const DNG_STATUS    saved_status = DngStatus;
+    const int           saved_draw_flag = EditDrawFlag;
+    const gfx::Interp2D saved_interp = gfx::CurrentInterp2D();
+    menuworld::MenuClosed();
+
+    PortLoopNo = LOOP_EDIT;
+    EditDrawFlag = 0x1;
+    EXPECT_TRUE(menuworld::PausingTownFrame());
+    {
+        const menuworld::HeldGearScope scope;
+        EXPECT_EQ(gfx::CurrentInterp2D().key, menuworld::kPlayerEffectKey);
+    }
+    EXPECT_EQ(gfx::CurrentInterp2D().key, saved_interp.key);
+
+    EditDrawFlag = 0;
+    EXPECT_FALSE(menuworld::PausingTownFrame());
+    {
+        const menuworld::HeldGearScope scope;
+        EXPECT_EQ(gfx::CurrentInterp2D().key, saved_interp.key);
+    }
+
+    // The town's flag means nothing on a dungeon floor, whose own pause frame still tags.
+    EditDrawFlag = 0x1;
+    PortLoopNo = LOOP_DUNGEON;
+    DngStatus.mode = DNG_STATUS_FIELD;
+    EXPECT_FALSE(menuworld::PausingTownFrame());
+    {
+        const menuworld::HeldGearScope scope;
+        EXPECT_EQ(gfx::CurrentInterp2D().key, saved_interp.key);
+    }
+    DngStatus.mode = DNG_STATUS_MENU;
+    {
+        const menuworld::HeldGearScope scope;
+        EXPECT_EQ(gfx::CurrentInterp2D().key, menuworld::kPlayerEffectKey);
+    }
+
+    PortLoopNo = saved_loop;
+    DngStatus = saved_status;
+    EditDrawFlag = saved_draw_flag;
 }
