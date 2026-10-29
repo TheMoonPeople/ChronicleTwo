@@ -65,6 +65,11 @@ RETAIL_BRIDGES = {
         ("CMenuPosDataManage::StepMainMenuIconMove(int*,int,int)", "StepMainMenuIconMove", "PortRetailStepMainMenuIconMove"),
     ],
     "menucls1.cpp": [("CDC2Mes::DrawMsg()", "DrawMsg", "PortRetailDrawMsg")],
+    "sphida.cpp": [
+        ("CSphida::SetUp(int)", "SetUp", "PortRetailSetUp"),
+        ("CSphida::s17_SetUp(int)", "s17_SetUp", "PortRetailS17SetUp"),
+        ("CSphida::Omake_SetUp(int,int)", "Omake_SetUp", "PortRetailOmakeSetUp"),
+    ],
     "actionchara.cpp": [("CActionChara::DrawEffect()", "DrawEffect", "PortRetailDrawEffect")],
     "effscript.cpp": [
         ("CEffectScriptMan::Initialize(mgCMemory*,int,int)", "Initialize", "PortRetailInitialize"),

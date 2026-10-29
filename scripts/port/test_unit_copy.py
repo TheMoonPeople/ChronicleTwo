@@ -65,6 +65,14 @@ class RetailBridgeTests(unittest.TestCase):
         self.assertIn("(&parts_heap)->ClearHeapMem();", mirror)
         self.assertNotIn("CEditMap::ClearAllParts()", mirror)
 
+    def test_spheda_setups_keep_retail_bodies_under_their_bridges(self):
+        source = Path(__file__).resolve().parents[2] / "ps2/src/sphida.cpp"
+        mirror = unit_copy.retail_bridges(self.override, source, True)
+        self.assertEqual(mirror.count("void CSphida::PortRetailSetUp(int arg) {"), 1)
+        self.assertEqual(mirror.count("void CSphida::PortRetailS17SetUp(int arg) {"), 1)
+        self.assertEqual(mirror.count("void CSphida::PortRetailOmakeSetUp(int course, int tex_bank) {"), 1)
+        self.assertNotIn("CSphida::SetUp(int arg)", mirror)
+
     def test_georama_cursor_step_keeps_retail_body_under_its_bridge(self):
         source = Path(__file__).resolve().parents[2] / "ps2/src/editmode.cpp"
         mirror = unit_copy.retail_bridges(self.override, source, True)

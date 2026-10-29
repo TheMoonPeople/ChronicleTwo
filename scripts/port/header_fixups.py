@@ -88,6 +88,12 @@ FIXUPS = [
      "    CEditHouse                          *house;                                 /**< Houses that placed buildings give. */"),
     ("editmap.hpp", "        s32  house_npc[EDIT_REMOVE_HOUSE_MAX];   /**< Villagers whose house was removed. */",
      "        s32 *house_npc;                          /**< Villagers whose house was removed. */"),
+    # A Spheda hole's setups add the PC shot handicap after retail's, which stay under these names.
+    ("sphida.hpp", "    void Omake_SetUp(int course, int tex_bank);",
+     "    void Omake_SetUp(int course, int tex_bank);\n"
+     "    void PortRetailSetUp(int arg);\n"
+     "    void PortRetailS17SetUp(int arg);\n"
+     "    void PortRetailOmakeSetUp(int course, int tex_bank);"),
     # Clearing a town also clears its extra model heaps around retail's clear, which stays under this name.
     ("editmap.hpp", "    void ClearAllParts();", "    void ClearAllParts();\n    void PortRetailClearAllParts();"),
     # Luau runs the scripts that have modules; the interpreter's own entry points stay under these names for the rest.

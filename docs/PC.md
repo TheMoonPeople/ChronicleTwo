@@ -690,6 +690,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.autosave` | bool | true | | write the autosave on arriving in a town or on a dungeon floor |
 | `game.quick_loadout_title` | string | bar | bar, plate | the quick loadout panel's title on a bar, or on a plate like the EXP gauge's; see [QUICK_LOADOUT.md](QUICK_LOADOUT.md) |
 | `game.auto_use_event_item` | bool | false | | an event that asks for one item the bag holds is handed it without the item picker; see "Auto-use event items" |
+| `game.spheda_handicap` | int | 0 | 0 to 5 | extra shots added to each Spheda hole's par as it is laid out; see "Spheda handicap" |
 | `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
@@ -1383,6 +1384,10 @@ presentation frames. Enable the option in `config.json` beside each replay's sav
 distance clamping, an inward reversal and reset in the same corridor.
 `tools/input/dungeon-mouse-zoom-walk.input` zooms fully out there and walks
 along, around and toward the corridor walls; the player stays in view throughout.
+
+### Spheda handicap
+
+**Spheda handicap** (`game.spheda_handicap`, PC SETTINGS > Game, Off by default) adds 1 to 5 shots to each Spheda hole's par. The par is the count of shots left: the number over the ball, which the event scripts take one from each shot, and below 2 the last-shot event plays. `CSphida::SetUp`, `s17_SetUp` and `Omake_SetUp` (`port/src/sphida.cpp`) run the retail setup, preserved through `RETAIL_BRIDGES` as `PortRetailSetUp`, `PortRetailS17SetUp` and `PortRetailOmakeSetUp`, then add the shots to a hole that was laid out (`play_flag` set), keeping retail's cap of 99 (`SphedaHandicapPar`). A change applies from the next hole. Debug mode's own extra shot, which `_SPHIDA_GET_PAR_COUNT` adds, is unchanged.
 
 ### Floor monster list
 
