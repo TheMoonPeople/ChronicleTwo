@@ -272,6 +272,14 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "game.auto_use_event_item") {
         return ReadBool(value, config.auto_use_event_item);
     }
+    if (name == "game.spheda_handicap") {
+        int shots = 0;
+        if (!ReadInt(value, shots) || shots < 0 || shots > kSphedaHandicapMax) {
+            return false;
+        }
+        config.spheda_handicap = shots;
+        return true;
+    }
     if (name == "video.present_mode") {
         return ReadEnum(value, kPresentModeNames, s.present_mode);
     }
@@ -543,6 +551,7 @@ std::string ConfigSerialize(const Config &config) {
     root["game"]["quick_loadout_title"] = config.quick_loadout_plate ? "plate" : "bar";
     root["game"]["skip_intro"] = config.skip_intro;
     root["game"]["auto_use_event_item"] = config.auto_use_event_item;
+    root["game"]["spheda_handicap"] = config.spheda_handicap;
     root["game"]["floor_info_monsters"] = config.floor_info_monsters;
     root["game"]["more_monsters"] = config.more_monsters;
     root["game"]["transformation_stats"] = config.transformation_stats;

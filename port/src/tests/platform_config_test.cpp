@@ -240,6 +240,20 @@ TEST_F(PlatformConfig, AutoUseEventItemDefaultsToOffAndRoundTrips) {
     ASSERT_TRUE(parsed == config);
 }
 
+TEST_F(PlatformConfig, SphedaHandicapDefaultsToOffTakesZeroToFiveAndRoundTrips) {
+    ASSERT_EQ(Config{}.spheda_handicap, 0);
+    EXPECT_EQ(ConfigParse(R"({"game": {"spheda_handicap": 3}})").spheda_handicap, 3);
+    for (const char *bad : {R"({"game": {"spheda_handicap": -1}})", R"({"game": {"spheda_handicap": 6}})",
+                            R"({"game": {"spheda_handicap": "3"}})", R"({"game": {"spheda_handicap": true}})"}) {
+        EXPECT_EQ(ConfigParse(bad).spheda_handicap, 0) << bad;
+    }
+    Config config;
+    config.spheda_handicap = kSphedaHandicapMax;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_EQ(parsed.spheda_handicap, kSphedaHandicapMax);
+    ASSERT_TRUE(parsed == config);
+}
+
 TEST_F(PlatformConfig, DebugModeRoundTripsThroughSerialize) {
     Config config;
     config.debug_mode = true;

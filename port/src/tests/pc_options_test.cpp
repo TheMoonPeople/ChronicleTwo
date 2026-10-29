@@ -57,6 +57,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "game.quick_loadout_title",
         "game.skip_intro",
         "game.auto_use_event_item",
+        "game.spheda_handicap",
         "game.floor_info_monsters",
         "game.more_monsters",
         "game.debug_mode",

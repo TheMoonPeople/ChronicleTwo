@@ -41,6 +41,9 @@ inline constexpr bool kConfigInterpolationDefault = false;
 inline constexpr bool kConfigInterpolationDefault = true;
 #endif
 
+/** Most extra shots game.spheda_handicap adds to a Spheda hole's par. */
+inline constexpr int kSphedaHandicapMax = 5;
+
 struct Config : HostSettings {
     bool               interpolation = kConfigInterpolationDefault;
     ConfigRenderThread render_thread = ConfigRenderThread::Async;
@@ -52,6 +55,8 @@ struct Config : HostSettings {
     bool skip_intro = false;
     // game.auto_use_event_item: an event that asks for one item the bag holds is handed it without the item picker.
     bool auto_use_event_item = false;
+    // game.spheda_handicap: extra shots, 0 to 5, added to every Spheda hole's par as it is laid out.
+    int spheda_handicap = 0;
     // game.floor_info_monsters: Triangle on a dungeon floor's information lists its monsters and their drops.
     bool floor_info_monsters = false;
     // game.more_monsters: a dungeon floor holds up to 60 monsters instead of 24, and all of them in range show and act.
