@@ -15,6 +15,7 @@
 #include "editmenu.hpp"
 #include "effscript.hpp"
 #include "gamedata.hpp"
+#include "gfx/gfx.hpp"
 #include "inventmn.hpp"
 #include "mainloop.hpp"
 #include "memory/tracked_copy.hpp"
@@ -1208,6 +1209,20 @@ void SetPartEffectInfoRandFunc(MENU_PARTS_EFFECT_STRUCT1 *effect, short *values,
     }
 }
 
+namespace {
+/**
+ *
+ * Returns whether the current UI anchor moves draws towards a side of the window.
+ *
+ */
+bool UiAnchored() {
+    const gfx::UiAnchor anchor = gfx::CurrentUiAnchor();
+    const gfx::UiAnchor none{};
+    return anchor.left_until != none.left_until || anchor.right_from != none.right_from ||
+           anchor.top_until != none.top_until || anchor.bottom_from != none.bottom_from;
+}
+} // namespace
+
 void SetSpriteEnv(mgCDrawPrim *prim, int mode) {
     if (prim != nullptr) {
         prim->Initialize(nullptr, nullptr);
@@ -1249,7 +1264,9 @@ void SetSpriteEnv(mgCDrawPrim *prim, int mode) {
                 prim->AlphaBlendEnable(1);
                 prim->AlphaBlend(MG_ALPHA_BLEND_NORMAL);
                 prim->TextureMapEnable(0);
-                prim->DepthTestEnable(1);
+                // Only depthless 2D follows a UI anchor, so a colour box backing an anchored panel, such as the
+                // Ridepod's fuel gauge fill on the spread Item page, draws depthless to move with it.
+                prim->DepthTestEnable(UiAnchored() ? 0 : 1);
 
                 if (mode == MENU_SPRITE_ENV_COLOR_AA) {
                     prim->DepthTestEnable(0);
