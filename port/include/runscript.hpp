@@ -3,6 +3,7 @@
 #include "common.h"
 
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <span>
 #include <string_view>
@@ -156,7 +157,38 @@ struct RS_STACKDATA {
 
 STATIC_ASSERT(sizeof(RS_STACKDATA) == 0x8);
 
+class CRunScript;
+
 namespace dc2::script {
+
+/**
+ * Checks the innermost execution lifetime bound to the supplied controller.
+ */
+[[nodiscard]] bool ExecutionValid(const CRunScript *script) noexcept;
+
+/**
+ * Binds one controller's execution to a checked lifetime for the enclosing invocation.
+ */
+class ScopedExecutionValidation {
+    friend bool                ExecutionValid(const CRunScript *script) noexcept;
+    const CRunScript          *script;    /**< Controller whose native callbacks this scope validates. */
+    std::function<bool()>      validator; /**< Lifetime predicate evaluated without retaining scene owners. */
+    ScopedExecutionValidation *previous;  /**< Enclosing execution scope restored on destruction. */
+
+public:
+    /**
+     * Publishes an invocation-specific lifetime predicate for a controller.
+     */
+    ScopedExecutionValidation(const CRunScript &script, std::function<bool()> validator);
+    /**
+     * Restores the enclosing controller validation scope.
+     */
+    ~ScopedExecutionValidation();
+    ScopedExecutionValidation(const ScopedExecutionValidation &) = delete;
+    ScopedExecutionValidation &operator=(const ScopedExecutionValidation &) = delete;
+    ScopedExecutionValidation(ScopedExecutionValidation &&) = delete;
+    ScopedExecutionValidation &operator=(ScopedExecutionValidation &&) = delete;
+};
 
 /**
  *

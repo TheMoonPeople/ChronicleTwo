@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <cmath>
+#include <cstring>
 
 #define CAMERA_CONTROL_USE_RETAIL_ASSIGNMENT
 #include "cameracontrol.hpp"
@@ -79,8 +80,8 @@ void CCameraControl::ControlOn() {
     CameraCtrlParam *active = {};
 
     if (!control_on) {
-        *(u_long128 *) next_ref = *(u_long128 *) ref;
-        *(u_long128 *) next_pos = *(u_long128 *) pos;
+        std::memmove(next_ref, ref, sizeof(float) * 4);
+        std::memmove(next_pos, pos, sizeof(float) * 4);
         active = GetActiveParam();
         active->height = next_pos[1] - next_ref[1];
 
@@ -160,7 +161,7 @@ void CCameraControl::CancelRotBack() {
 
 void CCameraControl::SetCheckRef(float *ref) {
     check_ref_on = true;
-    *(u_long128 *) check_ref = *(u_long128 *) ref;
+    std::memmove(check_ref, ref, sizeof(float) * 4);
 }
 
 void CCameraControl::SetCheckRef(float x, float y, float z) {
@@ -189,10 +190,10 @@ void CCameraControl::CheckCollision(CCPoly *polys, int poly_count) {
     GetActiveParam();
 
     if (check_ref_on) {
-        *(u_long128 *) target = *(u_long128 *) check_ref;
+        std::memmove(target, check_ref, sizeof(float) * 4);
         target[1] += follow_offset[1];
     } else {
-        *(u_long128 *) target = *(u_long128 *) next_ref;
+        std::memmove(target, next_ref, sizeof(float) * 4);
     }
 
     sceVu0SubVector(to_camera, target, next_pos);
@@ -212,8 +213,8 @@ void CCameraControl::CheckCollision(CCPoly *polys, int poly_count) {
     if (hit_index < 0) {
         hit_index = -1;
         slid = true;
-        *(u_long128 *) hit = *(u_long128 *) unused_hit;
-        *(u_long128 *) view_end = *(u_long128 *) side_end;
+        std::memmove(hit, unused_hit, sizeof(float) * 4);
+        std::memmove(view_end, side_end, sizeof(float) * 4);
     }
 
     if (hit_index >= 0) {
@@ -228,11 +229,11 @@ void CCameraControl::CheckCollision(CCPoly *polys, int poly_count) {
             hit[1] += ratio * (next_pos[1] - target[1]);
         }
 
-        *(u_long128 *) next_pos = *(u_long128 *) hit;
+        std::memmove(next_pos, hit, sizeof(float) * 4);
         old_dist = mgDistVector(target, next_pos);
 
         if (!(old_dist - mgDistVector(target, hit) <= 5.0f)) {
-            *(u_long128 *) pos = *(u_long128 *) hit;
+            std::memmove(pos, hit, sizeof(float) * 4);
         }
     }
 }
@@ -263,10 +264,10 @@ int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
     GetActiveParam();
 
     if (check_ref_on) {
-        *(u_long128 *) target = *(u_long128 *) check_ref;
+        std::memmove(target, check_ref, sizeof(float) * 4);
         target[1] += follow_offset[1];
     } else {
-        *(u_long128 *) target = *(u_long128 *) next_ref;
+        std::memmove(target, next_ref, sizeof(float) * 4);
     }
 
     radius = 4.0f;
@@ -276,9 +277,9 @@ int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
     margin = 0.9f;
     margin *= unit;
     radius *= unit;
-    *(u_long128 *) ray_end = *(u_long128 *) target;
-    *(u_long128 *) start_pos = *(u_long128 *) next_pos;
-    *(u_long128 *) dir_copy = *(u_long128 *) to_target;
+    std::memmove(ray_end, target, sizeof(float) * 4);
+    std::memmove(start_pos, next_pos, sizeof(float) * 4);
+    std::memmove(dir_copy, to_target, sizeof(float) * 4);
     sceVu0ScaleVector(ray_start, dir_copy, margin);
     sceVu0SubVector(ray_start, target, ray_start);
     ray_start[3] = radius;
@@ -287,16 +288,16 @@ int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
         return true;
     }
 
-    *(u_long128 *) rot_a = *(u_long128 *) dir_copy;
+    std::memmove(rot_a, dir_copy, sizeof(float) * 4);
     rot_a[3] = 0.0f;
-    *(u_long128 *) rot_b = *(u_long128 *) dir_copy;
+    std::memmove(rot_b, dir_copy, sizeof(float) * 4);
     rot_b[3] = 0.0f;
     mgUnitMatrix(turn_a);
     mgUnitMatrix(turn_b);
     sceVu0RotMatrixY(turn_a, turn_a, 0.01636246219277382f);
     sceVu0RotMatrixY(turn_b, turn_b, -0.01636246219277382f);
     found = false;
-    *(u_long128 *) candidate = *(u_long128 *) start_pos;
+    std::memmove(candidate, start_pos, sizeof(float) * 4);
     step = 0;
 
     do {
@@ -329,7 +330,7 @@ int CCameraControl::AutoMove(CCPoly *polys, int poly_count) {
 
     if (found) {
         result = true;
-        *(u_long128 *) next_pos = *(u_long128 *) candidate;
+        std::memmove(next_pos, candidate, sizeof(float) * 4);
     }
 
     return result;
@@ -356,15 +357,15 @@ void CCameraControl::CheckGround(CCPoly *polys, int poly_count) {
     active = GetActiveParam();
 
     if (check_ref_on) {
-        *(u_long128 *) target = *(u_long128 *) check_ref;
+        std::memmove(target, check_ref, sizeof(float) * 4);
         target[1] += follow_offset[1];
     } else {
-        *(u_long128 *) target = *(u_long128 *) next_ref;
+        std::memmove(target, next_ref, sizeof(float) * 4);
     }
 
-    *(u_long128 *) from = *(u_long128 *) next_pos;
-    *(u_long128 *) line_high = *(u_long128 *) next_pos;
-    *(u_long128 *) line_low = *(u_long128 *) next_pos;
+    std::memmove(from, next_pos, sizeof(float) * 4);
+    std::memmove(line_high, next_pos, sizeof(float) * 4);
+    std::memmove(line_low, next_pos, sizeof(float) * 4);
     line_high[1] = 20.0f + (target[1] + active->max_height);
     line_low[1] = (target[1] + active->min_height) - active->ground_space;
     top = line_high[1];
@@ -456,7 +457,7 @@ void CCameraControl::CopyParam(CCameraControl &dest) {
     dst->ground_space = src->ground_space;
     dst->no_check = src->no_check;
     dest.rot_cancel = rot_cancel;
-    *(u_long128 *) dest.follow_offset = *(u_long128 *) follow_offset;
+    std::memmove(dest.follow_offset, follow_offset, sizeof(float) * 4);
 }
 
 int CCameraControl::Iam() {

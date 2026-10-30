@@ -1,3 +1,6 @@
+#include <format>
+
+#include "text/bounded.hpp"
 // clang-format off
 // Load JSON before legacy game headers define conflicting macros.
 #include "platform/native_config.hpp"
@@ -91,7 +94,7 @@ static short nextmodetbl_5183[12] = {
  * Icon prefixes used by the invention memo list.
  *
  */
-static char *gaiji_table_4737[3] = {
+char *gaiji_table_4737[3] = {
     "[bulb2]",
     "[bulb3]",
     "[heart]"};
@@ -237,12 +240,12 @@ static int  CheckPhotoFlag();
  * Icon prefixes used by invention idea names.
  *
  */
-static char *addstringtable_1722[3] = {
+char *addstringtable_1722[3] = {
     "[bulb2]",
     "[bulb3]",
     "[heart]"};
 
-static mgCMemory InventTeigiStack;
+mgCMemory InventTeigiStack;
 
 /**
  *
@@ -256,7 +259,7 @@ static short debug_invent_successflag;
  * Invention records of the active user.
  *
  */
-static CInventUserData *InventUserDataPtr;
+CInventUserData *InventUserDataPtr;
 
 /**
  *
@@ -270,7 +273,7 @@ static CDC2AlbumData *InventAlbumPtr;
  * Recipe manager used while inventing an item.
  *
  */
-static CInventDataManage *InventManagePt;
+CInventDataManage *InventManagePt;
 
 /**
  *
@@ -312,7 +315,7 @@ static PIC_NAME_INFO *pic_name_info_top;
  * Number of parsed photo name records.
  *
  */
-static short pic_name_info_num;
+short pic_name_info_num;
 
 /**
  *
@@ -347,7 +350,7 @@ static short NetaMemoStrNum;
  * Texture used for the invention display.
  *
  */
-static mgCTexture *Tex_Hatsumei;
+mgCTexture *Tex_Hatsumei;
 
 /**
  *
@@ -431,7 +434,7 @@ static s8 init_3950;
  * Active inventory menu.
  *
  */
-static CMenuInvent *CMenuInventPt;
+CMenuInvent *CMenuInventPt;
 
 namespace {
 std::unique_ptr<CMenuInvent> invention_menu;
@@ -445,6 +448,7 @@ CMenuInvent &dc2::menu::CreateInventionMenu() {
 }
 
 void dc2::menu::ResetInventionMenu() {
+    dc2::mc::RetireManager(MCManagerPtr);
     InventSubDataReadBGInfo = {};
     CMenuInventPt = nullptr;
     invention_menu.reset();
@@ -483,14 +487,14 @@ static char temp_1728[0x21];
  * Names of discovered ideas displayed in the notebook.
  *
  */
-static char *NetaMemoStr[512];
+char *NetaMemoStr[512];
 
 /**
  *
  * Idea identifiers displayed in the notebook.
  *
  */
-static short NetaMemoID[512];
+short NetaMemoID[512];
 
 /**
  *
@@ -1779,7 +1783,7 @@ static int _INVENT_DATASET(dc2::script::TagArguments stack, int arg_count) {
  * Script handlers used to load invention recipes.
  *
  */
-static SPI_TAG_PARAM invent_teigi_func[3] = {
+SPI_TAG_PARAM invent_teigi_func[3] = {
     {"DATATABLESET", _INVENT_DATATABLESET},
     {"DATASET",      _INVENT_DATASET     },
     {nullptr,        nullptr             }
@@ -2994,9 +2998,10 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                                 s32 half_length = length >> 1;
 
                                 if (LanguageCode == LANG_JAPANESE) {
-                                    s8 cut = jp_conv_lentbl_2835[half_length - 1];
-                                    this->create_photo_name[cut] = -0x7F;
-                                    this->create_photo_name[cut + 1] = -0x66;
+                                    const auto table_index = std::min(static_cast<std::size_t>(half_length - 1), std::size(jp_conv_lentbl_2835) - 1);
+                                    const auto cut = jp_conv_lentbl_2835[table_index];
+                                    this->create_photo_name[cut] = '\x81';
+                                    this->create_photo_name[cut + 1] = '\x9a';
                                 } else if (LanguageCode > LANG_JAPANESE) {
                                     s32 character_index = length / 4;
 
@@ -3009,7 +3014,7 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                                     }
                                 }
                             } else if (name != nullptr) {
-                                sprintf(this->create_photo_name, "\x82\xe0\x82\xb5\x82\xa9\x82\xb5\x82\xbd\x82\xe7%s%s", name, gobitbl_2847[GetRandI(2)]);
+                                dc2::text::Copy(this->create_photo_name, std::string("\x82\xe0\x82\xb5\x82\xa9\x82\xb5\x82\xbd\x82\xe7") + name + gobitbl_2847[GetRandI(2)]);
                             } else {
                                 dc2::text::Copy(this->create_photo_name, dc2::text::View("\x82\xa4\x81\x5b\x82\xf1"));
                             }
@@ -3381,15 +3386,17 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
             this->create_timer--;
 
             if (this->create_timer == 0x28) {
-                s32  wave = this->create_success;
-                char wave_name[0x88];
+                s32 wave = this->create_success;
 
                 if (wave == 1) {
                     wave = GetRandI(2) + 1;
                 }
 
-                sprintf(wave_name, "sound/8500%s.wav", wavname_2960[wave]);
-                CSnd.StreamOpenFast(1, wave_name);
+                if (wave < 0 || static_cast<std::size_t>(wave) >= std::size(wavname_2960)) {
+                    break;
+                }
+                auto wave_name = std::format("sound/8500{}.wav", wavname_2960[wave]);
+                CSnd.StreamOpenFast(1, wave_name.data());
             }
 
             if (this->create_timer <= 0) {
@@ -3491,7 +3498,7 @@ void CMenuInvent::CalcCursorPosition() {
     CursorPos offset = {0, 0};
     CursorPos waku{};
     CursorPos command_pos{};
-    sprintf(text, "wakuwh%d", key_arg_no);
+    dc2::text::Copy(text, std::format("wakuwh{}", key_arg_no));
     MenuPosData->GetEtcTblValue(text, waku.x, waku.y);
     std::snprintf(text, sizeof(text), "c_of%d", key_arg_no);
     MenuPosData->GetEtcTblValue(text, offset.x, offset.y);
@@ -3535,7 +3542,7 @@ void CMenuInvent::CalcCursorPosition() {
             command_pos.y = cursor[1];
             break;
         case INVENT_MODE_ALBUM_VIEW:
-            sprintf(text, "cur%d", album_cursor - album_top * 2);
+            dc2::text::Copy(text, std::format("cur{}", static_cast<std::int64_t>(album_cursor) - static_cast<std::int64_t>(album_top) * 2));
             album_big_form->GetPutPosXY(text, cursor[0], cursor[1]);
             command_pos.x = cursor[0];
             command_pos.y = cursor[1];
@@ -3969,7 +3976,7 @@ void CMenuInvent::CalcTex() {
     if (recbrd_form != nullptr && recbrd_form->draw_flag != 0 && recbrd_form->rgba[3] > 0 && MenuDCMsg[7] != nullptr) {
         for (int i = 0; i < 10; i++) {
             char name[0x20];
-            sprintf(name, "n%d", i);
+            dc2::text::Copy(name, std::format("n{}", i));
             int line_pos[2];
             recbrd_form->GetPutPosXY(name, line_pos[0], line_pos[1]);
             line_pos[0] += rec_board_offset_xtbl[i];
@@ -4272,7 +4279,7 @@ int CMenuInvent::IsAskExtend(int keys, int button) {
                                 picture = photo_cursor;
                                 break;
                             case INVENT_MODE_ALBUM_VIEW:
-                                sprintf(text, "cur%d", album_cursor - album_top * 2);
+                                dc2::text::Copy(text, std::format("cur{}", static_cast<std::int64_t>(album_cursor) - static_cast<std::int64_t>(album_top) * 2));
                                 album_big_form->GetPutPosXY(text, pos[0], pos[1]);
                                 pos[0]--;
                                 pos[1]--;
@@ -6276,7 +6283,7 @@ static void MenuInventDebugDraw() {
 
             for (int i = 0; i < pic_name_info_num; i++) {
                 if (y >= 80) {
-                    sprintf(line, "%3d: %s", pic_name_info_top[i].neta_id, pic_name_info_top[i].name);
+                    dc2::text::Copy(line, std::format("{:3}: {}", pic_name_info_top[i].neta_id, dc2::text::View(pic_name_info_top[i].name)));
                     font.SetStr(line);
                     font.SetPos(270, y);
                     font.DrawDirect(font.str, font.pos_x, font.pos_y);
@@ -6302,7 +6309,7 @@ static void MenuInventDebugDraw() {
             if (CMenuInventPt->create_chara != nullptr) {
                 CMenuInventPt->create_chara->GetScale(scale);
                 CMenuInventPt->create_chara->GetPosition(position);
-                sprintf(model_text, "scale:%f\npos  :%f\n      %f\n      %f\n", scale[0], position[0], position[1], position[2]);
+                dc2::text::Copy(model_text, std::format("scale:{:.6f}\npos  :{:.6f}\n      {:.6f}\n      {:.6f}\n", scale[0], position[0], position[1], position[2]));
                 font.SetStr(model_text);
                 font.SetPos(40, 340);
                 font.DrawDirect(font.str, font.pos_x, font.pos_y);

@@ -818,8 +818,6 @@ int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name) {
 
 int MenuDataAnalyze(char *script, int size, mgCMemory *memory);
 
-void MenuCommandAnalyze(char *script, int size, char *command_name);
-
 namespace {
 /**
  * Selects the language-aware native resource path shared by menu reads.
@@ -2898,13 +2896,11 @@ int MenuDataAnalyze(char *script, int size, mgCMemory *memory) {
 }
 
 // NOLINTNEXTLINE(readability-non-const-parameter)
-void MenuCommandAnalyze(char *script, int size, char *command_name) {
-    if (script == nullptr || command_name == nullptr) {
+void dc2::menu::AnalyzeCommands(char *script, int size, std::string_view command_name) {
+    if (script == nullptr) {
         return;
     }
-    // Retail copies the name unbounded; the port keeps what fits.
-    std::strncpy(MenuCommandAnalyzeInfo.command_name, command_name, sizeof(MenuCommandAnalyzeInfo.command_name) - 1);
-    MenuCommandAnalyzeInfo.command_name[sizeof(MenuCommandAnalyzeInfo.command_name) - 1] = '\0';
+    MenuCommandAnalyzeInfo.command_name = command_name;
     std::shared_ptr<const MenuCommands> commands;
     if (const auto path = native_config::BufferPath(script)) {
         commands = CommandsOf(*path);

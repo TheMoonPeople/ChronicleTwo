@@ -21,7 +21,11 @@ $env:PATH = "$PSScriptRoot;$env:PATH"
 $env:CT_TEST_BUILD_EXIT = "$Code"
 $PSNativeCommandUseErrorActionPreference = $true
 & $BuildScript -Root $PSScriptRoot -BuildDirectory $PSScriptRoot
-exit $LASTEXITCODE
+$code = $LASTEXITCODE
+# The launcher remains alive while the game runs, so the build lock must already be released.
+$lock = [IO.File]::Open((Join-Path $PSScriptRoot '.kazarov-build.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
+$lock.Dispose()
+exit $code
 '@ | Set-Content -LiteralPath $runner
     $shell = (Get-Process -Id $PID).Path
     $buildScript = Join-Path $PSScriptRoot 'build.ps1'

@@ -210,8 +210,8 @@ void DrawBox(float *max, float *min, int r, int g, int b) {
     float lo[4];
     float hi[4];
 
-    *(u_long128 *) lo = *(u_long128 *) min;
-    *(u_long128 *) hi = *(u_long128 *) max;
+    std::memmove(lo, min, sizeof(float) * 4);
+    std::memmove(hi, max, sizeof(float) * 4);
     corners[0][0] = lo[0];
     corners[0][1] = lo[1];
     corners[0][2] = lo[2];
@@ -1208,8 +1208,8 @@ void DrawEventEdit() {
                     frame->SetPosition(0.0f, 0.0f, 0.0f);
                     chara->GetPosition(frame_pos);
                     frame->GetWorldBBox(&bbox);
-                    *(u_long128 *) lo = *(u_long128 *) bbox.min;
-                    *(u_long128 *) hi = *(u_long128 *) bbox.max;
+                    std::memmove(lo, bbox.min, sizeof(float) * 4);
+                    std::memmove(hi, bbox.max, sizeof(float) * 4);
                     corners[0][3] = 1.0f;
                     corners[0][0] = lo[0];
                     corners[0][1] = lo[1];

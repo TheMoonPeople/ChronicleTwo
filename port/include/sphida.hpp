@@ -328,6 +328,13 @@ bool Publish(dc2::memory::ArenaBuffer storage);
  *
  */
 dc2::memory::ArenaBuffer Lease();
+
+/**
+ *
+ * Returns a hole's par with game.spheda_handicap's extra shots added, within the 99 the par counter shows.
+ *
+ */
+int HandicapPar(int par, int handicap);
 } // namespace dc2::sphida
 
 /**

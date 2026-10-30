@@ -83,49 +83,49 @@ static CFont Font;
  * Current step of camera capture and display.
  *
  */
-static u32 TakePhotoMode;
+u32 TakePhotoMode;
 
 /**
  *
  * Projection offset controlled by camera zoom.
  *
  */
-static float AddProj;
+float AddProj;
 
 /**
  *
  * Texture block holding the camera interface.
  *
  */
-static u32 CameraTexb;
+u32 CameraTexb;
 
 /**
  *
  * Texture used to capture and preview the last picture.
  *
  */
-static mgCTexture *WorkTex;
+mgCTexture *WorkTex;
 
 /**
  *
  * Frames remaining in the shutter animation.
  *
  */
-static int ShutterAnmCnt;
+int ShutterAnmCnt;
 
 /**
  *
  * Frames remaining in the last-picture preview.
  *
  */
-static int ShowTakePhotoCnt;
+int ShowTakePhotoCnt;
 
 /**
  *
  * Request to open the camera picture menu.
  *
  */
-static u32 OpenMenu;
+u32 OpenMenu;
 
 /**
  *
@@ -335,7 +335,6 @@ void DrawTakePhotoSystem(int texture, CInventUserData *user_data) {
 #include "render/renderer.hpp"
 #include "render/texture_runtime.hpp"
 #include "snd_mngr.hpp"
-#include "stubs/photo.hpp"
 #include "userdata.hpp"
 
 namespace {

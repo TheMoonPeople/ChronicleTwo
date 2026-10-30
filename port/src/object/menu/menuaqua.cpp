@@ -621,7 +621,7 @@ static short spi_gyorace_counter;
  * Arena used while parsing fish tournament prizes.
  *
  */
-static mgCMemory *fish_prize_buildstack;
+mgCMemory *fish_prize_buildstack;
 
 /**
  *
@@ -642,7 +642,7 @@ static short FishTournamentGoodsNum;
  * Type of the fish tournament prize list.
  *
  */
-static signed char FishTournamentGoodsType;
+signed char FishTournamentGoodsType;
 
 /**
  *
@@ -1799,7 +1799,7 @@ void CAquaFish::NormalGetNextVelo(float speed) {
     sceVu0SubVector(to_target, target_pos, to_target);
     sceVu0Normalize(to_target, to_target);
     sceVu0ScaleVectorXYZ(to_target, to_target, speed);
-    *(u_long128 *) move = *(u_long128 *) to_target;
+    std::memmove(move, to_target, sizeof(float) * 4);
     move[3] = 1.0f;
 }
 
@@ -1931,7 +1931,7 @@ void CAquaFish::NextRootNormal() {
 
     route_no = 0;
     route_time = 0;
-    *(u_long128 *) target_pos = *(u_long128 *) route[0];
+    std::memmove(target_pos, route[0], sizeof(float) * 4);
     GetPosition(pos);
     GetRotation(rot);
     sceVu0SubVector(dir, target_pos, pos);
@@ -2026,7 +2026,7 @@ void CAquaFish::MoveActionBattle() {
         foe->GetPosition(foe_pos);
 
         if (action.phase == AQUA_FISH_ACTION_APPROACH) {
-            *(u_long128 *) target_pos = *(u_long128 *) foe_pos;
+            std::memmove(target_pos, foe_pos, sizeof(float) * 4);
             NormalGetNextVelo(CalcMoveSpeed(0.24f));
             NormalGetNextRot();
             think_timer -= 1;
@@ -2046,7 +2046,7 @@ void CAquaFish::MoveActionBattle() {
 
             if (PI < angle) {
                 charge_angle = PI;
-                *(u_long128 *) target_pos = *(u_long128 *) foe_pos;
+                std::memmove(target_pos, foe_pos, sizeof(float) * 4);
             }
 
             if (charge_angle < PI) {
@@ -2134,7 +2134,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
                 turn[1] = 13.0f;
                 GetRotation(rot);
                 GetPosition(pos);
-                *(u_long128 *) old_rot = *(u_long128 *) rot;
+                std::memmove(old_rot, rot, sizeof(float) * 4);
 
                 if (col_flags & AQUA_FISH_COL_WALL) {
                     if (GetRandI(3) != 0) {
@@ -2161,7 +2161,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
                     pos[1] += 1.0f;
                 }
 
-                *(u_long128 *) target_pos = *(u_long128 *) pos;
+                std::memmove(target_pos, pos, sizeof(float) * 4);
                 SetRotation(old_rot);
                 NormalGetNextVelo(0.16f);
                 NormalGetNextRotY();
@@ -2207,14 +2207,14 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
 
             break;
         case AQUA_FISH_THINK_FOOD_LOOK:
-            *(u_long128 *) target_pos = *(u_long128 *) param->pos;
+            std::memmove(target_pos, param->pos, sizeof(float) * 4);
             action.timer = (GetRandI(4) + 4) * PAL_TIMING(25, 30);
             action.decel = 0.7f;
             turn[1] = 15.0f;
             break;
         case AQUA_FISH_THINK_FOOD_EAT:
             SetMotion("\x83\x6f\x83\x67\x83\x8b\x81\x69\x8c\xb3\x8b\x43\x81\x6a", 0);
-            *(u_long128 *) target_pos = *(u_long128 *) param->pos;
+            std::memmove(target_pos, param->pos, sizeof(float) * 4);
             NormalGetNextRotY();
             think_timer = 0;
             turn[0] = 0.1308997f;
@@ -2531,7 +2531,7 @@ CFishFood::CFishFood() {
 }
 
 void CFishFood::SetDropPosition(float *pos) {
-    *(u_long128 *) this->pos = *(u_long128 *) pos;
+    std::memmove(this->pos, pos, sizeof(float) * 4);
     SetPosition(this->pos);
 }
 
@@ -4457,7 +4457,7 @@ void CAquarium::Thinking(int no) {
                         me->NextRootNormal();
                     }
 
-                    *(u_long128 *) me->target_pos = *(u_long128 *) r->route[r->route_no];
+                    std::memmove(me->target_pos, r->route[r->route_no], sizeof(float) * 4);
                     sceVu0SubVector(steer.v, me->target_pos, pos);
                 }
 
@@ -4494,7 +4494,7 @@ void CAquarium::Thinking(int no) {
             float pos[4];
 
             me->GetPosition(pos);
-            *(u_long128 *) me->target_pos = *(u_long128 *) food_pos;
+            std::memmove(me->target_pos, food_pos, sizeof(float) * 4);
             sceVu0ScaleVectorXYZ(me->move, me->move, me->action.decel);
             me->NormalGetNextRot();
             me->action.timer--;
@@ -4507,7 +4507,7 @@ void CAquarium::Thinking(int no) {
         }
         case AQUA_FISH_THINK_FOOD_EAT:
             if (food_state == FISH_FOOD_SINK) {
-                *(u_long128 *) me->target_pos = *(u_long128 *) food_pos;
+                std::memmove(me->target_pos, food_pos, sizeof(float) * 4);
                 me->NormalGetNextVelo(0.2f * (0.5f + 0.05f * breed->param[BREEDFISH_STAT_BOOST]));
                 me->NormalGetNextRot();
                 me->turn[1] = 14.0f;
@@ -4645,7 +4645,7 @@ void CAquarium::Thinking(int no) {
 
                 partner->GetPosition(partner_pos);
                 me->GetPosition(pos);
-                *(u_long128 *) me->target_pos = *(u_long128 *) partner_pos;
+                std::memmove(me->target_pos, partner_pos, sizeof(float) * 4);
                 sceVu0SubVector(gap, partner_pos, pos);
                 float dist = mgDistVector(partner_pos, pos);
                 speed = 0.04f;
@@ -6232,7 +6232,6 @@ void CAquarium::Draw() {
         float axis_z[4] = {1.0f, 0.0f, 0.0f, 0.0f};
         sceVu0InnerProduct(axis_x, dir);
         sceVu0InnerProduct(axis_z, flat_dir);
-        water->CreatePacket();
         ripple -= 0.01f;
 
         if (ripple <= 0.1f) {
@@ -7094,7 +7093,9 @@ void TuriTourCount() {
  *
  */
 static void GyoraceCFGAnalyze(char *command) {
-    MenuCommandAnalyze(GyoraceExeCfgBuffer, GyoraceExeCfgBufferSize, command);
+    if (command != nullptr) {
+        dc2::menu::AnalyzeCommands(GyoraceExeCfgBuffer, GyoraceExeCfgBufferSize, command);
+    }
 }
 
 /**
@@ -7563,7 +7564,7 @@ int GyoraceMenuKey() {
                 return 2;
             } else if (DebugFlag == 1 && (button & MENU_PUSH_BUTTON_TRIANGLE)) {
                 char debug_name[20] = "AAAAAAAAAAaaaaaaaaa";
-                char debug_pass[14] = {0x47, 0x01, 0x09, 0x05, 0xF9, 0x01, 0xBB, 0x03, 0x0A, 0x03, 0x06, 0x00, 0x00, 0x00};
+                char debug_pass[14] = {0x47, 0x01, 0x09, 0x05, static_cast<char>(0xF9), 0x01, static_cast<char>(0xBB), 0x03, 0x0A, 0x03, 0x06, 0x00, 0x00, 0x00};
 
                 GyoraceData->data[0].fish.Init();
                 GyoraceData->data[0].fish.TransToData(debug_pass, 14);

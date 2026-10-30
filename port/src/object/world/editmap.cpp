@@ -480,7 +480,7 @@ int CEditMap::GetGridPos(float *pos, float *river, float *out) {
 
 void CEditMap::GetMatrix(float (*matrix)[4], float *pos, int step) {
     GetRotMatrix(matrix, step);
-    *reinterpret_cast<u_long128 *>(matrix[3]) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(matrix[3], pos, sizeof(float) * 4);
     matrix[3][3] = 1.0f;
 }
 
@@ -938,8 +938,8 @@ int CEditMap::GetePlaceParts(float *pos) {
     CEditParts *near[0x200];
     int         count = {};
 
-    *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(pos);
-    *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(box.max, pos, sizeof(float) * 4);
+    std::memmove(box.min, pos, sizeof(float) * 4);
 
     for (int i = 0; i < 3; i++) {
         box.max[i] += pos[3];
@@ -968,7 +968,7 @@ int CEditMap::GetePlaceParts(sceVu0FVECTOR pos, CEditParts **parts, int num) {
     int           j = {};
     CEditParts   *best = {};
 
-    *reinterpret_cast<u_long128 *>(point) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(point, pos, sizeof(float) * 4);
     radius = point[3];
     point[3] = 1.0f;
     GetMatrix(point_matrix, point, 0);
@@ -1214,14 +1214,14 @@ int CEditMap::MagnetParts(CEditPartsInfo *info, float *pos, float *rot, CEditPar
                     if (!(rate <= 0.01f) && (touch_part == nullptr || !(rate <= touch_rate))) {
                         touch_part = part;
                         touch_rate = rate;
-                        *reinterpret_cast<u_long128 *>(touch_pos) = *reinterpret_cast<u_long128 *>(other_pos);
+                        std::memmove(touch_pos, other_pos, sizeof(float) * 4);
                     }
 
                     if (!(rate <= 0.6f) && (flat_part == nullptr || !(rate <= flat_rate))) {
                         flat_part = part;
                         flat_rate = rate;
                         flat_angle = other_angle;
-                        *reinterpret_cast<u_long128 *>(flat_pos) = *reinterpret_cast<u_long128 *>(other_pos);
+                        std::memmove(flat_pos, other_pos, sizeof(float) * 4);
                     }
                 }
             }
@@ -1358,9 +1358,9 @@ int CEditMap::MagnetParts(CEditPartsInfo *info, float *pos, float *rot, CEditPar
         gap[0][1] = 0.0f;
 
         if (mgDistVector(gap[0]) < mgDistVector(gap[1])) {
-            *reinterpret_cast<u_long128 *>(shift) = *reinterpret_cast<u_long128 *>(gap[0]);
+            std::memmove(shift, gap[0], sizeof(float) * 4);
         } else {
-            *reinterpret_cast<u_long128 *>(shift) = *reinterpret_cast<u_long128 *>(gap[1]);
+            std::memmove(shift, gap[1], sizeof(float) * 4);
         }
 
         moved = 1;
@@ -1504,24 +1504,24 @@ int CEditMap::CheckWallEditParts(CEditPartsInfo *info, float *pos, int wall_no, 
     wall_basis[0][3] = 0.0f;
     sceVu0OuterProduct(wall_basis[1], wall_basis[2], wall_basis[0]);
     wall_basis[1][3] = 0.0f;
-    *reinterpret_cast<u_long128 *>(wall_basis[3]) = *reinterpret_cast<u_long128 *>(wall.center);
+    std::memmove(wall_basis[3], wall.center, sizeof(float) * 4);
     wall_basis[3][3] = 1.0f;
     pos[3] = 1.0f;
     sceVu0ApplyMatrix(local_pos, wall_basis, pos);
-    *reinterpret_cast<u_long128 *>(wall_plane) = *reinterpret_cast<u_long128 *>(wall.plane);
+    std::memmove(wall_plane, wall.plane, sizeof(float) * 4);
     wall_plane[3] = 0.0f;
     sceVu0ApplyMatrix(world_normal, base_matrix, wall_plane);
     mgMulMatrix(base_matrix, base_matrix, wall_basis);
     sceVu0ApplyMatrix(pos, base_matrix, pos);
     pos[3] = GetEditAngle(ConvEditAngle(atan2f(world_normal[0], world_normal[2])));
     mgUnitMatrix(wall_matrix);
-    *reinterpret_cast<u_long128 *>(wall_matrix[1]) = *reinterpret_cast<u_long128 *>(wall_plane);
+    std::memmove(wall_matrix[1], wall_plane, sizeof(float) * 4);
     wall_matrix[1][3] = 0.0f;
     wall_matrix[2][2] = 0.0f;
     wall_matrix[2][0] = 0.0f;
     wall_matrix[2][1] = 1.0f;
     sceVu0OuterProduct(wall_matrix[0], wall_matrix[1], wall_matrix[2]);
-    *reinterpret_cast<u_long128 *>(wall_matrix[3]) = *reinterpret_cast<u_long128 *>(local_pos);
+    std::memmove(wall_matrix[3], local_pos, sizeof(float) * 4);
     wall_matrix[3][3] = 1.0f;
     GetInversMatrix(wall_inverse, wall_matrix);
     mgUnitMatrix(swap_yz);
@@ -2250,11 +2250,20 @@ int CEditMap::BuildEditParts(char *name) {
     }
     CMapParts *model = GetParts(info->parts_name);
     if (model == nullptr) {
+        part->Initialize();
         return EDIT_BUILD_NO_INFO;
     }
     const auto [heap, memory] = HeapWithRoom(*this);
-    model->Copy(*part, heap);
+    const bool copied = model->Copy(*part, heap);
     heap->EndStackMode();
+    if (!copied) {
+        part->Initialize();
+        heap->Free(memory);
+        if (new_house != nullptr) {
+            std::memset(static_cast<void *>(new_house), 0, sizeof(CEditHouse));
+        }
+        return EDIT_BUILD_NO_INFO;
+    }
     part->allocation_address = memory;
     part->info = info;
     part->SetPosition(0.0f, 0.0f, 0.0f);
@@ -2511,12 +2520,21 @@ ePlaceData *PlaceTable(const SceneEditTable &table, mgCMemory *stack) {
  * Makes a hidden river, mask or water piece of a model, as the river tags do.
  */
 CMapPiece *RiverPiece(CEditMap &map, const SceneText &model, mgCMemory *stack, int attributes, const mgCFrameAttr &attr) {
-    auto       *piece = new (stack->Alloc(0xD)) CMapPiece;
+    if (stack == nullptr) {
+        return nullptr;
+    }
+    auto *piece = dc2::memory::NewObject<CMapPiece>(*stack);
+    if (piece == nullptr) {
+        return nullptr;
+    }
     std::string name = model.value_or(std::string{});
     CMdsInfo   *mds = map.SearchMDS(model ? name.data() : nullptr);
     if (mds != nullptr) {
         piece->AssignMds(mds);
         if (piece->frame != nullptr) {
+            if (!piece->frame_graph.Matches(piece->frame, piece->chara)) {
+                return nullptr;
+            }
             mgCFrameAttr copy = attr;
             piece->frame->SetAttrParam(copy, 1, attributes);
         }
@@ -2527,6 +2545,9 @@ CMapPiece *RiverPiece(CEditMap &map, const SceneText &model, mgCMemory *stack, i
 } // namespace
 
 void PortApplyEditMapConfig(CEditMap *map, char *script, int /*size*/, mgCMemory *stack) {
+    if (map == nullptr || stack == nullptr) {
+        return;
+    }
     const auto config = ReadSceneConfig(script);
     if (!config || !config->georama) {
         return;
@@ -2548,20 +2569,26 @@ void PortApplyEditMapConfig(CEditMap *map, char *script, int /*size*/, mgCMemory
             continue;
         }
         std::string parts_name = parts.value_or(std::string{});
-        map->river_parts[index] = map->GetParts(parts ? parts_name.data() : nullptr);
-        map->river_piece[index] = RiverPiece(*map, model, stack, hidden_attributes, hidden);
+        if (auto *piece = RiverPiece(*map, model, stack, hidden_attributes, hidden)) {
+            map->river_parts[index] = map->GetParts(parts ? parts_name.data() : nullptr);
+            map->river_piece[index] = piece;
+        }
     }
     for (const auto &model : georama.water_models) {
         mgCFrameAttr water;
         water.z_write = MG_ZBUF_NO_WRITE;
         water.clip_enable = 1;
-        map->water_piece = RiverPiece(*map, model, stack, MG_FRAME_ATTR_Z_WRITE | MG_FRAME_ATTR_CLIP, water);
+        if (auto *piece = RiverPiece(*map, model, stack, MG_FRAME_ATTR_Z_WRITE | MG_FRAME_ATTR_CLIP, water)) {
+            map->water_piece = piece;
+        }
     }
     for (const auto &[index, model] : georama.mask_parts) {
         if (index < 0 || index >= EDIT_MAP_MASK_PIECE_MAX) {
             continue;
         }
-        map->mask_piece[index] = RiverPiece(*map, model, stack, hidden_attributes, hidden);
+        if (auto *piece = RiverPiece(*map, model, stack, hidden_attributes, hidden)) {
+            map->mask_piece[index] = piece;
+        }
     }
     if (georama.initial_parts) {
         if (ePlaceData *table = PlaceTable(*georama.initial_parts, stack)) {

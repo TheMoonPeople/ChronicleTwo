@@ -34,6 +34,7 @@
 #include "inventmn.hpp"
 #include "log_capture.hpp"
 #include "mainloop.hpp"
+#include "mapinfo.hpp"
 #include "mg_memory.hpp"
 #include "platform/arena.hpp"
 #include "platform/config_catalog.hpp"
@@ -663,7 +664,7 @@ TEST_F(DataRead, WriteToHost0LandsUnderTheSaveRoot) {
     std::vector<unsigned char> data = MakeBytes(5000, 9);
     char                       name[] = "host0:out/x.bin";
 
-    ASSERT_EQ(WriteFile(name, data.data(), static_cast<int>(data.size())), 1);
+    ASSERT_TRUE(dc2::io::WriteFile(name, std::as_bytes(std::span(data))));
 
     const fs::path written = save / "host0" / "out" / "x.bin";
     ASSERT_TRUE(fs::exists(written));
@@ -680,7 +681,7 @@ TEST_F(DataRead, Host0ReadsBackWhatWasWrittenAndShadowsTheDataIndex) {
 
     std::vector<unsigned char> data = MakeBytes(5000, 11);
     char                       name[] = "host0:geo_data/t.edt";
-    ASSERT_EQ(WriteFile(name, data.data(), static_cast<int>(data.size())), 1);
+    ASSERT_TRUE(dc2::io::WriteFile(name, std::as_bytes(std::span(data))));
 
     std::vector<u_long128> out(8192 / sizeof(u_long128));
     int                    size = 0;
@@ -1098,4 +1099,46 @@ TEST_F(DataRead, ResourceContentsPreserveFullModelsWhileGameReadsKeepTheirNameOn
     DataReadIndex(base / "absent");
     EXPECT_TRUE(std::ranges::equal(resource.Bytes(), contents));
     EXPECT_EQ(resource.Source(), "icon.gltf");
+}
+
+TEST_F(DataRead, BoundedWritesRejectEmbeddedNullPathsAndAcceptEmptyPayloads) {
+    PathsSetSaveRoot(base / "save");
+    const std::string path("host0:bad\0suffix", 16);
+    EXPECT_FALSE(dc2::io::WriteFile(path, {}));
+    EXPECT_FALSE(fs::exists(base / "save/host0/bad"));
+    EXPECT_FALSE(dc2::io::WriteFile("net:unsupported", {}));
+    EXPECT_TRUE(dc2::io::WriteFile("host0:empty.bin", {}));
+    EXPECT_EQ(fs::file_size(base / "save/host0/empty.bin"), 0U);
+}
+
+TEST(LightingText, OwnsLargeExportsAndPreservesLightMatrixOrientation) {
+    std::vector<CMapLightingInfo> lights(64);
+    CMapInfo                      map{};
+    map.active_light_no = 3;
+    map.lighting_info = lights.data();
+    map.lighting_info_num = static_cast<int>(lights.size());
+    lights[0].light_dir[0][2] = 1.25f;
+    lights[0].light_dir[1][2] = 2.5f;
+    lights[0].light_dir[2][2] = -3.0f;
+    lights[0].light_color[2][0] = 4.0f;
+    lights[0].light_color[2][1] = 5.0f;
+    lights[0].light_color[2][2] = 6.0f;
+    const auto text = dc2::world::LightingText(map);
+    EXPECT_GT(text.size(), 0x5000U);
+    EXPECT_TRUE(text.starts_with("MPL_ACTIVE_LIGHT_SET 3;\n"));
+    EXPECT_NE(text.find(" MPL_LIGHT 2,1.250000,2.500000,-3.000000,4,5,6,1;\n"), std::string::npos);
+    EXPECT_NE(text.find("MPL_LIGHT_SET 63;\n"), std::string::npos);
+    map.lighting_info = nullptr;
+    EXPECT_TRUE(dc2::world::LightingText(map).empty());
+}
+
+TEST(LightingText, EditedNonfiniteColorsConvertWithoutUndefinedIntegerCasts) {
+    CMapLightingInfo light;
+    light.bg_color[0] = std::numeric_limits<float>::quiet_NaN();
+    light.bg_color[1] = std::numeric_limits<float>::infinity();
+    light.bg_color[2] = -std::numeric_limits<float>::infinity();
+    CMapInfo map{};
+    map.lighting_info = &light;
+    map.lighting_info_num = 1;
+    EXPECT_NE(dc2::world::LightingText(map).find(" MPL_BGCOLOR 0,2147483647,-2147483648;\n"), std::string::npos);
 }

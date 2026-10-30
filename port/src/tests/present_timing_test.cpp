@@ -77,3 +77,88 @@ TEST(PresentTiming, TinyCapsAreOneFpsAndZeroIsUnlimited) {
     ASSERT_TRUE(pacer.Present([] { return true; }, [&] { return end; }));
     EXPECT_EQ(pacer.Next(end + 1ms, Clock::time_point::max(), 1e-12).action, Action::Tick);
 }
+
+TEST(PresentTiming, EndpointPairShowsOneIntermediateThenAuthoredEndpoint) {
+    PresentPacer                    pacer;
+    dc2::presentation::EndpointPair pair;
+    using PairAction = dc2::presentation::EndpointPair::Action;
+    pair.Begin();
+    auto       now = origin + 10ms;
+    const auto end = origin + 33334us;
+    ASSERT_EQ(pair.Next(now, end, 60, pacer).action, PairAction::Intermediate);
+    ASSERT_TRUE(pacer.Present([&] { now += 5ms; return true; }, [&] { return now; }));
+    pair.Presented(PairAction::Intermediate);
+    EXPECT_EQ(pair.Next(now, end, 60, pacer).action, PairAction::Wait);
+    EXPECT_EQ(pair.Next(now, end, 60, pacer).deadline, end);
+    now = end;
+    ASSERT_EQ(pair.Next(now, end, 60, pacer).action, PairAction::Endpoint);
+    ASSERT_TRUE(pacer.Present([] { return true; }, [&] { return now; }));
+    pair.Presented(PairAction::Endpoint);
+    EXPECT_EQ(pair.Next(now + 1s, end, 60, pacer).action, PairAction::Done);
+}
+
+TEST(PresentTiming, LatePublicationDropsIntermediateWithoutCatchup) {
+    PresentPacer                    pacer;
+    dc2::presentation::EndpointPair pair;
+    using PairAction = dc2::presentation::EndpointPair::Action;
+    pair.Begin();
+    const auto end = origin + 33334us;
+    const auto now = end + 12ms;
+    EXPECT_EQ(pair.Next(now, end, 60, pacer).action, PairAction::Endpoint);
+    pair.Presented(PairAction::Endpoint);
+    EXPECT_EQ(pair.Next(now, end, 60, pacer).action, PairAction::Done);
+    EXPECT_LT(PresentFrameAlpha(1.7, 0, 2), 1.0f);
+    EXPECT_NEAR(PresentFrameAlpha(1.7, 0, 2), .85f, 1e-6f);
+}
+
+TEST(PresentTiming, EndpointHonorsCapAfterTheSimulationDeadline) {
+    PresentPacer                    pacer;
+    dc2::presentation::EndpointPair pair;
+    using PairAction = dc2::presentation::EndpointPair::Action;
+    pair.Begin();
+    auto       now = origin + 28ms;
+    const auto end = origin + 33334us;
+    ASSERT_TRUE(pacer.Present([] { return true; }, [&] { return now; }));
+    pair.Presented(PairAction::Intermediate);
+    now = end;
+    const auto waiting = pair.Next(now, end, 60, pacer);
+    ASSERT_EQ(waiting.action, PairAction::Wait);
+    EXPECT_GT(waiting.deadline, end);
+    EXPECT_EQ(pair.Next(waiting.deadline, end, 60, pacer).action, PairAction::Endpoint);
+}
+
+TEST(PresentTiming, FailedPairPresentDoesNotConsumePhaseOrCap) {
+    PresentPacer                    pacer;
+    dc2::presentation::EndpointPair pair;
+    using PairAction = dc2::presentation::EndpointPair::Action;
+    pair.Begin();
+    auto       now = origin + 10ms;
+    const auto end = origin + 33334us;
+    ASSERT_EQ(pair.Next(now, end, 60, pacer).action, PairAction::Intermediate);
+    EXPECT_FALSE(pacer.Present([] { return false; }, [&] { return now; }));
+    EXPECT_EQ(pair.Next(now + 1ms, end, 60, pacer).action, PairAction::Intermediate);
+    now = end;
+    EXPECT_EQ(pair.Next(now, end, 60, pacer).action, PairAction::Endpoint);
+    EXPECT_FALSE(pacer.Present([] { return false; }, [&] { return now; }));
+    EXPECT_EQ(pair.Next(now + 1ms, end, 60, pacer).action, PairAction::Endpoint);
+}
+
+TEST(PresentTiming, NewCanonicalRetiresOnlyDueEndpointsAndNeverBlocksForOldImages) {
+    PresentPacer                    pacer;
+    dc2::presentation::EndpointPair pair;
+    using PairAction = dc2::presentation::EndpointPair::Action;
+    pair.Begin();
+    auto now = origin + 10ms;
+    ASSERT_TRUE(pacer.Present([] { return true; }, [&] { return now; }));
+    pair.Presented(PairAction::Intermediate);
+    EXPECT_EQ(pair.Next(origin + 38ms, origin + 33334us, 60, pacer).action, PairAction::Endpoint);
+    pair.Cancel();
+    EXPECT_EQ(pair.Next(origin + 38ms, origin + 33334us, 60, pacer).action, PairAction::Done);
+    pair.Begin();
+    const auto not_due = pair.Next(origin + 40ms, origin + 66ms, 60, pacer);
+    EXPECT_EQ(not_due.action, PairAction::Intermediate);
+    pair.Cancel();
+    EXPECT_EQ(pair.Next(origin + 80ms, origin + 66ms, 60, pacer).action, PairAction::Done);
+    pair.Begin();
+    EXPECT_EQ(pair.Next(origin + 90ms, origin + 100ms, 60, pacer).action, PairAction::Intermediate);
+}

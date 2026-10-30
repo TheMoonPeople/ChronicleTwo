@@ -43,7 +43,7 @@
  * Interpreter running the active scene event script.
  *
  */
-static CRunScript EventScript;
+CRunScript EventScript;
 
 namespace {
 /**

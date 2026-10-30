@@ -541,14 +541,14 @@ public:
 
     /**
      *
-     * Copies the animation into another for a copy of the model, finding the
-     * same frames in the new model and giving it its own vertex tables.
+     * Copies the animation and reports whether every required frame and vertex table was copied completely.
      *
      * @mangled Copy__13CDynamicAnimeFR13CDynamicAnimeP8mgCFrameP9mgCMemory
      * @address 0x17C190
      * @size 0x410
      */
-    void Copy(CDynamicAnime &dest, mgCFrame *root, mgCMemory *memory);
+
+    [[nodiscard]] bool Copy(CDynamicAnime &dest, mgCFrame *root, mgCMemory *memory);
 
     /**
      *

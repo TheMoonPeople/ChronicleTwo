@@ -53,14 +53,14 @@ std::string Hex(T value, int precision) {
     constexpr std::string_view hex_digits = "0123456789abcdef";
     double                     fraction = std::fabs(static_cast<double>(value));
     int                        exponent = 0;
+    const bool                 shortest = precision < 0;
     if (fraction != 0) {
         std::frexp(fraction, &exponent);
-        exponent = std::max(exponent - 1, std::numeric_limits<T>::min_exponent - 1);
+        exponent = shortest ? exponent - 1 : std::max(exponent - 1, std::numeric_limits<T>::min_exponent - 1);
         fraction = std::ldexp(fraction, -exponent);
     }
     char leading = fraction >= 1 ? '1' : '0';
     fraction -= leading - '0';
-    const bool shortest = precision < 0;
     if (shortest) {
         precision = (std::numeric_limits<T>::digits - 1 + 3) / 4;
     }

@@ -53,7 +53,7 @@ TEST(EffectVector, CharacterGettersAndMissingEntryFallbackPreserveCoordinates) {
     now_scene = scene.get();
     scene->chara_num = 1;
     scene->chara[0].status = SCENE_DATA_ASSIGNED;
-    scene->chara[0].character = dc2::scene::CharacterResource::FromOwned(character_owner);
+    scene->chara[0].AssignData(dc2::scene::CharacterResource::FromOwned(character_owner), "effect");
     for (auto callback : {_SCN_GET_CHR_POS, _SCN_GET_CHR_ROT}) {
         RS_STACKDATA outputs[] = {Number(-1), Number(-1), Number(-1)};
         RS_STACKDATA args[] = {Integer(0), Reference(outputs[0]), Reference(outputs[1]), Reference(outputs[2])};

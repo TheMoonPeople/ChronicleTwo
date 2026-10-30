@@ -336,15 +336,14 @@ int _RESET_MOTION(dc2::script::RunArguments, int) {
  */
 int _GET_INDEX_POS(dc2::script::RunArguments stack, int argument_count) {
     int             index = GetStackInt(stack++);
-    int             count = ActiveMonster->GetMonsterNum(-1.0f);
     int             i = {};
     float           pos[4];
     CActiveMonster *monster = {};
 
-    for (i = 0; i < count; i++) {
-        monster = ActiveMonster->active[i];
+    for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
+        monster = ActiveMonster->GetActiveMonster(i);
 
-        if (monster->monster_id == index) {
+        if (monster != nullptr && monster->monster_id == index) {
             monster->GetPosition(pos);
             SetOutputVector(stack, {pos[0], pos[1], pos[2]});
             stack = stack + 2;
@@ -400,14 +399,13 @@ int _SET_ALPHA(dc2::script::RunArguments stack, int argument_count) {
  */
 int _SET_INDEX_ALPHA(dc2::script::RunArguments stack, int argument_count) {
     int             index = GetStackInt(stack++);
-    int             count = ActiveMonster->GetMonsterNum(-1.0f);
     int             i = {};
     CActiveMonster *monster = {};
 
-    for (i = 0; i < count; i++) {
-        monster = ActiveMonster->active[i];
+    for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
+        monster = ActiveMonster->GetActiveMonster(i);
 
-        if (monster->monster_id == index) {
+        if (monster != nullptr && monster->monster_id == index) {
             monster->alpha = GetStackFloat(stack);
             return 1;
         }
@@ -865,7 +863,7 @@ int _GET_ACTIVE_MONS_LIFEI(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -893,7 +891,7 @@ int _GET_ACTIVE_MONS_LIFEF(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -922,7 +920,7 @@ int _SET_ACTIVE_MONS_LIFEI(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -973,7 +971,7 @@ int _SET_ACTIVE_MONS_LIFEF(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -1015,7 +1013,7 @@ int _GET_ACTIVE_MONS_MAX_LIFE(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -1048,7 +1046,7 @@ int _SET_DAMAGE_SCORE(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -1089,7 +1087,7 @@ int _GET_MONS_GRADE(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -1117,7 +1115,7 @@ int _SET_ESCAPE_RATE(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -1156,7 +1154,7 @@ int _SET_GUARD_RATE(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -1193,7 +1191,7 @@ int _SET_EXT_PARAM_RATE(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -1914,34 +1912,17 @@ int _GET_OBJ_POS(dc2::script::RunArguments stack, int argc) {
  *
  */
 int _GET_MAPOBJ_POS(dc2::script::RunArguments stack, int argc) {
-    float matrix[4][4];
     float pos[4];
 
-    if (argc != 4) {
+    if (argc != 4 || nowMonster == nullptr) {
         return 0;
     }
 
-    if (nowMonster->link_piece == nullptr || nowMonster->link_parts == nullptr) {
+    const auto name = dc2::script::RunText(stack++);
+    if (!nowMonster->map_link.GetFrameWorldPosition(name, pos)) {
         return 0;
     }
 
-    char      *name = GetStackString(stack++);
-    CMapPiece *piece = nowMonster->link_piece;
-    piece->UpDatePosition();
-    piece = nowMonster->link_piece;
-    mgCFrame *frame = piece->frame->SearchFrame(name);
-
-    if (frame == nullptr) {
-        dc2::log::PrintGame("ERR\n");
-    }
-
-    if (frame == nullptr) {
-        return 0;
-    }
-
-    frame->GetWorldPosition0(pos);
-    nowMonster->link_parts->GetLWMatrix(matrix);
-    sceVu0ApplyMatrix(pos, matrix, pos);
     SetOutputVector(stack, {pos[0], pos[1], pos[2]});
     stack = stack + 2;
     return 1;
@@ -1953,23 +1934,11 @@ int _GET_MAPOBJ_POS(dc2::script::RunArguments stack, int argc) {
  *
  */
 int _LINK_MAP_TO_OBJECT(dc2::script::RunArguments stack, int argc) {
-    if (argc != 1) {
+    if (argc != 1 || nowMonster == nullptr) {
         return 0;
     }
 
-    auto *map = dc2::dungeon::MainMap().Get();
-    if (map == nullptr) {
-        return 0;
-    }
-
-    nowMonster->link_parts = map->GetPlaceParts(GetStackString(stack));
-
-    if (nowMonster->link_parts == nullptr) {
-        return 0;
-    }
-
-    nowMonster->link_type = MONSTER_LINK_PARTS;
-    return 1;
+    return nowMonster->map_link.BindPart(dc2::dungeon::MainMap(), dc2::script::RunText(stack));
 }
 
 /**
@@ -1978,31 +1947,12 @@ int _LINK_MAP_TO_OBJECT(dc2::script::RunArguments stack, int argc) {
  *
  */
 int _LINK_OBJECT_TO_PIECE(dc2::script::RunArguments stack, int argc) {
-    if (argc != 2) {
+    if (argc != 2 || nowMonster == nullptr) {
         return 0;
     }
 
-    auto *map = dc2::dungeon::MainMap().Get();
-    if (map == nullptr) {
-        return 0;
-    }
-
-    char *part_name = GetStackString(stack++);
-    char *piece_name = GetStackString(stack);
-    nowMonster->link_parts = map->GetPlaceParts(part_name);
-
-    if (nowMonster->link_parts == nullptr) {
-        return 0;
-    }
-
-    nowMonster->link_piece = nowMonster->link_parts->SearchPiece(piece_name);
-
-    if (nowMonster->link_piece == nullptr) {
-        return 0;
-    }
-
-    nowMonster->link_type = MONSTER_LINK_PIECE;
-    return 1;
+    const auto part_name = dc2::script::RunText(stack++);
+    return nowMonster->map_link.BindPiece(dc2::dungeon::MainMap(), part_name, dc2::script::RunText(stack));
 }
 
 /**
@@ -2693,7 +2643,7 @@ int _GET_ACTIVE_MONS_POS(dc2::script::RunArguments stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->GetActiveMonster(id);
 
     if (monster == nullptr) {
         return 0;
@@ -2725,7 +2675,7 @@ int _GET_ACTIVE_MONS_ROT(dc2::script::RunArguments stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->GetActiveMonster(id);
 
     if (monster == nullptr) {
         return 0;
@@ -2752,7 +2702,7 @@ int _GET_ACTIVE_MONS_DIST(dc2::script::RunArguments stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *other = ActiveMonster->active[id];
+    CActionChara *other = ActiveMonster->GetActiveMonster(id);
 
     if (other == nullptr) {
         return 0;
@@ -2778,7 +2728,7 @@ int _GET_ACTIVE_MONS_ANGLE(dc2::script::RunArguments stack, int argc) {
 
     int id = GetStackInt(stack++);
     id -= 24;
-    CActionChara *monster = ActiveMonster->active[id];
+    CActionChara *monster = ActiveMonster->GetActiveMonster(id);
 
     if (monster == nullptr) {
         return 0;
@@ -3004,8 +2954,7 @@ int _GET_ENTRY_OBJ_POS(dc2::script::RunArguments stack, int argc) {
 
     if (id != -1) {
         id -= 24;
-        CActiveMonster **slots = ActiveMonster->active;
-        monster = ActiveMonster->active[id];
+        monster = ActiveMonster->GetActiveMonster(id);
 
         if (monster == nullptr) {
             return 0;
@@ -4373,7 +4322,7 @@ int _MONS_SE_PLAY(dc2::script::RunArguments stack, int argument_count) {
     int monster_id = GetStackInt(stack++);
     int sound = GetStackInt(stack);
     monster_id -= 24;
-    CActiveMonster *monster = ActiveMonster->active[monster_id];
+    CActiveMonster *monster = ActiveMonster->GetActiveMonster(monster_id);
 
     if (monster == nullptr) {
         return 0;
@@ -4396,7 +4345,7 @@ int _MONS_SE_STOP(dc2::script::RunArguments stack, int argument_count) {
     int monster_id = GetStackInt(stack++);
     int sound = GetStackInt(stack);
     monster_id -= 24;
-    CActiveMonster *monster = ActiveMonster->active[monster_id];
+    CActiveMonster *monster = ActiveMonster->GetActiveMonster(monster_id);
 
     if (monster == nullptr) {
         return 0;
@@ -4420,7 +4369,7 @@ int _MONS_SE_LOOP(dc2::script::RunArguments stack, int argument_count) {
     int sound = GetStackInt(stack++);
     int flags = GetStackInt(stack);
     monster_id -= 24;
-    CActiveMonster *monster = ActiveMonster->active[monster_id];
+    CActiveMonster *monster = ActiveMonster->GetActiveMonster(monster_id);
 
     if (monster == nullptr) {
         return 0;
@@ -4771,6 +4720,48 @@ void SetMonsterExtendTable() {
 
 namespace {
 
+/**
+ * Restores an enclosing monster callback context only while its original bindings remain live.
+ */
+class MonsterScriptContext {
+    inline static thread_local MonsterScriptContext *current = nullptr; /**< Innermost monster invocation on this thread. */
+    dc2::scene::SceneView                            scene_view;        /**< Original scene lifetime for this invocation. */
+    dc2::scene::CharacterView                        monster_view;      /**< Original monster assignment for this invocation. */
+    CScene                                          *scene;             /**< Scene address validated before publication. */
+    CActiveMonster                                  *monster;           /**< Monster address validated before publication. */
+    MonsterScriptContext                            *previous;          /**< Enclosing invocation restored when this scope exits. */
+
+    /**
+     * Publishes this invocation's original live bindings or clears expired callback state.
+     */
+    void Publish() const {
+        const bool live = scene != nullptr && monster != nullptr && scene_view.Get() == scene && monster_view.Get() == monster;
+        PortSetMonsterScriptScene(live ? scene : nullptr);
+        nowMonster = live ? monster : nullptr;
+    }
+
+public:
+    /**
+     * Publishes an invocation's checked scene and monster while recording its parent context.
+     */
+    MonsterScriptContext(dc2::scene::SceneView scene_view, dc2::scene::CharacterView monster_view, CScene *scene, CActiveMonster *monster)
+        : scene_view(std::move(scene_view)), monster_view(std::move(monster_view)), scene(scene), monster(monster), previous(current) {
+        current = this;
+        Publish();
+    }
+
+    /**
+     * Restores a live parent invocation or retains this invocation's live top-level context.
+     */
+    ~MonsterScriptContext() {
+        current = previous;
+        (previous != nullptr ? previous : this)->Publish();
+    }
+
+    MonsterScriptContext(const MonsterScriptContext &) = delete;
+    MonsterScriptContext &operator=(const MonsterScriptContext &) = delete;
+};
+
 int get_stack_int(dc2::script::RunArguments stack) {
     if (stack.At().type == RS_FLOAT) {
         return static_cast<int>(stack.At().val.f);
@@ -4789,16 +4780,37 @@ void set_stack_float(dc2::script::RunArguments stack, float value) {
  * Runs a monster program while preserving suspended behavior through unsupported stun requests.
  */
 void CMonsterMan::RunScript(int index) {
-    PortSetMonsterScriptScene(scene);
-    nowMonster = active[index];
-    if (nowMonster == nullptr) {
+    const auto                 bound_scene = scene_view;
+    const auto                 bound_monster = index >= 0 && index < MONSTER_ACTIVE_MAX ? active_views[index] : dc2::scene::CharacterView{};
+    auto                      *scene = bound_scene.Get();
+    auto                      *monster = scene != nullptr ? dynamic_cast<CActiveMonster *>(bound_monster.Get()) : nullptr;
+    const MonsterScriptContext context(bound_scene, bound_monster, scene, monster);
+    if (monster == nullptr) {
         return;
     }
+    const auto execution_resource = scene->chara[DNG_CHARA_SLOT_MONSTER + index].Resource();
+    if (execution_resource.Get() != monster) {
+        nowMonster = nullptr;
+        return;
+    }
+    const dc2::script::ScopedExecutionValidation execution(
+        monster->mons_script,
+        [bound_scene, bound_monster, scene, monster] {
+            return bound_scene.Get() == scene && bound_monster.Get() == monster;
+        });
 
     const int script = nowMonster->req_prog;
     if (script != MONSTER_PROG_RUNNING) {
         if (nowMonster->mons_script.check_program(script) != 0) {
             nowMonster->mons_script.run(script);
+            nowMonster = bound_scene.Get() == scene ? dynamic_cast<CActiveMonster *>(bound_monster.Get()) : nullptr;
+            if (nowMonster != monster) {
+                nowMonster = nullptr;
+                if (bound_scene.Get() != scene) {
+                    PortSetMonsterScriptScene(nullptr);
+                }
+                return;
+            }
             nowMonster->now_prog = script;
             nowMonster->req_prog = MONSTER_PROG_RUNNING;
         } else if (script == MONSTER_PROG_PIYORI) {
@@ -4814,6 +4826,14 @@ void CMonsterMan::RunScript(int index) {
         return;
     }
     nowMonster->mons_script.resume();
+    nowMonster = bound_scene.Get() == scene ? dynamic_cast<CActiveMonster *>(bound_monster.Get()) : nullptr;
+    if (nowMonster != monster) {
+        nowMonster = nullptr;
+        if (bound_scene.Get() != scene) {
+            PortSetMonsterScriptScene(nullptr);
+        }
+        return;
+    }
     if (nowMonster->mons_script.end != 0) {
         nowMonster->req_prog = MONSTER_PROG_MAIN;
     }

@@ -28,6 +28,10 @@ if (!(Test-Path -LiteralPath (Join-Path $scripts 'mainchr/c01.luau') -PathType L
 $luauLicense = Join-Path $build 'Luau-LICENSE.txt'
 if (!(Test-Path -LiteralPath $luauLicense -PathType Leaf)) { throw "Missing Luau license: $luauLicense" }
 $packageFiles += @($scripts, $luauLicense)
+# The message font ships beside the executable with Kosugi's licence and the notice of what was changed.
+$fonts = Join-Path $build 'fonts'
+if (!(Test-Path -LiteralPath (Join-Path $fonts 'ChronicleTwoMessage-Regular.ttf') -PathType Leaf)) { throw "Missing message font: $fonts" }
+$packageFiles += $fonts
 $cmakeCache = Join-Path $build 'CMakeCache.txt'
 $tracyEnabled = @(Get-Content -LiteralPath $cmakeCache | Where-Object { $_ -eq 'CT_ENABLE_TRACY:BOOL=ON' }).Count -ne 0
 if ($tracyEnabled) {
@@ -36,4 +40,4 @@ if ($tracyEnabled) {
     $packageFiles += $tracyLicense
 }
 Compress-Archive -LiteralPath $packageFiles -DestinationPath $archive -Force
-Write-Output "Packaged $($paths.Count) program/runtime files, data.zip and scripts/ in $archive."
+Write-Output "Packaged $($paths.Count) program/runtime files, data.zip, scripts/ and fonts/ in $archive."

@@ -18,28 +18,28 @@
  * Number of villager places in the loaded table.
  *
  */
-static int PlaceInfoNum;
+int PlaceInfoNum;
 
 /**
  *
  * Loaded villager place records.
  *
  */
-static CVillagerPlaceInfo *PlaceInfo;
+CVillagerPlaceInfo *PlaceInfo;
 
 /**
  *
  * Number of loaded villager model records.
  *
  */
-static int VlgrInfoNum;
+int VlgrInfoNum;
 
 /**
  *
  * Loaded villager model and appearance records.
  *
  */
-static CVillagerInfo *VlgrInfo;
+CVillagerInfo *VlgrInfo;
 
 /**
  *
@@ -53,7 +53,7 @@ CVillagerPlace VlgrPlace[VLGR_PLACE_MAX];
  * Number of story progress points.
  *
  */
-static int ProgressNum;
+int ProgressNum;
 
 /**
  *

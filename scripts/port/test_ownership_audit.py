@@ -38,16 +38,23 @@ class OwnershipAuditTests(unittest.TestCase):
 #include <new>
 #include <memory>
 #include <string>
+#include <string_view>
 struct Arena {};
 struct mgCMemory { void *Alloc(int); };
 struct Unrelated { void *Alloc(int); };
+namespace dc2::memory { char *CopyText(mgCMemory &, std::string_view); }
+char *mgCopyString(char *, mgCMemory *);
 #include "raw_arena.inc"
 template<class T> T *Allocate(Arena &) { return nullptr; }
 template<class T> T *NewObject(Arena &) { return nullptr; }
+template<class T> T *AllocateMapObject(Arena &) { return nullptr; }
+template<class T> T *AllocateMapArray(Arena &, std::size_t) { return nullptr; }
 namespace project { template<class T> T *make_unique() { return nullptr; } }
 void use(Arena &arena) {
     int *numbers = Allocate<int>(arena);
     long *record = NewObject<long>(arena);
+    short *map_object = AllocateMapObject<short>(arena);
+    unsigned *map_array = AllocateMapArray<unsigned>(arena, 4);
     void *storage = std::malloc(32);
     std::free(storage);
     char copied[8]{};
@@ -55,6 +62,9 @@ void use(Arena &arena) {
     std::string text = "ready";
     mgCMemory memory;
     Unrelated unrelated;
+    (void)dc2::memory::CopyText(memory, "bounded");
+    char legacy[] = "legacy";
+    (void)mgCopyString(legacy, &memory);
     void *raw_array = memory.Alloc(4);
     (void)unrelated.Alloc(4);
     alignas(int) unsigned char object_storage[sizeof(int)];
@@ -68,6 +78,8 @@ void use(Arena &arena) {
     (void)project::make_unique<int>();
     (void)numbers;
     (void)record;
+    (void)map_object;
+    (void)map_array;
     (void)text;
     (void)raw_array;
     (void)placed;
@@ -84,8 +96,15 @@ void use(Arena &arena) {
             rows = ownership_audit.inventory(build, root)
             self.assertIn(("arena_template_call", "int *"), {(row[3], row[4]) for row in rows})
             self.assertIn(("arena_object_call", "long *"), {(row[3], row[4]) for row in rows})
+            self.assertIn(("arena_object_call", "short *"), {(row[3], row[4]) for row in rows})
+            self.assertIn(("arena_array_call", "unsigned int *"), {(row[3], row[4]) for row in rows})
             self.assertIn("heap_alloc_call", {row[3] for row in rows})
             self.assertIn("heap_release_call", {row[3] for row in rows})
+            text_allocations = [row for row in rows if row[3] == "arena_text_call"]
+            self.assertEqual(len(text_allocations), 2)
+            self.assertTrue(all(row[4] == "char *" for row in text_allocations))
+            self.assertTrue(any("CopyText" in row[-1] for row in text_allocations))
+            self.assertTrue(any("mgCopyString" in row[-1] for row in text_allocations))
             raw = [row for row in rows if row[3] == "raw_arena_call"]
             self.assertEqual(len(raw), 2)
             self.assertTrue(any(row[0].endswith("raw_arena.inc") for row in raw))

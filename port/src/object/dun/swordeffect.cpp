@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <limits>
+#include <new>
 #include <optional>
 #include <span>
 
@@ -401,25 +402,30 @@ void CSWordAfterEffect::Initialize(mgCMemory *memory, int capacity, int subdivis
     length = 0x20;
 }
 
-void CSWordAfterEffect::Copy(CSWordAfterEffect &dst, mgCMemory *memory) {
-    CSWordAfterEffect copy = *this;
-    if (memory == nullptr) {
-        dst = copy;
-        return;
-    }
-    if (point_num < 0 || point_num > point_max || smooth_num < 0 ||
-        (point_num > 0 && (!point0 || !point1 || head_index < 0 || head_index >= point_max)) ||
-        (smooth_num > 0 && (!smooth0 || !smooth1)) || point_max <= 0 || division < 2 ||
-        division > std::numeric_limits<int>::max() - 2 ||
-        static_cast<std::size_t>(point_max) > static_cast<std::size_t>(std::numeric_limits<int>::max()) / (static_cast<std::size_t>(division) + 2) ||
-        static_cast<std::size_t>(smooth_num) > static_cast<std::size_t>(point_max) * (static_cast<std::size_t>(division) + 2)) {
+bool CSWordAfterEffect::Copy(CSWordAfterEffect &dst, mgCMemory *memory) try {
+    const bool empty = point_max == 0 && point_num == 0 && smooth_num == 0 && active == 0 &&
+                       point0 == nullptr && point1 == nullptr && smooth0 == nullptr && smooth1 == nullptr;
+    if (!empty && (point_num < 0 || point_num > point_max || smooth_num < 0 ||
+                   point0 == nullptr || point1 == nullptr || smooth0 == nullptr || smooth1 == nullptr ||
+                   (point_num > 0 && (head_index < 0 || head_index >= point_max)) || point_max <= 0 || division < 2 ||
+                   division > std::numeric_limits<int>::max() - 2 ||
+                   static_cast<std::size_t>(point_max) > static_cast<std::size_t>(std::numeric_limits<int>::max()) / (static_cast<std::size_t>(division) + 2) ||
+                   static_cast<std::size_t>(smooth_num) > static_cast<std::size_t>(point_max) * (static_cast<std::size_t>(division) + 2))) {
         dst = CSWordAfterEffect{};
-        return;
+        return false;
+    }
+    if (&dst == this) {
+        return true;
+    }
+    CSWordAfterEffect copy = *this;
+    if (memory == nullptr || empty) {
+        dst = copy;
+        return true;
     }
     const auto storage = AllocateTrail(memory, point_max, division);
     if (!storage) {
         dst = CSWordAfterEffect{};
-        return;
+        return false;
     }
     for (int index = 0; index < point_num; ++index) {
         const auto slot = static_cast<std::size_t>((static_cast<long long>(head_index) + index) % point_max);
@@ -435,4 +441,8 @@ void CSWordAfterEffect::Copy(CSWordAfterEffect &dst, mgCMemory *memory) {
     copy.smooth0 = storage->smooth0;
     copy.smooth1 = storage->smooth1;
     dst = copy;
+    return true;
+} catch (const std::bad_alloc &) {
+    dst = CSWordAfterEffect{};
+    return false;
 }

@@ -15,10 +15,16 @@ configure_file(${luau_SOURCE_DIR}/LICENSE.txt ${CMAKE_BINARY_DIR}/Luau-LICENSE.t
 install(FILES ${CMAKE_BINARY_DIR}/Luau-LICENSE.txt DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/chronicletwo)
 
 # ct_options is the interface ct_link_game hands to the game and to darkchronicle_tests.
-target_link_libraries(ct_options INTERFACE Luau.VM Luau.Compiler Luau.CodeGen)
+target_link_libraries(ct_options INTERFACE Luau.VM Luau.Compiler)
+if(NOT NINTENDO_SWITCH)
+    target_link_libraries(ct_options INTERFACE Luau.CodeGen)
+endif()
 
 # Analysis calls std::abs without including <cstdlib>, which libc++ does not include for it.
 target_compile_options(Luau.Analysis PRIVATE -include cstdlib)
+if(NINTENDO_SWITCH)
+    target_compile_options(Luau.VM PRIVATE -include climits)
+endif()
 add_custom_target(ct_luau_tools DEPENDS Luau.Analyze.CLI Luau.Compile.CLI)
 
 # The native command tables for the kinds Luau runs, generated from the command catalog.
@@ -35,8 +41,8 @@ add_custom_command(OUTPUT ${CT_LUAU_BINDINGS}
     VERBATIM)
 target_sources(ct_port PRIVATE ${CT_LUAU_BINDINGS})
 
-# The scripts' Luau sources (port/src/luau), copied to scripts/ beside the executable. Each copy is a declared
-# output, so an up-to-date build runs nothing and a deleted copy is restored.
+# One publisher copies changed sources across worker threads without a process per script.
+# Declared byproducts restore deleted copies; an up-to-date build starts no publisher.
 file(GLOB_RECURSE CT_LUAU_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/port/src/luau/*.luau)
 list(FILTER CT_LUAU_SOURCES EXCLUDE REGEX "\\.d\\.luau$")
 set(CT_LUAU_COPIES "")
@@ -45,30 +51,27 @@ foreach(source IN LISTS CT_LUAU_SOURCES)
     file(RELATIVE_PATH relative ${CMAKE_SOURCE_DIR}/port/src/luau ${source})
     list(APPEND CT_LUAU_RELATIVES ${relative})
     set(copy ${CMAKE_BINARY_DIR}/scripts/${relative})
-    add_custom_command(OUTPUT ${copy}
-        COMMAND ${CMAKE_COMMAND} -E copy ${source} ${copy}
-        DEPENDS ${source}
-        COMMENT "Copying the script ${relative}"
-        VERBATIM)
     list(APPEND CT_LUAU_COPIES ${copy})
 endforeach()
-# A copy an earlier build made whose source is gone (a module the transpiler no longer generates) is removed on every
-# build, so the scripts directory, and a package made from it, holds the current modules. luau_prune.cmake removes only
-# copies its manifest records, unchanged since they were copied; any other file under scripts/ is left alone.
+# Preserve the expected-list timestamp when CMake regenerates for unrelated changes.
 list(JOIN CT_LUAU_RELATIVES "\n" ct_luau_expected)
-file(WRITE ${CMAKE_BINARY_DIR}/generated/luau/scripts.txt "${ct_luau_expected}\n")
-add_custom_target(ct_luau_prune
-    COMMAND ${CMAKE_COMMAND} -DSCRIPTS=${CMAKE_BINARY_DIR}/scripts -DSOURCES=${CMAKE_SOURCE_DIR}/port/src/luau
-        -DEXPECTED=${CMAKE_BINARY_DIR}/generated/luau/scripts.txt -DMANIFEST=${CMAKE_BINARY_DIR}/generated/luau/copied.txt
-        -P ${CMAKE_SOURCE_DIR}/port/cmake/scripts/luau_prune.cmake
-    COMMENT "Removing obsolete script copies"
+file(CONFIGURE OUTPUT ${CMAKE_BINARY_DIR}/generated/luau/scripts.txt CONTENT "${ct_luau_expected}\n" @ONLY)
+set(ct_luau_stamp ${CMAKE_BINARY_DIR}/generated/luau/copied.stamp)
+add_custom_command(OUTPUT ${ct_luau_stamp}
+    BYPRODUCTS ${CT_LUAU_COPIES} ${CMAKE_BINARY_DIR}/generated/luau/copied.txt
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/luau/sync.py
+        --scripts ${CMAKE_BINARY_DIR}/scripts --sources ${CMAKE_SOURCE_DIR}/port/src/luau
+        --expected ${CMAKE_BINARY_DIR}/generated/luau/scripts.txt
+        --manifest ${CMAKE_BINARY_DIR}/generated/luau/copied.txt --stamp ${ct_luau_stamp}
+    DEPENDS ${CT_LUAU_SOURCES} ${CMAKE_BINARY_DIR}/generated/luau/scripts.txt ${CMAKE_SOURCE_DIR}/tools/luau/sync.py
+    COMMENT "Publishing changed Luau scripts"
     VERBATIM)
 
 # CT_LUAU_PRECOMPILE also compiles each copy to bytecode, scripts/<module>.luauc, which the game loads instead of
 # compiling the source when the module first runs (port/src/luau_bytecode.hpp). It is on for iOS, where the scripts run
 # interpreted and the compile would land mid-game on the device. luau-precompile is built for the build machine from
 # the same Luau sources, at CT_LUAU_PRECOMPILE_LEVEL (the game compiles at -O1; -O2 adds inlining and loop unrolling).
-if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR NINTENDO_SWITCH)
     set(ct_luau_precompile_default ON)
 else()
     set(ct_luau_precompile_default OFF)
@@ -128,8 +131,7 @@ if(CT_LUAU_PRECOMPILE)
         install(FILES ${compiled} DESTINATION ${CMAKE_INSTALL_BINDIR}/scripts/${compiled_directory})
     endforeach()
 endif()
-add_custom_target(ct_luau_scripts DEPENDS ${CT_LUAU_COPIES})
-add_dependencies(ct_luau_scripts ct_luau_prune)
+add_custom_target(ct_luau_scripts DEPENDS ${ct_luau_stamp} ${CT_LUAU_COPIES} ${CMAKE_BINARY_DIR}/generated/luau/copied.txt)
 add_dependencies(darkchronicle ct_luau_scripts)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/port/src/luau/ DESTINATION ${CMAKE_INSTALL_BINDIR}/scripts
     FILES_MATCHING PATTERN "*.luau" PATTERN "*.d.luau" EXCLUDE)

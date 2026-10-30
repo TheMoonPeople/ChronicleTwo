@@ -130,7 +130,7 @@ static int PaintItemNo;
  * Frames remaining before the cursor can move again.
  *
  */
-static int CursorLockCnt;
+int CursorLockCnt;
 
 /**
  *
@@ -193,7 +193,7 @@ static int CtrlLockFlag;
  * Requested editor camera distance.
  *
  */
-static float eCameraDist;
+float eCameraDist;
 
 /**
  *
@@ -807,9 +807,9 @@ int StartEditMode(CScene *scene) {
 
     if (player != nullptr) {
         player->GetPosition(eCurPos);
-        *reinterpret_cast<u_long128 *>(ePartsCurNowPos) = *reinterpret_cast<u_long128 *>(eCurPos);
-        *reinterpret_cast<u_long128 *>(ePartsCurPos) = *reinterpret_cast<u_long128 *>(eCurPos);
-        *reinterpret_cast<u_long128 *>(eCurNowPos) = *reinterpret_cast<u_long128 *>(eCurPos);
+        std::memmove(ePartsCurNowPos, eCurPos, sizeof(float) * 4);
+        std::memmove(ePartsCurPos, eCurPos, sizeof(float) * 4);
+        std::memmove(eCurNowPos, eCurPos, sizeof(float) * 4);
     }
 
     EditModeNo = 2;
@@ -845,7 +845,7 @@ void EndEditMode(CScene *scene, float *cursor_pos) {
     CCharacter2 *player = scene->GetCharacter(scene->player_chara);
 
     if (player != nullptr) {
-        *reinterpret_cast<u_long128 *>(pos) = *reinterpret_cast<u_long128 *>(cursor_pos);
+        std::memmove(pos, cursor_pos, sizeof(float) * 4);
         pos[1] += 0.01f;
         player->SetPosition(pos);
     }
@@ -977,7 +977,7 @@ static void UndoPlaceParts(CScene *scene) {
                 RemainPartsNum = remaining;
                 EditInitPlaceAnime();
                 EditInitPlaceEffect();
-                *reinterpret_cast<u_long128 *>(eCurPos) = *reinterpret_cast<u_long128 *>(&undo->pos);
+                std::memmove(eCurPos, &undo->pos, sizeof(float) * 4);
                 eCurRot = map->ConvEditAngle(undo->rot[1]);
             }
 
@@ -1046,8 +1046,8 @@ int PlaceEditParts(CEditMap *map, float *pos, float *rot, EP_PLACE_INFO *place_i
         map->GroundBalance(1);
         map->UpdateHouse();
         undo.info_id = PartsInfoID;
-        *reinterpret_cast<u_long128 *>(&undo.pos) = *reinterpret_cast<u_long128 *>(pos);
-        *reinterpret_cast<u_long128 *>(&undo.rot) = *reinterpret_cast<u_long128 *>(rot);
+        std::memmove(&undo.pos, pos, sizeof(float) * 4);
+        std::memmove(&undo.rot, rot, sizeof(float) * 4);
         StackUndoData(&undo);
         RemainPartsNum -= 1;
         GetSaveData()->AddBuildPartsNum(PartsInfoID, -1);
@@ -1064,7 +1064,7 @@ int PlaceEditParts(CEditMap *map, float *pos, float *rot, EP_PLACE_INFO *place_i
 
 void PlaceRiverStart(CEditMap *map, float *pos) {
     PlaceRiverCnt = 0x32;
-    *reinterpret_cast<u_long128 *>(PlaceRiverPos) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(PlaceRiverPos, pos, sizeof(float) * 4);
     CursorLockCnt = 5;
 
     if (ShovelCurChr != nullptr) {
@@ -1111,8 +1111,8 @@ int NowPlaceRiver() {
 
 void RemoveMtnStart(CEditMap *map, float *pos, float *cursor_pos) {
     RemoveMtnCnt = 0x12;
-    *reinterpret_cast<u_long128 *>(RemoveMtnPos) = *reinterpret_cast<u_long128 *>(pos);
-    *reinterpret_cast<u_long128 *>(RemoveMtnCurPos) = *reinterpret_cast<u_long128 *>(cursor_pos);
+    std::memmove(RemoveMtnPos, pos, sizeof(float) * 4);
+    std::memmove(RemoveMtnCurPos, cursor_pos, sizeof(float) * 4);
     CursorLockCnt = 5;
 
     if (RemoveCurChr != nullptr) {
@@ -1136,8 +1136,8 @@ int RemoveMtnStep(CScene *scene) {
         CursorLockCnt = 3;
     }
 
-    *reinterpret_cast<u_long128 *>(eCurPos) = *reinterpret_cast<u_long128 *>(RemoveMtnCurPos);
-    *reinterpret_cast<u_long128 *>(eCurPos) = *reinterpret_cast<u_long128 *>(RemoveMtnCurPos);
+    std::memmove(eCurPos, RemoveMtnCurPos, sizeof(float) * 4);
+    std::memmove(eCurPos, RemoveMtnCurPos, sizeof(float) * 4);
 
     if (RemoveMtnCnt == 3) {
         parts_index = edit_map->GetePlaceParts(RemoveMtnPos);
@@ -1217,7 +1217,7 @@ int DeleteKanketuParts(CScene *scene, CEditMap *map, float *position, int parts_
     }
 
     map->GetePlaceParts(parts_no);
-    *reinterpret_cast<u_long128 *>(removed_position) = *reinterpret_cast<u_long128 *>(position);
+    std::memmove(removed_position, position, sizeof(float) * 4);
     int removed = map->RemoveEditParts(parts_no, eCurPos, nullptr);
 
     if (removed != 0) {
@@ -1227,22 +1227,22 @@ int DeleteKanketuParts(CScene *scene, CEditMap *map, float *position, int parts_
         if (effects != nullptr) {
             float effect_vector[4] = {8.0f, 8.0f, 8.0f, 0.0f};
             float effect_position[4];
-            *reinterpret_cast<u_long128 *>(effect_position) = *reinterpret_cast<u_long128 *>(removed_position);
+            std::memmove(effect_position, removed_position, sizeof(float) * 4);
             effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
             effects->SetScriptVect1(effect_position, -1, -1);
             effects->SetScriptVect2(effect_vector, -1, -1);
-            *reinterpret_cast<u_long128 *>(effect_position) = *reinterpret_cast<u_long128 *>(removed_position);
+            std::memmove(effect_position, removed_position, sizeof(float) * 4);
             effect_position[0] += 50.0f;
             effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
             effects->SetScriptVect1(effect_position, -1, -1);
             effects->SetScriptVect2(effect_vector, -1, -1);
-            *reinterpret_cast<u_long128 *>(effect_position) = *reinterpret_cast<u_long128 *>(removed_position);
+            std::memmove(effect_position, removed_position, sizeof(float) * 4);
             effect_position[0] -= 24.0f;
             effect_position[2] -= 30.0f;
             effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
             effects->SetScriptVect1(effect_position, -1, -1);
             effects->SetScriptVect2(effect_vector, -1, -1);
-            *reinterpret_cast<u_long128 *>(effect_position) = *reinterpret_cast<u_long128 *>(removed_position);
+            std::memmove(effect_position, removed_position, sizeof(float) * 4);
             effect_position[0] -= 36.0f;
             effect_position[2] += 40.0f;
             effects->CreateEffSpt("\x8d\xbb\x89\x8c\x32", -1, -1);
@@ -1436,7 +1436,7 @@ void DrawEditCursorParts(CScene *scene) {
 
             if (parts != nullptr) {
                 float position[4];
-                *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(ePartsCurNowPos);
+                std::memmove(position, ePartsCurNowPos, sizeof(float) * 4);
                 lighting = mgActiveLighting(3, 0);
                 mgInitActiveLighting();
                 mgSetAmbient(ambient);
@@ -1492,7 +1492,7 @@ void DrawEditCursor(CScene *scene) {
     map = static_cast<CEditMap *>(scene->GetMap(scene->active_map));
     cursor = EditCursor[0];
     chara = nullptr;
-    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(eCurNowPos);
+    std::memmove(position, eCurNowPos, sizeof(float) * 4);
     unit = nullptr;
 
     switch (EditModeNo) {
@@ -1560,7 +1560,7 @@ void DrawEditCursor(CScene *scene) {
             }
 
             if (unit->attr != nullptr) {
-                *reinterpret_cast<u_long128 *>(unit->attr->color) = *reinterpret_cast<u_long128 *>(color);
+                std::memmove(unit->attr->color, color, sizeof(float) * 4);
             }
         }
 
@@ -1599,7 +1599,7 @@ void DrawEditCursor(CScene *scene) {
 
     if (GamePad__2.Down(PAD_L3)) {
         if (cnt == 0) {
-            *reinterpret_cast<u_long128 *>(pos_save) = *reinterpret_cast<u_long128 *>(eCurPos);
+            std::memmove(pos_save, eCurPos, sizeof(float) * 4);
             cnt++;
             pos_save[3] = eCurRot;
         } else {
@@ -2117,7 +2117,7 @@ void DrawEditSystem(int block, CScene *scene, float *pos, int edit) {
                     float target[4];
                     GetBalanceHeight(scene, target);
                     float cursor[4];
-                    *reinterpret_cast<u_long128 *>(cursor) = *reinterpret_cast<u_long128 *>(eCurPos);
+                    std::memmove(cursor, eCurPos, sizeof(float) * 4);
                     int focused = 0;
 
                     for (int i = 0; i < 4; i++) {
@@ -2217,7 +2217,7 @@ int CheckWalkToEdit(CScene *scene, float *position) {
     float     hit_normals[0x20][4];
     int       hit_indices[0x20];
     float     normal[4];
-    *reinterpret_cast<u_long128 *>(pos) = *reinterpret_cast<u_long128 *>(position);
+    std::memmove(pos, position, sizeof(float) * 4);
     CMap *map = scene->GetMap(scene->active_map);
 
     if (map == nullptr) {
@@ -2228,8 +2228,8 @@ int CheckWalkToEdit(CScene *scene, float *position) {
         return 1;
     }
 
-    *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(pos);
-    *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(box.max, pos, sizeof(float) * 4);
+    std::memmove(box.min, pos, sizeof(float) * 4);
     pos[1] = 20.0f;
     box.max[1] = 100.0f;
     box.max[0] += 100.0f;
@@ -2272,8 +2272,8 @@ int CheckEditToWalk(CScene *scene, float *position) {
     CCPoly    polys[512];
     float     hit_positions[64][4];
     int       hit_indices[64];
-    *reinterpret_cast<u_long128 *>(cursor) = *reinterpret_cast<u_long128 *>(eCurPos);
-    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(eCurPos);
+    std::memmove(cursor, eCurPos, sizeof(float) * 4);
+    std::memmove(position, eCurPos, sizeof(float) * 4);
     CEditMap *map = static_cast<CEditMap *>(scene->GetMap(scene->active_map));
 
     if (map == nullptr) {
@@ -2290,8 +2290,8 @@ int CheckEditToWalk(CScene *scene, float *position) {
         return 0;
     }
 
-    *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(eCurPos);
-    *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(eCurPos);
+    std::memmove(box.max, eCurPos, sizeof(float) * 4);
+    std::memmove(box.min, eCurPos, sizeof(float) * 4);
     cursor[1] = 1000.0f;
     box.max[0] += 20.0f;
     box.max[1] = 10000.0f;
@@ -2308,7 +2308,7 @@ int CheckEditToWalk(CScene *scene, float *position) {
         return 0;
     }
 
-    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(ground_hit);
+    std::memmove(position, ground_hit, sizeof(float) * 4);
 
     if (polys[ground_index].area_kind != COL_AREA_EDIT_WALK) {
         return 0;
@@ -2372,7 +2372,7 @@ void EditModeCore(CScene *scene) {
 
         if (camera != nullptr) {
             float old_pos[4];
-            *reinterpret_cast<u_long128 *>(old_pos) = *reinterpret_cast<u_long128 *>(eCurPos);
+            std::memmove(old_pos, eCurPos, sizeof(float) * 4);
             float angle = camera->GetAngle();
             float stick_x = 0.0f;
 
@@ -2483,7 +2483,7 @@ void EditModeCore(CScene *scene) {
             }
 
             float target[4];
-            *reinterpret_cast<u_long128 *>(target) = *reinterpret_cast<u_long128 *>(ePartsCurNowPos);
+            std::memmove(target, ePartsCurNowPos, sizeof(float) * 4);
             moving = 0;
 
             if ((move_x != 0.0f) | (move_z != 0.0f)) {
@@ -2580,10 +2580,10 @@ void EditModeCore(CScene *scene) {
             float         move[4];
             CCPoly        polys[EDIT_CURSOR_POLY_MAX];
             MoveCheckInfo move_info{};
-            *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(eCurPos);
-            *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(eCurPos);
-            *reinterpret_cast<u_long128 *>(new_pos) = *reinterpret_cast<u_long128 *>(eCurPos);
-            *reinterpret_cast<u_long128 *>(start_pos) = *reinterpret_cast<u_long128 *>(old_pos);
+            std::memmove(box.max, eCurPos, sizeof(float) * 4);
+            std::memmove(box.min, eCurPos, sizeof(float) * 4);
+            std::memmove(new_pos, eCurPos, sizeof(float) * 4);
+            std::memmove(start_pos, old_pos, sizeof(float) * 4);
             new_pos[1] = 20.0f;
             start_pos[1] = 20.0f;
             sceVu0SubVector(move, new_pos, start_pos);
@@ -2701,13 +2701,13 @@ void EditModeCore(CScene *scene) {
                 }
             }
 
-            *reinterpret_cast<u_long128 *>(ePartsCurPos) = *reinterpret_cast<u_long128 *>(eCurPos);
+            std::memmove(ePartsCurPos, eCurPos, sizeof(float) * 4);
             ePartsCurRot[1] = map->GetEditAngle(eCurRot);
             poly_count = 0;
             next_poly = polys;
-            *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(eCurPos);
-            *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(eCurPos);
-            *reinterpret_cast<u_long128 *>(new_pos) = *reinterpret_cast<u_long128 *>(eCurPos);
+            std::memmove(box.max, eCurPos, sizeof(float) * 4);
+            std::memmove(box.min, eCurPos, sizeof(float) * 4);
+            std::memmove(new_pos, eCurPos, sizeof(float) * 4);
             new_pos[1] = 1000.0f;
             box.max[0] += 10.0f;
             box.max[1] = 10000.0f;
@@ -2728,7 +2728,7 @@ void EditModeCore(CScene *scene) {
             }
 
             if (CheckHitVertical(polys, poly_count, new_pos, -2000.0f, ground, 1) >= 0) {
-                *reinterpret_cast<u_long128 *>(eCurPos) = *reinterpret_cast<u_long128 *>(ground);
+                std::memmove(eCurPos, ground, sizeof(float) * 4);
                 ePartsCurPos[1] = ground[1];
             }
 
@@ -2767,7 +2767,7 @@ void EditModeCore(CScene *scene) {
                                 if (MagnetEnable != 0) {
                                     float magnet_pos[4];
                                     float magnet_rot = {};
-                                    *reinterpret_cast<u_long128 *>(magnet_pos) = *reinterpret_cast<u_long128 *>(place_pos);
+                                    std::memmove(magnet_pos, place_pos, sizeof(float) * 4);
                                     int was_magnet = MagnetPartsFlag;
                                     magnet_rot = rot[1];
                                     int line_parts = (place_info->attr & EDIT_PARTS_ATR_LINE) != 0;
@@ -2809,7 +2809,7 @@ void EditModeCore(CScene *scene) {
                                 if (place_info->id == EDIT_COMPLETION_PART) {
                                     float probe[4];
                                     PlacePartsFlag = 0;
-                                    *reinterpret_cast<u_long128 *>(probe) = *reinterpret_cast<u_long128 *>(eCurPos);
+                                    std::memmove(probe, eCurPos, sizeof(float) * 4);
                                     probe[3] = 10.0f;
                                     finish_no = map->GetePlaceParts(probe);
                                     CEditParts *base = map->GetePlaceParts(finish_no);
@@ -2876,7 +2876,7 @@ void EditModeCore(CScene *scene) {
                     if (EditModeNo == EDIT_MODE_REMOVE) {
                         float probe[4];
                         SetHelpMes(EDIT_HELP_REMOVE, 0, 0);
-                        *reinterpret_cast<u_long128 *>(probe) = *reinterpret_cast<u_long128 *>(eCurPos);
+                        std::memmove(probe, eCurPos, sizeof(float) * 4);
                         probe[3] = 10.0f;
                         int parts_no = map->GetePlaceParts(probe);
                         eCurPos[1] = eCurPos[1] > probe[1] ? eCurPos[1] : probe[1];
@@ -2894,7 +2894,7 @@ void EditModeCore(CScene *scene) {
 
                     while (EditModeNo == EDIT_MODE_PAINT || EditModeNo == EDIT_MODE_REPAINT) {
                         float probe[4];
-                        *reinterpret_cast<u_long128 *>(probe) = *reinterpret_cast<u_long128 *>(eCurPos);
+                        std::memmove(probe, eCurPos, sizeof(float) * 4);
                         probe[3] = 10.0f;
                         int         parts_no = map->GetePlaceParts(probe);
                         CEditParts *parts = map->GetePlaceParts(parts_no);
@@ -3030,7 +3030,7 @@ void EditModeCore(CScene *scene) {
                         if (pad->Btn(PAD_BTN_EDIT_PLACE)) {
                             float                probe[4];
                             CEditParts::WallInfo wall{};
-                            *reinterpret_cast<u_long128 *>(probe) = *reinterpret_cast<u_long128 *>(eCurPos);
+                            std::memmove(probe, eCurPos, sizeof(float) * 4);
                             probe[3] = 1.0f;
                             int         parts_no = map->GetePlaceParts(probe);
                             CEditParts *parts = map->GetePlaceParts(parts_no);
@@ -3052,7 +3052,7 @@ void EditModeCore(CScene *scene) {
                     if (PutSideMode == EDIT_PUT_SIDE_MOVE) {
                         float         wall_pos[4];
                         EP_PLACE_INFO place{};
-                        *reinterpret_cast<u_long128 *>(wall_pos) = *reinterpret_cast<u_long128 *>(WallPutPos);
+                        std::memmove(wall_pos, WallPutPos, sizeof(float) * 4);
                         int placeable = map->CheckWallEditParts(map->GetePartsInfo(edit_name), wall_pos, SelectWallGroup,
                                                                 NowSelectWallParts, &place);
                         ePartsCurPos[0] = wall_pos[0];

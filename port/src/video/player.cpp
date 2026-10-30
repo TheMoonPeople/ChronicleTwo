@@ -11,6 +11,7 @@ extern "C" {
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -43,6 +44,16 @@ bool ValidSize(int width, int height) {
 }
 
 /**
+ * Reports the asset and stage that prevented a movie input or decoder from opening.
+ */
+bool OpenFailure(const vfs::Ref &file, std::string_view stage, int code) {
+    std::array<char, AV_ERROR_MAX_STRING_SIZE> text{};
+    av_strerror(code, text.data(), text.size());
+    CT_LOG_WARN(Movie, "movie: {} failed during {} ({}, {})", file.Display(), stage, text.data(), code);
+    return false;
+}
+
+/**
  * Feeds FFmpeg one data entry that is not a host file: a stored archive entry read from its own file handle, or a
  * compressed entry held in memory.
  */
@@ -66,6 +77,7 @@ public:
         if (const auto range = vfs::Stored(file)) {
             input->file_.open(range->file, std::ios::binary);
             if (!input->file_) {
+                OpenFailure(file, "opening the archive stream", AVERROR(errno == 0 ? EIO : errno));
                 return nullptr;
             }
             input->offset_ = range->offset;
@@ -73,15 +85,18 @@ public:
         } else if (vfs::Read(file, input->bytes_, std::numeric_limits<std::uint64_t>::max())) {
             input->length_ = input->bytes_.size();
         } else {
+            OpenFailure(file, "reading the archive entry", AVERROR(EIO));
             return nullptr;
         }
         auto *buffer = static_cast<unsigned char *>(av_malloc(kInputBufferBytes));
         if (!buffer) {
+            OpenFailure(file, "allocating the input buffer", AVERROR(ENOMEM));
             return nullptr;
         }
         input->io_ = avio_alloc_context(buffer, kInputBufferBytes, 0, input.get(), &EntryInput::ReadPacket, nullptr, &EntryInput::Seek);
         if (!input->io_) {
             av_free(buffer);
+            OpenFailure(file, "allocating the input context", AVERROR(ENOMEM));
             return nullptr;
         }
         return input;
@@ -150,10 +165,15 @@ private:
  * Opens an MP4 entry: host files by path, archive entries through a custom input that must outlive the format.
  */
 bool OpenMovie(const vfs::Ref &file, AVFormatContext *&format, std::unique_ptr<EntryInput> &input) {
+    const auto *mov = av_find_input_format("mov");
+    if (!mov) {
+        return OpenFailure(file, "finding the MP4 demuxer", AVERROR_DEMUXER_NOT_FOUND);
+    }
     if (const auto host = vfs::HostPath(file)) {
         const auto        utf8 = host->u8string();
         const std::string name(utf8.begin(), utf8.end());
-        return avformat_open_input(&format, name.c_str(), av_find_input_format("mov"), nullptr) >= 0;
+        const int         result = avformat_open_input(&format, name.c_str(), mov, nullptr);
+        return result >= 0 || OpenFailure(file, "opening the MP4 file", result);
     }
     input = EntryInput::Open(file);
     if (!input) {
@@ -161,13 +181,14 @@ bool OpenMovie(const vfs::Ref &file, AVFormatContext *&format, std::unique_ptr<E
     }
     format = avformat_alloc_context();
     if (!format) {
-        return false;
+        return OpenFailure(file, "allocating the MP4 context", AVERROR(ENOMEM));
     }
     format->pb = input->Context();
     format->flags |= AVFMT_FLAG_CUSTOM_IO;
     const auto name = file.Display();
     // A failed open frees the context; the custom input stays owned by the caller.
-    return avformat_open_input(&format, name.c_str(), av_find_input_format("mov"), nullptr) >= 0;
+    const int result = avformat_open_input(&format, name.c_str(), mov, nullptr);
+    return result >= 0 || OpenFailure(file, "opening the MP4 archive stream", result);
 }
 
 struct AudioReader {
@@ -190,7 +211,12 @@ struct AudioReader {
 std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const vfs::Ref &file, bool &failed) {
     failed = false;
     AudioReader reader;
-    if (!OpenMovie(file, reader.format, reader.input) || avformat_find_stream_info(reader.format, nullptr) < 0) {
+    if (!OpenMovie(file, reader.format, reader.input)) {
+        failed = true;
+        return nullptr;
+    }
+    if (const int result = avformat_find_stream_info(reader.format, nullptr); result < 0) {
+        OpenFailure(file, "reading audio stream information", result);
         failed = true;
         return nullptr;
     }
@@ -202,11 +228,23 @@ std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const vfs::Ref &file, bool &faile
     const AVStream *stream = reader.format->streams[index];
     const AVCodec  *decoder = avcodec_find_decoder(stream->codecpar->codec_id);
     if (!decoder || !reader.packet || !reader.frame) {
+        OpenFailure(file, "finding the audio decoder", decoder ? AVERROR(ENOMEM) : AVERROR_DECODER_NOT_FOUND);
         failed = true;
         return nullptr;
     }
     reader.codec = avcodec_alloc_context3(decoder);
-    if (!reader.codec || avcodec_parameters_to_context(reader.codec, stream->codecpar) < 0 || avcodec_open2(reader.codec, decoder, nullptr) < 0) {
+    if (!reader.codec) {
+        OpenFailure(file, "allocating the audio decoder", AVERROR(ENOMEM));
+        failed = true;
+        return nullptr;
+    }
+    if (const int result = avcodec_parameters_to_context(reader.codec, stream->codecpar); result < 0) {
+        OpenFailure(file, "configuring the audio decoder", result);
+        failed = true;
+        return nullptr;
+    }
+    if (const int result = avcodec_open2(reader.codec, decoder, nullptr); result < 0) {
+        OpenFailure(file, "opening the audio decoder", result);
         failed = true;
         return nullptr;
     }
@@ -350,29 +388,38 @@ struct MoviePlayer::Impl {
     }
 
     bool Open(const vfs::Ref &file, int retail_width, int retail_height) {
-        if (!packet || !frame || !OpenMovie(file, format, input) || avformat_find_stream_info(format, nullptr) < 0) {
+        if (!packet || !frame) {
+            return OpenFailure(file, "allocating video packet storage", AVERROR(ENOMEM));
+        }
+        if (!OpenMovie(file, format, input)) {
             return false;
+        }
+        if (const int result = avformat_find_stream_info(format, nullptr); result < 0) {
+            return OpenFailure(file, "reading video stream information", result);
         }
         video = av_find_best_stream(format, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
         if (video < 0) {
-            return false;
+            return OpenFailure(file, "finding the video stream", video);
         }
         const AVStream *stream = format->streams[video];
         const AVCodec  *decoder = avcodec_find_decoder(stream->codecpar->codec_id);
         if (!decoder) {
-            return false;
+            return OpenFailure(file, "finding the video decoder", AVERROR_DECODER_NOT_FOUND);
         }
         codec = avcodec_alloc_context3(decoder);
-        if (!codec || avcodec_parameters_to_context(codec, stream->codecpar) < 0) {
-            return false;
+        if (!codec) {
+            return OpenFailure(file, "allocating the video decoder", AVERROR(ENOMEM));
+        }
+        if (const int result = avcodec_parameters_to_context(codec, stream->codecpar); result < 0) {
+            return OpenFailure(file, "configuring the video decoder", result);
         }
         // A retail-size picture decodes in about a millisecond; a larger replacement decodes on FFmpeg's threads.
         const int64_t retail_pixels = static_cast<int64_t>(retail_width) * retail_height;
         if (retail_pixels > 0 && static_cast<int64_t>(codec->width) * codec->height > retail_pixels) {
             codec->thread_count = static_cast<int>(std::clamp(std::thread::hardware_concurrency(), 1u, kMaxDecoderThreads));
         }
-        if (avcodec_open2(codec, decoder, nullptr) < 0) {
-            return false;
+        if (const int result = avcodec_open2(codec, decoder, nullptr); result < 0) {
+            return OpenFailure(file, "opening the video decoder", result);
         }
         codec->pkt_timebase = stream->time_base;
         const auto rate = av_guess_frame_rate(format, format->streams[video], nullptr);
@@ -537,6 +584,9 @@ bool MoviePlayer::Open(const std::filesystem::path &path, bool with_audio) {
         return false;
     }
     auto candidates = path.is_absolute() ? std::vector<vfs::Ref>{vfs::HostFile(path)} : AudioAssetCandidates(path.generic_string());
+    if (candidates.empty()) {
+        CT_LOG_WARN(Movie, "movie: {} has no matching data asset", path.generic_string());
+    }
     for (const auto &candidate : candidates) {
         impl = std::make_unique<Impl>();
         if (!impl->Open(candidate, retail_width, retail_height)) {
@@ -547,12 +597,14 @@ bool MoviePlayer::Open(const std::filesystem::path &path, bool with_audio) {
             bool failed = false;
             audio_track = EmbeddedAudio(candidate, failed);
             if (failed) {
+                OpenFailure(candidate, "decoding embedded audio", AVERROR_INVALIDDATA);
                 Close();
                 continue;
             }
         }
         Pump();
         if (queue.empty() || !Advance(0)) {
+            OpenFailure(candidate, "decoding the first video picture", AVERROR_INVALIDDATA);
             Close();
             continue;
         }

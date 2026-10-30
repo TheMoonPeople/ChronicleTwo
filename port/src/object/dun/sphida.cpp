@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -25,6 +26,7 @@
 #include "mglib.hpp"
 #include "object.hpp"
 #include "padcontrol.hpp"
+#include "platform/config.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
@@ -52,6 +54,22 @@ namespace {
  *
  */
 dc2::memory::ArenaBuffer sphida_storage{};
+
+/**
+ *
+ * Largest par a laid out hole keeps, the two digits the par counter shows.
+ *
+ */
+constexpr int kMaxPar = 99;
+
+/**
+ *
+ * Adds game.spheda_handicap's extra shots to a hole that was just laid out.
+ *
+ */
+void AddHandicap(CSphida &sphida) {
+    sphida.par_count = dc2::sphida::HandicapPar(sphida.par_count, ConfigGet().spheda_handicap);
+}
 } // namespace
 
 namespace dc2::sphida {
@@ -63,6 +81,10 @@ bool Publish(dc2::memory::ArenaBuffer storage) {
     }
     sphida_storage = storage;
     return true;
+}
+
+int HandicapPar(int par, int handicap) {
+    return std::min(par + std::clamp(handicap, 0, kSphedaHandicapMax), std::max(par, kMaxPar));
 }
 
 dc2::memory::ArenaBuffer Lease() {
@@ -327,14 +349,14 @@ void CSphida::SetUp(int arg) {
     box.max[3] = 1.0f;
     box.min[3] = 1.0f;
 
-    *reinterpret_cast<u_long128 *>(from) = *reinterpret_cast<u_long128 *>(this->ball_pos);
-    *reinterpret_cast<u_long128 *>(to) = *reinterpret_cast<u_long128 *>(this->ball_pos);
+    std::memmove(from, this->ball_pos, sizeof(float) * 4);
+    std::memmove(to, this->ball_pos, sizeof(float) * 4);
     from[1] += 18.0f;
     to[1] -= 18.0f;
     count = DngMainScene->GetColPoly(polys, box, 0x80);
 
     if (CheckHit(polys, count, from, to, hit, 1, 0xC) >= 0) {
-        *reinterpret_cast<u_long128 *>(this->ball_pos) = *reinterpret_cast<u_long128 *>(hit);
+        std::memmove(this->ball_pos, hit, sizeof(float) * 4);
     }
 
     this->ball_pos[1] += 3.0f;
@@ -388,6 +410,7 @@ void CSphida::SetUp(int arg) {
     this->tex_bank = arg;
     this->InitStatusSprite();
     this->play_flag = 1;
+    AddHandicap(*this);
 }
 
 void CSphida::s17_SetUp(int arg) {
@@ -415,6 +438,7 @@ void CSphida::s17_SetUp(int arg) {
     this->tex_bank = arg;
     this->InitStatusSprite();
     this->play_flag = 1;
+    AddHandicap(*this);
 }
 
 void CSphida::Omake_SetUp(int course, int tex_bank) {
@@ -534,6 +558,7 @@ void CSphida::Omake_SetUp(int course, int tex_bank) {
     InitStatusSprite();
     play_flag = 1;
     omake_mode = 1;
+    AddHandicap(*this);
 }
 
 int CSphida::Step() {

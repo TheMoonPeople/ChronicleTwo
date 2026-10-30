@@ -15,6 +15,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "gfx/displaylist.hpp"
@@ -731,6 +732,22 @@ int RetailBucket(const std::string &name) {
 }
 
 } // namespace
+
+TEST(MgTexture, NameHashPreservesSignedHighBytesAndAccumulatorWrapping) {
+    mgCTextureManager manager;
+
+    constexpr std::array cases{
+        std::pair{"",             0  },
+        std::pair{"\x80",         229},
+        std::pair{"\xff",         255},
+        std::pair{"\x80\x41",     8  },
+        std::pair{"\x81\x40",     61 },
+        std::pair{"tex_\x82\xa0", 75 },
+    };
+    for (const auto &[name, expected] : cases) {
+        EXPECT_EQ(manager.hash(name), expected);
+    }
+}
 
 TEST(MgTexture, TableAllocationRejectsInvalidCountsWithoutConsumingArena) {
     alignas(u_long128) u_long128 storage[1024]{};

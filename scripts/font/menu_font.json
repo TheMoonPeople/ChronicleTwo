@@ -1,0 +1,285 @@
+{
+  "family": "ChronicleTwoMenu",
+  "kind": "words",
+  "description": "Dark Chronicle's pause menu lettering as outlines, made from Libre Franklin and Jost for the ChronicleTwo port.",
+  "copyright": "Copyright 2020 The Libre Franklin Project Authors (https://github.com/googlefonts/Libre-Franklin). Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type). Modified for ChronicleTwo; see NOTICE.",
+  "default_source": "libre_franklin",
+  "sources": {
+    "libre_franklin": 500,
+    "jost": 500
+  },
+  "flare": null,
+  "rounding": {
+    "libre_franklin": 40,
+    "jost": 70
+  },
+  "global": {
+    "em": 18.06,
+    "stretch": 1.265,
+    "weight": 2.0,
+    "start": 0.812,
+    "baseline": 17.649,
+    "stem": 142.0
+  },
+  "words": {
+    "Item": [
+      0.0,
+      -0.25
+    ],
+    "Character": [
+      0.0,
+      0.312
+    ],
+    "Make": [
+      -0.251,
+      -0.188
+    ],
+    "Move": [
+      0.188,
+      -0.189
+    ],
+    "Options": [
+      0.0,
+      0.312
+    ],
+    "Help": [
+      -0.062,
+      -0.25
+    ],
+    "???": [
+      -0.562,
+      -0.625
+    ]
+  },
+  "glyphs": {
+    "?": {
+      "source": "drawn",
+      "drawn": {
+        "cx": 496.8,
+        "cy": 628.8,
+        "rx": 284.0,
+        "ry": 184.0,
+        "weight": 126.4,
+        "start": 180.0,
+        "end": -45.5,
+        "stem_x": 492.8,
+        "stem_top": 284.8,
+        "stem_bottom": 246.4,
+        "drop": 101.2,
+        "dot": 116.0,
+        "dot_y": 53.6,
+        "advance": 800.0
+      }
+    },
+    "C": {
+      "kx": 1.075,
+      "ky": 1.04,
+      "tx": 44.0,
+      "weight": 4.0,
+      "advance": -4.0
+    },
+    "H": {
+      "tx": -32.0,
+      "weight": 2.0,
+      "advance": -56.0,
+      "kx": 1.015,
+      "ky": 1.025
+    },
+    "I": {
+      "kx": 1.255,
+      "ky": 1.015,
+      "tx": -20.0,
+      "weight": 4.0,
+      "advance": -60.0
+    },
+    "M": {
+      "kx": 1.06,
+      "ky": 1.12,
+      "tx": 84.0,
+      "shear": 0.03,
+      "advance": 116.0,
+      "weight": -6.0,
+      "source": "jost"
+    },
+    "O": {
+      "kx": 1.09,
+      "ky": 1.04,
+      "tx": 28.0,
+      "advance": 4.0
+    },
+    "a": {
+      "ky": 0.99,
+      "tx": 8.0,
+      "shear": 0.015,
+      "weight": 12.0,
+      "advance": 4.0
+    },
+    "c": {
+      "kx": 1.075,
+      "ky": 1.02,
+      "tx": -32.0,
+      "weight": 8.0,
+      "advance": 32.0,
+      "shear": 0.015
+    },
+    "e": {
+      "ky": 1.02,
+      "tx": -56.0,
+      "shear": 0.015,
+      "weight": 6.0,
+      "advance": -100.0,
+      "kx": 0.985
+    },
+    "h": {
+      "kx": 1.03,
+      "ky": 1.015,
+      "tx": -16.0,
+      "weight": 12.0
+    },
+    "i": {
+      "ky": 1.015,
+      "weight": 12.0,
+      "advance": -8.0,
+      "kx": 1.015
+    },
+    "k": {
+      "kx": 0.97,
+      "ky": 1.03,
+      "tx": -56.0,
+      "weight": 4.0,
+      "advance": 16.0
+    },
+    "l": {
+      "kx": 0.94,
+      "ky": 1.015,
+      "weight": 12.0,
+      "advance": 16.0,
+      "tx": 4.0
+    },
+    "m": {
+      "kx": 0.94,
+      "tx": -20.0,
+      "weight": 4.0,
+      "ky": 1.01
+    },
+    "n": {
+      "kx": 1.06,
+      "tx": 16.0,
+      "shear": -0.015,
+      "weight": 12.0,
+      "advance": -16.0,
+      "ky": 1.01
+    },
+    "o": {
+      "kx": 1.105,
+      "ky": 1.02,
+      "tx": 28.0,
+      "shear": -0.015,
+      "weight": 6.0,
+      "advance": 20.0
+    },
+    "p": {
+      "kx": 1.06,
+      "tx": -32.0,
+      "shear": -0.015,
+      "weight": 8.0,
+      "advance": 4.0,
+      "ky": 1.005
+    },
+    "r": {
+      "kx": 1.045,
+      "ky": 1.01,
+      "tx": -4.0,
+      "shear": 0.03,
+      "weight": 14.0,
+      "warp": [
+        {
+          "region": [
+            300,
+            420,
+            10000,
+            10000
+          ],
+          "scale": [
+            1.0,
+            0.885
+          ],
+          "about": [
+            0,
+            420
+          ]
+        },
+        {
+          "region": [
+            300,
+            420,
+            10000,
+            10000
+          ],
+          "scale": [
+            1.12,
+            1.0
+          ],
+          "about": [
+            300,
+            0
+          ]
+        }
+      ],
+      "advance": 16
+    },
+    "s": {
+      "shear": -0.075,
+      "weight": 12.0,
+      "kx": 1.03
+    },
+    "t": {
+      "kx": 1.09,
+      "ky": 0.985,
+      "weight": 12.0,
+      "advance": 36.0,
+      "tx": -8.0,
+      "warp": [
+        {
+          "region": [
+            330,
+            -10000,
+            10000,
+            150
+          ],
+          "scale": [
+            1.23,
+            1.0
+          ],
+          "about": [
+            330,
+            0
+          ]
+        },
+        {
+          "region": [
+            430,
+            -10000,
+            10000,
+            150
+          ],
+          "shear": [
+            0.0,
+            0.25
+          ],
+          "about": [
+            430,
+            0
+          ]
+        }
+      ]
+    },
+    "v": {
+      "kx": 0.925,
+      "ky": 0.985,
+      "shear": 0.06,
+      "weight": -2.0,
+      "tx": -4.0
+    }
+  }
+}

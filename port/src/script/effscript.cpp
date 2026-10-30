@@ -1066,7 +1066,11 @@ int CEffectScriptMan::SetCharacter(CCharacter2 *source, int group, int slot) {
     }
     static_assert(std::is_trivially_destructible_v<CCharacter2>);
     auto *character = new (storage) CCharacter2;
-    source->Copy(*character, work_memory);
+    if (!source->Copy(*character, work_memory)) {
+        work_memory->EndStackMode();
+        work_memory->Free(token);
+        return 0;
+    }
     target->chara = character;
     target->chara_work = token;
     work_memory->stAlign64();
@@ -5709,7 +5713,11 @@ int CEffectScriptMan::AssignCharacter(_EFF_SCRIPT *script, int count) {
             return 0;
         }
         characters[static_cast<std::size_t>(i)] = new (storage) CCharacter2;
-        script->chara->Copy(*characters[static_cast<std::size_t>(i)], work_memory);
+        if (!script->chara->Copy(*characters[static_cast<std::size_t>(i)], work_memory)) {
+            work_memory->EndStackMode();
+            work_memory->Free(token);
+            return 0;
+        }
     }
     std::copy_n(characters.begin(), count, script->sub_chara);
     script->sub_chara_work = token;
@@ -5792,7 +5800,11 @@ _EFF_SCRIPT *CEffectScriptMan::CreateEffSpt(int base_no, int group, int register
         }
         effect->chara = new (character_storage) CCharacter2;
         effect->chara->Initialize();
-        definition->chara->Copy(*effect->chara, work_memory);
+        if (!definition->chara->Copy(*effect->chara, work_memory)) {
+            work_memory->EndStackMode();
+            work_memory->Free(token);
+            return nullptr;
+        }
         effect->chara->SetPosition(0.0f, -10000.0f, 0.0f);
         effect->chara->SetRotation(0.0f, 0.0f, 0.0f);
     }
@@ -5919,7 +5931,9 @@ int BuildNativeEffect(CEffectScriptMan &manager, int base_no, const EffectResour
         base->chara = new (character_storage) CCharacter2;
         base->chara->Initialize();
         if (source) {
-            source->Copy(*base->chara, memory);
+            if (!source->Copy(*base->chara, memory)) {
+                return -1;
+            }
             base->texb = source->texture_block;
         } else {
             if (requested_block < 0) {

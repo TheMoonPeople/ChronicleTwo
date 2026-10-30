@@ -126,7 +126,7 @@ static signed char manual_list_mesclstbl[5] = {2, 4, 5, 6, 8};
  * Number of selectable option rows, converted to an integer for navigation.
  *
  */
-static float config_option_num_i = 16.0f;
+float config_option_num_i = 16.0f;
 
 /**
  *
@@ -326,26 +326,30 @@ void InitMnOnePictTex();
  */
 static CMemoryCardManager *MemoryCardPtr;
 
+void dc2::menu::ResetSaveMenuManager() {
+    dc2::mc::RetireManager(MemoryCardPtr);
+}
+
 /**
  *
  * Active save and load menu.
  *
  */
-static CSaveMenuClass *SaveMenuPtr;
+CSaveMenuClass *SaveMenuPtr;
 
 /**
  *
  * Active option menu.
  *
  */
-static CMenuOption *CMenuOptionPtr;
+CMenuOption *CMenuOptionPtr;
 
 /**
  *
  * Active manual menu.
  *
  */
-static CManualMenu *CManualPtr;
+CManualMenu *CManualPtr;
 
 /**
  *
@@ -2095,7 +2099,9 @@ void MenuSaveDraw() {
 }
 
 void SubGameCFGAnalyze(char *command) {
-    MenuCommandAnalyze(SubGameSaveCFGBuffer, SubGameSaveCFGBufferSize, command);
+    if (command != nullptr) {
+        dc2::menu::AnalyzeCommands(SubGameSaveCFGBuffer, SubGameSaveCFGBufferSize, command);
+    }
 }
 
 void SubGameSaveInit(mgCMemory *memory, int *tex_block, int open_type) {

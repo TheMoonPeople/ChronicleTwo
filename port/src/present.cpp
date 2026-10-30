@@ -13,6 +13,7 @@
 
 #include "camera_fixed.hpp"
 #include "exitcodes.hpp"
+#include "gfx/displaylist.hpp"
 #include "gfx/gfx.hpp"
 #include "log/log.hpp"
 #include "menu_mouse.hpp"
@@ -47,6 +48,23 @@ std::int64_t      counted_tick = 0;
 int               wait_start = 0;
 int               wait_frames = 0;
 
+/**
+ * Enables intermediate displays for game frames below the requested presentation cadence.
+ */
+bool InterpolateFrame([[maybe_unused]] int frames) {
+#ifdef __SWITCH__
+    return settings.interpolation && frames > 1;
+#else
+    return settings.interpolation;
+#endif
+}
+
+enum class EndpointPolicy {
+    Replay,
+    CanonicalAuthored
+};
+std::atomic<std::uint64_t> settings_epoch{0};
+
 // The tick the render thread presents, written by the game thread under publish_mutex.
 struct Published {
     gfx::DisplayListRef list;     // The tick's canonical list.
@@ -55,15 +73,19 @@ struct Published {
     PresentSettings     settings;
     gfx::InterpKey      suppressed_2d_key = 0;
     // The game frame ending with this tick: it began at frame_start, lasts frame_frames ticks at tick_rate.
-    Clock::time_point frame_start;
-    Clock::duration   frame_length{};
-    int               frame_frames = 0;
-    double            tick_rate = 0.0;
-    float             look_yaw = 0.0f;
-    float             look_pitch = 0.0f;
-    bool              mouse_fixed = false;
-    bool              mouse_pointer = false;
-    std::uint64_t     serial = 0;
+    Clock::time_point                       frame_start;
+    Clock::duration                         frame_length{};
+    int                                     frame_frames = 0;
+    double                                  tick_rate = 0.0;
+    float                                   look_yaw = 0.0f;
+    float                                   look_pitch = 0.0f;
+    bool                                    mouse_fixed = false;
+    bool                                    mouse_pointer = false;
+    std::uint64_t                           serial = 0;
+    std::uint64_t                           epoch = 0;
+    EndpointPolicy                          endpoint_policy = EndpointPolicy::Replay;
+    bool                                    canonical_endpoint_source = false;
+    std::optional<gfx::CanonicalImageToken> canonical_image;
 };
 
 std::mutex                 publish_mutex;
@@ -73,11 +95,12 @@ std::atomic<std::uint64_t> async_presented{0};
 std::atomic<std::uint64_t> async_display_frames{0};
 std::atomic<std::uint64_t> async_canonical_presents{0};
 
-// Only the render thread's idle hook touches these.
-PresentPacer  render_pacer;
-OverlayRate   render_frames;
-std::uint64_t render_serial = 0;
-bool          render_tick_shown = false;
+// Device ownership serializes the idle hook and the pre-canonical endpoint retirement.
+PresentPacer                    render_pacer;
+OverlayRate                     render_frames;
+std::uint64_t                   render_serial = 0;
+bool                            render_tick_shown = false;
+dc2::presentation::EndpointPair render_pair;
 
 bool PresentAsync() {
     return gfx::ActiveRenderThreadMode() == gfx::RenderThreadMode::Async;
@@ -96,8 +119,8 @@ gfx::DisplayListRef RecordHostOverlay(bool fps) {
         return nullptr;
     }
     if (fps) {
-        const int pixel = OverlayPixelSize(gfx::GetLogicalMapping(gfx::kMainTarget));
-        OverlayDrawText(PresentFpsText(), gfx::GetUiMapping(gfx::kMainTarget), pixel,
+        const int pixel = OverlayPixelSize(gfx::GetPresentationMapping());
+        OverlayDrawText(PresentFpsText(), gfx::GetPresentationMapping(true), pixel,
                         pixel * kOverlayPadding, pixel * kOverlayPadding);
     }
     MenuMouseDraw();
@@ -119,16 +142,28 @@ const gfx::DisplayList *DisplayOverlayList() {
     return overlay.list.get();
 }
 
+/**
+ * Reports presentation rates and opt-in renderer timing samples once per second.
+ */
+void LogPresentRates(Clock::time_point now) {
+    if ((settings.log_fps || gfx::FrameTimingEnabled()) && now - last_log >= std::chrono::seconds(1)) {
+        const double seconds = last_log == Clock::time_point{} ? 1.0 : std::chrono::duration<double>(now - last_log).count();
+        last_log = now;
+        if (settings.log_fps) {
+            CT_LOG_INFO(Gfx, "present: {}", PresentFpsText());
+        }
+        if (gfx::FrameTimingEnabled()) {
+            gfx::LogFrameTimings(seconds);
+        }
+    }
+}
+
 void NotePresented() {
     ++stats.presented;
     CT_PROFILE_FRAME("Display");
     const Clock::time_point now = Clock::now();
     overlay.frames.Count(now);
-
-    if (settings.log_fps && now - last_log >= std::chrono::seconds(1)) {
-        last_log = now;
-        CT_LOG_INFO(Gfx, "present: {}", PresentFpsText());
-    }
+    LogPresentRates(now);
 }
 
 double DisplaySeconds(bool intermediate = false) {
@@ -227,6 +262,11 @@ void RepublishMouse() {
         published.look_pitch = pitch;
         published.mouse_fixed = fixed;
         published.mouse_pointer = pointer;
+        published.suppressed_2d_key = MenuMouseReplacedHandKey();
+        if (fixed || pointer || published.suppressed_2d_key != 0) {
+            published.endpoint_policy = EndpointPolicy::Replay;
+            published.canonical_endpoint_source = false;
+        }
     }
     gfx::WakeRenderThread();
 }
@@ -254,7 +294,8 @@ bool BetweenTicks(double fraction, Clock::time_point next_tick) {
 
     PollFpsToggle();
 
-    if (!settings.interpolation && !PresentMouseActive()) {
+    const bool interpolation = InterpolateFrame(wait_frames);
+    if (!interpolation && !PresentMouseActive()) {
         if (!tick_shown) {
             PresentCanonicalFrame();
             tick_shown = true;
@@ -274,7 +315,7 @@ bool BetweenTicks(double fraction, Clock::time_point next_tick) {
     }
 
     // A game frame spans mgFrameRate ticks, so alpha is the fraction of the game frame elapsed, not of the tick.
-    const float alpha = settings.interpolation ? PresentFrameAlpha(static_cast<double>(ClockTickCount() - wait_start), fraction, wait_frames) : 1.0f;
+    const float alpha = interpolation ? PresentFrameAlpha(static_cast<double>(ClockTickCount() - wait_start), fraction, wait_frames) : 1.0f;
 
     if (!pacer.Present([&] { return DisplayFrame(alpha, true); }, Clock::now)) {
         return false;
@@ -317,6 +358,30 @@ bool PresentPublishedCanonical(const Published &frame) {
     return render_pacer.Present(gfx::PresentCanonical, Clock::now);
 }
 
+void SelectPublication(const Published &frame) {
+    if (frame.serial != render_serial) {
+        render_serial = frame.serial;
+        render_tick_shown = false;
+        if (frame.endpoint_policy == EndpointPolicy::CanonicalAuthored) {
+            render_pair.Begin();
+        } else {
+            render_pair.Cancel();
+        }
+    }
+}
+
+bool CurrentCanonicalImage(const Published &frame) {
+    const auto current = gfx::CaptureCanonicalImage();
+    return frame.canonical_image && current && *current == *frame.canonical_image;
+}
+
+bool PresentAuthoredEndpoint(const Published &frame) {
+    if (!frame.canonical_image) {
+        return false;
+    }
+    return render_pacer.Present([&] { return gfx::PresentCanonicalImage(*frame.canonical_image, frame.overlay.get()); }, Clock::now);
+}
+
 // Alpha of the published tick at now, as BetweenTicks computes it from the tick count: the fraction of the game
 // frame elapsed. Without interpolation the display is the tick itself.
 float PublishedAlpha(const Published &frame, Clock::time_point now) {
@@ -339,19 +404,56 @@ std::chrono::steady_clock::duration PresentRenderIdle(void *) {
         return std::chrono::milliseconds(10);
     }
 
-    if (frame.serial != render_serial) {
-        render_serial = frame.serial;
-        render_tick_shown = false;
+    if (frame.epoch != settings_epoch.load()) {
+        render_pair.Cancel();
+        return std::chrono::milliseconds(2);
+    }
+    SelectPublication(frame);
+    if (frame.mouse_fixed || frame.mouse_pointer || frame.suppressed_2d_key != 0) {
+        frame.endpoint_policy = EndpointPolicy::Replay;
+        render_pair.Cancel();
+    }
+    if (frame.endpoint_policy == EndpointPolicy::CanonicalAuthored) {
+        if (!CurrentCanonicalImage(frame)) {
+            render_pair.Cancel();
+            return std::chrono::milliseconds(2);
+        }
+        using Action = dc2::presentation::EndpointPair::Action;
+        const auto now = Clock::now();
+        const auto decision = render_pair.Next(now, frame.frame_start + frame.frame_length, frame.settings.max_fps, render_pacer);
+        if (decision.action == Action::Wait) {
+            return decision.deadline - now;
+        }
+        if (decision.action == Action::Done) {
+            return std::chrono::milliseconds(2);
+        }
+        const bool shown = decision.action == Action::Endpoint ? PresentAuthoredEndpoint(frame)
+                                                               : render_pacer.Present([&] { return RenderPublished(frame, PublishedAlpha(frame, now)); }, Clock::now);
+        if (shown) {
+            render_pair.Presented(decision.action);
+            if (decision.action == Action::Endpoint) {
+                async_canonical_presents.fetch_add(1);
+            } else {
+                async_display_frames.fetch_add(1);
+            }
+            NoteAsyncPresented(Clock::now());
+        }
+        return shown ? Clock::duration::zero() : std::chrono::milliseconds(1);
     }
 
     // Without interpolation the tick is presented once, as PresentCanonicalFrame does at the tick's end.
     if (!frame.settings.interpolation && !frame.mouse_fixed && !frame.mouse_pointer) {
         if (!render_tick_shown) {
+            const auto now = Clock::now();
+            const auto due = render_pacer.Next(now, Clock::time_point::max(), frame.settings.max_fps);
+            if (due.action != PresentPacer::Action::Display) {
+                return due.deadline - now;
+            }
             if (PresentPublishedCanonical(frame)) {
                 async_canonical_presents.fetch_add(1);
                 NoteAsyncPresented(Clock::now());
+                render_tick_shown = true;
             }
-            render_tick_shown = true;
         }
         return std::chrono::milliseconds(2);
     }
@@ -390,12 +492,44 @@ std::chrono::steady_clock::duration PresentRenderIdle(void *) {
 
 } // namespace
 
+namespace dc2::presentation {
+
+void BeforeCanonical() {
+    if (!PresentAsync()) {
+        return;
+    }
+    Published frame;
+    {
+        std::lock_guard lock(publish_mutex);
+        frame = published;
+    }
+    if (!frame.list || frame.endpoint_policy != EndpointPolicy::CanonicalAuthored ||
+        frame.mouse_fixed || frame.mouse_pointer || frame.suppressed_2d_key != 0) {
+        render_pair.Cancel();
+        return;
+    }
+    SelectPublication(frame);
+    if (frame.epoch == settings_epoch.load() && CurrentCanonicalImage(frame)) {
+        const auto decision = render_pair.Next(Clock::now(), frame.frame_start + frame.frame_length,
+                                               frame.settings.max_fps, render_pacer);
+        if (decision.action == EndpointPair::Action::Endpoint && PresentAuthoredEndpoint(frame)) {
+            async_canonical_presents.fetch_add(1);
+            NoteAsyncPresented(Clock::now());
+        }
+    }
+    // Device work must not sleep to rescue a phase that missed its available source image.
+    render_pair.Cancel();
+}
+
+} // namespace dc2::presentation
+
 bool PresentMouseActive() {
     return MenuMousePointerVisible() || MouseFixedActive(0);
 }
 
 void PresentSetSettings(const PresentSettings &value) {
     settings = value;
+    settings_epoch.fetch_add(1);
     overlay.on = value.show_fps;
     if (PresentAsync()) {
         gfx::SetRenderIdleHook(PresentRenderIdle, nullptr);
@@ -454,7 +588,7 @@ void PresentWaitFrame(int start, int frames) {
     dc2::timing::WaitTicks(start, frames, BetweenTicks);
 }
 
-void PresentPublishTick(int start, int frames) {
+void PresentPublishTick(int start, int frames, bool canonical_endpoint_allowed) {
     if (!PresentAsync()) {
         return;
     }
@@ -482,20 +616,38 @@ void PresentPublishTick(int start, int frames) {
     const auto              frame_length =
         std::chrono::duration_cast<Clock::duration>(std::chrono::duration<double>(frames / tick_rate));
 
-    if (settings.log_fps && now - last_log >= std::chrono::seconds(1)) {
-        last_log = now;
-        CT_LOG_INFO(Gfx, "present: {}", PresentFpsText());
-    }
+    LogPresentRates(now);
 
     gfx::DisplayListRef list = mgPortLastListRef();
     gfx::DisplayListRef previous = mgPortPreviousListRef();
     const auto          suppressed_key = MenuMouseReplacedHandKey();
+    const auto          canonical_image = gfx::CaptureCanonicalImage();
+    const auto          epoch = settings_epoch.load();
+    bool                endpoint_enabled = false;
+#ifdef __SWITCH__
+    const char *endpoint_override = std::getenv("DC2_SWITCH_CANONICAL_ENDPOINTS");
+    endpoint_enabled = endpoint_override == nullptr || std::string_view(endpoint_override) != "0";
+#endif
     {
         std::lock_guard lock(publish_mutex);
+        const bool      previous_compatible = published.list && previous && published.list.get() == previous.get() &&
+                                              published.frame_frames == 2 && published.settings.interpolation && published.canonical_endpoint_source &&
+                                              published.epoch == epoch && published.canonical_image && canonical_image &&
+                                              canonical_image->SharesStorageWith(*published.canonical_image);
+        const bool      eligible_source = endpoint_enabled && canonical_endpoint_allowed && canonical_image && list &&
+                                          frames == 2 && InterpolateFrame(frames) && !ClockUnbounded() && settings.display_per_tick == 0 &&
+                                          std::abs(tick_rate - 60.0) < .1 && std::abs(settings.max_fps - 60.0) < .1 && !fixed && !pointer && suppressed_key == 0;
+        const bool      endpoint = eligible_source && previous_compatible && previous &&
+                                   list->instance == previous->instance && list->cut_generation == previous->cut_generation;
+        published.canonical_endpoint_source = eligible_source;
+        published.endpoint_policy = endpoint ? EndpointPolicy::CanonicalAuthored : EndpointPolicy::Replay;
+        published.canonical_image = canonical_image;
+        published.epoch = epoch;
         published.list = std::move(list);
         published.previous = std::move(previous);
         published.overlay = std::move(overlay_list);
         published.settings = settings;
+        published.settings.interpolation = InterpolateFrame(frames);
         published.suppressed_2d_key = suppressed_key;
         published.frame_start = frame_start;
         published.frame_length = frame_length;

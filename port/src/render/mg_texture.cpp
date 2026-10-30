@@ -272,11 +272,12 @@ mgCTextureManager::mgCTextureManager()
       hash_table{}, texture_buf(nullptr), texture_stack(nullptr), texture_max(0), texture_num(0),
       hash_buf(nullptr), hash_stack(nullptr), hash_max(0), hash_num(0), name_suffix{} {}
 
-int mgCTextureManager::hash(char *name) {
+int mgCTextureManager::hash(const char *name) {
     u_char value = {};
 
-    for (value = 0; *(signed char *) name != 0; name++) {
-        value = (((value << 8) + *(signed char *) name) % 101);
+    const auto *cursor = reinterpret_cast<const signed char *>(name);
+    for (value = 0; *cursor != 0; cursor++) {
+        value = (((value << 8) + *cursor) % 101);
     }
 
     return value;
@@ -359,7 +360,7 @@ void mgCTextureManager::DelHash(mgCTexture *texture) {
     }
 }
 
-mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
+mgCTexture *mgCTextureManager::SearchHash(const char *name, int mode) {
     if (!ValidateTableStorage() || name == nullptr) {
         return nullptr;
     }
@@ -378,7 +379,7 @@ mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
     return nullptr;
 }
 
-mgCTexture *mgCTextureManager::SearchTextureName(char *name, int block) {
+mgCTexture *mgCTextureManager::SearchTextureName(const char *name, int block) {
     if (!ValidateTableStorage() || name == nullptr) {
         return nullptr;
     }
@@ -390,7 +391,7 @@ mgCTexture *mgCTextureManager::SearchTextureName(char *name, int block) {
     return SearchHash(name, block);
 }
 
-mgCTexture *mgCTextureManager::SearchTexture(char *name) {
+mgCTexture *mgCTextureManager::SearchTexture(const char *name) {
     if (!ValidateTableStorage() || name == nullptr) {
         return nullptr;
     }
@@ -409,7 +410,7 @@ mgCTexture *mgCTextureManager::SearchTexture(char *name) {
     return slot;
 }
 
-mgCTexture *mgCTextureManager::GetTexture(char *name, int block) {
+mgCTexture *mgCTextureManager::GetTexture(const char *name, int block) {
     return SearchTextureName(name, block);
 }
 
@@ -464,7 +465,7 @@ int mgGetIMGHeaderNum(char *img);
 
 mgIMG_HEADER mgGetIMGHeader(char *img, int index);
 
-void mgCTextureManager::DeleteTexture(char *name, int block) {
+void mgCTextureManager::DeleteTexture(const char *name, int block) {
     mgCTexture *texture = GetTexture(name, block);
 
     if (texture != nullptr) {

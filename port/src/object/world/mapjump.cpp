@@ -206,8 +206,7 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index) {
     int chara_index = {};
 
     CSaveData *save_data = GetSaveData();
-    s16       *map_nos = (&save_data->map_no);
-    (&save_data->map_no)[2] = static_cast<s16>(NowMainMapNo);
+    save_data->prev_map_no = static_cast<s16>(NowMainMapNo);
     mgWaitFrame();
     mgInitLighting();
     scene->DeleteMap(SubMapInfo.map_no, 1);
@@ -222,13 +221,13 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index) {
     scene->ClearStack(1);
     NowMainMapNo = SearchMapNo(map_name);
     scene->SetNowMapNo(NowMainMapNo);
-    map_nos[0] = static_cast<s16>(NowMainMapNo);
-    map_nos[3] = -1;
-    map_nos[1] = -1;
+    save_data->map_no = static_cast<s16>(NowMainMapNo);
+    save_data->prev_sub_map_no = -1;
+    save_data->sub_map_no = -1;
     int area_no = GetMapAreaNo(NowMainMapNo);
 
     if (area_no > 0) {
-        *reinterpret_cast<int *>(map_nos + 4) = area_no;
+        save_data->area_no = area_no;
     }
 
     info->load_sky = 1;
@@ -363,11 +362,10 @@ int LoadSubMap(CScene *scene, int sub_map_no, int flag) {
 
     CSaveData *save_data = GetSaveData();
 
-    s16 *sub_map_nos = (&save_data->map_no);
-    sub_map_nos[3] = NowSubMapNo;
+    save_data->prev_sub_map_no = NowSubMapNo;
     scene->SetNowSubMapNo(sub_map_no);
     NowSubMapNo = sub_map_no;
-    sub_map_nos[1] = sub_map_no;
+    save_data->sub_map_no = sub_map_no;
     return 1;
 }
 
@@ -487,8 +485,8 @@ void SetInteriorDoorPos(CScene *scene) {
         if ((point->event.flag & FUNC_EVENT_DOOR) && strcmp(door_name, point->event.target) == 0) {
             sceVu0FVECTOR position;
             sceVu0FVECTOR rotation;
-            *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(point->position);
-            *reinterpret_cast<u_long128 *>(rotation) = *reinterpret_cast<u_long128 *>(point->rotation);
+            std::memmove(position, point->position, sizeof(float) * 4);
+            std::memmove(rotation, point->rotation, sizeof(float) * 4);
             rotation[2] = 0.0f;
             rotation[0] = 0.0f;
             rotation[1] = mgAngleLimit(PI + rotation[1]);

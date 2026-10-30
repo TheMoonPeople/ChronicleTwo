@@ -1093,26 +1093,17 @@ void ScriptDebugCommand(int command) {
 }
 
 void XChgMapLighting() {
-    int       saved[sizeof(CMapLightingInfo) / sizeof(int)];
-    int       i = {};
-    CMapInfo *map = {};
-    int       byte_offset = {};
-
-    map = reinterpret_cast<CMapInfo *>(DngMainScene->GetMap(DngMainScene->active_map));
-
-    if ((map != nullptr) && (map != nullptr) && (map->lighting_info_num >= 16)) {
-        memset(saved, 0, sizeof(saved));
-        i = 0;
-        byte_offset = 0;
-
-        do {
-            dc2::memory::CopyTrackedBytes(saved, reinterpret_cast<u8 *>(map->lighting_info) + byte_offset, sizeof(CMapLightingInfo));
-            dc2::memory::CopyTrackedBytes(reinterpret_cast<u8 *>(map->lighting_info) + byte_offset,
-                                          reinterpret_cast<u8 *>(map->lighting_info) + byte_offset + 8 * sizeof(CMapLightingInfo), sizeof(CMapLightingInfo));
-            dc2::memory::CopyTrackedBytes(reinterpret_cast<u8 *>(map->lighting_info) + byte_offset + 8 * sizeof(CMapLightingInfo), saved, sizeof(CMapLightingInfo));
-            i += 1;
-            byte_offset += sizeof(CMapLightingInfo);
-        } while (i < 8);
+    if (DngMainScene == nullptr) {
+        return;
+    }
+    auto *map = DngMainScene->GetMap(DngMainScene->active_map);
+    if (map == nullptr || map->map_info.lighting_info == nullptr || map->map_info.lighting_info_num < MAP_INFO_LIGHTING_MAX) {
+        return;
+    }
+    auto           lighting = std::span(map->map_info.lighting_info, static_cast<std::size_t>(MAP_INFO_LIGHTING_MAX));
+    constexpr auto half = static_cast<std::size_t>(MAP_INFO_LIGHTING_MAX / 2);
+    for (std::size_t index = 0; index < half; ++index) {
+        std::swap(lighting[index], lighting[index + half]);
     }
 }
 

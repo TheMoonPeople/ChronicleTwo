@@ -219,7 +219,7 @@ gfx::LogicalRect LogicalRectOf(const OutlineBox &box, int outset) {
 
 // Texels are at the box's own logical coordinates: the image is the frame's logical space.
 void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4], float depth,
-              const gfx::TextureBinding &binding, const gfx::DrawState &state) {
+              const gfx::TextureBinding &binding, const gfx::DrawState &state, bool defer_alpha = false) {
     const float x0 = static_cast<float>(box.left + dx) / kUnitsPerPixel;
     const float y0 = static_cast<float>(box.top + dy) / kUnitsPerPixel;
     const float x1 = static_cast<float>(box.right + dx) / kUnitsPerPixel;
@@ -255,6 +255,10 @@ void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4],
         corner(extent.right + ox, extent.bottom + oy, extent.right, extent.bottom),
         corner(extent.left + ox, extent.bottom + oy, extent.left, extent.bottom)};
     gfx::Presentation2D presentation{.vertices = display_quad, .state = state};
+    if (defer_alpha) {
+        // The following full-area body overwrites alpha before any consumer can observe it.
+        presentation.state.color_write_mask = static_cast<uint8_t>(state.color_write_mask & ~gfx::kWriteAlpha);
+    }
     // Empty texels must not stamp the object's constant depth across the enlarged rectangle.
     if (presentation.state.depth_write) {
         presentation.state.alpha_test = true;
@@ -398,22 +402,6 @@ int COutLineDraw::Draw(float scale, float alpha) {
     binding.wrap_u = mgPortWrapU(gs.clamp);
     binding.wrap_v = mgPortWrapV(gs.clamp);
 
-    if (hide_edge == 0 && !(alpha < 1.0f) && edge_offset > 0 && !(opacity < 0.1f)) {
-        const uint8_t edge_colour[4] = {static_cast<uint8_t>(static_cast<int>(color[0])),
-                                        static_cast<uint8_t>(static_cast<int>(color[1])),
-                                        static_cast<uint8_t>(static_cast<int>(color[2])),
-                                        static_cast<uint8_t>(static_cast<int>(128.0f * opacity * alpha))};
-        env.SetZBuf(MG_ZBUF_NO_WRITE);
-        gfx::DrawState edge_state = mgPortDrawState();
-        edge_state.blend = true;
-        mgPortApplyDrawEnv(edge_state, env);
-
-        DrawCopy(box, edge_offset, 0, edge_colour, 0.0f, binding, edge_state);
-        DrawCopy(box, -edge_offset, 0, edge_colour, 0.0f, binding, edge_state);
-        DrawCopy(box, 0, edge_offset, edge_colour, 0.0f, binding, edge_state);
-        DrawCopy(box, 0, -edge_offset, edge_colour, 0.0f, binding, edge_state);
-    }
-
     int  depth = 0;
     bool depth_write = false;
 
@@ -427,11 +415,37 @@ int COutLineDraw::Draw(float scale, float alpha) {
         }
     }
 
-    const uint8_t body_colour[4] = {128, 128, 128, static_cast<uint8_t>(static_cast<int>(128.0f * alpha))};
     env.SetZBuf(depth_write ? MG_ZBUF_WRITE : MG_ZBUF_NO_WRITE);
     gfx::DrawState body_state = mgPortDrawState();
     body_state.blend = true;
     mgPortApplyDrawEnv(body_state, env);
+    const bool body_overwrites_alpha = previous == gfx::kMainTarget &&
+                                       gfx::ActiveRendererFeatures().dynamic_color_write_mask &&
+                                       body_state.depth_test == gfx::DepthTest::Always && !body_state.depth_write && !body_state.stencil_test &&
+                                       body_state.cull == gfx::CullMode::None && (body_state.color_write_mask & gfx::kWriteAlpha) != 0 &&
+                                       body_state.alpha.a == 0 && body_state.alpha.b == 1 && body_state.alpha.c == 0 && body_state.alpha.d == 1 &&
+                                       (!body_state.alpha_test || body_state.alpha_func == gfx::AlphaFunc::Always ||
+                                        (body_state.alpha_func == gfx::AlphaFunc::GEqual && body_state.alpha_ref == 0));
+
+    if (hide_edge == 0 && !(alpha < 1.0f) && edge_offset > 0 && !(opacity < 0.1f)) {
+        const uint8_t edge_colour[4] = {static_cast<uint8_t>(static_cast<int>(color[0])),
+                                        static_cast<uint8_t>(static_cast<int>(color[1])),
+                                        static_cast<uint8_t>(static_cast<int>(color[2])),
+                                        static_cast<uint8_t>(static_cast<int>(128.0f * opacity * alpha))};
+        mgCDrawEnv    edge_env = env;
+        edge_env.SetZBuf(MG_ZBUF_NO_WRITE);
+        gfx::DrawState edge_state = mgPortDrawState();
+        edge_state.blend = true;
+        mgPortApplyDrawEnv(edge_state, edge_env);
+        const bool defer_alpha = body_overwrites_alpha && edge_state == body_state;
+
+        DrawCopy(box, edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, -edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, 0, edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, 0, -edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+    }
+
+    const uint8_t body_colour[4] = {128, 128, 128, static_cast<uint8_t>(static_cast<int>(128.0f * alpha))};
     DrawCopy(box, 0, 0, body_colour, mgPortDepth(static_cast<uint32_t>(depth)), binding, body_state);
 
     // The composite's packets are the last writes to these registers.

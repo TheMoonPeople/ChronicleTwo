@@ -266,7 +266,7 @@ static CCameraControl *GetCamera();
 static CCharacter2    *GetChara(int id);
 static CSceneObjSeq   *GetObjSeq(int index);
 static CEventSprite2  *GetEventSprite(int index);
-static ClsMes         *GetMes(int id);
+ClsMes                *GetMes(int id);
 
 /**
  *
@@ -6038,12 +6038,16 @@ static int _COPY_CHARA(dc2::script::RunArguments stack, int argc) {
     if (source == nullptr) {
         return false;
     }
-    const auto source_resource = EventScene->GetSceneCharacter(src_no)->character;
+    const auto source_resource = EventScene->GetSceneCharacter(src_no)->Resource();
+    const int  source_texture = EventScene->GetCharaTexb(src_no);
     auto      *storage = AllocateEventStorage(memory, (sizeof(CCharacter2) + sizeof(u_long128) - 1) / sizeof(u_long128));
     if (storage == nullptr) {
         return false;
     }
     auto *copy = new (storage) CCharacter2;
+    if (!source->Copy(*copy, memory)) {
+        return false;
+    }
 
     EventScene->DeleteChara(dst_no);
     int slot = EventScene->AssignChara(dst_no, dc2::scene::CharacterResource::FromArena(*memory, *copy));
@@ -6053,8 +6057,7 @@ static int _COPY_CHARA(dc2::script::RunArguments stack, int argc) {
     }
 
     EventScene->SetStatus(SCENE_DATA_CHARA, slot, SCENE_DATA_LOADED | SCENE_DATA_ASSIGNED);
-    source->Copy(*GetCharacter(dst_no), memory);
-    EventScene->SetCharaTexb(dst_no, EventScene->GetCharaTexb(src_no));
+    EventScene->SetCharaTexb(dst_no, source_texture);
     return true;
 }
 
@@ -9443,7 +9446,7 @@ static int _ACTCHR_SOUND_INFO_COPY(dc2::script::RunArguments stack) {
  * Gives the message window with the id.
  *
  */
-static ClsMes *GetMes(int id) {
+ClsMes *GetMes(int id) {
     return GetEventMessage(id);
 }
 
@@ -19877,6 +19880,9 @@ static int _COPY_MONS2SCNCHR(dc2::script::RunArguments stack) {
         return false;
     }
 
+    if (!CCharacter2(ActiveMonster->refer[monster_index].chara).Copy(*copy, memory)) {
+        return false;
+    }
     EventScene->DeleteChara(dst_no);
     int slot = EventScene->AssignChara(dst_no, dc2::scene::CharacterResource::FromArena(*memory, *copy));
 
@@ -19885,8 +19891,6 @@ static int _COPY_MONS2SCNCHR(dc2::script::RunArguments stack) {
     }
 
     EventScene->SetStatus(SCENE_DATA_CHARA, slot, SCENE_DATA_LOADED | SCENE_DATA_ASSIGNED);
-    CCharacter2 *dest = GetCharacter(dst_no);
-    CCharacter2(ActiveMonster->refer[monster_index].chara).Copy(*dest, memory);
     EventScene->SetCharaTexb(dst_no, monster_index + MONSTER_TEXB_REFER);
     return true;
 }

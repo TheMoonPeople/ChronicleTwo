@@ -15,6 +15,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <span>
 #include <string>
 #include <thread>
 #include <vector>
@@ -1082,7 +1083,7 @@ void DamageProjection(float x) {
 std::vector<gfx::Vertex2D> DamageVertices(const gfx::DisplayList &list) {
     for (const auto &entry : list.entries) {
         if (const auto *draw = std::get_if<gfx::detail::Draw2DEntry>(&entry)) {
-            return draw->vertices;
+            return {draw->vertices.begin(), draw->vertices.end()};
         }
     }
     return {};
@@ -1232,12 +1233,13 @@ TEST(TargetPresentation, BracketsInterpolateAndTargetSwitchCuts) {
     target.body_height = 0;
     target.life_gage.Initialize(0);
     scene->chara_num = 3;
-    for (int i = 0; i < 3; ++i) {
-        scene->chara[i].status = 1;
-    }
     ASSERT_TRUE(dc2::character::CaptureModelResources(target, model_memory));
-    scene->chara[0].character = dc2::scene::CharacterResource::FromOwned(player_owner);
-    scene->chara[1].character = scene->chara[2].character = dc2::scene::CharacterResource::FromOwned(target_owner);
+    scene->chara[0].AssignData(dc2::scene::CharacterResource::FromOwned(player_owner), "player");
+    scene->chara[1].AssignData(dc2::scene::CharacterResource::FromOwned(target_owner), "target");
+    scene->chara[2].AssignData(dc2::scene::CharacterResource::FromOwned(target_owner), "target");
+    for (int i = 0; i < 3; ++i) {
+        scene->chara[i].status = SCENE_DATA_LOADED;
+    }
     player.target_no = 1;
     player.lock_on = 1;
     CLockOnModel lock;
@@ -1290,7 +1292,7 @@ TEST(TargetPresentation, BracketsInterpolateAndTargetSwitchCuts) {
 }
 
 namespace {
-void CheckOverlayBlend(const std::vector<gfx::detail::Entry> &before, const std::vector<gfx::detail::Entry> &after,
+void CheckOverlayBlend(std::span<const gfx::detail::Entry> before, std::span<const gfx::detail::Entry> after,
                        const std::vector<uint8_t> &newest) {
     std::vector<const gfx::detail::Draw2DEntry *> previous;
     for (const auto &entry : before) {
@@ -1507,12 +1509,13 @@ TEST(TargetPresentation, NameInterpolatesAndTargetSwitchCuts) {
     target.body_height = 0;
     target.life_gage.Initialize(0);
     scene->chara_num = 3;
-    for (int i = 0; i < 3; ++i) {
-        scene->chara[i].status = 1;
-    }
     ASSERT_TRUE(dc2::character::CaptureModelResources(target, model_memory));
-    scene->chara[0].character = dc2::scene::CharacterResource::FromOwned(player_owner);
-    scene->chara[1].character = scene->chara[2].character = dc2::scene::CharacterResource::FromOwned(target_owner);
+    scene->chara[0].AssignData(dc2::scene::CharacterResource::FromOwned(player_owner), "player");
+    scene->chara[1].AssignData(dc2::scene::CharacterResource::FromOwned(target_owner), "target");
+    scene->chara[2].AssignData(dc2::scene::CharacterResource::FromOwned(target_owner), "target");
+    for (int i = 0; i < 3; ++i) {
+        scene->chara[i].status = SCENE_DATA_LOADED;
+    }
     player.target_no = 1;
     player.lock_on = 1;
     CLockOnModel lock;
@@ -1859,9 +1862,9 @@ TEST(DamagePresentation, Score2InterpolatesAndReusedSlotsStayNewest) {
     frame.SetPosition(0, 0, 1);
     character.CObjectFrame::frame = &frame;
     scene->chara_num = 1;
-    scene->chara[0].status = 1;
     ASSERT_TRUE(dc2::character::CaptureModelResources(character, model_memory));
-    scene->chara[0].character = dc2::scene::CharacterResource::FromOwned(character_owner);
+    scene->chara[0].AssignData(dc2::scene::CharacterResource::FromOwned(character_owner), "character");
+    scene->chara[0].status = SCENE_DATA_LOADED;
     CDamageScore2 damage{};
     damage.SetValue(0, 123, 0);
     std::vector<gfx::Vertex2D> before;

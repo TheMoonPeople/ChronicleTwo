@@ -276,6 +276,41 @@ public:
 
 STATIC_ASSERT(sizeof(mgCFrameBase) == 0x50);
 
+class mgCFrame;
+
+namespace dc2::render {
+/**
+ * Authorizes cloning the exact attributes, bound and visual of a producer frame.
+ */
+class FrameCloneInputs {
+public:
+    /**
+     * Publishes complete payload identities using the frame's actual allocation owner.
+     */
+    static bool Publish(mgCMemory &producer, mgCFrame &frame, const VisualCloneInputs &visual = {});
+    /**
+     * Validates all clone payload leases before any payload is read.
+     */
+    [[nodiscard]] bool Matches(const mgCFrame &frame) const;
+    /**
+     * Republishes an existing frame with explicitly produced attributes or an imported visual.
+     */
+    [[nodiscard]] bool PublishChanges(mgCFrame &frame, mgCMemory *attr_producer = nullptr, const VisualCloneInputs *visual = nullptr) const;
+    /**
+     * Compares the live immutable frame, attribute and bound metadata shared by two capabilities.
+     */
+    [[nodiscard]] bool SharesPayloadMetadata(const FrameCloneInputs &other) const;
+
+private:
+    dc2::memory::ArenaResource state{};                   /**< Immutable exact frame, attribute and bound metadata. */
+    mgCVisual                 *expected_visual = nullptr; /**< Visual identity authorized by this particular handle. */
+    VisualCloneInputs          visual_inputs{};           /**< Exact imported visual capability, independent of frame metadata publication. */
+};
+
+static_assert(std::is_trivially_copyable_v<FrameCloneInputs>);
+static_assert(std::is_trivially_destructible_v<FrameCloneInputs>);
+} // namespace dc2::render
+
 /**
  *
  * A named node of the model hierarchy: a transform linked to its parent, children and siblings, with a bound, drawing attributes and a visual.
@@ -283,6 +318,8 @@ STATIC_ASSERT(sizeof(mgCFrameBase) == 0x50);
  */
 class mgCFrame : public mgCFrameBase {
 public:
+    dc2::render::FrameCloneInputs clone_inputs{}; /**< Exact producer capabilities for clone payload reads. */
+
     /**
      *
      * Bounding box and sphere of a frame in its local space.
@@ -644,7 +681,7 @@ public:
      * @address 0x137D60
      * @size 0x80
      */
-    mgCFrame *SearchFrame(char *name);
+    mgCFrame *SearchFrame(const char *name);
 
     /**
      *
@@ -654,7 +691,7 @@ public:
      * @address 0x137DE0
      * @size 0x90
      */
-    int SearchFrameID(char *name);
+    int SearchFrameID(const char *name);
 
     /**
      *
@@ -768,7 +805,12 @@ public:
      * @address 0x165510
      * @size 0x10
      */
-    void SetBound(BoundInfo *bound) { this->bound = bound; }
+    void SetBound(BoundInfo *bound) {
+        if (this->bound != bound) {
+            clone_inputs = {};
+        }
+        this->bound = bound;
+    }
 };
 
 STATIC_ASSERT(sizeof(mgCFrame::BoundInfo) == 0xB0);
@@ -782,7 +824,7 @@ STATIC_ASSERT(sizeof(mgCFrame) == 0x110);
  * @address 0x137D50
  * @size 0x10
  */
-int mgFrameNameComp(char *left, char *right);
+int mgFrameNameComp(const char *left, const char *right);
 
 /**
  *

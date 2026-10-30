@@ -2238,6 +2238,7 @@ void mgEndFrame(mgCDrawManager *manager) {
         // The tick's device work runs under the lease; an Async render thread draws no display frame until it ends.
         gfx::RenderLease lease;
         bool             tick_rendered = false;
+        bool             canonical_endpoint_allowed = true;
 
         for (int slot = 0; slot < 4; ++slot) {
             MG_PICKZ &pick = mgPickZBuff[slot];
@@ -2269,7 +2270,10 @@ void mgEndFrame(mgCDrawManager *manager) {
 
             if (list) {
                 CT_PROFILE_ZONE("Canonical scene render");
-                if (!menuworld::RenderPauseFrame(*list)) {
+                dc2::presentation::BeforeCanonical();
+                const bool pause_frame = menuworld::RenderPauseFrame(*list);
+                canonical_endpoint_allowed = !clear_bars && !pause_frame;
+                if (!pause_frame) {
                     gfx::RenderList(*list, 1.0f, gfx::RenderOptions{.canonical = true});
                 }
             }
@@ -2303,7 +2307,7 @@ void mgEndFrame(mgCDrawManager *manager) {
         }
 
         if (tick_rendered) {
-            PresentPublishTick(old_vcount, mgFrameRate);
+            PresentPublishTick(old_vcount, mgFrameRate, canonical_endpoint_allowed);
         }
     }
 

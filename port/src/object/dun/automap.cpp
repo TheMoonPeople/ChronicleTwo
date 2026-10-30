@@ -1694,7 +1694,7 @@ void CAutoMapGen::SearchHealingPoint(CMap *map) {
             point = parts->func_point_mngr.Search("kaifuku");
 
             if (point != nullptr) {
-                *reinterpret_cast<u_long128 *>(offset) = *reinterpret_cast<u_long128 *>(point->position);
+                std::memmove(offset, point->position, sizeof(float) * 4);
                 sceVu0AddVector(pos, pos, offset);
                 HealingEffectMan.Set(pos);
                 healing_point.enable = true;

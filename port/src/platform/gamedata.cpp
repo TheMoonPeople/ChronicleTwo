@@ -454,14 +454,14 @@ s8 etcitem_spectol_table[0x1A9][2] = {
  * Common item entry receiving script values.
  *
  */
-static CDataCommon *comdatapt;
+CDataCommon *comdatapt;
 
 /**
  *
  * Number of common item entries parsed.
  *
  */
-static int comdatapt_num;
+int comdatapt_num;
 
 CDataWeapon *SpiWeaponPt;
 
@@ -480,56 +480,56 @@ CGameData GameItemDataManage;
  * Common records for the master item catalog.
  *
  */
-static CDataCommon local_com_itemdata[ITEM_COMMON_DATA_MAX];
+CDataCommon local_com_itemdata[ITEM_COMMON_DATA_MAX];
 
 /**
  *
  * Usable item records loaded from item data scripts.
  *
  */
-static CDataItem local_itemdata[162];
+CDataItem local_itemdata[162];
 
 /**
  *
  * Weapon records loaded from weapon data scripts.
  *
  */
-static CDataWeapon local_weapondata[116];
+CDataWeapon local_weapondata[116];
 
 /**
  *
  * Attachment records loaded from attachment data scripts.
  *
  */
-static CDataAttach local_attachdata[38];
+CDataAttach local_attachdata[38];
 
 /**
  *
  * Ridepod part records loaded from part data scripts.
  *
  */
-static CDataRoboPart local_robodata[68];
+CDataRoboPart local_robodata[68];
 
 /**
  *
  * Breedable fish records loaded from fish data scripts.
  *
  */
-static CDataBreedFish local_fishdata[20];
+CDataBreedFish local_fishdata[20];
 
 /**
  *
  * Guard values loaded from guard data scripts.
  *
  */
-static short local_guarddata[35];
+short local_guarddata[35];
 
 /**
  *
  * Lookup from item numbers to common-record indices.
  *
  */
-static short local_itemdatano_converttable[ITEM_NO_MAX];
+short local_itemdatano_converttable[ITEM_NO_MAX];
 
 /**
  *

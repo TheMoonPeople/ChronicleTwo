@@ -133,21 +133,21 @@ static CCharacter2 *WalkChara;
  * Current player, event or debug control mode.
  *
  */
-static int ControlMode;
+int ControlMode;
 
 /**
  *
  * Current walking, editing or menu stage of the town loop.
  *
  */
-static int LoopMode;
+int LoopMode;
 
 /**
  *
  * Nesting count of town character control locks.
  *
  */
-static int LockChara;
+int LockChara;
 
 /**
  *
@@ -202,14 +202,14 @@ static mgCFrame *WaterFrame;
  * Red marker frame used by town editing.
  *
  */
-static mgCFrame *RedBicMark;
+mgCFrame *RedBicMark;
 
 /**
  *
  * Blue marker frame used by town editing.
  *
  */
-static mgCFrame *BlueBicMark;
+mgCFrame *BlueBicMark;
 
 /**
  *
@@ -237,7 +237,7 @@ static CCameraControl *EditCamera;
  * Active town character number.
  *
  */
-static int ActiveCharaNo;
+int ActiveCharaNo;
 
 /**
  *
@@ -265,7 +265,7 @@ static int EditDrawFlag;
  * Pause state of the town loop.
  *
  */
-static int PauseFlag;
+int PauseFlag;
 
 /**
  *
@@ -681,9 +681,14 @@ void EditInit(INIT_LOOP_ARG arg) {
     TreasureBox = nullptr;
 
     if (LoadFile2("map/itembox.gltf", ReadBufferBytes(), nullptr, 0) != 0) {
-        TreasureBox = new (TotalDataBuff.Alloc(align16_blocks(sizeof(CMapTreasureBox)) + 2)) CMapTreasureBox;
-        textures->DeleteBlock(173);
-        TreasureBox->LoadPackNoLine(reinterpret_cast<u_int *>(read_buffer), "info", &TotalDataBuff, &TotalDataBuff, &TotalDataBuff, 173, nullptr);
+        auto *candidate = dc2::memory::NewObject<CMapTreasureBox>(TotalDataBuff);
+        if (candidate != nullptr) {
+            textures->DeleteBlock(173);
+            candidate->LoadPackNoLine(reinterpret_cast<u_int *>(read_buffer), "info", &TotalDataBuff, &TotalDataBuff, &TotalDataBuff, 173, nullptr);
+            if (candidate->CObjectFrame::frame != nullptr && dc2::character::ResourcesLive(*candidate)) {
+                TreasureBox = candidate;
+            }
+        }
     }
 
     ChrEffBuffer.SetHeapMem(TotalDataBuff.stAlloc64(6400), 6400);
@@ -1106,7 +1111,7 @@ int EditLoop() {
 
         if (chara != nullptr) {
             chara->GetPosition(position);
-            *reinterpret_cast<u_long128 *>(ground_position) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(ground_position, position, sizeof(float) * 4);
             ground_position[1] = 0.0f;
             line_end[3] = 1.0f;
             line_start[3] = 1.0f;
@@ -1255,7 +1260,7 @@ int EditLoop() {
                 camera_param->max_height += (default_param->max_height - camera_param->max_height) / 8.0f;
             }
 
-            *reinterpret_cast<u_long128 *>(CharaOldPos) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(CharaOldPos, position, sizeof(float) * 4);
 
             if (next_sub_map > 0) {
                 now_load_map_no = next_sub_map;
@@ -2084,7 +2089,7 @@ int EditStep() {
     map_count = MainScene->GetActiveMap(reinterpret_cast<CMap **>(maps), 8);
 
     if (WalkChara != nullptr) {
-        *reinterpret_cast<u_long128 *>(viewer.chara_pos) = *reinterpret_cast<u_long128 *>(WalkChara->position);
+        std::memmove(viewer.chara_pos, WalkChara->position, sizeof(float) * 4);
         viewer.time = MainScene->time;
         index = 0;
 

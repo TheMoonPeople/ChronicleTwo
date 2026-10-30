@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <new>
 #include <optional>
 #include <string>
 #include <utility>
@@ -26,6 +27,7 @@
 #include "gameutil.hpp"
 #include "log/game_output.hpp"
 #include "map.hpp"
+#include "mdslist.hpp"
 #include "memory/tracked_copy.hpp"
 #include "mg_camera.hpp"
 #include "mg_dataset.hpp"
@@ -47,6 +49,213 @@
 #include "swordeffect.hpp"
 #include "text/bounded.hpp"
 #include "visualmotion.hpp"
+
+namespace dc2::character {
+namespace {
+/**
+ * Retains an exact sound allocation, construction capacity and finalized used count.
+ */
+struct SoundCloneBinding {
+    CHRINFO_SE              *pointer = nullptr; /**< Expected current sound array identity. */
+    int                      count = 0;         /**< Expected finalized number of readable sound cues. */
+    std::size_t              capacity = 0;      /**< Actual producer allocation capacity in sound records. */
+    dc2::memory::ArenaBuffer storage;           /**< Exact source sound allocation capability. */
+
+    /**
+     * Checks identities and exact storage before any sound record is read.
+     */
+    bool Matches(CHRINFO_SE *expected, int expected_count) const {
+        return expected == pointer && expected_count == count && count >= 0 &&
+               static_cast<std::size_t>(count) <= capacity &&
+               (capacity == 0 ? pointer == nullptr : storage.Bytes().size() == capacity * sizeof(CHRINFO_SE));
+    }
+};
+} // namespace
+
+/**
+ * Owns immutable fixed-frame remapping names and exact sound-channel allocation identities.
+ */
+struct CloneAuxState {
+    dc2::world::FrameGraph                                           graph;            /**< Producer graph retained for explicit model extensions. */
+    std::array<dc2::world::FrameNameBinding, CHARA_ENTRY_FRAME_MAX>  entries;          /**< Exact fixed entry frame bindings. */
+    std::array<dc2::world::FrameNameBinding, CHARA_ENTRY_OBJECT_MAX> objects;          /**< Exact fixed object frame bindings. */
+    std::array<dc2::world::FrameNameBinding, CHARA_DEFORM_FRAME_MAX> deform;           /**< Exact active deformation frame bindings. */
+    int                                                              deform_count = 0; /**< Expected bounded active deformation slot count. */
+    std::array<SoundCloneBinding, CHARA_MOTION_SET_MAX>              sounds;           /**< Exact sound records for every motion set. */
+
+    /**
+     * Validates fixed identities and all sound allocations without raw frame entry.
+     */
+    bool Matches(const CCharacter2 &character) const {
+        if (character.deform_frame_num != deform_count || deform_count < 0 || deform_count > CHARA_DEFORM_FRAME_MAX) {
+            return false;
+        }
+        for (std::size_t slot = 0; slot < entries.size(); ++slot) {
+            if (!entries[slot].Matches(character.entry_frame[slot])) {
+                return false;
+            }
+        }
+        for (std::size_t slot = 0; slot < objects.size(); ++slot) {
+            if (!objects[slot].Matches(character.entry_object[slot].frame)) {
+                return false;
+            }
+        }
+        for (int slot = 0; slot < deform_count; ++slot) {
+            if (!deform[static_cast<std::size_t>(slot)].Matches(character.deform_frame[slot])) {
+                return false;
+            }
+        }
+        for (std::size_t slot = 0; slot < sounds.size(); ++slot) {
+            if (!sounds[slot].Matches(character.se_list[slot], character.se_num[slot])) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+CloneAuxBuilder::CloneAuxBuilder(std::shared_ptr<const CloneAuxState> inherited)
+    : state(inherited ? std::make_shared<CloneAuxState>(*inherited) : std::make_shared<CloneAuxState>()), original(std::move(inherited)) {}
+
+bool CloneAuxBuilder::ClearSounds(int slot) {
+    if (slot < 0 || slot >= CHARA_MOTION_SET_MAX) {
+        return false;
+    }
+    state->sounds[static_cast<std::size_t>(slot)] = {};
+    produced_sounds[static_cast<std::size_t>(slot)] = true;
+    return true;
+}
+
+bool CloneAuxBuilder::RegisterSounds(mgCMemory &producer, int slot, std::span<CHRINFO_SE> allocation) {
+    if (slot < 0 || slot >= CHARA_MOTION_SET_MAX || allocation.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()) ||
+        allocation.size() > std::numeric_limits<std::size_t>::max() / sizeof(CHRINFO_SE)) {
+        return false;
+    }
+    if (allocation.empty()) {
+        return ClearSounds(slot);
+    }
+    SoundCloneBinding binding;
+    binding.pointer = allocation.data();
+    binding.capacity = allocation.size();
+    binding.storage = dc2::memory::ArenaBuffer::Bind(producer, {reinterpret_cast<u8 *>(allocation.data()), allocation.size_bytes()});
+    if (binding.storage.Bytes().size() != allocation.size_bytes()) {
+        return false;
+    }
+    state->sounds[static_cast<std::size_t>(slot)] = binding;
+    produced_sounds[static_cast<std::size_t>(slot)] = true;
+    return true;
+}
+
+bool CloneAuxBuilder::CaptureFrames(const CCharacter2 &character, const dc2::world::FrameGraph &graph) {
+    if (character.deform_frame_num < 0 || character.deform_frame_num > CHARA_DEFORM_FRAME_MAX) {
+        return false;
+    }
+    const auto capture = [&graph](auto *frame, auto &binding) {
+        if (frame == nullptr) {
+            binding = {};
+            return true;
+        }
+        const auto captured = graph.BindName(frame);
+        if (!captured) {
+            return false;
+        }
+        binding = *captured;
+        return true;
+    };
+    auto updated = *state;
+    updated.graph = graph;
+    for (std::size_t slot = 0; slot < updated.entries.size(); ++slot) {
+        if (!capture(character.entry_frame[slot], updated.entries[slot])) {
+            return false;
+        }
+    }
+    for (std::size_t slot = 0; slot < updated.objects.size(); ++slot) {
+        if (!capture(character.entry_object[slot].frame, updated.objects[slot])) {
+            return false;
+        }
+    }
+    updated.deform_count = character.deform_frame_num;
+    for (int slot = 0; slot < character.deform_frame_num; ++slot) {
+        if (!capture(character.deform_frame[slot], updated.deform[static_cast<std::size_t>(slot)])) {
+            return false;
+        }
+    }
+    *state = std::move(updated);
+    return true;
+}
+
+bool CloneAuxBuilder::CaptureFrames(const CCharacter2 &character, mgCMemory &producer) {
+    const auto *imported = SourceGraph();
+    if (imported != nullptr && imported->MatchesRootAllocation(character.CObjectFrame::frame) && CaptureFrames(character, *imported)) {
+        return true;
+    }
+    auto graph = dc2::world::FrameGraph::Capture(producer, character.CObjectFrame::frame);
+    if (!graph.IsLive() && imported != nullptr) {
+        graph = dc2::world::FrameGraph::Capture(producer, character.CObjectFrame::frame, imported);
+    }
+    return graph.IsLive() && CaptureFrames(character, graph);
+}
+
+const dc2::world::FrameGraph *CloneAuxBuilder::SourceGraph() const {
+    return state->graph.HasValue() ? &state->graph : nullptr;
+}
+
+std::shared_ptr<const CloneAuxState> CloneAuxBuilder::Finish(const CCharacter2 &character) {
+    auto completed = std::make_shared<CloneAuxState>(*state);
+    for (std::size_t slot = 0; slot < completed->sounds.size(); ++slot) {
+        if (produced_sounds[slot]) {
+            completed->sounds[slot].count = character.se_num[slot];
+        }
+    }
+    if (!completed->Matches(character)) {
+        return nullptr;
+    }
+    if (original && ((!completed->graph.HasValue() && !original->graph.HasValue()) || completed->graph.SameIdentity(original->graph)) && completed->deform_count == original->deform_count &&
+        std::ranges::equal(completed->entries, original->entries, [](const auto &left, const auto &right) { return left.SameIdentity(right); }) &&
+        std::ranges::equal(completed->objects, original->objects, [](const auto &left, const auto &right) { return left.SameIdentity(right); }) &&
+        std::ranges::equal(completed->deform, original->deform, [](const auto &left, const auto &right) { return left.SameIdentity(right); }) &&
+        std::ranges::equal(completed->sounds, original->sounds, [](const auto &left, const auto &right) {
+            return left.pointer == right.pointer && left.count == right.count && left.capacity == right.capacity && left.storage.SameIdentity(right.storage);
+        })) {
+        return original;
+    }
+    return completed;
+}
+
+bool CloneInputsLive(const CCharacter2 &character) {
+    if (!ResourcesLive(character)) {
+        return false;
+    }
+    if (const auto resources = character.resource_state.Acquire<ResourceState>(); resources && resources->clone_inputs) {
+        return resources->clone_inputs->Matches(character);
+    }
+    return character.deform_frame_num == 0 &&
+           std::ranges::all_of(character.entry_frame, [](const auto *frame) { return frame == nullptr; }) &&
+           std::ranges::all_of(character.entry_object, [](const auto &entry) { return entry.frame == nullptr; }) &&
+           std::ranges::all_of(character.se_list, [](const auto *sounds) { return sounds == nullptr; }) &&
+           std::ranges::all_of(character.se_num, [](int count) { return count == 0; });
+}
+
+bool PublishCloneInputs(CCharacter2 &character, CloneAuxBuilder builder) {
+    const auto resources = character.resource_state.Acquire<ResourceState>();
+    if (!resources) {
+        return false;
+    }
+    auto updated = *resources;
+    updated.clone_inputs = builder.Finish(character);
+    return updated.clone_inputs != nullptr && PublishResources(character, std::move(updated));
+}
+
+namespace {
+/**
+ * Validates one saved sound capability before the direct sound-copy helper reads its array.
+ */
+bool SoundsLive(const CCharacter2 &character, std::size_t slot) {
+    const auto resources = character.resource_state.Acquire<ResourceState>();
+    return resources && resources->clone_inputs && resources->clone_inputs->sounds[slot].Matches(character.se_list[slot], character.se_num[slot]);
+}
+} // namespace
+} // namespace dc2::character
 
 namespace {
 /**
@@ -708,7 +917,7 @@ void CCharacter2::SetDAnimeEnable(int enable) {
 }
 
 CHRINFO_SE *CCharacter2::GetSoundInfoCopy(mgCMemory *memory) {
-    if (memory == nullptr || se_num[0] <= 0 || se_list[0] == nullptr) {
+    if (memory == nullptr || se_num[0] <= 0 || se_list[0] == nullptr || !dc2::character::SoundsLive(*this, 0)) {
         return nullptr;
     }
 
@@ -2033,7 +2242,10 @@ int _SE_START(dc2::script::TagArguments stack, int argc) {
         return false;
     }
     if (count == 0) {
-        return true;
+        return dc2::character::MetadataScope::RegisterSounds(*now_stack, now_motion_id, {});
+    }
+    if (static_cast<std::size_t>(count) > std::numeric_limits<std::size_t>::max() / sizeof(CHRINFO_SE)) {
+        return false;
     }
     const auto bytes = static_cast<std::size_t>(count) * sizeof(CHRINFO_SE);
     const auto blocks = (bytes + sizeof(u_long128) - 1) / sizeof(u_long128) + 2;
@@ -2049,7 +2261,7 @@ int _SE_START(dc2::script::TagArguments stack, int argc) {
     nowChr->se_num[now_motion_id] = 0;
     now_se_header = nowChr->se_list[now_motion_id];
     sound_entries_remaining = count;
-    return true;
+    return dc2::character::MetadataScope::RegisterSounds(*now_stack, now_motion_id, {nowChr->se_list[now_motion_id], static_cast<std::size_t>(count)});
 }
 
 /**
@@ -2474,14 +2686,19 @@ mgCFrame *CCharacter2::ChangeLOD(int index) {
         if (target != nullptr) {
             source = lod_frame->GetFrame((*pair)[1]);
 
-            if (source != nullptr) {
+            if (source != nullptr && source->clone_inputs.Matches(*source) && target->clone_inputs.Matches(*target)) {
                 visual = source->visual;
 
-                if (visual != nullptr && visual->Iam() == MG_VISUAL_KIND_MOTION_MDT) {
+                if (visual != nullptr && visual->clone_inputs.Kind(visual) == dc2::render::VisualCloneKind::MotionMdt) {
                     (static_cast<mgCVisualMotionMDT *>(visual))->frame = root_frames;
                 }
 
+                const auto clone_inputs = target->clone_inputs;
                 target->SetVisual(visual);
+                const auto visual_inputs = visual != nullptr ? visual->clone_inputs : dc2::render::VisualCloneInputs{};
+                if (!clone_inputs.PublishChanges(*target, nullptr, &visual_inputs)) {
+                    target->clone_inputs = {};
+                }
                 source->GetBBox(box_min, box_max);
                 target->SetBBox(box_min, box_max);
             }
@@ -2491,165 +2708,145 @@ mgCFrame *CCharacter2::ChangeLOD(int index) {
     return nullptr;
 }
 
-void CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) {
-    CHRINFO_SE   *sounds = {};
-    int           free_space = {};
-    int           index = {};
-    int           sword = {};
-    COutLineDraw *dest_outline = {};
-    COutLineDraw *source_outline = {};
-
-    if (!dc2::character::ResourcesLive(*this)) {
+bool CCharacter2::Copy(CCharacter2 &dest, mgCMemory *memory) try {
+    const auto fail = [&] {
         dest.Initialize();
-        return;
+        return false;
+    };
+    if (!dc2::character::ResourcesLive(*this) || dynamic_anime_num < 0 || lod_num < 0 ||
+        deform_frame_num < 0 || static_cast<std::size_t>(deform_frame_num) > std::size(deform_frame) ||
+        se_num[0] < 0 || (dynamic_anime_num > 0 && dynamic_anime == nullptr) ||
+        (lod_num > 0 && lod == nullptr) || (se_num[0] > 0 && se_list[0] == nullptr) || !dc2::character::CloneInputsLive(*this)) {
+        return fail();
+    }
+    if (&dest == this) {
+        return true;
+    }
+    if (memory != nullptr && CObjectFrame::frame == nullptr) {
+        return fail();
     }
     dest = *this;
-    auto inherited = resource_state.Acquire<dc2::character::ResourceState>();
-    if (memory != nullptr && inherited) {
-        auto       state = *inherited;
-        const auto lifetime = dc2::memory::ArenaLifetime::Capture(*memory);
-        state.producers.push_back({dc2::character::ResourceChannel::Copy, 0, lifetime});
+    if (memory == nullptr) {
+        return true;
+    }
+    const auto                      inherited = resource_state.Acquire<dc2::character::ResourceState>();
+    const auto                      source_clone_inputs = inherited ? inherited->clone_inputs : nullptr;
+    dc2::character::CloneAuxBuilder destination_inputs(source_clone_inputs);
+    const int                       start_used = memory->stack_used;
+    dest.CObjectFrame::frame = mgCopyFrame(CObjectFrame::frame, memory, 1);
+    if (dest.CObjectFrame::frame == nullptr) {
+        return fail();
+    }
+    if (inherited) {
+        auto state = *inherited;
+        state.anchor = dc2::memory::ArenaBuffer::Bind(*memory, std::span<u8>(reinterpret_cast<u8 *>(dest.CObjectFrame::frame), sizeof(mgCFrame)));
+        state.producers.push_back({dc2::character::ResourceChannel::Copy, 0, dc2::memory::ArenaLifetime::Capture(*memory)});
         if (!dc2::character::PublishResources(dest, std::move(state))) {
-            dest.Initialize();
-            return;
+            return fail();
         }
     }
-
-    if (memory != nullptr) {
-        free_space = memory->stack_size - memory->stack_used;
-        dest.CObjectFrame::frame = mgCopyFrame(CObjectFrame::frame, memory, 1);
-
-        if (dest.CObjectFrame::frame != nullptr) {
-            if (inherited) {
-                auto state = *inherited;
-                state.anchor = dc2::memory::ArenaBuffer::Bind(*memory, std::span<u8>(reinterpret_cast<u8 *>(dest.CObjectFrame::frame), sizeof(mgCFrame)));
-                state.producers.push_back({dc2::character::ResourceChannel::Copy, 0, dc2::memory::ArenaLifetime::Capture(*memory)});
-                if (!dc2::character::PublishResources(dest, std::move(state))) {
-                    dest.Initialize();
-                    return;
-                }
+    dest.shadow_frame = shadow_frame;
+    if (outline_tex_no > 0 && outline != nullptr) {
+        dest.outline = nullptr;
+        dest.outline_tex_no = 0;
+        for (auto *source_outline = outline; source_outline != nullptr; source_outline = source_outline->next) {
+            if (source_outline->frame == nullptr) {
+                return fail();
             }
-            dest.shadow_frame = shadow_frame;
-
-            if (outline_tex_no > 0 && (source_outline = outline) != nullptr) {
-                dest.outline = nullptr;
-                dest.outline_tex_no = 0;
-
-                for (; source_outline != nullptr; source_outline = source_outline->next) {
-                    if ((dest_outline = dc2::memory::NewObject<COutLineDraw>(*memory)) != nullptr) {
-                        dest_outline->next = nullptr;
-                        dest_outline->Initialize();
-                    }
-
-                    if (dest_outline == nullptr) {
-                        break;
-                    }
-
-                    *dest_outline = *source_outline;
-                    dest_outline->next = nullptr;
-
-                    if (source_outline->frame != nullptr) {
-                        dest.AddOutLine(source_outline->frame->name, dest_outline);
-                    }
-                }
+            char  root_name[] = "";
+            char *name = source_outline->frame == CObjectFrame::frame ? root_name : source_outline->frame->name;
+            auto *target = name == nullptr ? nullptr : name[0] == '\0' ? dest.CObjectFrame::frame
+                                                                       : dest.CObjectFrame::frame->SearchFrame(name);
+            if (target == nullptr) {
+                return fail();
             }
-
-            if (dynamic_anime_num > 0 && dynamic_anime != nullptr) {
-                const auto blocks = dc2::memory::ArrayQuadwords<CDynamicAnime>(static_cast<std::size_t>(dynamic_anime_num));
-                if (!blocks || *blocks > std::numeric_limits<int>::max() - 2 || memory->lock != 0 ||
-                    memory->stGetRest() <= *blocks + 2) {
-                    dest.dynamic_anime = nullptr;
-                    dest.dynamic_anime_num = 0;
-                    return;
-                }
-                auto *storage = AllocateCharacterStorage(memory, static_cast<std::size_t>(*blocks) + 2);
-                if (storage == nullptr) {
-                    dest.dynamic_anime = nullptr;
-                    dest.dynamic_anime_num = 0;
-                    return;
-                }
-                dest.dynamic_anime = new (storage) CDynamicAnime[dynamic_anime_num];
-
-                for (index = 0; index < dynamic_anime_num; index++) {
-                    dynamic_anime[index].Copy(dest.dynamic_anime[index], dest.CObjectFrame::frame, memory);
-                }
+            auto *line = dc2::memory::NewObject<COutLineDraw>(*memory);
+            if (line == nullptr) {
+                return fail();
             }
-
-            for (index = 0; index < CHARA_ENTRY_FRAME_MAX; index++) {
-                if (entry_frame[index] == nullptr) {
-                    dest.entry_frame[index] = nullptr;
-                } else {
-                    dest.entry_frame[index] = dest.CObjectFrame::frame->SearchFrame(entry_frame[index]->name);
-                }
+            *line = *source_outline;
+            line->next = nullptr;
+            dest.AddOutLine(name, line);
+            if (line->frame != target) {
+                return fail();
             }
-
-            for (index = 0; index < CHARA_ENTRY_OBJECT_MAX; index++) {
-                if (entry_object[index].frame == nullptr) {
-                    dest.entry_object[index].frame = nullptr;
-                } else {
-                    dest.entry_object[index].frame = dest.CObjectFrame::frame->SearchFrame(entry_object[index].frame->name);
-                    dest.entry_object[index].size = entry_object[index].size;
-                    dest.entry_object[index].group = entry_object[index].group;
-                    dest.entry_object[index].enable = entry_object[index].enable;
-                }
-            }
-
-            for (index = 0; index < deform_frame_num; index++) {
-                if (deform_frame[index] == nullptr) {
-                    dest.deform_frame[index] = nullptr;
-                } else {
-                    dest.deform_frame[index] = dest.CObjectFrame::frame->SearchFrame(deform_frame[index]->name);
-                }
-            }
-
-            if (lod_num > 0) {
-                const auto blocks = dc2::memory::ArrayQuadwords<CCharaLOD>(static_cast<std::size_t>(lod_num));
-                if (!blocks || *blocks > std::numeric_limits<int>::max() - 2 || memory->lock != 0 ||
-                    memory->stGetRest() <= *blocks + 2) {
-                    dest.lod = nullptr;
-                    dest.lod_num = 0;
-                    return;
-                }
-                auto *storage = AllocateCharacterStorage(memory, static_cast<std::size_t>(*blocks) + 2);
-                if (storage == nullptr) {
-                    dest.lod = nullptr;
-                    dest.lod_num = 0;
-                    return;
-                }
-                dest.lod = new (storage) CCharaLOD[lod_num];
-
-                dest.lod_num = lod_num;
-
-                for (index = 0; index < lod_num; index++) {
-                    dest.lod[index] = lod[index];
-                    dest.lod[index].frame = mgCopyFrame(lod[index].frame, memory, 1);
-                }
-            }
-
-            lod_no = -1;
-            sounds = GetSoundInfoCopy(memory);
-
-            if (sounds != nullptr) {
-                dest.se_list[0] = sounds;
-                dest.se_num[0] = se_num[0];
-            }
-
-            for (sword = 0; sword < CHARA_SWORD_EFFECT_MAX; sword++) {
-                if (sword_effect[sword] != nullptr) {
-                    auto *storage = AllocateCharacterStorage(memory, static_cast<std::size_t>(DynAnimeAlign16Blocks(sizeof(CSWordAfterEffect))));
-                    if (storage == nullptr) {
-                        dest.sword_effect[sword] = nullptr;
-                        continue;
-                    }
-                    dest.sword_effect[sword] = new (storage) CSWordAfterEffect;
-                    sword_effect[sword]->Copy(*dest.sword_effect[sword], memory);
-                }
-            }
-
-            free_space -= memory->stack_size - memory->stack_used;
-            copy_size = free_space;
         }
     }
+    if (dynamic_anime_num > 0) {
+        dest.dynamic_anime = dc2::memory::NewArray<CDynamicAnime>(*memory, static_cast<std::size_t>(dynamic_anime_num));
+        if (dest.dynamic_anime == nullptr) {
+            return fail();
+        }
+        for (int index = 0; index < dynamic_anime_num; ++index) {
+            if (!dynamic_anime[index].Copy(dest.dynamic_anime[index], dest.CObjectFrame::frame, memory)) {
+                return fail();
+            }
+        }
+    }
+    const auto remap = [&dest](const dc2::world::FrameNameBinding &binding) -> mgCFrame * {
+        const auto name = binding.Name();
+        return name ? dest.CObjectFrame::frame->SearchFrame(const_cast<char *>(name->data())) : nullptr;
+    };
+    for (std::size_t index = 0; index < std::size(entry_frame); ++index) {
+        dest.entry_frame[index] = entry_frame[index] != nullptr ? remap(source_clone_inputs->entries[index]) : nullptr;
+        if (entry_frame[index] != nullptr && dest.entry_frame[index] == nullptr) {
+            return fail();
+        }
+    }
+    for (std::size_t index = 0; index < std::size(entry_object); ++index) {
+        dest.entry_object[index].frame = entry_object[index].frame != nullptr ? remap(source_clone_inputs->objects[index]) : nullptr;
+        if (entry_object[index].frame != nullptr && dest.entry_object[index].frame == nullptr) {
+            return fail();
+        }
+    }
+    for (int index = 0; index < deform_frame_num; ++index) {
+        dest.deform_frame[index] = deform_frame[index] != nullptr ? remap(source_clone_inputs->deform[static_cast<std::size_t>(index)]) : nullptr;
+        if (deform_frame[index] != nullptr && dest.deform_frame[index] == nullptr) {
+            return fail();
+        }
+    }
+    if (lod_num > 0) {
+        dest.lod = dc2::memory::NewArray<CCharaLOD>(*memory, static_cast<std::size_t>(lod_num));
+        if (dest.lod == nullptr) {
+            return fail();
+        }
+        for (int index = 0; index < lod_num; ++index) {
+            dest.lod[index] = lod[index];
+            dest.lod[index].frame = mgCopyFrame(lod[index].frame, memory, 1);
+            if (dest.lod[index].frame == nullptr) {
+                return fail();
+            }
+        }
+    }
+    if (se_num[0] > 0) {
+        auto *sounds = GetSoundInfoCopy(memory);
+        if (sounds == nullptr) {
+            return fail();
+        }
+        dest.se_list[0] = sounds;
+        if (!destination_inputs.RegisterSounds(*memory, 0, {sounds, static_cast<std::size_t>(se_num[0])})) {
+            return fail();
+        }
+    }
+    for (std::size_t index = 0; index < std::size(sword_effect); ++index) {
+        if (sword_effect[index] != nullptr) {
+            dest.sword_effect[index] = dc2::memory::NewObject<CSWordAfterEffect>(*memory);
+            if (dest.sword_effect[index] == nullptr || !sword_effect[index]->Copy(*dest.sword_effect[index], memory)) {
+                return fail();
+            }
+        }
+    }
+    const auto destination_graph = dc2::world::FrameGraph::Capture(*memory, dest.CObjectFrame::frame);
+    if (!destination_graph.IsLive() || !destination_inputs.CaptureFrames(dest, destination_graph) ||
+        !dc2::character::PublishCloneInputs(dest, std::move(destination_inputs)) || !dc2::character::ResourcesLive(dest)) {
+        return fail();
+    }
+    lod_no = -1;
+    copy_size = memory->stack_used - start_used;
+    return true;
+} catch (const std::bad_alloc &) {
+    dest.Initialize();
+    return false;
 }
 
 #include "common.h"
@@ -2741,7 +2938,16 @@ void CCharacter2::DeleteExtMotion() {
         se_num[slot] = 0;
     }
     if (resources) {
-        auto state = *resources;
+        auto                            state = *resources;
+        dc2::character::CloneAuxBuilder builder(state.clone_inputs);
+        for (int slot = 1; slot < CHARA_MOTION_SET_MAX; ++slot) {
+            static_cast<void>(builder.ClearSounds(slot));
+        }
+        state.clone_inputs = builder.Finish(*this);
+        if (!state.clone_inputs) {
+            Initialize();
+            return;
+        }
         std::erase_if(state.producers, [](const auto &entry) {
             return entry.index > 0 && (entry.channel == dc2::character::ResourceChannel::Motion ||
                                        entry.channel == dc2::character::ResourceChannel::ShadowMotion || entry.channel == dc2::character::ResourceChannel::Image);
@@ -2806,7 +3012,7 @@ bool PublishResources(CCharacter2 &character, ResourceState state) {
         const auto before = previous->anchor.Bytes();
         const auto after = state.anchor.Bytes();
         if (before.data() == after.data() && before.size() == after.size() &&
-            previous->producers == state.producers && previous->model_context == state.model_context) {
+            previous->producers == state.producers && previous->model_context == state.model_context && previous->clone_inputs == state.clone_inputs) {
             return true;
         }
     }
@@ -2837,7 +3043,13 @@ bool CaptureModelResources(CCharacter2 &character, mgCMemory &memory) {
     ResourceState state;
     state.anchor = dc2::memory::ArenaBuffer::Bind(memory, std::span<u8>(reinterpret_cast<u8 *>(character.CObjectFrame::frame), sizeof(mgCFrame)));
     state.producers.push_back({ResourceChannel::Model, 0, dc2::memory::ArenaLifetime::Capture(memory)});
-    return PublishResources(character, std::move(state));
+    const auto      prior = character.resource_state.Acquire<ResourceState>();
+    CloneAuxBuilder builder(prior ? prior->clone_inputs : nullptr);
+    if (!builder.CaptureFrames(character, memory)) {
+        return false;
+    }
+    state.clone_inputs = builder.Finish(character);
+    return state.clone_inputs != nullptr && PublishResources(character, std::move(state));
 }
 } // namespace dc2::character
 

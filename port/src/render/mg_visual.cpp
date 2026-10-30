@@ -18,6 +18,8 @@
 #include "mg_frame.hpp"
 #include "mg_math.hpp"
 #include "mg_memory.hpp"
+#include "mg_shadow.hpp"
+#include "mg_sprite.hpp"
 #include "mg_texture.hpp"
 #include "mg_visual.hpp"
 #include "mglib.hpp"
@@ -26,6 +28,7 @@
 #include "render/renderer.hpp"
 #include "render/visual_mesh.hpp"
 #include "visualmotion.hpp"
+#include "water.hpp"
 
 std::optional<std::size_t> dc2::render::FaceRecordBytes(std::span<const std::byte> remaining, bool shadow) {
     constexpr std::size_t header_bytes = offsetof(FACES_ID, index);
@@ -620,6 +623,9 @@ int mgCVisualMDT::CreateExtRenderInfoPacket(u_int         *packet, float (*matri
 }
 
 mgCVisual *mgCVisualFixMDT::Copy(mgCMemory *memory) {
+    if (!clone_inputs.Matches(this)) {
+        return nullptr;
+    }
     if (memory == nullptr || memory->lock != 0 || material_num < 0 ||
         (material_num > 0 && material == nullptr)) {
         return nullptr;
@@ -649,6 +655,9 @@ mgCVisual *mgCVisualFixMDT::Copy(mgCMemory *memory) {
         copy->material[index] = material[index];
     }
 
+    if (!dc2::render::VisualCloneInputs::Publish(*memory, *copy, dc2::render::VisualCloneKind::FixMdt)) {
+        return nullptr;
+    }
     return copy;
 }
 
@@ -1583,3 +1592,130 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
 
     return 0;
 }
+
+namespace dc2::render {
+namespace {
+/**
+ * Holds immutable identities of one concrete visual and its copied materials.
+ */
+struct VisualCloneState {
+    dc2::memory::ArenaBuffer object;             /**< Exact concrete visual object lease. */
+    VisualCloneKind          kind;               /**< Concrete class selected by the producer. */
+    mgMaterial              *material = nullptr; /**< Material identity at publication. */
+    int                      material_count = 0; /**< Material count at publication. */
+    dc2::memory::ArenaBuffer materials;          /**< Exact material array lease. */
+};
+
+/**
+ * Gives the complete native object extent for a trusted factory choice.
+ */
+std::size_t VisualCloneSize(VisualCloneKind kind) {
+    switch (kind) {
+        case VisualCloneKind::Mdt:
+            return sizeof(mgCVisualMDT);
+        case VisualCloneKind::FixMdt:
+            return sizeof(mgCVisualFixMDT);
+        case VisualCloneKind::ShadowMdt:
+            return sizeof(mgCShadowMDT);
+        case VisualCloneKind::ShadowFixMdt:
+            return sizeof(mgCShadowFixMDT);
+        case VisualCloneKind::MotionMdt:
+            return sizeof(mgCVisualMotionMDT);
+        case VisualCloneKind::Sprite3D:
+            return sizeof(mgC3DSprite);
+        case VisualCloneKind::Water:
+            return sizeof(CWater);
+    }
+    return 0;
+}
+
+/**
+ * Reports whether the concrete clone implementation reads the material array.
+ */
+bool CopiesMaterials(VisualCloneKind kind) {
+    return kind == VisualCloneKind::FixMdt || kind == VisualCloneKind::MotionMdt;
+}
+} // namespace
+
+bool VisualCloneInputs::Publish(mgCMemory &producer, mgCVisual &visual, VisualCloneKind kind) {
+    visual.clone_inputs = {};
+    try {
+        auto       value = std::make_shared<VisualCloneState>();
+        const auto bytes = VisualCloneSize(kind);
+        if (bytes == 0) {
+            return false;
+        }
+        value->object = dc2::memory::ArenaBuffer::Bind(producer, {reinterpret_cast<u8 *>(&visual), bytes});
+        if (value->object.Bytes().size() != bytes) {
+            return false;
+        }
+        value->kind = kind;
+        if (CopiesMaterials(kind)) {
+            const auto &mdt = static_cast<const mgCVisualMDT &>(visual);
+            if (mdt.material_num < 0 || (mdt.material_num > 0 && mdt.material == nullptr)) {
+                return false;
+            }
+            const auto count = static_cast<std::size_t>(mdt.material_num);
+            if (count > std::numeric_limits<std::size_t>::max() / sizeof(mgMaterial)) {
+                return false;
+            }
+            value->material = mdt.material;
+            value->material_count = mdt.material_num;
+            if (count != 0) {
+                value->materials = dc2::memory::ArenaBuffer::Bind(producer, {reinterpret_cast<u8 *>(mdt.material), count * sizeof(mgMaterial)});
+                if (value->materials.Bytes().size() != count * sizeof(mgMaterial)) {
+                    return false;
+                }
+            }
+        }
+        visual.clone_inputs.state = dc2::memory::ArenaResource::Store(value->object, value);
+        return visual.clone_inputs.Matches(&visual);
+    } catch (const std::bad_alloc &) {
+        return false;
+    }
+}
+
+bool VisualCloneInputs::Matches(const mgCVisual *visual) const {
+    const auto value = state.Acquire<VisualCloneState>();
+    if (!value || visual == nullptr) {
+        return false;
+    }
+    const auto object = value->object.Bytes();
+    if (object.size() != VisualCloneSize(value->kind) || object.data() != reinterpret_cast<const u8 *>(visual)) {
+        return false;
+    }
+    // The exact object lease must pass before reading the embedded handle or derived fields.
+    if (visual->clone_inputs.state.Acquire<VisualCloneState>() != value) {
+        return false;
+    }
+    if (CopiesMaterials(value->kind)) {
+        const auto &mdt = static_cast<const mgCVisualMDT &>(*visual);
+        if (mdt.material != value->material || mdt.material_num != value->material_count) {
+            return false;
+        }
+        if (value->material_count != 0 && value->materials.Bytes().size() != static_cast<std::size_t>(value->material_count) * sizeof(mgMaterial)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+mgCVisual *VisualCloneInputs::Clone(mgCVisual *expected, mgCMemory *memory) const {
+    if (!Matches(expected)) {
+        return nullptr;
+    }
+    try {
+        return expected->Copy(memory);
+    } catch (const std::bad_alloc &) {
+        return nullptr;
+    }
+}
+
+std::optional<VisualCloneKind> VisualCloneInputs::Kind(const mgCVisual *visual) const {
+    if (!Matches(visual)) {
+        return std::nullopt;
+    }
+    const auto value = state.Acquire<VisualCloneState>();
+    return value ? std::optional(value->kind) : std::nullopt;
+}
+} // namespace dc2::render

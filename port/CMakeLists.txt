@@ -7,7 +7,7 @@ enable_language(CXX)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ${NINTENDO_SWITCH})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(CT_BUILD_TESTS "Build darkchronicle_tests" ON)
@@ -39,6 +39,12 @@ file(CONFIGURE OUTPUT ${CMAKE_BINARY_DIR}/generated/include/icon/chronicletwo.hp
     CONTENT "#pragma once\n#include <cstdint>\ninline constexpr int kIconSize = 128;\ninline constexpr std::uint8_t kIconRgba[] = {${icon_bytes}};\n")
 
 include(${KZ_ROOT}/cmake/KazarovPort.cmake)
+if(NINTENDO_SWITCH)
+    set(KZ_SWITCH_APPLICATION_NAME "Dark Chronicle")
+    set(KZ_SWITCH_LOG_FILE "darkchronicle.log")
+    set(KZ_SWITCH_DATA_INSTRUCTIONS "Copy data.zip, data.json, scripts/, glyphs/ and fonts/ beside darkchronicle.nro.")
+    include(${KZ_ROOT}/cmake/KazarovSwitch.cmake)
+endif()
 
 option(CT_ENABLE_TRACY "Build Tracy support into the native port" ON)
 if(CT_ENABLE_TRACY)
@@ -74,8 +80,14 @@ set(CT_WARNINGS -Weverything
     -Wno-pre-c++20-compat -Wno-pre-c++20-compat-pedantic -Wno-pre-c++23-compat -Wno-pre-c++23-compat-pedantic
     -Wno-pre-c++26-compat -Wno-pre-c++26-compat-pedantic)
 
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CT_WARNINGS -Wall -Wextra)
+endif()
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 kz_port_host_library(ct_host)
+if(NINTENDO_SWITCH)
+    kz_switch_host(ct_host)
+endif()
 set_property(SOURCE
     ${KZ_ROOT}/src/cpp/platform/arena.cpp
     ${KZ_ROOT}/src/cpp/platform/input.cpp
@@ -249,6 +261,11 @@ list(TRANSFORM NATIVE_SOURCES PREPEND "${PORT_DIR}/")
 file(GLOB_RECURSE PORT_SOURCES CONFIGURE_DEPENDS ${PORT_DIR}/*.cpp)
 list(FILTER PORT_SOURCES EXCLUDE REGEX "/tests/")
 list(REMOVE_ITEM PORT_SOURCES ${NATIVE_SOURCES})
+if(NINTENDO_SWITCH)
+    list(FILTER PORT_SOURCES EXCLUDE REGEX "/ios/|/crash/(crash|crash_dialog|crash_report|crash_symbols)\\.cpp$")
+else()
+    list(FILTER PORT_SOURCES EXCLUDE REGEX "/switch/")
+endif()
 
 # Some retail units use declarations supplied by a per-unit native compatibility header.
 file(GLOB NATIVE_COMPATIBILITY_HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/stubs/*.hpp)
@@ -264,12 +281,15 @@ endforeach()
 add_library(ct_options INTERFACE)
 target_compile_definitions(ct_options INTERFACE ${PORT_DEFINITIONS})
 target_include_directories(ct_options INTERFACE
-    ${CMAKE_BINARY_DIR}/generated/include ${CMAKE_SOURCE_DIR}/port/include ${KZ_ROOT}/include
+    ${CMAKE_BINARY_DIR}/generated/include ${CMAKE_SOURCE_DIR}/port/include
     ${PORT_INCLUDE_DIR}/sce)
+target_include_directories(ct_options SYSTEM INTERFACE ${KZ_ROOT}/include)
 target_compile_options(ct_options INTERFACE
     "SHELL:-include \"${CMAKE_SOURCE_DIR}/port/include/port.h\""
-    -fms-extensions -ffunction-sections -fdata-sections ${CT_WARNINGS}
-    -fcomment-block-commands=mangled,address,size,unknownret)
+    -ffunction-sections -fdata-sections ${CT_WARNINGS})
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(ct_options INTERFACE -fms-extensions -fcomment-block-commands=mangled,address,size,unknownret)
+endif()
 # arm64 clang fuses a*b+c into one rounding by default and x86-64 has no FMA in its baseline; off
 # everywhere so the game's arithmetic rounds the same on both.
 target_compile_options(ct_options INTERFACE -ffp-contract=off)
@@ -279,7 +299,7 @@ if(WIN32 AND (NOT MINGW OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
 endif()
 
 add_library(ct_native OBJECT ${NATIVE_SOURCES})
-target_link_libraries(ct_native PRIVATE ct_options SDL3::SDL3 Vulkan::Vulkan nlohmann_json::nlohmann_json kz_port_headers fastgltf::fastgltf)
+target_link_libraries(ct_native PRIVATE ct_options SDL3::SDL3 kz::vulkan nlohmann_json::nlohmann_json kz_port_headers fastgltf::fastgltf)
 target_include_directories(ct_native PRIVATE ${PORT_DIR})
 if(NOT WIN32)
     target_link_libraries(ct_native PRIVATE Iconv::Iconv)
@@ -315,15 +335,25 @@ if(NOT WIN32)
 endif()
 add_library(ct_port OBJECT ${PORT_LIB_SOURCES} ${CT_SCE_SOURCES})
 add_library(ct_port_bridge OBJECT ${PORT_BRIDGE_SOURCES})
-target_link_libraries(ct_port_bridge PRIVATE kazarov_bridge)
+# SDK implementations are dependencies even when they are linked into the port object target.
+set_property(SOURCE ${CT_SCE_SOURCES} APPEND PROPERTY COMPILE_OPTIONS -w)
+if(NINTENDO_SWITCH)
+    kz_switch_runtime(ct_port)
+else()
+    target_link_libraries(ct_port_bridge PRIVATE kazarov_bridge)
+endif()
 foreach(target IN ITEMS ct_port ct_port_bridge)
-    target_link_libraries(${target} PRIVATE ct_options SDL3::SDL3 Vulkan::Vulkan nlohmann_json::nlohmann_json kz_port_headers fastgltf::fastgltf)
+    target_link_libraries(${target} PRIVATE ct_options SDL3::SDL3 kz::vulkan nlohmann_json::nlohmann_json kz_port_headers fastgltf::fastgltf)
     if(NOT WIN32)
         target_link_libraries(${target} PRIVATE Iconv::Iconv)
     endif()
     # Datapack PNGs use the host's decoder with ordinary PNG colour formats.
-    target_include_directories(${target} PRIVATE ${PORT_DIR} ${CT_STB_IMAGE_INCLUDE_DIR})
+    target_include_directories(${target} PRIVATE ${PORT_DIR})
+    target_include_directories(${target} SYSTEM PRIVATE ${CT_STB_IMAGE_INCLUDE_DIR})
 endforeach()
+# Single-header dependencies also provide implementations compiled by the host library.
+target_include_directories(ct_host SYSTEM PRIVATE ${CT_STB_IMAGE_INCLUDE_DIR} ${KZ_PORT_VENDOR_DIRS})
+target_compile_options(ct_host PRIVATE -w)
 if(CT_ENABLE_TRACY)
     foreach(target IN ITEMS ct_port ct_port_bridge)
         target_link_libraries(${target} PRIVATE Tracy::TracyClient)
@@ -343,7 +373,9 @@ endif()
 
 # Shared by the game and its tests. The native game sources and host code are linked into
 # a position-independent executable; pointer-width conversions are handled in port code.
-if(WIN32)
+if(NINTENDO_SWITCH)
+    set(CT_LINK_OPTIONS -Wl,--gc-sections)
+elseif(WIN32)
     set(CT_LINK_OPTIONS -fuse-ld=lld -Wl,--gc-sections -Wl,--error-limit=0)
 elseif(APPLE)
     set(CT_LINK_OPTIONS -Wl,-dead_strip)
@@ -353,7 +385,12 @@ endif()
 
 function(ct_link_game target)
     target_sources(${target} PRIVATE $<TARGET_OBJECTS:ct_port> $<TARGET_OBJECTS:ct_port_bridge> $<TARGET_OBJECTS:ct_host> $<TARGET_OBJECTS:ct_native>)
-    target_link_libraries(${target} PRIVATE ct_options kz_port_headers SDL3::SDL3 Vulkan::Vulkan kazarov_bridge kazarov_core fastgltf::fastgltf)
+    target_link_libraries(${target} PRIVATE ct_options kz_port_headers SDL3::SDL3 kz::vulkan fastgltf::fastgltf)
+    if(NOT NINTENDO_SWITCH)
+        target_link_libraries(${target} PRIVATE kazarov_bridge kazarov_core)
+    else()
+        target_link_libraries(${target} PRIVATE zstd z)
+    endif()
     if(CT_ENABLE_TRACY)
         target_link_libraries(${target} PRIVATE Tracy::TracyClient)
         target_compile_definitions(${target} PRIVATE CT_ENABLE_TRACY)
@@ -374,6 +411,10 @@ endfunction()
 add_executable(darkchronicle ${PORT_DIR}/main.cpp)
 set_target_properties(darkchronicle PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 ct_link_game(darkchronicle)
+if(NINTENDO_SWITCH)
+    kz_switch_nro(darkchronicle NAME "Dark Chronicle" AUTHOR "ChronicleTwo contributors" VERSION "0.1.0"
+        ICON ${CMAKE_CURRENT_SOURCE_DIR}/assets/icon/chronicletwo-switch.jpg)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     # iOS runs only applications: the executable goes inside darkchronicle.app with a generated Info.plist.
     set_target_properties(darkchronicle PROPERTIES
@@ -421,24 +462,27 @@ if(CT_ENABLE_TRACY)
         DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/chronicletwo)
 endif()
 
-# The button symbols (docs/GLYPHS.md): port/assets/glyphs, copied to glyphs/ beside the executable, the art of
-# TheMoonPeople/Chronicle's port/glyphs.
+# Assets copied beside the executable: the button symbols (docs/GLYPHS.md), the art of TheMoonPeople/Chronicle's
+# port/glyphs, to glyphs/; and the text fonts (docs/PC.md "Message font"), with their licences and the notice of what
+# was changed, to fonts/.
 # Each copy is a declared output, so an up-to-date build runs nothing and a deleted copy is restored.
-file(GLOB CT_GLYPH_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/glyphs/*)
-set(CT_GLYPH_COPIES "")
-foreach(glyph IN LISTS CT_GLYPH_SOURCES)
-    get_filename_component(glyph_name ${glyph} NAME)
-    set(glyph_copy ${CMAKE_BINARY_DIR}/glyphs/${glyph_name})
-    add_custom_command(OUTPUT ${glyph_copy}
-        COMMAND ${CMAKE_COMMAND} -E copy ${glyph} ${glyph_copy}
-        DEPENDS ${glyph}
-        COMMENT "Copying the button symbol ${glyph_name}"
-        VERBATIM)
-    list(APPEND CT_GLYPH_COPIES ${glyph_copy})
+foreach(asset_dir IN ITEMS glyphs fonts)
+    file(GLOB asset_sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/${asset_dir}/*)
+    set(asset_copies "")
+    foreach(asset IN LISTS asset_sources)
+        get_filename_component(asset_name ${asset} NAME)
+        set(asset_copy ${CMAKE_BINARY_DIR}/${asset_dir}/${asset_name})
+        add_custom_command(OUTPUT ${asset_copy}
+            COMMAND ${CMAKE_COMMAND} -E copy ${asset} ${asset_copy}
+            DEPENDS ${asset}
+            COMMENT "Copying ${asset_dir}/${asset_name}"
+            VERBATIM)
+        list(APPEND asset_copies ${asset_copy})
+    endforeach()
+    add_custom_target(ct_${asset_dir} DEPENDS ${asset_copies})
+    add_dependencies(darkchronicle ct_${asset_dir})
+    install(DIRECTORY assets/${asset_dir}/ DESTINATION ${CMAKE_INSTALL_BINDIR}/${asset_dir})
 endforeach()
-add_custom_target(ct_glyphs DEPENDS ${CT_GLYPH_COPIES})
-add_dependencies(darkchronicle ct_glyphs)
-install(DIRECTORY assets/glyphs/ DESTINATION ${CMAKE_INSTALL_BINDIR}/glyphs)
 
 if(CT_BUILD_TESTS)
     add_subdirectory(src/tests)
@@ -446,6 +490,9 @@ endif()
 
 file(GLOB ct_stream_cmake CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(f IN LISTS ct_stream_cmake)
+    if(NINTENDO_SWITCH AND f MATCHES "/(crash|data)\\.cmake$")
+        continue()
+    endif()
     include(${f})
 endforeach()
 

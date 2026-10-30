@@ -8,6 +8,7 @@
 #include <cstring>
 #include <limits>
 #include <span>
+#include <utility>
 
 #if defined(__linux__)
 #include <dlfcn.h>
@@ -19,6 +20,37 @@
 #include "runscript.hpp"
 
 void runerror(const char *message);
+
+namespace dc2::script {
+namespace {
+thread_local ScopedExecutionValidation *execution_validation = nullptr; /**< Innermost validation scope on the executing thread. */
+}
+
+ScopedExecutionValidation::ScopedExecutionValidation(const CRunScript &script, std::function<bool()> validator)
+    : script(&script), validator(std::move(validator)), previous(execution_validation) {
+    execution_validation = this;
+}
+
+ScopedExecutionValidation::~ScopedExecutionValidation() {
+    execution_validation = previous;
+}
+
+bool ExecutionValid(const CRunScript *script) noexcept {
+    if (script == nullptr) {
+        return false;
+    }
+    for (auto *scope = execution_validation; scope != nullptr; scope = scope->previous) {
+        if (scope->script == script) {
+            try {
+                return scope->validator && scope->validator();
+            } catch (...) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+} // namespace dc2::script
 
 namespace {
 /**
@@ -748,6 +780,9 @@ void CRunScript::exe(vmcode_t *entry) {
 
                 if (!skip_wait) {
                     ext(std::span(sp, static_cast<std::size_t>(pc->arg1)));
+                    if (!dc2::script::ExecutionValid(this)) {
+                        return;
+                    }
                 }
 
                 break;
@@ -902,6 +937,9 @@ int CRunScript::RunBytecode(int no) {
     skip_wait = 0;
     skip_end_count = 0;
     exe(start);
+    if (!dc2::script::ExecutionValid(this)) {
+        return -1;
+    }
 
     if (end != 0) {
         return 0;
@@ -948,6 +986,9 @@ void CRunScript::ext(std::span<RS_STACKDATA>                arguments,
                      std::span<const std::span<const char>> other_text,
                      std::span<RS_STACKDATA>                external_writable,
                      dc2::script::DeferredIntegerFactory deferred_factory, void *deferred_context) {
+    if (!dc2::script::ExecutionValid(this)) {
+        return;
+    }
     if (arguments.empty() || arguments.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()) ||
         arguments.front().type != RS_INT) {
         dc2::log::PrintGame("invalid ext command\n");
@@ -971,7 +1012,8 @@ void CRunScript::ext(std::span<RS_STACKDATA>                arguments,
                                             deferred_factory != nullptr ? deferred_factory : deferred_integer_factory,
                                             deferred_factory != nullptr ? deferred_context : deferred_integer_context,
                                             CaptureScriptText, this);
-    if (dc2::script::InvokeRunFunction(function, checked, count, index) != 0) {
+    const int                       result = dc2::script::InvokeRunFunction(function, checked, count, index);
+    if (!dc2::script::ExecutionValid(this) || result != 0) {
         return;
     }
     const auto source = DataReadBufferPath(program_view.data());
@@ -1074,6 +1116,9 @@ bool CRunScript::load(std::span<u8> program, std::span<RS_STACKDATA> values, std
 }
 
 void CRunScript::resume() {
+    if (!dc2::script::ExecutionValid(this)) {
+        return;
+    }
     if (luau_runtime::Owns(this)) {
         luau_runtime::Resume(this);
         return;
@@ -1082,6 +1127,9 @@ void CRunScript::resume() {
 }
 
 int CRunScript::run(int no) {
+    if (!dc2::script::ExecutionValid(this)) {
+        return -1;
+    }
     if (luau_runtime::Owns(this)) {
         return luau_runtime::Run(this, no);
     }

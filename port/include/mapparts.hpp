@@ -4,6 +4,11 @@
 
 #include <libvu0.h>
 
+#include <cstdint>
+#include <string>
+#include <string_view>
+#include <vector>
+
 #include "character.hpp"
 #include "collision.hpp"
 #include "funcpoint.hpp"
@@ -14,6 +19,46 @@
 #include "mg_memory.hpp"
 #include "mg_tanime.hpp"
 #include "occlusion.hpp"
+
+namespace dc2::world {
+/**
+ * Resolves one map piece through its exact node, subobject and captured model hierarchy.
+ */
+class PieceView {
+public:
+    /**
+     * Captures a piece node through the arena that actually allocated it.
+     */
+    [[nodiscard]] static PieceView Capture(mgCMemory &producer, CList<CMapPiece> &node);
+    /**
+     * Returns the piece only while its allocation and original model assignment remain live.
+     */
+    [[nodiscard]] CMapPiece *Get() const;
+
+    /**
+     * Returns the captured node allocation for anchoring immutable piece metadata.
+     */
+    [[nodiscard]] const dc2::memory::ArenaBuffer &NodeStorage() const { return node_storage; }
+
+private:
+    dc2::memory::ArenaBuffer node_storage{};     /**< Exact list-node allocation containing the piece. */
+    dc2::memory::ArenaBuffer piece_storage{};    /**< Exact data subobject within the captured node. */
+    dc2::memory::ArenaBuffer material_storage{}; /**< Exact producer allocation backing the piece's material table. */
+    int                      material_count{};   /**< Material count validated before any table element is read. */
+    FrameGraph               frame_graph{};      /**< Original model assignment that cannot follow later piece replacements. */
+};
+
+/**
+ * Keeps a piece's lookup name independently of borrowed game text.
+ */
+struct PieceBinding {
+    std::string name; /**< Authored piece name owned by the immutable binding collection. */
+    PieceView   view; /**< Exact piece and model assignment named by this entry. */
+};
+
+static_assert(std::is_trivially_copyable_v<PieceView>);
+static_assert(std::is_trivially_destructible_v<PieceView>);
+} // namespace dc2::world
 
 /**
  * @file
@@ -55,33 +100,55 @@ STATIC_ASSERT(sizeof(InScreenFuncInfo) == 0xC);
  *
  */
 class CMapParts : public CObject {
+private:
+    dc2::memory::ArenaResource piece_bindings{};   /**< Immutable names and exact piece assignments anchored to the first node. */
+    std::uint64_t              assignment_token{}; /**< Identity of this part assignment, renewed whenever its contents are replaced. */
+
 public:
-    char              name[32]{};                   /**< Name the map gives this placement of the part. */
-    char              parts_name[32]{};             /**< Name of the part that was placed. */
-    CList<CMapPiece> *piece_list{};                 /**< First node of the list of pieces the part is built from. */
-    mgCFrame          frame{};                      /**< Frame that places every piece of the part in the world. */
-    s32               lod_num{};                    /**< Number of levels of detail the part has distances for. */
-    s32               lod_blend{};                  /**< Non-zero blends between levels of detail. */
-    float            *lod_dist{};                   /**< Distance at which each level of detail starts. */
-    s32               minimap_tile{};               /**< Tile of the dungeon mini map drawn for the part, or -1 for none; set by CMiniMap. */
-    float             fixed_time{};                 /**< Time of day the function points are checked against; below zero to use the scene's time. */
-    s32               need_step{};                  /**< Non-zero while a piece of the part moves and must be stepped every frame. */
-    s32               color_num{};                  /**< Number of entries of color in use. */
-    sceVu0FVECTOR     color[MAP_PARTS_COLOR_MAX]{}; /**< Colour given to the materials of each colour number; a W of zero or below leaves them as they are. */
-    s32               bound_valid{};                /**< Non-zero while bound_box holds the extent of the drawn pieces. */
-    mgVu0FBOX         bound_box{};                  /**< Extent of the drawn pieces, in the part's own space. */
-    sceVu0FVECTOR     bound_sphere{};               /**< Sphere around bound_box: centre in XYZ, radius in W. */
-    s32               col_bound_valid{};            /**< Non-zero while col_bound_box holds the extent of the collision pieces. */
-    mgVu0FBOX         col_bound_box{};              /**< Extent of the collision pieces, in the part's own space. */
-    sceVu0FVECTOR     col_bound_sphere{};           /**< Sphere around col_bound_box: centre in XYZ, radius in W. */
-    CFuncPointMngr    func_point_mngr{};            /**< Function points that come with the part. */
-    s32               no_light{};                   /**< Non-zero draws the part with the scene's lights cleared, lit only by its own light points. */
-    s32               no_plight{};                  /**< Non-zero draws the part with point lights turned off. */
-    u32               move_flag{};                  /**< Sides of the part's automap cell that walls close, AUTOMAP_WALL bits set by the map's MOVE_FLAG command. */
-    CList<CObjAnime> *anime_list{};                 /**< First node of the list of animations the function points drive. */
-    s32               group_no{};                   /**< Group of parts the placement belongs to, or -1. */
-    s32               in_screen{};                  /**< Non-zero while the part is on screen this frame. */
-    CFuncPointCheck   func_check{};                 /**< Conditions the function points were last checked against. */
+    /**
+     * Publishes the complete piece collection after its producer finishes constructing it.
+     */
+    bool PublishPieceBindings(std::vector<dc2::world::PieceBinding> bindings);
+    /**
+     * Finds a piece through immutable owned names without traversing borrowed list links.
+     */
+    [[nodiscard]] dc2::world::PieceView FindPieceView(std::string_view name) const;
+
+    /**
+     * Returns the identity of this exact initialized or copied part assignment.
+     */
+    [[nodiscard]] std::uint64_t AssignmentToken() const noexcept { return assignment_token; }
+
+    /**
+     * Checks that the embedded placement frame has no external traversal links.
+     */
+    [[nodiscard]] bool HasStandaloneFrame() const;
+    char               name[32]{};                   /**< Name the map gives this placement of the part. */
+    char               parts_name[32]{};             /**< Name of the part that was placed. */
+    CList<CMapPiece>  *piece_list{};                 /**< First node of the list of pieces the part is built from. */
+    mgCFrame           frame{};                      /**< Frame that places every piece of the part in the world. */
+    s32                lod_num{};                    /**< Number of levels of detail the part has distances for. */
+    s32                lod_blend{};                  /**< Non-zero blends between levels of detail. */
+    float             *lod_dist{};                   /**< Distance at which each level of detail starts. */
+    s32                minimap_tile{};               /**< Tile of the dungeon mini map drawn for the part, or -1 for none; set by CMiniMap. */
+    float              fixed_time{};                 /**< Time of day the function points are checked against; below zero to use the scene's time. */
+    s32                need_step{};                  /**< Non-zero while a piece of the part moves and must be stepped every frame. */
+    s32                color_num{};                  /**< Number of entries of color in use. */
+    sceVu0FVECTOR      color[MAP_PARTS_COLOR_MAX]{}; /**< Colour given to the materials of each colour number; a W of zero or below leaves them as they are. */
+    s32                bound_valid{};                /**< Non-zero while bound_box holds the extent of the drawn pieces. */
+    mgVu0FBOX          bound_box{};                  /**< Extent of the drawn pieces, in the part's own space. */
+    sceVu0FVECTOR      bound_sphere{};               /**< Sphere around bound_box: centre in XYZ, radius in W. */
+    s32                col_bound_valid{};            /**< Non-zero while col_bound_box holds the extent of the collision pieces. */
+    mgVu0FBOX          col_bound_box{};              /**< Extent of the collision pieces, in the part's own space. */
+    sceVu0FVECTOR      col_bound_sphere{};           /**< Sphere around col_bound_box: centre in XYZ, radius in W. */
+    CFuncPointMngr     func_point_mngr{};            /**< Function points that come with the part. */
+    s32                no_light{};                   /**< Non-zero draws the part with the scene's lights cleared, lit only by its own light points. */
+    s32                no_plight{};                  /**< Non-zero draws the part with point lights turned off. */
+    u32                move_flag{};                  /**< Sides of the part's automap cell that walls close, AUTOMAP_WALL bits set by the map's MOVE_FLAG command. */
+    CList<CObjAnime>  *anime_list{};                 /**< First node of the list of animations the function points drive. */
+    s32                group_no{};                   /**< Group of parts the placement belongs to, or -1. */
+    s32                in_screen{};                  /**< Non-zero while the part is on screen this frame. */
+    CFuncPointCheck    func_check{};                 /**< Conditions the function points were last checked against. */
 
     /**
      *
@@ -187,7 +254,7 @@ public:
      * @address 0x168EB0
      * @size 0x6AC
      */
-    virtual void Copy(CMapParts &dest, mgCMemory *memory);
+    virtual bool Copy(CMapParts &dest, mgCMemory *memory);
 
     /**
      *
@@ -229,7 +296,7 @@ public:
      * @address 0x1678A0
      * @size 0x90
      */
-    CMapPiece *SearchPiece(char *piece_name);
+    CMapPiece *SearchPiece(const char *piece_name);
 
     /**
      *

@@ -1,0 +1,549 @@
+{
+  "family": "ChronicleTwoTitle",
+  "kind": "title",
+  "centred": true,
+  "description": "Dark Chronicle's title and language menu lettering as outlines, made from ChronicleTwoMessage (a modified Kosugi) for the ChronicleTwo port.",
+  "copyright": "Copyright 2010 The Kosugi Project Authors (https://github.com/googlefonts/kosugi). Modified for ChronicleTwo; see NOTICE.",
+  "license": "Licensed under the Apache License, Version 2.0.",
+  "license_url": "https://www.apache.org/licenses/LICENSE-2.0",
+  "default_source": "chronicletwo_message",
+  "sources": {
+    "chronicletwo_message": null
+  },
+  "flare": null,
+  "rounding": {},
+  "extra_characters": "¡ª°±º¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÑÒÓÔÕÖ×ÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöùúûüýÿŒœ‘’“”…",
+  "global": {
+    "em": 30.8,
+    "stretch": 0.716,
+    "weight": -13.0,
+    "start": 103.312,
+    "baseline": 33.688,
+    "stem": 133.0
+  },
+  "words": {
+    "New Game": [
+      1.812,
+      0.062
+    ],
+    "Continue": [
+      1.5,
+      0.062
+    ],
+    "Install": [
+      -0.312,
+      0.063
+    ],
+    "Options": [
+      0.813,
+      0.0
+    ],
+    "Extras": [
+      0.062,
+      0.0
+    ],
+    "Free Race": [
+      -0.25,
+      0.062
+    ],
+    "Spheda Practice Area": [
+      -0.125,
+      0.062
+    ]
+  },
+  "glyphs": {
+    " ": {
+      "advance": -80.0
+    },
+    "A": {
+      "kx": 1.21,
+      "tx": 28.0,
+      "weight": 10.0,
+      "advance": 56.0
+    },
+    "B": {
+      "kx": 1.21,
+      "tx": -72.0,
+      "weight": 18.0,
+      "advance": 28.0
+    },
+    "C": {
+      "kx": 1.255,
+      "tx": -36.0,
+      "weight": 10.0,
+      "advance": 8.0
+    },
+    "E": {
+      "kx": 1.045,
+      "weight": 2.0,
+      "advance": 20.0
+    },
+    "F": {
+      "weight": 4.0,
+      "advance": 28.0,
+      "tx": -4.0
+    },
+    "G": {
+      "kx": 1.15,
+      "tx": 80.0,
+      "weight": 6.0,
+      "advance": 68.0
+    },
+    "I": {
+      "kx": 0.97,
+      "tx": 16.0,
+      "advance": 4.0
+    },
+    "N": {
+      "kx": 1.32,
+      "tx": -12.0,
+      "weight": -2.0,
+      "advance": 18.0,
+      "ky": 1.06
+    },
+    "O": {
+      "kx": 1.255,
+      "tx": -36.0,
+      "weight": 8.0,
+      "advance": -12.0
+    },
+    "P": {
+      "kx": 1.18,
+      "tx": -32.0,
+      "advance": -20.0,
+      "weight": -2.0
+    },
+    "R": {
+      "kx": 1.06,
+      "tx": 24.0,
+      "weight": -4.0,
+      "advance": 20.0
+    },
+    "S": {
+      "kx": 1.06,
+      "tx": 24.0,
+      "weight": 10.0,
+      "advance": 8.0
+    },
+    "a": {
+      "advance": -32.0
+    },
+    "b": {
+      "kx": 1.06,
+      "tx": 48.0,
+      "weight": 24.0,
+      "advance": 80.0
+    },
+    "c": {
+      "kx": 0.985,
+      "tx": -32.0
+    },
+    "e": {
+      "kx": 0.985,
+      "tx": -12.0,
+      "weight": 8.0,
+      "advance": 4.0
+    },
+    "g": {
+      "warp": [
+        {
+          "region": [
+            -2000,
+            -2000,
+            4000,
+            -1
+          ],
+          "scale": [
+            1.0,
+            1.731
+          ],
+          "about": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "h": {
+      "tx": 8.0,
+      "weight": 2.0,
+      "advance": -36.0
+    },
+    "j": {
+      "warp": [
+        {
+          "region": [
+            -2000,
+            -2000,
+            4000,
+            -1
+          ],
+          "scale": [
+            1.0,
+            1.731
+          ],
+          "about": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "l": {
+      "tx": -28.0,
+      "advance": -76.0
+    },
+    "m": {
+      "kx": 1.358,
+      "advance": 146.0,
+      "tx": 84.0,
+      "weight": 14.0,
+      "ky": 0.985
+    },
+    "n": {
+      "advance": -20.0,
+      "tx": -4.0,
+      "weight": 2.0,
+      "warp": [
+        {
+          "region": [
+            348,
+            768,
+            356,
+            776
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            328,
+            772
+          ]
+        },
+        {
+          "region": [
+            336,
+            664,
+            344,
+            672
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            316,
+            668
+          ]
+        },
+        {
+          "region": [
+            437,
+            768,
+            445,
+            776
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            429,
+            772
+          ]
+        },
+        {
+          "region": [
+            391,
+            664,
+            399,
+            672
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            383,
+            668
+          ]
+        },
+        {
+          "region": [
+            292,
+            768,
+            300,
+            776
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            284,
+            772
+          ]
+        },
+        {
+          "region": [
+            290,
+            664,
+            298,
+            672
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            282,
+            668
+          ]
+        },
+        {
+          "region": [
+            160,
+            611,
+            168,
+            619
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            164,
+            655
+          ]
+        },
+        {
+          "region": [
+            202,
+            693,
+            210,
+            701
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            200,
+            710
+          ]
+        }
+      ]
+    },
+    "o": {
+      "kx": 1.045,
+      "tx": 24.0,
+      "weight": 8.0,
+      "advance": 8.0
+    },
+    "p": {
+      "warp": [
+        {
+          "region": [
+            -2000,
+            -2000,
+            4000,
+            -1
+          ],
+          "scale": [
+            1.0,
+            0.891
+          ],
+          "about": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "q": {
+      "warp": [
+        {
+          "region": [
+            -2000,
+            -2000,
+            4000,
+            -1
+          ],
+          "scale": [
+            1.0,
+            1.731
+          ],
+          "about": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "r": {
+      "advance": -28.0
+    },
+    "s": {
+      "kx": 1.015,
+      "tx": 12.0,
+      "weight": 4.0,
+      "advance": -4.0
+    },
+    "u": {
+      "tx": -8.0,
+      "weight": 4.0,
+      "advance": -16.0
+    },
+    "v": {
+      "kx": 0.97,
+      "tx": 64.0,
+      "weight": 10.0,
+      "advance": 60.0
+    },
+    "w": {
+      "kx": 1.505,
+      "advance": 200.0,
+      "tx": 152.0,
+      "weight": -10.0,
+      "warp": [
+        {
+          "region": [
+            -1000,
+            700,
+            300,
+            1000
+          ],
+          "scale": [
+            1.0,
+            1.0
+          ],
+          "shear": [
+            -0.0529,
+            0.0
+          ],
+          "about": [
+            0,
+            6
+          ]
+        },
+        {
+          "region": [
+            600,
+            700,
+            2000,
+            1000
+          ],
+          "scale": [
+            1.0,
+            1.0
+          ],
+          "shear": [
+            0.0529,
+            0.0
+          ],
+          "about": [
+            0,
+            6
+          ]
+        },
+        {
+          "region": [
+            37,
+            746,
+            45,
+            754
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            33,
+            750
+          ]
+        },
+        {
+          "region": [
+            95,
+            746,
+            103,
+            754
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            107,
+            750
+          ]
+        },
+        {
+          "region": [
+            726,
+            746,
+            734,
+            754
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            722,
+            750
+          ]
+        },
+        {
+          "region": [
+            781,
+            746,
+            789,
+            754
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            793,
+            750
+          ]
+        }
+      ]
+    },
+    "x": {
+      "kx": 1.045,
+      "tx": 28.0,
+      "weight": 14.0,
+      "advance": -8.0
+    },
+    "y": {
+      "warp": [
+        {
+          "region": [
+            -2000,
+            -2000,
+            4000,
+            -1
+          ],
+          "scale": [
+            1.0,
+            1.731
+          ],
+          "about": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "z": {
+      "kx": 0.94,
+      "tx": 4.0,
+      "weight": 14.0,
+      "advance": 40.0
+    }
+  }
+}

@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <iterator>
 #include <memory>
 #include <span>
@@ -516,14 +517,14 @@ static s8 MenuItemSelectMode;
  * Active event-requested item selector.
  *
  */
-static CItemSelect *ItemSelectPtr;
+CItemSelect *ItemSelectPtr;
 
 /**
  *
  * Outcome of the most recent item command.
  *
  */
-static ITEMCMD_RET_PARA MenuItemCmdRet;
+ITEMCMD_RET_PARA MenuItemCmdRet;
 
 /**
  *
@@ -1879,7 +1880,9 @@ void CBaseMenuClass::SetAskParam(MENU_ASKMODE_PARA *param) {
 }
 
 void CBaseMenuClass::ExeScript(char *script) {
-    MenuCommandAnalyze(this->script, script_size, script);
+    if (script != nullptr) {
+        dc2::menu::AnalyzeCommands(this->script, script_size, script);
+    }
 }
 
 int CBaseMenuClass::ExtendCommand(int select_key, int push_button) {
@@ -4327,11 +4330,11 @@ void MenuEquipCameraSetEnv(CActionChara *chara, mgCCamera *camera, int type, int
     std::snprintf(name, sizeof(name), "test%d%d", type, index);
     MenuPosData->GetEtcTbl2Value(name, table, 3);
     sceVu0AddVector(position, position, table);
-    *reinterpret_cast<u_long128 *>(MenuDrawEnv->ref) = *reinterpret_cast<u_long128 *>(position);
+    std::memmove(MenuDrawEnv->ref, position, sizeof(float) * 4);
     std::snprintf(name, sizeof(name), "ttest%d%d", type, index);
     MenuPosData->GetEtcTbl2Value(name, table, 3);
     sceVu0AddVector(position, position, table);
-    *reinterpret_cast<u_long128 *>(MenuDrawEnv->pos) = *reinterpret_cast<u_long128 *>(position);
+    std::memmove(MenuDrawEnv->pos, position, sizeof(float) * 4);
     MenuDrawEnv->speed = 7.0f;
 }
 
@@ -9259,14 +9262,14 @@ void MenuItemCharaActWepInfoDraw(CMenuPosDataForm *form, CGameDataUsed *equip, i
         form->SetNumber(whptbl[i][0], whp[0]);
         form->SetNumber(whptbl[i][1], whp[1]);
         char name[0x20];
-        sprintf(name, "whp%d", i);
+        dc2::text::Copy(name, std::format("whp{}", i));
         bar = form->GetPartInfo(name);
 
         if (bar != nullptr) {
             bar->w = static_cast<int>(95.0f * rate);
         }
 
-        sprintf(name, "abs%d", i);
+        dc2::text::Copy(name, std::format("abs{}", i));
         bar = form->GetPartInfo(name);
 
         if (bar != nullptr) {
@@ -10238,13 +10241,17 @@ void CMenuItemInfo::WeaponBuildCheck(CActionChara *chara, int chara_no, int tex_
     float scale = MenuAdjustPolygonScale(frame, ActiveMenuWeaponCharaRange);
     chara->SetPosition(MenuWeaponBasePos);
     chara->SetScale(scale, scale, scale);
-    chara->Copy(*SpectolFrame, MenuActionCharaBuffer);
+    if (!chara->Copy(*SpectolFrame, MenuActionCharaBuffer)) {
+        return;
+    }
     chara_poly_form[1]->SetActionCharaPtr(SpectolFrame, tex_block, -1);
     mgCFrame     *spectol_frame = SpectolFrame->CObjectFrame::frame;
-    mgCFrameAttr *attr = spectol_frame->attr;
-    attr->alpha_blend = MG_ALPHA_MACRO_BLEND;
-    attr->obj_alpha = 1.0f;
-    spectol_frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_OBJ_ALPHA | MG_FRAME_ATTR_ALPHA_BLEND);
+    mgCFrameAttr *attr = spectol_frame != nullptr ? spectol_frame->attr : nullptr;
+    if (attr != nullptr) {
+        attr->alpha_blend = MG_ALPHA_MACRO_BLEND;
+        attr->obj_alpha = 1.0f;
+        spectol_frame->SetAttrParam(*attr, 1, MG_FRAME_ATTR_OBJ_ALPHA | MG_FRAME_ATTR_ALPHA_BLEND);
+    }
     ActiveMenuWeaponCharaRange *= 1.2f;
     CActionChara *build_chara = nullptr;
 

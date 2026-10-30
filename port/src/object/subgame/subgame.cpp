@@ -26,7 +26,7 @@
  * Currently running sub game.
  *
  */
-static int SubGame;
+int SubGame;
 
 /**
  *

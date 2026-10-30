@@ -435,16 +435,14 @@ int LoadFileCacheBG(char *path);
  */
 u_long128 *SearchFileCache(char *path, int *out_size);
 
+namespace dc2::io {
 /**
  *
- * Writes a buffer to a file on the network
- * socket or another device.
+ * Writes a complete bounded byte sequence to a host device file.
  *
- * @mangled WriteFile__FPcPvi
- * @address 0x14A0B0
- * @size 0xDC
  */
-int WriteFile(char *path, void *buffer, int size);
+bool WriteFile(std::string_view path, std::span<const std::byte> bytes);
+} // namespace dc2::io
 
 /**
  *

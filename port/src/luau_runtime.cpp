@@ -1,6 +1,8 @@
 #include "lua.h"
 #include "luacode.h"
+#ifndef __SWITCH__
 #include "luacodegen.h"
+#endif
 #include "lualib.h"
 
 #ifdef __APPLE__
@@ -362,14 +364,31 @@ void *Userdata(const T *pointer) {
  *
  */
 struct CurrentGuard {
-    CRunScript *previous; /**< Script that was current before this guard. */
+    static inline const CurrentGuard *active = nullptr; /**< Innermost active invocation on the shared Luau runtime. */
+    CRunScript                       *controller;       /**< Controller whose invocation this guard protects. */
+    CRunScript                       *previous;         /**< Script that was current before this guard. */
+    const CurrentGuard               *previous_guard;   /**< Enclosing invocation retained across nested controllers. */
 
-    explicit CurrentGuard(CRunScript *script) : previous(current) {
+    explicit CurrentGuard(CRunScript *script) : controller(script), previous(current), previous_guard(active) {
+        active = this;
         current = script;
     }
 
     ~CurrentGuard() {
+        active = previous_guard;
         current = previous;
+    }
+
+    /**
+     * Detects a controller anywhere in the active nested invocation chain.
+     */
+    static bool Contains(const CRunScript *script) {
+        for (auto *guard = active; guard != nullptr; guard = guard->previous_guard) {
+            if (guard->controller == script) {
+                return true;
+            }
+        }
+        return false;
     }
 
     CurrentGuard(const CurrentGuard &) = delete;
@@ -552,6 +571,9 @@ CRunScript *ActiveScript(lua_State *lua) {
     if (current == nullptr) {
         luaL_error(lua, "native command called outside a script");
     }
+    if (!dc2::script::ExecutionValid(current)) {
+        luaL_error(lua, "script execution lifetime expired");
+    }
     return current;
 }
 
@@ -703,6 +725,7 @@ int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_
     }
     script->ext(std::span(slots).first(param_count + 1), std::span(text_sources).first(text_count), writable, factory,
                 nullptr);
+    ActiveScript(lua);
 
     for (std::size_t index = 0; index < output_count; ++index) {
         PushOutput(lua, outputs[index], output_types[index]);
@@ -735,6 +758,7 @@ int CallGeneric(lua_State *lua, int no, int first, const luau_bindings::Command 
     if (script->skip_wait == 0) {
         script->ext(std::span(slots).first(static_cast<std::size_t>(count + 1)),
                     std::span(text_sources).first(text_count));
+        ActiveScript(lua);
     }
     return 0;
 }
@@ -905,9 +929,11 @@ bool PushModuleFunction(lua_State *lua, const std::filesystem::path &file, std::
             return false;
         }
     }
+#ifndef __SWITCH__
     if (codegen) {
         luau_codegen_compile(lua, -1);
     }
+#endif
     CT_LOG_INFO(Script, "luau: {} {}", loaded_precompiled ? "loaded precompiled" : "compiled", PathsDisplay(file));
 
     lua_getref(lua, module_cache_ref);
@@ -1128,14 +1154,16 @@ lua_State *EnsureState() {
     luaL_sandbox(state);
     // iOS lets an app make no executable memory without a JIT entitlement a sideloaded app does not get, so the
     // scripts stay interpreted there.
-#if defined(__APPLE__) && TARGET_OS_IPHONE
+#if defined(__SWITCH__) || (defined(__APPLE__) && TARGET_OS_IPHONE)
     codegen = false;
 #else
     codegen = luau_codegen_supported() != 0;
 #endif
+#ifndef __SWITCH__
     if (codegen) {
         luau_codegen_create(state);
     }
+#endif
     CT_LOG_INFO(Script, "luau: native code generation {}", codegen ? "on" : "off");
     return state;
 }
@@ -1215,6 +1243,11 @@ void Step(CRunScript *script, Instance &instance, lua_State *co, int nargs) {
     const CurrentGuard guard(script);
     remaining = budget;
     const int status = lua_resume(co, nullptr, nargs);
+    if (!dc2::script::ExecutionValid(script)) {
+        instance.broken = true;
+        ReleaseRef(instance.thread_ref);
+        return;
+    }
     if (status == LUA_YIELD) {
         lua_settop(co, 0);
         return;
@@ -1581,6 +1614,9 @@ void Forget(CRunScript *script) {
 }
 
 int Run(CRunScript *script, int no) {
+    if (CurrentGuard::Contains(script) || !dc2::script::ExecutionValid(script)) {
+        return -1;
+    }
     const std::shared_ptr<Instance> instance = OwnedInstance(script);
     if (!instance || instance->broken || state == nullptr) {
         CT_LOG_TRACE(Script, "luau: program {} has no loaded module", no);
@@ -1608,10 +1644,16 @@ int Run(CRunScript *script, int no) {
     script->skip_wait = 0;
     script->skip_end_count = 0;
     Step(script, *instance, co, 0);
+    if (!dc2::script::ExecutionValid(script)) {
+        return -1;
+    }
     return script->end != 0 ? 0 : 1;
 }
 
 void Resume(CRunScript *script) {
+    if (CurrentGuard::Contains(script) || !dc2::script::ExecutionValid(script)) {
+        return;
+    }
     const std::shared_ptr<Instance> instance = OwnedInstance(script);
     if (!instance || instance->broken || !HasRef(instance->thread_ref) || state == nullptr) {
         return;

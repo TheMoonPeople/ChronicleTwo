@@ -29,12 +29,13 @@ int AssetDirectoryReadExtension(const void *directory, const char *kind, u_int *
  * Counts logical direct members, including relocated textures and excluding metadata sidecars.
  */
 int AssetDirectoryCount(const void *directory);
-/**
- * Selects an explicitly local member name from a caller's full resource path.
- */
-const char *AssetMemberName(const char *path);
 
 namespace dc2::assets {
+/**
+ * Selects the bounded final component of a resource path using either path separator.
+ */
+std::string_view MemberName(std::string_view path);
+
 /**
  * Owns a directory member's initialized native contents and logical enumeration name.
  */

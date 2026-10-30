@@ -1,8 +1,10 @@
 #include "common.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
@@ -12,78 +14,6 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "water.hpp"
-
-/**
- *
- * Transform, clipping and surface parameters unpacked into the water microprogram.
- *
- */
-struct WaterRenderPacket {
-    u_int         dma[4];   /**< DMA count tag. */
-    u_int         vif[4];   /**< Double-buffer setup and unpack codes. */
-    u_long128     clear[3]; /**< Cleared microprogram parameters. */
-    u_int         render_word;
-    float         render_params[3];
-    sceVu0FMATRIX world_screen; /**< Surface-to-screen transform. */
-    sceVu0FMATRIX world;        /**< Surface-to-world transform. */
-    u_long128     unk_e0[9];
-    sceVu0FVECTOR guard_max;      /**< Upper clip bounds. */
-    sceVu0FVECTOR guard_min;      /**< Lower clip bounds. */
-    sceVu0FVECTOR fog;            /**< Fog coefficients. */
-    sceVu0FVECTOR screen_size;    /**< Screen width and last scanline. */
-    sceVu0FVECTOR screen_offset;  /**< GS screen origin. */
-    sceVu0FVECTOR color;          /**< Surface colour. */
-    sceVu0FVECTOR surface_params; /**< Microprogram values and blue/alpha colour. */
-    u_int         start[4];       /**< Microprogram call. */
-    u_int         state_dma[4];   /**< DMA count tag for the drawing state. */
-    u_int         flags[4];       /**< Microprogram drawing flags. */
-    u_int         direct[4];      /**< VIF direct code. */
-    u_int         giftag[4];      /**< GIF tag for the GS state writes. */
-    u_int         prmode_cont[4]; /**< PRMODECONT register write. */
-    u_int         prmode[4];      /**< PRMODE register write. */
-    u_int         fog_color[4];   /**< FOGCOL register write. */
-} __attribute__((aligned(16)));
-
-STATIC_ASSERT(sizeof(WaterRenderPacket) == 0x260);
-
-/**
- *
- * Header of one grid strip, followed by its positions and slope vectors.
- *
- */
-struct WaterStripPacket {
-    u_int     dma[4];    /**< DMA count tag and VIF unpack code. */
-    sceGifTag giftag;    /**< Triangle-strip GIF tag. */
-    u_int     counts[4]; /**< Position and slope vector counts. */
-} __attribute__((aligned(16)));
-
-STATIC_ASSERT(sizeof(WaterStripPacket) == 0x30);
-
-/**
- *
- * DMA control tag with space for two inline VIF codes.
- *
- */
-struct WaterDmaTag {
-    u_int command; /**< DMA command and quadword count. */
-    u_int address; /**< DMA transfer address. */
-    u_int vif[2];  /**< Inline VIF codes. */
-};
-
-STATIC_ASSERT(sizeof(WaterDmaTag) == 0x10);
-
-/**
- *
- * Flushes the water microprogram and returns from its DMA chain.
- *
- */
-struct WaterFinishPacket {
-    WaterDmaTag dma;      /**< Count tag for the flush code. */
-    u_int       flush[4]; /**< VIF flush command. */
-    WaterDmaTag ret;      /**< Return tag. */
-};
-
-STATIC_ASSERT(sizeof(WaterFinishPacket) == 0x30);
 
 void CFireRaster::Step() {
     FireRasterParticle *free_slot = nullptr;
@@ -279,134 +209,140 @@ void CThunderEffect::Init() {
     unk_98 = 0;
 }
 
-void CWater::Hamon() {
-    float  coefficient = {};
-    float  center_coefficient = {};
-    float  friction = {};
-    float  old_height = {};
-    float  new_height = {};
-    int    row = {};
-    int    column = {};
-    int    index = {};
-    float *next = {};
-    float *current = {};
-
-    if (height == height_a) {
-        next = height_b;
-        current = height_a;
-    } else {
-        next = height_a;
-        current = height_b;
+std::span<float> CWater::Grid(bool second) const {
+    if (rows < 2 || columns < 2) {
+        return {};
     }
+    const auto row_count = static_cast<std::size_t>(rows);
+    const auto column_count = static_cast<std::size_t>(columns);
+    if (row_count > std::numeric_limits<std::size_t>::max() / column_count) {
+        return {};
+    }
+    const auto &grid = grids[second ? 1U : 0U];
+    const auto  bytes = grid.storage.Bytes();
+    if (grid.values.size() != row_count * column_count || bytes.empty() ||
+        bytes.size() != grid.values.size_bytes() ||
+        static_cast<const void *>(bytes.data()) != static_cast<const void *>(grid.values.data())) {
+        return {};
+    }
+    return grid.values;
+}
 
-    height = next;
-    coefficient = speed * speed;
-    friction = damping;
-    center_coefficient = 2.0f * (1.0f - 2.0f * coefficient);
+std::span<float> CWater::Heights() { return Grid(second_grid); }
 
-    for (row = 1; row < rows - 1; row++) {
-        for (column = 1; column < columns - 1; column++) {
-            index = row * columns + column;
-            float *cell = &current[index];
-            float *out = &next[index];
-            old_height = *out;
-            new_height = (cell[-1] + cell[1] + cell[columns]) + *(cell - columns);
-            new_height = new_height * coefficient;
-            new_height += center_coefficient * cell[0] - old_height;
-            *out = new_height - friction * (new_height - old_height);
+std::span<const float> CWater::Heights() const { return Grid(second_grid); }
+
+void CWater::Hamon() {
+    const auto current = Grid(second_grid);
+    auto       next = Grid(!second_grid);
+    if (current.empty() || next.size() != current.size()) {
+        return;
+    }
+    second_grid = !second_grid;
+    const float coefficient = speed * speed;
+    const float center_coefficient = 2.0f * (1.0f - 2.0f * coefficient);
+    const auto  row_count = static_cast<std::size_t>(rows);
+    const auto  column_count = static_cast<std::size_t>(columns);
+    for (std::size_t row = 1; row + 1 < row_count; ++row) {
+        for (std::size_t column = 1; column + 1 < column_count; ++column) {
+            const auto  index = row * column_count + column;
+            const float old_height = next[index];
+            float       new_height = (current[index - 1] + current[index + 1] + current[index + column_count]) + current[index - column_count];
+            new_height *= coefficient;
+            new_height += center_coefficient * current[index] - old_height;
+            next[index] = new_height - damping * (new_height - old_height);
         }
     }
 }
 
 void CWater::SetVertex(float *a, float *b) {
-    mgVectorMaxMin(max, min, a, b);
+    if (a != nullptr && b != nullptr) {
+        mgVectorMaxMin(max, min, a, b);
+    }
 }
 
 void CWater::Shake(int x, int z, float amount) {
-    int    last_x = {};
-    int    last_z = {};
-    float *height = {};
-
-    x = x % rows;
-    z = z % columns;
-
-    if (x <= 0) {
-        x = 1;
+    auto values = Heights();
+    if (values.empty() || rows < 3 || columns < 3 || !std::isfinite(amount)) {
+        return;
     }
-
-    if (z <= 0) {
-        z = 1;
-    }
-
-    last_x = rows - 2;
-
-    if (x > last_x) {
-        x = last_x;
-    }
-
-    last_z = columns - 2;
-
-    if (z > last_z) {
-        z = last_z;
-    }
-
-    height = &this->height[z] + x * columns;
-    *height += amount;
+    x = std::clamp(x % rows, 1, rows - 2);
+    z = std::clamp(z % columns, 1, columns - 2);
+    const auto index = static_cast<std::size_t>(x) * static_cast<std::size_t>(columns) + static_cast<std::size_t>(z);
+    values[index] += amount;
 }
 
 void CWaterFrame::Shake(float x, float z, float height_change) {
-    CWater       *water = {};
+    auto *water = GetWater();
+    if (water == nullptr || water->Heights().empty() || !std::isfinite(x) || !std::isfinite(z)) {
+        return;
+    }
     sceVu0FMATRIX world_matrix;
     sceVu0FMATRIX inverse_matrix;
-    sceVu0FVECTOR position;
+    sceVu0FVECTOR position{x, 0.0f, z, 1.0f};
     sceVu0FVECTOR local_position;
-    int           row = {};
-    int           column = {};
-
-    water = GetWater();
-    position[0] = x;
-    position[1] = 0.0f;
-    position[2] = z;
-    position[3] = 1.0f;
     GetLWMatrix(world_matrix);
     mgInversMatrix(inverse_matrix, world_matrix);
     sceVu0ApplyMatrix(local_position, inverse_matrix, position);
     x = local_position[0];
     z = local_position[2];
-
-    if (x < water->min[0] || x > water->max[0]) {
+    const float width = water->max[0] - water->min[0];
+    const float depth = water->max[2] - water->min[2];
+    if (!std::isfinite(x) || !std::isfinite(z) || !std::isfinite(width) || !std::isfinite(depth) ||
+        width <= 0.0f || depth <= 0.0f || x < water->min[0] || x > water->max[0] || z < water->min[2] || z > water->max[2]) {
         return;
     }
-
-    if (z < water->min[2] || z > water->max[2]) {
+    const float row = static_cast<float>(water->rows) * (x - water->min[0]) / width;
+    const float column = static_cast<float>(water->columns) * (z - water->min[2]) / depth;
+    if (!std::isfinite(row) || !std::isfinite(column)) {
         return;
     }
-
-    row = static_cast<int>(water->rows * (x - water->min[0]) / (water->max[0] - water->min[0]));
-    column = static_cast<int>(water->columns * (z - water->min[2]) / (water->max[2] - water->min[2]));
-    Shake(row, column, height_change);
+    const auto row_index = static_cast<int>(std::clamp(static_cast<double>(row), 0.0, static_cast<double>(water->rows)));
+    const auto column_index = static_cast<int>(std::clamp(static_cast<double>(column), 0.0, static_cast<double>(water->columns)));
+    water->Shake(row_index, column_index, height_change);
 }
 
 CWater *CWaterFrame::GetWater() {
-    return static_cast<CWater *>(visual);
+    return dynamic_cast<CWater *>(visual);
 }
 
-void CWater::SetSize(int x, int z, mgCMemory *memory) {
-    int blocks = x * z / 4 + 1;
-    int i = {};
-
-    height_a = reinterpret_cast<float *>(memory->Alloc(blocks));
-    height_b = reinterpret_cast<float *>(memory->Alloc(blocks));
+bool CWater::SetSize(int x, int z, mgCMemory *memory) {
+    if (memory == nullptr || memory->lock != 0 || x < 2 || z < 2) {
+        return false;
+    }
+    const auto row_count = static_cast<std::size_t>(x);
+    const auto column_count = static_cast<std::size_t>(z);
+    if (row_count > std::numeric_limits<std::size_t>::max() / column_count) {
+        return false;
+    }
+    const auto count = row_count * column_count;
+    const auto words = dc2::memory::ArrayQuadwords<float>(count);
+    if (!words || dc2::memory::RemainingBytes(*memory).size() / sizeof(u_long128) <= 2 * static_cast<std::size_t>(*words)) {
+        return false;
+    }
+    std::array<GridStorage, 2> pending{};
+    for (auto &grid : pending) {
+        auto *values = dc2::memory::NewArray<float>(*memory, count);
+        if (values == nullptr) {
+            return false;
+        }
+        grid.values = std::span(values, count);
+        const auto allocation = dc2::memory::AllocationBytes(*memory, values);
+        if (allocation.size() < grid.values.size_bytes()) {
+            return false;
+        }
+        grid.storage = dc2::memory::ArenaBuffer::Bind(*memory, allocation.first(grid.values.size_bytes()));
+        if (grid.storage.Bytes().size() != grid.values.size_bytes()) {
+            return false;
+        }
+        std::ranges::fill(grid.values, 0.0f);
+    }
+    grids = pending;
     rows = x;
     columns = z;
-
-    for (i = 0; i < rows * columns; i++) {
-        height_b[i] = 0.0f;
-        height_a[i] = 0.0f;
-    }
-
-    height = height_a;
+    second_grid = false;
     unk_50 = 0;
+    return true;
 }
 
 void CWater::SetParam(float wave_speed, float wave_damping, float param_48, float param_4c) {
@@ -436,45 +372,6 @@ CWater::CWater() {
     surface_param0 = 0;
     surface_param1 = 0;
 }
-
-struct WaterTextureName {
-    char text[0x20];
-};
-
-struct WaterTextureImages {
-    u_long128 *image[MG_TEXTURE_LEVEL_MAX];
-};
-
-struct WaterTexture {
-    short block;
-    short width;
-    short height;
-    short bpp;
-    char  name[0x20];
-    int   vram_size;
-    int   image_blocks;
-    int   clut_size;
-
-    union {
-        u_long    tex0_bits;
-        sceGsTex0 tex0;
-    };
-
-    union {
-        u_long    tex1_bits;
-        sceGsTex1 tex1;
-    };
-
-    union {
-        u_long     clamp_bits;
-        sceGsClamp clamp;
-    };
-
-    u_long128  *image[MG_TEXTURE_LEVEL_MAX];
-    u_long128  *clut;
-    int         swizzled;
-    mgCTexture *next;
-};
 
 void CWaterFrame::SetTexture(mgCTexture *texture) {
     CWater *surface = GetWater();
@@ -518,55 +415,36 @@ void CWaterFrame::Shake(int x, int z, float amount) {
     }
 }
 
-void CWaterFrame::CreatePacket() {
-    GetWater()->CreatePacket(&mgDrawManager);
-}
-
-/**
- *
- * Rounds a byte count up to a number of 16-byte allocation blocks.
- *
- */
-static inline u_int align16_blocks(u_int size) {
-    if (size & 15) {
-        return (size >> 4) + 1;
-    }
-
-    return size >> 4;
-}
-
 CWaterFrame *CreateWaterFrame(int rows, int columns, float *min, float *max, mgCMemory *memory) {
-    CWaterFrame  *frame = {};
-    CWater       *water = {};
-    mgCFrameAttr *attr = {};
-
-    frame = new (memory->Alloc(align16_blocks(sizeof(CWaterFrame)) + 2)) CWaterFrame;
-
+    if (memory == nullptr || min == nullptr || max == nullptr || rows < 2 || columns < 2) {
+        return nullptr;
+    }
+    auto *frame = dc2::memory::NewObject<CWaterFrame>(*memory);
     if (frame == nullptr) {
         return nullptr;
     }
-
-    attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
-    frame->attr = attr;
-
-    if (attr != nullptr) {
-        attr->z_write = MG_ZBUF_NO_WRITE;
-        attr->z_test = MG_DEPTH_TEST_GEQUAL;
-        attr->alpha_test = -1;
-        attr->alpha_blend = MG_ALPHA_MACRO_BLEND;
-    }
-
-    water = new (memory->Alloc(align16_blocks(sizeof(CWater)) + 2)) CWater;
-
-    if (water == nullptr) {
+    auto *attr = dc2::memory::NewObject<mgCFrameAttr>(*memory);
+    auto *water = dc2::memory::NewObject<CWater>(*memory);
+    if (attr == nullptr || water == nullptr || !water->SetSize(rows, columns, memory)) {
         return nullptr;
     }
-
-    water->SetSize(rows, columns, memory);
+    auto *bound = dc2::memory::NewObject<mgCFrame::BoundInfo>(*memory);
+    if (bound == nullptr) {
+        return nullptr;
+    }
+    attr->z_write = MG_ZBUF_NO_WRITE;
+    attr->z_test = MG_DEPTH_TEST_GEQUAL;
+    attr->alpha_test = -1;
+    attr->alpha_blend = MG_ALPHA_MACRO_BLEND;
+    frame->attr = attr;
+    frame->bound = bound;
     water->SetVertex(min, max);
     frame->SetVisual(water);
-    frame->bound = new (memory->Alloc(align16_blocks(sizeof(mgCFrame::BoundInfo)) + 2)) mgCFrame::BoundInfo;
     frame->SetBBox(max, min);
+    if (!dc2::render::VisualCloneInputs::Publish(*memory, *water, dc2::render::VisualCloneKind::Water) ||
+        !dc2::render::FrameCloneInputs::Publish(*memory, *frame, water->clone_inputs)) {
+        return nullptr;
+    }
     return frame;
 }
 
@@ -583,7 +461,6 @@ void CWaterFrame::Initialize() {
 #include "common.h"
 // clang-format on
 
-#include <algorithm>
 #include <cstring>
 #include <span>
 #include <vector>
@@ -699,12 +576,10 @@ void ApplyFrameAttr(gfx::DrawState &state, const mgCVisualAttr &attr) {
 
 } // namespace
 
-uptr CWater::CreatePacket(mgCDrawManager * /*draw_manager*/) {
-    packet = 0;
-    return 0;
-}
-
 int CWater::CreateRenderInfoPacket(u_int * /*packet*/, float (* /*matrix*/)[4], mgRENDER_INFO *info) {
+    if (info == nullptr) {
+        return 0;
+    }
     info->scissor = 0;
     prmode = kWaterPrimMode | (FogOn(*info) ? kWaterPrimFog : 0u);
     return 0;
@@ -716,6 +591,9 @@ int CWater::Draw(u_int * /*tag*/, float (*matrix)[4], mgCDrawManager *draw_manag
     }
 
     mgRENDER_INFO *render_info = draw_manager->render_info;
+    if (render_info == nullptr || matrix == nullptr) {
+        return 0;
+    }
     texture_manager = draw_manager->texture_manager;
     CreateRenderInfoPacket(nullptr, matrix, render_info);
 
@@ -731,7 +609,7 @@ int CWater::Draw(u_int * /*tag*/, float (*matrix)[4], mgCDrawManager *draw_manag
         mgPortGs().tex1 = texture->tex1_bits;
     }
 
-    if (!mgPortRendererReady() || !mgPortFrameOpen() || rows < 2 || columns < 2 || height == nullptr) {
+    if (!mgPortRendererReady() || !mgPortFrameOpen() || rows < 2 || columns < 2 || Heights().empty()) {
         return 0;
     }
 
@@ -752,7 +630,7 @@ int CWater::Draw(u_int * /*tag*/, float (*matrix)[4], mgCDrawManager *draw_manag
         .columns = columns
     };
     static thread_local vu::WaterMesh mesh;
-    vu::BuildWaterMesh(desc, std::span<const float>(height, static_cast<std::size_t>(rows) * static_cast<std::size_t>(columns)), mesh);
+    vu::BuildWaterMesh(desc, Heights(), mesh);
 
     static thread_local std::vector<vu::WaterHostVertex> host_vertices;
     static thread_local std::vector<uint32_t>            indices;

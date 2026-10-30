@@ -1086,13 +1086,14 @@ public:
 
     /**
      *
-     * Copies this character into another, and with memory given copies its model too.
+     * Copies the action character and reports whether every required base resource copy completed.
      *
      * @mangled Copy__12CActionCharaFR12CActionCharaP9mgCMemory
      * @address 0x173790
      * @size 0x474
      */
-    virtual void Copy(CActionChara &dest, mgCMemory *memory);
+
+    [[nodiscard]] virtual bool Copy(CActionChara &dest, mgCMemory *memory);
 };
 
 STATIC_ASSERT(sizeof(CActionChara) == 0x1030);

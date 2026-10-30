@@ -541,10 +541,10 @@ int CEditGrid::GetRiverPoly(CCPoly *poly, const mgVu0FBOX &box, int poly_max, fl
                     return count;
                 }
 
-                *reinterpret_cast<u_long128 *>(inset[0]) = *reinterpret_cast<u_long128 *>(corners[0]);
-                *reinterpret_cast<u_long128 *>(inset[1]) = *reinterpret_cast<u_long128 *>(corners[1]);
-                *reinterpret_cast<u_long128 *>(inset[2]) = *reinterpret_cast<u_long128 *>(corners[2]);
-                *reinterpret_cast<u_long128 *>(inset[3]) = *reinterpret_cast<u_long128 *>(corners[3]);
+                std::memmove(inset[0], corners[0], sizeof(float) * 4);
+                std::memmove(inset[1], corners[1], sizeof(float) * 4);
+                std::memmove(inset[2], corners[2], sizeof(float) * 4);
+                std::memmove(inset[3], corners[3], sizeof(float) * 4);
 
                 if (!River(x + 1, z)) {
                     inset[1][0] -= margin;
@@ -566,7 +566,7 @@ int CEditGrid::GetRiverPoly(CCPoly *poly, const mgVu0FBOX &box, int poly_max, fl
                     inset[1][2] += margin;
                 }
 
-                *reinterpret_cast<u_long128 *>(inset[4]) = *reinterpret_cast<u_long128 *>(inset[0]);
+                std::memmove(inset[4], inset[0], sizeof(float) * 4);
                 GetWPos(position, x, z);
 
                 for (int i = 0; i < 4; i++) {
@@ -578,7 +578,13 @@ int CEditGrid::GetRiverPoly(CCPoly *poly, const mgVu0FBOX &box, int poly_max, fl
                     poly[0].vertex[1][3] = 1.0f;
                     poly[0].vertex[0][3] = 1.0f;
                     mgPlaneNormal(poly[0].normal, poly[0].vertex[0], poly[0].vertex[1], poly[0].vertex[2]);
-                    *reinterpret_cast<u_long128 *>(&poly[0].ground_kind) = 0;
+                    poly[0].ground_kind = 0;
+                    poly[0].foot_sound = 0;
+                    poly[0].area_kind = 0;
+                    poly[0].ignore_mask = 0;
+                    poly[0].parts_no = 0;
+                    poly[0].attr = 0;
+                    poly[0].attr_value = 0;
                     sceVu0AddVector(poly[1].vertex[0], inset[i + 1], position);
                     poly[1].vertex[0][1] += 2000.0f;
                     sceVu0AddVector(poly[1].vertex[1], inset[i], position);
@@ -588,7 +594,13 @@ int CEditGrid::GetRiverPoly(CCPoly *poly, const mgVu0FBOX &box, int poly_max, fl
                     poly[1].vertex[1][3] = 1.0f;
                     poly[1].vertex[0][3] = 1.0f;
                     mgPlaneNormal(poly[1].normal, poly[1].vertex[0], poly[1].vertex[1], poly[1].vertex[2]);
-                    *reinterpret_cast<u_long128 *>(&poly[1].ground_kind) = 0;
+                    poly[1].ground_kind = 0;
+                    poly[1].foot_sound = 0;
+                    poly[1].area_kind = 0;
+                    poly[1].ignore_mask = 0;
+                    poly[1].parts_no = 0;
+                    poly[1].attr = 0;
+                    poly[1].attr_value = 0;
                     poly += 2;
                 }
 
@@ -605,9 +617,9 @@ void CEditGrid::GetGridBox(mgVu0FBOX *box, float *pos) {
     float corner[4];
     GetLPos(cell, pos[0], pos[2]);
     GetWPos(corner, cell[0], cell[1]);
-    *reinterpret_cast<u_long128 *>(box->min) = *reinterpret_cast<u_long128 *>(corner);
+    std::memmove(box->min, corner, sizeof(float) * 4);
     box->min[3] = 1.0f;
-    *reinterpret_cast<u_long128 *>(box->max) = *reinterpret_cast<u_long128 *>(corner);
+    std::memmove(box->max, corner, sizeof(float) * 4);
     box->min[3] = 1.0f;
     box->max[0] += step_x;
     box->max[2] += step_z;

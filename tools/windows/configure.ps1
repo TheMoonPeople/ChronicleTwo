@@ -24,6 +24,7 @@ $ccache = (Get-ChildItem -LiteralPath "$root/deps/ccache" -Filter ccache.exe -Re
 & $cmake -S $source -B $build -G Ninja -C "$source/tools/ci/dependencies.cmake" `
     -DPLATFORM=PC "-DCMAKE_BUILD_TYPE=$BuildType" "-DCT_BUILD_TESTS=$testOption" "-DCT_TEST_TIMEOUT=$TestTimeout" "-DCT_SYMBOLS=$Symbols" `
     "-DCMAKE_CXX_COMPILER_LAUNCHER=$ccache" `
+    "-DCT_WINDOWS_CARGO_HOME=$root/deps/rust/cargo-home" `
     "-DCMAKE_CXX_COMPILER=$llvm/clang++.exe" "-DCMAKE_RC_COMPILER=$llvm/windres.exe" `
     "-DCMAKE_MAKE_PROGRAM=$root/deps/ninja/ninja.exe" "-DPython3_EXECUTABLE=$python" `
     "-DSDL3_DIR=$root/deps/sdl/SDL3-3.4.18/x86_64-w64-mingw32/lib/cmake/SDL3" `

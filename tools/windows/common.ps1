@@ -1,4 +1,24 @@
-# .NET's working directory is not PowerShell's location, so relative paths must anchor to the checkout explicitly.
+# Current-data checks and games share the lock; extraction takes exclusive ownership.
+function Open-WindowsDataLock([string]$Path, [switch]$Shared) {
+    $announced = $false
+    while ($true) {
+        try {
+            if ($Shared) { return [IO.File]::Open($Path, 'OpenOrCreate', 'Read', 'Read') }
+            return [IO.File]::Open($Path, 'OpenOrCreate', 'ReadWrite', 'None')
+        } catch [IO.IOException], [UnauthorizedAccessException] {
+            if (-not $announced) { Write-Host "kazarov: waiting for $Path"; $announced = $true }
+            Start-Sleep -Milliseconds 500
+        }
+    }
+}
+
+# A successful audit remains current while the archive, marker and extractor metadata agree.
+function Get-WindowsDataAuditId([string]$Archive, [string]$Marker, [string]$Extractor) {
+    return (@(Get-Item -LiteralPath $Archive, $Marker, $Extractor |
+        ForEach-Object { '{0}|{1}|{2}' -f $_.FullName, $_.Length, $_.LastWriteTimeUtc.Ticks }) -join "`n")
+}
+
+# .NET's working directory is not PowerShell's location, so relative paths anchor to the checkout.
 function Resolve-CheckoutPath([string]$Path) {
     if (![IO.Path]::IsPathRooted($Path)) { $Path = Join-Path (Join-Path $PSScriptRoot '../..') $Path }
     return [IO.Path]::GetFullPath($Path)

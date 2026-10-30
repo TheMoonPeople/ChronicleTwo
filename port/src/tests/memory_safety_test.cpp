@@ -372,8 +372,8 @@ TEST(CheckedRunArguments, IndependentCursorsCheckOffsetsAndFiniteNumbers) {
     const auto                second = first + 1;
     EXPECT_EQ(dc2::script::RunInteger(first), 7);
     EXPECT_EQ(dc2::script::RunInteger(second), 2);
-    EXPECT_THROW(first + 3, dc2::script::ArgumentError);
-    EXPECT_THROW(second.At(1), dc2::script::ArgumentError);
+    EXPECT_THROW(static_cast<void>(first + 3), dc2::script::ArgumentError);
+    EXPECT_THROW(static_cast<void>(second.At(1)), dc2::script::ArgumentError);
     values[1].val.f = std::numeric_limits<float>::infinity();
     EXPECT_THROW(dc2::script::RunInteger(second), dc2::script::ArgumentError);
 }
@@ -385,7 +385,7 @@ TEST(CheckedTagArguments, NumericTypesAndMissingSlotsFailClosed) {
     dc2::script::TagArguments argument(std::span(&value, 1));
     EXPECT_EQ(dc2::script::TagInteger(argument), 4);
     EXPECT_FLOAT_EQ(dc2::script::TagFloat(argument), 4.0F);
-    EXPECT_THROW(argument.At(1), dc2::script::ArgumentError);
+    EXPECT_THROW(static_cast<void>(argument.At(1)), dc2::script::ArgumentError);
     value.type = SPI_STACK_TYPE_STRING;
     value.value.string = nullptr;
     EXPECT_THROW(dc2::script::TagInteger(argument), dc2::script::ArgumentError);

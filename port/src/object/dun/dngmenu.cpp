@@ -66,14 +66,14 @@ static int MenuDngDebugFlagSelect;
  * Floor map attached to the active dungeon menu.
  *
  */
-static CDngFreeMap *MenuDngMap;
+CDngFreeMap *MenuDngMap;
 
 /**
  *
  * Non-zero while the chosen floor's information panel is shown.
  *
  */
-static u8 dngfloor_infoview;
+u8 dngfloor_infoview;
 
 /**
  *
@@ -115,7 +115,7 @@ static u8 DngInfoSphidaOkFlag;
  * What the tree map shows once a floor has been chosen, a DNG_TREE_MAP_ASK.
  *
  */
-static s8 DngAskMessageDrawFlag;
+s8 DngAskMessageDrawFlag;
 
 /**
  *
@@ -136,7 +136,7 @@ static DNGMAP_ROOM_INFO *DngInfoRoomInfo;
  * Opacity of the selected floor information.
  *
  */
-static int DngInfoDrawAlpha;
+int DngInfoDrawAlpha;
 
 /**
  *
@@ -150,21 +150,21 @@ static int DngInfoMedalMsgPutPos[2];
  * Enables the georama material list.
  *
  */
-static u8 GeoramaMateriaInfoDrawFlag;
+u8 GeoramaMateriaInfoDrawFlag;
 
 /**
  *
  * Page displayed by the georama material list.
  *
  */
-static s8 GeoramaMateriaInfoDrawPage;
+s8 GeoramaMateriaInfoDrawPage;
 
 /**
  *
  * Number of georama materials collected for the floor.
  *
  */
-static short GeoramaMateriaNum;
+short GeoramaMateriaNum;
 
 /**
  *
@@ -185,7 +185,7 @@ static int dng_player_blink_cnt;
  * Selects the tree map or its save menu.
  *
  */
-static short DngTreeMode;
+short DngTreeMode;
 
 /**
  *
@@ -248,7 +248,7 @@ static u8 *MenuCursorDataBuff;
  * Tree map menu attached to the active dungeon screen.
  *
  */
-static CMenuTreeMap *CMenuTreePt;
+CMenuTreeMap *CMenuTreePt;
 
 /**
  *

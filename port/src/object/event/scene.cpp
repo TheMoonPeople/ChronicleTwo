@@ -638,17 +638,49 @@ static_assert(std::is_trivially_destructible_v<CMap>);
 
 namespace dc2::scene {
 /**
+ * Identifies one initialized scene lifetime independently of the scene's storage.
+ */
+struct SceneView::State {
+    CScene *owner; /**< Scene that revokes this binding before reset or destruction. */
+};
+
+CScene *SceneView::Get() const {
+    const auto binding = state.lock();
+    return binding ? binding->owner : nullptr;
+}
+
+/**
+ * Identifies one character slot assignment independently of character ownership.
+ */
+struct CharacterView::State {
+    CSceneCharacter *owner; /**< Slot that revokes this binding before replacement or destruction. */
+};
+
+CCharacter2 *CharacterView::Get() const {
+    const auto binding = state.lock();
+    if (!binding || binding->owner == nullptr) {
+        return nullptr;
+    }
+    const auto &slot = *binding->owner;
+    return slot.status != 0 && slot.ResourcesLive() ? slot.Resource().Get() : nullptr;
+}
+
+/**
  * Stores object ownership independently of the arena-allocated character payload.
  */
 struct CharacterResource::State {
-    dc2::memory::ArenaBuffer     object;             /**< Exact arena object allocation when the character is arena-owned. */
-    std::shared_ptr<CCharacter2> owned;              /**< Ordinary native object ownership when no arena allocation is used. */
-    mgCMemory                   *producer = nullptr; /**< Explicit allocation owner recorded by the arena factory. */
+    dc2::memory::ArenaBuffer                  object;             /**< Exact arena object allocation when the character is arena-owned. */
+    std::shared_ptr<CCharacter2>              owned;              /**< Ordinary native object ownership when no arena allocation is used. */
+    std::optional<dc2::memory::ArenaLifetime> logical_scope;      /**< Optional producer scope restricting access to a native owned character. */
+    mgCMemory                                *producer = nullptr; /**< Explicit allocation owner recorded by the arena factory. */
 
     /**
      * Resolves the object before inspecting any of its resource capabilities.
      */
     CCharacter2 *Get() const {
+        if (logical_scope && !logical_scope->IsLive()) {
+            return nullptr;
+        }
         CCharacter2 *value = owned.get();
         if (value == nullptr) {
             const auto bytes = object.Bytes();
@@ -664,6 +696,9 @@ struct CharacterResource::State {
      * Tests captured identities without callbacks or allocator mutation.
      */
     bool WouldRetireOnReset(const mgCMemory &memory, dc2::memory::ArenaResetKind kind) const {
+        if (logical_scope && logical_scope->WouldRetireOnReset(memory, kind)) {
+            return true;
+        }
         const auto *value = Get();
         return value != nullptr && (object.WouldRetireOnReset(memory, kind) ||
                                     dc2::character::ResourcesWouldRetireOnReset(*value, memory, kind));
@@ -684,11 +719,13 @@ CharacterResource CharacterResource::FromArena(mgCMemory &memory, CCharacter2 &c
     return result;
 }
 
-CharacterResource CharacterResource::FromOwned(std::shared_ptr<CCharacter2> character) {
+CharacterResource CharacterResource::FromOwned(std::shared_ptr<CCharacter2>              character,
+                                               std::optional<dc2::memory::ArenaLifetime> logical_scope) {
     CharacterResource result;
-    if (character) {
+    if (character && (!logical_scope || logical_scope->IsLive())) {
         auto value = std::make_shared<State>();
         value->owned = std::move(character);
+        value->logical_scope = logical_scope;
         result.state = std::move(value);
     }
     return result;
@@ -733,7 +770,51 @@ int CSceneCharacter::AssignData(dc2::scene::CharacterResource new_character, std
     return 1;
 }
 
+CSceneCharacter::~CSceneCharacter() { Initialize(); }
+
+CSceneCharacter::CSceneCharacter(const CSceneCharacter &other)
+    : CSceneData(other), texb(other.texb), chara_no(other.chara_no), character(other.character) {}
+
+CSceneCharacter &CSceneCharacter::operator=(const CSceneCharacter &other) {
+    if (this != &other) {
+        character_view.reset();
+        CSceneData::operator=(other);
+        character = other.character;
+        texb = other.texb;
+        chara_no = other.chara_no;
+    }
+    return *this;
+}
+
+CSceneCharacter::CSceneCharacter(CSceneCharacter &&other) noexcept
+    : CSceneData(other), texb(other.texb), chara_no(other.chara_no), character(std::move(other.character)) {
+    other.Initialize();
+}
+
+CSceneCharacter &CSceneCharacter::operator=(CSceneCharacter &&other) noexcept {
+    if (this != &other) {
+        character_view.reset();
+        CSceneData::operator=(other);
+        character = std::move(other.character);
+        texb = other.texb;
+        chara_no = other.chara_no;
+        other.Initialize();
+    }
+    return *this;
+}
+
+dc2::scene::CharacterView CSceneCharacter::GetCharacterView() {
+    if (status == 0 || !ResourcesLive()) {
+        return {};
+    }
+    if (!character_view) {
+        character_view = std::make_shared<dc2::scene::CharacterView::State>(this);
+    }
+    return dc2::scene::CharacterView(character_view);
+}
+
 void CSceneCharacter::Initialize() {
+    character_view.reset();
     character = {};
     texb = -1;
     chara_no = -1;
@@ -991,7 +1072,24 @@ void CScene::InitAllData() {
     skip_load_sub_villager = 0;
 }
 
+CScene::~CScene() { scene_view.reset(); }
+
+dc2::scene::SceneView CScene::GetSceneView() {
+    if (!scene_view) {
+        scene_view = std::make_shared<dc2::scene::SceneView::State>(this);
+    }
+    return dc2::scene::SceneView(scene_view);
+}
+
+dc2::scene::CharacterView CScene::GetCharacterView(int index) {
+    if (index < 0 || index >= chara_num || static_cast<std::size_t>(index) >= std::size(chara)) {
+        return {};
+    }
+    return chara[index].GetCharacterView();
+}
+
 void CScene::Initialize() {
+    scene_view.reset();
     int index = {};
     stack_num = 12;
     stack_no = 0;
@@ -1110,7 +1208,7 @@ void RetireSceneResources(CScene &scene, const mgCMemory &memory, dc2::memory::A
             }
         }
         for (auto &slot : scene.chara) {
-            if ((slot.character.HasValue() || slot.resource_lifetime.HasValue()) &&
+            if ((slot.Resource().HasValue() || slot.resource_lifetime.HasValue()) &&
                 (!slot.ResourcesLive() || slot.ResourcesWouldRetireOnReset(memory, kind))) {
                 slot.Initialize();
                 retired = true;
@@ -1157,7 +1255,7 @@ CSceneCharacter *CScene::GetSceneCharacter(int index) {
         return nullptr;
     }
     auto &slot = chara[index];
-    if (slot.character.HasValue() && !slot.ResourcesLive()) {
+    if (slot.Resource().HasValue() && !slot.ResourcesLive()) {
         slot.Initialize();
     }
     return &slot;
@@ -1215,62 +1313,48 @@ CSceneEffect *CScene::GetSceneEffect(int index) {
 }
 
 int CScene::CheckIMGName(int excluded_map, char *filename) {
-    for (int map_index = 0; map_index < map_num; map_index++) {
-        if (map_index != excluded_map) {
-            int       name_index = {};
-            CMapInfo *map_info = {};
-            CMap     *loaded_map = GetMap(map_index);
-
-            if ((map_info = (CMapInfo *) loaded_map) != nullptr && loaded_map != nullptr) {
-                name_index = 0;
-
-                for (;;) {
-                    char *name = map_info->GetImgName(name_index);
-
-                    if (name == nullptr) {
-                        break;
-                    }
-
-                    if (strcmp(name, filename) == 0) {
-                        return 1;
-                    }
-
-                    name_index++;
-                }
+    if (filename == nullptr) {
+        return 0;
+    }
+    for (int map_index = 0; map_index < map_num; ++map_index) {
+        auto *loaded_map = GetMap(map_index);
+        if (map_index == excluded_map || loaded_map == nullptr) {
+            continue;
+        }
+        const auto &info = loaded_map->map_info;
+        for (int index = 0; index < info.img_num && static_cast<std::size_t>(index) < std::size(info.img_name); ++index) {
+            const auto *name = info.img_name[index];
+            if (name == nullptr) {
+                break;
+            }
+            if (std::strcmp(name, filename) == 0) {
+                return 1;
             }
         }
     }
-
     return 0;
 }
 
 int CScene::CheckMDSName(int excluded_map, char *filename) {
-    for (int map_index = 0; map_index < map_num; map_index++) {
-        if (map_index != excluded_map) {
-            int       name_index = {};
-            CMapInfo *map_info = {};
-            CMap     *loaded_map = GetMap(map_index);
-
-            if ((map_info = (CMapInfo *) loaded_map) != nullptr && loaded_map != nullptr) {
-                name_index = 0;
-
-                for (;;) {
-                    char *name = map_info->GetPCPName(name_index);
-
-                    if (name == nullptr) {
-                        break;
-                    }
-
-                    if (strcmp(name, filename) == 0) {
-                        return 1;
-                    }
-
-                    name_index++;
-                }
+    if (filename == nullptr) {
+        return 0;
+    }
+    for (int map_index = 0; map_index < map_num; ++map_index) {
+        auto *loaded_map = GetMap(map_index);
+        if (map_index == excluded_map || loaded_map == nullptr) {
+            continue;
+        }
+        const auto &info = loaded_map->map_info;
+        for (int index = 0; index < info.pcp_num && static_cast<std::size_t>(index) < std::size(info.pcp_name); ++index) {
+            const auto *name = info.pcp_name[index];
+            if (name == nullptr) {
+                break;
+            }
+            if (std::strcmp(name, filename) == 0) {
+                return 1;
             }
         }
     }
-
     return 0;
 }
 
@@ -1440,8 +1524,8 @@ ClsMes *CScene::GetMessage(int index) {
 }
 
 int CScene::AssignChara(int index, dc2::scene::CharacterResource character, std::string_view character_name) {
-    auto *slot = GetSceneCharacter(index);
-    if (slot == nullptr || slot->AssignData(std::move(character), character_name) == 0) {
+    if (index < 0 || index >= chara_num || static_cast<std::size_t>(index) >= std::size(chara) ||
+        chara[index].AssignData(std::move(character), character_name) == 0) {
         return -1;
     }
     return index;
@@ -1480,7 +1564,7 @@ CCharacter2 *CScene::GetCharacter(int index) {
         return nullptr;
     }
 
-    return slot->character.Get();
+    return slot->Resource().Get();
 }
 
 int CScene::AssignMap(int index, CMap *map_data, char *map_name) {
@@ -1676,8 +1760,8 @@ CFuncPoint *CScene::InScreenFunc(InScreenFuncInfo *info) {
     }
 
     position[3] = 1.0f;
-    *(u_long128 *) box.max = *(u_long128 *) position;
-    *(u_long128 *) box.min = *(u_long128 *) position;
+    std::memmove(box.max, position, sizeof(float) * 4);
+    std::memmove(box.min, position, sizeof(float) * 4);
 
     for (int i = 0; i < 3; i++) {
         box.max[i] += 100.0f;
@@ -1695,6 +1779,7 @@ CFuncPoint *CScene::InScreenFunc(InScreenFuncInfo *info) {
         if (screen_min[0] <= bounds_max[0] && !(screen_max[1] < bounds_min[1]) &&
             screen_min[1] <= bounds_max[1] && screen_min[3] - 100.0f <= 4.0f + info->range) {
             static CFuncPoint sun_func;
+            sun_func.invent = {};
             sun_func.type = FUNC_POINT_INVENT;
             int subject = {};
 
@@ -2050,7 +2135,7 @@ void CScene::ResetWind() {
 }
 
 float CScene::GetWind(float *direction) {
-    *(u_long128 *) direction = *(u_long128 *) wind_dir;
+    std::memmove(direction, wind_dir, sizeof(float) * 4);
     return wind_power;
 }
 

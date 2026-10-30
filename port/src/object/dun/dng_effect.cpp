@@ -190,7 +190,7 @@ void CChillAfterHit::SetPos(float *pos, float size, int strength) {
         piece_num = CHILL_AFTER_HIT_PIECE_MAX;
     }
 
-    *reinterpret_cast<u_long128 *>(center) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(center, pos, sizeof(float) * 4);
     size = 8.0f + size / 13.5f + speed_boost;
     i = 0;
 
@@ -290,7 +290,7 @@ static inline void LocalPrimCorner(int *out, float *corner, float *center, float
     reach_y *= half_h;
     shift_x = reach_x * cosf(angle) - reach_y * sinf(angle);
     shift_y = reach_x * sinf(angle) + reach_y * cosf(angle);
-    *reinterpret_cast<u_long128 *>(corner) = *reinterpret_cast<u_long128 *>(center);
+    std::memmove(corner, center, sizeof(float) * 4);
     corner[0] += shift_x;
     corner[1] += shift_y;
     out[0] = static_cast<int>(16.0f * corner[0]);

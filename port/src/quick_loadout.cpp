@@ -509,20 +509,26 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     CFont             font;
     font.Init();
     // The game's own size for its menu text, 16 by 20, which draws the font texel for texel (any other size stretches
-    // its letters unevenly). The font is fixed width, so the letters are set one by one: a narrow I would otherwise
-    // stand apart from its word.
+    // its letters unevenly). The original font is fixed width, so its letters are set one by one: a narrow I would
+    // otherwise stand apart from its word. The message font spaces its own letters.
     font.SetDrawSize(16, 20);
     font.SetClearance(16, 20);
+    const bool      proportional = dc2::font::Proportional();
     constexpr float kCell = 8.0f; // a half-width letter's cell
     auto            advance = [](char c) { return c == 'I' ? 5.0f : c == ' ' ? 7.0f
                                                                              : 9.0f; };
+    int             w = 0;
+    int             h = 0;
     float           width = 0.0f;
-    for (const char *c = kTitle; *c != 0; c++) {
-        width += c[1] != 0 ? advance(*c) : kCell;
+    if (proportional) {
+        font.CalcDrawWH(const_cast<char *>(kTitle), &w, &h);
+        width = static_cast<float>(w);
+    } else {
+        for (const char *c = kTitle; *c != 0; c++) {
+            width += c[1] != 0 ? advance(*c) : kCell;
+        }
+        font.CalcDrawWH(const_cast<char *>("Q"), &w, &h);
     }
-    int w = 0;
-    int h = 0;
-    font.CalcDrawWH(const_cast<char *>("Q"), &w, &h);
 
     struct Pass {
         int     dx, dy;
@@ -546,14 +552,18 @@ void DrawTitle(float x, float y, uint8_t alpha) {
     const std::span<const Pass> passes = plate ? std::span<const Pass>(kPlatePasses) : std::span<const Pass>(kBarPasses);
     for (const Pass &pass : passes) {
         font.SetColor(pass.r, pass.g, pass.b, alpha);
-        float pen = x - (width + (plate ? 1.0f : 0.0f)) * 0.5f;
+        float     pen = x - (width + (plate ? 1.0f : 0.0f)) * 0.5f;
+        const int top = static_cast<int>(y - h * 0.5f + 0.5f) + pass.dy;
+        if (proportional) {
+            font.DrawDirect(const_cast<char *>(kTitle), static_cast<int>(pen + 0.5f) + pass.dx, top);
+            continue;
+        }
         for (const char *c = kTitle; *c != 0; c++) {
             char letter[2] = {*c, 0};
             // A narrow letter keeps to the middle of the room it is given.
             const float shift = (advance(*c) - kCell) * 0.5f;
             if (*c != ' ') {
-                font.DrawDirect(letter, static_cast<int>(pen + (*c == 'I' ? shift : 0.0f) + 0.5f) + pass.dx,
-                                static_cast<int>(y - h * 0.5f + 0.5f) + pass.dy);
+                font.DrawDirect(letter, static_cast<int>(pen + (*c == 'I' ? shift : 0.0f) + 0.5f) + pass.dx, top);
             }
             pen += advance(*c);
         }

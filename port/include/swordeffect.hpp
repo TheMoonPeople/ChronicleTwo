@@ -180,13 +180,14 @@ public:
 
     /**
      *
-     * Copies this trail into another, giving the copy its own buffers when a memory is supplied.
+     * Copies the trail and reports whether its complete required buffer storage was copied.
      *
      * @mangled Copy__17CSWordAfterEffectFR17CSWordAfterEffectP9mgCMemory
      * @address 0x2FB0A0
      * @size 0x1C0
      */
-    void Copy(CSWordAfterEffect &dst, mgCMemory *memory);
+
+    [[nodiscard]] bool Copy(CSWordAfterEffect &dst, mgCMemory *memory);
 };
 
 STATIC_ASSERT(sizeof(CSWordAfterEffect) == 0xA0);

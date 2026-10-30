@@ -611,7 +611,7 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
         return;
     }
 
-    chara = scene_chara->character.Get();
+    chara = scene_chara->Resource().Get();
 
     if (chara == nullptr) {
         return;
@@ -630,9 +630,15 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
             mgCFrameAttr *attr = frames[i]->attr;
 
             if (attr == nullptr && memory != nullptr) {
-                attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
-
+                const auto clone_inputs = frames[i]->clone_inputs;
+                attr = dc2::memory::NewObject<mgCFrameAttr>(*memory);
+                if (attr == nullptr) {
+                    continue;
+                }
                 frames[i]->attr = attr;
+                if (!clone_inputs.PublishChanges(*frames[i], memory)) {
+                    frames[i]->clone_inputs = {};
+                }
             }
 
             if (attr != nullptr) {
@@ -648,9 +654,15 @@ void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
             mgCFrameAttr *attr = frames[j]->attr;
 
             if (attr == nullptr && memory != nullptr) {
-                attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
-
+                const auto clone_inputs = frames[j]->clone_inputs;
+                attr = dc2::memory::NewObject<mgCFrameAttr>(*memory);
+                if (attr == nullptr) {
+                    continue;
+                }
                 frames[j]->attr = attr;
+                if (!clone_inputs.PublishChanges(*frames[j], memory)) {
+                    frames[j]->clone_inputs = {};
+                }
             }
 
             if (attr != nullptr) {
@@ -1055,7 +1067,7 @@ void CScene::StepVillager() {
         sceVu0FVECTOR from;
         sceVu0FVECTOR ground;
         mgVu0FBOX     box{};
-        *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(villager->pos);
+        std::memmove(position, villager->pos, sizeof(float) * 4);
         CVillagerPlaceInfo *place = villager->place;
         mgCMemory          *work = work_stack;
 
@@ -1064,20 +1076,20 @@ void CScene::StepVillager() {
         }
 
         if (work != nullptr && villager->place != nullptr && villager->place->route != nullptr) {
-            *reinterpret_cast<u_long128 *>(from) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(from, position, sizeof(float) * 4);
             from[1] += 100.0f;
             work->stReset();
             CCPoly *polys = reinterpret_cast<CCPoly *>(work->Alloc(0x280));
-            *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(box.min, position, sizeof(float) * 4);
             box.min[1] -= 100.0f;
             box.min[3] = 1.0f;
-            *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(box.max, position, sizeof(float) * 4);
             box.max[1] += 100.0f;
             box.max[3] = 1.0f;
             int poly_count = GetColPoly(polys, box, 0x80);
 
             if (poly_count > 0 && CheckHitVertical(polys, poly_count, from, -200.0f, ground, 0) >= 0) {
-                *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(ground);
+                std::memmove(position, ground, sizeof(float) * 4);
             }
         }
 
@@ -1257,11 +1269,11 @@ int CScene::InScreenChara(InScreenCharaInfo *info, float *range) {
         }
 
         if (chara->GetEntryObjectPos(0, position) != 0) {
-            *reinterpret_cast<u_long128 *>(aim) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(aim, position, sizeof(float) * 4);
             position[1] += height / 4.0f;
         } else {
             chara->GetPosition(position);
-            *reinterpret_cast<u_long128 *>(aim) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(aim, position, sizeof(float) * 4);
             aim[1] += 0.4f * height;
             position[1] += 0.7f * height;
         }
@@ -1277,9 +1289,9 @@ int CScene::InScreenChara(InScreenCharaInfo *info, float *range) {
         mgUnitMatrix(body_matrix);
         mgUnitMatrix(view_matrix);
         sceVu0RotMatrixY(body_matrix, body_matrix, rotation[1]);
-        *reinterpret_cast<u_long128 *>(body_matrix[3]) = *reinterpret_cast<u_long128 *>(position);
+        std::memmove(body_matrix[3], position, sizeof(float) * 4);
         body_matrix[3][3] = 1.0f;
-        *reinterpret_cast<u_long128 *>(view_matrix[3]) = *reinterpret_cast<u_long128 *>(position);
+        std::memmove(view_matrix[3], position, sizeof(float) * 4);
         view_matrix[3][3] = 1.0f;
         sceVu0InnerProduct(direction, body_matrix[2]);
         float half_width = 2.0f;
@@ -1298,7 +1310,7 @@ int CScene::InScreenChara(InScreenCharaInfo *info, float *range) {
         }
 
         mgUnitMatrix(view_matrix);
-        *reinterpret_cast<u_long128 *>(view_matrix[3]) = *reinterpret_cast<u_long128 *>(aim);
+        std::memmove(view_matrix[3], aim, sizeof(float) * 4);
         view_matrix[3][3] = 1.0f;
         box.max[1] = 0.1f * height;
         box.min[1] = -(0.1f * height);
@@ -1429,11 +1441,11 @@ int CScene::GetGameObjectEvent(float *position, CSceneEventData *event) {
 
         if (entry->map_no == now_map_no) {
             for (i = 0; i < entry->place_num; i++) {
-                *reinterpret_cast<u_long128 *>(point) = *reinterpret_cast<u_long128 *>(entry->place[i].pos);
+                std::memmove(point, entry->place[i].pos, sizeof(float) * 4);
                 point[3] = 1.0f;
 
                 if (mgDistVector(point, position) < 20.0f) {
-                    *reinterpret_cast<u_long128 *>(event->position) = *reinterpret_cast<u_long128 *>(point);
+                    std::memmove(event->position, point, sizeof(float) * 4);
                     mgZeroVector(event->rotation);
 
                     switch (entry->type) {
@@ -1506,10 +1518,9 @@ void CScene::DrawGameObject(int now_map_no) {
             }
 
             for (i = 0; i < entry->place_num; i++) {
-                u_long128 point_copy = *reinterpret_cast<u_long128 *>(&entry->place[i]);
-                *reinterpret_cast<u_long128 *>(first_point) = point_copy;
+                std::copy_n(entry->place[i].pos, std::size(entry->place[i].pos), first_point);
                 first_point[3] = 1.0f;
-                *reinterpret_cast<u_long128 *>(second_point) = *reinterpret_cast<u_long128 *>(&entry->place[i]);
+                std::copy_n(first_point, std::size(entry->place[i].pos), second_point);
                 second_point[3] = 1.0f;
 
                 if (entry->type == GAMEOBJ_TYPE_TG_RED || entry->type == GAMEOBJ_TYPE_TG_BLUE) {

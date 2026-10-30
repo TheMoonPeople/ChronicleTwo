@@ -307,6 +307,11 @@ void InitFirePowder(int map_no, CScene *scene, int texb, mgCMemory *memory) {
     attr->fog = MG_FOG_BLACK;
     attr->z_write = MG_ZBUF_NO_WRITE;
     FirePowFrame->SetVisual(SpriteVis);
+    if (!dc2::render::VisualCloneInputs::Publish(*memory, *SpriteVis, dc2::render::VisualCloneKind::Sprite3D) ||
+        !dc2::render::FrameCloneInputs::Publish(*memory, *FirePowFrame, SpriteVis->clone_inputs)) {
+        FirePowderFlag = 0;
+        return;
+    }
 
     for (i = 0; i < FIRE_POWDER_NUM; ++i) {
         particle = &fire_powder[i];
@@ -397,13 +402,13 @@ void DrawFirePowder(CScene *scene) {
     camera->GetDir(camera_dir);
     mgNormalizeVector(camera_dir, camera_dir, 200.0f);
     mgAddVector(camera_pos, camera_dir);
-    *reinterpret_cast<u_long128 *>(camera_matrix[3]) = *reinterpret_cast<u_long128 *>(camera_pos);
+    std::memmove(camera_matrix[3], camera_pos, sizeof(float) * 4);
     camera_matrix[3][3] = 1.0f;
     int         old_fog = mgGetFogEnable();
     mgFOG_PARAM old_fog_param{};
     mgGetFogParam(&old_fog_param);
     sceVu0FVECTOR old_guard;
-    *reinterpret_cast<u_long128 *>(old_guard) = *reinterpret_cast<u_long128 *>(mgRenderInfo.guard_max);
+    std::memmove(old_guard, mgRenderInfo.guard_max, sizeof(float) * 4);
     mgRenderInfo.guard_max[3] = 600.0f;
     mgFogEnable(1);
     mgSetFogParam(50.0f, 400.0f, 100, 0, 0, 255.0f, 0.0f);
@@ -429,7 +434,7 @@ void DrawFirePowder(CScene *scene) {
         for (z = -1; z <= 1; ++z) {
             for (y = -1; y <= 1; ++y) {
                 sceVu0FVECTOR pos;
-                *reinterpret_cast<u_long128 *>(pos) = *reinterpret_cast<u_long128 *>(centre);
+                std::memmove(pos, centre, sizeof(float) * 4);
                 pos[0] += static_cast<float>(x) * half_extent[0] * 2.0f;
                 pos[1] += static_cast<float>(y) * half_extent[1] * 2.0f;
                 pos[2] += static_cast<float>(z) * half_extent[2] * 2.0f;
@@ -440,7 +445,7 @@ void DrawFirePowder(CScene *scene) {
     }
 
     mgFogEnable(old_fog);
-    *reinterpret_cast<u_long128 *>(mgRenderInfo.guard_max) = *reinterpret_cast<u_long128 *>(old_guard);
+    std::memmove(mgRenderInfo.guard_max, old_guard, sizeof(float) * 4);
     mgSetFogParam(&old_fog_param);
     mgFlushRenderInfo();
 }
@@ -619,8 +624,14 @@ void InitGeyserEffect(int scene_no, CScene *scene, int texb, mgCMemory *memory) 
                 GeyserEffect[i].point_num = 0x30;
                 GeyserEffect[i].point = pool;
                 GeyserEffect[i].texture = textures->GetTexture("geyser_eff", -1);
+                if (!dc2::render::VisualCloneInputs::Publish(*memory, GeyserEffect[i].sprite, dc2::render::VisualCloneKind::Sprite3D)) {
+                    return;
+                }
             }
 
+            if (!dc2::render::FrameCloneInputs::Publish(*memory, *GeyserFrame)) {
+                return;
+            }
             GeyserEffectFlag = 1;
             // Starting the geyser advances the shared random sequence.
             static_cast<void>(std::rand());

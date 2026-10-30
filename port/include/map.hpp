@@ -22,7 +22,29 @@
 #include "occlusion.hpp"
 #include "water.hpp"
 
+class CMap;
+
 namespace dc2::world {
+/**
+ * Resolves one placed-part assignment through its exact table allocation and assignment identity.
+ */
+class PlacedPartView {
+public:
+    /**
+     * Returns the captured placement only while the map still owns its exact table and assignment.
+     */
+    [[nodiscard]] CMapParts *Get(const CMap &map) const;
+
+private:
+    friend class ::CMap;
+    dc2::memory::ArenaBuffer table_storage{};    /**< Exact placed-parts table lease issued by its producer. */
+    std::size_t              index{};            /**< Captured slot within the table. */
+    std::uint64_t            assignment_token{}; /**< Original part assignment that cannot follow later replacements. */
+};
+
+static_assert(std::is_trivially_copyable_v<PlacedPartView>);
+static_assert(std::is_trivially_destructible_v<PlacedPartView>);
+
 /**
  * Captures a consumed model producer and optional exact character object.
  */
@@ -253,6 +275,7 @@ STATIC_ASSERT(sizeof(CMapWater) == 0xA0);
  *
  */
 class CMap {
+    friend class dc2::world::PlacedPartView;
     dc2::memory::ArenaBuffer placed_parts_storage{}; /**< Exact producer allocation backing the placed-parts table. */
 
 public:
@@ -576,6 +599,11 @@ public:
     [[nodiscard]] std::span<CMapParts> PlacedParts() const;
 
     /**
+     * Finds a placement using validated table bounds and its bounded authored name.
+     */
+    [[nodiscard]] dc2::world::PlacedPartView FindPlacedPart(std::string_view name) const;
+
+    /**
      *
      * Sets the table of the map's fixed cameras.
      *
@@ -713,7 +741,7 @@ public:
      * @address 0x15E830
      * @size 0xA0
      */
-    CMapParts *GetPlaceParts(char *name);
+    CMapParts *GetPlaceParts(const char *name);
 
     /**
      *

@@ -2,6 +2,10 @@
 
 #include "common.h"
 
+#include <optional>
+#include <string>
+#include <string_view>
+
 #include "character.hpp"
 #include "collision.hpp"
 #include "mapload.hpp"
@@ -10,6 +14,91 @@
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "object.hpp"
+
+namespace dc2::world {
+/**
+ * Retains one graph-produced frame identity and its bounded owned remapping name.
+ */
+class FrameNameBinding {
+public:
+    /**
+     * Validates the exact frame and name allocations before inspecting current identities.
+     */
+    [[nodiscard]] bool Matches(const mgCFrame *expected) const;
+    /**
+     * Compares exact captured frame and name identities without rebinding either allocation.
+     */
+    [[nodiscard]] bool SameIdentity(const FrameNameBinding &other) const;
+    /**
+     * Borrows the immutable owned remapping name, or absence for an unnamed frame.
+     */
+    [[nodiscard]] std::optional<std::string_view> Name() const;
+
+private:
+    friend class FrameGraph;
+    mgCFrame                  *frame = nullptr;        /**< Exact graph-record frame identity. */
+    dc2::memory::ArenaBuffer   object;                 /**< Exact source frame lease. */
+    char                      *name_pointer = nullptr; /**< Expected current frame name identity. */
+    dc2::memory::ArenaBuffer   name_storage;           /**< Exact bounded terminated source name lease. */
+    std::optional<std::string> name;                   /**< Owned source name independent of arena storage. */
+};
+
+/**
+ * Resolves a model hierarchy through its exact allocations and immutable captured topology.
+ */
+class FrameGraph {
+public:
+    /**
+     * Captures frames from an actual producer and explicitly imported source records.
+     */
+    [[nodiscard]] static FrameGraph Capture(mgCMemory &producer, mgCFrame *root,
+                                            const FrameGraph *imported_source = nullptr, CCharacter2 *character = nullptr);
+    /**
+     * Checks every captured allocation, topology edge and optional character dependency.
+     */
+    [[nodiscard]] bool IsLive() const;
+
+    /**
+     * Distinguishes an unresolved model from a captured graph whose allocations retired.
+     */
+    [[nodiscard]] bool HasValue() const noexcept { return state.HasValue(); }
+
+    /**
+     * Checks the consumer's frame and character identities against the captured graph.
+     */
+    [[nodiscard]] bool Matches(mgCFrame *expected_root, CCharacter2 *expected_character) const;
+    /**
+     * Matches the exact captured root allocation without inspecting mutable hierarchy links.
+     */
+    [[nodiscard]] bool MatchesRootAllocation(const mgCFrame *expected_root) const;
+    /**
+     * Returns the root only while the complete captured hierarchy remains live.
+     */
+    [[nodiscard]] mgCFrame *GetRoot() const;
+    /**
+     * Finds the first depth-first name match using the frame name flag convention.
+     */
+    [[nodiscard]] mgCFrame *FindFrame(std::string_view name) const;
+    /**
+     * Extracts a registered frame binding by identity without entering the supplied raw pointer.
+     */
+    [[nodiscard]] std::optional<FrameNameBinding> BindName(const mgCFrame *expected) const;
+    /**
+     * Compares immutable graph identities without accepting reused frame addresses.
+     */
+    [[nodiscard]] bool SameIdentity(const FrameGraph &other) const;
+    /**
+     * Predicts retirement of any captured frame, name or character resource.
+     */
+    [[nodiscard]] bool WouldRetireOnReset(const mgCMemory &memory, dc2::memory::ArenaResetKind kind) const;
+
+private:
+    dc2::memory::ArenaResource state; /**< Immutable graph metadata anchored to the actual root allocation. */
+};
+
+static_assert(std::is_trivially_copyable_v<FrameGraph>);
+static_assert(std::is_trivially_destructible_v<FrameGraph>);
+} // namespace dc2::world
 
 /**
  * @file
@@ -48,15 +137,26 @@ enum MdsListLimit {
  *
  */
 class CMdsInfo {
+    dc2::memory::ArenaBuffer name_storage{}; /**< Exact terminated canonical-name allocation issued by the model producer. */
+
 public:
-    dc2::memory::ArenaLifetime resource_lifetime{}; /**< Lifetime of the entry and its loaded model resources. */
-    dc2::memory::ArenaBuffer   character_storage{}; /**< Exact character object allocation validated before reading its current resource channels. */
-    char                      *name{};              /**< Name the entry is found by. */
-    int                        type{};              /**< Kind of data the entry holds, an MdsType. */
-    mgCFrame                  *frame{};             /**< Frame built from the entry's data, or NULL. */
-    CCharacter2               *chara{};             /**< Character built from the entry's data when it is an MDS_TYPE_CHARA, or NULL. */
-    float                      far_dist{};          /**< Distance beyond which a piece using the entry is not drawn, or a negative value for none. */
-    int                        far_fade{};          /**< Non-zero fades a piece using the entry in and out at the far distance instead of cutting it. */
+    /**
+     * Copies a canonical model name into its actual producer and captures the exact text allocation.
+     */
+    bool AssignName(mgCMemory &producer, std::string_view value);
+    /**
+     * Returns the canonical name only while its original bounded text allocation remains live.
+     */
+    [[nodiscard]] std::optional<std::string_view> CanonicalName() const;
+    dc2::memory::ArenaLifetime                    resource_lifetime{}; /**< Lifetime of the entry and its loaded model resources. */
+    dc2::memory::ArenaBuffer                      character_storage{}; /**< Exact character object allocation validated before reading its current resource channels. */
+    dc2::world::FrameGraph                        frame_graph{};       /**< Exact loaded hierarchy and its optional character dependencies. */
+    char                                         *name{};              /**< Name the entry is found by. */
+    int                                           type{};              /**< Kind of data the entry holds, an MdsType. */
+    mgCFrame                                     *frame{};             /**< Frame built from the entry's data, or NULL. */
+    CCharacter2                                  *chara{};             /**< Character built from the entry's data when it is an MDS_TYPE_CHARA, or NULL. */
+    float                                         far_dist{};          /**< Distance beyond which a piece using the entry is not drawn, or a negative value for none. */
+    int                                           far_fade{};          /**< Non-zero fades a piece using the entry in and out at the far distance instead of cutting it. */
 
     /**
      *
@@ -291,16 +391,17 @@ public:
  */
 class CMapPiece : public CObjectFrame {
 public:
-    char          *name{};         /**< Name of the entry of model data the piece uses. */
-    int            type{};         /**< Kind of data the piece uses, an MdsType. */
-    int            draw_enable{};  /**< Non-zero lets the piece be drawn. */
-    int            material_num{}; /**< Number of materials in material. */
-    PieceMaterial *material{};     /**< Materials whose colour the piece sets while it is drawn, material_num long. */
-    float          time_start{};   /**< Start of the time of day the piece shows in. */
-    float          time_end{};     /**< End of the time of day the piece shows in. */
-    CCharacter2   *chara{};        /**< Character the piece moves when its data is an MDS_TYPE_CHARA, or NULL. */
-    short          col_type{};     /**< Collision type the map script gives the piece; only pieces of type 0 give collision triangles. */
-    short          col_param{};    /**< Second value the map script gives with the collision type. */
+    dc2::world::FrameGraph frame_graph{};  /**< Exact hierarchy assigned to or copied for this piece. */
+    char                  *name{};         /**< Name of the entry of model data the piece uses. */
+    int                    type{};         /**< Kind of data the piece uses, an MdsType. */
+    int                    draw_enable{};  /**< Non-zero lets the piece be drawn. */
+    int                    material_num{}; /**< Number of materials in material. */
+    PieceMaterial         *material{};     /**< Materials whose colour the piece sets while it is drawn, material_num long. */
+    float                  time_start{};   /**< Start of the time of day the piece shows in. */
+    float                  time_end{};     /**< End of the time of day the piece shows in. */
+    CCharacter2           *chara{};        /**< Character the piece moves when its data is an MDS_TYPE_CHARA, or NULL. */
+    short                  col_type{};     /**< Collision type the map script gives the piece; only pieces of type 0 give collision triangles. */
+    short                  col_param{};    /**< Second value the map script gives with the collision type. */
 
     /**
      *
@@ -437,13 +538,14 @@ public:
 
     /**
      *
-     * Copies the piece into another, giving the copy its own materials and character when memory is given.
+     * Copies the piece and reports whether its materials, character and graph were copied completely.
      *
      * @mangled Copy__9CMapPieceFR9CMapPieceP9mgCMemory
      * @address 0x169C60
      * @size 0x268
      */
-    void Copy(CMapPiece &dest, mgCMemory *memory);
+
+    [[nodiscard]] bool Copy(CMapPiece &dest, mgCMemory *memory);
 };
 
 STATIC_ASSERT(sizeof(CMapPiece) == 0xB0);

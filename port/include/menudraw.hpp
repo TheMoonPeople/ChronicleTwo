@@ -4,6 +4,8 @@
 
 #include <libvu0.h>
 
+#include <string>
+
 #include "actionchara.hpp"
 #include "character.hpp"
 #include "gamedata.hpp"
@@ -686,7 +688,7 @@ public:
      * @address 0x227BC0
      * @size 0xA0
      */
-    MENUFORMPARTS_TYPE *GetPartInfo(char *part_name);
+    MENUFORMPARTS_TYPE *GetPartInfo(const char *part_name);
 
     /**
      *
@@ -696,7 +698,7 @@ public:
      * @address 0x227C60
      * @size 0x30
      */
-    void SetPartDrawFlag(char *part_name, bool draw);
+    void SetPartDrawFlag(const char *part_name, bool draw);
 
     /**
      *
@@ -1065,7 +1067,7 @@ public:
      * @address 0x22D0A0
      * @size 0xB0
      */
-    CMenuPosDataForm *GetFormInfo(char *form_name);
+    CMenuPosDataForm *GetFormInfo(const char *form_name);
 
     /**
      *
@@ -2440,15 +2442,14 @@ void MenuItemModeItemDraw(int &tex_block, mgRect<int> clip_rect, float *pos, MEN
  */
 void Menu3DivideTextureDraw(mgCDrawPrim *prim, mgRect<int> rect, short *tex_tbl, int vertical);
 
+namespace dc2::menu {
 /**
  *
- * Returns the name of the form of a main menu icon.
+ * Builds an independently owned main menu icon form name.
  *
- * @mangled GetMenuMainIconChar__Fi
- * @address 0x22D060
- * @size 0x40
  */
-char *GetMenuMainIconChar(int no);
+std::string MainIconName(int icon_no);
+} // namespace dc2::menu
 
 /**
  *

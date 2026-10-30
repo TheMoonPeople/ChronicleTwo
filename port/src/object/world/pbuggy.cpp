@@ -909,7 +909,7 @@ void CharaControl(CScene *scene, CPadControl *pad) {
             player->GetPosition(player_position);
             player->GetRotation(player_rotation);
             sceVu0SubVector(to_bomb, bomb_position, player_position);
-            *reinterpret_cast<u_long128 *>(velocity) = *reinterpret_cast<u_long128 *>(player->velocity);
+            std::memmove(velocity, player->velocity, sizeof(float) * 4);
             angle = camera->GetAngle();
             stick_x = pad->Analog(PAD_ANALOG_LEFT_X_2);
             stick_y = pad->Analog(PAD_ANALOG_LEFT_Y_2);
@@ -1494,7 +1494,7 @@ int TakeBomb() {
 int ThrowBomb(float *velocity) {
     float matrix[4][4];
     BombCount = 0x32;
-    *reinterpret_cast<u_long128 *>(BombVelo) = *reinterpret_cast<u_long128 *>(velocity);
+    std::memmove(BombVelo, velocity, sizeof(float) * 4);
     BombStatus = BUGGY_BOMB_THROWN;
     BombHitObj = 0;
     mgCFrame *frame = BombChara->CObjectFrame::frame;
@@ -1638,7 +1638,7 @@ void BombControl(CScene *scene) {
 
             if (CheckHit(polys, poly_count, previous, position, hit_point, 0, 4) >= 0 &&
                 !(hit_point[1] <= 100.0f)) {
-                *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(hit_point);
+                std::memmove(position, hit_point, sizeof(float) * 4);
                 BombBomb();
                 TrainHP -= 0.1f;
             }
@@ -1697,7 +1697,7 @@ void BombCheck(CScene *scene) {
     sceVu0FVECTOR nearest;
     sceVu0FVECTOR upper_position;
     BuggyChara->GetPosition(buggy_position);
-    *reinterpret_cast<u_long128 *>(upper_position) = *reinterpret_cast<u_long128 *>(buggy_position);
+    std::memmove(upper_position, buggy_position, sizeof(float) * 4);
     upper_position[1] += 40.0f;
     BombChara->GetPosition(bomb_position);
     sceVu0AddVector(next_position, bomb_position, BombVelo);

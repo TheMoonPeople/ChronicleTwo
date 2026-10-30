@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <cstring>
+
 #include "editanalyze.hpp"
 #include "editdata.hpp"
 #include "editmap.hpp"
@@ -695,7 +697,7 @@ void AnalyzeMoonFlower(CEditData *data, CEditMap *map) {
 
     if (num > 0) {
         if (GetPartsPos(map, parts_nos[0], position) && mgDistVector(position, center) < 300.0f) {
-            *reinterpret_cast<u_long128 *>(center) = *reinterpret_cast<u_long128 *>(position);
+            std::memmove(center, position, sizeof(float) * 4);
             condition[0] = true;
         }
     }

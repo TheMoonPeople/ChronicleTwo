@@ -34,6 +34,7 @@ namespace dc2::character {
  *
  */
 struct MetadataScope::State {
+    CloneAuxBuilder                     clone_inputs;                                                 /**< Explicit allocation capabilities owned by this parse. */
     std::string                         skin_name;                                                    /**< Stable owned input text for the active skin parse. */
     bool                                has_skin_name;                                                /**< Whether this context supplied a skin selector. */
     State                              *previous_active = MetadataScope::active;                      /**< Enclosing lexical metadata owner. */
@@ -61,7 +62,7 @@ struct MetadataScope::State {
      * Saves the enclosing builders after copying the new skin selector.
      *
      */
-    explicit State(std::string_view value) : skin_name(value), has_skin_name(value.data() != nullptr) {
+    explicit State(std::string_view value, std::shared_ptr<const CloneAuxState> inherited) : clone_inputs(std::move(inherited)), skin_name(value), has_skin_name(value.data() != nullptr) {
         std::memcpy(previous_vertices, ::alloc_vertex, sizeof(previous_vertices));
     }
 
@@ -94,8 +95,8 @@ struct MetadataScope::State {
 };
 
 MetadataScope::MetadataScope(CCharacter2 *character, mgCMemory *model, int block, CCharacter2 *parent, bool outline,
-                             std::string_view skin_name)
-    : state(std::make_unique<State>(skin_name)) {
+                             std::string_view skin_name, std::shared_ptr<const CloneAuxState> inherited_clone_inputs)
+    : state(std::make_unique<State>(skin_name, std::move(inherited_clone_inputs))) {
     active = state.get();
     InitializeMetadata(character, model, block, parent, outline);
 }
@@ -103,6 +104,18 @@ MetadataScope::MetadataScope(CCharacter2 *character, mgCMemory *model, int block
 MetadataScope::State *MetadataScope::active = nullptr;
 
 MetadataScope::~MetadataScope() = default;
+
+bool MetadataScope::RegisterSounds(mgCMemory &producer, int slot, std::span<CHRINFO_SE> allocation) {
+    return active != nullptr && active->clone_inputs.RegisterSounds(producer, slot, allocation);
+}
+
+bool MetadataScope::FinishCloneInputs(ResourceState &resources, mgCMemory &model) {
+    if (!state->clone_inputs.CaptureFrames(*nowChr, model)) {
+        return false;
+    }
+    resources.clone_inputs = state->clone_inputs.Finish(*nowChr);
+    return resources.clone_inputs != nullptr;
+}
 
 std::optional<std::string_view> MetadataScope::ActiveSkinName() {
     if (active == nullptr || !active->has_skin_name) {

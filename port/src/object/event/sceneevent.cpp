@@ -209,7 +209,7 @@ int CScene::GetFixCameraPos(float *position, float *out_camera) {
     CMap *maps[4];
     int   count = {};
     int   i = {};
-    *(u_long128 *) lifted = *(u_long128 *) position;
+    std::memmove(lifted, position, sizeof(float) * 4);
     lifted[1] += 1.0f;
     count = GetActiveMap(maps, 4);
 

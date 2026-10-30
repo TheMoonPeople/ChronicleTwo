@@ -361,7 +361,7 @@ public:
      * @address 0x1B7240
      * @size 0x10
      */
-    void Copy(CMapParts &source, mgCMemory *memory) override;
+    bool Copy(CMapParts &source, mgCMemory *memory) override;
 
     /**
      *

@@ -268,6 +268,11 @@ std::optional<fs::path> ResolveMemberPath(const fs::path &parent, std::string_vi
 
 } // namespace
 
+std::string_view dc2::assets::MemberName(std::string_view path) {
+    const auto separator = path.find_last_of("/\\");
+    return separator == std::string_view::npos ? path : path.substr(separator + 1);
+}
+
 std::optional<std::string> AssetDirectoryPath(const void *directory) {
     const auto path = DataReadBufferPath(directory);
     const auto size = DataReadBufferSize(directory);

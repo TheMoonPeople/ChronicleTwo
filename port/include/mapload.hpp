@@ -4,7 +4,9 @@
 
 #include <libvu0.h>
 
+#include <algorithm>
 #include <cstring>
+#include <type_traits>
 
 #include "mg_drawenv.hpp"
 #include "mg_frame.hpp"
@@ -118,7 +120,7 @@ public:
      * @address 0x1670B0
      * @size 0x30
      */
-    CMapLightingInfo() { memset(this, 0, sizeof(CMapLightingInfo)); }
+    CMapLightingInfo() = default;
 };
 
 STATIC_ASSERT(sizeof(CMapLightingInfo) == 0x1D0);
@@ -252,6 +254,10 @@ public:
         mgVu0FBOX box;   /**< Box the point covers. */
     };
 
+    static_assert(std::max({sizeof(int[0x14]), sizeof(EffectData), sizeof(FireData), sizeof(PlightData), sizeof(AnimeData), sizeof(EventData), sizeof(SoundData), sizeof(InventData)}) == sizeof(AnimeData));
+    static_assert(std::max({alignof(int[0x14]), alignof(EffectData), alignof(FireData), alignof(PlightData), alignof(AnimeData), alignof(EventData), alignof(SoundData), alignof(InventData)}) == alignof(AnimeData));
+    static_assert(std::conjunction_v<std::is_trivially_copyable<int[0x14]>, std::is_trivially_copyable<EffectData>, std::is_trivially_copyable<FireData>, std::is_trivially_copyable<PlightData>, std::is_trivially_copyable<AnimeData>, std::is_trivially_copyable<EventData>, std::is_trivially_copyable<SoundData>, std::is_trivially_copyable<InventData>>);
+
     char *name{}; /**< Name the point is searched by, or null. */
     int   type{}; /**< Kind of point, a FUNC_POINT_TYPE. */
     int   unk_8{};
@@ -287,22 +293,10 @@ public:
      */
     CFuncPoint() { Initialize(); }
 
-    CFuncPoint &operator=(CFuncPoint &other) {
-        name = other.name;
-        type = other.type;
-        unk_8 = other.unk_8;
-        flag_no = other.flag_no;
-        enable = other.enable;
-        start = other.start;
-        end = other.end;
-        __builtin_memcpy(static_cast<void *>(data), other.data, reinterpret_cast<char *>(&frame) - reinterpret_cast<char *>(data));
-        frame = other.frame;
-        __builtin_memcpy(position, other.position, sizeof(position));
-        __builtin_memcpy(rotation, other.rotation, sizeof(rotation));
-        __builtin_memcpy(scale, other.scale, sizeof(scale));
-        active = other.active;
-        return *this;
-    }
+    /**
+     * Copies point values and settings while detaching the copied frame links.
+     */
+    CFuncPoint &operator=(CFuncPoint &other) = default;
 
     /**
      *

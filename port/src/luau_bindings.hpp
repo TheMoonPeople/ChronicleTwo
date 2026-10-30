@@ -46,8 +46,8 @@ enum class Type : unsigned char {
  *
  */
 struct Param {
-    Direction direction;      /**< Whether the handler reads the argument or writes it through a reference. */
-    Type      type;           /**< Script-side type of the argument. */
+    Direction direction;        /**< Whether the handler reads the argument or writes it through a reference. */
+    Type      type;             /**< Script-side type of the argument. */
     bool      tagged = false;   /**< Whether the handler reads the slot's integer or float tag, so each call chooses the type. */
     bool      deferred = false; /**< Whether the handler keeps the reference and the engine writes it after the call. */
 };

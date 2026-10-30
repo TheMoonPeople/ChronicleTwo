@@ -37,8 +37,6 @@ static int VSyncCallBack(int event) {
         vcount = 0;
     }
 
-    ExitHandler();
-
     return 0;
 }
 

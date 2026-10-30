@@ -650,8 +650,8 @@ int LoadIntNPC(GeoFuncParam *param, dc2::script::RunArguments stack, int mode) {
         func_point = map->func_point.Search("npc_pos");
 
         if (func_point != nullptr) {
-            *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(func_point->position);
-            *reinterpret_cast<u_long128 *>(rotation) = *reinterpret_cast<u_long128 *>(func_point->rotation);
+            std::memmove(position, func_point->position, sizeof(float) * 4);
+            std::memmove(rotation, func_point->rotation, sizeof(float) * 4);
             rotation[2] = 0.0f;
             rotation[0] = 0.0f;
             chara->SetPosition(position);
@@ -741,10 +741,10 @@ int LoadGeoNPC(GeoFuncParam *param, int mode) {
 
     if (func_point != nullptr) {
         parts->GetLWMatrix(matrix);
-        *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(func_point->position);
+        std::memmove(position, func_point->position, sizeof(float) * 4);
         position[3] = 1.0f;
         sceVu0ApplyMatrix(position, matrix, position);
-        *reinterpret_cast<u_long128 *>(rotation) = *reinterpret_cast<u_long128 *>(func_point->rotation);
+        std::memmove(rotation, func_point->rotation, sizeof(float) * 4);
         parts->GetRotation(parts_rotation);
         rotation[2] = 0.0f;
         rotation[0] = 0.0f;
@@ -784,10 +784,10 @@ void GeoUpdateNpcPos(CScene *scene) {
                 if (chara != nullptr && func_point != nullptr) {
                     scene->StayVillager(chara_id);
                     parts->GetLWMatrix(matrix);
-                    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(func_point->position);
+                    std::memmove(position, func_point->position, sizeof(float) * 4);
                     position[3] = 1.0f;
                     sceVu0ApplyMatrix(position, matrix, position);
-                    *reinterpret_cast<u_long128 *>(rotation) = *reinterpret_cast<u_long128 *>(func_point->rotation);
+                    std::memmove(rotation, func_point->rotation, sizeof(float) * 4);
                     parts->GetRotation(parts_rotation);
                     rotation[2] = 0.0f;
                     rotation[0] = 0.0f;

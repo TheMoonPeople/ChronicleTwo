@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <new>
 
 #include "actionchara.hpp"
 #include "actscript.hpp"
@@ -489,15 +490,13 @@ int CActionChara::GetShow(char *name) {
     current = this;
 
     if (name != nullptr) {
-        if (this != nullptr) {
-            do {
-                if (strcmp(current->name, name) == 0) {
-                    return current->show;
-                }
+        do {
+            if (strcmp(current->name, name) == 0) {
+                return current->show;
+            }
 
-                current = current->next;
-            } while (current != nullptr);
-        }
+            current = current->next;
+        } while (current != nullptr);
     } else {
         show = this->CObject::show;
     }
@@ -781,15 +780,13 @@ float CActionChara::GetNowFrameWait(char *name) {
     current = this;
 
     if (name != nullptr) {
-        if (this != nullptr) {
-            do {
-                if (strcmp(current->name, name) == 0) {
-                    return current->frame_ratio;
-                }
+        do {
+            if (strcmp(current->name, name) == 0) {
+                return current->frame_ratio;
+            }
 
-                current = current->next;
-            } while (current != nullptr);
-        }
+            current = current->next;
+        } while (current != nullptr);
     } else {
         wait = CCharacter2::frame_ratio;
     }
@@ -805,15 +802,13 @@ float CActionChara::GetNowFrame(char *name) {
     current = this;
 
     if (name != nullptr) {
-        if (this != nullptr) {
-            do {
-                if (strcmp(current->name, name) == 0) {
-                    return current->frame;
-                }
+        do {
+            if (strcmp(current->name, name) == 0) {
+                return current->frame;
+            }
 
-                current = current->next;
-            } while (current != nullptr);
-        }
+            current = current->next;
+        } while (current != nullptr);
     } else {
         frame = CCharacter2::frame;
     }
@@ -849,15 +844,13 @@ int CActionChara::GetMotionStatus(char *name) {
     current = this;
 
     if (name != nullptr) {
-        if (this != nullptr) {
-            do {
-                if (strcmp(current->name, name) == 0) {
-                    return current->motion_status;
-                }
+        do {
+            if (strcmp(current->name, name) == 0) {
+                return current->motion_status;
+            }
 
-                current = current->next;
-            } while (current != nullptr);
-        }
+            current = current->next;
+        } while (current != nullptr);
     } else {
         status = CCharacter2::motion_status;
     }
@@ -900,12 +893,10 @@ void CActionChara::SetMotion(int motion_no, int param) {
 
     current = this;
 
-    if (this != nullptr) {
-        do {
-            current->CCharacter2::SetMotion(motion_no, param);
-            current = current->next;
-        } while (current != nullptr);
-    }
+    do {
+        current->CCharacter2::SetMotion(motion_no, param);
+        current = current->next;
+    } while (current != nullptr);
 }
 
 void CActionChara::SetMotion(char *name, int param, int chain) {
@@ -918,12 +909,10 @@ void CActionChara::SetMotion(char *name, int param, int chain) {
         return;
     }
 
-    if (this != nullptr) {
-        do {
-            current->CCharacter2::SetMotion(name, param);
-            current = current->next;
-        } while (current != nullptr);
-    }
+    do {
+        current->CCharacter2::SetMotion(name, param);
+        current = current->next;
+    } while (current != nullptr);
 }
 
 void CActionChara::ResetMotion() {
@@ -931,12 +920,10 @@ void CActionChara::ResetMotion() {
 
     current = this;
 
-    if (this != nullptr) {
-        do {
-            current->CCharacter2::ResetMotion();
-            current = current->next;
-        } while (current != nullptr);
-    }
+    do {
+        current->CCharacter2::ResetMotion();
+        current = current->next;
+    } while (current != nullptr);
 }
 
 int CActionChara::Draw() {
@@ -957,13 +944,11 @@ int CActionChara::Draw() {
     SetPosition(draw_pos);
     mgGetAmbient(ambient);
 
-    if (this != nullptr) {
-        do {
-            result = chara->CCharacter2::Draw();
-            chara->CalcCollision();
-            chara = chara->next;
-        } while (chara != nullptr);
-    }
+    do {
+        result = chara->CCharacter2::Draw();
+        chara->CalcCollision();
+        chara = chara->next;
+    } while (chara != nullptr);
 
     SetPosition(saved_pos);
     mgSetAmbient(ambient);
@@ -1000,13 +985,11 @@ int CActionChara::DrawDirect() {
         i++;
     } while (i < ACTION_PALLET_MAX);
 
-    if (this != nullptr) {
-        do {
-            result = chara->CCharacter2::DrawDirect();
-            chara->CalcCollision();
-            chara = chara->next;
-        } while (chara != nullptr);
-    }
+    do {
+        result = chara->CCharacter2::DrawDirect();
+        chara->CalcCollision();
+        chara = chara->next;
+    } while (chara != nullptr);
 
     SetPosition(saved_pos);
     mgSetAmbient(ambient);
@@ -1018,12 +1001,10 @@ int CActionChara::DrawShadowDirect() {
 
     current = this;
 
-    if (this != nullptr) {
-        do {
-            current->CCharacter2::DrawShadowDirect();
-            current = current->next;
-        } while (current != nullptr);
-    }
+    do {
+        current->CCharacter2::DrawShadowDirect();
+        current = current->next;
+    } while (current != nullptr);
     return 0;
 }
 
@@ -1085,15 +1066,13 @@ CActionChara *CActionChara::SearchChara(char *name) {
 
     current = this;
 
-    if (this != nullptr) {
-        do {
-            if (strcmp(current->name, name) == 0) {
-                return current;
-            }
+    do {
+        if (strcmp(current->name, name) == 0) {
+            return current;
+        }
 
-            current = current->next;
-        } while (current != nullptr);
-    }
+        current = current->next;
+    } while (current != nullptr);
 
     return nullptr;
 }
@@ -1105,24 +1084,22 @@ mgCFrame *CActionChara::SearchObject(char *name) {
 
     current = this;
 
-    if (this != nullptr) {
-        do {
-            frame = current->CObjectFrame::frame;
+    do {
+        frame = current->CObjectFrame::frame;
 
-            if (frame == nullptr) {
-                current = current->next;
-                continue;
-            }
-
-            found = frame->SearchFrame(name);
-
-            if (found != nullptr) {
-                return found;
-            }
-
+        if (frame == nullptr) {
             current = current->next;
-        } while (current != nullptr);
-    }
+            continue;
+        }
+
+        found = frame->SearchFrame(name);
+
+        if (found != nullptr) {
+            return found;
+        }
+
+        current = current->next;
+    } while (current != nullptr);
 
     return nullptr;
 }
@@ -3713,12 +3690,16 @@ void CActionChara::Step() {
 
         if (lock_on != 0 && dir_gun != 0) {
             monster_index = target_no - DNG_CHARA_SLOT_MONSTER;
-            ActiveMonster->active[monster_index]->GetEntryObjectPos(0, target_pos);
-            sceVu0SubVector(gun_pos, target_pos, gun_pos);
-            sceVu0CopyVector(target_pos, gun_pos);
-            target_pos[3] = 1.0f;
-            target_pos[1] = 0.0f;
-            ang = -atan2f(gun_pos[1], mgDistVector(target_pos));
+            if (auto *monster = ActiveMonster->GetActiveMonster(monster_index)) {
+                monster->GetEntryObjectPos(0, target_pos);
+                sceVu0SubVector(gun_pos, target_pos, gun_pos);
+                sceVu0CopyVector(target_pos, gun_pos);
+                target_pos[3] = 1.0f;
+                target_pos[1] = 0.0f;
+                ang = -atan2f(gun_pos[1], mgDistVector(target_pos));
+            } else {
+                ang = 0.0f;
+            }
         } else {
             ang = 0.0f;
         }
@@ -3736,12 +3717,10 @@ void CActionChara::ShadowStep() {
 
     current = this;
 
-    if (this != nullptr) {
-        do {
-            current->CCharacter2::ShadowStep();
-            current = current->next;
-        } while (current != nullptr);
-    }
+    do {
+        current->CCharacter2::ShadowStep();
+        current = current->next;
+    } while (current != nullptr);
 }
 
 void CActionChara::Initialize(mgCMemory *memory) {
@@ -3825,12 +3804,26 @@ void CActionChara::Initialize(mgCMemory *memory) {
     ResetScript();
 }
 
-void CActionChara::Copy(CActionChara &dest, mgCMemory *memory) {
-    dest = *this;
-
-    if (memory != nullptr) {
-        CCharacter2::Copy(dest, memory);
+bool CActionChara::Copy(CActionChara &dest, mgCMemory *memory) try {
+    if (&dest == this) {
+        if (CCharacter2::Copy(dest, memory)) {
+            return true;
+        }
+        dest.Initialize(nullptr);
+        static_cast<CCharacter2 &>(dest).Initialize();
+        return false;
     }
+    dest = *this;
+    if (!CCharacter2::Copy(dest, memory)) {
+        dest.Initialize(nullptr);
+        static_cast<CCharacter2 &>(dest).Initialize();
+        return false;
+    }
+    return true;
+} catch (const std::bad_alloc &) {
+    dest.Initialize(nullptr);
+    static_cast<CCharacter2 &>(dest).Initialize();
+    return false;
 }
 
 /**

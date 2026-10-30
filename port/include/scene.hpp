@@ -5,11 +5,15 @@
 #include <libvu0.h>
 
 #include <memory>
+#include <optional>
+#include <span>
 #include <string_view>
 #include <vector>
 
 class CEditMap;
 class CSceneMap;
+class CScene;
+class CSceneCharacter;
 
 #include "character.hpp"
 #include "effscript.hpp"
@@ -24,6 +28,58 @@ struct MapResourceDependency;
 }
 
 namespace dc2::scene {
+/**
+ * Resolves a scene only while its original initialized lifetime remains live.
+ */
+class SceneView {
+public:
+    /**
+     * Creates an absent scene view.
+     */
+    SceneView() = default;
+    /**
+     * Returns the scene while its issuing lifetime remains live.
+     */
+    [[nodiscard]] CScene *Get() const;
+
+private:
+    friend class ::CScene;
+    struct State;
+
+    /**
+     * Captures the lifetime identity issued by the scene.
+     */
+    explicit SceneView(const std::shared_ptr<State> &binding) : state(binding) {}
+
+    std::weak_ptr<State> state; /**< Lifetime binding issued by the scene. */
+};
+
+/**
+ * Resolves a character only while its original slot assignment remains live.
+ */
+class CharacterView {
+public:
+    /**
+     * Creates an absent character view.
+     */
+    CharacterView() = default;
+    /**
+     * Returns the assigned character while its slot and resources remain live.
+     */
+    [[nodiscard]] CCharacter2 *Get() const;
+
+private:
+    friend class ::CSceneCharacter;
+    struct State;
+
+    /**
+     * Captures the assignment identity issued by the character slot.
+     */
+    explicit CharacterView(const std::shared_ptr<State> &binding) : state(binding) {}
+
+    std::weak_ptr<State> state; /**< Assignment-specific binding issued by the slot. */
+};
+
 /**
  * Resolves an owned map only while its original scene-slot assignment remains live.
  */
@@ -51,6 +107,43 @@ private:
 };
 
 /**
+ * Keeps a monster's map relationship through exact scene, placement and model assignments.
+ */
+class MapLink {
+public:
+    /**
+     * Replaces the relationship only when a named placed part is live.
+     */
+    bool BindPart(MapView map, std::string_view part_name);
+    /**
+     * Replaces the relationship only when a named placed part and piece are live.
+     */
+    bool BindPiece(MapView map, std::string_view part_name, std::string_view piece_name);
+
+    /**
+     * Releases the current map relationship.
+     */
+    void Clear() noexcept { state.reset(); }
+
+    /**
+     * Moves a linked part to the monster's position and rotation while its assignment remains live.
+     */
+    bool SetPartTransform(std::span<const float, 4> position, std::span<const float, 4> rotation) const;
+    /**
+     * Places a riding monster at its linked piece and applies the monster's rotation to the piece.
+     */
+    bool UpdateLinkedPiece(std::span<float, 4> position, std::span<const float, 4> rotation) const;
+    /**
+     * Resolves a named model frame before updating the piece and computing its world position.
+     */
+    bool GetFrameWorldPosition(std::string_view name, std::span<float, 4> position) const;
+
+private:
+    struct State;
+    std::shared_ptr<const State> state; /**< Immutable capabilities replaced only by a successful explicit bind. */
+};
+
+/**
  * Keeps a character through its exact arena allocation or a genuine native shared owner.
  */
 class CharacterResource {
@@ -66,9 +159,10 @@ public:
     static CharacterResource FromArena(mgCMemory &memory, CCharacter2 &character);
 
     /**
-     * Shares ownership of an ordinary native character object.
+     * Shares a native character object, optionally restricting access to a supplied live logical scope.
      */
-    static CharacterResource FromOwned(std::shared_ptr<CCharacter2> character);
+    static CharacterResource FromOwned(std::shared_ptr<CCharacter2>              character,
+                                       std::optional<dc2::memory::ArenaLifetime> logical_scope = std::nullopt);
 
     /**
      * Returns the character only while its object and resource dependencies remain live.
@@ -600,11 +694,41 @@ STATIC_ASSERT(sizeof(CSceneData) == 0x34);
  */
 class CSceneCharacter : public CSceneData {
 public:
-    dc2::scene::CharacterResource character;  /**< Checked character object and its resource dependencies. */
-    s32                           texb{};     /**< Texture block the character is drawn with, or -1 for the scene's default. */
-    s32                           chara_no{}; /**< Number of the villager or character placed in the slot, or -1. */
+    s32 texb{};     /**< Texture block the character is drawn with, or -1 for the scene's default. */
+    s32 chara_no{}; /**< Number of the villager or character placed in the slot, or -1. */
 
     CSceneCharacter() { Initialize(); }
+
+    /**
+     * Revokes published views before releasing the character resource.
+     */
+    ~CSceneCharacter();
+    /**
+     * Copies the resource into an independent slot assignment.
+     */
+    CSceneCharacter(const CSceneCharacter &other);
+    /**
+     * Replaces the slot with an independent copy of another assignment.
+     */
+    CSceneCharacter &operator=(const CSceneCharacter &other);
+    /**
+     * Transfers the resource and revokes the source assignment's views.
+     */
+    CSceneCharacter(CSceneCharacter &&other) noexcept;
+    /**
+     * Replaces the resource and revokes both previous assignments' views.
+     */
+    CSceneCharacter &operator=(CSceneCharacter &&other) noexcept;
+
+    /**
+     * Returns the character's checked resource without permitting assignment replacement.
+     */
+    [[nodiscard]] const dc2::scene::CharacterResource &Resource() const { return character; }
+
+    /**
+     * Issues a view tied to this exact character assignment.
+     */
+    [[nodiscard]] dc2::scene::CharacterView GetCharacterView();
 
     /**
      * Checks both the character object and all resources it references.
@@ -636,6 +760,10 @@ public:
      * @size 0x20
      */
     void Initialize();
+
+private:
+    dc2::scene::CharacterResource                     character;      /**< Checked character object and its resource dependencies. */
+    std::shared_ptr<dc2::scene::CharacterView::State> character_view; /**< Binding revoked before assignment replacement. */
 };
 
 STATIC_ASSERT(sizeof(CSceneCharacter) == 0x40);

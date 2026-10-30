@@ -356,14 +356,19 @@ TEST(MgVisual, ShadowFaceIndicesStayWithinTheModel) {
 }
 
 TEST(MgVisual, CopiedMaterialsFitBeforeTheNextArenaAllocation) {
-    MemoryPool      pool;
-    mgMaterial      materials[2]{};
-    mgCVisualFixMDT source;
-    source.material = materials;
-    source.material_num = 2;
+    MemoryPool pool;
+    MemoryPool producer;
+    auto      *source = dc2::memory::NewObject<mgCVisualFixMDT>(producer.memory());
+    auto      *materials = dc2::memory::NewArray<mgMaterial>(producer.memory(), 2);
+    ASSERT_NE(source, nullptr);
+    ASSERT_NE(materials, nullptr);
+    source->material = materials;
+    source->material_num = 2;
     materials[1].diffuse[0] = 0.75f;
+    ASSERT_TRUE(dc2::render::VisualCloneInputs::Publish(producer.memory(), *source, dc2::render::VisualCloneKind::FixMdt));
 
-    auto *copy = static_cast<mgCVisualFixMDT *>(source.Copy(&pool.memory()));
+    const auto clone_inputs = source->clone_inputs;
+    auto      *copy = static_cast<mgCVisualFixMDT *>(clone_inputs.Clone(source, &pool.memory()));
     ASSERT_NE(copy, nullptr);
     ASSERT_NE(copy->material, materials);
     EXPECT_FLOAT_EQ(copy->material[1].diffuse[0], 0.75f);
@@ -372,8 +377,8 @@ TEST(MgVisual, CopiedMaterialsFitBeforeTheNextArenaAllocation) {
     EXPECT_GE(after, reinterpret_cast<const std::byte *>(copy->material + 2));
 
     const int used = pool.memory().stGetUsed();
-    source.material_num = INT_MAX;
-    EXPECT_EQ(source.Copy(&pool.memory()), nullptr);
+    source->material_num = INT_MAX;
+    EXPECT_EQ(clone_inputs.Clone(source, &pool.memory()), nullptr);
     EXPECT_EQ(pool.memory().stGetUsed(), used);
 }
 

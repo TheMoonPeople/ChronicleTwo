@@ -6,6 +6,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <random>
@@ -13,9 +14,11 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <utility>
 #include <vector>
 
+#include "dng_main.hpp"
 #include "event_func.hpp"
 #include "luau_bytecode.hpp"
 #include "luau_runtime.hpp"
@@ -24,6 +27,7 @@
 #include "native_script_program.hpp"
 #include "platform/arena.hpp"
 #include "runscript.hpp"
+#include "runscript_opcodes.hpp"
 #include "scoped_global_object.hpp"
 
 namespace {
@@ -54,6 +58,7 @@ struct RecordedCall {
 std::vector<RecordedCall> calls;
 int                       next_output = 0;
 dc2::script::RunFunction  ext_table[256]{};
+std::function<void()>     after_prog_set; /**< Optional callback exercised inside the program-value native handler. */
 
 struct NativeTextProbe {
     std::string                              handle;
@@ -107,6 +112,10 @@ int HandleInitScript(dc2::script::RunArguments args, int argc) {
 
 int HandleProgSet(dc2::script::RunArguments args, int argc) {
     Record(NativeCommand::ProgSet, args, argc);
+    const auto callback = after_prog_set;
+    if (callback) {
+        callback();
+    }
     return 1;
 }
 
@@ -222,10 +231,12 @@ protected:
         luau_runtime::SetInterruptBudget(10000000);
         calls.clear();
         next_output = 0;
+        after_prog_set = {};
         RegisterHandlers();
     }
 
     void TearDown() override {
+        after_prog_set = {};
         luau_runtime::Shutdown();
         luau_runtime::SetScriptsRoot({});
         std::error_code ec;
@@ -234,6 +245,283 @@ protected:
 
     std::filesystem::path root;
 };
+
+TEST(ScriptExecutionValidation, NestedTargetsRestoreAndOtherThreadsRemainIndependent) {
+    CRunScript first;
+    CRunScript second;
+    EXPECT_TRUE(dc2::script::ExecutionValid(&first));
+    EXPECT_FALSE(dc2::script::ExecutionValid(nullptr));
+    {
+        dc2::script::ScopedExecutionValidation outer(first, [] { return false; });
+        EXPECT_FALSE(dc2::script::ExecutionValid(&first));
+        EXPECT_TRUE(dc2::script::ExecutionValid(&second));
+        {
+            dc2::script::ScopedExecutionValidation unrelated(second, [] { return true; });
+            EXPECT_FALSE(dc2::script::ExecutionValid(&first));
+            EXPECT_TRUE(dc2::script::ExecutionValid(&second));
+        }
+        {
+            dc2::script::ScopedExecutionValidation nested(first, [] { return true; });
+            EXPECT_TRUE(dc2::script::ExecutionValid(&first));
+        }
+        EXPECT_FALSE(dc2::script::ExecutionValid(&first));
+        bool        worker_valid = false;
+        std::thread worker([&] { worker_valid = dc2::script::ExecutionValid(&first); });
+        worker.join();
+        EXPECT_TRUE(worker_valid);
+    }
+    EXPECT_TRUE(dc2::script::ExecutionValid(&first));
+}
+
+TEST(ScriptExecutionValidation, MissingAndThrowingPredicatesRejectExecution) {
+    CRunScript script;
+    {
+        dc2::script::ScopedExecutionValidation empty(script, {});
+        EXPECT_FALSE(dc2::script::ExecutionValid(&script));
+    }
+    {
+        dc2::script::ScopedExecutionValidation throwing(script, []() -> bool { throw std::runtime_error("expired"); });
+        EXPECT_FALSE(dc2::script::ExecutionValid(&script));
+    }
+    EXPECT_TRUE(dc2::script::ExecutionValid(&script));
+}
+
+TEST(ScriptExecutionValidation, ExceptionUnwindingRestoresTheEnclosingValidationScope) {
+    CRunScript script;
+    CRunScript other;
+    {
+        dc2::script::ScopedExecutionValidation outer(script, [] { return false; });
+        try {
+            dc2::script::ScopedExecutionValidation unrelated(other, [] { return false; });
+            dc2::script::ScopedExecutionValidation inner(script, [] { return true; });
+            EXPECT_TRUE(dc2::script::ExecutionValid(&script));
+            EXPECT_FALSE(dc2::script::ExecutionValid(&other));
+            throw std::runtime_error("leave nested validation");
+        } catch (const std::runtime_error &) {
+            EXPECT_FALSE(dc2::script::ExecutionValid(&script));
+            EXPECT_TRUE(dc2::script::ExecutionValid(&other));
+        }
+        EXPECT_FALSE(dc2::script::ExecutionValid(&script));
+    }
+    EXPECT_TRUE(dc2::script::ExecutionValid(&script));
+}
+
+TEST_F(LuauRuntime, BytecodeCallbackInvalidationStopsBeforeTheFollowingResultInstruction) {
+    /**
+     * Calls a native handler before instructions that would overwrite the script result.
+     */
+    struct CallbackProgram {
+        RS_PROG_HEADER header{};
+        RS_PROGDATA    entry{.no = 100, .func = offsetof(CallbackProgram, function)};
+        funcdata       function{};
+        vmcode_t       code[5]{
+            {.op = RS_OP_PUSH_CONST, .arg1 = RS_CONST_INT, .arg2 = static_cast<int>(NativeCommand::ProgSet)},
+            {.op = RS_OP_PUSH_CONST, .arg1 = RS_CONST_INT, .arg2 = 11                                      },
+            {.op = RS_OP_EXT,        .arg1 = 2,            .arg2 = 0                                       },
+            {.op = RS_OP_PUSH_CONST, .arg1 = RS_CONST_INT, .arg2 = 99                                      },
+            {.op = RS_OP_RET,        .arg1 = 0,            .arg2 = 0                                       }
+        };
+
+        CallbackProgram() {
+            std::memcpy(header.magic, "SB2", 3);
+            header.main = offsetof(CallbackProgram, function);
+            header.code = offsetof(CallbackProgram, code);
+            header.prog = offsetof(CallbackProgram, entry);
+            header.prog_num = 1;
+        }
+    } program;
+
+    std::array<RS_STACKDATA, 64> slots{};
+    std::array<RS_CALLDATA, 16>  call_stack{};
+    CRunScript                   script;
+    script.ext_func(ext_table, static_cast<int>(std::size(ext_table)));
+    ASSERT_TRUE(script.load(ProgramBytes(program), slots, call_stack));
+    script.result = 17;
+    bool                                   live = true;
+    dc2::script::ScopedExecutionValidation validation(script, [&] { return live; });
+    after_prog_set = [&] { live = false; };
+    EXPECT_EQ(script.run(100), -1);
+    ASSERT_EQ(calls.size(), 1U);
+    EXPECT_EQ(calls[0].args[0].val.i, 11);
+    EXPECT_EQ(script.result, 17);
+    EXPECT_EQ(script.end, 0);
+    EXPECT_EQ(script.pc, &program.code[2]);
+    EXPECT_EQ(script.sp, script.stack);
+    script.resume();
+    EXPECT_EQ(script.result, 17);
+    EXPECT_EQ(calls.size(), 1U);
+}
+
+TEST_F(LuauRuntime, NativeCallbacksRejectSameControllerReentryWithoutReplacingTheOuterCoroutine) {
+    std::ofstream(root / "facade/reentry.luau") << R"(
+return {
+    [200] = function()
+        action.set_program_value(1)
+        action.set_program_value(2)
+        return 37
+    end,
+    [201] = function()
+        action.set_program_value(99)
+        return 99
+    end,
+}
+)";
+    Loaded loaded("facade/reentry");
+    int    rejected = 0;
+    after_prog_set = [&] {
+        if (calls.back().args[0].val.i == 1) {
+            EXPECT_EQ(loaded.script.run(201), -1);
+            loaded.script.resume();
+            EXPECT_EQ(loaded.script.end, 0);
+            ++rejected;
+        }
+    };
+    EXPECT_EQ(loaded.script.run(200), 0);
+    EXPECT_EQ(rejected, 1);
+    EXPECT_EQ(loaded.script.end, 1);
+    EXPECT_EQ(loaded.script.result, 37);
+    ASSERT_EQ(calls.size(), 2U);
+    EXPECT_EQ(calls[0].args[0].val.i, 1);
+    EXPECT_EQ(calls[1].args[0].val.i, 2);
+}
+
+TEST_F(LuauRuntime, DifferentControllerCallbacksRejectReentryOfAnyActiveAncestor) {
+    std::ofstream(root / "facade/reentry_outer.luau") << R"(
+return {
+    [200] = function()
+        action.set_program_value(1)
+        action.set_program_value(3)
+        return 11
+    end,
+    [201] = function()
+        action.set_program_value(99)
+        return 99
+    end,
+}
+)";
+    std::ofstream(root / "facade/reentry_inner.luau") << R"(
+return {[200] = function() action.set_program_value(2); return 22 end}
+)";
+    Loaded outer("facade/reentry_outer");
+    Loaded inner("facade/reentry_inner");
+    int    rejected = 0;
+    after_prog_set = [&] {
+        const auto marker = calls.back().args[0].val.i;
+        if (marker == 1) {
+            EXPECT_EQ(inner.script.run(200), 0);
+            EXPECT_EQ(inner.script.result, 22);
+        } else if (marker == 2) {
+            EXPECT_EQ(outer.script.run(201), -1);
+            outer.script.resume();
+            EXPECT_EQ(outer.script.end, 0);
+            ++rejected;
+        }
+    };
+    EXPECT_EQ(outer.script.run(200), 0);
+    EXPECT_EQ(rejected, 1);
+    EXPECT_EQ(outer.script.end, 1);
+    EXPECT_EQ(outer.script.result, 11);
+    ASSERT_EQ(calls.size(), 3U);
+    EXPECT_EQ(calls[0].args[0].val.i, 1);
+    EXPECT_EQ(calls[1].args[0].val.i, 2);
+    EXPECT_EQ(calls[2].args[0].val.i, 3);
+}
+
+TEST_F(LuauRuntime, ExpiredExecutionCancelsTypedAndGenericCallbacksEvenWhenLuaCatchesTheError) {
+    for (const bool generic : {false, true}) {
+        const auto command = generic ? "action.call_command(1, 1)" : "action.set_program_value(1)";
+        const auto module = generic ? "facade/expired_generic" : "facade/expired_typed";
+        std::ofstream(root / (std::string(module) + ".luau"))
+            << "return {[200]=function() pcall(function() " << command << " end); " << command << " end}";
+    }
+    for (const bool generic : {false, true}) {
+        calls.clear();
+        const auto module = generic ? "facade/expired_generic" : "facade/expired_typed";
+        SCOPED_TRACE(module);
+        Loaded loaded(module);
+        ASSERT_EQ(loaded.script.check_program(200), 1);
+        bool                                   live = true;
+        dc2::script::ScopedExecutionValidation execution(loaded.script, [&] { return live; });
+        after_prog_set = [&] { live = false; };
+        EXPECT_EQ(loaded.script.run(200), -1);
+        ASSERT_EQ(calls.size(), 1U) << "owns=" << luau_runtime::Owns(&loaded.script)
+                                    << " end=" << loaded.script.end << " result=" << loaded.script.result;
+        EXPECT_EQ(loaded.script.end, 0);
+        live = true;
+        loaded.script.resume();
+        EXPECT_EQ(calls.size(), 1U);
+        EXPECT_EQ(loaded.script.run(200), -1);
+        EXPECT_EQ(calls.size(), 1U);
+        after_prog_set = {};
+    }
+}
+
+TEST_F(LuauRuntime, NestedMonsterCallbacksRestoreOnlyLiveOuterBindings) {
+    for (const bool retire_outer : {false, true}) {
+        calls.clear();
+        auto manager = std::make_unique<CMonsterMan>();
+        auto scene = std::make_unique<CScene>();
+        scene->chara_num = DNG_CHARA_SLOT_MONSTER_END;
+        auto outer = std::make_shared<CActiveMonster>();
+        auto inner = std::make_shared<CActiveMonster>();
+        ASSERT_EQ(scene->AssignChara(DNG_CHARA_SLOT_MONSTER, dc2::scene::CharacterResource::FromOwned(outer)), DNG_CHARA_SLOT_MONSTER);
+        ASSERT_EQ(scene->AssignChara(DNG_CHARA_SLOT_MONSTER + 1, dc2::scene::CharacterResource::FromOwned(inner)), DNG_CHARA_SLOT_MONSTER + 1);
+        dc2::test::ScopedGlobalObject<FxScriptMan> effects;
+        manager->Initialize(scene.get());
+        auto                                        handle = luau_runtime::MakeHandle("facade/basic");
+        std::array<std::array<RS_STACKDATA, 64>, 2> values{};
+        std::array<std::array<RS_CALLDATA, 16>, 2>  call_stacks{};
+        int                                         index = 0;
+        for (auto *monster : {outer.get(), inner.get()}) {
+            monster->mons_script.ext_func(ext_table, 256);
+            ASSERT_TRUE(monster->mons_script.load({reinterpret_cast<u8 *>(handle.data()), handle.size()}, values[index], call_stacks[index]));
+            monster->req_prog = MONSTER_PROG_MAIN;
+            ++index;
+        }
+        after_prog_set = [&] {
+            if (nowMonster == outer.get()) {
+                manager->RunScript(1);
+                EXPECT_EQ(nowMonster, retire_outer ? nullptr : outer.get());
+            } else {
+                EXPECT_EQ(nowMonster, inner.get());
+                if (retire_outer) {
+                    scene->chara[DNG_CHARA_SLOT_MONSTER].Initialize();
+                }
+            }
+        };
+        manager->RunScript(0);
+        EXPECT_EQ(calls.size(), 2U);
+        EXPECT_EQ(nowMonster, retire_outer ? nullptr : outer.get());
+        after_prog_set = {};
+        nowMonster = nullptr;
+    }
+}
+
+TEST_F(LuauRuntime, SceneRetirementDuringCallbackRetainsControllerUntilVmReturns) {
+    auto manager = std::make_unique<CMonsterMan>();
+    auto scene = std::make_unique<CScene>();
+    scene->chara_num = DNG_CHARA_SLOT_MONSTER_END;
+    auto                                monster = std::make_shared<CActiveMonster>();
+    const std::weak_ptr<CActiveMonster> lifetime = monster;
+    ASSERT_EQ(scene->AssignChara(DNG_CHARA_SLOT_MONSTER, dc2::scene::CharacterResource::FromOwned(monster)), DNG_CHARA_SLOT_MONSTER);
+    dc2::test::ScopedGlobalObject<FxScriptMan> effects;
+    manager->Initialize(scene.get());
+    auto                         handle = luau_runtime::MakeHandle("facade/basic");
+    std::array<RS_STACKDATA, 64> values{};
+    std::array<RS_CALLDATA, 16>  call_stack{};
+    monster->mons_script.ext_func(ext_table, 256);
+    ASSERT_TRUE(monster->mons_script.load({reinterpret_cast<u8 *>(handle.data()), handle.size()}, values, call_stack));
+    monster->req_prog = MONSTER_PROG_MAIN;
+    monster.reset();
+    after_prog_set = [&] {
+        scene.reset();
+        EXPECT_FALSE(lifetime.expired());
+    };
+    manager->RunScript(0);
+    EXPECT_TRUE(lifetime.expired());
+    EXPECT_EQ(calls.size(), 1U);
+    EXPECT_EQ(nowMonster, nullptr);
+}
 
 TEST_F(LuauRuntime, RunWaitResumeEnd) {
     Loaded      loaded("facade/basic");
@@ -262,9 +550,14 @@ TEST_F(LuauRuntime, RunWaitResumeEnd) {
 }
 
 TEST_F(LuauRuntime, MonsterWithoutStunProgramResumesSuspendedBehaviorAfterStun) {
-    CActiveMonster monster{};
-    CMonsterMan    manager{};
-    manager.active[0] = &monster;
+    auto        monster_owner = std::make_shared<CActiveMonster>();
+    auto       &monster = *monster_owner;
+    CMonsterMan manager{};
+    CScene      scene{};
+    scene.chara_num = DNG_CHARA_SLOT_MONSTER_END;
+    ASSERT_EQ(scene.AssignChara(DNG_CHARA_SLOT_MONSTER, dc2::scene::CharacterResource::FromOwned(monster_owner)), DNG_CHARA_SLOT_MONSTER);
+    dc2::test::ScopedGlobalObject<FxScriptMan> effects;
+    manager.Initialize(&scene);
     std::string  handle = luau_runtime::MakeHandle("facade/basic");
     RS_STACKDATA slots[64]{};
     RS_CALLDATA  call_stack[16]{};

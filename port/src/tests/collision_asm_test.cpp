@@ -57,8 +57,8 @@ TEST(CollisionAsm, SingleHitHistoryCoversEverySceneCharacterSlotAndResets) {
     EXPECT_FALSE(primitive.IsHit(scene.get(), -1));
     EXPECT_FALSE(primitive.IsHit(scene.get(), 128));
     for (const int slot : {0, 31, 32, 63, 64, 127}) {
-        scene->chara[slot].status = 1;
-        scene->chara[slot].character = dc2::scene::CharacterResource::FromOwned(character);
+        scene->chara[slot].AssignData(dc2::scene::CharacterResource::FromOwned(character), "collision");
+        scene->chara[slot].status = SCENE_DATA_LOADED;
         EXPECT_TRUE(primitive.IsHit(scene.get(), slot)) << slot;
         EXPECT_FALSE(primitive.IsHit(scene.get(), slot)) << slot;
     }

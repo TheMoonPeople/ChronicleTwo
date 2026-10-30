@@ -290,6 +290,11 @@ void TakeFromOthers(Config &config, std::string_view action, const std::vector<s
 // The rows kAppPage leaves out.
 bool PcOnly(std::string_view key) {
     static constexpr std::string_view keys[] = {
+#ifdef __SWITCH__
+        "video.interpolation",
+        "video.aspect",
+        "video.max_fps",
+#endif
         "video.fullscreen",
         "video.width",
         "video.present_mode",
@@ -316,9 +321,8 @@ std::vector<Page> MakePages() {
                                 Choice<&Config::interpolation>("video.interpolation", "Interpolation", "Smooths display frames between game ticks.", {"Off", "On"}),
                                 Choice<&Config::aspect>("video.aspect", "Aspect ratio", "Auto fills the window. 4:3 adds black side bars.", {"Auto", "4:3"}),
                                 Number<&Config::ui_scale>("video.ui_scale", "UI scale", "Scales menus and HUD. Large values can crop the UI.\nUse Left to reduce the scale if it no longer fits.", {0.5, 0.65, 0.75, 0.85, 1, 1.1, 1.25, 1.5}, 100, "%"),
-                                Choice<&Config::font_sharp>("video.text_font", "Text font", "Sharp redraws plain ASCII from lang/font.ttf.\n"
-                                                                                            "Put the font in your save folder or beside the game.\n"
-                                                                                            "Restart after changing the font file.",
+                                Choice<&Config::font_sharp>("video.text_font", "Text font", "Sharp draws the letters as outlines, clear at any\n"
+                                                                                            "resolution, each spaced by its own width.",
                                                             {"Original", "Sharp"}),
                                 Choice<&Config::show_fps>("video.show_fps", "Show FPS", "Shows the display and tick rates in a window.", {"Off", "On"}),
                             }  },
@@ -351,6 +355,7 @@ std::vector<Page> MakePages() {
                              Choice<&Config::skip_intro>("game.skip_intro", "Skip intro", "Boots past the Sony text, the copyright notice\nand the Level-5 logo to the title screen.", {"Off", "On"}),
                              Choice<&Config::sprint>("game.sprint", "Sprint", "Hold R2 while walking to sprint in towns and\ndungeons. A tap still enters first person.", {"Off", "On"}),
                              Choice<&Config::auto_use_event_item>("game.auto_use_event_item", "Auto-use event items", "An event that asks for one item you carry\nis handed it without the item picker.", {"Off", "On"}),
+                             Choice<&Config::spheda_handicap>("game.spheda_handicap", "Spheda handicap", "Extra shots added to each Spheda hole's par.\nOff is the original game.", {"Off", "+1", "+2", "+3", "+4", "+5"}),
                              Choice<&Config::floor_info_monsters>("game.floor_info_monsters", "Floor monster list", "Triangle on a floor's info lists its monsters, drops and\ngate key carrier (spoilers). Off is the original game.", {"Off", "On"}),
                              Choice<&Config::more_monsters>("game.more_monsters", "More monsters", "Floors hold up to 60 monsters instead of 24, and all of\nthem in range show and act. Applies from the next floor.", {"Off", "On"}),
                              Choice<&Config::transformation_stats>("game.transformation_stats", "Transformation stats", "Monster attack grows twice as fast per level.\nMonica's defence is used when it is higher.", {"Off", "On"}),

@@ -45,7 +45,7 @@ struct PauseState : PAUSE_INFO {
  * Memory and progress settings of the active loading screen.
  *
  */
-static NowLoadingInfo LoadInfo;
+NowLoadingInfo LoadInfo;
 
 /**
  *
@@ -73,7 +73,7 @@ static float ProgBarWidth;
  * Per-frame increase of the loading progress bar ratio.
  *
  */
-static float ProgBarWidthStep;
+float ProgBarWidthStep;
 
 /**
  *
@@ -87,7 +87,7 @@ static float NextProgBarWidth;
  * Number of completed loading progress steps.
  *
  */
-static int ProgBarCnt;
+int ProgBarCnt;
 
 /**
  *

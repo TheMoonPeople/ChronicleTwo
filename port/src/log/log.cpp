@@ -436,7 +436,7 @@ quill::BackendOptions PortBackendOptions() {
     return options;
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__SWITCH__)
 /** Whether the parent process restarts the backend after a fork. */
 bool g_restart_after_fork = false;
 
@@ -488,7 +488,7 @@ public:
 
 void Start() {
     quill::Backend::start(PortBackendOptions());
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__SWITCH__)
     InstallForkHandlers();
 #endif
 
@@ -817,8 +817,13 @@ std::string_view LogSessionId() {
 #endif
         char text[32];
         std::strftime(text, sizeof text, "%Y%m%d-%H%M%S", &local);
+#ifdef __SWITCH__
+        const auto suffix = static_cast<std::uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
+        return std::format("{}-{:04x}", text, suffix & 0xffff);
+#else
         std::random_device random;
         return std::format("{}-{:04x}", text, random() & 0xffff);
+#endif
     }();
     return id;
 }

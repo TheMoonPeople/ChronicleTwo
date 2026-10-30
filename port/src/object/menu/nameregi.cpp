@@ -520,7 +520,7 @@ static FontTables NameRegistFont_Table[NAMEREGI_FONT_MODE_NUM] = {
  * Points to the active name entry menu.
  *
  */
-static CNameRegiMenu *NameRegiMenuPtr;
+CNameRegiMenu *NameRegiMenuPtr;
 
 namespace {
 /**
@@ -598,7 +598,7 @@ static mgCTexture *NameRegiTex1;
  * Limits the number of characters accepted by name entry.
  *
  */
-static s16 NameRegistMax = 10;
+s16 NameRegistMax = 10;
 
 /**
  *

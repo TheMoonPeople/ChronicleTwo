@@ -21,14 +21,14 @@
  * Number of initialized party-character entries.
  *
  */
-static int NpcBaseDataTotalNum;
+int NpcBaseDataTotalNum;
 
 /**
  *
  * Party-character entries loaded from the NPC script, kept on a quadword boundary.
  *
  */
-static NPC_BASE_DATA NpcBaseData[180] __attribute__((aligned(16)));
+NPC_BASE_DATA NpcBaseData[180] __attribute__((aligned(16)));
 
 /**
  *

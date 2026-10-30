@@ -358,9 +358,9 @@ int mgCVisualMotionMDT::CreateRenderInfoPacket(u_int         *packet, float (*ma
 }
 
 void mgCVisualMotionMDT::SetBaseBox(float *box_max, float *box_min) {
-    *reinterpret_cast<u_long128 *>(base_box.max) = *reinterpret_cast<u_long128 *>(box_max);
+    std::memmove(base_box.max, box_max, sizeof(float) * 4);
     box_max[3] = 1.0f;
-    *reinterpret_cast<u_long128 *>(base_box.min) = *reinterpret_cast<u_long128 *>(box_min);
+    std::memmove(base_box.min, box_min, sizeof(float) * 4);
     box_min[3] = 1.0f;
 }
 
@@ -445,14 +445,17 @@ int mgCVisualMotionMDT::CreateBBox(float *box_max, float *box_min, float (*matri
         } while (i < slot_count);
     }
 
-    *reinterpret_cast<u_long128 *>(box_max) = *reinterpret_cast<u_long128 *>(merged_max);
-    *reinterpret_cast<u_long128 *>(box_min) = *reinterpret_cast<u_long128 *>(merged_min);
+    std::memmove(box_max, merged_max, sizeof(float) * 4);
+    std::memmove(box_min, merged_min, sizeof(float) * 4);
     box_max[3] = 1.0f;
     box_min[3] = 1.0f;
     return true;
 }
 
 mgCVisual *mgCVisualMotionMDT::Copy(mgCMemory *memory) {
+    if (!clone_inputs.Matches(this)) {
+        return nullptr;
+    }
     if (memory == nullptr || material_num < 0 || (material_num > 0 && material == nullptr)) {
         return nullptr;
     }
@@ -486,6 +489,9 @@ mgCVisual *mgCVisualMotionMDT::Copy(mgCMemory *memory) {
         copy->material[material_index] = material[material_index];
     }
 
+    if (!dc2::render::VisualCloneInputs::Publish(*memory, *copy, dc2::render::VisualCloneKind::MotionMdt)) {
+        return nullptr;
+    }
     return copy;
 }
 

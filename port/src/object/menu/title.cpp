@@ -52,34 +52,34 @@
  */
 static s16 TitleOmakeFlag;
 
-static TITLE_INFO *TitleInfo;
-static float       TitleProjection = 480.0f;
-void               TitleMCCheckDraw();
-void               TitleCopyRightDraw();
-void               RushMovieDraw();
-void               TitleModeDraw();
-void               TitleMapDraw();
-s32                DCTitleStep(s32 phase);
-int                TitleMCCheckKey();
-static int         TitleModeKey();
-void               TitleCopyRightInit();
-int                TitleCopyRightStep();
-void               TitleHDDInstallInit();
-int                TitleHDDInstallKey();
-int                CheckHDDInstall();
-int                RushMovieKey();
-void               TitleDraw();
-void               DrawMenuDl(int x, int y, int width, int alpha, float rate);
-int                GetSelectLanguageNo();
-void               TitleHDDInstallDraw();
-static CScene     *TitleScene;
+TITLE_INFO    *TitleInfo;
+static float   TitleProjection = 480.0f;
+void           TitleMCCheckDraw();
+void           TitleCopyRightDraw();
+void           RushMovieDraw();
+void           TitleModeDraw();
+void           TitleMapDraw();
+s32            DCTitleStep(s32 phase);
+int            TitleMCCheckKey();
+static int     TitleModeKey();
+void           TitleCopyRightInit();
+int            TitleCopyRightStep();
+void           TitleHDDInstallInit();
+int            TitleHDDInstallKey();
+int            CheckHDDInstall();
+int            RushMovieKey();
+void           TitleDraw();
+void           DrawMenuDl(int x, int y, int width, int alpha, float rate);
+int            GetSelectLanguageNo();
+void           TitleHDDInstallDraw();
+static CScene *TitleScene;
 
 /**
  *
  * Selects the title screen input and transition phase.
  *
  */
-static s16 TitlePhase;
+s16 TitlePhase;
 
 /**
  *
@@ -181,8 +181,8 @@ void               TitleMCCheckInit(int boot_mode);
 int                CheckAppInstallForTitle();
 static mgCTexture *RushStart;
 static s8          TitleBootEventNo;
-static u8          GameBootInit;
-static u8          TitleHDDCheckFlag = 1;
+u8                 GameBootInit;
+u8                 TitleHDDCheckFlag = 1;
 static void        TitleBootInit();
 
 /**
@@ -388,7 +388,7 @@ static s8 TitleSkipLogoFlag;
  * Points to the title memory card check message window.
  *
  */
-static ClsMes *TitleMCCheckMes;
+ClsMes *TitleMCCheckMes;
 
 static CMemoryCardManager *TitleMCCheck;
 

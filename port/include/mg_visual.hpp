@@ -210,20 +210,69 @@ struct mgFACE_GROUP {
 
 STATIC_ASSERT(sizeof(mgFACE_GROUP) == 0x20);
 
+class mgCVisual;
+
+namespace dc2::render {
+/**
+ * Records the concrete class selected by a native visual producer.
+ */
+enum class VisualCloneKind {
+    Mdt,
+    FixMdt,
+    ShadowMdt,
+    ShadowFixMdt,
+    MotionMdt,
+    Sprite3D,
+    Water
+};
+
+/**
+ * Authorizes cloning one exact visual object and its material allocation.
+ */
+class VisualCloneInputs {
+public:
+    /**
+     * Publishes exact clone inputs after a typed producer finishes the visual.
+     */
+    static bool Publish(mgCMemory &producer, mgCVisual &visual, VisualCloneKind kind);
+    /**
+     * Validates the object before inspecting its current material identities.
+     */
+    [[nodiscard]] bool Matches(const mgCVisual *visual) const;
+    /**
+     * Validates an externally held object capability before entering its virtual clone implementation.
+     */
+    [[nodiscard]] mgCVisual *Clone(mgCVisual *expected, mgCMemory *memory) const;
+    /**
+     * Returns the producer's concrete kind only while its clone inputs remain valid.
+     */
+    [[nodiscard]] std::optional<VisualCloneKind> Kind(const mgCVisual *visual) const;
+
+private:
+    dc2::memory::ArenaResource state{}; /**< Immutable exact clone input metadata. */
+};
+
+static_assert(std::is_trivially_copyable_v<VisualCloneInputs>);
+static_assert(std::is_trivially_destructible_v<VisualCloneInputs>);
+} // namespace dc2::render
+
 /**
  *
  * Base of everything a frame can draw: the draw settings shared by all visuals and the calls a frame makes on its visual.
  *
  */
 class mgCVisual {
+    friend class dc2::render::VisualCloneInputs;
+
 public:
-    int                unk_00{};
-    mgCDrawEnv        *draw_env{};        /**< Draw environment the visual is drawn with, or NULL for the render info's own. */
-    mgCTextureManager *texture_manager{}; /**< Texture manager the visual's textures come from, or NULL for the global one. */
-    u_int              prmode{};          /**< Value the visual writes to the GS PRMODE register. */
-    int                vu1_base{};        /**< VU1 memory base address sent with the VIF BASE command. */
-    int                vu1_offset{};      /**< VU1 double-buffer offset sent with the VIF OFFSET command. */
-    int                unk_18{};
+    dc2::render::VisualCloneInputs clone_inputs{}; /**< Exact producer capabilities for clone payload reads. */
+    int                            unk_00{};
+    mgCDrawEnv                    *draw_env{};        /**< Draw environment the visual is drawn with, or NULL for the render info's own. */
+    mgCTextureManager             *texture_manager{}; /**< Texture manager the visual's textures come from, or NULL for the global one. */
+    u_int                          prmode{};          /**< Value the visual writes to the GS PRMODE register. */
+    int                            vu1_base{};        /**< VU1 memory base address sent with the VIF BASE command. */
+    int                            vu1_offset{};      /**< VU1 double-buffer offset sent with the VIF OFFSET command. */
+    int                            unk_18{};
 
     /**
      *
@@ -273,6 +322,7 @@ public:
      */
     virtual mgMaterial *GetMaterial(int index);
 
+protected:
     /**
      *
      * Returns a copy of the visual allocated from memory; a visual with nothing to copy returns itself.
@@ -283,6 +333,7 @@ public:
      */
     virtual mgCVisual *Copy(mgCMemory *memory);
 
+public:
     /**
      *
      * Writes the visual's bounding box and returns non-zero if it has one.
@@ -612,6 +663,7 @@ public:
      */
     int Iam() override;
 
+protected:
     /**
      *
      * Returns a copy of the model allocated from memory, sharing its vertex data and primitives
@@ -623,6 +675,7 @@ public:
      */
     mgCVisual *Copy(mgCMemory *memory) override;
 
+public:
     /**
      *
      * Clears the model's data.

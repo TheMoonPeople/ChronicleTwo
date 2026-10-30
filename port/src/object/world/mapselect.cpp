@@ -53,37 +53,37 @@ struct SaveEditLabels {
  * Counts the map name records loaded for the current language.
  *
  */
-static int MapNameNum;
+int MapNameNum;
 /**
  *
  * Points to map records in the map name storage arena.
  *
  */
-static MAP_NAME_INFO *map_name;
+MAP_NAME_INFO *map_name;
 /**
  *
  * Tracks the next free quadword in the map name storage arena.
  *
  */
-static int pMapNameBuff;
+int pMapNameBuff;
 /**
  *
  * Tracks the next free byte in the map name string buffer.
  *
  */
-static int pCharBuff;
+int pCharBuff;
 /**
  *
  * Points to the map name string buffer following its records.
  *
  */
-static char *CharBuff;
+char *CharBuff;
 /**
  *
  * Selects the map record filled by the next script command.
  *
  */
-static int now_no;
+int now_no;
 /**
  *
  * Selects the save data editor item.
@@ -163,7 +163,7 @@ static int top_event;
  * Stores map records and their variable-length strings in one arena.
  *
  */
-static char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
+char MapNameBuff[MAP_NAME_BUFF_SIZE * 16];
 /**
  *
  * Stores the map name selected for the next edit loop.

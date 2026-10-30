@@ -41,6 +41,9 @@ inline constexpr bool kConfigInterpolationDefault = false;
 inline constexpr bool kConfigInterpolationDefault = true;
 #endif
 
+/** Most extra shots game.spheda_handicap adds to a Spheda hole's par. */
+inline constexpr int kSphedaHandicapMax = 5;
+
 struct Config : HostSettings {
     bool               interpolation = kConfigInterpolationDefault;
     ConfigRenderThread render_thread = ConfigRenderThread::Async;
@@ -54,6 +57,8 @@ struct Config : HostSettings {
     bool sprint = false;
     // game.auto_use_event_item: an event that asks for one item the bag holds is handed it without the item picker.
     bool auto_use_event_item = false;
+    // game.spheda_handicap: extra shots, 0 to 5, added to every Spheda hole's par as it is laid out.
+    int spheda_handicap = 0;
     // game.floor_info_monsters: Triangle on a dungeon floor's information lists its monsters and their drops.
     bool floor_info_monsters = false;
     // game.more_monsters: a dungeon floor holds up to 60 monsters instead of 24, and all of them in range show and act.
@@ -63,7 +68,7 @@ struct Config : HostSettings {
     bool         shared_badge_exp = false;     /**< Shares a quarter of Monica's absorption with other unlocked badges. */
     ConfigAspect aspect = ConfigAspect::Auto;
     float        ui_scale = 1.0f;
-    bool         font_sharp = false;
+    bool         font_sharp = true;
     bool         mouse_fixed_look = true;
     float        menu_pointer_speed = 1.5f;        /**< Captured menu hand travel per mouse count in window pixels. */
     bool         menu_pointer_acceleration = true; /**< Enables up to twice the menu hand gain for fast captured motion. */

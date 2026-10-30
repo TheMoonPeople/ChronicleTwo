@@ -65,7 +65,7 @@ CSceneEventData LadderData;
  * End of the ladder the player entered.
  *
  */
-static int LadderMode;
+int LadderMode;
 /**
  *
  * Stage of climbing the ladder.
@@ -77,19 +77,19 @@ static EditLadderStep LadderStep;
  * Special movement motion in progress.
  *
  */
-static EditCharaMotionMode CharaMotionMode;
+EditCharaMotionMode CharaMotionMode;
 /**
  *
  * Frames left in the landing motion.
  *
  */
-static int CharaMotionModeCnt;
+int CharaMotionModeCnt;
 /**
  *
  * Consecutive frames without ground contact.
  *
  */
-static int CharaFallFlag;
+int CharaFallFlag;
 /**
  *
  * Whether a target heading is set.
@@ -107,7 +107,7 @@ static int CharaAngleTarget;
  * What the scene's fixed camera search gave this frame: zero for none, otherwise the kind of fixed camera found.
  *
  */
-static int FixCameraFlag;
+int FixCameraFlag;
 /**
  *
  * Frames since the fixed-camera position was sampled.
@@ -125,13 +125,13 @@ static int EyeViewCancelOnce;
  * Walking, eye-view or photo view.
  *
  */
-static EditViewMode ViewMode;
+EditViewMode ViewMode;
 /**
  *
  * Whether the saved follow-camera position is valid.
  *
  */
-static int InitEyeViewFlag;
+int InitEyeViewFlag;
 /**
  *
  * Photo shutter frame counter.
@@ -149,13 +149,13 @@ static int move_chara;
  * First-person camera yaw.
  *
  */
-static float viewAngleH;
+float viewAngleH;
 /**
  *
  * First-person camera pitch.
  *
  */
-static float viewAngleV;
+float viewAngleV;
 /**
  *
  * First-person projection adjustment.
@@ -215,7 +215,7 @@ static sceVu0FVECTOR OldFixCameraPos;
  * Follow-camera position saved before eye view.
  *
  */
-static sceVu0FVECTOR OldCameraPos;
+sceVu0FVECTOR OldCameraPos;
 /**
  *
  * Origin of the ladder.
@@ -531,7 +531,7 @@ void EditMoveCharaCore(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo 
     }
 
     if (edit_map != nullptr) {
-        *reinterpret_cast<u_long128 *>(ground_query) = *reinterpret_cast<u_long128 *>(position);
+        std::memmove(ground_query, position, sizeof(float) * 4);
         ground_query[1] += 20.0f;
 
         if (GetFootPoly(ground_query, 80.0f, &ground_poly, ground_position, polys, poly_count, 0)) {
@@ -591,7 +591,7 @@ void EditMoveCharaCore(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo 
     }
 
     character->SetPosition(next_position);
-    *reinterpret_cast<u_long128 *>(character->velocity) = *reinterpret_cast<u_long128 *>(velocity);
+    std::memmove(character->velocity, velocity, sizeof(float) * 4);
     motion = character->GetNowMotionName();
     running = false;
 
@@ -688,7 +688,7 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
 
     character->GetPosition(position);
     character->GetRotation(rotation);
-    *reinterpret_cast<u_long128 *>(velocity) = *reinterpret_cast<u_long128 *>(character->velocity);
+    std::memmove(velocity, character->velocity, sizeof(float) * 4);
     debug_camera = DebugInfo.debug_camera;
 
     if (!DebugFlag) {
@@ -709,17 +709,17 @@ void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
     old_fixed = FixCameraFlag;
     fixed = 0;
     FixCameraFlag = 0;
-    *reinterpret_cast<u_long128 *>(fixed_reference) = *reinterpret_cast<u_long128 *>(position);
+    std::memmove(fixed_reference, position, sizeof(float) * 4);
 
     if (!debug_camera && ViewMode == EDIT_VIEW_MODE_WALK) {
         fixed = scene->GetFixCameraPos(fixed_reference, fixed_position);
 
         if (FixCameraChgCnt <= 0) {
-            *reinterpret_cast<u_long128 *>(OldFixCameraPos) = *reinterpret_cast<u_long128 *>(fixed_position);
+            std::memmove(OldFixCameraPos, fixed_position, sizeof(float) * 4);
         }
 
         if (FixCameraChgCnt > 0) {
-            *reinterpret_cast<u_long128 *>(fixed_position) = *reinterpret_cast<u_long128 *>(OldFixCameraPos);
+            std::memmove(fixed_position, OldFixCameraPos, sizeof(float) * 4);
         }
 
         FixCameraChgCnt++;
@@ -918,7 +918,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
     camera = static_cast<CCameraControl *>(base_camera);
     frame_rate = mgGetNowFrameRate() / 2.0f;
     character->GetPosition(position);
-    *reinterpret_cast<u_long128 *>(velocity) = *reinterpret_cast<u_long128 *>(character->velocity);
+    std::memmove(velocity, character->velocity, sizeof(float) * 4);
     angle = camera->GetAngle();
     stick_x = pad->Analog(PAD_ANALOG_LEFT_X_2);
     stick_y = pad->Analog(PAD_ANALOG_LEFT_Y_2);
@@ -1304,7 +1304,7 @@ static void InitLadder(int mode, CScene *scene, CSceneEventData *event) {
     LadderMode = mode;
     LadderData = *event;
     LadderStep = EDIT_LADDER_STEP_START;
-    *reinterpret_cast<u_long128 *>(LdrPos) = *reinterpret_cast<u_long128 *>(event->map_event.matrix[3]);
+    std::memmove(LdrPos, event->map_event.matrix[3], sizeof(float) * 4);
     LdrPos[3] = 1.0f;
     mgZeroVector(top_offset);
     mgZeroVector(bottom_offset);
@@ -1318,7 +1318,7 @@ static void InitLadder(int mode, CScene *scene, CSceneEventData *event) {
     sceVu0Normalize(matrix[0], event->map_event.matrix[0]);
     sceVu0Normalize(matrix[1], event->map_event.matrix[1]);
     sceVu0Normalize(matrix[2], event->map_event.matrix[2]);
-    *reinterpret_cast<u_long128 *>(matrix[3]) = *reinterpret_cast<u_long128 *>(event->map_event.matrix[3]);
+    std::memmove(matrix[3], event->map_event.matrix[3], sizeof(float) * 4);
     sceVu0ApplyMatrix(walk_offset, matrix, walk_offset);
     sceVu0ApplyMatrix(top_offset, matrix, top_offset);
     sceVu0ApplyMatrix(bottom_offset, matrix, bottom_offset);
@@ -1332,12 +1332,12 @@ static void InitLadder(int mode, CScene *scene, CSceneEventData *event) {
     sceVu0AddVector(LdrCamPos, LdrPos, camera_offset);
 
     if (mode == EDIT_LADDER_MODE_BOTTOM) {
-        *reinterpret_cast<u_long128 *>(StdPos) = *reinterpret_cast<u_long128 *>(LdrBottomPos);
+        std::memmove(StdPos, LdrBottomPos, sizeof(float) * 4);
         LdrBtmFoot = current_foot;
         LdrTopFoot = other_foot;
         LdrTopPos[1] += height;
     } else {
-        *reinterpret_cast<u_long128 *>(StdPos) = *reinterpret_cast<u_long128 *>(LdrTopPos);
+        std::memmove(StdPos, LdrTopPos, sizeof(float) * 4);
         LdrBtmFoot = other_foot;
         LdrTopFoot = current_foot;
         LdrBottomPos[1] -= height;
@@ -1404,10 +1404,10 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
                 if (LadderMode == EDIT_LADDER_MODE_BOTTOM) {
                     LadderStep = EDIT_LADDER_STEP_MOUNT_BOTTOM;
                     character->SetMotion("\x82\xCC\x82\xDA\x82\xE9", CHARA_MOTION_RESTART);
-                    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(LdrPos);
+                    std::memmove(position, LdrPos, sizeof(float) * 4);
                 } else {
                     LadderStep = EDIT_LADDER_STEP_MOUNT_TOP;
-                    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(LdrPos);
+                    std::memmove(position, LdrPos, sizeof(float) * 4);
                     position[1] -= 14.0f;
                     character->SetMotion("\x8D\x7E\x82\xE8\x82\xE9", CHARA_MOTION_RESTART);
                 }
@@ -1570,7 +1570,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
             }
 
             if (character->CheckMotionEnd()) {
-                *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(LdrBottomPos);
+                std::memmove(position, LdrBottomPos, sizeof(float) * 4);
                 character->SetMotion("\x97\xA7\x82\xBF", CHARA_MOTION_RESTART);
                 LadderStep = EDIT_LADDER_STEP_END;
             }
@@ -1582,7 +1582,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
             }
 
             if (character->CheckMotionEnd()) {
-                *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(LdrTopPos);
+                std::memmove(position, LdrTopPos, sizeof(float) * 4);
                 character->SetMotion("\x97\xA7\x82\xBF", CHARA_MOTION_RESTART);
                 LadderStep = EDIT_LADDER_STEP_WALK_OFF_TOP;
             }
@@ -1593,7 +1593,7 @@ static void LadderControl(CScene *scene, CPadControl *pad) {
             mgVectorInterpolate(position, position, LdrTopWalk, 1.0f, 0);
 
             if (mgDistVector(position, LdrTopWalk) < 0.1f) {
-                *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(LdrTopWalk);
+                std::memmove(position, LdrTopWalk, sizeof(float) * 4);
                 LadderStep = EDIT_LADDER_STEP_END;
             } else {
                 character->SetMotion("\x95\xE0\x82\xAB", 0);

@@ -61,15 +61,15 @@
 /**
  * Mode entered after the current main loop finishes.
  */
-static int NextLoopNo;
+int NextLoopNo;
 /**
  * Mode active before the current main loop.
  */
-static int PrevLoopNo;
+int PrevLoopNo;
 /**
  * Whether input replay also captures screen images.
  */
-static int CaptureScreen;
+int CaptureScreen;
 /**
  * Selected pause-menu command.
  */
@@ -97,16 +97,16 @@ u_long128 main_buffer[0x1A0000];
 /**
  * Memory backing the system sound-effect loader.
  */
-static u_long128 SystemSeBuff[400];
+u_long128 SystemSeBuff[400];
 /**
  * Memory backing configuration and villager data.
  */
-static u_long128 InfoBuff[5000];
-static void      MenuInit(INIT_LOOP_ARG arg);
-static void      MenuExit();
-static int       MenuLoop();
-static int       EventSelect();
-LOOP_INIT_FUNC   LoopInit[LOOP_MODE_NUM] = {
+u_long128      InfoBuff[5000];
+static void    MenuInit(INIT_LOOP_ARG arg);
+static void    MenuExit();
+static int     MenuLoop();
+static int     EventSelect();
+LOOP_INIT_FUNC LoopInit[LOOP_MODE_NUM] = {
     MenuInit,
     EditInit,
     InitDungeonMain,
@@ -219,28 +219,28 @@ static void InitEventSelect();
 /**
  * Values selected by the debug menu and game configuration tags.
  */
-static int SelectArg[32] = {0};
+int SelectArg[32] = {0};
 
 /**
  * Save data used by the current game mode.
  */
-static CSaveData *ActiveSaveData;
+CSaveData *ActiveSaveData;
 /**
  * Selected input capture or replay mode.
  */
-static int CaptureMode;
+int CaptureMode;
 /**
  * Currently active main-loop mode.
  */
-static int LoopNo;
+int LoopNo;
 /**
  * Whether vertical blank advances the saved play time.
  */
-static int PlayTimeCountFlag;
+int PlayTimeCountFlag;
 /**
  * Save-data arena for the active extra game.
  */
-static CSubGameData *SubGameSaveData;
+CSubGameData *SubGameSaveData;
 /**
  * Whether the event-selection sub-menu is open.
  */
@@ -1310,7 +1310,7 @@ INIT_LOOP_ARG PrevInitArg;
 /**
  * Main allocator over the game resource arena.
  */
-static mgCMemory MainBuffer;
+mgCMemory MainBuffer;
 /**
  * Scene used by the main game modes.
  */

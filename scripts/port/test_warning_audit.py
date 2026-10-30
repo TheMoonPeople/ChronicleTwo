@@ -135,8 +135,9 @@ class WarningAuditTests(unittest.TestCase):
                 if not path.is_file() or path.suffix not in {".cpp", ".hpp", ".h", ".inc", ".inl", ".ipp", ".tpp"}:
                     continue
                 with self.subTest(path=path.relative_to(root)):
-                    self.assertNotRegex(path.read_text(), r"#\s*pragma\s+(?:clang|GCC)\s+diagnostic\s+ignored")
-                    self.assertNotRegex(path.read_text(), r"#\s*pragma\s+warning\s*\(\s*disable")
+                    source = path.read_text(encoding="utf-8")
+                    self.assertNotRegex(source, r"#\s*pragma\s+(?:clang|GCC)\s+diagnostic\s+ignored")
+                    self.assertNotRegex(source, r"#\s*pragma\s+warning\s*\(\s*disable")
 
     def test_summary_deduplicates_owned_headers_without_hiding_external_counts(self):
         diagnostic = ("port/include/example.hpp", "1", "2", "warning", "-Wshadow", "shadowed")

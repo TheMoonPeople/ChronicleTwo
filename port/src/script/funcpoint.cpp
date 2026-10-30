@@ -122,7 +122,7 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
         return;
     }
 
-    *reinterpret_cast<u_long128 *>(speed) = *reinterpret_cast<u_long128 *>(settings->speed);
+    std::memmove(speed, settings->speed, sizeof(float) * 4);
 
     if (back != 0) {
         sceVu0ScaleVector(speed, speed, -1.0f);
@@ -154,7 +154,7 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
             mgAddVector(param, speed);
 
             if (CheckOver(param, speed, settings->end)) {
-                *reinterpret_cast<u_long128 *>(param) = *reinterpret_cast<u_long128 *>(settings->end);
+                std::memmove(param, settings->end, sizeof(float) * 4);
             }
 
             break;
@@ -169,7 +169,7 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
             mgAddVector(param, speed);
 
             if (CheckOver(param, speed, settings->end)) {
-                *reinterpret_cast<u_long128 *>(param) = *reinterpret_cast<u_long128 *>(settings->param);
+                std::memmove(param, settings->param, sizeof(float) * 4);
             }
 
             break;
@@ -179,7 +179,7 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
 
             if (back != 0) {
                 if (CheckOver(param, speed, settings->param)) {
-                    *reinterpret_cast<u_long128 *>(param) = *reinterpret_cast<u_long128 *>(settings->param);
+                    std::memmove(param, settings->param, sizeof(float) * 4);
                     back = 0;
 
                     if (settings->mode == OBJ_ANIME_MODE_PINGPONG_ONCE) {
@@ -188,7 +188,7 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
                 }
             } else {
                 if (CheckOver(param, speed, settings->end)) {
-                    *reinterpret_cast<u_long128 *>(param) = *reinterpret_cast<u_long128 *>(settings->end);
+                    std::memmove(param, settings->end, sizeof(float) * 4);
                     back = 1;
                 }
             }
@@ -196,7 +196,7 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
             break;
         case OBJ_ANIME_MODE_LOOK:
             if (settings->kind == OBJ_ANIME_PARAM_ROTATION && env != nullptr && parts != nullptr) {
-                *reinterpret_cast<u_long128 *>(target) = *reinterpret_cast<u_long128 *>(env->chara_pos);
+                std::memmove(target, env->chara_pos, sizeof(float) * 4);
 
                 if (piece != nullptr) {
                     target[3] = 1.0f;
@@ -289,7 +289,7 @@ void CObjAnime::Step(CObjAnimeEnv *env) {
 
 void CObjAnime::SetParam(float *value) {
     CFuncPoint::AnimeData *settings = &func_point->anime;
-    *reinterpret_cast<u_long128 *>(param) = *reinterpret_cast<u_long128 *>(value);
+    std::memmove(param, value, sizeof(float) * 4);
 
     if (settings->uniform != 0) {
         param[1] = param[0];
@@ -409,7 +409,7 @@ void CObjAnime::GetParam(float *out_value) {
         return;
     }
 
-    *reinterpret_cast<u_long128 *>(out_value) = *reinterpret_cast<u_long128 *>(param);
+    std::memmove(out_value, param, sizeof(float) * 4);
 
     switch (settings->kind) {
         case OBJ_ANIME_PARAM_POSITION:
@@ -473,7 +473,7 @@ int CObjAnime::AssignFuncAnime(CFuncPoint *point, CMapParts *map_parts) {
     }
 
     sceVu0FVECTOR initial_value;
-    *reinterpret_cast<u_long128 *>(initial_value) = *reinterpret_cast<u_long128 *>(func_point->anime.param);
+    std::memmove(initial_value, func_point->anime.param, sizeof(float) * 4);
     SetParam(initial_value);
     return 1;
 }
@@ -520,6 +520,36 @@ CFuncPoint *CFuncPointMngr::Add(int type, CList<CFuncPoint> *node) {
         }
     }
 
+    if (node->data.type != type) {
+        switch (type) {
+            case FUNC_POINT_EFFECT:
+                node->data.effect = {};
+                break;
+            case FUNC_POINT_FIRE:
+            case FUNC_POINT_FLARE:
+                node->data.fire = {};
+                break;
+            case FUNC_POINT_PLIGHT:
+                node->data.plight = {};
+                break;
+            case FUNC_POINT_ANIME:
+                node->data.anime = {};
+                break;
+            case FUNC_POINT_EVENT:
+                node->data.event = {};
+                break;
+            case FUNC_POINT_INVENT:
+                node->data.invent = {};
+                break;
+            case FUNC_POINT_SOUND:
+                node->data.sound = {};
+                break;
+            case FUNC_POINT_NONE:
+            case FUNC_POINT_POS:
+                node->data.anime = {};
+                break;
+        }
+    }
     node->data.type = type;
     return &node->data;
 }
@@ -853,7 +883,6 @@ int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFu
     for (i = 0; i < max; i++) {
         CFuncPoint *light = candidate[i];
         CFuncPoint *out = &out_lights[i];
-        float      *color = light->fire.color;
 
         switch (light->type) {
             case FUNC_POINT_PLIGHT:
@@ -861,7 +890,10 @@ int CFuncPointMngr::GetLight(float *sphere, CFuncPoint *out_lights, int max, CFu
                 break;
             case FUNC_POINT_FIRE:
             case FUNC_POINT_FLARE: {
+                float color[4];
+                sceVu0CopyVector(color, light->fire.color);
                 *out = *light;
+                out->plight = {};
                 out->type = FUNC_POINT_PLIGHT;
                 sceVu0ScaleVector(out->plight.color, color, 1.0f);
                 out->plight.power = 60.0f * light->scale[1];
@@ -1030,7 +1062,7 @@ void DrawFireEffect(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck
                         if (point->active != 0) {
                             size[0] = 20.0f * point->scale[0];
                             size[1] = 20.0f * point->scale[1];
-                            *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(point->position);
+                            std::memmove(position, point->position, sizeof(float) * 4);
                             position[1] += 0.4f * size[1];
                             sprite->CPSetSprite(position, size, point->fire.color, uv0, uv1);
                         }
@@ -1069,7 +1101,7 @@ void DrawFireEffect(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck
                         if (point->fire.effect_off == 0 && point->active != 0) {
                             size[0] = fire_size * point->scale[0];
                             size[1] = fire_size * point->scale[1];
-                            *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(point->position);
+                            std::memmove(position, point->position, sizeof(float) * 4);
                             sceVu0SubVector(to_camera, camera, position);
                             sceVu0Normalize(to_camera, to_camera);
                             sceVu0ScaleVector(to_camera, to_camera, 10.0f);
@@ -1097,7 +1129,7 @@ void DrawFireEffect(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck
                         if (point->active != 0) {
                             size[0] = flare_size * point->scale[0];
                             size[1] = flare_size * point->scale[1];
-                            *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(point->position);
+                            std::memmove(position, point->position, sizeof(float) * 4);
                             sceVu0SubVector(to_camera, camera, position);
                             sceVu0Normalize(to_camera, to_camera);
                             sceVu0ScaleVector(to_camera, to_camera, 10.0f);
@@ -1144,7 +1176,7 @@ void DrawFireRaster(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck
         if (first != nullptr) {
             do {
                 if (point->active != 0 && point->fire.heat_haze != 0) {
-                    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(point->position);
+                    std::memmove(position, point->position, sizeof(float) * 4);
                     position[3] = 1.0f;
                     sceVu0ApplyMatrix(position, lw_matrix, position);
                     position[1] += 10.0f * point->scale[1];
@@ -1188,7 +1220,7 @@ int GetSeSrcVolPan(
                     return n;
                 }
 
-                *reinterpret_cast<u_long128 *>(q90.v) = *reinterpret_cast<u_long128 *>(p->position);
+                std::memmove(q90.v, p->position, sizeof(float) * 4);
                 q90.w = 0x3F800000;
                 sceVu0ApplyMatrix(q90.v, mat, q90.v);
                 sndGetVolPan(vols, pans, q90.v, 10.0f, 1200.0f);
@@ -1225,7 +1257,7 @@ int GetSeSrcVolPan(
                         sceVu0ApplyMatrix(v_a0, m_b0, p->sound.end);
                         sndGetVolPan(vols, pans, q90.v, v_a0, p->sound.near_dist, p->sound.far_dist);
                     } else {
-                        *reinterpret_cast<u_long128 *>(q90.v) = *reinterpret_cast<u_long128 *>(p->position);
+                        std::memmove(q90.v, p->position, sizeof(float) * 4);
                         q90.w = 0x3F800000;
                         sceVu0ApplyMatrix(q90.v, mat, q90.v);
                         sndGetVolPan(vols, pans, q90.v, p->sound.near_dist, p->sound.far_dist);
@@ -1295,13 +1327,6 @@ float GetLightAnimeWeight(CFuncPoint *point, int frame) {
 #include "mg_math.hpp"
 #include "mg_memory.hpp"
 
-namespace {
-// The anonymous settings union ends where the following frame begins. Its
-// pointer-bearing alternatives grow on the host; data[] is only the retail view.
-constexpr std::size_t SettingsSize = offsetof(CFuncPoint, frame) - offsetof(CFuncPoint, data);
-static_assert(SettingsSize >= sizeof(CFuncPoint::AnimeData));
-} // namespace
-
 void CFuncPoint::Initialize() {
     name = nullptr;
     active = 0;
@@ -1309,7 +1334,7 @@ void CFuncPoint::Initialize() {
     unk_8 = flag_no = 0;
     enable = 1;
     start = end = 0.0f;
-    std::memset(data, 0, SettingsSize);
+    anime = {};
     mgZeroVector(position);
     mgZeroVector(rotation);
     scale[0] = scale[1] = scale[2] = 1.0f;
@@ -1322,22 +1347,11 @@ int CFuncPointMngr::Copy(CFuncPointMngr &dest, mgCMemory *stack) {
         for (auto *node = list[kind]; node != nullptr; node = node->next) {
             auto *copy = dest.Add(kind, stack);
             if (copy == nullptr) {
-                break;
+                dest.Initialize();
+                return 0;
             }
             auto &source = node->data;
-            copy->name = source.name;
-            copy->type = source.type;
-            copy->unk_8 = source.unk_8;
-            copy->flag_no = source.flag_no;
-            copy->enable = source.enable;
-            copy->start = source.start;
-            copy->end = source.end;
-            std::memcpy(copy->data, source.data, SettingsSize);
-            copy->frame = source.frame;
-            sceVu0CopyVector(copy->position, source.position);
-            sceVu0CopyVector(copy->rotation, source.rotation);
-            sceVu0CopyVector(copy->scale, source.scale);
-            copy->active = source.active;
+            *copy = source;
         }
     }
     return 1;

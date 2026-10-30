@@ -430,7 +430,7 @@ static void DrawSystemParamInfo2() {
 
     if (chara->lock_on != 0) {
         int             slot = chara->target_no - 0x18;
-        CActiveMonster *monster = ActiveMonster->active[slot];
+        CActiveMonster *monster = ActiveMonster->GetActiveMonster(slot);
 
         if (monster != nullptr) {
             monster->GetPosition(monster_position);

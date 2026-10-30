@@ -204,14 +204,14 @@ static short SfidaMakeLine;
  * Menu that the world move menu mode shows. @see WORLD_MAP_MENU_TYPE
  *
  */
-static signed char WorldMapMenuType;
+signed char WorldMapMenuType;
 
 /**
  *
  * Active world map menu instance.
  *
  */
-static CWorldMapMenu *WorldMapPtr;
+CWorldMapMenu *WorldMapPtr;
 
 /**
  *
@@ -246,42 +246,42 @@ static short WorldMap_DngFloor;
  * Number of scripted world map places.
  *
  */
-static short spi_wmappos_tblnum;
+short spi_wmappos_tblnum;
 
 /**
  *
  * Scripted world map place records.
  *
  */
-static WMAP_POS_DATA *spi_wmappos_tbl;
+WMAP_POS_DATA *spi_wmappos_tbl;
 
 /**
  *
  * Number of scripted world map areas.
  *
  */
-static short spi_wmaparea_tblnum;
+short spi_wmaparea_tblnum;
 
 /**
  *
  * Scripted world map area records.
  *
  */
-static WMAP_AREA_DATA *spi_wmaparea_tbl;
+WMAP_AREA_DATA *spi_wmaparea_tbl;
 
 /**
  *
  * Memory backing the scripted world map place and area tables.
  *
  */
-static mgCMemory *spi_wmapstack;
+mgCMemory *spi_wmapstack;
 
 /**
  *
  * Number of world map areas currently available for travel.
  *
  */
-static short MapEnableNum;
+short MapEnableNum;
 
 void worldmap_analyze(mgCMemory *stack, char *script, int size);
 

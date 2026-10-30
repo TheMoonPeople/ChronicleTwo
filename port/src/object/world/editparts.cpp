@@ -1,6 +1,8 @@
 #include "common.h"
 #include "mw_runtime.h"
 
+#include <cstring>
+
 #include "editeff.hpp"
 #include "editparts.hpp"
 #include "mdslist.hpp"
@@ -61,9 +63,9 @@ int CEditPartsInfo::GetPartsType() {
 void CEditPartsInfo::CreateBox() {
     float corner0[4];
     float corner1[4];
-    *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(corner0);
+    std::memmove(box.max, corner0, sizeof(float) * 4);
     box.max[3] = 1.0f;
-    *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(corner1);
+    std::memmove(box.min, corner1, sizeof(float) * 4);
     box.min[3] = 1.0f;
 }
 
@@ -154,7 +156,7 @@ void CEditParts::SetPosition(float *pos) {
         float offset[4];
         float local[4];
         ground->GetPosition(offset);
-        *reinterpret_cast<u_long128 *>(local) = *reinterpret_cast<u_long128 *>(pos);
+        std::memmove(local, pos, sizeof(float) * 4);
         local[1] -= StandardPos(offset[1]);
         mgCObject::SetPosition(local);
     }
@@ -269,8 +271,8 @@ int CEditParts::GetFenceSide(float *end_a, float *end_b) {
     }
 
     CMapParts::GetLWMatrix(matrix);
-    *reinterpret_cast<u_long128 *>(point_a) = *reinterpret_cast<u_long128 *>(info->area3_box.max);
-    *reinterpret_cast<u_long128 *>(point_b) = *reinterpret_cast<u_long128 *>(info->area3_box.min);
+    std::memmove(point_a, info->area3_box.max, sizeof(float) * 4);
+    std::memmove(point_b, info->area3_box.min, sizeof(float) * 4);
     point_b[3] = 1.0f;
     point_a[3] = 1.0f;
     sceVu0ApplyMatrix(end_a, matrix, point_a);
@@ -353,8 +355,8 @@ int CEditParts::GetPartsType() {
     return -1;
 }
 
-void CEditParts::Copy(CMapParts &source, mgCMemory *memory) {
-    CMapParts::Copy(source, memory);
+bool CEditParts::Copy(CMapParts &source, mgCMemory *memory) {
+    return CMapParts::Copy(source, memory);
 }
 
 int CEditParts::CheckTerritory(CEditParts *other) {

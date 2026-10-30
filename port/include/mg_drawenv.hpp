@@ -55,7 +55,7 @@ struct mgVu0FBOX {
      * @address 0x139F00
      * @size 0x20
      */
-    mgVu0FBOX &operator=(mgVu0FBOX &source);
+    mgVu0FBOX &operator=(const mgVu0FBOX &source) = default;
 };
 
 STATIC_ASSERT(sizeof(mgVu0FBOX) == 0x20);

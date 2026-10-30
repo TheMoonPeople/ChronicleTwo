@@ -1,4 +1,8 @@
+#ifdef __SWITCH__
+#include "platform/zip_archive.hpp"
+#else
 #include "kazarov_bridge/rust/lib.h"
+#endif
 
 #include <cstdint>
 #include <exception>
@@ -34,12 +38,21 @@ public:
         CT_PROFILE_ZONE("Open asset archive");
         const auto text = Utf8(path);
         try {
+#ifdef __SWITCH__
+            archive_.emplace(path);
+#else
             archive_.emplace(kazarov::open_archive(rust::Str(text.data(), text.size())));
+#endif
         } catch (const std::exception &error) {
             throw std::runtime_error(error.what());
         }
+#ifdef __SWITCH__
+        const auto &archive = archive_->Entries();
+        const auto  count = archive.size();
+#else
         const auto &archive = **archive_;
         const auto  count = kazarov::archive_entry_count(archive);
+#endif
         entries_.resize(count);
         index_.reserve(count);
         std::error_code error;
@@ -48,13 +61,23 @@ public:
         const auto      prefix = text + '|' + std::to_string(error ? 0 : size) + '|' +
                                  std::to_string(error ? 0 : static_cast<long long>(time.time_since_epoch().count())) + '|';
         for (std::size_t index = 0; index < count; ++index) {
-            auto      &entry = entries_[index];
+            auto &entry = entries_[index];
+#ifdef __SWITCH__
+            const auto &record = archive[index];
+            const auto &name = record.name;
+            entry.size = record.size;
+            entry.stored = record.method == kazarov::ZipArchive::Compression::Stored;
+            entry.offset = record.offset;
+            const auto crc = record.crc;
+#else
             const auto name = kazarov::archive_entry_name(archive, index);
-            entry.name.assign(name.data(), name.size());
             entry.size = kazarov::archive_entry_size(archive, index);
             entry.stored = kazarov::archive_entry_stored(archive, index);
             entry.offset = kazarov::archive_entry_data_offset(archive, index);
-            entry.stamp = prefix + std::to_string(kazarov::archive_entry_crc(archive, index)) + '|' +
+            const auto crc = kazarov::archive_entry_crc(archive, index);
+#endif
+            entry.name.assign(name.data(), name.size());
+            entry.stamp = prefix + std::to_string(crc) + '|' +
                           std::to_string(entry.size) + '|' + std::to_string(entry.offset);
             if (!index_.emplace(vfs::FoldKey(entry.name), index).second) {
                 throw std::runtime_error("paths differ only by ASCII case: " + entry.name);
@@ -99,8 +122,12 @@ public:
         }
         CT_PROFILE_TEXT(entries_[index].name.data(), entries_[index].name.size());
         try {
+#ifdef __SWITCH__
+            return archive_->Read(index, std::span(static_cast<std::uint8_t *>(buffer), size));
+#else
             kazarov::archive_read_entry(**archive_, index, rust::Slice<std::uint8_t>(static_cast<std::uint8_t *>(buffer), size));
             return true;
+#endif
         } catch (const std::exception &) {
             return false;
         }
@@ -123,7 +150,17 @@ public:
             prefix_file_.open(file_, std::ios::binary);
         }
         prefix_file_.clear();
-        prefix_file_.seekg(static_cast<std::streamoff>(entry.offset));
+#ifdef __SWITCH__
+        std::uint64_t offset = 0;
+        try {
+            offset = archive_->DataOffset(index);
+        } catch (const std::exception &) {
+            return false;
+        }
+#else
+        const auto offset = entry.offset;
+#endif
+        prefix_file_.seekg(static_cast<std::streamoff>(offset));
         prefix_file_.read(reinterpret_cast<char *>(out.data()), static_cast<std::streamsize>(out.size()));
         return prefix_file_ && static_cast<std::size_t>(prefix_file_.gcount()) == out.size();
     }
@@ -135,7 +172,17 @@ public:
         if (!entry.stored) {
             return std::nullopt;
         }
-        return vfs::StoredRange{.file = file_, .offset = entry.offset, .length = entry.size};
+#ifdef __SWITCH__
+        std::uint64_t offset = 0;
+        try {
+            offset = archive_->DataOffset(index);
+        } catch (const std::exception &) {
+            return std::nullopt;
+        }
+#else
+        const auto offset = entry.offset;
+#endif
+        return vfs::StoredRange{.file = file_, .offset = offset, .length = entry.size};
     }
 
     std::vector<vfs::Member> List(std::string_view directory) const override {
@@ -185,9 +232,13 @@ private:
         }
     }
 
-    fs::path                                                          file_;         /**< Archive file. */
-    std::string                                                       label_;        /**< Archive filename shown in diagnostics. */
-    std::optional<rust::Box<kazarov::Archive>>                        archive_;      /**< Open archive. */
+    fs::path    file_;  /**< Archive file. */
+    std::string label_; /**< Archive filename shown in diagnostics. */
+#ifdef __SWITCH__
+    std::optional<kazarov::ZipArchive> archive_; /**< Indexed native archive. */
+#else
+    std::optional<rust::Box<kazarov::Archive>> archive_; /**< Open archive. */
+#endif
     std::vector<Entry>                                                entries_;      /**< Entries in central-directory order. */
     std::unordered_map<std::string, std::size_t>                      index_;        /**< Folded names mapped to entries. */
     mutable std::mutex                                                prefix_mutex_; /**< Guards prefix_file_. */

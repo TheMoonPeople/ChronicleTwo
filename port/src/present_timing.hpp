@@ -59,3 +59,73 @@ inline float PresentFrameAlpha(double elapsed_fields, double fractional_field, i
                                           : fractional_field;
     return static_cast<float>(std::clamp(alpha, 0.0, std::nextafter(1.0, 0.0)));
 }
+
+namespace dc2::presentation {
+
+/**
+ * Schedules one intermediate image followed by its authoritative authored endpoint.
+ */
+class EndpointPair {
+public:
+    using Clock = PresentPacer::Clock;
+    enum class Action {
+        Wait,
+        Intermediate,
+        Endpoint,
+        Done
+    };
+
+    struct Decision {
+        Action            action = Action::Done; /**< Work permitted at this instant. */
+        Clock::time_point deadline{};            /**< Earliest time at which the work may begin. */
+    };
+
+    /**
+     * Starts a newly published two-field frame.
+     */
+    void Begin() { phase = Phase::Intermediate; }
+
+    /**
+     * Retires an obsolete frame without accumulating presentation debt.
+     */
+    void Cancel() { phase = Phase::Done; }
+
+    /**
+     * Chooses the next phase while preserving the global presentation cap.
+     */
+    [[nodiscard]] Decision Next(Clock::time_point now, Clock::time_point frame_end, double max_fps, const PresentPacer &pacer) const {
+        if (phase == Phase::Done) {
+            return {Action::Done, now};
+        }
+        const auto intermediate = pacer.Next(now, frame_end, max_fps);
+        if (phase == Phase::Intermediate && intermediate.action != PresentPacer::Action::Tick) {
+            return {intermediate.action == PresentPacer::Action::Wait ? Action::Wait : Action::Intermediate, intermediate.deadline};
+        }
+        if (now < frame_end) {
+            return {Action::Wait, frame_end};
+        }
+        const auto endpoint = pacer.Next(now, Clock::time_point::max(), max_fps);
+        return {endpoint.action == PresentPacer::Action::Display ? Action::Endpoint : Action::Wait, endpoint.deadline};
+    }
+
+    /**
+     * Advances only after a successful presentation.
+     */
+    void Presented(Action action) {
+        if (action == Action::Intermediate) {
+            phase = Phase::Endpoint;
+        } else if (action == Action::Endpoint) {
+            phase = Phase::Done;
+        }
+    }
+
+private:
+    enum class Phase {
+        Intermediate,
+        Endpoint,
+        Done
+    };
+    Phase phase = Phase::Done; /**< Next unconsumed phase of the current publication. */
+};
+
+} // namespace dc2::presentation

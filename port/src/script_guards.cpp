@@ -112,7 +112,7 @@ struct Rule {
 template <typename Array>
 constexpr int Extent = static_cast<int>(std::extent_v<Array>);
 
-constexpr int kMonsterSlotEnd = DNG_CHARA_SLOT_MONSTER + Extent<decltype(CMonsterMan::active)>;
+constexpr int kMonsterSlotEnd = static_cast<int>(DNG_CHARA_SLOT_MONSTER) + static_cast<int>(MONSTER_ACTIVE_MAX);
 constexpr int kUnbounded = std::numeric_limits<int>::max();
 
 /**
@@ -311,7 +311,7 @@ bool MapJumpNameFits(dc2::script::RunArguments args, int argc) {
 std::unordered_map<RunScriptFunction, std::vector<Rule>> &ExternalRules() {
     static std::unordered_map<RunScriptFunction, std::vector<Rule>> rules = [] {
         std::unordered_map<RunScriptFunction, std::vector<Rule>> table;
-        // Active-monster externals name a dungeon character slot, which maps onto CMonsterMan::active.
+        // Active-monster externals identify a character slot within the dungeon's monster range.
         for (const auto function : {dc2::script::AdaptRunArguments<_GET_ACTIVE_MONS_LIFEI>, dc2::script::AdaptRunArguments<_GET_ACTIVE_MONS_LIFEF>, dc2::script::AdaptRunArguments<_SET_ACTIVE_MONS_LIFEI>, dc2::script::AdaptRunArguments<_SET_ACTIVE_MONS_LIFEF>, dc2::script::AdaptRunArguments<_GET_ACTIVE_MONS_MAX_LIFE>, dc2::script::AdaptRunArguments<_SET_DAMAGE_SCORE>, dc2::script::AdaptRunArguments<_GET_MONS_GRADE>, dc2::script::AdaptRunArguments<_SET_ESCAPE_RATE>, dc2::script::AdaptRunArguments<_SET_GUARD_RATE>, dc2::script::AdaptRunArguments<_SET_EXT_PARAM_RATE>, dc2::script::AdaptRunArguments<_GET_ENTRY_OBJ_POS>}) {
             table[function] = {
                 {.argument = 0, .kind = RuleKind::IndexOrSelf, .first = DNG_CHARA_SLOT_MONSTER, .end = kMonsterSlotEnd}

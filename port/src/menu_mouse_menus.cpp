@@ -42,7 +42,7 @@ void RootMouse() {
     }
     std::vector<MenuMouseRect> rows;
     for (int i = 0; i < MouseInter->select_num; ++i) {
-        auto *form = MenuPosData->GetFormInfo(GetMenuMainIconChar(MouseInter->mode_list[i]));
+        auto *form = MenuPosData->GetFormInfo(dc2::menu::MainIconName(MouseInter->mode_list[i]).data());
         rows.push_back(form ? MenuMouseRect{.x = form->x - 20, .y = form->y - 4, .w = 190, .h = 30} : MenuMouseRect{});
     }
     const int selected = MenuMouseRows(rows, MouseInter->select_no);

@@ -1,3 +1,6 @@
+#include <format>
+
+#include "text/bounded.hpp"
 // clang-format off
 // Load JSON before legacy game headers define conflicting macros.
 #include "platform/native_config.hpp"
@@ -79,7 +82,7 @@ void ShareMenuMemory(mgCMemory &destination, mgCMemory &source) {
  * Currency used for the current shop.
  *
  */
-static short NowSellMode;
+short NowSellMode;
 
 /**
  *
@@ -107,28 +110,28 @@ static mgCTexture *Tex_Mt0;
  * Number of goods parsed from the selected shop row.
  *
  */
-static short Now_ShopListNum;
+short Now_ShopListNum;
 
 /**
  *
  * Destination for item numbers parsed from the shop script.
  *
  */
-static int *Now_ShopDataReadPtr;
+int *Now_ShopDataReadPtr;
 
 /**
  *
  * Shop number selected while parsing the goods script.
  *
  */
-static short Now_Shop_ID;
+short Now_Shop_ID;
 
 /**
  *
  * Destination for buying and selling prices parsed from the shop script.
  *
  */
-static SHOP_PRICE_INFO *Spi_PriceList;
+SHOP_PRICE_INFO *Spi_PriceList;
 
 /**
  *
@@ -2542,7 +2545,7 @@ void MenuNPCQuestViewDraw() {
                     line[c] = ' ';
                 }
 
-                strcpy(&line[0x18], info->name);
+                dc2::text::Copy(std::span(line).subspan(0x18), dc2::text::View(info->name));
 
                 if (i == menu_debug_questselect) {
                     line[1] = '>';
@@ -2599,7 +2602,7 @@ void MenuNPCQuestViewDraw() {
                 line[8] = ':';
                 line[10] = ']';
                 GetPhotoNameStr(scoop->scoop_id, photo_name);
-                strcpy(&line[0x18], photo_name);
+                dc2::text::Copy(std::span(line).subspan(0x18), dc2::text::View(photo_name));
 
                 if (scoop_info->known != 0) {
                     line[7] = 'o';

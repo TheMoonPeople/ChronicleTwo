@@ -22,6 +22,13 @@
  * Describes a file's attributes, size and
  * time stamps as reported by sceGetstat.
  */
+#pragma push_macro("st_ctime")
+#pragma push_macro("st_atime")
+#pragma push_macro("st_mtime")
+#undef st_ctime
+#undef st_atime
+#undef st_mtime
+
 struct sce_stat {
     unsigned int  st_mode;       /**< File type and access mode. */
     unsigned int  st_attr;       /**< Device-specific attributes. */
@@ -32,6 +39,10 @@ struct sce_stat {
     unsigned int  st_hisize;     /**< High 32 bits of the file size in bytes. */
     unsigned int  st_private[6]; /**< Device-specific data. */
 };
+
+#pragma pop_macro("st_mtime")
+#pragma pop_macro("st_atime")
+#pragma pop_macro("st_ctime")
 
 extern "C" {
 void sceFsReset(void);

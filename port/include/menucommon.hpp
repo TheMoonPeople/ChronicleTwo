@@ -2,6 +2,9 @@
 
 #include "common.h"
 
+#include <string>
+#include <string_view>
+
 #include "character.hpp"
 #include "dataread.hpp"
 #include "gamedata.hpp"
@@ -89,12 +92,10 @@ int menu_spi_analyze_func_strcut1(MENU_SPI_ANALYZE_STRUCT1 *table, char *name);
  *
  */
 struct MENU_COMMAND_ANALYZE_INFO {
-    char                    command_name[0x48]{}; /**< Command whose block of the script runs; other blocks are skipped. */
+    std::string             command_name{};       /**< Command whose block of the script runs; other blocks are skipped. */
     dc2::text::MessageTable system_mes_buff[4]{}; /**< System message buffers by number; null stands for the default system message buffer. */
     dc2::text::MessageTable mes_buff[4]{};        /**< Message buffers by number. */
 };
-
-STATIC_ASSERT(sizeof(MENU_COMMAND_ANALYZE_INFO) == 0x68);
 
 /**
  *
@@ -445,15 +446,14 @@ void Trans3DPosTo2DPos(mgCCamera *camera, mgCFrame *frame, int *out);
  */
 int MenuDataAnalyze(char *script, int size, mgCMemory *memory);
 
+namespace dc2::menu {
 /**
  *
- * Runs the block of a menu command script that belongs to one command.
+ * Executes configuration blocks matching the complete requested command name.
  *
- * @mangled MenuCommandAnalyze__FPciPc
- * @address 0x257670
- * @size 0x80
  */
-void MenuCommandAnalyze(char *script, int size, char *command_name);
+void AnalyzeCommands(char *script, int size, std::string_view command_name);
+} // namespace dc2::menu
 
 /**
  *

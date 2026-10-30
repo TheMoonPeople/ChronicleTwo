@@ -1,4 +1,8 @@
+#ifndef __SWITCH__
 #include "kazarov_bridge/rust/lib.h"
+#else
+#include "switch_main.hpp"
+#endif
 
 #include <SDL3/SDL.h>
 #include <nlohmann/json.hpp>
@@ -84,6 +88,9 @@ void FirstRunRequireData(const fs::path &root, bool headless) {
     // The logger ends each line itself.
     CT_LOG_ERROR(Main, "{}", std::string_view(text).substr(0, text.ends_with('\n') ? text.size() - 1 : text.size()));
     if (!headless) {
+#ifdef __SWITCH__
+        SwitchShowMissingData();
+#else
         try {
             const auto path = root.u8string();
             // The game runs the scripts' Luau modules, so the compiled scripts are not published.
@@ -97,6 +104,7 @@ void FirstRunRequireData(const fs::path &root, bool headless) {
             CT_LOG_ERROR(Main, "Game data setup: {}", error.what());
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Dark Chronicle", error.what(), nullptr);
         }
+#endif
     }
     LogFlush();
     std::exit(kExitNoData);

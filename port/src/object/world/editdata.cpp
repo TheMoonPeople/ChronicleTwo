@@ -40,7 +40,7 @@ static const int kAnalyzeEntryCount = 16;
  * Conditions and requests loaded for the five Georama maps.
  *
  */
-static EditAnalyzeSrc AnalyzeSrc[kAnalyzeSrcCount];
+EditAnalyzeSrc AnalyzeSrc[kAnalyzeSrcCount];
 
 /**
  *

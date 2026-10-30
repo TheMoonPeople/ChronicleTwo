@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <new>
 
 #include "dynamicanime.hpp"
 #include "log/game_output.hpp"
@@ -723,50 +724,59 @@ int CDynamicAnime::DrawSub(int direct) {
     return sum;
 }
 
-void CDynamicAnime::Copy(CDynamicAnime &destination, mgCFrame *root, mgCMemory *memory) {
-    int index = {};
+bool CDynamicAnime::Copy(CDynamicAnime &destination, mgCFrame *root, mgCMemory *memory) try {
+    const auto fail = [&] {
+        destination.Initialize();
+        return false;
+    };
+    if (frame_num < 0 || vertex_num < 0 || fix_vertex_num < 0 || draw_frame_num < 0 ||
+        bind_vertex_num < 0 || bbox_num < 0 || collision_num < 0 ||
+        (frame_num > 0 && (frame == nullptr || frame_pose == nullptr)) ||
+        (fix_vertex_num > 0 && fix_vertex == nullptr) || (draw_frame_num > 0 && draw_frame == nullptr) ||
+        (bind_vertex_num > 0 && bind_vertex == nullptr) || (bbox_num > 0 && bbox == nullptr) ||
+        (collision_num > 0 && collision == nullptr) ||
+        (vertex_num > 0 && (init_vertex == nullptr || now_vertex == nullptr || old_vertex == nullptr ||
+                            velocity == nullptr || world_init_vertex == nullptr))) {
+        return fail();
+    }
+    if (&destination == this) {
+        return true;
+    }
+    if (memory != nullptr && root == nullptr) {
+        return fail();
+    }
     destination = *this;
     destination.top_frame = root;
-
-    if (root == nullptr || memory == nullptr) {
-        return;
+    if (memory == nullptr) {
+        return true;
     }
-
-    if (frame_num > 0 && frame != nullptr) {
+    if (frame_num > 0) {
         destination.frame = dc2::memory::NewArray<mgCFrame *>(*memory, static_cast<std::size_t>(frame_num));
-
         if (destination.frame == nullptr) {
-            destination.frame_num = 0;
-            return;
+            return fail();
         }
-
-        for (index = 0; index < frame_num; index++) {
+        for (int index = 0; index < frame_num; ++index) {
             destination.frame[index] = nullptr;
-
             if (frame[index] != nullptr) {
-                destination.frame[index] = root->GetFrame(root->SearchFrameID(frame[index]->name));
+                destination.frame[index] = frame[index] == top_frame ? root : root->GetFrame(root->SearchFrameID(frame[index]->name));
+                if (destination.frame[index] == nullptr) {
+                    return fail();
+                }
             }
         }
     }
-
     if (vertex_num > 0) {
-        if (init_vertex == nullptr || now_vertex == nullptr || old_vertex == nullptr ||
-            velocity == nullptr || world_init_vertex == nullptr) {
-            return;
+        const auto count = static_cast<std::size_t>(vertex_num);
+        destination.init_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, count);
+        destination.now_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, count);
+        destination.old_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, count);
+        destination.velocity = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, count);
+        destination.world_init_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, count);
+        if (destination.init_vertex == nullptr || destination.now_vertex == nullptr || destination.old_vertex == nullptr ||
+            destination.velocity == nullptr || destination.world_init_vertex == nullptr) {
+            return fail();
         }
-        destination.init_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, static_cast<std::size_t>(vertex_num));
-        destination.now_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, static_cast<std::size_t>(vertex_num));
-        destination.old_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, static_cast<std::size_t>(vertex_num));
-        destination.velocity = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, static_cast<std::size_t>(vertex_num));
-        destination.world_init_vertex = dc2::memory::NewArray<sceVu0FVECTOR>(*memory, static_cast<std::size_t>(vertex_num));
-        if (destination.init_vertex == nullptr || destination.now_vertex == nullptr ||
-            destination.old_vertex == nullptr || destination.velocity == nullptr ||
-            destination.world_init_vertex == nullptr) {
-            destination.vertex_num = 0;
-            return;
-        }
-
-        for (index = 0; index < vertex_num; index++) {
+        for (int index = 0; index < vertex_num; ++index) {
             std::memmove(destination.init_vertex[index], init_vertex[index], sizeof(u_long128));
             std::memmove(destination.now_vertex[index], now_vertex[index], sizeof(u_long128));
             std::memmove(destination.old_vertex[index], old_vertex[index], sizeof(u_long128));
@@ -774,6 +784,10 @@ void CDynamicAnime::Copy(CDynamicAnime &destination, mgCFrame *root, mgCMemory *
             std::memmove(destination.world_init_vertex[index], world_init_vertex[index], sizeof(u_long128));
         }
     }
+    return true;
+} catch (const std::bad_alloc &) {
+    destination.Initialize();
+    return false;
 }
 
 /**

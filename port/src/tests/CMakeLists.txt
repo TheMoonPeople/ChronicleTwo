@@ -6,7 +6,7 @@ FetchContent_Declare(googletest
     URL https://codeload.github.com/google/googletest/tar.gz/refs/tags/v1.18.0
     URL_HASH SHA256=6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
-    FIND_PACKAGE_ARGS NAMES GTest)
+    FIND_PACKAGE_ARGS 1.18.0 EXACT NAMES GTest)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
@@ -21,6 +21,10 @@ add_test(NAME NativeArchitecture.Check
 
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 add_executable(darkchronicle_tests ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${TEST_SOURCES})
+if(WIN32)
+    include(${KZ_ROOT}/cmake/KazarovWindowsRuntime.cmake)
+    kz_windows_runtime_post_build(darkchronicle_tests)
+endif()
 # Decoder fixtures remain available in tests without linking proprietary texture decoding into the game.
 target_sources(darkchronicle_tests PRIVATE ${KZ_ROOT}/src/cpp/gfx/tim2.cpp)
 set_target_properties(darkchronicle_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -39,6 +43,18 @@ target_include_directories(darkchronicle_tests PRIVATE ${CMAKE_CURRENT_BINARY_DI
 ct_link_game(darkchronicle_tests)
 kz_port_tests(darkchronicle_tests)
 target_link_libraries(darkchronicle_tests PRIVATE GTest::gtest nlohmann_json::nlohmann_json)
+# The painters' geometry is checked against the numbers the fonts were fitted with.
+target_compile_definitions(darkchronicle_tests PRIVATE
+    CT_MESSAGE_FONT_PARAMETERS="${CMAKE_SOURCE_DIR}/scripts/font/message_font.json"
+    CT_MENU_FONT_PARAMETERS="${CMAKE_SOURCE_DIR}/scripts/font/menu_font.json"
+    CT_BOARD_FONT_PARAMETERS="${CMAKE_SOURCE_DIR}/scripts/font/board_font.json")
+
+# The shipped message font: its grid and coverage, and, with Kosugi at hand, that the tools rebuild it
+# byte for byte. Skips without the tools' Python packages (scripts/font/requirements.txt).
+add_test(NAME MessageFont.Check COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/font/test_message_font.py)
+# The shipped menu font: its characters and flared stems, and, with Libre Franklin at hand, that the tools
+# rebuild it byte for byte; and the time board's font likewise.
+add_test(NAME MenuFont.Check COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/font/test_menu_font.py)
 
 # A case is a unit test: it finishes in milliseconds, and one that does not is cut off. The clock
 # cases measure short sleeps, which the parallel gfx cases skew, so they run on their own. The cases that compile

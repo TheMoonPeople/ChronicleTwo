@@ -134,7 +134,7 @@ TEST(SWordMemory, CopyPreservesOnlyInitializedRingAndCurveEntries) {
     source.CreatPointList();
     ASSERT_GT(source.smooth_num, 0);
     CSWordAfterEffect copy;
-    source.Copy(copy, &memory);
+    ASSERT_TRUE(source.Copy(copy, &memory));
     ASSERT_NE(copy.point0, nullptr);
     EXPECT_NE(copy.point0, source.point0);
     EXPECT_EQ(copy.point_num, source.point_num);

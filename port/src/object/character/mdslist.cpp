@@ -5,11 +5,18 @@
 
 #include "common.h"
 
+#include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iterator>
 #include <limits>
+#include <new>
+#include <optional>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "actionchara.hpp"
@@ -31,6 +38,391 @@
 #include "padcontrol.hpp"
 #include "scene.hpp"
 #include "scriptinterpreter.hpp"
+
+namespace {
+bool ModelTraceEnabled() {
+    const auto *enabled = std::getenv("DC2_SWITCH_MODEL_TRACE");
+    return enabled != nullptr && std::strcmp(enabled, "1") == 0;
+}
+
+void TraceModelFailure(const char *reason, std::string_view name, int type, unsigned flags,
+                       mgCMemory *producer = nullptr, const void *object = nullptr) {
+    static std::atomic<unsigned> emitted{};
+    if (!ModelTraceEnabled() || emitted.fetch_add(1, std::memory_order_relaxed) >= 16) {
+        return;
+    }
+    const auto bytes = producer != nullptr ? dc2::memory::AllocationBytes(*producer, object).size() : 0;
+    dc2::log::PrintGame("switch-model: %s name=%.*s type=%d flags=%u producer=%p object=%p bytes=%zu frame_size=%zu\n", reason,
+                        static_cast<int>(std::min<std::size_t>(name.size(), 128)), name.empty() ? "" : name.data(), type, flags,
+                        static_cast<void *>(producer), const_cast<void *>(object), bytes, sizeof(mgCFrame));
+}
+} // namespace
+
+namespace dc2::world {
+namespace {
+/**
+ * Captures one frame's storage, owned name and exact hierarchy links.
+ */
+struct FrameRecord {
+    mgCFrame                  *frame = nullptr;        /**< Frame identified by the exact object lease. */
+    dc2::memory::ArenaBuffer   object;                 /**< Exact frame object allocation. */
+    mgCFrame                  *parent = nullptr;       /**< Captured parent link. */
+    mgCFrame                  *child = nullptr;        /**< Captured first-child link. */
+    mgCFrame                  *brother = nullptr;      /**< Captured next-sibling link. */
+    mgCFrame                  *elder = nullptr;        /**< Captured previous-sibling link. */
+    char                      *name_pointer = nullptr; /**< Captured raw name identity used by legacy copying. */
+    std::optional<std::string> name;                   /**< Owned bounded frame name, or absence for an unnamed frame. */
+    dc2::memory::ArenaBuffer   name_storage;           /**< Exact terminated source name extent. */
+    mgCFrame                 **table = nullptr;        /**< Captured model frame table. */
+    int                        table_count = 0;        /**< Captured number of table entries. */
+    dc2::memory::ArenaBuffer   table_storage;          /**< Exact model frame table extent. */
+    std::vector<mgCFrame *>    table_frames;           /**< Captured table entries validated before legacy copying. */
+};
+
+/**
+ * Owns a complete hierarchy snapshot independently of its arena payloads.
+ */
+struct FrameGraphState {
+    mgCFrame                *root = nullptr;      /**< Root used for depth-first name searches. */
+    std::vector<FrameRecord> records;             /**< Exact reachable hierarchy and frame-table records. */
+    std::vector<std::size_t> search_order;        /**< First-visit depth-first order below the root. */
+    dc2::memory::ArenaBuffer character_storage;   /**< Optional exact character object checked before its dependencies. */
+    CCharacter2             *character = nullptr; /**< Character whose current resource channels accompany the hierarchy. */
+
+    /**
+     * Checks every lease before inspecting any captured game object.
+     */
+    bool IsLive() const {
+        for (const auto &record : records) {
+            if (record.object.Bytes().size() != sizeof(mgCFrame) ||
+                (record.name && record.name_storage.Bytes().size() != record.name->size() + 1) ||
+                record.table_storage.Bytes().size() != record.table_frames.size() * sizeof(mgCFrame *)) {
+                return false;
+            }
+        }
+        if (character != nullptr && character_storage.Bytes().size() != sizeof(CCharacter2)) {
+            return false;
+        }
+        for (const auto &record : records) {
+            const auto &frame = *record.frame;
+            if (frame.parent != record.parent || frame.child != record.child || frame.brother != record.brother ||
+                frame.elder != record.elder || frame.name != record.name_pointer || frame.frame_list != record.table ||
+                frame.frame_num != record.table_count) {
+                return false;
+            }
+            if (record.name && std::memcmp(record.name_storage.Bytes().data(), record.name->c_str(), record.name->size() + 1) != 0) {
+                return false;
+            }
+            const auto table_bytes = record.table_storage.Bytes();
+            if (!table_bytes.empty() && std::memcmp(table_bytes.data(), record.table_frames.data(), table_bytes.size()) != 0) {
+                return false;
+            }
+        }
+        return character == nullptr ||
+               (character->CObjectFrame::frame == root && dc2::character::ResourcesLive(*character));
+    }
+};
+
+/**
+ * Binds a bounded object only through the producer explicitly supplied by its factory.
+ */
+dc2::memory::ArenaBuffer BindFrameBytes(mgCMemory &producer, const void *pointer, std::size_t size) {
+    const auto allocation = dc2::memory::AllocationBytes(producer, pointer);
+    if (allocation.size() < size || size == 0) {
+        return {};
+    }
+    return dc2::memory::ArenaBuffer::Bind(producer, allocation.first(size));
+}
+
+/**
+ * Captures a frame's raw name only after bounding it to its actual allocation.
+ */
+bool CaptureFrameName(mgCMemory &producer, FrameRecord &record) {
+    if (record.name_pointer == nullptr) {
+        return true;
+    }
+    const auto allocation = dc2::memory::AllocationBytes(producer, record.name_pointer);
+    const auto lease = dc2::memory::ArenaBuffer::Bind(producer, allocation);
+    const auto bytes = lease.Bytes();
+    if (bytes.empty()) {
+        return false;
+    }
+    const auto end = std::find(bytes.begin(), bytes.end(), 0);
+    if (end == bytes.end()) {
+        return false;
+    }
+    const auto length = static_cast<std::size_t>(end - bytes.begin());
+    record.name = std::string(reinterpret_cast<const char *>(bytes.data()), length);
+    record.name_storage = lease.Subspan(0, length + 1);
+    return true;
+}
+
+/**
+ * Rejects directed cycles while allowing the normal reciprocal parent and child links.
+ */
+template <class Edges>
+bool FrameEdgesAcyclic(const std::vector<FrameRecord>                    &records,
+                       const std::unordered_map<mgCFrame *, std::size_t> &indices, Edges edges) {
+    std::vector<std::size_t> incoming(records.size());
+    for (const auto &record : records) {
+        for (auto *edge : edges(record)) {
+            if (edge != nullptr) {
+                ++incoming[indices.at(edge)];
+            }
+        }
+    }
+    std::vector<std::size_t> ready;
+    for (std::size_t index = 0; index < incoming.size(); ++index) {
+        if (incoming[index] == 0) {
+            ready.push_back(index);
+        }
+    }
+    for (std::size_t next = 0; next < ready.size(); ++next) {
+        for (auto *edge : edges(records[ready[next]])) {
+            if (edge != nullptr) {
+                auto &count = incoming[indices.at(edge)];
+                if (--count == 0) {
+                    ready.push_back(indices.at(edge));
+                }
+            }
+        }
+    }
+    return ready.size() == records.size();
+}
+} // namespace
+
+FrameGraph FrameGraph::Capture(mgCMemory &producer, mgCFrame *root, const FrameGraph *imported_source, CCharacter2 *character) {
+    FrameGraph result;
+    if (root == nullptr) {
+        return result;
+    }
+    const auto imported = imported_source != nullptr ? imported_source->state.Acquire<FrameGraphState>() : nullptr;
+    if (imported_source != nullptr && (!imported || !imported->IsLive())) {
+        TraceModelFailure("capture-imported-graph", {}, 0, 0, &producer, root);
+        return result;
+    }
+    auto value = std::make_shared<FrameGraphState>();
+    value->root = root;
+    if (character != nullptr) {
+        value->character_storage = BindFrameBytes(producer, character, sizeof(CCharacter2));
+        if (value->character_storage.Bytes().size() != sizeof(CCharacter2)) {
+            TraceModelFailure("capture-character-owner", {}, 0, 0, &producer, character);
+            return result;
+        }
+        value->character = character;
+    }
+    std::unordered_map<mgCFrame *, std::size_t> indices;
+    std::vector<mgCFrame *>                     pending{root};
+    for (std::size_t next = 0; next < pending.size(); ++next) {
+        auto *frame = pending[next];
+        if (frame == nullptr || indices.contains(frame)) {
+            continue;
+        }
+        FrameRecord record;
+        record.frame = frame;
+        record.object = BindFrameBytes(producer, frame, sizeof(mgCFrame));
+        if (record.object.Bytes().size() == sizeof(mgCFrame)) {
+            record.parent = frame->parent;
+            record.child = frame->child;
+            record.brother = frame->brother;
+            record.elder = frame->elder;
+            record.name_pointer = frame->name;
+            record.table = frame->frame_list;
+            record.table_count = frame->frame_num;
+            if (!CaptureFrameName(producer, record)) {
+                const auto source = imported ? std::ranges::find(imported->records, record.name_pointer, &FrameRecord::name_pointer)
+                                             : std::vector<FrameRecord>::const_iterator{};
+                if (!imported || source == imported->records.end()) {
+                    TraceModelFailure("capture-name-owner", {}, 0, 0, &producer, record.name_pointer);
+                    return result;
+                }
+                record.name = source->name;
+                record.name_storage = source->name_storage;
+            }
+            if (record.table_count < 0 ||
+                (record.table_count > 0 && record.table == nullptr)) {
+                TraceModelFailure("capture-frame-table", {}, record.table_count, 0, &producer, frame);
+                return result;
+            }
+            if (record.table_count > 0) {
+                const auto count = static_cast<std::size_t>(record.table_count);
+                if (count > std::numeric_limits<std::size_t>::max() / sizeof(mgCFrame *)) {
+                    return result;
+                }
+                record.table_storage = BindFrameBytes(producer, record.table, count * sizeof(mgCFrame *));
+                const auto bytes = record.table_storage.Bytes();
+                if (bytes.size() != count * sizeof(mgCFrame *)) {
+                    const auto source = imported ? std::ranges::find(imported->records, record.table, &FrameRecord::table)
+                                                 : std::vector<FrameRecord>::const_iterator{};
+                    if (!imported || source == imported->records.end() || source->table_count != record.table_count) {
+                        TraceModelFailure("capture-table-owner", {}, record.table_count, 0, &producer, record.table);
+                        return result;
+                    }
+                    record.table_storage = source->table_storage;
+                    record.table_frames = source->table_frames;
+                } else {
+                    record.table_frames.resize(count);
+                    std::memcpy(record.table_frames.data(), bytes.data(), bytes.size());
+                }
+            }
+        } else {
+            if (!imported) {
+                TraceModelFailure("capture-frame-owner", {}, 0, 0, &producer, frame);
+                return result;
+            }
+            const auto source = std::ranges::find(imported->records, frame, &FrameRecord::frame);
+            if (source == imported->records.end()) {
+                TraceModelFailure("capture-imported-frame", {}, 0, 0, &producer, frame);
+                return result;
+            }
+            record = *source;
+        }
+        indices.emplace(frame, value->records.size());
+        pending.insert(pending.end(), {record.parent, record.child, record.brother, record.elder});
+        pending.insert(pending.end(), record.table_frames.begin(), record.table_frames.end());
+        value->records.push_back(std::move(record));
+    }
+    if (!FrameEdgesAcyclic(value->records, indices, [](const auto &record) { return std::array{record.parent}; }) ||
+        !FrameEdgesAcyclic(value->records, indices, [](const auto &record) { return std::array{record.child, record.brother}; }) ||
+        !FrameEdgesAcyclic(value->records, indices, [](const auto &record) { return std::array{record.elder}; })) {
+        TraceModelFailure("capture-frame-cycle", {}, 0, 0, &producer, root);
+        return result;
+    }
+    std::vector<bool>        visited(value->records.size());
+    std::vector<std::size_t> walk{indices.at(root)};
+    while (!walk.empty()) {
+        const auto index = walk.back();
+        walk.pop_back();
+        if (visited[index]) {
+            continue;
+        }
+        visited[index] = true;
+        value->search_order.push_back(index);
+        const auto &record = value->records[index];
+        if (record.frame != root && record.brother != nullptr) {
+            walk.push_back(indices.at(record.brother));
+        }
+        if (record.child != nullptr) {
+            walk.push_back(indices.at(record.child));
+        }
+    }
+    if (value->IsLive()) {
+        const auto anchor = value->records[indices.at(root)].object;
+        result.state = dc2::memory::ArenaResource::Store(anchor, std::move(value));
+    } else {
+        TraceModelFailure("capture-final-live", {}, 0, 0, &producer, root);
+    }
+    return result;
+}
+
+bool FrameNameBinding::Matches(const mgCFrame *expected) const {
+    if (frame == nullptr) {
+        return expected == nullptr;
+    }
+    if (expected != frame || object.Bytes().size() != sizeof(mgCFrame) ||
+        (name && name_storage.Bytes().size() != name->size() + 1)) {
+        return false;
+    }
+    if (frame->name != name_pointer) {
+        return false;
+    }
+    return !name || std::memcmp(name_storage.Bytes().data(), name->c_str(), name->size() + 1) == 0;
+}
+
+bool FrameNameBinding::SameIdentity(const FrameNameBinding &other) const {
+    return frame == other.frame && object.SameIdentity(other.object) && name_pointer == other.name_pointer &&
+           name_storage.SameIdentity(other.name_storage) && name == other.name;
+}
+
+std::optional<std::string_view> FrameNameBinding::Name() const {
+    return name ? std::optional<std::string_view>(*name) : std::nullopt;
+}
+
+std::optional<FrameNameBinding> FrameGraph::BindName(const mgCFrame *expected) const {
+    const auto value = state.Acquire<FrameGraphState>();
+    if (!value || expected == nullptr) {
+        return std::nullopt;
+    }
+    const auto record = std::ranges::find(value->records, expected, &FrameRecord::frame);
+    if (record == value->records.end()) {
+        return std::nullopt;
+    }
+    FrameNameBinding result;
+    result.frame = record->frame;
+    result.object = record->object;
+    result.name_pointer = record->name_pointer;
+    result.name_storage = record->name_storage;
+    result.name = record->name;
+    return result.Matches(expected) ? std::optional(std::move(result)) : std::nullopt;
+}
+
+bool FrameGraph::IsLive() const {
+    const auto value = state.Acquire<FrameGraphState>();
+    return value && value->IsLive();
+}
+
+bool FrameGraph::MatchesRootAllocation(const mgCFrame *expected_root) const {
+    const auto value = state.Acquire<FrameGraphState>();
+    if (!value || value->root != expected_root || expected_root == nullptr) {
+        return false;
+    }
+    const auto record = std::ranges::find(value->records, expected_root, &FrameRecord::frame);
+    if (record == value->records.end()) {
+        return false;
+    }
+    const auto bytes = record->object.Bytes();
+    return bytes.size() == sizeof(mgCFrame) && bytes.data() == reinterpret_cast<const u8 *>(expected_root);
+}
+
+bool FrameGraph::Matches(mgCFrame *expected_root, CCharacter2 *expected_character) const {
+    const auto value = state.Acquire<FrameGraphState>();
+    return value && value->root == expected_root && value->character == expected_character && value->IsLive();
+}
+
+mgCFrame *FrameGraph::GetRoot() const {
+    const auto value = state.Acquire<FrameGraphState>();
+    return value && value->IsLive() ? value->root : nullptr;
+}
+
+mgCFrame *FrameGraph::FindFrame(std::string_view name) const {
+    const auto value = state.Acquire<FrameGraphState>();
+    if (!value || !value->IsLive()) {
+        return nullptr;
+    }
+    name = name.substr(0, name.find('\0'));
+    const auto key = name.substr(0, name.find("--"));
+    for (const auto index : value->search_order) {
+        const auto &record = value->records[index];
+        if (record.name) {
+            const auto candidate = std::string_view(*record.name);
+            if (candidate.substr(0, candidate.find("--")) == key) {
+                return record.frame;
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool FrameGraph::SameIdentity(const FrameGraph &other) const {
+    const auto value = state.Acquire<FrameGraphState>();
+    return value && value == other.state.Acquire<FrameGraphState>();
+}
+
+bool FrameGraph::WouldRetireOnReset(const mgCMemory &memory, dc2::memory::ArenaResetKind kind) const {
+    const auto value = state.Acquire<FrameGraphState>();
+    if (!value || !value->IsLive()) {
+        return false;
+    }
+    if (state.WouldRetireOnReset(memory, kind) || value->character_storage.WouldRetireOnReset(memory, kind) ||
+        (value->character != nullptr && dc2::character::ResourcesWouldRetireOnReset(*value->character, memory, kind))) {
+        return true;
+    }
+    return std::ranges::any_of(value->records, [&](const auto &record) {
+        return record.object.WouldRetireOnReset(memory, kind) || record.name_storage.WouldRetireOnReset(memory, kind) ||
+               record.table_storage.WouldRetireOnReset(memory, kind);
+    });
+}
+} // namespace dc2::world
 
 /**
  *
@@ -56,6 +448,7 @@ int CMapPiece::AssignMds(CMdsInfo *info) {
     frame = info->frame;
     far_dist = info->far_dist;
     fade = info->far_fade;
+    frame_graph = info->frame_graph;
     return true;
 }
 
@@ -162,13 +555,21 @@ int CMapPiece::DrawSub(int direct) {
     return result;
 }
 
-void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
-    int            i = {};
-    PieceMaterial *to = {};
-    PieceMaterial *from = {};
-    int            num = {};
-    CCharacter2   *model = {};
-
+bool CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) try {
+    const auto fail = [&] {
+        dest.Initialize();
+        return false;
+    };
+    if (material_num < 0 || (material_num > 0 && material == nullptr)) {
+        return fail();
+    }
+    if (frame_graph.HasValue() ? !frame_graph.Matches(frame, chara) : frame != nullptr || chara != nullptr) {
+        TraceModelFailure("copy-source-graph", {}, type, static_cast<unsigned>(frame_graph.HasValue()), memory, frame);
+        return fail();
+    }
+    if (&dest == this) {
+        return true;
+    }
     dest.Initialize();
     CObjectFrame::Copy(dest, memory);
     dest.name = name;
@@ -178,67 +579,80 @@ void CMapPiece::Copy(CMapPiece &dest, mgCMemory *memory) {
     dest.time_start = time_start;
     dest.time_end = time_end;
     dest.material_num = material_num;
-
-    if (memory == nullptr) {
-        dest.material = material;
-    } else {
-        num = material_num;
-        const auto bytes = num > 0 ? static_cast<std::size_t>(num) * sizeof(PieceMaterial) : 0;
-        const auto blocks = (bytes + 15) / sizeof(u_long128) + 2;
-        auto      *storage = num > 0 && material != nullptr && blocks <= static_cast<std::size_t>(std::numeric_limits<int>::max()) &&
-                                     memory->stGetRest() > 0 && blocks < static_cast<std::size_t>(memory->stGetRest())
-                                 ? memory->Alloc(static_cast<int>(blocks))
-                                 : nullptr;
-        dest.material = storage != nullptr ? new (storage) PieceMaterial[num] : nullptr;
-        i = 0;
-
+    dest.frame_graph = frame_graph;
+    dest.material = material;
+    if (memory != nullptr && material_num > 0) {
+        dest.material = dc2::memory::NewArray<PieceMaterial>(*memory, static_cast<std::size_t>(material_num));
         if (dest.material == nullptr) {
-            dest.material_num = 0;
+            return fail();
         }
-
-        for (; i < dest.material_num; i++) {
-            from = &material[i];
-            to = &dest.material[i];
-            *to = *from;
-        }
+        std::copy_n(material, material_num, dest.material);
     }
-
     if (chara != nullptr && memory != nullptr) {
-        model = dc2::memory::NewObject<CCharacter2>(*memory);
-
-        dest.chara = model;
-
-        if (dest.chara != nullptr) {
-            chara->Copy(*dest.chara, memory);
-            dest.frame = dest.chara->CObjectFrame::frame;
+        dest.frame_graph = {};
+        dest.chara = dc2::memory::NewObject<CCharacter2>(*memory);
+        if (dest.chara == nullptr || !chara->Copy(*dest.chara, memory)) {
+            return fail();
+        }
+        dest.frame = dest.chara->CObjectFrame::frame;
+        dest.frame_graph = dc2::world::FrameGraph::Capture(*memory, dest.frame, &frame_graph, dest.chara);
+        if (!dest.frame_graph.Matches(dest.frame, dest.chara)) {
+            TraceModelFailure("copy-destination-graph", {}, type, static_cast<unsigned>(dest.frame_graph.HasValue()), memory, dest.frame);
+            return fail();
         }
     } else {
         dest.chara = chara;
     }
+    return true;
+} catch (const std::bad_alloc &) {
+    dest.Initialize();
+    return false;
 }
 
 void CMapPiece::Initialize() {
-    int i = {};
-
     CObjectFrame::Initialize();
+    frame_graph = {};
     type = 0;
     chara = nullptr;
-    i = 0;
     draw_enable = true;
     name = nullptr;
     material_num = 0;
+    material = nullptr;
     col_type = 0;
     col_param = 0;
-
-    for (; i < material_num; i++) {
-        memset(&material[i], 0, sizeof(PieceMaterial));
-    }
-
     time_end = 0.0f;
     time_start = 0.0f;
 }
 
+bool CMdsInfo::AssignName(mgCMemory &producer, std::string_view value) {
+    name_storage = {};
+    name = dc2::memory::CopyText(producer, value);
+    if (name == nullptr) {
+        return false;
+    }
+    name_storage = dc2::memory::ArenaBuffer::Bind(producer, std::span(reinterpret_cast<u8 *>(name), value.size() + 1));
+    if (name_storage.Bytes().size() != value.size() + 1) {
+        name = nullptr;
+        return false;
+    }
+    return true;
+}
+
+std::optional<std::string_view> CMdsInfo::CanonicalName() const {
+    const auto bytes = name_storage.Bytes();
+    if (bytes.empty() || bytes.data() != reinterpret_cast<u8 *>(name)) {
+        return std::nullopt;
+    }
+    const auto *end = static_cast<const u8 *>(std::memchr(bytes.data(), '\0', bytes.size()));
+    if (end == nullptr) {
+        return std::nullopt;
+    }
+    return std::string_view(reinterpret_cast<const char *>(bytes.data()), static_cast<std::size_t>(end - bytes.data()));
+}
+
 void CMdsInfo::Initialize() {
+    name_storage = {};
+    frame_graph = {};
     resource_lifetime = {};
     character_storage = {};
     name = nullptr;
@@ -740,7 +1154,9 @@ void CMdsList::LoadPCPFile(char *label, u_int *source, mgCMemory *memory, int sc
         CMdsInfo *current = &list[next++];
         current->Initialize();
         current->resource_lifetime = lifetime;
-        current->name = model.model ? CopyName(*memory, *model.model) : nullptr;
+        if (model.model) {
+            current->AssignName(*memory, *model.model);
+        }
         if (model.type) {
             current->type = ModelType(*model.type);
         }
@@ -772,6 +1188,19 @@ void CMdsList::LoadPCPFile(char *label, u_int *source, mgCMemory *memory, int sc
                 }
                 current->chara = character;
                 current->frame = character->CObjectFrame::frame;
+            }
+        }
+        if (current->frame != nullptr) {
+            current->frame_graph = dc2::world::FrameGraph::Capture(*memory, current->frame, nullptr, current->chara);
+            if (!current->frame_graph.Matches(current->frame, current->chara)) {
+                if (ModelTraceEnabled()) {
+                    TraceModelFailure("capture-model-graph", current->CanonicalName().value_or(std::string_view{}), current->type,
+                                      static_cast<unsigned>(current->frame_graph.HasValue()), memory, current->frame);
+                }
+                current->frame = nullptr;
+                current->chara = nullptr;
+                current->character_storage = {};
+                continue;
             }
         }
         if (scissor && current->frame) {

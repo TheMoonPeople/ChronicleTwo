@@ -2,6 +2,8 @@
 
 #include <libvu0.h>
 
+#include <cstring>
+
 #include "mg_frame.hpp"
 #include "mg_math.hpp"
 #include "mglib.hpp"
@@ -25,7 +27,7 @@ void CObject::GetMatrix(float (*out_matrix)[4]) {
         sceVu0RotMatrixZ(out_matrix, out_matrix, rotation[2]);
     }
 
-    *(u_long128 *) out_matrix[3] = *(u_long128 *) position;
+    std::memmove(out_matrix[3], position, sizeof(float) * 4);
     out_matrix[3][3] = 1.0f;
 }
 

@@ -3,12 +3,19 @@
 
 #include <libvu0.h>
 
+#include <algorithm>
+#include <atomic>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <new>
+#include <stdexcept>
 
 #include "automap.hpp"
 #include "collision.hpp"
 #include "funcpoint.hpp"
+#include "log/game_output.hpp"
 #include "map.hpp"
 #include "mapinfo.hpp"
 #include "mapload.hpp"
@@ -20,7 +27,7 @@
 #include "mg_memory.hpp"
 #include "mglib.hpp"
 #include "object.hpp"
-#include "scriptinterpreter.hpp"
+#include "platform/native_config.hpp"
 #include "text/bounded.hpp"
 #include "water.hpp"
 
@@ -28,143 +35,10 @@ static int IsAddMode();
 
 /**
  *
- * Map the map script is loading into.
- *
- */
-static CMap *mapMap;
-
-/**
- *
- * Node of the map part the map script is building, or null outside a part.
- *
- */
-static CList<CMapParts> *mapNowMapParts;
-
-/**
- *
- * Node of the map piece the map script is building, or null outside a piece.
- *
- */
-static CList<CMapPiece> *mapNowMapPiece;
-
-/**
- *
- * Memory that everything the map script builds is taken from.
- *
- */
-static mgCMemory *mapStack;
-
-/**
- *
- * Far clipping distance of the placed map part, or negative for no clipping.
- *
- */
-static float mapFarDist;
-
-/**
- *
- * Far-distance fade mode of the placed map part.
- *
- */
-static int mapFarAlpha;
-
-/**
- *
- * Visibility setting of the placed map part.
- *
- */
-static int mapShow;
-
-/**
- *
- * Level of detail that the map script is giving pieces to.
- *
- */
-static int mapLOD_ID;
-
-/**
- *
- * Current fixed-camera information entry.
- *
- */
-static int mapCameraInfoIdx;
-
-/**
- *
- * Next rectangle of the current fixed-camera information entry.
- *
- */
-static int mapCameraRectIdx;
-
-/**
- *
- * Index of the function point being filled by script handlers.
- *
- */
-static int mapFuncPointIdx;
-
-/**
- *
- * Function point being filled by script handlers.
- *
- */
-static CFuncPoint *mapNowFuncPoint;
-
-/**
- *
- * Next entry of the current piece materials that the map script fills in.
- *
- */
-static int mapMatIdx;
-
-/**
- *
- * Non-zero while map-script function points belong to the current map part.
- *
- */
-static int mapPtsFunc;
-
-/**
- *
  * Non-zero when loading an additional map into the current map.
  *
  */
 static int mapAddMode;
-
-/**
- *
- * Non-zero when configuration function-point storage is reserved.
- *
- */
-static int ReserveFuncFlag;
-
-/**
- *
- * Next water-surface entry being filled by configuration handlers.
- *
- */
-static int WaterIndex;
-
-/**
- *
- * Water frame being filled by configuration handlers.
- *
- */
-static CWaterFrame *cfgWater;
-
-/**
- *
- * Instance name of the placed map part.
- *
- */
-static char mapPlacePartsName[0x100];
-
-/**
- *
- * Definition name of the map part to place.
- *
- */
-static char mapMapPartsName[0x100];
 
 /**
  *
@@ -560,17 +434,17 @@ void CMap::GetLightInfo(CMapLightingInfo *out_info, float *ratio, int num) {
         ambient[3] = 128.0f;
     }
 
-    *reinterpret_cast<u_long128 *>(out_info->ambient) = *reinterpret_cast<u_long128 *>(ambient);
-    *reinterpret_cast<u_long128 *>(out_info->bg_color) = *reinterpret_cast<u_long128 *>(bg_color);
-    *reinterpret_cast<u_long128 *>(out_info->bg_color2) = *reinterpret_cast<u_long128 *>(bg_color2);
-    *reinterpret_cast<u_long128 *>(out_info->light_color[0]) = *reinterpret_cast<u_long128 *>(light_color[0]);
+    std::memmove(out_info->ambient, ambient, sizeof(float) * 4);
+    std::memmove(out_info->bg_color, bg_color, sizeof(float) * 4);
+    std::memmove(out_info->bg_color2, bg_color2, sizeof(float) * 4);
+    std::memmove(out_info->light_color[0], light_color[0], sizeof(float) * 4);
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 3; j++) {
             out_info->light_dir[j][i] = light_dir[i][j];
         }
 
-        *reinterpret_cast<u_long128 *>(out_info->light_color[i]) = *reinterpret_cast<u_long128 *>(light_color[i]);
+        std::memmove(out_info->light_color[i], light_color[i], sizeof(float) * 4);
     }
 
     out_info->fog.r = fog_color[0];
@@ -619,17 +493,17 @@ void CCameraDrawInfo::Initialize() {
 }
 
 void CFuncPoint::SetScale(float *scl) {
-    *reinterpret_cast<u_long128 *>(scale) = *reinterpret_cast<u_long128 *>(scl);
+    std::memmove(scale, scl, sizeof(float) * 4);
     frame.SetScale(scl);
 }
 
 void CFuncPoint::SetRotation(float *rot) {
-    *reinterpret_cast<u_long128 *>(rotation) = *reinterpret_cast<u_long128 *>(rot);
+    std::memmove(rotation, rot, sizeof(float) * 4);
     frame.SetRotation(rot);
 }
 
 void CFuncPoint::SetPosition(float *pos) {
-    *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(position, pos, sizeof(float) * 4);
     frame.SetPosition(pos);
 }
 
@@ -664,12 +538,13 @@ CMapWater::CMapWater() {}
 #include "water.hpp"
 
 namespace {
-
-/**
- * Gives the number of quadwords that hold a byte count.
- */
-u32 Quadwords(u32 bytes) {
-    return (bytes & 0xF) != 0 ? (bytes >> 4) + 1 : bytes >> 4;
+void TracePlacementFailure(std::string_view name, int capacity, int count) {
+    static std::atomic<unsigned> emitted{};
+    const auto                  *enabled = std::getenv("DC2_SWITCH_MODEL_TRACE");
+    if (enabled == nullptr || std::strcmp(enabled, "1") != 0 || emitted.fetch_add(1, std::memory_order_relaxed) >= 16) {
+        return;
+    }
+    dc2::log::PrintGame("switch-model: placement-null name=%.*s capacity=%d count=%d\n", static_cast<int>(std::min<std::size_t>(name.size(), 128)), name.empty() ? "" : name.data(), capacity, count);
 }
 
 /**
@@ -724,6 +599,40 @@ void ApplyFuncPosition(CFuncPoint &point, const std::array<float, 9> &transform)
 }
 
 /**
+ *
+ * Constructs a map record only after its complete host-sized allocation succeeds.
+ *
+ */
+template <class T>
+T *AllocateMapObject(mgCMemory &memory) {
+    auto *object = dc2::memory::NewObject<T>(memory);
+    if (object == nullptr) {
+        throw std::bad_alloc();
+    }
+    return object;
+}
+
+/**
+ *
+ * Constructs a bounded map table without narrowing its byte count or using an array cookie.
+ *
+ */
+template <class T>
+T *AllocateMapArray(mgCMemory &memory, int count) {
+    if (count < 0) {
+        throw std::length_error("negative map table size");
+    }
+    if (count == 0) {
+        return nullptr;
+    }
+    auto *array = dc2::memory::NewArray<T>(memory, static_cast<std::size_t>(count));
+    if (array == nullptr) {
+        throw std::bad_alloc();
+    }
+    return array;
+}
+
+/**
  * Builds the part definitions, placed parts, fixed cameras and function points of one map script.
  */
 class SceneMapLoader {
@@ -754,37 +663,32 @@ public:
 
 private:
     /**
-     * Allocates quadwords with the two quadwords of slack the map's placement news take.
-     */
-    u_long128 *Object(std::size_t bytes) { return memory.Alloc(static_cast<int>(Quadwords(static_cast<u32>(bytes)) + 2)); }
-
-    /**
      * Keeps a copy of game text in the map's memory.
      */
     char *Copy(const std::string &text) {
-        auto *copy = reinterpret_cast<char *>(memory.Alloc(static_cast<int>(Quadwords(static_cast<u32>(text.size() + 1)))));
-        if (copy != nullptr) {
-            std::strcpy(copy, text.c_str());
+        auto *copy = dc2::memory::CopyText(memory, text);
+        if (copy == nullptr) {
+            throw std::bad_alloc();
         }
         return copy;
     }
 
     /**
-     * Copies optional game text with mgCopyString, as the animation names are copied.
+     * Keeps optional animation names in the map's checked text storage.
      */
     char *CopyString(const SceneText &text) {
         if (!text) {
             return nullptr;
         }
-        std::string copy = *text;
-        return mgCopyString(copy.data(), &memory);
+        return Copy(*text);
     }
 
     /**
      * Builds one part definition as PARTS ... PARTS_END do.
      */
     void Part(const ScenePart &part) {
-        current_parts = new (Object(sizeof(CList<CMapParts>))) CList<CMapParts>;
+        current_piece_bindings.clear();
+        current_parts = AllocateMapObject<CList<CMapParts>>(memory);
         CMapParts  *parts = current_parts->pGetData();
         std::string name = part.name.value_or(std::string{});
         parts->SetName(part.name ? name.data() : nullptr);
@@ -811,6 +715,9 @@ private:
         if (part.func_points) {
             FuncPoints(*part.func_points, true);
         }
+        if (!parts->PublishPieceBindings(std::move(current_piece_bindings))) {
+            throw std::length_error("map part piece bindings are invalid");
+        }
         map.AddParts(current_parts);
         current_parts->pGetData()->CreateBoundBox();
     }
@@ -826,16 +733,23 @@ private:
         if ((map.piece_load_skip & 1) != 0) {
             return;
         }
-        current_piece = new (Object(sizeof(CList<CMapPiece>))) CList<CMapPiece>;
+        current_piece = AllocateMapObject<CList<CMapPiece>>(memory);
         CMapPiece *piece = current_piece->pGetData();
         char      *name = Copy(*source.model);
         piece->SetName(name);
+        std::string lookup_name = *source.model;
         piece->show = source.show.value_or(1);
         if (CMdsInfo *mds = map.SearchMDS(name)) {
             piece->AssignMds(mds);
+            const auto canonical = mds->CanonicalName();
+            if (!canonical) {
+                throw std::length_error("map piece canonical model name is invalid");
+            }
+            lookup_name = *canonical;
         }
         if (source.name && *source.name) {
             piece->SetName(Copy(**source.name));
+            lookup_name = **source.name;
         }
         float vector[4] = {};
         if (source.position) {
@@ -863,6 +777,11 @@ private:
             piece->SetTimeBand((*source.time)[0], (*source.time)[1]);
         }
         current_parts->pGetData()->AddPiece(current_piece);
+        const auto view = dc2::world::PieceView::Capture(memory, *current_piece);
+        if (view.Get() == nullptr) {
+            throw std::length_error("map piece assignment is invalid");
+        }
+        current_piece_bindings.push_back({std::move(lookup_name), view});
     }
 
     /**
@@ -870,7 +789,7 @@ private:
      */
     void Materials(CMapPiece &piece, int count, const std::vector<SceneMaterial> &materials) {
         if (count > 0) {
-            auto *table = new (Object(count * sizeof(PieceMaterial))) PieceMaterial[count];
+            auto *table = AllocateMapArray<PieceMaterial>(memory, count);
             if (table != nullptr) {
                 piece.SetMaterial(table, count);
             }
@@ -963,6 +882,9 @@ private:
         current_func_point = point;
         if (point != nullptr) {
             FuncPointData(*point, source);
+            if (!dc2::render::FrameCloneInputs::Publish(memory, point->frame)) {
+                throw std::bad_alloc();
+            }
         }
         current_func_point = nullptr;
     }
@@ -1021,7 +943,7 @@ private:
             const int effect_index = map.SaerchEffectIndex(name);
             if (effect_index >= 0) {
                 point.effect.index = effect_index;
-                point.frame.SetBound(new (Object(sizeof(mgCFrame::BoundInfo))) mgCFrame::BoundInfo);
+                point.frame.SetBound(AllocateMapObject<mgCFrame::BoundInfo>(memory));
             } else {
                 point.type = FUNC_POINT_NONE;
             }
@@ -1176,7 +1098,7 @@ private:
         if (add_mode || count < 0) {
             return;
         }
-        map.SetCameraInfoTable(new (Object(count * sizeof(CCameraInfo))) CCameraInfo[count], count);
+        map.SetCameraInfoTable(AllocateMapArray<CCameraInfo>(memory, count), count);
         int index = 0;
         for (const auto &camera : cameras) {
             if (CCameraInfo *info = map.GetCameraInfo(index)) {
@@ -1214,10 +1136,10 @@ private:
             if (!rect.shape) {
                 continue;
             }
-            auto       *frame = new (Object(sizeof(CColFrame))) CColFrame;
+            auto       *frame = AllocateMapObject<CColFrame>(memory);
             CCollision *collision = nullptr;
             if (*rect.shape == "box") {
-                collision = new (Object(sizeof(CCollision))) CCollision;
+                collision = AllocateMapObject<CCollision>(memory);
                 std::memcpy(collision->bbox.min, rect.min.data(), sizeof(float) * 3);
                 collision->bbox.min[3] = 1.0f;
                 std::memcpy(collision->bbox.max, rect.max.data(), sizeof(float) * 3);
@@ -1275,6 +1197,7 @@ private:
         }
         CMapParts *parts = map.PlaceParts(definition.data(), position, rotation, scale, &memory);
         if (parts == nullptr) {
+            TracePlacementFailure(definition, map.place_parts_max, map.place_parts_num);
             return;
         }
         std::string name = *placement.name;
@@ -1289,20 +1212,30 @@ private:
         }
     }
 
-    CMap             &map;                     /**< Map being built. */
-    mgCMemory        &memory;                  /**< Memory the map's records come from. */
-    bool              add_mode;                /**< Whether the script adds to a map already loaded. */
-    CList<CMapParts> *current_parts = nullptr; /**< Part definition being built. */
-    CList<CMapPiece> *current_piece = nullptr; /**< Piece being built. */
+    CMap                                 &map;                     /**< Map being built. */
+    mgCMemory                            &memory;                  /**< Memory the map's records come from. */
+    bool                                  add_mode;                /**< Whether the script adds to a map already loaded. */
+    CList<CMapParts>                     *current_parts = nullptr; /**< Part definition being built. */
+    CList<CMapPiece>                     *current_piece = nullptr; /**< Piece being built. */
+    std::vector<dc2::world::PieceBinding> current_piece_bindings;  /**< Complete authored piece collection published at the end of the current part. */
 };
 
 } // namespace
 
 void CMap::LoadMapFile(char *script, int /*length*/, mgCMemory *memory, int add_mode) {
+    if (script == nullptr || memory == nullptr || memory->lock != 0) {
+        return;
+    }
     current_func_point = nullptr;
     SetPieceLoadSkip(0);
-    if (const auto document = ReadSceneMap(script)) {
-        SceneMapLoader(*this, *memory, add_mode != 0).Apply(*document);
+    try {
+        if (const auto document = ReadSceneMap(script)) {
+            SceneMapLoader(*this, *memory, add_mode != 0).Apply(*document);
+        }
+    } catch (const std::bad_alloc &) {
+        native_config::Report("<scene map>", "insufficient map arena storage");
+    } catch (const std::length_error &error) {
+        native_config::Report("<scene map>", error.what());
     }
 }
 
@@ -1328,12 +1261,7 @@ void ApplyEventPoints(CMap &map, mgCMemory &memory, const std::vector<SceneEvent
             continue;
         }
         if (source.name && *source.name) {
-            const std::string &name = **source.name;
-            auto              *copy = reinterpret_cast<char *>(memory.Alloc(static_cast<int>(Quadwords(static_cast<u32>(name.size() + 1)))));
-            if (copy != nullptr) {
-                std::strcpy(copy, name.c_str());
-            }
-            point->name = copy;
+            point->name = dc2::memory::CopyText(memory, **source.name);
         }
         if (source.point_no) {
             point->event.point_no = *source.point_no;
@@ -1368,16 +1296,15 @@ void ApplyEventPoints(CMap &map, mgCMemory &memory, const std::vector<SceneEvent
  * Builds the water surfaces and their drawing records as the WATER tags do.
  */
 void ApplyWater(CMap &map, mgCMemory &memory, const SceneConfigDocument &config) {
+    auto **surfaces = map.water_surface;
+    int    surface_count = map.water_surface_num;
+    auto  *water_slots = map.water;
+    int    water_count = map.water_num;
     if (config.surface_count) {
-        map.water_surface_num = *config.surface_count;
-        if (map.water_surface_num > 0) {
-            map.water_surface = new (memory.Alloc(static_cast<int>(Quadwords(map.water_surface_num * sizeof(CWaterFrame *)) + 2))) CWaterFrame *[map.water_surface_num];
-            if (map.water_surface == nullptr) {
-                map.water_surface_num = 0;
-            }
-            for (int index = 0; index < map.water_surface_num; ++index) {
-                map.water_surface[index] = nullptr;
-            }
+        surface_count = *config.surface_count;
+        surfaces = AllocateMapArray<CWaterFrame *>(memory, surface_count);
+        if (surface_count > 0) {
+            std::fill_n(surfaces, static_cast<std::size_t>(surface_count), nullptr);
         }
     }
     int surface_index = 0;
@@ -1388,6 +1315,9 @@ void ApplyWater(CMap &map, mgCMemory &memory, const SceneConfigDocument &config)
             float corner0[4] = {corners[0], corners[1], corners[2], 1.0f};
             float corner1[4] = {corners[3], corners[4], corners[5], 1.0f};
             water = CreateWaterFrame(counts[0], counts[1], corner0, corner1, &memory);
+            if (water == nullptr) {
+                throw std::bad_alloc();
+            }
         }
         if (water != nullptr && surface.position) {
             float pos[4] = {(*surface.position)[0], (*surface.position)[1], (*surface.position)[2], 0.0f};
@@ -1397,37 +1327,36 @@ void ApplyWater(CMap &map, mgCMemory &memory, const SceneConfigDocument &config)
         if (water != nullptr && surface.param) {
             water->SetParam((*surface.param)[0], (*surface.param)[1], (*surface.param)[2], (*surface.param)[3]);
         }
-        if (surface_index < map.water_surface_num) {
-            map.water_surface[surface_index++] = water;
+        if (surface_index < surface_count) {
+            surfaces[surface_index++] = water;
         }
     }
     if (config.draw_count) {
-        map.water_num = *config.draw_count;
-        if (map.water_num >= 0) {
-            map.water = new (memory.Alloc(static_cast<int>(Quadwords(map.water_num * sizeof(CMapWater)) + 2))) CMapWater[map.water_num];
-            for (int index = 0; index < map.water_num; ++index) {
-                map.water[index].Initialize();
-                map.water[index].parts_max = MAP_WATER_PARTS_MAX;
-                map.water[index].parts = new (memory.Alloc(static_cast<int>(Quadwords(map.water[index].parts_max * sizeof(CMapParts *)) + 2))) CMapParts *[map.water[index].parts_max];
-                map.water[index].Clear();
-            }
+        water_count = *config.draw_count;
+        water_slots = AllocateMapArray<CMapWater>(memory, water_count);
+        for (int index = 0; index < water_count; ++index) {
+            auto &slot = water_slots[index];
+            slot.Initialize();
+            slot.parts = AllocateMapArray<CMapParts *>(memory, MAP_WATER_PARTS_MAX);
+            slot.parts_max = MAP_WATER_PARTS_MAX;
+            slot.Clear();
         }
     }
     for (const auto &draw : config.draws) {
-        if (draw.surface < 0 || draw.surface >= map.water_surface_num) {
+        if (draw.surface < 0 || draw.surface >= surface_count) {
             continue;
         }
         CMapWater *slot = nullptr;
-        for (int index = 0; index < map.water_num; ++index) {
-            if (map.water[index].frame == nullptr) {
-                slot = &map.water[index];
+        for (int index = 0; index < water_count; ++index) {
+            if (water_slots[index].frame == nullptr) {
+                slot = &water_slots[index];
                 break;
             }
         }
         if (slot == nullptr) {
             continue;
         }
-        slot->frame = map.water_surface[draw.surface];
+        slot->frame = surfaces[draw.surface];
         if (draw.target && !draw.target->empty()) {
             std::string target = *draw.target;
             if (target.starts_with("#follow")) {
@@ -1436,7 +1365,10 @@ void ApplyWater(CMap &map, mgCMemory &memory, const SceneConfigDocument &config)
                     slot->follow[digit] = 7 + digit < target.size() ? target[7 + digit] - '0' : -'0';
                 }
             } else {
-                slot->parts_name = mgCopyString(target.data(), &memory);
+                slot->parts_name = dc2::memory::CopyText(memory, target);
+                if (slot->parts_name == nullptr) {
+                    throw std::bad_alloc();
+                }
             }
         }
         if (draw.position) {
@@ -1444,34 +1376,48 @@ void ApplyWater(CMap &map, mgCMemory &memory, const SceneConfigDocument &config)
             slot->SetPosition(pos);
         }
     }
+    map.water_surface = surfaces;
+    map.water_surface_num = surface_count;
+    map.water = water_slots;
+    map.water_num = water_count;
 }
 
 } // namespace
 
 void CMap::LoadCfgFile(char *script, int /*length*/, mgCMemory *memory) {
-    const auto config = ReadSceneConfig(script);
-    if (!config) {
+    if (script == nullptr || memory == nullptr || memory->lock != 0) {
         return;
     }
-    for (const auto &rect : config->draw_off_rects) {
-        mgVu0FBOX first{};
-        mgVu0FBOX second{};
-        std::memcpy(first.min, rect.data(), sizeof(float) * 3);
-        std::memcpy(first.max, &rect[3], sizeof(float) * 3);
-        std::memcpy(second.min, &rect[6], sizeof(float) * 3);
-        std::memcpy(second.max, &rect[9], sizeof(float) * 3);
-        CreateDrawRect(memory, &first, &second, false);
-    }
-    for (const auto &corners : config->occlusion_planes) {
-        float plane[4][4];
-        for (int corner = 0; corner < 4; ++corner) {
-            plane[corner][0] = corners[(corner * 3) + 0];
-            plane[corner][1] = corners[(corner * 3) + 1];
-            plane[corner][2] = corners[(corner * 3) + 2];
-            plane[corner][3] = 1.0f;
+    try {
+        const auto config = ReadSceneConfig(script);
+        if (!config) {
+            return;
         }
-        CreateOcclusion(plane);
+        for (const auto &rect : config->draw_off_rects) {
+            mgVu0FBOX first{};
+            mgVu0FBOX second{};
+            std::memcpy(first.min, rect.data(), sizeof(float) * 3);
+            std::memcpy(first.max, &rect[3], sizeof(float) * 3);
+            std::memcpy(second.min, &rect[6], sizeof(float) * 3);
+            std::memcpy(second.max, &rect[9], sizeof(float) * 3);
+            CreateDrawRect(memory, &first, &second, false);
+        }
+        for (const auto &corners : config->occlusion_planes) {
+            float plane[4][4];
+            for (int corner = 0; corner < 4; ++corner) {
+                plane[corner][0] = corners[(corner * 3) + 0];
+                plane[corner][1] = corners[(corner * 3) + 1];
+                plane[corner][2] = corners[(corner * 3) + 2];
+                plane[corner][3] = 1.0f;
+            }
+            CreateOcclusion(plane);
+        }
+        ApplyWater(*this, *memory, *config);
+        ApplyEventPoints(*this, *memory, config->event_points);
+
+    } catch (const std::bad_alloc &) {
+        native_config::Report("<scene configuration>", "insufficient map arena storage");
+    } catch (const std::length_error &error) {
+        native_config::Report("<scene configuration>", error.what());
     }
-    ApplyWater(*this, *memory, *config);
-    ApplyEventPoints(*this, *memory, config->event_points);
 }

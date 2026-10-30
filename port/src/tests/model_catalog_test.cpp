@@ -155,13 +155,13 @@ TEST(NativeModelBounds, MapPieceCopyRejectsAClaimedMaterialCountBeyondItsArena) 
     PieceMaterial material;
 
     source.SetMaterial(&material, std::numeric_limits<int>::max());
-    source.Copy(copy, &arena);
+    EXPECT_FALSE(source.Copy(copy, &arena));
     EXPECT_EQ(copy.material_num, 0);
     EXPECT_EQ(copy.material, nullptr);
     EXPECT_EQ(arena.stack_used, 0);
 
     source.SetMaterial(&material, 1);
-    source.Copy(copy, &arena);
+    ASSERT_TRUE(source.Copy(copy, &arena));
     EXPECT_EQ(copy.material_num, 1);
     ASSERT_NE(copy.material, nullptr);
     EXPECT_EQ(copy.material[0].color_no, material.color_no);
@@ -171,20 +171,30 @@ TEST(NativeModelBounds, MotionVisualCopyRejectsInvalidMaterialStorageAndLockedAr
     std::vector<u_long128> storage(1024);
     mgCMemory              arena;
     arena.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
-    mgCVisualMotionMDT visual;
+    std::vector<u_long128> producer_storage(1024);
+    mgCMemory              producer;
+    producer.stSetBuffer(producer_storage.data(), static_cast<int>(producer_storage.size()));
+    auto *visual = dc2::memory::NewObject<mgCVisualMotionMDT>(producer);
+    ASSERT_NE(visual, nullptr);
+    ASSERT_TRUE(dc2::render::VisualCloneInputs::Publish(producer, *visual, dc2::render::VisualCloneKind::MotionMdt));
+    auto clone_inputs = visual->clone_inputs;
 
-    visual.material_num = 1;
-    visual.material = nullptr;
-    EXPECT_EQ(visual.Copy(&arena), nullptr);
+    visual->material_num = 1;
+    visual->material = nullptr;
+    EXPECT_EQ(clone_inputs.Clone(visual, &arena), nullptr);
 
-    mgMaterial material{};
-    visual.material = &material;
-    visual.material_num = std::numeric_limits<int>::max();
-    EXPECT_EQ(visual.Copy(&arena), nullptr);
+    visual->material = dc2::memory::NewObject<mgMaterial>(producer);
+    ASSERT_NE(visual->material, nullptr);
+    visual->material_num = std::numeric_limits<int>::max();
+    EXPECT_FALSE(dc2::render::VisualCloneInputs::Publish(producer, *visual, dc2::render::VisualCloneKind::MotionMdt));
+    EXPECT_EQ(clone_inputs.Clone(visual, &arena), nullptr);
 
-    visual.material_num = 0;
+    visual->material = nullptr;
+    visual->material_num = 0;
+    ASSERT_TRUE(dc2::render::VisualCloneInputs::Publish(producer, *visual, dc2::render::VisualCloneKind::MotionMdt));
+    clone_inputs = visual->clone_inputs;
     arena.stSetLocked(true);
-    EXPECT_EQ(visual.Copy(&arena), nullptr);
+    EXPECT_EQ(clone_inputs.Clone(visual, &arena), nullptr);
 }
 
 TEST(NativeModelBounds, DynamicAnimationTablesInitializeOnlyTheirAllocatedElements) {
@@ -2382,7 +2392,7 @@ TEST(NativeModelBounds, MapPieceCharacterCopyRejectsAnArenaTooSmallForTheHostCon
     CMapPiece   source;
     CMapPiece   destination;
     source.chara = &character;
-    source.Copy(destination, &arena);
+    EXPECT_FALSE(source.Copy(destination, &arena));
     EXPECT_EQ(destination.chara, nullptr);
     EXPECT_EQ(arena.stack_used, 0);
 }
@@ -2450,7 +2460,7 @@ TEST_F(NativeModel, CharacterResourceCapabilitiesFollowModelMotionAndCopiedStora
     EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, memory, dc2::memory::ArenaResetKind::Stack));
     EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, motions, dc2::memory::ArenaResetKind::Stack));
     EXPECT_FALSE(dc2::character::ResourcesWouldRetireOnReset(character, unrelated, dc2::memory::ArenaResetKind::Stack));
-    character.Copy(copied, &copies);
+    ASSERT_TRUE(character.Copy(copied, &copies));
     ASSERT_NE(copied.CObjectFrame::frame, nullptr);
     ASSERT_TRUE(dc2::character::ResourcesLive(copied));
     unrelated.stClearUsed();
@@ -2458,7 +2468,7 @@ TEST_F(NativeModel, CharacterResourceCapabilitiesFollowModelMotionAndCopiedStora
     copies.stClearUsed();
     EXPECT_FALSE(dc2::character::ResourcesLive(copied));
     EXPECT_TRUE(dc2::character::ResourcesLive(character));
-    character.Copy(copied, &copies);
+    ASSERT_TRUE(character.Copy(copied, &copies));
     ASSERT_TRUE(dc2::character::ResourcesLive(copied));
     motions.stClearUsed();
     EXPECT_FALSE(dc2::character::ResourcesLive(character));
@@ -2537,7 +2547,7 @@ TEST_F(NativeModel, ANewImageSlotOnACopyPreservesItsSharedBaseImageProducer) {
     const std::span<const std::byte> source(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
     std::string                      error;
     ASSERT_TRUE(model_assets::LoadCharacter(original, source, base, "info", options, error)) << error;
-    original.Copy(copied, &copies);
+    ASSERT_TRUE(original.Copy(copied, &copies));
     ASSERT_TRUE(dc2::character::ResourcesLive(copied));
     options.model_memory = &copies;
     options.motion_memory = &copies;
@@ -2547,4 +2557,207 @@ TEST_F(NativeModel, ANewImageSlotOnACopyPreservesItsSharedBaseImageProducer) {
     EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(copied, extension_images, dc2::memory::ArenaResetKind::Stack));
     base_images.stClearUsed();
     EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+}
+
+TEST_F(NativeModel, ActualVisualFactoriesPublishCloneInputsForEveryConcreteCase) {
+    std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    for (int vertex = 0; vertex < 3; ++vertex) {
+        values.insert(values.end(), {1, 0, 0, 0});
+    }
+    const std::vector<std::uint16_t> joints(12, 0);
+    std::vector<unsigned char>       bytes((values.size() * sizeof(float)) + (joints.size() * sizeof(std::uint16_t)));
+    std::memcpy(bytes.data(), values.data(), values.size() * sizeof(float));
+    std::memcpy(&bytes.at(values.size() * sizeof(float)), joints.data(), joints.size() * sizeof(std::uint16_t));
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    for (const auto &[offset, length] : std::array<std::pair<int, int>, 2>{
+             {{68, 48}, {116, 24}}
+    }) {
+        gltf["bufferViews"].push_back({
+            {"buffer",     0     },
+            {"byteOffset", offset},
+            {"byteLength", length}
+        });
+    }
+    for (int index = 0; index < 2; ++index) {
+        gltf["accessors"].push_back({
+            {"bufferView",    3 + index               },
+            {"componentType", index == 0 ? 5126 : 5123},
+            {"count",         3                       },
+            {"type",          "VEC4"                  }
+        });
+    }
+    auto &attributes = gltf["meshes"][0]["primitives"][0]["attributes"];
+    attributes["WEIGHTS_0"] = 3;
+    attributes["JOINTS_0"] = 4;
+    gltf["nodes"][0]["skin"] = 0;
+    gltf["nodes"][0]["children"] = {1};
+    gltf["nodes"].push_back({
+        {"name", "bone"}
+    });
+    gltf["skins"] = Json::array({{{"joints", {1}}}});
+    game["frames"].push_back({
+        {"id",  1      },
+        {"mdt", nullptr}
+    });
+    Write(directory / "data/models/model.gltf", gltf);
+
+    using dc2::render::VisualCloneKind;
+    const std::array choices{
+        std::pair{MG_VISUAL_CREATE_MDT,            VisualCloneKind::Mdt         },
+        std::pair{MG_VISUAL_CREATE_FIX_MDT,        VisualCloneKind::FixMdt      },
+        std::pair{MG_VISUAL_CREATE_SHADOW_MDT,     VisualCloneKind::ShadowMdt   },
+        std::pair{MG_VISUAL_CREATE_SHADOW_FIX_MDT, VisualCloneKind::ShadowFixMdt},
+        std::pair{MG_VISUAL_CREATE_MOTION_MDT,     VisualCloneKind::MotionMdt   }
+    };
+    for (const auto &[type, kind] : choices) {
+        SCOPED_TRACE(type);
+        char               empty[] = "";
+        mgCreateVisualType types[] = {
+            {.type = type,                 .name = empty  },
+            {.type = MG_VISUAL_CREATE_END, .name = nullptr}
+        };
+        mgLoadData load{};
+        load.memory = &memory;
+        load.visual_type = types;
+        std::string error;
+        auto       *root = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+        ASSERT_NE(root, nullptr) << error;
+        ASSERT_NE(root->visual, nullptr);
+        EXPECT_EQ(root->visual->clone_inputs.Kind(root->visual), kind);
+        EXPECT_TRUE(root->clone_inputs.Matches(*root));
+        EXPECT_TRUE(root->frame_list[1]->clone_inputs.Matches(*root->frame_list[1]));
+        std::array<u_long128, 4096> copy_storage{};
+        mgCMemory                   destination;
+        destination.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+        auto *copy = mgCopyFrame(root, &destination, 1);
+        ASSERT_NE(copy, nullptr);
+        const bool deep = kind == VisualCloneKind::FixMdt || kind == VisualCloneKind::MotionMdt;
+        EXPECT_EQ(copy->visual == root->visual, !deep);
+        EXPECT_NE(copy->attr, root->attr);
+        EXPECT_NE(copy->bound, root->bound);
+        memory.stReset();
+        EXPECT_EQ(copy->clone_inputs.Matches(*copy), deep);
+    }
+}
+
+TEST_F(NativeModel, CharacterFactoryPublishesEntryDeformAndSoundCloneInputs) {
+    const Json  commands = Json::array({
+        {{"command", "VERTEX_ANIME"}, {"args", {TextArgument("root")}}                                                           },
+        {{"command", "MODEL"},        {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}                        },
+        {{"command", "OBJECT_NAME"},  {"args", {TextArgument("root")}}                                                           },
+        {{"command", "MOTION"},       {"args", {IntegerArgument(0), AnimationArgument(0)}}                                       },
+        {{"command", "KEY_START"},    {"args", Json::array()}                                                                    },
+        {{"command", "KEY"},          {"args", {TextArgument("walk"), RealArgument(1)}}                                          },
+        {{"command", "KEY_END"},      {"args", Json::array()}                                                                    },
+        {{"command", "SE_START"},     {"args", {IntegerArgument(1)}}                                                             },
+        {{"command", "SE"},           {"args", {TextArgument("walk"), IntegerArgument(0), IntegerArgument(7), RealArgument(.5f)}}},
+        {{"command", "SE_END"},       {"args", Json::array()}                                                                    }
+    });
+    CCharacter2 source;
+    std::string error;
+    ASSERT_TRUE(LoadNamedActionCharacter(source, gltf, NamedActionCharacter(game, commands), memory, error)) << error;
+    ASSERT_TRUE(dc2::character::CloneInputsLive(source));
+    ASSERT_EQ(source.entry_frame[0], source.CObjectFrame::frame);
+    ASSERT_EQ(source.entry_object[0].frame, source.CObjectFrame::frame);
+    ASSERT_EQ(source.deform_frame_num, 1);
+    ASSERT_EQ(source.deform_frame[0], source.CObjectFrame::frame);
+    ASSERT_EQ(source.se_num[0], 1);
+    std::vector<u_long128> storage(8192);
+    mgCMemory              destination_memory;
+    destination_memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CCharacter2 destination;
+    ASSERT_TRUE(source.Copy(destination, &destination_memory));
+    EXPECT_NE(destination.CObjectFrame::frame, source.CObjectFrame::frame);
+    EXPECT_EQ(destination.entry_frame[0], destination.CObjectFrame::frame);
+    EXPECT_EQ(destination.entry_object[0].frame, destination.CObjectFrame::frame);
+    EXPECT_EQ(destination.deform_frame[0], destination.CObjectFrame::frame);
+    ASSERT_NE(destination.se_list[0], source.se_list[0]);
+    EXPECT_EQ(destination.se_list[0][0].se_no, 7);
+    EXPECT_TRUE(dc2::character::CloneInputsLive(destination));
+}
+
+TEST_F(NativeModel, UnchangedProfilesReuseFrameAndAuxiliarySnapshotsWithoutRetainingTheirModelContext) {
+    const auto commands = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"}, {"args", Json::array()}                                            },
+        {{"command", "KEY"},       {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                            }
+    });
+    auto       profile = NamedActionCharacter(game, commands);
+    profile["profiles"]["unchanged"]["commands"] = Json::array();
+    const auto                         bytes = gltf.dump();
+    const auto                         source = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source, profile, "info", options, error)) << error;
+    const auto before = character.resource_state.Acquire<dc2::character::ResourceState>();
+    ASSERT_NE(before, nullptr);
+    const auto context = before->model_context;
+    ASSERT_NE(context, nullptr);
+    const auto baseline = context.use_count();
+    for (int iteration = 0; iteration < 50; ++iteration) {
+        ASSERT_TRUE(model_assets::LoadCharacter(character, source, profile, "unchanged", options, error)) << error;
+        EXPECT_EQ(character.resource_state.Acquire<dc2::character::ResourceState>(), before);
+        EXPECT_EQ(context.use_count(), baseline);
+    }
+}
+
+TEST_F(NativeModel, SkinUpdatesReuseExactEntryNamesAfterExternalRootReferenceChanges) {
+    const auto commands = Json::array({
+        {{"command", "MODEL"},       {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "OBJECT_NAME"}, {"args", {TextArgument("root")}}                                   },
+        {{"command", "MOTION"},      {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"},   {"args", Json::array()}                                            },
+        {{"command", "KEY"},         {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},     {"args", Json::array()}                                            }
+    });
+    auto       profile = NamedActionCharacter(game, commands);
+    profile["profiles"]["skin"]["commands"] = Json::array({
+        {{"command", "MODEL"},  {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"}, {"args", {AnimationArgument(0)}}                                   }
+    });
+    const auto                         bytes = gltf.dump();
+    const auto                         source_data = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source_data, profile, "info", options, error)) << error;
+    auto      *root = character.CObjectFrame::frame;
+    const auto graph = dc2::world::FrameGraph::Capture(memory, root);
+    ASSERT_TRUE(graph.IsLive());
+    std::array<u_long128, 256> reference_storage{};
+    mgCMemory                  reference_memory;
+    reference_memory.stSetBuffer(reference_storage.data(), static_cast<int>(reference_storage.size()));
+    auto *reference = dc2::memory::NewObject<mgCFrame>(reference_memory);
+    auto *reference_name = dc2::memory::NewArray<char>(reference_memory, 9);
+    ASSERT_NE(reference, nullptr);
+    ASSERT_NE(reference_name, nullptr);
+    std::memcpy(reference_name, "external", 9);
+    reference->SetName(reference_name);
+    root->SetReference(reference);
+    EXPECT_FALSE(graph.IsLive());
+    EXPECT_TRUE(graph.MatchesRootAllocation(root));
+    EXPECT_TRUE(dc2::character::CloneInputsLive(character));
+    std::vector<u_long128> skin_storage(8192), copy_storage(8192);
+    mgCMemory              skin_memory, copy_memory;
+    skin_memory.stSetBuffer(skin_storage.data(), static_cast<int>(skin_storage.size()));
+    copy_memory.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+    options.model_memory = options.motion_memory = options.image_memory = &skin_memory;
+    auto *previous_visual = root->visual;
+    ASSERT_TRUE(model_assets::LoadSkin(character, source_data, profile, "skin", "", options, error)) << error;
+    EXPECT_EQ(character.CObjectFrame::frame, root);
+    EXPECT_EQ(root->parent, reference);
+    EXPECT_NE(root->visual, previous_visual);
+    EXPECT_TRUE(root->clone_inputs.Matches(*root));
+    EXPECT_TRUE(dc2::character::CloneInputsLive(character));
+    EXPECT_FALSE(graph.IsLive());
+    CCharacter2 destination;
+    ASSERT_TRUE(character.Copy(destination, &copy_memory));
+    EXPECT_EQ(destination.entry_frame[0], destination.CObjectFrame::frame);
+    EXPECT_TRUE(dc2::character::CloneInputsLive(destination));
 }

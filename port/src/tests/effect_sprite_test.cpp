@@ -282,7 +282,7 @@ protected:
             if (!event.model && event.tag.key == key) {
                 gfx::detail::Draw2DEntry entry{};
                 entry.primitive = event.primitive;
-                entry.vertices = event.vertices;
+                entry.vertices.assign(event.vertices.begin(), event.vertices.end());
                 entry.state = event.state;
                 entry.scene = 0;
                 entry.interpolation = event.tag;

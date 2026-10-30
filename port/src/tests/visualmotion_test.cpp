@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <bit>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -320,4 +322,23 @@ TEST(VisualMotion, MatchesRetailAlgebra) {
     ResetPalette();
     visual.CreateExtRenderInfoPacket(nullptr, object, &mgRenderInfo);
     ExpectSlotMatches(0, expected);
+}
+
+TEST(VisualMotion, BaseBoxesCopyFloatAlignedVectorsWithoutIntegerAliasing) {
+    alignas(16) std::array<float, 6> maximum{123.0f, 1.0f, -0.0f, std::bit_cast<float>(std::uint32_t{0x7fc00001}), 4.0f, 456.0f};
+    alignas(16) std::array<float, 6> minimum{123.0f, -1.0f, -2.0f, -3.0f, -4.0f, 456.0f};
+    const auto                       saved_maximum = maximum;
+    const auto                       saved_minimum = minimum;
+    mgCVisualMotionMDT               visual;
+    visual.SetBaseBox(maximum.data() + 1, minimum.data() + 1);
+    for (std::size_t component = 0; component < 4; ++component) {
+        EXPECT_EQ(std::bit_cast<std::uint32_t>(visual.base_box.max[component]), std::bit_cast<std::uint32_t>(saved_maximum[component + 1]));
+        EXPECT_EQ(std::bit_cast<std::uint32_t>(visual.base_box.min[component]), std::bit_cast<std::uint32_t>(saved_minimum[component + 1]));
+    }
+    EXPECT_EQ(maximum.front(), 123.0f);
+    EXPECT_EQ(maximum.back(), 456.0f);
+    EXPECT_EQ(minimum.front(), 123.0f);
+    EXPECT_EQ(minimum.back(), 456.0f);
+    EXPECT_EQ(maximum[4], 1.0f);
+    EXPECT_EQ(minimum[4], 1.0f);
 }

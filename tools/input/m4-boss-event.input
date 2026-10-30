@@ -1,0 +1,75 @@
+# --jump event:<id> --fast-load --invincible. Replay endpoint: --frames 2400. Cross every 60 frames from 120 to 2300 to advance dialogue.
+120 cross
+126
+180 cross
+186
+240 cross
+246
+300 cross
+306
+360 cross
+366
+420 cross
+426
+480 cross
+486
+540 cross
+546
+600 cross
+606
+660 cross
+666
+720 cross
+726
+780 cross
+786
+840 cross
+846
+900 cross
+906
+960 cross
+966
+1020 cross
+1026
+1080 cross
+1086
+1140 cross
+1146
+1200 cross
+1206
+1260 cross
+1266
+1320 cross
+1326
+1380 cross
+1386
+1440 cross
+1446
+1500 cross
+1506
+1560 cross
+1566
+1620 cross
+1626
+1680 cross
+1686
+1740 cross
+1746
+1800 cross
+1806
+1860 cross
+1866
+1920 cross
+1926
+1980 cross
+1986
+2040 cross
+2046
+2100 cross
+2106
+2160 cross
+2166
+2220 cross
+2226
+2280 cross
+2286

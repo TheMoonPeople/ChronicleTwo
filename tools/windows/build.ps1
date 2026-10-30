@@ -28,12 +28,12 @@ while ($null -eq $lock) {
         Start-Sleep -Milliseconds 500
     }
 }
-# Recompacting rewrites the logs from the records ninja can read, repairing damage left by an earlier
-# concurrent or killed build.
+# Explicit repair rewrites damaged logs; ordinary builds leave Ninja's incremental database intact.
 $ninja = Join-Path $root 'deps/ninja/ninja.exe'
-if ((Test-Path -LiteralPath $ninja) -and (Test-Path -LiteralPath (Join-Path $build 'build.ninja')) -and
+if ($env:REPAIR_NINJA -eq '1' -and (Test-Path -LiteralPath $ninja) -and (Test-Path -LiteralPath (Join-Path $build 'build.ninja')) -and
     (Test-Path -LiteralPath (Join-Path $build '.ninja_deps'))) {
-    & $ninja -C $build -t recompact 2>&1 | Out-Null
+    & $ninja -C $build -t recompact
+    if ($LASTEXITCODE) { $lock.Dispose(); exit $LASTEXITCODE }
 }
 Write-Host "kazarov: building $build ($Jobs jobs; log: $log)"
 $timer = [Diagnostics.Stopwatch]::StartNew()
@@ -48,6 +48,7 @@ try {
     $code = $LASTEXITCODE
 } finally {
     $ErrorActionPreference = 'Stop'
+    $lock.Dispose()
 }
 Write-Host ("kazarov: build finished in {0:N1}s (exit {1})" -f $timer.Elapsed.TotalSeconds, $code)
 if ($code) { exit $code }

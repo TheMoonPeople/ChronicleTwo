@@ -34,9 +34,16 @@ void                   PresentTickRendered();
 void                   PresentWaitFrame(int start, int frames);
 // Async only: hands the tick just rendered to the render thread, whose frame began at tick `start` and lasts `frames`.
 // Called by the game thread holding a render lease.
-void        PresentPublishTick(int start, int frames);
+void        PresentPublishTick(int start, int frames, bool canonical_endpoint_allowed = true);
 void        PresentTickEnd();
 std::string PresentFpsText();
 // Frame-exit screenshot renders, outside a frame. They present, which is what ReadbackFrame reads.
 bool PresentScreenshotDisplay(float alpha, std::vector<uint8_t> &rgba, uint32_t &width, uint32_t &height);
 bool PresentScreenshotFps(std::vector<uint8_t> &rgba, uint32_t &width, uint32_t &height);
+
+namespace dc2::presentation {
+/**
+ * Retires a pending endpoint before a new canonical render can replace its image.
+ */
+void BeforeCanonical();
+} // namespace dc2::presentation

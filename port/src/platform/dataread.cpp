@@ -7,6 +7,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
+#include <utility>
 
 #include "dataread.hpp"
 #include "filesocket.hpp"
@@ -99,16 +101,6 @@ void DeleteFileCache() {
 int LoadFileCacheBG(char *path);
 
 u_long128 *SearchFileCache(char *path, int *out_size);
-
-int WriteFile(char *path, void *buffer, int size);
-
-u_int *AssetDirectoryRead(u_int *pack, char *name, int *out_size);
-
-u_int *AssetDirectoryRead(u_int *pack, int index, char **out_name, int *out_size);
-
-int AssetDirectoryReadExtension(u_int *pack, char *extension, u_int **files, int max_files, int *sizes, char **names);
-
-int AssetDirectoryCount(u_int *pack);
 
 std::pair<std::string, std::string> DivPathName(std::string_view path) {
     const auto slash = path.rfind('/');
@@ -1238,20 +1230,48 @@ u_long128 *SearchFileCache(char *path, int *out_size) {
 }
 
 // Writes go through the host file server, which maps host0: to the save root.
-int WriteFile(char *path, void *buffer, int size) {
-    if (!path || size < 0) {
-        return 0;
+bool dc2::io::WriteFile(std::string_view path, std::span<const std::byte> bytes) {
+    if (path.empty() || path.find('\0') != std::string_view::npos) {
+        return false;
     }
-    if (std::string_view(path).starts_with("net:")) {
+    if (path.starts_with("net:")) {
         CT_LOG_WARN(Data, "dataread: no network socket on the host, not writing {}", path);
-        return 0;
+        return false;
+    }
+    const std::string name(path);
+    const int         descriptor = sceOpen(name.c_str(), SCE_WRONLY | SCE_CREAT | SCE_TRUNC);
+    if (descriptor < 0) {
+        return false;
     }
 
-    int fd = sceOpen(path, SCE_WRONLY | SCE_CREAT | SCE_TRUNC);
-    if (fd < 0) {
-        return 0;
+    /**
+     *
+     * Closes the descriptor on failed writes and exceptional exits.
+     *
+     */
+    struct FileScope {
+        int descriptor; /**< File owned by this write operation. */
+
+        explicit FileScope(int value) : descriptor(value) {}
+
+        FileScope(const FileScope &) = delete;
+        FileScope &operator=(const FileScope &) = delete;
+
+        ~FileScope() {
+            if (descriptor >= 0) {
+                sceClose(descriptor);
+            }
+        }
+    } file(descriptor);
+
+    while (!bytes.empty()) {
+        const auto count = std::min(bytes.size(), static_cast<std::size_t>(std::numeric_limits<int>::max()));
+        // The SDK write interface reads its mutable-typed buffer without changing it.
+        const int written = sceWrite(file.descriptor, const_cast<std::byte *>(bytes.data()), static_cast<int>(count));
+        if (written <= 0 || static_cast<std::size_t>(written) > count) {
+            return false;
+        }
+        bytes = bytes.subspan(static_cast<std::size_t>(written));
     }
-    int written = sceWrite(fd, buffer, size);
-    sceClose(fd);
-    return written == size;
+    return sceClose(std::exchange(file.descriptor, -1)) == 0;
 }

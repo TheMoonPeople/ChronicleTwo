@@ -28,6 +28,7 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "object.hpp"
+#include "text/bounded.hpp"
 #include "water.hpp"
 
 /**
@@ -109,7 +110,7 @@ void CPartsGroup::Add(CList<PartsGroupData> *node) {
 
 void CMapWater::Initialize() {
     frame = nullptr;
-    *reinterpret_cast<u_long128 *>(follow) = 0;
+    std::fill(std::begin(follow), std::end(follow), 0);
     parts = nullptr;
     parts_max = 0;
     parts_num = 0;
@@ -313,6 +314,33 @@ std::span<CMapParts> CMap::PlacedParts() const {
     return {place_parts, count};
 }
 
+CMapParts *dc2::world::PlacedPartView::Get(const CMap &map) const {
+    if (!table_storage.SameIdentity(map.placed_parts_storage) || table_storage.Bytes().empty()) {
+        return nullptr;
+    }
+    const auto parts = map.PlacedParts();
+    if (map.place_parts_num <= 0 || index >= parts.size() || index >= static_cast<std::size_t>(map.place_parts_num)) {
+        return nullptr;
+    }
+    auto &part = parts[index];
+    return part.AssignmentToken() == assignment_token && part.HasStandaloneFrame() ? &part : nullptr;
+}
+
+dc2::world::PlacedPartView CMap::FindPlacedPart(std::string_view name) const {
+    const auto parts = PlacedParts();
+    const auto count = place_parts_num > 0 ? std::min(parts.size(), static_cast<std::size_t>(place_parts_num)) : 0;
+    for (std::size_t index = 0; index < count; ++index) {
+        if (dc2::text::View(parts[index].name) == name && parts[index].HasStandaloneFrame()) {
+            dc2::world::PlacedPartView result;
+            result.table_storage = placed_parts_storage;
+            result.index = index;
+            result.assignment_token = parts[index].AssignmentToken();
+            return result;
+        }
+    }
+    return {};
+}
+
 CMapParts *CMap::GetPlacPartsTable(int *out_max) {
     *out_max = place_parts_max;
     return place_parts;
@@ -332,11 +360,11 @@ CCameraInfo *CMap::GetCameraInfo(int no) {
 }
 
 CMapParts *CMap::NewPlaceParts() {
-    for (int i = 0; i < place_parts_max; i++) {
-        u8 unused = place_parts[i].name[0] == 0;
+    for (auto &part : PlacedParts()) {
+        const bool unused = part.name[0] == 0;
 
         if (unused) {
-            return &place_parts[i];
+            return &part;
         }
     }
 
@@ -503,10 +531,10 @@ void CList<CMapParts *>::Initialize() {
 void CMap::CreateOcclusion(float (*corner)[4]) {
     if (occlusion_num < MAP_OCCLUSION_MAX) {
         occlusion[occlusion_num].enable = 1;
-        *reinterpret_cast<u_long128 *>(occlusion[occlusion_num].vertex[0]) = *reinterpret_cast<u_long128 *>(corner[0]);
-        *reinterpret_cast<u_long128 *>(occlusion[occlusion_num].vertex[1]) = *reinterpret_cast<u_long128 *>(corner[1]);
-        *reinterpret_cast<u_long128 *>(occlusion[occlusion_num].vertex[2]) = *reinterpret_cast<u_long128 *>(corner[2]);
-        *reinterpret_cast<u_long128 *>(occlusion[occlusion_num].vertex[3]) = *reinterpret_cast<u_long128 *>(corner[3]);
+        std::memmove(occlusion[occlusion_num].vertex[0], corner[0], sizeof(float) * 4);
+        std::memmove(occlusion[occlusion_num].vertex[1], corner[1], sizeof(float) * 4);
+        std::memmove(occlusion[occlusion_num].vertex[2], corner[2], sizeof(float) * 4);
+        std::memmove(occlusion[occlusion_num].vertex[3], corner[3], sizeof(float) * 4);
         occlusion_num++;
     }
 }
@@ -527,7 +555,9 @@ CMapParts *CMap::PlaceParts(char *name, float *pos, float *rot, float *scale, mg
         return nullptr;
     }
 
-    model->Copy(*parts, stack);
+    if (!model->Copy(*parts, stack)) {
+        return nullptr;
+    }
     parts->SetPosition(pos);
     parts->SetRotation(rot);
     parts->SetScale(scale);
@@ -604,28 +634,17 @@ void CMap::ClearPlaceParts() {
     }
 }
 
-CMapParts *CMap::GetPlaceParts(char *name) {
-    int i = {};
-
-    if (name == nullptr) {
-        return nullptr;
-    }
-
-    for (i = 0; i < place_parts_num; i++) {
-        if (strcmp(name, place_parts[i].name) == 0) {
-            return &place_parts[i];
-        }
-    }
-
-    return nullptr;
+CMapParts *CMap::GetPlaceParts(const char *name) {
+    return name != nullptr ? FindPlacedPart(name).Get(*this) : nullptr;
 }
 
 CMapParts *CMap::GetPlaceParts(int no) {
-    if (no < 0 || no >= place_parts_num) {
+    const auto parts = PlacedParts();
+    if (no < 0 || no >= place_parts_num || static_cast<std::size_t>(no) >= parts.size()) {
         return nullptr;
     }
 
-    return &place_parts[no];
+    return &parts[no];
 }
 
 int CMap::ConvertParts(CMapParts *parts) {
@@ -1194,7 +1213,6 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
 
     for (surface_no = 0; surface_no < water_surface_num; surface_no++) {
         if (water_surface[surface_no] != nullptr) {
-            water_surface[surface_no]->CreatePacket();
             water_surface[surface_no]->SetTexture(screen);
             ripple_row = fptosi(48.0f * (static_cast<float>(rand()) / static_cast<float>(0x7FFFFFFF)));
             ripple_column = fptosi(32.0f * (static_cast<float>(rand()) / 2147483648.0f));
@@ -1574,11 +1592,11 @@ int CMap::GetFixCameraPos(sceVu0FVECTOR pos, sceVu0FVECTOR out_camera_pos) {
         segment_no = 0;
 
         if (projection_num > 0) {
-            *reinterpret_cast<u_long128 *>(out_camera_pos) = *reinterpret_cast<u_long128 *>(projection[nearest_projection]);
+            std::memmove(out_camera_pos, projection[nearest_projection], sizeof(float) * 4);
             nearest_distance = mgDistVector(out_camera_pos, pos);
         } else {
             nearest_distance = mgDistVector(selected->pos[0], pos);
-            *reinterpret_cast<u_long128 *>(out_camera_pos) = *reinterpret_cast<u_long128 *>(selected->pos[0]);
+            std::memmove(out_camera_pos, selected->pos[0], sizeof(float) * 4);
             segment_no = 1;
         }
 
@@ -1587,14 +1605,14 @@ int CMap::GetFixCameraPos(sceVu0FVECTOR pos, sceVu0FVECTOR out_camera_pos) {
 
             if (distance < nearest_distance) {
                 nearest_distance = distance;
-                *reinterpret_cast<u_long128 *>(out_camera_pos) = *reinterpret_cast<u_long128 *>(selected->pos[segment_no]);
+                std::memmove(out_camera_pos, selected->pos[segment_no], sizeof(float) * 4);
             }
         }
 
         return MAP_FIX_CAMERA_PATH;
     }
 
-    *reinterpret_cast<u_long128 *>(out_camera_pos) = *reinterpret_cast<u_long128 *>(selected->pos[0]);
+    std::memmove(out_camera_pos, selected->pos[0], sizeof(float) * 4);
     return MAP_FIX_CAMERA_POINT;
 }
 
@@ -1944,98 +1962,79 @@ void CMap::AssignFuncPoint(mgCMemory *stack) {
 }
 
 void CMap::CreateTrBox(CMapTreasureBox *model, int tex_block, mgCMemory *stack) {
-    mgCFrame       *top_frame = {};
-    CMapParts      *parts = {};
-    CFuncPointMngr *manager = {};
-    CFuncPoint     *point = {};
-    int             parts_index = {};
-    int             box_index = {};
-
-    if (model == nullptr || model->CObjectFrame::frame == nullptr) {
+    if (model == nullptr || model->CObjectFrame::frame == nullptr || stack == nullptr ||
+        !dc2::character::ResourcesLive(*model)) {
         return;
     }
 
-    top_frame = model->CObjectFrame::frame->SearchFrame("top");
+    /**
+     * Identifies a real treasure function point and its optional owning placement.
+     */
+    struct TreasurePlacement {
+        CFuncPoint *point; /**< Function point supplying this chest's settings. */
+        CMapParts  *parts; /**< Placement whose frame the chest follows, or null for a map point. */
+    };
 
-    if (top_frame != nullptr) {
-        top_frame->SetRotType(2);
+    std::vector<TreasurePlacement> placements;
+    const auto                     collect = [&](CFuncPointMngr &manager, CMapParts *owner) {
+        bool complete = true;
+        manager.GetStart(FUNC_POINT_EVENT);
+        for (auto *point = manager.Get(); point != nullptr; point = manager.Get()) {
+            if ((point->event.flag & FUNC_EVENT_TREASURE_BOX) != 0) {
+                if (placements.size() >= static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+                    complete = false;
+                    break;
+                }
+                placements.push_back({point, owner});
+            }
+        }
+        manager.GetEnd();
+        return complete;
+    };
+    if (!collect(func_point, nullptr)) {
+        return;
+    }
+    for (auto &part : PlacedParts()) {
+        if (part.name[0] != '\0' && !collect(part.func_point_mngr, &part)) {
+            return;
+        }
     }
 
+    auto *boxes = placements.empty() ? nullptr : dc2::memory::NewArray<CMapTreasureBox>(*stack, placements.size());
+    if (!placements.empty() && boxes == nullptr) {
+        return;
+    }
+    for (std::size_t index = 0; index < placements.size(); ++index) {
+        auto &box = boxes[index];
+        if (!model->Copy(box, stack)) {
+            return;
+        }
+        if (box.CObjectFrame::frame == nullptr || !dc2::character::ResourcesLive(box)) {
+            return;
+        }
+        if (auto *top = box.CObjectFrame::frame->SearchFrame("top")) {
+            top->SetRotType(2);
+        }
+        box.fade = 1;
+        if (!box.AssignFuncPoint(placements[index].point, placements[index].parts)) {
+            return;
+        }
+    }
+    if (auto *top = model->CObjectFrame::frame->SearchFrame("top")) {
+        top->SetRotType(2);
+    }
     model->fade = 1;
+    tr_box = boxes;
+    tr_box_num = static_cast<int>(placements.size());
     tr_box_texture = tex_block;
     tr_box_model = model;
-    tr_box_num = func_point.GetEventNum(FUNC_EVENT_TREASURE_BOX);
-    parts = place_parts;
-
-    for (parts_index = 0; parts_index < place_parts_max; parts_index++, parts++) {
-        if (static_cast<u8>(parts->name[0] == 0) == 0) {
-            tr_box_num += parts->func_point_mngr.GetEventNum(FUNC_EVENT_TREASURE_BOX);
-        }
-    }
-
-    int          count = tr_box_num;
-    unsigned int bytes = static_cast<unsigned int>(count) * 0x680;
-    unsigned int blocks = {};
-
-    switch (bytes & 0xF) {
-        default:
-            blocks = (bytes >> 4) + 1;
-            break;
-        case 0:
-            blocks = bytes >> 4;
-            break;
-    }
-
-    u_long128 *block = stack->Alloc(blocks + 2);
-    tr_box = new (block) CMapTreasureBox[count];
-
-    if (tr_box == nullptr) {
-        tr_box_num = 0;
-    }
-
-    {
-        int             box_no = {};
-        CFuncPointMngr *current_manager = {};
-        CFuncPoint     *current_point = {};
-        CMapParts      *linked_parts = {};
-        int             parts_no = {};
-        CMapParts      *parts_cursor = place_parts;
-        box_no = 0;
-
-        for (parts_no = -1, parts_cursor--; parts_no < place_parts_max; parts_cursor++, parts_no++) {
-            if (box_no >= tr_box_num) {
-                break;
-            }
-
-            linked_parts = nullptr;
-
-            if (parts_no < 0) {
-                current_manager = &func_point;
-            } else {
-                current_manager = &parts_cursor->func_point_mngr;
-                linked_parts = parts_cursor;
-            }
-
-            current_manager->GetStart(FUNC_POINT_EVENT);
-
-            if ((current_point = current_manager->Get()) != nullptr) {
-                do {
-                    if ((current_point->event.flag & FUNC_EVENT_TREASURE_BOX) != 0) {
-                        tr_box_model->Copy(tr_box[box_no], stack);
-                        tr_box[box_no].AssignFuncPoint(current_point, linked_parts);
-                        current_point->event.point_no = box_no;
-                        box_no++;
-                    }
-                } while ((current_point = current_manager->Get()) != nullptr);
-            }
-
-            current_manager->GetEnd();
-        }
+    for (std::size_t index = 0; index < placements.size(); ++index) {
+        placements[index].point->event.point_no = static_cast<int>(index);
     }
 }
 
 CMapTreasureBox *CMap::GetTrBox(int index) {
-    if (index < 0 || index > tr_box_num || tr_box == nullptr) {
+    if (index < 0 || index >= tr_box_num || tr_box == nullptr) {
         return nullptr;
     }
 
@@ -2147,7 +2146,7 @@ int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *
     }
 
     point->frame.GetLWMatrix(matrix);
-    *reinterpret_cast<u_long128 *>(world_position) = *reinterpret_cast<u_long128 *>(matrix[3]);
+    std::memmove(world_position, matrix[3], sizeof(float) * 4);
     scale_x = mgDistVector(matrix[0]);
     scale_y = mgDistVector(matrix[1]);
     scale_z = mgDistVector(matrix[2]);
@@ -2187,10 +2186,10 @@ int CheckFuncEvent(CFuncPoint *point, float *pos, int check_type, MapEventInfo *
             }
         }
 
-        *reinterpret_cast<u_long128 *>(info->matrix[0]) = *reinterpret_cast<u_long128 *>(matrix[0]);
-        *reinterpret_cast<u_long128 *>(info->matrix[1]) = *reinterpret_cast<u_long128 *>(matrix[1]);
-        *reinterpret_cast<u_long128 *>(info->matrix[2]) = *reinterpret_cast<u_long128 *>(matrix[2]);
-        *reinterpret_cast<u_long128 *>(info->matrix[3]) = *reinterpret_cast<u_long128 *>(matrix[3]);
+        std::memmove(info->matrix[0], matrix[0], sizeof(float) * 4);
+        std::memmove(info->matrix[1], matrix[1], sizeof(float) * 4);
+        std::memmove(info->matrix[2], matrix[2], sizeof(float) * 4);
+        std::memmove(info->matrix[3], matrix[3], sizeof(float) * 4);
     }
 
     if (out_dist != nullptr) {

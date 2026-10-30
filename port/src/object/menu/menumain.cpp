@@ -575,7 +575,7 @@ static u_long128 *MenuMainSubDataPackAdr;
  * Active top-menu state.
  *
  */
-static CMenuInter *CMenuInterPt;
+CMenuInter *CMenuInterPt;
 
 /**
  *
@@ -1142,8 +1142,8 @@ int NextMenuInit(int menu, mgCMemory *memory, int *args) {
 }
 
 void MenuCamInit(float roll) {
-    *reinterpret_cast<u_long128 *>(MenuDrawEnv->ref) = *reinterpret_cast<u_long128 *>(menu_basedgRef);
-    *reinterpret_cast<u_long128 *>(MenuDrawEnv->pos) = *reinterpret_cast<u_long128 *>(menu_basedgCamPos);
+    std::memmove(MenuDrawEnv->ref, menu_basedgRef, sizeof(float) * 4);
+    std::memmove(MenuDrawEnv->pos, menu_basedgCamPos, sizeof(float) * 4);
     MenuDrawEnv->speed = roll;
     MenuDrawEnv->camera.Resume();
 }
@@ -1563,9 +1563,9 @@ int MenuInternInit(mgCMemory *stack, int open_type, int capture) {
         MovePoint step = {20, 40};
 
         for (int icon = 0; icon < icon_count; icon++) {
-            char *name = GetMenuMainIconChar(CMenuInterPt->mode_list[icon]);
+            auto name = dc2::menu::MainIconName(CMenuInterPt->mode_list[icon]);
             pos.y = origin.y + step.y * icon;
-            MenuPosData->SetFormPos(name, &pos.x);
+            MenuPosData->SetFormPos(name.data(), &pos.x);
         }
 
         bool              shown = true;
@@ -1918,7 +1918,7 @@ int MenuInternSelectKey() {
         MenuPosData->StepMainMenuIconMove(mode_list, mode, closing);
     }
 
-    CMenuPosDataForm *icon_form = MenuPosData->GetFormInfo(GetMenuMainIconChar(mode));
+    CMenuPosDataForm *icon_form = MenuPosData->GetFormInfo(dc2::menu::MainIconName(mode).data());
 
     if (old_select != CMenuInterPt->select_no && abs(old_select - CMenuInterPt->select_no) > 1) {
         CMenuInterPt->cursor_jump = true;
@@ -2577,7 +2577,7 @@ int MenuInitCore(MENU_INIT_ARG *arg) {
 }
 
 int MenuExitCore() {
-    dc2::mc::RetireManagers();
+    dc2::menu::ResetSaveMenuManager();
     dc2::menu::ResetInventoryRepairManager();
     InitBuildUpInfoEffect(nullptr, nullptr, 0, 0.0f);
     dc2::menu::ResetMonsterBook();

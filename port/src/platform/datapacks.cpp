@@ -22,11 +22,14 @@
 
 #define STBI_ONLY_PNG
 #define STBI_NO_STDIO
+#ifndef __SWITCH__
 #include "kazarov_bridge/rust/lib.h"
+#endif
 #include "stb_image.h"
 
 #include "log/log.hpp"
 #include "platform/archive_mount.hpp"
+#include "platform/paths.hpp"
 
 namespace datapacks {
 namespace {
@@ -54,10 +57,18 @@ constexpr uint64_t kMaxDecodedBytes = 256ull * 1024 * 1024;
 /** Maximum compressed PNG size accepted before reading its contents. */
 constexpr uint64_t kMaxFileBytes = 256ull * 1024 * 1024;
 /** RGBA storage the decode cache keeps, least recently used first out. */
+#ifdef __SWITCH__
+constexpr std::size_t kDecodeCacheBytes = 64ull * 1024 * 1024;
+#else
 constexpr std::size_t kDecodeCacheBytes = 512ull * 1024 * 1024;
+#endif
 
 /** Largest number of Prefetch worker threads. */
+#ifdef __SWITCH__
+constexpr unsigned kMaxPrefetchWorkers = 2;
+#else
 constexpr unsigned kMaxPrefetchWorkers = 8;
+#endif
 
 /**
  * One decoded catalog variant, kept so re-entering a texture copies it instead of re-decoding its PNGs,
@@ -321,6 +332,7 @@ bool DecodePng(std::span<const uint8_t> bytes, uint32_t &width, uint32_t &height
     }
     // The bridge's decoder inflates several times faster than stb_image; stb_image still reads what it rejects.
     rgba.resize(static_cast<std::size_t>(width) * height * 4);
+#ifndef __SWITCH__
     try {
         kazarov::png_decode_rgba(rust::Slice<const uint8_t>(bytes.data(), bytes.size()), width, height,
                                  rust::Slice<uint8_t>(rgba.data(), rgba.size()));
@@ -330,6 +342,7 @@ bool DecodePng(std::span<const uint8_t> bytes, uint32_t &width, uint32_t &height
     } catch (const std::exception &) {
         Trace("png bridge rejections");
     }
+#endif
     int            decoded_width = 0;
     int            decoded_height = 0;
     int            channels = 0;
@@ -447,7 +460,7 @@ void Load(std::shared_ptr<const vfs::Mount> base_mount, const std::filesystem::p
     base = std::move(base_mount);
     vfs::SetBase(base);
     std::error_code error;
-    retail_root = std::filesystem::weakly_canonical(native_root, error);
+    retail_root = PathsWeaklyCanonical(native_root, error);
     if (error) {
         Diagnostic(native_root, "cannot establish the converted-data location; packs disabled");
         return;

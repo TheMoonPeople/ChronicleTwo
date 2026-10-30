@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 #include <initializer_list>
 #include <limits>
 #include <memory>
@@ -285,7 +286,7 @@ static int mos_effect_readbuff2_size[MONSTER_EFFECT_NUM];
  * Active monster selection menu.
  *
  */
-static CMenuMosSelect *MenuMosSelectPtr;
+CMenuMosSelect *MenuMosSelectPtr;
 
 /**
  *
@@ -348,7 +349,7 @@ static u_int *MenuPartyNPCModelReadBuffer;
  * Current phase of the costume menu model load.
  *
  */
-static short MenuCosutumeLoadPhase;
+short MenuCosutumeLoadPhase;
 
 /**
  *
@@ -362,7 +363,7 @@ static unsigned long long CostumeAttr;
  * Active costume selection menu.
  *
  */
-static CMenuCostumeSel *MenuCosPtr;
+CMenuCostumeSel *MenuCosPtr;
 
 /**
  *
@@ -771,7 +772,7 @@ static short monster_load_id = -1;
  * Active party change menu.
  *
  */
-static CMenuChrCngMenu *ChrChangMenuPt;
+CMenuChrCngMenu *ChrChangMenuPt;
 
 /**
  *
@@ -3416,9 +3417,8 @@ void MenuCharaChangeDraw() {
         font.SetStr("                  Pa:Tr:Ge");
         font.SetPos(0x14, 0x1E);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
-        char npc_title[0x100] = "                           ";
-        strcpy(&npc_title[menu_debug_npc_decide * 3 + 0x11], "\x81\xAB");
-        font.SetStr(npc_title);
+        auto npc_title = std::string(static_cast<std::size_t>(std::clamp(static_cast<int>(menu_debug_npc_decide), 0, 2) * 3 + 0x11), ' ') + "\x81\xAB";
+        font.SetStr(npc_title.data());
         font.SetPos(0x14, 0x32);
         font.DrawDirect(font.str, font.pos_x, font.pos_y);
 
@@ -5119,7 +5119,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
 
             break;
         case MENU_LOAD_MODE_INVENT:
-            strcpy(name[0], "c01b_think.gltf");
+            dc2::text::Copy(name[0], "c01b_think.gltf");
 
             if (0 < MenuLoadItemNo[2]) {
                 dc2::text::Copy(name[4], ItemFileName(MenuLoadItemNo[2], 1).value_or(""));
@@ -5370,7 +5370,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             case MENU_LOAD_MODE_MENU:
             case MENU_LOAD_MODE_INVENT:
             case MENU_LOAD_MODE_THINK:
-                strcpy(tex_manager->name_suffix, "_menu");
+                dc2::text::Copy(tex_manager->name_suffix, "_menu");
                 MenuItemCharaDataLoadPack(chara_no, info[i]->chara, info[0]->chara, i, reinterpret_cast<u_int *>(read.Bytes().data()), buffer,
                                           tex_block, -1);
                 tex_manager->name_suffix[0] = 0;

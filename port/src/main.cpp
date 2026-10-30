@@ -51,6 +51,9 @@
 #include "profile.hpp"
 #include "sce/threads.hpp"
 #include "test_hooks.hpp"
+#ifdef __SWITCH__
+#include "switch_main.hpp"
+#endif
 
 namespace {
 
@@ -230,11 +233,15 @@ gfx::RenderThreadMode RenderThread(ConfigRenderThread mode) {
 }
 
 gfx::FrameLayout Layout(const Config &config) {
+#ifdef __SWITCH__
+    return {.aspect = gfx::AspectMode::Fill, .ui_scale = config.ui_scale};
+#else
     return {.aspect = config.aspect == ConfigAspect::Auto ? gfx::AspectMode::Fill : gfx::AspectMode::Letterbox, .ui_scale = config.ui_scale};
+#endif
 }
 
 PresentSettings PresentSettingsFor(const Config &config, const Options &options) {
-    return {
+    PresentSettings settings{
         .interpolation = config.interpolation,
         .max_fps = config.max_fps,
         .display_per_tick = options.display_per_tick,
@@ -242,6 +249,17 @@ PresentSettings PresentSettingsFor(const Config &config, const Options &options)
         .fps_detail = config.fps_detail,
         .log_fps = options.log_fps,
     };
+#ifdef __SWITCH__
+    const char *canonical_only = std::getenv("DC2_SWITCH_CANONICAL_ONLY");
+    settings.interpolation = canonical_only == nullptr || std::string_view(canonical_only) != "1";
+    const char *hide_fps = std::getenv("DC2_SWITCH_HIDE_FPS");
+    if (hide_fps != nullptr && std::string_view(hide_fps) == "1") {
+        settings.show_fps = false;
+    }
+    settings.max_fps = 60.0;
+    settings.display_per_tick = 0;
+#endif
+    return settings;
 }
 
 /** Whether the application owns an initialized window. */
@@ -291,6 +309,9 @@ void PumpHost() {
 
     // SetFrameLayout recreates frame targets; it must not run inside a tick's recording.
     if (!gfx::InFrame()) {
+#ifdef __SWITCH__
+        SwitchUpdateDisplay(kLogicalHeight);
+#endif
         mgPortSetFrameLayout(Layout(ConfigGet()));
     }
 }
@@ -343,6 +364,8 @@ void LogSessionHeader() {
 #endif
 #ifdef _WIN32
     constexpr std::string_view os = "Windows";
+#elifdef __SWITCH__
+    constexpr std::string_view os = "Nintendo Switch";
 #elifdef __APPLE__
     constexpr std::string_view os = "macOS";
 #else
@@ -415,6 +438,10 @@ int Run(int argc, const char **argv) {
 
     DisplaySetOverrides(options.window_width, options.window_height, options.headless);
     WindowConfig window = DisplayWindowConfig(settings);
+#ifdef __SWITCH__
+    SwitchDisplaySize(window.width, window.height);
+    window.fullscreen = true;
+#endif
     window.vulkan = !offscreen;
     WindowInit(window);
     host_window_initialized = true;
@@ -439,6 +466,9 @@ int Run(int argc, const char **argv) {
     renderer.offscreen = offscreen;
     renderer.layout = Layout(ConfigGet());
     renderer.prog0_meshes = true;
+#ifdef __SWITCH__
+    renderer.main_height_limit = 480;
+#endif
     renderer.validation = renderer.validation || SettingsEnv("VULKAN_VALIDATION") != nullptr;
     // DC2_RENDER_SCALE: pixels per PS2 line of the render targets, 0 for the window's height over 480.
     if (const char *setting = SettingsEnv("RENDER_SCALE")) {
@@ -458,10 +488,24 @@ int Run(int argc, const char **argv) {
     if (options.headless || !options.screenshot.empty()) {
         renderer.render_thread = gfx::RenderThreadMode::Off;
     }
+#ifdef __SWITCH__
+    SwitchConfigureRenderer(renderer);
+#endif
+    if (const char *timing = std::getenv("KZ_PERF_LOG")) {
+        gfx::SetFrameTimingEnabled(std::string_view(timing) == "1");
+    }
     gfx::RendererInit(WindowHandle(), renderer);
+#ifdef __SWITCH__
+    SwitchConfigureThreads();
+#endif
     host_renderer_initialized = true;
     std::atexit(ShutdownRenderer);
     PresentSetSettings(PresentSettingsFor(ConfigGet(), g_options));
+#ifdef __SWITCH__
+    if (const char *trace = std::getenv("DC2_SWITCH_MODEL_TRACE"); trace != nullptr && std::string_view(trace) == "1") {
+        CT_LOG_INFO(Gfx, "switch: model trace enabled; canonical-only={}", !PresentGetSettings().interpolation);
+    }
+#endif
     AudioInit(options.headless);
     // Frame-limited exits stop the mixer before its static storage is destroyed.
     std::atexit(AudioShutdown);
@@ -532,6 +576,8 @@ static int IosMain(int argc, char **argv) {
 int main(int argc, const char **argv) {
 #ifdef SDL_PLATFORM_IOS
     return SDL_RunApp(argc, const_cast<char **>(argv), IosMain, nullptr);
+#elifdef __SWITCH__
+    return SwitchMain(argc, argv, Run);
 #else
     return Run(argc, argv);
 #endif

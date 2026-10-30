@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <string>
 #include <vector>
 
@@ -230,9 +231,8 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
         dc2::text::AppendFormatted(text, "%7.1f %7.1f %7.1f R%4.2f\n", position[0], position[1], position[2], rotation[1]);
 
         if (GamePad__2.Down(PAD_START)) {
-            char coordinates[512];
-            int  length = std::snprintf(coordinates, sizeof(coordinates), "%.1f,%.1f,%.1f,%.2f;", position[0], position[1], position[2], rotation[1]);
-            WriteFile("host0:pos.txt", coordinates, length);
+            const auto coordinates = std::format("{:.1f},{:.1f},{:.1f},{:.2f};", position[0], position[1], position[2], rotation[1]);
+            dc2::io::WriteFile("host0:pos.txt", std::as_bytes(std::span(coordinates)));
         }
     } else {
         dc2::text::AppendFormatted(text, "\n");
@@ -395,7 +395,9 @@ int EditDebugLoop(CScene *scene, EditDebugInfo *info) {
                     case EDIT_DEBUG_EDIT_DATA_SAVE_FILE:
                         EditDataSave();
                         dc2::text::AppendFormatted(path, "host0:geo_data/geo%d-%d.edt", map_no, save_no);
-                        WriteFile(path.data(), edit_data, sizeof(CEditData));
+                        if (edit_data != nullptr) {
+                            dc2::io::WriteFile(path, std::as_bytes(std::span(edit_data, 1)));
+                        }
                         break;
                     case EDIT_DEBUG_EDIT_DATA_LOAD_FILE: {
                         dc2::text::AppendFormatted(path, "host0:geo_data/geo%d-%d.edt", map_no, load_no);
@@ -692,13 +694,12 @@ void LightingEdit(CScene *scene) {
         dc2::text::AppendFormatted(text, "%sSAVE <->%s\n", cursor[edit == 0], tail[edit == 0]);
 
         if (edit == 0 && (GamePad__2.Down2(PAD_LEFT) || GamePad__2.Down2(PAD_RIGHT))) {
-            char script[0x5000];
-            int  size = map->map_info.OutputLightData(script);
+            const auto script = dc2::world::LightingText(map->map_info);
 
-            if (size > 0) {
+            if (!script.empty()) {
                 std::string path;
                 dc2::text::AppendFormatted(path, "host:y:/dc2/build/light_info/%s.lgt", scene->GetMapName(scene->active_map));
-                WriteFile(path.data(), script, size);
+                dc2::io::WriteFile(path, std::as_bytes(std::span(script)));
             }
         }
     }

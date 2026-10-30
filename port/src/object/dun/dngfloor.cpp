@@ -61,7 +61,7 @@ struct RoomOptions {
  * Dungeon floor manager receiving the current script.
  *
  */
-static CDngFloorManager *tree_dngmap;
+CDngFloorManager *tree_dngmap;
 
 /**
  *
@@ -75,7 +75,7 @@ static GLID_INFO *tree_glid_info;
  * Memory arena used by the dungeon map script.
  *
  */
-static mgCMemory *tree_spi_stack;
+mgCMemory *tree_spi_stack;
 
 /**
  *
@@ -115,7 +115,7 @@ static int _ROOM_TITLE(dc2::script::TagArguments stack, int argument_count);
  * Dungeon grid and floor-property script tags.
  *
  */
-static SPI_TAG_PARAM tree_map_tag[] = {
+SPI_TAG_PARAM tree_map_tag[] = {
     {"TREE_INFO",  _TREE_MAPINFO                                },
     {"GI",         _GLID_INFO                                   },
     {"RT",         dc2::script::AdaptTagArguments<_ROOT_INFO>   },
@@ -135,7 +135,7 @@ static SPI_TAG_PARAM tree_map_tag[] = {
  * Base texture indices of the randomized dungeon room groups.
  *
  */
-static int offsetTable_911[] = {0, 4, 8, 12, 16};
+int offsetTable_911[] = {0, 4, 8, 12, 16};
 
 void CDngFloorManager::Initialize() {
     dng_no = 0;

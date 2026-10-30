@@ -1,5 +1,7 @@
 #include "identity.hpp"
 
+#include <cstdlib>
+
 #include "icon/chronicletwo.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/game_icon.hpp"
@@ -9,6 +11,10 @@
 
 void GameSetIdentity() {
     SettingsSetEnvPrefix("DC2");
+#ifdef __SWITCH__
+    setenv("DC2_DATA", "data", 0);
+    setenv("DC2_SAVE", "saves", 0);
+#endif
     PathsConfigure({.app_dir = "chronicletwo", .env_data = "DC2_DATA", .env_save = "DC2_SAVE", .installed_save_default = true, .coherent_default_root = true});
     WindowSetIdentity({.title = "Dark Chronicle",
                        .app_id = "chronicletwo",

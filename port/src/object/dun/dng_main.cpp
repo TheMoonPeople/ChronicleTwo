@@ -150,7 +150,7 @@ float viewAngleV__2;
  * Non-zero once the eye view has saved the camera position it restores.
  *
  */
-static int      init_camera;
+int             init_camera;
 DNG_FLOOR_SAVE *NowFloorInfoPtr;
 RUN_SCRIPT_ENV  ActionScriptEnv;
 /**
@@ -158,7 +158,7 @@ RUN_SCRIPT_ENV  ActionScriptEnv;
  * Non-zero while the dungeon is held for debugging.
  *
  */
-static int DebugPause;
+int DebugPause;
 /**
  *
  * Distance of the follow camera from the player.
@@ -465,11 +465,20 @@ void InitDungeonMain(INIT_LOOP_ARG arg) {
         DngMainScene->SetType(SCENE_DATA_CHARA, i + DNG_CHARA_SLOT_EVENT, SCENE_CHARA_TYPE_EVENT);
     }
 
-    CActiveMonster *mons = RequireDungeonAllocation(dc2::memory::NewArray<CActiveMonster>(*MainBuffer, MONSTER_ACTIVE_MAX));
+    const auto monster_scope = dc2::memory::ArenaLifetime::Capture(*MainBuffer);
+    if (!monster_scope.IsLive()) {
+        dc2::log::PrintGame("dungeon monster lifetime unavailable\n");
+        std::exit(EXIT_FAILURE);
+    }
 
     for (int i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        mons[i].Initialize();
-        DngMainScene->AssignChara(i + DNG_CHARA_SLOT_MONSTER, dc2::scene::CharacterResource::FromArena(*MainBuffer, mons[i]));
+        auto monster = std::make_shared<CActiveMonster>();
+        monster->Initialize();
+        const int slot = i + DNG_CHARA_SLOT_MONSTER;
+        if (DngMainScene->AssignChara(slot, dc2::scene::CharacterResource::FromOwned(std::move(monster), monster_scope)) != slot) {
+            dc2::log::PrintGame("dungeon monster assignment unavailable\n");
+            std::exit(EXIT_FAILURE);
+        }
         DngMainScene->SetType(SCENE_DATA_CHARA, i + DNG_CHARA_SLOT_MONSTER, SCENE_CHARA_TYPE_MONSTER);
     }
 
@@ -1089,7 +1098,9 @@ int LoopDungeonMain() {
                         sgRestartSubGame(&info);
                     }
 
-                    MainChara__2->SearchChara("shot")->Show(0, 0);
+                    if (auto *shot = MainChara__2->SearchChara("shot"); shot != nullptr) {
+                        shot->Show(0, 0);
+                    }
                 }
 
                 ResetEyeView(MainChara__2);
@@ -1976,7 +1987,7 @@ void DngStep() {
         water_cnt2 = 0;
 
         for (int m = 0; m < MONSTER_ACTIVE_MAX; m++) {
-            CActiveMonster *mons = ActiveMonster->active[m];
+            CActiveMonster *mons = ActiveMonster->GetActiveMonster(m);
 
             if (mons != nullptr && mons->state && mons->target_dist <= mons->clip_dist && mons->mons_move_check.in_water) {
                 sceVu0FVECTOR pos;
@@ -2086,7 +2097,7 @@ void DngStep() {
     if (auto *floor_map = dc2::dungeon::MainMap().Get(); floor_map != nullptr) {
         CObjAnimeEnv env{};
 
-        *reinterpret_cast<u_long128 *>(env.chara_pos) = *reinterpret_cast<u_long128 *>(MainChara__2->position);
+        std::memmove(env.chara_pos, MainChara__2->position, sizeof(float) * 4);
         env.time = DngMainScene->time;
         floor_map->EffectStep();
         floor_map->AnimeStep(&env);
@@ -2316,12 +2327,12 @@ void IsEventRun() {
 
     int talk = ActiveMonster->CheckMonsterTolk(pos);
 
-    if (talk != -1) {
+    if (auto *monster = ActiveMonster->GetActiveMonster(talk)) {
         if (button == MAP_EVENT_CHECK_ACTION || button == MAP_EVENT_CHECK_ITEM) {
             *event_no = DNG_EVENT_MONSTER_TALK;
             EdEventInfo.monster_talk[0] = talk + DNG_CHARA_SLOT_MONSTER;
-            EdEventInfo.monster_talk[2] = ActiveMonster->active[talk]->locate_param;
-            EdEventInfo.monster_talk[1] = ActiveMonster->active[talk]->monster_id;
+            EdEventInfo.monster_talk[2] = monster->locate_param;
+            EdEventInfo.monster_talk[1] = monster->monster_id;
         } else {
             RedMarkModel->draw_request = true;
         }
@@ -2440,7 +2451,7 @@ void CheckStatusError() {
  * Camera position saved when the eye view starts and restored when it ends.
  *
  */
-static sceVu0FVECTOR backup_pos;
+sceVu0FVECTOR backup_pos;
 
 void InitEyeCamera(CActionChara *chara) {
     CBattleCharaInfo *info = GetBattleCharaInfo();
@@ -3059,7 +3070,7 @@ int dc2::dungeon::MainKeyCore() {
 
         if (chara->lock_on && chara->target_no >= 0) {
             int             no = chara->target_no - DNG_CHARA_SLOT_MONSTER;
-            CActiveMonster *mons = ActiveMonster->active[no];
+            CActiveMonster *mons = ActiveMonster->GetActiveMonster(no);
 
             if (mons != nullptr) {
                 mons->GetPosition(dir);
@@ -3182,7 +3193,7 @@ int dc2::dungeon::MainKeyCore() {
 
                 if (MainChara__2->lock_on && chara->target_no >= 0) {
                     int             no = chara->target_no - DNG_CHARA_SLOT_MONSTER;
-                    CActiveMonster *mons = ActiveMonster->active[no];
+                    CActiveMonster *mons = ActiveMonster->GetActiveMonster(no);
 
                     if (mons != nullptr) {
                         sceVu0FVECTOR chara_pos;
@@ -3318,7 +3329,7 @@ int dc2::dungeon::MainKeyCore() {
 
                 if (MainChara__2->lock_on && chara->target_no >= 0) {
                     int             no = chara->target_no - DNG_CHARA_SLOT_MONSTER;
-                    CActiveMonster *mons = ActiveMonster->active[no];
+                    CActiveMonster *mons = ActiveMonster->GetActiveMonster(no);
 
                     if (mons != nullptr) {
                         sceVu0FVECTOR chara_pos;

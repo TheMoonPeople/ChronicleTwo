@@ -746,3 +746,10 @@ void SubGameSaveDraw();
  * @size 0xC
  */
 extern u8 MenuMapInfoSave[0xC];
+
+namespace dc2::menu {
+/**
+ * Retires the save menu controller and its published aliases when the menu closes.
+ */
+void ResetSaveMenuManager();
+} // namespace dc2::menu

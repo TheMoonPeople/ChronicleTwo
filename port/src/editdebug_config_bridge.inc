@@ -19,7 +19,7 @@ void PortLoadDebugGyoraceConfiguration() {
         }
         BREEDFISH_USED *fish = &racer->data.fish;
         if (entry.has_name) {
-            std::strcpy(fish->name, entry.name.c_str());
+            dc2::text::Copy(fish->name, entry.name);
         }
         racer->item_no = entry.item;
         fish->color = entry.color;

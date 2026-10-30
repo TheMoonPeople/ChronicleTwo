@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "editeff.hpp"
 #include "editparts.hpp"
@@ -190,7 +191,7 @@ int EditPaintEffect(CEditParts *parts, float *position, float *color, int shape)
     EffectFlag = 1;
     paint->ParamInit(size);
     paint->SetPosition(position);
-    *reinterpret_cast<u_long128 *>(paint->color) = *reinterpret_cast<u_long128 *>(color);
+    std::memmove(paint->color, color, sizeof(float) * 4);
     sceVu0ScaleVector(paint->color, paint->color, 1.2f);
 
     for (j = 0; j < color_channels; j++) {
@@ -286,7 +287,7 @@ void CStarEffect::ParamInit(float *spread, int count) {
         p[2] = radius * cosf(theta);
         p[3] = 1.0f;
 
-        *reinterpret_cast<u_long128 *>(particle[i].position) = *reinterpret_cast<u_long128 *>(p);
+        std::memmove(particle[i].position, p, sizeof(float) * 4);
         particle[i].shape = i % 2;
     }
 
@@ -469,13 +470,13 @@ int CPaintEffect::Draw() {
         {63.0f, 63.0f, 0.0f, 0.0f}
     };
     float drop_color[4];
-    *reinterpret_cast<u_long128 *>(drop_color) = *reinterpret_cast<u_long128 *>(color);
+    std::memmove(drop_color, color, sizeof(float) * 4);
     drop_color[3] = 128.0f * alpha;
 
     for (int index = 0; index < paint_particle_count; ++index) {
         float drop_position[4];
         float drop_scale = drop[index][3];
-        *reinterpret_cast<u_long128 *>(drop_position) = *reinterpret_cast<u_long128 *>(drop[index]);
+        std::memmove(drop_position, drop[index], sizeof(float) * 4);
         drop_position[3] = 1.0f;
         float drop_size[4] = {0.0f, 0.0f, 0.0f, 0.0f};
         drop_size[0] = 10.0f * drop_scale;
@@ -549,13 +550,16 @@ int EditSetPlaceAnime(int kind, CMapParts *parts) {
             CurPartsBuff.stClearUsed();
             CurPartsBuff.stSetLocked(false);
 
-            target = new (CurPartsBuff.Alloc(0x33)) CMapParts;
+            target = dc2::memory::NewObject<CMapParts>(CurPartsBuff);
 
             if (target == nullptr) {
                 return 0;
             }
 
-            parts->Copy(*target, &CurPartsBuff);
+            if (!parts->Copy(*target, &CurPartsBuff)) {
+                CurPartsBuff.stClearUsed();
+                return 0;
+            }
         }
     } else {
         int oldest = 0;

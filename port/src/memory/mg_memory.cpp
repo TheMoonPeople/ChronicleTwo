@@ -117,11 +117,26 @@ struct AuxiliaryResource {
 struct ArenaState {
     std::uint64_t                  generation = 1; /**< Identity renewed when the whole owner is reset. */
     std::uint64_t                  next_lease = 1; /**< Next allocation identity for this owner address. */
-    std::vector<AllocationLease>   leases;         /**< Current allocations and shared views. */
+    std::vector<AllocationLease>   leases;         /**< Current allocations and shared views ordered by increasing identity. */
     std::uint64_t                  next_text = 1;  /**< Next immutable resource identity. */
-    std::vector<AuxiliaryResource> texts;          /**< Auxiliary storage released with its anchor. */
+    std::vector<AuxiliaryResource> texts;          /**< Auxiliary storage ordered by increasing identity and released with its anchor. */
     std::optional<ArenaBinding>    binding;        /**< Root or parent storage backing the arena. */
 };
+
+/**
+ * Finds an exact live allocation identity without scanning unrelated storage.
+ */
+const AllocationLease *FindLease(const ArenaState &state, std::uint64_t identity) {
+    const auto lease = std::ranges::lower_bound(state.leases, identity, {}, &AllocationLease::id);
+    return lease != state.leases.end() && lease->id == identity ? &*lease : nullptr;
+}
+
+/**
+ * Finds immutable metadata by its monotonically assigned identity.
+ */
+auto FindResource(ArenaState &state, std::uint64_t identity) {
+    return std::ranges::lower_bound(state.texts, identity, {}, &AuxiliaryResource::id);
+}
 
 /**
  *
@@ -160,11 +175,9 @@ bool StorageLiveLocked(const GenerationRegistry &registry, const mgCMemory *memo
         !StorageLiveLocked(registry, binding.parent, depth + 1)) {
         return false;
     }
-    return std::ranges::any_of(parent->second.leases, [&binding](const AllocationLease &lease) {
-        return lease.id == binding.parent_lease && binding.start >= lease.start &&
-               binding.start - lease.start <= lease.bytes &&
-               binding.bytes <= lease.bytes - static_cast<std::size_t>(binding.start - lease.start);
-    });
+    const auto *lease = FindLease(parent->second, binding.parent_lease);
+    return lease != nullptr && binding.start >= lease->start && binding.start - lease->start <= lease->bytes &&
+           binding.bytes <= lease->bytes - static_cast<std::size_t>(binding.start - lease->start);
 }
 
 /**
@@ -189,12 +202,11 @@ bool LeaseRetiresOnReset(const GenerationRegistry &registry, const mgCMemory &me
     if (entry == registry.values.end()) {
         return false;
     }
-    const auto begin = reinterpret_cast<std::uintptr_t>(memory.stack);
-    const auto bytes = static_cast<std::size_t>(std::max(0, memory.stack_size)) * sizeof(u_long128);
-    return std::ranges::any_of(entry->second.leases, [identity, begin, bytes](const AllocationLease &lease) {
-        return lease.id == identity && (lease.start == begin ||
-                                        (lease.start > begin ? lease.start - begin < bytes : begin - lease.start < lease.bytes));
-    });
+    const auto  begin = reinterpret_cast<std::uintptr_t>(memory.stack);
+    const auto  bytes = static_cast<std::size_t>(std::max(0, memory.stack_size)) * sizeof(u_long128);
+    const auto *lease = FindLease(entry->second, identity);
+    return lease != nullptr && (lease->start == begin ||
+                                (lease->start > begin ? lease->start - begin < bytes : begin - lease->start < lease->bytes));
 }
 
 /**
@@ -237,11 +249,12 @@ bool RangeFits(const ArenaBinding &binding, const void *buffer, std::size_t byte
  */
 bool LifetimeLiveLocked(const GenerationRegistry &registry, const AuxiliaryDependency &dependency) {
     const auto entry = registry.values.find(dependency.owner);
-    return entry != registry.values.end() && entry->second.generation == dependency.generation &&
-           StorageLiveLocked(registry, dependency.owner) &&
-           (dependency.heap_block == 0 || std::ranges::any_of(entry->second.leases, [&dependency](const AllocationLease &lease) {
-                return lease.kind == LeaseKind::HeapBlock && lease.id == dependency.heap_block;
-            }));
+    if (entry == registry.values.end() || entry->second.generation != dependency.generation ||
+        !StorageLiveLocked(registry, dependency.owner)) {
+        return false;
+    }
+    const auto *block = FindLease(entry->second, dependency.heap_block);
+    return dependency.heap_block == 0 || (block != nullptr && block->kind == LeaseKind::HeapBlock);
 }
 
 bool ResourceLiveLocked(const GenerationRegistry &registry, const AuxiliaryResource &text) {
@@ -253,11 +266,10 @@ bool ResourceLiveLocked(const GenerationRegistry &registry, const AuxiliaryResou
         !RangeFits(*logical->second.binding, reinterpret_cast<const void *>(text.start), text.bytes)) {
         return false;
     }
+    const auto *lease = FindLease(backing->second, text.allocation);
     return std::ranges::all_of(text.dependencies, [&registry](const AuxiliaryDependency &dependency) { return LifetimeLiveLocked(registry, dependency); }) &&
-           std::ranges::any_of(backing->second.leases, [&text](const AllocationLease &lease) {
-               return lease.id == text.allocation && text.start >= lease.start && text.start - lease.start < lease.bytes &&
-                      text.bytes <= lease.bytes - static_cast<std::size_t>(text.start - lease.start);
-           });
+           lease != nullptr && text.start >= lease->start && text.start - lease->start < lease->bytes &&
+           text.bytes <= lease->bytes - static_cast<std::size_t>(text.start - lease->start);
 }
 
 /**
@@ -304,10 +316,11 @@ bool ArenaLifetime::IsLive() const {
     auto                             &registry = Generations();
     const std::lock_guard<std::mutex> lock(registry.mutex);
     const auto                        entry = registry.values.find(owner);
-    return entry != registry.values.end() && entry->second.generation == generation &&
-           StorageLiveLocked(registry, owner) && (heap_block == 0 || std::ranges::any_of(entry->second.leases, [this](const AllocationLease &lease) {
-                                                      return lease.kind == LeaseKind::HeapBlock && lease.id == heap_block;
-                                                  }));
+    if (entry == registry.values.end() || entry->second.generation != generation || !StorageLiveLocked(registry, owner)) {
+        return false;
+    }
+    const auto *block = FindLease(entry->second, heap_block);
+    return heap_block == 0 || (block != nullptr && block->kind == LeaseKind::HeapBlock);
 }
 
 bool ArenaLifetime::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind kind) const {
@@ -315,9 +328,11 @@ bool ArenaLifetime::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind k
     const std::lock_guard<std::mutex> lock(registry.mutex);
     const auto                        entry = registry.values.find(owner);
     if (entry == registry.values.end() || entry->second.generation != generation ||
-        !StorageLiveLocked(registry, owner) || (heap_block != 0 && !std::ranges::any_of(entry->second.leases, [this](const AllocationLease &lease) {
-                                                    return lease.kind == LeaseKind::HeapBlock && lease.id == heap_block;
-                                                }))) {
+        !StorageLiveLocked(registry, owner)) {
+        return false;
+    }
+    const auto *block = FindLease(entry->second, heap_block);
+    if (heap_block != 0 && (block == nullptr || block->kind != LeaseKind::HeapBlock)) {
         return false;
     }
     return BindingRetiresOnReset(registry, owner, memory, kind) ||
@@ -715,26 +730,30 @@ ArenaResource ArenaResource::StoreErased(const ArenaBuffer &anchor, std::shared_
 std::shared_ptr<const void> ArenaResource::AcquireErased(const void *type) const {
     auto                             &registry = Generations();
     const std::lock_guard<std::mutex> lock(registry.mutex);
-    PruneResourcesLocked(registry);
-    const auto state = registry.values.find(owner);
+    const auto                        state = registry.values.find(owner);
     if (state == registry.values.end()) {
         return {};
     }
-    for (const auto &entry : state->second.texts) {
-        if (entry.id == resource && entry.type == type && ResourceLiveLocked(registry, entry)) {
-            return entry.resource;
-        }
+    const auto entry = FindResource(state->second, resource);
+    if (entry == state->second.texts.end() || entry->id != resource) {
+        return {};
     }
-    return {};
+    if (!ResourceLiveLocked(registry, *entry)) {
+        state->second.texts.erase(entry);
+        return {};
+    }
+    return entry->type == type ? entry->resource : nullptr;
 }
 
 bool ArenaResource::IsLive() const {
     auto                             &registry = Generations();
     const std::lock_guard<std::mutex> lock(registry.mutex);
     const auto                        state = registry.values.find(owner);
-    return state != registry.values.end() && std::ranges::any_of(state->second.texts, [this, &registry](const AuxiliaryResource &entry) {
-               return entry.id == resource && entry.type != nullptr && ResourceLiveLocked(registry, entry);
-           });
+    if (state == registry.values.end()) {
+        return false;
+    }
+    const auto entry = FindResource(state->second, resource);
+    return entry != state->second.texts.end() && entry->id == resource && entry->type != nullptr && ResourceLiveLocked(registry, *entry);
 }
 
 bool ArenaResource::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind kind) const {
@@ -798,10 +817,9 @@ std::optional<std::string_view> ArenaText::Text() const {
     if (state == registry.values.end()) {
         return std::nullopt;
     }
-    for (const auto &text : state->second.texts) {
-        if (text.id == resource && ResourceLiveLocked(registry, text)) {
-            return *text.text;
-        }
+    const auto text = FindResource(state->second, resource);
+    if (text != state->second.texts.end() && text->id == resource && text->text && ResourceLiveLocked(registry, *text)) {
+        return *text->text;
     }
     return std::nullopt;
 }
@@ -838,6 +856,12 @@ ArenaBuffer ArenaBuffer::Bind(mgCMemory &logical_owner, std::span<u8> storage, m
     return result;
 }
 
+bool ArenaBuffer::SameIdentity(const ArenaBuffer &other) const noexcept {
+    return owner == other.owner && backing_owner == other.backing_owner && owner_generation == other.owner_generation &&
+           backing_generation == other.backing_generation && allocation == other.allocation &&
+           storage.data() == other.storage.data() && storage.size() == other.storage.size();
+}
+
 std::span<u8> ArenaBuffer::Bytes() const {
     if (storage.empty()) {
         return {};
@@ -852,12 +876,11 @@ std::span<u8> ArenaBuffer::Bytes() const {
         !RangeFits(*logical->second.binding, storage.data(), storage.size())) {
         return {};
     }
-    const auto address = reinterpret_cast<std::uintptr_t>(storage.data());
-    for (const auto &lease : source->second.leases) {
-        if (lease.id == allocation && address >= lease.start && address - lease.start < lease.bytes &&
-            storage.size() <= lease.bytes - static_cast<std::size_t>(address - lease.start)) {
-            return storage;
-        }
+    const auto  address = reinterpret_cast<std::uintptr_t>(storage.data());
+    const auto *lease = FindLease(source->second, allocation);
+    if (lease != nullptr && address >= lease->start && address - lease->start < lease->bytes &&
+        storage.size() <= lease->bytes - static_cast<std::size_t>(address - lease->start)) {
+        return storage;
     }
     return {};
 }
@@ -876,12 +899,10 @@ bool ArenaBuffer::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind kin
         !RangeFits(*logical->second.binding, storage.data(), storage.size())) {
         return false;
     }
-    const auto address = reinterpret_cast<std::uintptr_t>(storage.data());
-    const auto exact = std::ranges::find_if(source->second.leases, [this, address](const AllocationLease &lease) {
-        return lease.id == allocation && address >= lease.start && address - lease.start < lease.bytes &&
-               storage.size() <= lease.bytes - static_cast<std::size_t>(address - lease.start);
-    });
-    if (exact == source->second.leases.end()) {
+    const auto  address = reinterpret_cast<std::uintptr_t>(storage.data());
+    const auto *exact = FindLease(source->second, allocation);
+    if (exact == nullptr || address < exact->start || address - exact->start >= exact->bytes ||
+        storage.size() > exact->bytes - static_cast<std::size_t>(address - exact->start)) {
         return false;
     }
     return BindingRetiresOnReset(registry, owner, memory, kind) ||
@@ -1577,19 +1598,26 @@ void mgCMemory::stSetLocked(bool value) {
     lock = value ? 1 : 0;
 }
 
+char *dc2::memory::CopyText(mgCMemory &memory, std::string_view text) {
+    if (text.size() == std::numeric_limits<std::size_t>::max()) {
+        return nullptr;
+    }
+    const auto size = text.size() + 1;
+    auto      *copy = NewArray<char>(memory, size);
+    if (copy == nullptr) {
+        return nullptr;
+    }
+    const auto destination = std::span(copy, size);
+    if (!text.empty()) {
+        std::memmove(destination.data(), text.data(), text.size());
+    }
+    destination.back() = '\0';
+    return copy;
+}
+
 char *mgCopyString(char *source, mgCMemory *memory) {
     if (source == nullptr || memory == nullptr) {
         return nullptr;
     }
-
-    const std::size_t length = std::strlen(source);
-    if (length == std::numeric_limits<std::size_t>::max()) {
-        return nullptr;
-    }
-    const std::size_t bytes = length + 1;
-    char             *copy = dc2::memory::NewArray<char>(*memory, bytes);
-    if (copy != nullptr) {
-        std::memmove(copy, source, bytes);
-    }
-    return copy;
+    return dc2::memory::CopyText(*memory, source);
 }

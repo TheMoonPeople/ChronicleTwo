@@ -4,7 +4,9 @@
 
 #include <libvu0.h>
 
+#include <array>
 #include <cstring>
+#include <span>
 
 #include "mg_dataset.hpp"
 #include "mg_drawenv.hpp"
@@ -136,21 +138,17 @@ public:
  */
 class CWater : public mgCVisual {
 public:
-    float        *height_a{};     /**< First of the two wave-height buffers. */
-    float        *height_b{};     /**< Second of the two wave-height buffers. */
     mgCTexture   *texture;        /**< Texture the surface is drawn with, or NULL for none. */
-    uptr          packet{};       /**< Address of the packet that draws the grid, built by CreatePacket. */
     int           color[4]{};     /**< Red, green, blue and alpha channels of the surface. */
     float         speed;          /**< Speed the ripples travel across the grid at. */
     float         damping;        /**< Rate the ripples lose height at. */
-    float         surface_param0; /**< First surface parameter sent to the water rendering packet. */
-    float         surface_param1; /**< Second surface parameter sent to the water rendering packet. */
+    float         surface_param0; /**< First surface shading parameter. */
+    float         surface_param1; /**< Second surface shading parameter. */
     int           unk_50{};
-    int           rows;     /**< Grid points along the x axis. */
-    int           columns;  /**< Grid points along the z axis. */
-    float        *height{}; /**< Wave-height buffer the surface currently draws from. */
-    sceVu0FVECTOR min{};    /**< Minimum corner of the surface. */
-    sceVu0FVECTOR max{};    /**< Maximum corner of the surface. */
+    int           rows;    /**< Grid points along the x axis. */
+    int           columns; /**< Grid points along the z axis. */
+    sceVu0FVECTOR min{};   /**< Minimum corner of the surface. */
+    sceVu0FVECTOR max{};   /**< Maximum corner of the surface. */
 
     /**
      *
@@ -185,19 +183,17 @@ public:
 
     /**
      *
-     * Gives the surface its grid size and takes two cleared height buffers
-     * out of an arena.
+     * Allocates two cleared height grids while preserving the current grid on failure.
      *
      * @mangled SetSize__6CWaterFiiP9mgCMemory
      * @address 0x186130
      * @size 0xDC
      */
-    void SetSize(int x, int z, mgCMemory *memory);
+    bool SetSize(int x, int z, mgCMemory *memory);
 
     /**
      *
-     * Stores the ripple speed and damping and the two values the surface's
-     * microprogram is given.
+     * Stores the ripple speed, damping and surface shading parameters.
      *
      * @mangled SetParam__6CWaterFffff
      * @address 0x186210
@@ -228,8 +224,7 @@ public:
 
     /**
      *
-     * Sends the matrices, screen, colour and draw settings the surface's
-     * microprogram needs.
+     * Sets the surface drawing flags from its render information.
      *
      * @mangled CreateRenderInfoPacket__6CWaterFPUiPA4_fP13mgRENDER_INFO
      * @address 0x1862F0
@@ -239,8 +234,7 @@ public:
 
     /**
      *
-     * Draws the surface by sending its render information, the
-     * microprogram and the grid packet built by CreatePacket.
+     * Draws the current height grid as native floating-point surface geometry.
      *
      * @mangled Draw__6CWaterFPUiPA4_fP14mgCDrawManager
      * @address 0x186750
@@ -250,17 +244,39 @@ public:
 
     /**
      *
-     * Builds the packet that draws the grid from the current wave heights,
-     * and returns its address.
+     * Exposes the active height grid only while its exact allocation remains live.
      *
-     * @mangled CreatePacket__6CWaterFP14mgCDrawManager
-     * @address 0x186870
-     * @size 0x85C
      */
-    virtual uptr CreatePacket(mgCDrawManager *draw_manager);
-};
+    [[nodiscard]] std::span<float> Heights();
 
-STATIC_ASSERT(sizeof(CWater) == 0x80);
+    /**
+     *
+     * Exposes the active height grid for read-only rendering.
+     *
+     */
+    [[nodiscard]] std::span<const float> Heights() const;
+
+private:
+    /**
+     *
+     * Pairs constructed height values with their exact producer allocation.
+     *
+     */
+    struct GridStorage {
+        std::span<float>         values{};  /**< Constructed grid cells. */
+        dc2::memory::ArenaBuffer storage{}; /**< Capability invalidated by allocation retirement or owner reset. */
+    };
+
+    std::array<GridStorage, 2> grids{};             /**< Alternating height grids with independent allocation identities. */
+    bool                       second_grid = false; /**< Whether the second grid supplies the current heights. */
+
+    /**
+     *
+     * Validates a grid's producer, typed extent and current dimensions.
+     *
+     */
+    [[nodiscard]] std::span<float> Grid(bool second) const;
+};
 
 /**
  *
@@ -353,16 +369,6 @@ public:
      * @size 0x5C
      */
     void Shake(int x, int z, float amount);
-
-    /**
-     *
-     * Rebuilds the packet that draws the surface's grid.
-     *
-     * @mangled CreatePacket__11CWaterFrameFv
-     * @address 0x1872B0
-     * @size 0x3C
-     */
-    void CreatePacket();
 
     /**
      *

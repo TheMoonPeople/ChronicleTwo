@@ -23,6 +23,8 @@ so Docker or Podman must be installed.
   rebuilds from scratch.
 - `./run.sh` builds and runs the Release port; `./run.sh ps2-pal` builds, masters a disc image and boots it in PCSX2.
 - `build.bat` and `run.bat` do the same on Windows.
+- `./build.sh switch` or `build.bat switch` builds the Mesa Vulkan Switch port;
+  [Switch documentation](docs/SWITCH.md) covers installation and development-unit testing.
 - `tools/kazarov/scripts/kazarov shell` opens a shell in the build container, with the
   project at `/work/chronicletwo`.
 - `port/flatpak.sh` packages the PC port as a Flatpak, `chronicletwo.flatpak`, which CI

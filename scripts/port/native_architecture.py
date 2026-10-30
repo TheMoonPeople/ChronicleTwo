@@ -8,7 +8,12 @@ from pathlib import Path
 
 
 CODE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hh", ".inc", ".inl", ".ipp", ".tpp"}
+UNBOUNDED_TEXT_CALL = re.compile(r"\b(?:strcpy|strcat|strncpy|strncat|sprintf|vsprintf|gets)\s*\(")
 PORT_MACROS = re.compile(r"\bPORT_(?:OVERRIDE|INIT|RETURN|FIX)\b")
+PORT_CONDITIONAL = re.compile(
+    r"^[ \t]*#[ \t]*(?:if(?:n?def)?|elif(?:n?def)?)\b(?:\\\r?\n|[^\r\n])*?\bPORT\b",
+    re.MULTILINE,
+)
 RAW_MC_TRANSFER = re.compile(
     r"\b(?:int|auto)\s+sceMc(?:Read|Write)\s*\(\s*[^,{};]+,\s*[^,{};]*\*[^,{};]*,"
 )
@@ -53,15 +58,22 @@ def is_ps2_runtime_path(value: str) -> bool:
 
 def inspect_source(path: Path, root: Path) -> list[str]:
     source = path.read_text(encoding="utf-8", errors="replace")
+    code = mask_non_code(source)
     name = relative(path, root)
     issues = []
+    for match in UNBOUNDED_TEXT_CALL.finditer(code):
+        line = source.count("\n", 0, match.start()) + 1
+        issues.append(f"{name}:{line}: unsafe native text API {match.group().rstrip('(').strip()}")
     for pattern in (RAW_MC_TRANSFER, RAW_MC_DIRECTORY_OUTPUT, RAW_MC_DIRECTORY_TABLE):
-        for match in pattern.finditer(mask_non_code(source)):
+        for match in pattern.finditer(code):
             line = source.count("\n", 0, match.start()) + 1
             issues.append(f"{name}:{line}: unbounded native memory-card prototype")
-    for match in PORT_MACROS.finditer(mask_non_code(source)):
+    for match in PORT_MACROS.finditer(code):
         line = source.count("\n", 0, match.start()) + 1
         issues.append(f"{name}:{line}: banned native macro {match.group()}")
+    for match in PORT_CONDITIONAL.finditer(code):
+        line = source.count("\n", 0, match.start()) + 1
+        issues.append(f"{name}:{line}: redundant native PORT conditional")
     for match in INCLUDE.finditer(mask_non_code(source, strings=False)):
         target = match.group(1)
         line = source.count("\n", 0, match.start()) + 1
@@ -126,6 +138,15 @@ def inspect_compile_commands(path: Path, root: Path) -> list[str]:
         except ValueError as error:
             issues.append(f"compile database: invalid command for {source_name}: {error}")
             continue
+        if "-w" in arguments:
+            issues.append(f"compile database: native warnings are disabled for {source_name}")
+        compiler = next((Path(argument).name for argument in arguments[:2] if "clang" in Path(argument).name), None)
+        if compiler is not None and "-Weverything" not in arguments:
+            issues.append(f"compile database: all Clang warnings must be enabled for {source_name}")
+        compatibility_warning = re.compile(r"-Wno-(?:c\+\+98-compat|pre-c\+\+(?:14|17|20|23|26)-compat)(?:-pedantic)?$")
+        for argument in arguments:
+            if argument.startswith("-Wno-") and not compatibility_warning.fullmatch(argument):
+                issues.append(f"compile database: native warning exclusion {argument} for {source_name}")
         for index, argument in enumerate(arguments):
             value = None
             for option in ("-I", "-isystem", "-iquote", "-include", "/I"):

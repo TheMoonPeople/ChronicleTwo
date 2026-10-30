@@ -22,6 +22,13 @@ protected:
         storage = reinterpret_cast<u_long128 *>(ArenaBlock(this, 4096 * sizeof(u_long128)));
         memory.SetHeapMem(storage, 4096);
         character.Initialize();
+        constexpr auto model_words = dc2::memory::ArrayQuadwords<mgCFrame>(1).value() + 16;
+        auto          *model_storage = reinterpret_cast<u_long128 *>(ArenaBlock(&model_memory, model_words * sizeof(u_long128)));
+        model_memory.stSetBuffer(model_storage, model_words);
+        auto *model = dc2::memory::NewObject<mgCFrame>(model_memory);
+        ASSERT_NE(model, nullptr);
+        character.CObjectFrame::frame = model;
+        ASSERT_TRUE(dc2::character::CaptureModelResources(character, model_memory));
         base.base_no = 7;
         base.texb = 10;
         base.chara = &character;
@@ -49,6 +56,7 @@ protected:
 
     u_long128          *storage = nullptr;
     mgCMemory           memory;
+    mgCMemory           model_memory;
     CCharacter2         character;
     NativeScriptProgram program;
     EFF_SPT_BASE        base{};
@@ -259,6 +267,34 @@ TEST_F(EffectWorkMemory, LockedAndInvalidCharacterRequestsLeaveTheHeapAndSlotsUn
     EXPECT_EQ(script.chara, &character);
     EXPECT_EQ(script.sub_chara_work, nullptr);
     EXPECT_EQ(manager.slot[0][0], nullptr);
+    EXPECT_EQ(memory.heap_top->next, heap_next);
+}
+
+TEST_F(EffectWorkMemory, FailedCharacterCopiesReleaseTheirHeapTokenWithoutPublishingTargetsOrSubcharacters) {
+    CCharacter2 previous;
+    _EFF_SCRIPT script{};
+    script.chara = &previous;
+    script.sub_chara[0] = &previous;
+    manager.now = &script;
+    character.Initialize();
+    auto *heap_next = memory.heap_top->next;
+    EXPECT_FALSE(manager.SetCharacter(&character, 0, -1));
+    EXPECT_EQ(script.chara, &previous);
+    EXPECT_EQ(script.chara_work, nullptr);
+    EXPECT_EQ(memory.stack_block, nullptr);
+    EXPECT_EQ(memory.heap_top->next, heap_next);
+    script.chara = &character;
+    EXPECT_FALSE(manager.AssignCharacter(&script, 2));
+    EXPECT_EQ(script.sub_chara[0], &previous);
+    EXPECT_EQ(script.sub_chara[1], nullptr);
+    EXPECT_EQ(script.sub_chara_work, nullptr);
+    EXPECT_EQ(memory.stack_block, nullptr);
+    EXPECT_EQ(memory.heap_top->next, heap_next);
+    EXPECT_EQ(manager.CreateEffSpt(7, 0, 1), nullptr);
+    EXPECT_EQ(manager.slot[0][0], nullptr);
+    EXPECT_EQ(manager.head, nullptr);
+    EXPECT_EQ(manager.tail, nullptr);
+    EXPECT_EQ(memory.stack_block, nullptr);
     EXPECT_EQ(memory.heap_top->next, heap_next);
 }
 

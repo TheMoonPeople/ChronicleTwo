@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <new>
 
 #include "actionchara.hpp"
 #include "actscript.hpp"
@@ -684,8 +685,7 @@ void CActiveMonster::Initialize() {
     life = 0;
     state = ACTIVE_MONSTER_NONE;
     dead_alpha = 0;
-    link_parts = nullptr;
-    link_type = MONSTER_LINK_NONE;
+    map_link.Clear();
     last_hit_kind = 0;
     attack = 0;
     life_gage.Initialize(0);
@@ -744,7 +744,23 @@ void CMonsterLocateInfo::SetPutFlag(int slot, int put) {
     }
 }
 
+CScene *CMonsterMan::GetScene() const {
+    return scene_view.Get();
+}
+
+CActiveMonster *CMonsterMan::GetActiveMonster(int index) const {
+    if (GetScene() == nullptr || index < 0 || index >= MONSTER_ACTIVE_MAX) {
+        return nullptr;
+    }
+    return dynamic_cast<CActiveMonster *>(active_views[index].Get());
+}
+
 void CMonsterMan::Initialize(CScene *scene) {
+    scene_view = scene != nullptr ? scene->GetSceneView() : dc2::scene::SceneView{};
+    active_views = {};
+    if (scene == nullptr) {
+        return;
+    }
     mgCTextureManager *textures = {};
     int                i = {};
     DNG_BATTLE_AREA   *area = &scene->battle_area;
@@ -755,13 +771,14 @@ void CMonsterMan::Initialize(CScene *scene) {
 
     SetMonsterExtendTable();
     textures = &mgTexManager;
-    this->scene = scene;
     effect_man = FxScriptMan;
     priority_limit = PortMonsterLatchLimits();
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        active[i] = static_cast<CActiveMonster *>(scene->GetCharacter(DNG_CHARA_SLOT_MONSTER + i));
-        active[i]->Initialize();
+        active_views[i] = scene->GetCharacterView(DNG_CHARA_SLOT_MONSTER + i);
+        if (auto *monster = GetActiveMonster(i)) {
+            monster->Initialize();
+        }
     }
 
     for (j = 0; j < MONSTER_REFER_MAX; j++) {
@@ -798,8 +815,9 @@ void CMonsterMan::DrawEffectScript() {
     int i = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        if (active[i] != nullptr) {
-            active[i]->DrawEffect();
+        auto *active_monster = GetActiveMonster(i);
+        if (active_monster != nullptr) {
+            active_monster->DrawEffect();
         }
     }
 }
@@ -808,8 +826,9 @@ void CMonsterMan::StepEffectScript() {
     int i = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        if (active[i] != nullptr) {
-            active[i]->StepEffect();
+        auto *active_monster = GetActiveMonster(i);
+        if (active_monster != nullptr) {
+            active_monster->StepEffect();
         }
     }
 }
@@ -833,10 +852,11 @@ float CMonsterMan::IsBattleStyleDist() {
     nearest = 999999.0f;
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        if (active[i] != nullptr && active[i]->IsDraw(true) &&
-            active[i]->tbl->user_mons_id != mons_base &&
-            nearest > active[i]->target_dist) {
-            nearest = active[i]->target_dist;
+        auto *active_monster = GetActiveMonster(i);
+        if (active_monster != nullptr && active_monster->IsDraw(true) &&
+            active_monster->tbl->user_mons_id != mons_base &&
+            nearest > active_monster->target_dist) {
+            nearest = active_monster->target_dist;
         }
     }
 
@@ -857,11 +877,9 @@ int CMonsterMan::CheckMonsterTolk(float *pos) {
         i = 0;
 
         do {
-            monster = active[i];
+            monster = GetActiveMonster(i);
 
             if (monster != nullptr && monster->IsDraw(true)) {
-                monster = active[i];
-
                 if (monster->tbl->boss == 0 && monster->locate_param != -1 && nearest > monster->target_dist) {
                     nearest = monster->target_dist;
                     found = i;
@@ -889,11 +907,9 @@ int CMonsterMan::CheckMonsterTolk(float *pos) {
     nearest = 90.0f;
 
     do {
-        monster = active[j];
+        monster = GetActiveMonster(j);
 
         if (monster != nullptr && monster->IsDraw(true)) {
-            monster = active[j];
-
             if (monster->tbl->user_mons_id == mons_base && monster->tbl->boss == 0 &&
                 monster->locate_param != -1 && monster->gekirin > 0.0f && nearest > monster->target_dist) {
                 nearest = monster->target_dist;
@@ -921,13 +937,14 @@ CActiveMonster *CMonsterMan::CheckThrowTarget(mgCFrame *frame) {
     frame_pos[3] = 1.0f;
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        if (active[i] != nullptr && active[i]->IsDraw(true) &&
-            active[i]->monster_id != 0x25A) {
-            active[i]->GetPosition(monster_pos);
+        auto *active_monster = GetActiveMonster(i);
+        if (active_monster != nullptr && active_monster->IsDraw(true) &&
+            active_monster->monster_id != 0x25A) {
+            active_monster->GetPosition(monster_pos);
             monster_pos[3] = 1.0f;
 
             if (mgDistVector(monster_pos, frame_pos) <= 30.0f) {
-                monster = active[i];
+                monster = active_monster;
 
                 if (monster->tbl->lift_flags & MONSTER_LIFT_FORBIDDEN) {
                     MsgTaskMan.Print(dung_progtxt_notlift_mons[LanguageCode], 0x2D, 8, 0);
@@ -935,11 +952,11 @@ CActiveMonster *CMonsterMan::CheckThrowTarget(mgCFrame *frame) {
                 }
 
                 monster->CObjectFrame::frame->SetReference(frame);
-                active[i]->catch_frame = frame;
-                active[i]->catch_state = ACTION_CATCH_HELD;
-                active[i]->no_hit_time = 0;
-                active[i]->req_prog = MONSTER_PROG_CATCH;
-                return active[i];
+                active_monster->catch_frame = frame;
+                active_monster->catch_state = ACTION_CATCH_HELD;
+                active_monster->no_hit_time = 0;
+                active_monster->req_prog = MONSTER_PROG_CATCH;
+                return active_monster;
             }
         }
     }
@@ -964,8 +981,9 @@ int CMonsterMan::GetMonsterNum(float limit) {
     int i = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        if (active[i] != nullptr && active[i]->chara_kind == ACTION_KIND_SCRIPT &&
-            (active[i]->target_dist <= limit || limit < 0.0f)) {
+        auto *active_monster = GetActiveMonster(i);
+        if (active_monster != nullptr && active_monster->chara_kind == ACTION_KIND_SCRIPT &&
+            (active_monster->target_dist <= limit || limit < 0.0f)) {
             count++;
         }
     }
@@ -992,7 +1010,7 @@ int CMonsterMan::SearchActiveMonsterBlock() {
     CActiveMonster *monster = {};
 
     for (slot = 0; slot < PortMonsterActiveLimit(); slot++) {
-        monster = active[slot];
+        monster = GetActiveMonster(slot);
 
         if (monster == nullptr) {
             return slot;
@@ -1039,6 +1057,11 @@ int CMonsterMan::EntryRefer(int monster_id, mgCMemory *memory) {
 }
 
 CActiveMonster *CMonsterMan::SetActiveMonster(int refer_no, float pos[], sceVu0FVECTOR rot, int param) {
+    const auto activation_scene = scene_view;
+    auto      *scene = activation_scene.Get();
+    if (scene == nullptr) {
+        return nullptr;
+    }
     int               slot = {};
     CActiveMonster   *monster = {};
     int               npc = {};
@@ -1062,27 +1085,43 @@ CActiveMonster *CMonsterMan::SetActiveMonster(int refer_no, float pos[], sceVu0F
 
     area = &scene->battle_area;
     npc = GetBattleCharaInfo()->GetNowNPC();
-    active[slot] = static_cast<CActiveMonster *>(scene->GetCharacter(DNG_CHARA_SLOT_MONSTER + slot));
-
-    if (active[slot] == nullptr) {
+    const int  scene_slot = DNG_CHARA_SLOT_MONSTER + slot;
+    const auto destination_slot = scene->chara[scene_slot];
+    monster = dynamic_cast<CActiveMonster *>(destination_slot.Resource().Get());
+    if (monster == nullptr) {
         return nullptr;
     }
 
+    const auto abandon_activation = [&] {
+        if (activation_scene.Get() == scene) {
+            scene->chara[scene_slot].Initialize();
+        }
+        active_views[slot] = {};
+        locate.SetPutFlag(slot, false);
+    };
+    active_views[slot] = {};
     memory[slot].stReset();
     locate.SetPutFlag(slot, true);
-    monster = active[slot];
     tbl = GetReferPtr2(refer[refer_no].id);
 
     if (tbl->share_model == 0) {
         refer[refer_no].chara.SetPosition(0.0f, 0.0f, 0.0f);
         refer[refer_no].chara.SetRotation(0.0f, 0.0f, 0.0f);
-        refer[refer_no].chara.Copy(*monster, &memory[slot]);
+        if (!refer[refer_no].chara.Copy(*monster, &memory[slot])) {
+            abandon_activation();
+            return nullptr;
+        }
     } else {
         *monster = refer[refer_no].chara;
         monster->main_frame_info = monster->motion[0].frame_info;
         monster->shadow_frame_info = monster->shadow_motion[0].frame_info;
         monster->shadow_frame_info_view = monster->shadow_motion[0].frame_info_view;
         monster->now_key = nullptr;
+    }
+
+    if (activation_scene.Get() != scene || !destination_slot.ResourcesLive() || destination_slot.Resource().Get() != monster || monster->GetFrame() == nullptr) {
+        abandon_activation();
+        return nullptr;
     }
 
     if (tbl->boss) {
@@ -1163,13 +1202,28 @@ CActiveMonster *CMonsterMan::SetActiveMonster(int refer_no, float pos[], sceVu0F
     }
 
     SetMonsterScript(&monster->mons_script, refer[refer_no].script, &memory[slot]);
+    if (activation_scene.Get() != scene || !destination_slot.ResourcesLive() || destination_slot.Resource().Get() != monster) {
+        abandon_activation();
+        return nullptr;
+    }
+    scene->chara[scene_slot] = destination_slot;
+    active_views[slot] = scene->GetCharacterView(scene_slot);
+    const auto bound_scene = scene_view;
+    const auto bound_monster = active_views[slot];
     monster->req_prog = MONSTER_PROG_INIT;
     RunScript(slot);
+    if (bound_scene.Get() != scene || bound_monster.Get() != monster) {
+        return nullptr;
+    }
     monster->req_prog = MONSTER_PROG_MAIN;
-    return active[slot];
+    return GetActiveMonster(slot);
 }
 
 void CMonsterMan::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
+    auto *scene = GetScene();
+    if (scene == nullptr) {
+        return;
+    }
     CBattleCharaInfo *battle_info = {};
     int               show_all = {};
     int               i = {};
@@ -1187,7 +1241,8 @@ void CMonsterMan::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
         battle_info = GetBattleCharaInfo();
 
         for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-            monster = active[i];
+            auto *active_monster = GetActiveMonster(i);
+            monster = active_monster;
 
             if (monster != nullptr && monster->chara_kind == ACTION_KIND_SCRIPT && monster->catch_state != ACTION_CATCH_HELD &&
                 (monster->target_dist <= monster->clip_dist || show_all)) {
@@ -1197,7 +1252,7 @@ void CMonsterMan::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
                     symbol_no = MINIMAP_SYMBOL_MONSTER_BLINK;
                 }
 
-                active[i]->GetPosition(pos);
+                active_monster->GetPosition(pos);
                 symbol->DrawSymbol(pos, symbol_no);
             }
         }
@@ -1205,6 +1260,10 @@ void CMonsterMan::DrawMiniMapSymbol(CMiniMapSymbol *symbol) {
 }
 
 void CMonsterMan::DrawLifeGage(int view, int mode) {
+    auto *scene = GetScene();
+    if (scene == nullptr) {
+        return;
+    }
     float           pos[4];
     float           total_pos[4];
     CActionChara   *player = {};
@@ -1217,7 +1276,10 @@ void CMonsterMan::DrawLifeGage(int view, int mode) {
         return;
     }
 
-    player = static_cast<CActionChara *>(scene->GetCharacter(0));
+    player = dynamic_cast<CActionChara *>(scene->GetCharacter(0));
+    if (player == nullptr) {
+        return;
+    }
 
     if (player == nullptr) {
         return;
@@ -1232,7 +1294,8 @@ void CMonsterMan::DrawLifeGage(int view, int mode) {
     total_life = 0;
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        monster = active[i];
+        auto *active_monster = GetActiveMonster(i);
+        monster = active_monster;
 
         if (monster != nullptr && monster->state != ACTIVE_MONSTER_NONE &&
             monster->target_dist <= monster->clip_dist) {
@@ -1242,16 +1305,16 @@ void CMonsterMan::DrawLifeGage(int view, int mode) {
                 monster->life_gage.SetView(false);
             }
 
-            active[i]->GetEntryObjectPos(CHARA_ENTRY_GROUP_TARGET, 0, pos);
-            pos[1] += active[i]->body_height;
-            monster = active[i];
+            active_monster->GetEntryObjectPos(CHARA_ENTRY_GROUP_TARGET, 0, pos);
+            pos[1] += active_monster->body_height;
+            monster = active_monster;
 
             if (monster->tbl->boss == 0) {
                 s8 boss = monster->tbl->boss;
                 monster->life_gage.Set(pos, monster->max_life, monster->life,
                                        fptosi(0.9f + monster->gekirin), boss);
-                active[i]->life_gage.Step();
-                active[i]->life_gage.Draw(view);
+                active_monster->life_gage.Step();
+                active_monster->life_gage.Draw(view);
             } else {
                 total_life += monster->life;
             }
@@ -1270,11 +1333,12 @@ void CMonsterMan::DrawPiyori() {
     CActiveMonster *monster = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        monster = active[i];
+        auto *active_monster = GetActiveMonster(i);
+        monster = active_monster;
 
         if (monster != nullptr && monster->catch_state != ACTION_CATCH_HELD && monster->state != ACTIVE_MONSTER_NONE) {
             monster->piyori.Draw();
-            active[i]->gift_mark.Draw();
+            active_monster->gift_mark.Draw();
         }
     }
 }
@@ -1285,13 +1349,14 @@ void CMonsterMan::DrawActMonster() {
     int                i = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        monster = active[i];
+        auto *active_monster = GetActiveMonster(i);
+        monster = active_monster;
 
         if (monster != nullptr && monster->chara_kind == ACTION_KIND_SCRIPT && monster->view_state != MONSTER_VIEW_OUT &&
             !(monster->alpha < 1.0f) && !(monster->view_alpha < 1.0f) &&
             !(monster->camera_alpha < 1.0f)) {
             tex->ReloadTexture(monster->refer_no + MONSTER_TEXB_REFER, (sceVif1Packet *) nullptr);
-            active[i]->DrawDirect();
+            active_monster->DrawDirect();
         }
     }
 }
@@ -1303,7 +1368,8 @@ void CMonsterMan::DrawInvisibleMonster() {
     float              saved_alpha = {};
 
     for (index = 0; index < MONSTER_ACTIVE_MAX; index++) {
-        monster = active[index];
+        auto *active_monster = GetActiveMonster(index);
+        monster = active_monster;
 
         if (monster != nullptr && monster->chara_kind == ACTION_KIND_SCRIPT) {
             float &alpha = monster->alpha;
@@ -1315,16 +1381,20 @@ void CMonsterMan::DrawInvisibleMonster() {
                     alpha = monster->view_alpha;
                 }
 
-                active[index]->alpha *= active[index]->camera_alpha;
-                textures->ReloadTexture(active[index]->refer_no + MONSTER_TEXB_REFER, (sceVif1Packet *) nullptr);
-                active[index]->DrawDirect();
-                active[index]->alpha = saved_alpha;
+                active_monster->alpha *= active_monster->camera_alpha;
+                textures->ReloadTexture(active_monster->refer_no + MONSTER_TEXB_REFER, (sceVif1Packet *) nullptr);
+                active_monster->DrawDirect();
+                active_monster->alpha = saved_alpha;
             }
         }
     }
 }
 
 void CMonsterMan::DrawShadowActMonster() {
+    auto *scene = GetScene();
+    if (scene == nullptr) {
+        return;
+    }
     float           light_direction[4][4];
     float           light_color[4][4];
     int             index = {};
@@ -1345,34 +1415,35 @@ void CMonsterMan::DrawShadowActMonster() {
     float shadow_normal[4] = {0.0f, 1.0f, 0.0f, 0.0f};
 
     for (index = 0; index < MONSTER_ACTIVE_MAX; index++) {
-        monster = active[index];
+        auto *active_monster = GetActiveMonster(index);
+        monster = active_monster;
 
         if (monster != nullptr && monster->chara_kind == ACTION_KIND_SCRIPT && monster->catch_state != ACTION_CATCH_HELD &&
             monster->target_dist <= 0.6f * monster->clip_dist && monster->priority < priority_limit &&
             !(monster->alpha < 0.6f)) {
             float shadow_position[4] = {0.0f, -10.0f, 0.0f, 0.0f};
-            active[index]->GetEntryObjectPos(1, shadow_position);
+            active_monster->GetEntryObjectPos(1, shadow_position);
             shadow_position[1] -= 20.0f;
             mgSetDropShadowMatrix(shadow_direction, shadow_position, shadow_normal);
-            active[index]->ShadowStep();
-            active[index]->DrawShadowDirect();
+            active_monster->ShadowStep();
+            active_monster->DrawShadowDirect();
         }
     }
 }
 
 void CMonsterMan::PriorityLevelCheck() {
-    int order[MONSTER_ACTIVE_MAX];
-    int count = 0;
-    int i = {};
-    int j = {};
-    int swapped = {};
+    std::array<CActiveMonster *, MONSTER_ACTIVE_MAX> order{};
+    int                                              count = 0;
+    int                                              i = {};
+    int                                              j = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        if (active[i] != nullptr) {
-            active[i]->priority = -1;
+        auto *active_monster = GetActiveMonster(i);
+        if (active_monster != nullptr) {
+            active_monster->priority = -1;
 
-            if (active[i]->chara_kind == ACTION_KIND_SCRIPT && active[i]->state != ACTIVE_MONSTER_NONE) {
-                order[count] = i;
+            if (active_monster->chara_kind == ACTION_KIND_SCRIPT && active_monster->state != ACTIVE_MONSTER_NONE) {
+                order[count] = active_monster;
                 count++;
             }
         }
@@ -1380,17 +1451,14 @@ void CMonsterMan::PriorityLevelCheck() {
 
     for (i = 0; i < count - 1; i++) {
         for (j = i + 1; j < count; j++) {
-            if (!(active[order[i]]->target_dist <=
-                  active[order[j]]->target_dist)) {
-                swapped = order[i];
-                order[i] = order[j];
-                order[j] = swapped;
+            if (!(order[i]->target_dist <= order[j]->target_dist)) {
+                std::swap(order[i], order[j]);
             }
         }
     }
 
     for (i = 0; i < count; i++) {
-        active[order[i]]->priority = i;
+        order[i]->priority = i;
     }
 }
 
@@ -1398,13 +1466,14 @@ CActiveMonster *CMonsterMan::GetPriorityLevelIndex(int level, int *slot) {
     int i = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        if (active[i] != nullptr && active[i]->chara_kind == ACTION_KIND_SCRIPT &&
-            active[i]->priority == level) {
+        auto *active_monster = GetActiveMonster(i);
+        if (active_monster != nullptr && active_monster->chara_kind == ACTION_KIND_SCRIPT &&
+            active_monster->priority == level) {
             if (slot != nullptr) {
                 *slot = DNG_CHARA_SLOT_MONSTER + i;
             }
 
-            return active[i];
+            return active_monster;
         }
     }
 
@@ -1428,17 +1497,18 @@ int CMonsterMan::CheckPhoto(CScene::InScreenCharaInfo *info) {
     info->chara_no = -1;
 
     for (int index = 0; index < MONSTER_ACTIVE_MAX; index++) {
-        if (active[index] == nullptr || active[index]->chara_kind != ACTION_KIND_SCRIPT || active[index]->alpha < 1.0f) {
+        auto *active_monster = GetActiveMonster(index);
+        if (active_monster == nullptr || active_monster->chara_kind != ACTION_KIND_SCRIPT || active_monster->alpha < 1.0f) {
             continue;
         }
 
-        active[index]->GetRotation(rotation);
-        CHARA_ENTRY_OBJECT *entry = active[index]->GetEntryObjectPos(CHARA_ENTRY_GROUP_TARGET, 0, position);
+        active_monster->GetRotation(rotation);
+        CHARA_ENTRY_OBJECT *entry = active_monster->GetEntryObjectPos(CHARA_ENTRY_GROUP_TARGET, 0, position);
         radius = 5.0f * entry->size;
         mgGetDirFromCamera(direction, position);
         distance = mgDistVector(direction);
 
-        if (!(distance <= 300.0f) && active[index]->tbl->boss == 0) {
+        if (!(distance <= 300.0f) && active_monster->tbl->boss == 0) {
             continue;
         }
 
@@ -1473,11 +1543,15 @@ int CMonsterMan::CheckPhoto(CScene::InScreenCharaInfo *info) {
         return -1;
     }
 
-    info->chara_no = active[selected_index]->tbl->id;
+    auto *selected = GetActiveMonster(selected_index);
+    if (selected == nullptr) {
+        return -1;
+    }
+    info->chara_no = selected->tbl->id;
     info->dist = nearest_distance - 10.0f;
 
-    if (active[selected_index]->scoop.ok != 0) {
-        return active[selected_index]->scoop.no;
+    if (selected->scoop.ok != 0) {
+        return selected->scoop.no;
     }
 
     return -1;
@@ -1488,7 +1562,7 @@ void CMonsterMan::SetNearAreaPiyori(float limit) {
     int             i = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        monster = active[i];
+        monster = GetActiveMonster(i);
 
         if (monster != nullptr && monster->chara_kind == ACTION_KIND_SCRIPT && monster->target_dist <= limit &&
             monster->catch_state == ACTION_CATCH_NONE && monster->damage_time <= 0 && !(monster->attrib & MONSTER_ATTRIB_NO_DAMAGE)) {
@@ -1504,7 +1578,7 @@ int CMonsterMan::IsRunEvent() {
     int             event = {};
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        monster = active[i];
+        monster = GetActiveMonster(i);
 
         if (monster != nullptr && (event = monster->event_no) != -1) {
             monster->event_no = -1;
@@ -1516,6 +1590,11 @@ int CMonsterMan::IsRunEvent() {
 }
 
 void CMonsterMan::CollisionCheck(CActiveMonster *monster, float *pos, float *move, float *push) {
+    auto *scene = GetScene();
+    if (scene == nullptr) {
+        sceVu0CopyVector(push, move);
+        return;
+    }
     float           next[4];
     float           center[4];
     float           other_pos[4];
@@ -1546,7 +1625,7 @@ void CMonsterMan::CollisionCheck(CActiveMonster *monster, float *pos, float *mov
         }
 
         if (i != 0) {
-            other = active[i - 1];
+            other = GetActiveMonster(i - 1);
         }
 
         if (other == nullptr || other == monster || other->chara_kind != ACTION_KIND_SCRIPT ||
@@ -1830,6 +1909,10 @@ static inline DNG_BATTLE_AREA *BattleArea(CScene *scene) {
 }
 
 void CMonsterMan::CheckDamage() {
+    auto *scene = GetScene();
+    if (scene == nullptr) {
+        return;
+    }
     CActionChara     *player = {};
     int               gift_pack_num = {};
     int               i = {};
@@ -1860,7 +1943,7 @@ void CMonsterMan::CheckDamage() {
     gift_pack_num = GetUserItemHaveNum(ITEM_ID_BADGE_BOX);
 
     for (i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        monster = active[i];
+        monster = GetActiveMonster(i);
 
         if (monster == nullptr || monster->state != ACTIVE_MONSTER_LIVE) {
             continue;
@@ -2379,6 +2462,10 @@ void CMonsterMan::CheckDamage() {
 }
 
 void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) {
+    auto *scene = GetScene();
+    if (scene == nullptr) {
+        return;
+    }
     float position[4];
     float rotation[4];
     float move[4];
@@ -2389,7 +2476,6 @@ void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) 
     float ray_to[4];
     float ray_hit[4];
     float effect_position[4];
-    float matrix[4][4];
     int   i = {};
     u32   sound_bank = scene->se_battle_id;
 
@@ -2515,21 +2601,19 @@ void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) 
     monster->SetRotation(rotation);
     sceVu0CopyVector(monster->velocity, move);
 
-    if (monster->link_piece != nullptr && monster->link_type == MONSTER_LINK_PIECE) {
-        monster->link_parts->GetLWMatrix(matrix);
-        monster->link_piece->GetPosition(position);
-        sceVu0ApplyMatrix(position, matrix, position);
+    if (monster->map_link.UpdateLinkedPiece(position, rotation)) {
         monster->SetPosition(position);
-        monster->link_piece->SetRotation(rotation);
     }
 
-    if (monster->link_parts != nullptr && monster->link_type == MONSTER_LINK_PARTS) {
-        monster->link_parts->SetPosition(new_position);
-        monster->link_parts->SetRotation(rotation);
-    }
+    monster->map_link.SetPartTransform(new_position, rotation);
 }
 
 void CMonsterMan::ThinkHost() {
+    const auto bound_scene = scene_view;
+    auto      *scene = GetScene();
+    if (scene == nullptr) {
+        return;
+    }
     sceVu0FVECTOR    monster_pos;
     CCPoly           polys[128];
     sceVu0FVECTOR    camera_pos;
@@ -2557,11 +2641,12 @@ void CMonsterMan::ThinkHost() {
     }
 
     for (int i = 0; i < MONSTER_ACTIVE_MAX; i++) {
-        CActiveMonster *monster = active[i];
+        CActiveMonster *monster = GetActiveMonster(i);
 
         if (monster == nullptr || monster->state == ACTIVE_MONSTER_NONE) {
             continue;
         }
+        const auto bound_monster = active_views[i];
 
         monster->GetEntryObjectPos(CHARA_ENTRY_GROUP_TARGET, 0, monster->center_pos);
         monster->scoop.ok = false;
@@ -2593,6 +2678,12 @@ void CMonsterMan::ThinkHost() {
 
         if (monster->catch_state == ACTION_CATCH_HELD) {
             RunScript(i);
+            if (bound_scene.Get() != scene) {
+                return;
+            }
+            if (bound_monster.Get() != monster) {
+                continue;
+            }
             monster->SetPosition(0.0f, -2.0f, 0.0f);
             monster->Step();
             ACTION_DAMAGE *damage = monster->damage;
@@ -2678,6 +2769,12 @@ void CMonsterMan::ThinkHost() {
         }
 
         RunScript(i);
+        if (bound_scene.Get() != scene) {
+            return;
+        }
+        if (bound_monster.Get() != monster) {
+            continue;
+        }
         MoveUnit(monster, polys, poly_num);
 
         for (int n = 0; n < ACTION_DAMAGE_MAX; n++) {
@@ -2885,20 +2982,37 @@ bool IsActiveMonsterSlot(const mgCMemory *memory) {
 
 } // namespace
 
-void CActiveMonster::Copy(CActiveMonster &dest, mgCMemory *memory) {
+bool CActiveMonster::Copy(CActiveMonster &dest, mgCMemory *memory) try {
+    if (&dest == this) {
+        return CActionChara::Copy(dest, memory);
+    }
+    if (!dc2::character::ResourcesLive(*this)) {
+        dest.Initialize();
+        return false;
+    }
     if (memory != nullptr && memory->stack_used == 0 && IsActiveMonsterSlot(memory)) {
         const auto copy_quadwords = static_cast<std::size_t>(std::max(0, GetCopySize()));
         const auto capacity = copy_quadwords * kArenaHeadroom + kMonsterScriptQuadwords + 4;
         if (capacity > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
-            ArenaOverflow(memory->name, std::numeric_limits<int>::max(), memory->stack_size);
+            dest.Initialize();
+            return false;
         }
         auto *buffer = reinterpret_cast<u_long128 *>(ArenaBlock(memory, capacity * sizeof(u_long128)));
+        if (buffer == nullptr) {
+            dest.Initialize();
+            return false;
+        }
         memory->stSetBuffer(buffer, static_cast<int>(capacity));
     }
     dest = *this;
-    if (memory != nullptr) {
-        CActionChara::Copy(dest, memory);
+    if (!CActionChara::Copy(dest, memory)) {
+        dest.Initialize();
+        return false;
     }
+    return true;
+} catch (const std::bad_alloc &) {
+    dest.Initialize();
+    return false;
 }
 
 int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *table, mgCMemory *memory) {

@@ -1,0 +1,97 @@
+# --jump opening --fast-load. Replay endpoint: --frames 3600. Presses START (the event skip button) every 90 frames from frame 240 to 1500 to skip the opening cutscenes, then Cross every 60 frames from 1560 to 3500 to dismiss text.
+240 start
+246
+330 start
+336
+420 start
+426
+510 start
+516
+600 start
+606
+690 start
+696
+780 start
+786
+870 start
+876
+960 start
+966
+1050 start
+1056
+1140 start
+1146
+1230 start
+1236
+1320 start
+1326
+1410 start
+1416
+1500 start
+1506
+1560 cross
+1566
+1620 cross
+1626
+1680 cross
+1686
+1740 cross
+1746
+1800 cross
+1806
+1860 cross
+1866
+1920 cross
+1926
+1980 cross
+1986
+2040 cross
+2046
+2100 cross
+2106
+2160 cross
+2166
+2220 cross
+2226
+2280 cross
+2286
+2340 cross
+2346
+2400 cross
+2406
+2460 cross
+2466
+2520 cross
+2526
+2580 cross
+2586
+2640 cross
+2646
+2700 cross
+2706
+2760 cross
+2766
+2820 cross
+2826
+2880 cross
+2886
+2940 cross
+2946
+3000 cross
+3006
+3060 cross
+3066
+3120 cross
+3126
+3180 cross
+3186
+3240 cross
+3246
+3300 cross
+3306
+3360 cross
+3366
+3420 cross
+3426
+3480 cross
+3486

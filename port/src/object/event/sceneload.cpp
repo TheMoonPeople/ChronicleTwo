@@ -250,10 +250,10 @@ int CScene::CopyChara(int index, int source_index, mgCMemory *memory) {
         return -1;
     }
     auto *source = GetSceneCharacter(source_index);
-    if (source == nullptr || source->character.Get() == nullptr) {
+    if (source == nullptr || source->Resource().Get() == nullptr) {
         return -1;
     }
-    const auto   source_resource = source->character;
+    const auto   source_resource = source->Resource();
     const int    source_texture = source->texb;
     CCharacter2 *original = source_resource.Get();
     chara = dc2::memory::NewObject<CCharacter2>(*memory);
@@ -261,37 +261,48 @@ int CScene::CopyChara(int index, int source_index, mgCMemory *memory) {
         return -1;
     }
 
-    chara->Initialize();
-    DeleteChara(index);
-    int slot = AssignChara(index, dc2::scene::CharacterResource::FromArena(*memory, *chara), "chara");
-
-    if (slot < 0) {
-        return -1;
-    }
-
-    CSceneCharacter *scene_chara = GetSceneCharacter(slot);
-
-    if (scene_chara == nullptr) {
-        return slot;
-    }
-
-    scene_chara->status |= SCENE_DATA_LOADED;
-    scene_chara->texb = source_texture;
-
-    if (original == nullptr) {
-        return slot;
-    }
-
     original->GetPosition(position);
     original->GetRotation(rotation);
     original->GetScale(scale);
+
+    /**
+     * Restores the source transform after either a successful candidate copy or an early failure.
+     */
+    struct RestoreTransform {
+        CCharacter2 &character; /**< Source character whose normalized transform is temporary. */
+        float (&position)[4];   /**< Source position captured before normalization. */
+        float (&rotation)[4];   /**< Source rotation captured before normalization. */
+        float (&scale)[4];      /**< Source scale captured before normalization. */
+
+        /**
+         * Restores every component of the source's original transform.
+         */
+        ~RestoreTransform() {
+            character.SetPosition(position);
+            character.SetRotation(rotation);
+            character.SetScale(scale);
+        }
+    };
+
+    const RestoreTransform restore{*original, position, rotation, scale};
     original->SetPosition(0.0f, 0.0f, 0.0f);
     original->SetRotation(0.0f, 0.0f, 0.0f);
     original->SetScale(1.0f, 1.0f, 1.0f);
-    original->Copy(*chara, memory);
-    original->SetPosition(position);
-    original->SetRotation(rotation);
-    original->SetScale(scale);
+    if (!original->Copy(*chara, memory)) {
+        return -1;
+    }
+    DeleteChara(index);
+    const int slot = AssignChara(index, dc2::scene::CharacterResource::FromArena(*memory, *chara), "chara");
+    if (slot < 0) {
+        return -1;
+    }
+    auto *scene_chara = GetSceneCharacter(slot);
+    if (scene_chara == nullptr) {
+        DeleteChara(slot);
+        return -1;
+    }
+    scene_chara->status |= SCENE_DATA_LOADED;
+    scene_chara->texb = source_texture;
     return slot;
 }
 

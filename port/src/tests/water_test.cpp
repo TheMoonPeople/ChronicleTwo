@@ -3,8 +3,11 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -248,8 +251,14 @@ Pixels RenderScene(float ramp, uint8_t tint = 0x80) {
     CWater water;
     water.SetParam(0.15f, 0.0045f, 1.0f, 2.0f);
     water.SetColor(tint, tint, tint, 0x80);
-    water.rows = kRows;
-    water.columns = kColumns;
+    constexpr auto         grid_cells = static_cast<std::size_t>(kRows) * static_cast<std::size_t>(kColumns);
+    std::vector<u_long128> grid_storage((grid_cells * sizeof(float) + 15) / 16 * 2 + 2);
+    mgCMemory              grid_memory;
+    grid_memory.stSetBuffer(grid_storage.data(), static_cast<int>(grid_storage.size()));
+    if (!water.SetSize(kRows, kColumns, &grid_memory)) {
+        ADD_FAILURE() << "Could not allocate the water fixture's height grids";
+        return {};
+    }
 
     std::vector<float> heights(static_cast<size_t>(kRows * kColumns));
     for (int row = 0; row < kRows; ++row) {
@@ -257,9 +266,7 @@ Pixels RenderScene(float ramp, uint8_t tint = 0x80) {
             heights[static_cast<size_t>(row * kColumns + column)] = ramp * static_cast<float>(row);
         }
     }
-    water.height_a = heights.data();
-    water.height_b = heights.data();
-    water.height = heights.data();
+    std::ranges::copy(heights, water.Heights().begin());
 
     water.min[0] = -kExtent;
     water.min[1] = 0.0f;
@@ -345,4 +352,67 @@ TEST(WaterHost, ReusesGridStorageAndReplacesEarlierGeometry) {
     desc.rows = 1;
     BuildWaterMesh(desc, heights, mesh);
     EXPECT_TRUE(mesh.empty());
+}
+
+TEST(WaterMemory, MissingAndInvalidGridsNeverReachHeightWrites) {
+    CWater water;
+    EXPECT_FALSE(water.SetSize(3, 3, nullptr));
+    mgCMemory empty;
+    EXPECT_FALSE(water.SetSize(3, 3, &empty));
+    EXPECT_FALSE(water.SetSize(-1, 3, &empty));
+    EXPECT_FALSE(water.SetSize(1, 3, &empty));
+    EXPECT_TRUE(water.Heights().empty());
+    water.Shake(std::numeric_limits<int>::min(), std::numeric_limits<int>::max(), 1.0f);
+    water.Hamon();
+}
+
+TEST(WaterMemory, ExactGridLeasesRejectResetAndSameAddressReuse) {
+    std::vector<u_long128> backing(128);
+    mgCMemory              memory;
+    memory.stSetBuffer(backing.data(), static_cast<int>(backing.size()));
+    CWater old;
+    ASSERT_TRUE(old.SetSize(3, 4, &memory));
+    auto *address = old.Heights().data();
+    ASSERT_EQ(old.Heights().size(), 12U);
+    old.Shake(1, 2, 3.5f);
+    EXPECT_FLOAT_EQ(old.Heights()[6], 3.5f);
+    old.Hamon();
+    EXPECT_GT(old.Heights()[6], 0.0f);
+    memory.stReset();
+    EXPECT_TRUE(old.Heights().empty());
+    CWater replacement;
+    ASSERT_TRUE(replacement.SetSize(3, 4, &memory));
+    ASSERT_EQ(replacement.Heights().data(), address);
+    std::ranges::fill(replacement.Heights(), 7.0f);
+    old.Shake(1, 2, 100.0f);
+    old.Hamon();
+    EXPECT_TRUE(std::ranges::all_of(replacement.Heights(), [](float value) { return value == 7.0f; }));
+}
+
+TEST(WaterMemory, FailedResizesPreserveTheLiveGridAndDoNotWrapProducts) {
+    std::vector<u_long128> backing(64);
+    mgCMemory              memory;
+    memory.stSetBuffer(backing.data(), static_cast<int>(backing.size()));
+    CWater water;
+    ASSERT_TRUE(water.SetSize(3, 3, &memory));
+    auto      *address = water.Heights().data();
+    const auto used = memory.stGetUsed();
+    memory.stSetLocked(true);
+    EXPECT_FALSE(water.SetSize(4, 4, &memory));
+    memory.stSetLocked(false);
+    EXPECT_FALSE(water.SetSize(std::numeric_limits<int>::max(), std::numeric_limits<int>::max(), &memory));
+    EXPECT_EQ(water.Heights().data(), address);
+    EXPECT_EQ(water.Heights().size(), 9U);
+    EXPECT_EQ(memory.stGetUsed(), used);
+}
+
+TEST(WaterMemory, FrameCreationRejectsMissingStorageAndDegenerateGridSizes) {
+    float corner[4]{};
+    EXPECT_EQ(CreateWaterFrame(3, 3, corner, corner, nullptr), nullptr);
+    mgCMemory empty;
+    EXPECT_EQ(CreateWaterFrame(3, 3, corner, corner, &empty), nullptr);
+    EXPECT_EQ(CreateWaterFrame(1, 3, corner, corner, &empty), nullptr);
+    CWaterFrame frame;
+    frame.Shake(0.0f, 0.0f, 1.0f);
+    EXPECT_EQ(frame.GetWater(), nullptr);
 }

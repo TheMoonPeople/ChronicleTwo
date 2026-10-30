@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <memory>
 
 #include "camera_fixed.hpp"
 #include "memory/tracked_copy.hpp"
@@ -494,16 +495,16 @@ void mgCFrame::SetTransMatrix(float (*matrix)[4]) {
  * Compares two frame names up to their "--" flags. Returns 1 when they match, 0 otherwise.
  *
  */
-static int StrCmp(char *left, char *right) {
+static int StrCmp(const char *left, const char *right) {
     if (left == nullptr || right == nullptr) {
         return 0;
     }
 
-    char *end_a = left;
-    char *end_b = right;
-    s32   ch = {};
-    s32   length_a = 0;
-    s32   length_b = 0;
+    const char *end_a = left;
+    const char *end_b = right;
+    s32         ch = {};
+    s32         length_a = 0;
+    s32         length_b = 0;
 
     while ((ch = *end_a) != 0) {
         if ((s8) ch == '-' && end_a[1] == '-') {
@@ -527,8 +528,8 @@ static int StrCmp(char *left, char *right) {
         return 0;
     }
 
-    char *pa = left;
-    char *pb = right;
+    const char *pa = left;
+    const char *pb = right;
 
     for (s32 i = 0; i < length_a; i++, pa++, pb++) {
         if (*pa != *pb) {
@@ -539,11 +540,11 @@ static int StrCmp(char *left, char *right) {
     return 1;
 }
 
-int mgFrameNameComp(char *left, char *right) {
+int mgFrameNameComp(const char *left, const char *right) {
     return StrCmp(left, right);
 }
 
-mgCFrame *mgCFrame::SearchFrame(char *name) {
+mgCFrame *mgCFrame::SearchFrame(const char *name) {
     mgCFrame *found = {};
     mgCFrame *node = {};
 
@@ -560,7 +561,7 @@ mgCFrame *mgCFrame::SearchFrame(char *name) {
     return nullptr;
 }
 
-int mgCFrame::SearchFrameID(char *name) {
+int mgCFrame::SearchFrameID(const char *name) {
     if (frame_list == nullptr) {
         return -1;
     }
@@ -1126,6 +1127,7 @@ void mgCFrame::GetLocalMatrix(float (*matrix)[4]) {
 }
 
 void mgCFrame::Initialize() {
+    clone_inputs = {};
     model_assets::ForgetFrame(this);
     elder = brother = child = parent = nullptr;
     sceVu0UnitMatrix(lw_matrix);
@@ -1341,3 +1343,129 @@ int mgCFrame::GetDrawRect(mgVu0FBOX *rect, mgCDrawManager *manager) {
     sceVu0CopyVector(rect->min, rect_min);
     return visible;
 }
+
+namespace dc2::render {
+namespace {
+/**
+ * Holds immutable identities of a frame's clone-only render payloads.
+ */
+struct FrameCloneState {
+    dc2::memory::ArenaBuffer object;          /**< Exact producer frame allocation. */
+    mgCFrameAttr            *attr = nullptr;  /**< Expected attribute object identity. */
+    mgCFrame::BoundInfo     *bound = nullptr; /**< Expected bound object identity. */
+    dc2::memory::ArenaBuffer attr_storage;    /**< Exact attribute allocation. */
+    dc2::memory::ArenaBuffer bound_storage;   /**< Exact bounding volume allocation. */
+};
+} // namespace
+
+bool FrameCloneInputs::Publish(mgCMemory &producer, mgCFrame &frame, const VisualCloneInputs &visual) {
+    frame.clone_inputs = {};
+    try {
+        auto value = std::make_shared<FrameCloneState>();
+        value->object = dc2::memory::ArenaBuffer::Bind(producer, {reinterpret_cast<u8 *>(&frame), sizeof(frame)});
+        if (value->object.Bytes().size() != sizeof(frame)) {
+            return false;
+        }
+        value->attr = frame.attr;
+        value->bound = frame.bound;
+        if (frame.attr != nullptr) {
+            value->attr_storage = dc2::memory::ArenaBuffer::Bind(producer, {reinterpret_cast<u8 *>(frame.attr), sizeof(*frame.attr)});
+            if (value->attr_storage.Bytes().size() != sizeof(*frame.attr)) {
+                return false;
+            }
+        }
+        if (frame.bound != nullptr) {
+            value->bound_storage = dc2::memory::ArenaBuffer::Bind(producer, {reinterpret_cast<u8 *>(frame.bound), sizeof(*frame.bound)});
+            if (value->bound_storage.Bytes().size() != sizeof(*frame.bound)) {
+                return false;
+            }
+        }
+        if (frame.visual != nullptr && !visual.Matches(frame.visual)) {
+            return false;
+        }
+        frame.clone_inputs.state = dc2::memory::ArenaResource::Store(value->object, value);
+        frame.clone_inputs.expected_visual = frame.visual;
+        frame.clone_inputs.visual_inputs = visual;
+        return frame.clone_inputs.Matches(frame);
+    } catch (const std::bad_alloc &) {
+        return false;
+    }
+}
+
+bool FrameCloneInputs::PublishChanges(mgCFrame &frame, mgCMemory *attr_producer, const VisualCloneInputs *replacement_visual) const {
+    const auto previous = state.Acquire<FrameCloneState>();
+    if (!previous) {
+        return false;
+    }
+    const auto object = previous->object.Bytes();
+    if (object.size() != sizeof(frame) || object.data() != reinterpret_cast<const u8 *>(&frame) || frame.bound != previous->bound ||
+        (frame.bound != nullptr && previous->bound_storage.Bytes().size() != sizeof(*frame.bound))) {
+        return false;
+    }
+    if (attr_producer == nullptr && (frame.attr != previous->attr || (frame.attr != nullptr && previous->attr_storage.Bytes().size() != sizeof(*frame.attr)))) {
+        return false;
+    }
+    if (replacement_visual == nullptr && (frame.visual != expected_visual || (frame.visual != nullptr && !visual_inputs.Matches(frame.visual)))) {
+        return false;
+    }
+    if (replacement_visual != nullptr && frame.visual != nullptr && !replacement_visual->Matches(frame.visual)) {
+        return false;
+    }
+    auto result = *this;
+    if (replacement_visual != nullptr) {
+        result.expected_visual = frame.visual;
+        result.visual_inputs = *replacement_visual;
+    }
+    if (attr_producer == nullptr) {
+        // Visual transitions reuse the exact frame payload metadata without retaining another resource.
+        frame.clone_inputs = result;
+        return result.Matches(frame);
+    }
+    frame.clone_inputs = {};
+    try {
+        auto value = std::make_shared<FrameCloneState>(*previous);
+        value->attr = frame.attr;
+        value->attr_storage = {};
+        if (frame.attr != nullptr) {
+            value->attr_storage = dc2::memory::ArenaBuffer::Bind(*attr_producer, {reinterpret_cast<u8 *>(frame.attr), sizeof(*frame.attr)});
+            if (value->attr_storage.Bytes().size() != sizeof(*frame.attr)) {
+                return false;
+            }
+        }
+        result.state = dc2::memory::ArenaResource::Store(value->object, value);
+        frame.clone_inputs = result;
+        return result.Matches(frame);
+    } catch (const std::bad_alloc &) {
+        return false;
+    }
+}
+
+bool FrameCloneInputs::SharesPayloadMetadata(const FrameCloneInputs &other) const {
+    const auto value = state.Acquire<FrameCloneState>();
+    return value != nullptr && value == other.state.Acquire<FrameCloneState>();
+}
+
+bool FrameCloneInputs::Matches(const mgCFrame &frame) const {
+    if (!state.HasValue()) {
+        return frame.attr == nullptr && frame.bound == nullptr && frame.visual == nullptr;
+    }
+    const auto value = state.Acquire<FrameCloneState>();
+    if (!value) {
+        return false;
+    }
+    const auto object = value->object.Bytes();
+    if (object.size() != sizeof(frame) || object.data() != reinterpret_cast<const u8 *>(&frame)) {
+        return false;
+    }
+    if (frame.attr != value->attr || frame.bound != value->bound || frame.visual != expected_visual) {
+        return false;
+    }
+    if (frame.attr != nullptr && value->attr_storage.Bytes().size() != sizeof(*frame.attr)) {
+        return false;
+    }
+    if (frame.bound != nullptr && value->bound_storage.Bytes().size() != sizeof(*frame.bound)) {
+        return false;
+    }
+    return frame.visual == nullptr || visual_inputs.Matches(frame.visual);
+}
+} // namespace dc2::render

@@ -22,7 +22,7 @@ public:
      *
      */
     MetadataScope(CCharacter2 *character, mgCMemory *model, int block, CCharacter2 *parent, bool outline,
-                  std::string_view skin_name = {});
+                  std::string_view skin_name = {}, std::shared_ptr<const CloneAuxState> inherited_clone_inputs = {});
     /**
      *
      * Restores the enclosing parser before releasing this scope's owned state.
@@ -35,6 +35,14 @@ public:
      *
      */
     static std::optional<std::string_view> ActiveSkinName();
+    /**
+     * Registers a newly allocated sound channel in the active lexical producer context.
+     */
+    static bool RegisterSounds(mgCMemory &producer, int slot, std::span<CHRINFO_SE> allocation);
+    /**
+     * Completes graph bindings and sounds once the profile has finished construction.
+     */
+    bool FinishCloneInputs(ResourceState &resources, mgCMemory &model);
     MetadataScope(const MetadataScope &) = delete;
     MetadataScope &operator=(const MetadataScope &) = delete;
     MetadataScope(MetadataScope &&) = delete;

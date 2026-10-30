@@ -89,6 +89,7 @@ public:
      */
     int Iam() override;
 
+protected:
     /**
      *
      * Returns a copy of the model allocated from memory, sharing its vertex data, primitives and
@@ -100,6 +101,7 @@ public:
      */
     mgCVisual *Copy(mgCMemory *memory) override;
 
+public:
     /**
      *
      * Writes the bounds of the posed model, the base box moved by each bone, relative to a matrix,

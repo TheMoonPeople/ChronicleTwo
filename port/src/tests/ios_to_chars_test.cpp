@@ -24,6 +24,18 @@ void ExpectConversion(T value, Args... args) {
     const auto             result = std::IosCompatibilityToChars(actual.data(), actual.data() + actual.size(), value, args...);
     ASSERT_EQ(result.ec, reference.ec);
     if (result.ec == std::errc{}) {
+        if constexpr (sizeof...(Args) == 1) {
+            if (((args == std::chars_format::hex) && ...) && std::fpclassify(value) == FP_SUBNORMAL) {
+                // Libraries spell subnormals differently; require exact recovery and the shorter representation.
+                T          recovered{};
+                const auto parsed = std::from_chars(actual.data(), result.ptr, recovered, std::chars_format::hex);
+                ASSERT_EQ(parsed.ec, std::errc{});
+                EXPECT_EQ(parsed.ptr, result.ptr);
+                EXPECT_EQ(recovered, value);
+                EXPECT_LE(result.ptr - actual.data(), reference.ptr - expected.data());
+                return;
+            }
+        }
         EXPECT_EQ(std::string_view(actual.data(), result.ptr), std::string_view(expected.data(), reference.ptr)) << value;
     }
 }
@@ -54,6 +66,29 @@ TEST(IosToChars, MatchesStandardFormatsAndBufferLimits) {
     char buffer[1];
     EXPECT_EQ(std::IosCompatibilityToChars(buffer, buffer + 1, 123.0).ec, std::errc::value_too_large);
     EXPECT_EQ(std::IosCompatibilityToChars(buffer, buffer, 0.0).ptr, buffer);
+}
+
+TEST(IosToChars, ShortestHexSubnormalsFitTheirExactBoundedRepresentation) {
+    const auto check = []<class T>(T value, std::string_view expected) {
+        for (std::size_t capacity = 0; capacity <= expected.size(); ++capacity) {
+            std::array<char, 32> output;
+            output.fill('#');
+            auto      *first = output.data() + 1;
+            const auto result = std::IosCompatibilityToChars(first, first + capacity, value, std::chars_format::hex);
+            EXPECT_EQ(output.front(), '#');
+            EXPECT_EQ(output[capacity + 1], '#');
+            if (capacity < expected.size()) {
+                EXPECT_EQ(result.ec, std::errc::value_too_large);
+            } else {
+                ASSERT_EQ(result.ec, std::errc{});
+                EXPECT_EQ(std::string_view(first, result.ptr), expected);
+            }
+        }
+    };
+    check(std::numeric_limits<double>::denorm_min(), "1p-1074");
+    check(-std::numeric_limits<double>::denorm_min(), "-1p-1074");
+    check(std::numeric_limits<float>::denorm_min(), "1p-149");
+    check(-std::numeric_limits<float>::denorm_min(), "-1p-149");
 }
 
 TEST(IosToChars, MatchesShortestRepresentationsOfFiniteBitPatterns) {

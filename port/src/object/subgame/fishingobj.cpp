@@ -333,8 +333,8 @@ int ExtendLine(float amount) {
 
             if (LineTop >= 0) {
                 FISH_POINT *point = &LinePoint[LineTop];
-                *reinterpret_cast<u_long128 *>(point->pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
-                *reinterpret_cast<u_long128 *>(point->old_pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
+                std::memmove(point->pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
+                std::memmove(point->old_pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
                 mgZeroVector(point->velo);
             }
         }
@@ -426,8 +426,8 @@ void InitRodPoint(mgCFrame *reference, mgCFrame *rod) {
     for (i = 0; i < 5; i++) {
         sceVu0ScaleVector(offset, span, static_cast<float>(i) / 4.0f);
         sceVu0AddVector(position, root, offset);
-        *reinterpret_cast<u_long128 *>(RodPoint[i].pos) = *reinterpret_cast<u_long128 *>(position);
-        *reinterpret_cast<u_long128 *>(RodPoint[i].old_pos) = *reinterpret_cast<u_long128 *>(position);
+        std::memmove(RodPoint[i].pos, position, sizeof(float) * 4);
+        std::memmove(RodPoint[i].old_pos, position, sizeof(float) * 4);
         mgZeroVector(RodPoint[i].velo);
 
         if (i > 0) {
@@ -492,13 +492,13 @@ static void GetTriPose(sceVu0FMATRIX pose, sceVu0FVECTOR points[3], int axes[3])
 }
 
 void GetHariPos(float *pos, float *old_pos) {
-    *reinterpret_cast<u_long128 *>(pos) = *reinterpret_cast<u_long128 *>(LinePoint[kLinePointNum - 1].pos);
-    *reinterpret_cast<u_long128 *>(old_pos) = *reinterpret_cast<u_long128 *>(LinePoint[kLinePointNum - 1].old_pos);
+    std::memmove(pos, LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
+    std::memmove(old_pos, LinePoint[kLinePointNum - 1].old_pos, sizeof(float) * 4);
 }
 
 void GetUkiPos(float *pos, float *old_pos) {
-    *reinterpret_cast<u_long128 *>(pos) = *reinterpret_cast<u_long128 *>(LinePoint[kUkiPointIndex].pos);
-    *reinterpret_cast<u_long128 *>(old_pos) = *reinterpret_cast<u_long128 *>(LinePoint[kUkiPointIndex].old_pos);
+    std::memmove(pos, LinePoint[kUkiPointIndex].pos, sizeof(float) * 4);
+    std::memmove(old_pos, LinePoint[kUkiPointIndex].old_pos, sizeof(float) * 4);
 }
 
 void PullUki(float amount) {
@@ -594,11 +594,11 @@ int SetUkiPose(mgCFrame *uki_frame, mgCFrame *hari_frame) {
 int CastingLure(float *target) {
     float start[4];
     float to_target[4];
-    *reinterpret_cast<u_long128 *>(&start) = *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].pos);
-    *reinterpret_cast<u_long128 *>(&CastingPoint) = *reinterpret_cast<u_long128 *>(target);
-    *reinterpret_cast<u_long128 *>(&ReleasePoint) = *reinterpret_cast<u_long128 *>(&start);
-    *reinterpret_cast<u_long128 *>(&FlyingPoint.pos) = *reinterpret_cast<u_long128 *>(&start);
-    *reinterpret_cast<u_long128 *>(&FlyingPoint.old_pos) = *reinterpret_cast<u_long128 *>(&start);
+    std::memmove(&start, &LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
+    std::memmove(&CastingPoint, target, sizeof(float) * 4);
+    std::memmove(&ReleasePoint, &start, sizeof(float) * 4);
+    std::memmove(&FlyingPoint.pos, &start, sizeof(float) * 4);
+    std::memmove(&FlyingPoint.old_pos, &start, sizeof(float) * 4);
     mgZeroVector(FlyingPoint.velo);
     sceVu0SubVector(to_target, target, start);
     float distance = {};
@@ -632,13 +632,13 @@ int CatchLine(float *target, float reach) {
     sceVu0SubVector(to_target, target, LinePoint[kLinePointNum - 1].pos);
 
     if (mgDistVector(to_target) < reach) {
-        *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].pos) = *reinterpret_cast<u_long128 *>(target);
-        *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].old_pos) = *reinterpret_cast<u_long128 *>(target);
+        std::memmove(&LinePoint[kLinePointNum - 1].pos, target, sizeof(float) * 4);
+        std::memmove(&LinePoint[kLinePointNum - 1].old_pos, target, sizeof(float) * 4);
         mgZeroVector(LinePoint[kLinePointNum - 1].velo);
 
         if (hari != nullptr) {
-            *reinterpret_cast<u_long128 *>(hari->point[0].pos) = *reinterpret_cast<u_long128 *>(target);
-            *reinterpret_cast<u_long128 *>(hari->point[0].old_pos) = *reinterpret_cast<u_long128 *>(target);
+            std::memmove(hari->point[0].pos, target, sizeof(float) * 4);
+            std::memmove(hari->point[0].old_pos, target, sizeof(float) * 4);
             mgZeroVector(hari->point[0].velo);
         }
 
@@ -648,13 +648,13 @@ int CatchLine(float *target, float reach) {
     sceVu0Normalize(to_target, to_target);
     sceVu0ScaleVector(to_target, to_target, reach);
     sceVu0AddVector(moved, LinePoint[kLinePointNum - 1].pos, to_target);
-    *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].pos) = *reinterpret_cast<u_long128 *>(moved);
-    *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].old_pos) = *reinterpret_cast<u_long128 *>(moved);
+    std::memmove(&LinePoint[kLinePointNum - 1].pos, moved, sizeof(float) * 4);
+    std::memmove(&LinePoint[kLinePointNum - 1].old_pos, moved, sizeof(float) * 4);
     mgZeroVector(LinePoint[kLinePointNum - 1].velo);
 
     if (hari != nullptr) {
-        *reinterpret_cast<u_long128 *>(hari->point[0].pos) = *reinterpret_cast<u_long128 *>(moved);
-        *reinterpret_cast<u_long128 *>(hari->point[0].old_pos) = *reinterpret_cast<u_long128 *>(moved);
+        std::memmove(hari->point[0].pos, moved, sizeof(float) * 4);
+        std::memmove(hari->point[0].old_pos, moved, sizeof(float) * 4);
         mgZeroVector(hari->point[0].velo);
     }
 
@@ -669,15 +669,15 @@ void SlowLineVelo(float rate) {
 
 void ResetLineVelo() {
     float top_pos[4];
-    *reinterpret_cast<u_long128 *>(top_pos) = *reinterpret_cast<u_long128 *>(LinePoint[LineTop].pos);
+    std::memmove(top_pos, LinePoint[LineTop].pos, sizeof(float) * 4);
 
     for (int i = LineTop; i < 64; i++) {
         float pos[4];
-        *reinterpret_cast<u_long128 *>(pos) = *reinterpret_cast<u_long128 *>(LinePoint[i].pos);
+        std::memmove(pos, LinePoint[i].pos, sizeof(float) * 4);
         pos[0] = top_pos[0];
         pos[2] = top_pos[2];
-        *reinterpret_cast<u_long128 *>(LinePoint[i].pos) = *reinterpret_cast<u_long128 *>(pos);
-        *reinterpret_cast<u_long128 *>(LinePoint[i].old_pos) = *reinterpret_cast<u_long128 *>(pos);
+        std::memmove(LinePoint[i].pos, pos, sizeof(float) * 4);
+        std::memmove(LinePoint[i].old_pos, pos, sizeof(float) * 4);
         mgZeroVector(LinePoint[i].velo);
     }
 }
@@ -685,29 +685,29 @@ void ResetLineVelo() {
 void ResetLine(float *tip) {
     LineTop = 59;
     FISH_POINT *last = &LinePoint[59];
-    *reinterpret_cast<u_long128 *>(&last->pos) = *reinterpret_cast<u_long128 *>(tip);
-    *reinterpret_cast<u_long128 *>(&last->old_pos) = *reinterpret_cast<u_long128 *>(tip);
+    std::memmove(&last->pos, tip, sizeof(float) * 4);
+    std::memmove(&last->old_pos, tip, sizeof(float) * 4);
     mgZeroVector(last->velo);
 
     for (int i = LineTop + 1; i < kLinePointNum; i++) {
         float pos[4];
-        *reinterpret_cast<u_long128 *>(&pos) = *reinterpret_cast<u_long128 *>(&LinePoint[i - 1].pos);
+        std::memmove(&pos, &LinePoint[i - 1].pos, sizeof(float) * 4);
         pos[0] = tip[0];
         pos[1] -= 5.0f;
         pos[2] = tip[2];
-        *reinterpret_cast<u_long128 *>(&LinePoint[i].pos) = *reinterpret_cast<u_long128 *>(&pos);
-        *reinterpret_cast<u_long128 *>(&LinePoint[i].old_pos) = *reinterpret_cast<u_long128 *>(&pos);
+        std::memmove(&LinePoint[i].pos, &pos, sizeof(float) * 4);
+        std::memmove(&LinePoint[i].old_pos, &pos, sizeof(float) * 4);
         mgZeroVector(LinePoint[i].velo);
     }
 
-    *reinterpret_cast<u_long128 *>(&LureObj.point[0].pos) = *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].pos);
-    *reinterpret_cast<u_long128 *>(&LureObj.point[0].old_pos) = *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].pos);
+    std::memmove(&LureObj.point[0].pos, &LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
+    std::memmove(&LureObj.point[0].old_pos, &LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
     mgZeroVector(LureObj.point[0].velo);
-    *reinterpret_cast<u_long128 *>(&UkiObj.point[0].pos) = *reinterpret_cast<u_long128 *>(&LinePoint[kUkiPointIndex].pos);
-    *reinterpret_cast<u_long128 *>(&UkiObj.point[0].old_pos) = *reinterpret_cast<u_long128 *>(&LinePoint[kUkiPointIndex].pos);
+    std::memmove(&UkiObj.point[0].pos, &LinePoint[kUkiPointIndex].pos, sizeof(float) * 4);
+    std::memmove(&UkiObj.point[0].old_pos, &LinePoint[kUkiPointIndex].pos, sizeof(float) * 4);
     mgZeroVector(UkiObj.point[0].velo);
-    *reinterpret_cast<u_long128 *>(&HariObj.point[0].pos) = *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].pos);
-    *reinterpret_cast<u_long128 *>(&HariObj.point[0].old_pos) = *reinterpret_cast<u_long128 *>(&LinePoint[kLinePointNum - 1].pos);
+    std::memmove(&HariObj.point[0].pos, &LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
+    std::memmove(&HariObj.point[0].old_pos, &LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
     mgZeroVector(HariObj.point[0].velo);
 }
 
@@ -721,9 +721,9 @@ int GetNextChanceCnt() {
 }
 
 int InitFishBattle() {
-    *reinterpret_cast<u_long128 *>(BattleStartPos) = *reinterpret_cast<u_long128 *>(LinePoint[kLinePointNum - 1].pos);
-    *reinterpret_cast<u_long128 *>(FishPoint.pos) = *reinterpret_cast<u_long128 *>(LinePoint[kLinePointNum - 1].pos);
-    *reinterpret_cast<u_long128 *>(FishPoint.old_pos) = *reinterpret_cast<u_long128 *>(LinePoint[kLinePointNum - 1].pos);
+    std::memmove(BattleStartPos, LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
+    std::memmove(FishPoint.pos, LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
+    std::memmove(FishPoint.old_pos, LinePoint[kLinePointNum - 1].pos, sizeof(float) * 4);
     mgZeroVector(FishPoint.velo);
     float dist = mgDistVector(LinePoint[kLinePointNum - 1].pos, RodPoint[kRodTipIndex].pos);
     NowFishSpeed = 0;
@@ -816,13 +816,13 @@ int FishBattle(CScene *scene, CCPoly *poly_buffer, int poly_max) {
     FishPoint.velo[2] = static_cast<float>(NowFishSpeed) * cosf(NowFishRot);
     FishPoint.velo[1] = 0.0f;
     FishPoint.pos[1] = WaterLevel - 10.0f;
-    *reinterpret_cast<u_long128 *>(heading) = *reinterpret_cast<u_long128 *>(matrix[2]);
+    std::memmove(heading, matrix[2], sizeof(float) * 4);
     next_pos[0] = FishPoint.pos[0] + FishPoint.velo[0];
     next_pos[1] = FishPoint.pos[1];
     next_pos[2] = FishPoint.pos[2] + FishPoint.velo[2];
     mgVu0FBOX query_box{};
-    *reinterpret_cast<u_long128 *>(query_box.max) = *reinterpret_cast<u_long128 *>(FishPoint.pos);
-    *reinterpret_cast<u_long128 *>(query_box.min) = *reinterpret_cast<u_long128 *>(FishPoint.pos);
+    std::memmove(query_box.max, FishPoint.pos, sizeof(float) * 4);
+    std::memmove(query_box.min, FishPoint.pos, sizeof(float) * 4);
 
     for (int axis = 0; axis < 3; axis++) {
         query_box.max[axis] += 100.0f;
@@ -843,8 +843,8 @@ int FishBattle(CScene *scene, CCPoly *poly_buffer, int poly_max) {
 }
 
 void GetFishPosVelo(float *pos, float *velo) {
-    *reinterpret_cast<u_long128 *>(pos) = *reinterpret_cast<u_long128 *>(FishPoint.pos);
-    *reinterpret_cast<u_long128 *>(velo) = *reinterpret_cast<u_long128 *>(FishPoint.velo);
+    std::memmove(pos, FishPoint.pos, sizeof(float) * 4);
+    std::memmove(velo, FishPoint.velo, sizeof(float) * 4);
 }
 
 /**
@@ -856,8 +856,8 @@ static void BindFishObj() {
     CFishObj   *hari = GetActiveHariObj();
     CFishObj   *uki = GetActiveUkiObj();
     FISH_POINT *top = &LinePoint[LineTop];
-    *reinterpret_cast<u_long128 *>(top->pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
-    *reinterpret_cast<u_long128 *>(top->old_pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
+    std::memmove(top->pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
+    std::memmove(top->old_pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
     mgZeroVector(top->velo);
 
     for (int step = 0; step < 4; step++) {
@@ -878,7 +878,7 @@ static void BindFishObj() {
         }
 
         if (CastingLureFlag != 0) {
-            *reinterpret_cast<u_long128 *>(LinePoint[63].pos) = *reinterpret_cast<u_long128 *>(FlyingPoint.pos);
+            std::memmove(LinePoint[63].pos, FlyingPoint.pos, sizeof(float) * 4);
         }
 
         if (LureLessFlag == 0) {
@@ -895,8 +895,8 @@ static void BindFishObj() {
         }
 
         top = &LinePoint[LineTop];
-        *reinterpret_cast<u_long128 *>(top->pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
-        *reinterpret_cast<u_long128 *>(top->old_pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
+        std::memmove(top->pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
+        std::memmove(top->old_pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
         mgZeroVector(top->velo);
     }
 }
@@ -911,12 +911,12 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
     CFishObj     *uki = GetActiveUkiObj();
     sceVu0FVECTOR frame_pos;
     SaoFrame[0]->GetWorldPosition0(frame_pos);
-    *reinterpret_cast<u_long128 *>(RodPoint[0].pos) = *reinterpret_cast<u_long128 *>(frame_pos);
-    *reinterpret_cast<u_long128 *>(RodPoint[0].old_pos) = *reinterpret_cast<u_long128 *>(frame_pos);
+    std::memmove(RodPoint[0].pos, frame_pos, sizeof(float) * 4);
+    std::memmove(RodPoint[0].old_pos, frame_pos, sizeof(float) * 4);
     mgZeroVector(RodPoint[0].velo);
     SaoFrame[1]->GetWorldPosition0(frame_pos);
-    *reinterpret_cast<u_long128 *>(RodPoint[1].pos) = *reinterpret_cast<u_long128 *>(frame_pos);
-    *reinterpret_cast<u_long128 *>(RodPoint[1].old_pos) = *reinterpret_cast<u_long128 *>(frame_pos);
+    std::memmove(RodPoint[1].pos, frame_pos, sizeof(float) * 4);
+    std::memmove(RodPoint[1].old_pos, frame_pos, sizeof(float) * 4);
     mgZeroVector(RodPoint[1].velo);
 
     if (CastingLureFlag != 0) {
@@ -924,7 +924,7 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
         float         cast_distance = mgDistVectorXZ(ReleasePoint, CastingPoint);
         float         flown_distance = mgDistVectorXZ(ReleasePoint, FlyingPoint.pos);
         sceVu0FVECTOR flight_step;
-        *reinterpret_cast<u_long128 *>(flight_step) = *reinterpret_cast<u_long128 *>(FlyingPoint.velo);
+        std::memmove(flight_step, FlyingPoint.velo, sizeof(float) * 4);
 
         if (cast_distance * 0.8f < flown_distance) {
             float scale = (cast_distance - flown_distance) / (cast_distance * 0.2f);
@@ -959,14 +959,14 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
         }
 
         mgAddVector(FlyingPoint.pos, flight_step);
-        *reinterpret_cast<u_long128 *>(LinePoint[63].pos) = *reinterpret_cast<u_long128 *>(FlyingPoint.pos);
-        *reinterpret_cast<u_long128 *>(LinePoint[63].old_pos) = *reinterpret_cast<u_long128 *>(FlyingPoint.pos);
+        std::memmove(LinePoint[63].pos, FlyingPoint.pos, sizeof(float) * 4);
+        std::memmove(LinePoint[63].old_pos, FlyingPoint.pos, sizeof(float) * 4);
         mgZeroVector(LinePoint[63].velo);
         --CastingLureTime;
     }
 
     for (i = 2; i < 5; i++) {
-        *reinterpret_cast<u_long128 *>(RodPoint[i].old_pos) = *reinterpret_cast<u_long128 *>(RodPoint[i].pos);
+        std::memmove(RodPoint[i].old_pos, RodPoint[i].pos, sizeof(float) * 4);
 
         if (BattleFlag == 0) {
             mgAddVector(RodPoint[i].pos, RodPoint[i].velo);
@@ -974,11 +974,11 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
     }
 
     mgVu0FBOX line_box{};
-    *reinterpret_cast<u_long128 *>(line_box.max) = *reinterpret_cast<u_long128 *>(LinePoint[LineTop].pos);
-    *reinterpret_cast<u_long128 *>(line_box.min) = *reinterpret_cast<u_long128 *>(LinePoint[LineTop].pos);
+    std::memmove(line_box.max, LinePoint[LineTop].pos, sizeof(float) * 4);
+    std::memmove(line_box.min, LinePoint[LineTop].pos, sizeof(float) * 4);
 
     for (int i = LineTop; i < 64; i++) {
-        *reinterpret_cast<u_long128 *>(LinePoint[i].old_pos) = *reinterpret_cast<u_long128 *>(LinePoint[i].pos);
+        std::memmove(LinePoint[i].old_pos, LinePoint[i].pos, sizeof(float) * 4);
         mgAddVector(LinePoint[i].pos, LinePoint[i].velo);
         LinePoint[i].pos[1] -= 0.36f;
         mgVectorMaxMin(line_box.max, line_box.max + 4, line_box.max, line_box.min, LinePoint[i].pos);
@@ -1033,11 +1033,11 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
 
     if (BattleFlag != 0) {
         for (int pass = 0; pass < 4; pass++) {
-            *reinterpret_cast<u_long128 *>(hari->point[0].pos) = *reinterpret_cast<u_long128 *>(FishPoint.pos);
-            *reinterpret_cast<u_long128 *>(hari->point[0].old_pos) = *reinterpret_cast<u_long128 *>(FishPoint.pos);
+            std::memmove(hari->point[0].pos, FishPoint.pos, sizeof(float) * 4);
+            std::memmove(hari->point[0].old_pos, FishPoint.pos, sizeof(float) * 4);
             mgZeroVector(hari->point[0].velo);
-            *reinterpret_cast<u_long128 *>(LinePoint[63].pos) = *reinterpret_cast<u_long128 *>(FishPoint.pos);
-            *reinterpret_cast<u_long128 *>(LinePoint[63].old_pos) = *reinterpret_cast<u_long128 *>(FishPoint.pos);
+            std::memmove(LinePoint[63].pos, FishPoint.pos, sizeof(float) * 4);
+            std::memmove(LinePoint[63].old_pos, FishPoint.pos, sizeof(float) * 4);
             mgZeroVector(LinePoint[63].velo);
             hari->BindStep();
 
@@ -1047,19 +1047,19 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
                 sceVu0Normalize(float_pos, float_pos);
                 sceVu0ScaleVector(float_pos, float_pos, 15.0f);
                 sceVu0SubVector(float_pos, FishPoint.pos, float_pos);
-                *reinterpret_cast<u_long128 *>(LinePoint[60].pos) = *reinterpret_cast<u_long128 *>(float_pos);
-                *reinterpret_cast<u_long128 *>(LinePoint[60].old_pos) = *reinterpret_cast<u_long128 *>(float_pos);
+                std::memmove(LinePoint[60].pos, float_pos, sizeof(float) * 4);
+                std::memmove(LinePoint[60].old_pos, float_pos, sizeof(float) * 4);
                 mgZeroVector(LinePoint[60].velo);
-                *reinterpret_cast<u_long128 *>(uki->point[0].pos) = *reinterpret_cast<u_long128 *>(float_pos);
-                *reinterpret_cast<u_long128 *>(uki->point[0].old_pos) = *reinterpret_cast<u_long128 *>(float_pos);
+                std::memmove(uki->point[0].pos, float_pos, sizeof(float) * 4);
+                std::memmove(uki->point[0].old_pos, float_pos, sizeof(float) * 4);
                 mgZeroVector(uki->point[0].velo);
                 uki->BindStep();
             }
         }
     } else {
         FISH_POINT *top = &LinePoint[LineTop];
-        *reinterpret_cast<u_long128 *>(top->pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
-        *reinterpret_cast<u_long128 *>(top->old_pos) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
+        std::memmove(top->pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
+        std::memmove(top->old_pos, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
         mgZeroVector(top->velo);
         BindFishObj();
     }
@@ -1072,11 +1072,11 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
     }
 
     sceVu0FVECTOR curve[5];
-    *reinterpret_cast<u_long128 *>(curve[0]) = *reinterpret_cast<u_long128 *>(RodPoint[0].pos);
-    *reinterpret_cast<u_long128 *>(curve[1]) = *reinterpret_cast<u_long128 *>(RodPoint[1].pos);
-    *reinterpret_cast<u_long128 *>(curve[2]) = *reinterpret_cast<u_long128 *>(RodPoint[2].pos);
-    *reinterpret_cast<u_long128 *>(curve[3]) = *reinterpret_cast<u_long128 *>(RodPoint[3].pos);
-    *reinterpret_cast<u_long128 *>(curve[4]) = *reinterpret_cast<u_long128 *>(RodPoint[4].pos);
+    std::memmove(curve[0], RodPoint[0].pos, sizeof(float) * 4);
+    std::memmove(curve[1], RodPoint[1].pos, sizeof(float) * 4);
+    std::memmove(curve[2], RodPoint[2].pos, sizeof(float) * 4);
+    std::memmove(curve[3], RodPoint[3].pos, sizeof(float) * 4);
+    std::memmove(curve[4], RodPoint[4].pos, sizeof(float) * 4);
 
     for (int i = 1; i < 8; i++) {
         sceVu0FMATRIX joint_matrix;
@@ -1146,7 +1146,8 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
         sceVu0FVECTOR to;
         sceVu0FVECTOR hit;
         float         heights[3];
-        *reinterpret_cast<u_long128 *>(to) = *reinterpret_cast<u_long128 *>(from) = *reinterpret_cast<u_long128 *>(LinePoint[i].pos);
+        std::memmove(from, LinePoint[i].pos, sizeof(float) * 4);
+        std::memmove(to, from, sizeof(float) * 4);
         heights[0] = LinePoint[i].pos[1];
         heights[1] = LinePoint[previous].pos[1];
         heights[2] = LinePoint[following].pos[1];
@@ -1185,7 +1186,7 @@ void RodStep(CScene *scene, u_long128 *poly_buffer) {
     }
 
     if (CastingLureFlag != 0) {
-        *reinterpret_cast<u_long128 *>(LinePoint[63].pos) = *reinterpret_cast<u_long128 *>(FlyingPoint.pos);
+        std::memmove(LinePoint[63].pos, FlyingPoint.pos, sizeof(float) * 4);
 
         if (LineTop < 62) {
             sceVu0ScaleVector(LinePoint[62].velo, FlyingPoint.velo, 0.8f);
@@ -1271,12 +1272,12 @@ void DrawFishingLine() {
     int         i = {};
     int         ok = {};
     FISH_POINT *point = {};
-    *reinterpret_cast<u_long128 *>(start) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
-    *reinterpret_cast<u_long128 *>(delta) = *reinterpret_cast<u_long128 *>(RodPoint[kRodNearTipIndex].pos);
+    std::memmove(start, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
+    std::memmove(delta, RodPoint[kRodNearTipIndex].pos, sizeof(float) * 4);
     sceVu0SubVector(delta, delta, start);
     sceVu0ScaleVector(delta, delta, 0.1f);
     mgAddVector(start, delta);
-    *reinterpret_cast<u_long128 *>(end) = *reinterpret_cast<u_long128 *>(&FishPoint.pos);
+    std::memmove(end, &FishPoint.pos, sizeof(float) * 4);
     start[3] = 1.0f;
     end[3] = 1.0f;
     mgCDrawPrim prim;
@@ -1340,12 +1341,12 @@ void DrawFishingActionChance() {
     float              end[4];
     float              mid[4];
     float              delta[4];
-    *reinterpret_cast<u_long128 *>(start) = *reinterpret_cast<u_long128 *>(RodPoint[kRodTipIndex].pos);
-    *reinterpret_cast<u_long128 *>(delta) = *reinterpret_cast<u_long128 *>(RodPoint[kRodNearTipIndex].pos);
+    std::memmove(start, RodPoint[kRodTipIndex].pos, sizeof(float) * 4);
+    std::memmove(delta, RodPoint[kRodNearTipIndex].pos, sizeof(float) * 4);
     sceVu0SubVector(delta, delta, start);
     sceVu0ScaleVector(delta, delta, 0.1f);
     mgAddVector(start, delta);
-    *reinterpret_cast<u_long128 *>(end) = *reinterpret_cast<u_long128 *>(&FishPoint.pos);
+    std::memmove(end, &FishPoint.pos, sizeof(float) * 4);
     start[3] = 1.0f;
     end[3] = 1.0f;
     mgCDrawPrim prim;
@@ -1652,7 +1653,7 @@ void InitUkiObj(int no, mgCFrame *uki, mgCFrame *hari) {
 
 void CFishObj::MovePoint() {
     for (int i = 0; i < point_num; i++) {
-        *reinterpret_cast<u_long128 *>(point[i].old_pos) = *reinterpret_cast<u_long128 *>(point[i].pos);
+        std::memmove(point[i].old_pos, point[i].pos, sizeof(float) * 4);
         mgAddVector(point[i].pos, point[i].velo);
         point[i].pos[1] -= 0.6f;
     }
@@ -1735,9 +1736,8 @@ void CFishObj::Correct(CCPoly *poly, int poly_num, float damping) {
         sceVu0FVECTOR hit;
         sceVu0FVECTOR correction;
         mgZeroVector(correction);
-        u_long128 position = *reinterpret_cast<u_long128 *>(point[i].pos);
-        *reinterpret_cast<u_long128 *>(from) = position;
-        *reinterpret_cast<u_long128 *>(to) = position;
+        std::memmove(from, point[i].pos, sizeof(from));
+        std::memmove(to, from, sizeof(to));
         from[1] = upper + 4.0f;
         to[1] = lower - 1.0f;
         int hit_poly = CheckHit(poly, poly_num, from, to, hit, 1, 9);
@@ -1795,13 +1795,13 @@ void ParaBlend(float *out, float t, float (*point)[4], int count) {
     };
     Matrix4 geometry{};
     sceVu0TransposeMatrix(basis.m, basis.m);
-    *reinterpret_cast<u_long128 *>(geometry.m[0]) = *reinterpret_cast<u_long128 *>(point[prev]);
+    std::memmove(geometry.m[0], point[prev], sizeof(float) * 4);
     geometry.m[0][3] = 0.0f;
-    *reinterpret_cast<u_long128 *>(geometry.m[1]) = *reinterpret_cast<u_long128 *>(point[cur]);
+    std::memmove(geometry.m[1], point[cur], sizeof(float) * 4);
     geometry.m[1][3] = 0.0f;
-    *reinterpret_cast<u_long128 *>(geometry.m[2]) = *reinterpret_cast<u_long128 *>(point[next]);
+    std::memmove(geometry.m[2], point[next], sizeof(float) * 4);
     geometry.m[2][3] = 0.0f;
-    *reinterpret_cast<u_long128 *>(geometry.m[3]) = *reinterpret_cast<u_long128 *>(point[next2]);
+    std::memmove(geometry.m[3], point[next2], sizeof(float) * 4);
     geometry.m[3][3] = 0.0f;
     sceVu0TransposeMatrix(geometry.m, geometry.m);
     mgMulMatrix(basis.m, basis.m, geometry.m);

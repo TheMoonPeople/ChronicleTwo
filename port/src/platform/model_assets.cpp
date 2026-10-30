@@ -776,7 +776,7 @@ int VisualType(mgCreateVisualType *table, const std::string &name) {
         }
     }
     for (auto *entry = table; entry->name && entry->type != MG_VISUAL_CREATE_END; ++entry) {
-        if (*entry->name && mgFrameNameComp(const_cast<char *>(name.c_str()), entry->name)) {
+        if (*entry->name && mgFrameNameComp(name.c_str(), entry->name)) {
             return entry->type;
         }
     }
@@ -786,18 +786,18 @@ int VisualType(mgCreateVisualType *table, const std::string &name) {
 /**
  * Constructs a native visual of the requested drawing class.
  */
-mgCVisualMDT *Visual(mgCMemory &memory, int type) {
+std::pair<mgCVisualMDT *, dc2::render::VisualCloneKind> Visual(mgCMemory &memory, int type) {
     switch (type) {
         case MG_VISUAL_CREATE_MDT:
-            return Allocate<mgCVisualMDT>(memory);
+            return {Allocate<mgCVisualMDT>(memory), dc2::render::VisualCloneKind::Mdt};
         case MG_VISUAL_CREATE_FIX_MDT:
-            return Allocate<mgCVisualFixMDT>(memory);
+            return {Allocate<mgCVisualFixMDT>(memory), dc2::render::VisualCloneKind::FixMdt};
         case MG_VISUAL_CREATE_SHADOW_MDT:
-            return Allocate<mgCShadowMDT>(memory);
+            return {Allocate<mgCShadowMDT>(memory), dc2::render::VisualCloneKind::ShadowMdt};
         case MG_VISUAL_CREATE_SHADOW_FIX_MDT:
-            return Allocate<mgCShadowFixMDT>(memory);
+            return {Allocate<mgCShadowFixMDT>(memory), dc2::render::VisualCloneKind::ShadowFixMdt};
         case MG_VISUAL_CREATE_MOTION_MDT:
-            return Allocate<mgCVisualMotionMDT>(memory);
+            return {Allocate<mgCVisualMotionMDT>(memory), dc2::render::VisualCloneKind::MotionMdt};
         default:
             throw std::runtime_error("unknown visual class");
     }
@@ -1662,7 +1662,7 @@ void MeasureModel(const std::shared_ptr<Document> &source, std::size_t index, bo
         }
         bool motion = false;
         for (const auto &driven : animated) {
-            if (mgFrameNameComp(const_cast<char *>(name.c_str()), const_cast<char *>(driven.c_str()))) {
+            if (mgFrameNameComp(name.c_str(), driven.c_str())) {
                 motion = true;
             }
         }
@@ -2064,7 +2064,7 @@ mgCFrame *Instantiate(const std::shared_ptr<Document> &document, mgLoadData &loa
             if (type == MG_VISUAL_CREATE_MOTION_MDT && !node.skinIndex) {
                 type = MG_VISUAL_CREATE_FIX_MDT;
             }
-            auto *visual = Visual(memory, type);
+            auto [visual, clone_kind] = Visual(memory, type);
             visual->texture_manager = &textures;
             Mesh(*document, node, mesh, *visual, memory, textures);
             if (type == MG_VISUAL_CREATE_MOTION_MDT) {
@@ -2097,6 +2097,15 @@ mgCFrame *Instantiate(const std::shared_ptr<Document> &document, mgLoadData &loa
                 ShadowFaces(*visual);
             }
             RefreshFaces(*visual);
+            if (!dc2::render::VisualCloneInputs::Publish(memory, *visual, clone_kind)) {
+                throw std::runtime_error("invalid visual clone inputs");
+            }
+        }
+        for (std::size_t index = 0; index < frames.size(); ++index) {
+            auto &frame = native[index];
+            if (!dc2::render::FrameCloneInputs::Publish(memory, frame, frame.visual != nullptr ? frame.visual->clone_inputs : dc2::render::VisualCloneInputs{})) {
+                throw std::runtime_error("invalid frame clone inputs");
+            }
         }
         std::vector<int> parents(frames.size(), -1);
         for (std::size_t index = 0; index < frames.size(); ++index) {
@@ -2913,8 +2922,8 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
     const auto  selected_profile = profile.empty() ? custom.at("default_profile").get<std::string>() : std::string(profile);
     const auto &commands = custom.at("profiles").at(selected_profile).at("commands");
     const auto  previous_resource_handle = character.resource_state;
-    if (!dc2::character::ResourcesLive(character)) {
-        throw std::runtime_error("character profile requires live prior resources or an empty character");
+    if (!dc2::character::ResourcesLive(character) || !dc2::character::CloneInputsLive(character)) {
+        throw std::runtime_error("character profile requires live prior resources and clone inputs or an empty character");
     }
     dc2::character::ResourceState resource_state;
     if (character.resource_state.HasValue()) {
@@ -2956,7 +2965,7 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
     const int                     initial_used = memory.stack_used;
     std::string                   name(skin_name);
     dc2::character::MetadataScope context(&character, &memory,
-                                          options.texture_block, options.parent, options.outline, name);
+                                          options.texture_block, options.parent, options.outline, name, resource_state.clone_inputs);
     std::optional<std::size_t>    selected_model;
     std::optional<std::size_t>    shadow_model;
     int                           motion_slot = 0;
@@ -3036,7 +3045,15 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                         continue;
                     }
                     replace(dc2::character::ResourceChannel::Skin, root->SearchFrameID(frame->name), memory);
+                    const auto target_clone_inputs = target->clone_inputs;
+                    if (!target_clone_inputs.Matches(*target) || !frame->clone_inputs.Matches(*frame)) {
+                        throw std::runtime_error("invalid skin frame clone inputs");
+                    }
+                    const auto visual_inputs = frame->visual->clone_inputs;
                     target->SetVisual(frame->visual);
+                    if (!target_clone_inputs.PublishChanges(*target, nullptr, &visual_inputs)) {
+                        throw std::runtime_error("skin visual clone input publication failed");
+                    }
                     float maximum[4];
                     float minimum[4];
                     frame->GetBBox(maximum, minimum);
@@ -3235,6 +3252,9 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
         throw std::runtime_error("character model has no explicit allocation anchor");
     }
     if (character.CObjectFrame::frame) {
+        if (!context.FinishCloneInputs(resource_state, memory)) {
+            throw std::runtime_error("invalid character clone inputs");
+        }
         character.resource_state = previous_resource_handle;
         if (!dc2::character::PublishResources(character, std::move(resource_state))) {
             character.resource_state = {};

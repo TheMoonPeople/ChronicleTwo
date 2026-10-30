@@ -124,7 +124,7 @@ TEST_F(PlatformConfig, FullFileRoundTrips) {
     full.glyphs_new = false;
     full.glyph_device = ConfigGlyphDevice::Ps5Color;
     full.mouse_release_keys = {"F12", "Pause"};
-    full.font_sharp = true;
+    full.font_sharp = false;
     full.dualsense_speaker = false;
     full.controller_volume = 1.5f;
     full.dualsense_haptics = ConfigHaptics::Vibration;
@@ -138,14 +138,14 @@ TEST_F(PlatformConfig, FullFileRoundTrips) {
     ASSERT_TRUE(SettingsGet() == expected);
 }
 
-TEST_F(PlatformConfig, TextFontIsOptInAndRoundTrips) {
-    EXPECT_FALSE(ConfigParse("").font_sharp);
-    const Config sharp = ConfigParse(R"({"video":{"text_font":"sharp"}})");
-    EXPECT_TRUE(sharp.font_sharp);
-    EXPECT_TRUE(ConfigParse(ConfigSerialize(sharp)).font_sharp);
-    EXPECT_FALSE(ConfigParse(R"({"video":{"text_font":"original"}})").font_sharp);
-    for (const char *value : {"null", "true", "1", "\"blurry\""}) {
-        EXPECT_FALSE(ConfigParse(std::string("{\"video\":{\"text_font\":") + value + "}}").font_sharp);
+TEST_F(PlatformConfig, TextFontIsSharpByDefaultAndRoundTrips) {
+    EXPECT_TRUE(ConfigParse("").font_sharp);
+    const Config original = ConfigParse(R"({"video":{"text_font":"original"}})");
+    EXPECT_FALSE(original.font_sharp);
+    EXPECT_FALSE(ConfigParse(ConfigSerialize(original)).font_sharp);
+    EXPECT_TRUE(ConfigParse(R"({"video":{"text_font":"sharp"}})").font_sharp);
+    for (const char *value : {"null", "false", "0", "\"blurry\""}) {
+        EXPECT_TRUE(ConfigParse(std::string("{\"video\":{\"text_font\":") + value + "}}").font_sharp);
     }
 }
 
@@ -247,6 +247,20 @@ TEST_F(PlatformConfig, SprintDefaultsToOffAndRoundTrips) {
     config.sprint = true;
     const Config parsed = ConfigParse(ConfigSerialize(config));
     ASSERT_TRUE(parsed.sprint);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, SphedaHandicapDefaultsToOffTakesZeroToFiveAndRoundTrips) {
+    ASSERT_EQ(Config{}.spheda_handicap, 0);
+    EXPECT_EQ(ConfigParse(R"({"game": {"spheda_handicap": 3}})").spheda_handicap, 3);
+    for (const char *bad : {R"({"game": {"spheda_handicap": -1}})", R"({"game": {"spheda_handicap": 6}})",
+                            R"({"game": {"spheda_handicap": "3"}})", R"({"game": {"spheda_handicap": true}})"}) {
+        EXPECT_EQ(ConfigParse(bad).spheda_handicap, 0) << bad;
+    }
+    Config config;
+    config.spheda_handicap = kSphedaHandicapMax;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_EQ(parsed.spheda_handicap, kSphedaHandicapMax);
     ASSERT_TRUE(parsed == config);
 }
 
@@ -394,7 +408,7 @@ TEST_F(PlatformConfig, ChangeMergesOnlyEditedFieldsIntoExternallyUpdatedJson) {
     ASSERT_TRUE(ConfigLoad());
     Write(R"({"audio":{"master_volume":0.25,"future_mode":"custom"},"input":{"bindings":{"cross":["Z"],"future_action":["J"]}},"extra":{"old":2,"new":[1,2]},"stray":7})");
     Config changed = ConfigGet();
-    changed.font_sharp = true;
+    changed.font_sharp = false;
     ASSERT_TRUE(ConfigChange(changed));
     auto json = nlohmann::json::parse(Read());
     EXPECT_EQ(json["audio"]["master_volume"], 0.25);
@@ -404,7 +418,7 @@ TEST_F(PlatformConfig, ChangeMergesOnlyEditedFieldsIntoExternallyUpdatedJson) {
     EXPECT_EQ(json["extra"]["old"], 2);
     EXPECT_EQ(json["extra"]["new"].size(), 2);
     EXPECT_EQ(json["stray"], 7);
-    EXPECT_EQ(json["video"]["text_font"], "sharp");
+    EXPECT_EQ(json["video"]["text_font"], "original");
     const auto before = Read();
     ASSERT_TRUE(ConfigChange(changed));
     EXPECT_EQ(Read(), before);

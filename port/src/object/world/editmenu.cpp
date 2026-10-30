@@ -617,7 +617,7 @@ static int HouseInfoCursorY;
  * Number of part definitions already available for construction.
  *
  */
-static int PartsMakeOkTableNum;
+int PartsMakeOkTableNum;
 
 /**
  *
@@ -799,14 +799,14 @@ static mgCMemory *MenuPartsDrawStack;
  * Town edit map inspected by the Georama menu.
  *
  */
-static CEditMap *MenuMainMapInfo;
+CEditMap *MenuMainMapInfo;
 
 /**
  *
  * Active Georama menu.
  *
  */
-static CMenuGeorama *CMenuGeoPt;
+CMenuGeorama *CMenuGeoPt;
 
 /**
  *
@@ -960,7 +960,7 @@ static char *HouseChildPartInfo[22];
  * Part definition identifiers already available for construction.
  *
  */
-static int PartsMakeOkTable[256];
+int PartsMakeOkTable[256];
 
 /**
  *
@@ -3688,7 +3688,7 @@ void CMenuGeorama::LoadGeoramaPart(int no, int kind) {
             now_menu_pos_mapparts[1] = -20.0f;
             now_menu_pos_mapparts[2] = -14.0f;
             now_menu_pos_mapparts[3] = 1.0f;
-            *reinterpret_cast<u_long128 *>(georama_adjust_position) = *reinterpret_cast<u_long128 *>(now_menu_pos_mapparts);
+            std::memmove(georama_adjust_position, now_menu_pos_mapparts, sizeof(float) * 4);
             view_parts->SetScale(1.0f, 1.0f, 1.0f);
 
             if (view_parts != nullptr) {

@@ -246,20 +246,20 @@ TEST_F(NativeMenu, CommandsRunEveryBlockOfTheRequestedName) {
     char close[] = "close";
     char none[] = "none";
 
-    MenuCommandAnalyze(script.data(), static_cast<int>(script.size()), open);
+    dc2::menu::AnalyzeCommands(script.data(), static_cast<int>(script.size()), open);
     EXPECT_EQ(board->draw_flag, 1);
     EXPECT_EQ(board->rgba[3], 4);
     EXPECT_EQ(MenuCommonInfo->key_enable, 1);
     EXPECT_EQ(board->x, 5.0f);
     EXPECT_EQ(board->parts[1].draw_flag, 0);
-    EXPECT_STREQ(MenuCommandAnalyzeInfo.command_name, "open");
+    EXPECT_EQ(MenuCommandAnalyzeInfo.command_name, "open");
 
-    MenuCommandAnalyze(script.data(), static_cast<int>(script.size()), close);
+    dc2::menu::AnalyzeCommands(script.data(), static_cast<int>(script.size()), close);
     EXPECT_EQ(board->draw_flag, 0);
     EXPECT_EQ(board->rgba[0], 0x80);
 
     board->draw_flag = 1;
-    MenuCommandAnalyze(script.data(), static_cast<int>(script.size()), none);
+    dc2::menu::AnalyzeCommands(script.data(), static_cast<int>(script.size()), none);
     EXPECT_EQ(board->draw_flag, 1);
 }
 
@@ -301,4 +301,22 @@ TEST_F(NativeMenu, LayoutAllocationRejectsShortLockedAndRetiredStorageBeforePubl
     EXPECT_EQ(child.stGetUsed(), 0);
     EXPECT_EQ(MenuPosData->form, previous_forms);
     EXPECT_EQ(MenuPosData->form_num, previous_count);
+}
+
+TEST_F(NativeMenu, CommandsRetainCompleteNamesBeyondTheFormerFixedField) {
+    Layout("long-name-base.cfg.json", BaseOperations());
+    const std::string name(256, 'x');
+    auto             &script = Load("long-name-commands.cfg.json", "menu_commands", {
+                                                                                        {"blocks", Json::array({{{"name", name}, {"commands", Json::array({{{"op", "form_draw_flag"}, {"draw", 0}, {"forms", {"board"}}}})}}})}
+    });
+    char              board_name[] = "board";
+    auto             *board = MenuPosData->GetFormInfo(board_name);
+    ASSERT_NE(board, nullptr);
+    board->draw_flag = 1;
+    dc2::menu::AnalyzeCommands(script.data(), static_cast<int>(script.size()), name);
+    EXPECT_EQ(board->draw_flag, 0);
+    EXPECT_EQ(MenuCommandAnalyzeInfo.command_name, name);
+    board->draw_flag = 1;
+    dc2::menu::AnalyzeCommands(script.data(), static_cast<int>(script.size()), std::string_view(name).substr(0, 71));
+    EXPECT_EQ(board->draw_flag, 1);
 }

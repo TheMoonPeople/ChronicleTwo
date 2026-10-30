@@ -472,9 +472,3 @@ void mgRENDER_INFO::SetFogParam(float near, float far, u_char red, u_char green,
     fog.g = green;
     fog.b = blue;
 }
-
-mgVu0FBOX &mgVu0FBOX::operator=(mgVu0FBOX &source) {
-    std::memmove(max, source.max, sizeof(max));
-    std::memmove(min, source.min, sizeof(min));
-    return *this;
-}

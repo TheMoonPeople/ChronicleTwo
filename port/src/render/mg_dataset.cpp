@@ -406,13 +406,19 @@ mgCreateVisualType *SearchVisualType(mgCreateVisualType *table, char *name) {
 // Defined inline in mg_frame.hpp.
 // Defined inline in mg_visual.hpp.
 
-void mgCFrame::SetVisual(mgCVisual *visual) { this->visual = visual; }
+void mgCFrame::SetVisual(mgCVisual *visual) {
+    if (this->visual != visual) {
+        clone_inputs = {};
+    }
+    this->visual = visual;
+}
 
 void mgCVisualFixMDT::Initialize() {
     mgCVisualMDT::Initialize();
 }
 
 void mgCVisual::Initialize() {
+    clone_inputs = {};
     unk_00 = 0;
     draw_env = nullptr;
     texture_manager = nullptr;
@@ -490,7 +496,7 @@ int mgCVisual::Iam() {
 
 // Defined inline in mg_dataset.hpp.
 mgCVisual *mgCVisual::Copy(mgCMemory *memory) {
-    return this;
+    return clone_inputs.Matches(this) ? this : nullptr;
 }
 
 namespace {
@@ -950,7 +956,7 @@ void mgCVisual::Draw(float (*matrix)[4], mgCDrawManager *manager) {
 namespace {
 
 bool CopyFrameBase(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_visual, mgCFrame **frame_table) {
-    if (dst == nullptr || src == nullptr || memory == nullptr) {
+    if (dst == nullptr || src == nullptr || memory == nullptr || !src->clone_inputs.Matches(*src)) {
         return false;
     }
     const std::string_view source_name = src->name != nullptr ? dc2::text::View(src->name) : std::string_view{};
@@ -981,11 +987,15 @@ bool CopyFrameBase(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_vis
     }
     mgCVisual *visual = src->visual;
     if (copy_visual != 0 && visual != nullptr) {
-        visual = visual->Copy(memory);
+        const auto source_visual_inputs = visual->clone_inputs;
+        visual = source_visual_inputs.Clone(visual, memory);
         if (visual == nullptr) {
             return false;
         }
-        if (visual->Iam() == MG_VISUAL_KIND_MOTION_MDT) {
+        if (!visual->clone_inputs.Matches(visual)) {
+            return false;
+        }
+        if (visual->clone_inputs.Kind(visual) == dc2::render::VisualCloneKind::MotionMdt) {
             static_cast<mgCVisualMotionMDT *>(visual)->frame = frame_table;
         }
     }
@@ -994,7 +1004,7 @@ bool CopyFrameBase(mgCFrame *dst, mgCFrame *src, mgCMemory *memory, int copy_vis
     dst->attr = attr;
     dst->bound = bound;
     dst->SetVisual(visual);
-    return true;
+    return dc2::render::FrameCloneInputs::Publish(*memory, *dst, visual != nullptr ? visual->clone_inputs : dc2::render::VisualCloneInputs{});
 }
 
 } // namespace

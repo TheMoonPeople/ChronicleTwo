@@ -480,6 +480,25 @@ public:
     }
 
     /**
+     * Revokes scene views before destroying the scene's slots.
+     */
+    virtual ~CScene();
+    CScene(const CScene &) = delete;
+    CScene &operator=(const CScene &) = delete;
+    CScene(CScene &&) = delete;
+    CScene &operator=(CScene &&) = delete;
+
+    /**
+     * Issues a view tied to this initialized scene lifetime.
+     */
+    [[nodiscard]] dc2::scene::SceneView GetSceneView();
+
+    /**
+     * Issues a view for a live character assignment without changing the slot.
+     */
+    [[nodiscard]] dc2::scene::CharacterView GetCharacterView(int index);
+
+    /**
      *
      * Resets the scene and forgets the time of day, the map numbers and the save data.
      *
@@ -2331,6 +2350,9 @@ public:
      * @size 0x25C
      */
     void DrawGameObject(int now_map_no);
+
+private:
+    std::shared_ptr<dc2::scene::SceneView::State> scene_view; /**< Binding revoked before scene reset or destruction. */
 };
 
 STATIC_ASSERT(sizeof(CScene::BGM_INFO) == 0x460);

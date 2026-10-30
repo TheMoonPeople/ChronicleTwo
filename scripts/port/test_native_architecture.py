@@ -55,6 +55,25 @@ class NativeArchitectureTests(unittest.TestCase):
         self.write("port/cmake/native.cmake", "# ${CMAKE_SOURCE_DIR}/ps2/src ignored\nset(x ${CMAKE_SOURCE_DIR}/ps2/src)\n")
         self.assertTrue(any("native.cmake:2" in issue for issue in native_architecture.audit(self.root)))
 
+    def test_native_tree_rejects_port_conditionals_including_continued_conditions(self):
+        self.write(
+            "port/include/game.hpp",
+            "#ifdef PORT\n#endif\n#ifndef PORT\n#endif\n"
+            "#if defined(PAL) && \\\n    defined(PORT)\n#endif\n"
+            "#if defined(PAL)\n#elifdef PORT\n#endif\n",
+        )
+        issues = native_architecture.audit(self.root)
+        self.assertEqual(sum("redundant native PORT conditional" in issue for issue in issues), 4)
+
+    def test_native_port_conditional_check_ignores_comments_literals_and_other_symbols(self):
+        self.write(
+            "port/include/game.hpp",
+            '// #ifdef PORT\n/*\n#ifndef PORT\n*/\n'
+            'const char *message = "#if defined(PORT)";\n'
+            '#ifdef PORTABLE\n#endif\n#if defined(PAL)\n#endif\n',
+        )
+        self.assertEqual(native_architecture.audit(self.root), [])
+
     def test_raw_memory_card_buffer_prototypes_are_rejected(self):
         self.write(
             "port/include/sce/libmc.h",
@@ -135,6 +154,38 @@ class NativeArchitectureTests(unittest.TestCase):
         self.assertEqual(native_architecture.audit(self.root), [])
         issues = native_architecture.audit(self.root, self.root / "build/missing.json")
         self.assertTrue(any("compile database does not exist" in issue for issue in issues))
+
+    def test_native_warning_policy_allows_only_old_language_compatibility_exclusions(self):
+        database = self.write("build/compile_commands.json", json.dumps([
+            {"directory": str(self.root), "file": "port/src/game.cpp",
+             "arguments": ["clang++", "-Weverything", "-Wno-c++98-compat", "-Wno-pre-c++26-compat-pedantic", "-c", "port/src/game.cpp"]},
+            {"directory": str(self.root), "file": "dependencies/library.cpp",
+             "arguments": ["clang++", "-w", "-c", "dependencies/library.cpp"]},
+        ]))
+        self.assertEqual(native_architecture.audit(self.root, database), [])
+
+    def test_native_warning_policy_rejects_global_and_safety_suppressions(self):
+        for flag in ("-w", "-Wno-unsafe-buffer-usage", "-Wno-uninitialized", "-Wno-all"):
+            with self.subTest(flag=flag):
+                database = self.write("build/compile_commands.json", json.dumps([
+                    {"directory": str(self.root), "file": "port/src/game.cpp",
+                     "arguments": ["clang++", "-Weverything", flag, "-c", "port/src/game.cpp"]},
+                ]))
+                issues = native_architecture.audit(self.root, database)
+                self.assertTrue(any("warnings are disabled" in issue or "warning exclusion" in issue for issue in issues))
+
+    def test_native_clang_command_requires_all_warnings(self):
+        database = self.write("build/compile_commands.json", json.dumps([
+            {"directory": str(self.root), "file": "port/src/game.cpp",
+             "arguments": ["clang++", "-Wall", "-Wextra", "-c", "port/src/game.cpp"]},
+        ]))
+        self.assertTrue(any("all Clang warnings" in issue for issue in native_architecture.audit(self.root, database)))
+
+    def test_unsafe_text_apis_are_rejected_in_runtime_fragments(self):
+        self.write("port/src/menu.inc", 'std::strcpy(destination, source);\nsprintf(output, "%s", source);\n')
+        self.write("port/src/tests/fixture.cpp", 'strcpy(destination, "fixed fixture");\n')
+        issues = native_architecture.audit(self.root)
+        self.assertEqual(sum("unsafe native text API" in issue for issue in issues), 2)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,9 @@
 
 #include <libvu0.h>
 
+#include <array>
 #include <memory>
+#include <span>
 #include <vector>
 
 #include "dynamicanime.hpp"
@@ -856,13 +858,14 @@ public:
 
     /**
      *
-     * Copies this character into another, copying the model into memory when memory is given.
+     * Copies the character and reports whether every required model and resource copy completed.
      *
      * @mangled Copy__11CCharacter2FR11CCharacter2P9mgCMemory
      * @address 0x17A0B0
      * @size 0xA70
      */
-    virtual void Copy(CCharacter2 &dest, mgCMemory *memory);
+
+    [[nodiscard]] virtual bool Copy(CCharacter2 &dest, mgCMemory *memory);
 
     /**
      *
@@ -1144,7 +1147,12 @@ public:
 STATIC_ASSERT(sizeof(CCharacter2) == 0x660);
 static_assert(std::is_trivially_destructible_v<CCharacter2>);
 
+namespace dc2::world {
+class FrameGraph;
+}
+
 namespace dc2::character {
+struct CloneAuxState;
 /**
  * Identifies the character resource replaced by an explicit producer.
  */
@@ -1177,10 +1185,60 @@ struct ResourceProducer {
  * Retains immutable character dependency metadata through the actual model allocation.
  */
 struct ResourceState {
-    dc2::memory::ArenaBuffer      anchor{};      /**< Exact model allocation keeping the snapshot reachable. */
-    std::vector<ResourceProducer> producers;     /**< Actual semantic channels retained by the character. */
-    std::shared_ptr<const void>   model_context; /**< Owned model metadata used to publish extension motions. */
+    dc2::memory::ArenaBuffer             anchor{};      /**< Exact model allocation keeping the snapshot reachable. */
+    std::vector<ResourceProducer>        producers;     /**< Actual semantic channels retained by the character. */
+    std::shared_ptr<const void>          model_context; /**< Owned model metadata used to publish extension motions. */
+    std::shared_ptr<const CloneAuxState> clone_inputs;  /**< Exact immutable entry-frame and sound allocation capabilities. */
 };
+
+/**
+ * Builds clone input snapshots at explicit allocation and frame-graph producers.
+ */
+class CloneAuxBuilder {
+public:
+    /**
+     * Imports unchanged channels from a prior immutable construction snapshot.
+     */
+    explicit CloneAuxBuilder(std::shared_ptr<const CloneAuxState> inherited = {});
+    /**
+     * Captures an actual sound allocation and its construction capacity without reading its contents.
+     */
+    [[nodiscard]] bool RegisterSounds(mgCMemory &producer, int slot, std::span<CHRINFO_SE> allocation);
+    /**
+     * Removes a sound capability after its owning character slot has been cleared.
+     */
+    [[nodiscard]] bool ClearSounds(int slot);
+    /**
+     * Captures fixed frame slots only through already registered graph records.
+     */
+    [[nodiscard]] bool CaptureFrames(const CCharacter2 &character, const dc2::world::FrameGraph &graph);
+    /**
+     * Reuses validated source name records or captures changed records from their explicit model producer.
+     */
+    [[nodiscard]] bool CaptureFrames(const CCharacter2 &character, mgCMemory &producer);
+    /**
+     * Borrows the imported source graph for explicit cross-producer model extensions.
+     */
+    [[nodiscard]] const dc2::world::FrameGraph *SourceGraph() const;
+    /**
+     * Finalizes created sound counts and validates all current slot identities.
+     */
+    [[nodiscard]] std::shared_ptr<const CloneAuxState> Finish(const CCharacter2 &character);
+
+private:
+    std::shared_ptr<CloneAuxState>         state;             /**< Ordinary replaceable construction metadata. */
+    std::shared_ptr<const CloneAuxState>   original;          /**< Prior immutable snapshot reused when no channel changed. */
+    std::array<bool, CHARA_MOTION_SET_MAX> produced_sounds{}; /**< Slots whose exact allocation this builder produced. */
+};
+
+/**
+ * Validates fixed entry-frame bindings and every populated sound allocation before clone reads.
+ */
+[[nodiscard]] bool CloneInputsLive(const CCharacter2 &character);
+/**
+ * Publishes completed clone metadata through an existing live character resource snapshot.
+ */
+[[nodiscard]] bool PublishCloneInputs(CCharacter2 &character, CloneAuxBuilder builder);
 
 /**
  * Reports whether every retained character resource still belongs to a live producer.

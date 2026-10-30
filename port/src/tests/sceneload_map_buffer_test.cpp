@@ -13,13 +13,220 @@
 
 #include "assets/data_registry.hpp"
 #include "dataread.hpp"
+#include "dng_event.hpp"
+#include "dng_main.hpp"
 #include "event_func.hpp"
 #include "map.hpp"
+#include "mdslist.hpp"
 #include "mg_memory.hpp"
 #include "object/world/map_load_size.hpp"
 #include "platform/paths.hpp"
 #include "scenesnd.hpp"
+#include "scoped_global_object.hpp"
 #include "text/bounded.hpp"
+
+namespace {
+/**
+ * Constructs an unresolved piece whose exact producer identities can be tested without loading a model.
+ */
+CList<CMapPiece> *AddUnresolvedPiece(CMapParts &part, mgCMemory &memory, std::string_view name) {
+    auto *node = dc2::memory::NewObject<CList<CMapPiece>>(memory);
+    if (node != nullptr) {
+        node->data.SetName(dc2::memory::CopyText(memory, name));
+        part.AddPiece(node);
+    }
+    return node;
+}
+
+/**
+ * Consumes native arena headroom so a test exposes an exact host allocation boundary.
+ */
+bool LeaveQuadwords(mgCMemory &memory, std::size_t count) {
+    const auto available = dc2::memory::RemainingBytes(memory).size() / sizeof(u_long128);
+    return count <= available && (count == available || memory.Alloc(static_cast<int>(available - count)) != nullptr);
+}
+} // namespace
+
+TEST(MapPieceBindings, OwnedNamesAndValidatedNodesIgnoreMutatedRawLinksAndNames) {
+    std::vector<u_long128> storage(2048);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMapParts source;
+    auto     *first = AddUnresolvedPiece(source, memory, "first");
+    auto     *second = AddUnresolvedPiece(source, memory, "second");
+    ASSERT_NE(first, nullptr);
+    ASSERT_NE(second, nullptr);
+    const auto first_view = dc2::world::PieceView::Capture(memory, *first);
+    const auto second_view = dc2::world::PieceView::Capture(memory, *second);
+    ASSERT_TRUE(source.PublishPieceBindings({
+        {"first",  first_view },
+        {"second", second_view}
+    }));
+    first->next = reinterpret_cast<CList<CMapPiece> *>(std::uintptr_t{1});
+    first->data.name = reinterpret_cast<char *>(std::uintptr_t{1});
+    second->data.name = reinterpret_cast<char *>(std::uintptr_t{1});
+    second->data.col_type = 1;
+    EXPECT_EQ(source.FindPieceView("second").Get(), &second->data);
+    char first_name[] = "first";
+    EXPECT_EQ(source.SearchPiece(first_name), &first->data);
+
+    std::vector<u_long128> copied_storage(2048);
+    mgCMemory              copies;
+    copies.stSetBuffer(copied_storage.data(), static_cast<int>(copied_storage.size()));
+    CMapParts copied;
+    ASSERT_TRUE(source.Copy(copied, &copies));
+    EXPECT_NE(copied.AssignmentToken(), source.AssignmentToken());
+    ASSERT_NE(copied.FindPieceView("first").Get(), nullptr);
+    EXPECT_STREQ(copied.FindPieceView("first").Get()->name, "first");
+    EXPECT_EQ(copied.FindPieceView("second").Get(), nullptr);
+    memory.stReset();
+    EXPECT_EQ(first_view.Get(), nullptr);
+    EXPECT_EQ(source.FindPieceView("first").Get(), nullptr);
+    EXPECT_NE(copied.FindPieceView("first").Get(), nullptr);
+}
+
+TEST(MapPieceBindings, CopyRejectsRetiredSourcesAndAllocationFailureWithoutPublishingPartialLists) {
+    std::vector<u_long128> storage(2048);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMapParts source;
+    auto     *node = AddUnresolvedPiece(source, memory, "piece");
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(source.PublishPieceBindings({
+        {"piece", dc2::world::PieceView::Capture(memory, *node)}
+    }));
+    CMapParts shared;
+    ASSERT_TRUE(source.Copy(shared, nullptr));
+    ASSERT_NE(shared.FindPieceView("piece").Get(), nullptr);
+    mgCMemory locked;
+    locked.lock = 1;
+    CMapParts failed;
+    EXPECT_FALSE(source.Copy(failed, &locked));
+    EXPECT_EQ(failed.piece_list, nullptr);
+    EXPECT_EQ(failed.FindPieceView("piece").Get(), nullptr);
+    memory.stReset();
+    EXPECT_EQ(shared.FindPieceView("piece").Get(), nullptr);
+    EXPECT_FALSE(source.Copy(shared, nullptr));
+    EXPECT_EQ(shared.piece_list, nullptr);
+}
+
+TEST(MapPieceBindings, MaterialPointerAndCountReplacementRejectTheCapturedPiece) {
+    std::vector<u_long128> storage(2048);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMapParts part;
+    auto     *node = AddUnresolvedPiece(part, memory, "piece");
+    ASSERT_NE(node, nullptr);
+    auto *materials = dc2::memory::NewArray<PieceMaterial>(memory, 2);
+    ASSERT_NE(materials, nullptr);
+    node->data.SetMaterial(materials, 2);
+    const auto view = dc2::world::PieceView::Capture(memory, *node);
+    ASSERT_EQ(view.Get(), &node->data);
+    node->data.material_num = 3;
+    EXPECT_EQ(view.Get(), nullptr);
+    node->data.material_num = 2;
+    node->data.material = materials + 1;
+    EXPECT_EQ(view.Get(), nullptr);
+    node->data.material = materials;
+    EXPECT_EQ(view.Get(), &node->data);
+}
+
+TEST(MapPieceBindings, MaterialCloneExhaustionFailsEvenWhenTheNodeAndNameWouldFit) {
+    std::vector<u_long128> storage(2048);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMapParts source;
+    auto     *node = AddUnresolvedPiece(source, memory, "piece");
+    ASSERT_NE(node, nullptr);
+    auto *materials = dc2::memory::NewArray<PieceMaterial>(memory, 64);
+    ASSERT_NE(materials, nullptr);
+    node->data.SetMaterial(materials, 64);
+    ASSERT_TRUE(source.PublishPieceBindings({
+        {"piece", dc2::world::PieceView::Capture(memory, *node)}
+    }));
+    const auto node_words = dc2::memory::ArrayQuadwords<CList<CMapPiece>>(1);
+    ASSERT_TRUE(node_words);
+    std::vector<u_long128> small_storage(static_cast<std::size_t>(*node_words) + 8);
+    mgCMemory              small;
+    small.stSetBuffer(small_storage.data(), static_cast<int>(small_storage.size()));
+    ASSERT_TRUE(LeaveQuadwords(small, static_cast<std::size_t>(*node_words) + 8));
+    CMapParts destination;
+    EXPECT_FALSE(source.Copy(destination, &small));
+    EXPECT_EQ(destination.piece_list, nullptr);
+    EXPECT_EQ(destination.FindPieceView("piece").Get(), nullptr);
+}
+
+TEST(MapPieceBindings, FunctionPointAndAnimationAllocationFailuresLeaveTheDestinationEmpty) {
+    std::vector<u_long128> storage(2048);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMapParts source;
+    ASSERT_NE(source.func_point_mngr.Add(FUNC_POINT_ANIME, &memory), nullptr);
+    source.anime_list = dc2::memory::NewObject<CList<CObjAnime>>(memory);
+    ASSERT_NE(source.anime_list, nullptr);
+    const auto function_words = dc2::memory::ArrayQuadwords<CList<CFuncPoint>>(1);
+    const auto animation_words = dc2::memory::ArrayQuadwords<CList<CObjAnime>>(1);
+    ASSERT_TRUE(function_words);
+    ASSERT_TRUE(animation_words);
+    for (const int capacity : {*function_words, *function_words + *animation_words}) {
+        std::vector<u_long128> small_storage(static_cast<std::size_t>(capacity));
+        mgCMemory              small;
+        small.stSetBuffer(small_storage.data(), capacity);
+        ASSERT_TRUE(LeaveQuadwords(small, static_cast<std::size_t>(capacity)));
+        ASSERT_EQ(dc2::memory::RemainingBytes(small).size(), static_cast<std::size_t>(capacity) * sizeof(u_long128));
+        const int used_before = small.stack_used;
+        CMapParts destination;
+        EXPECT_FALSE(source.Copy(destination, &small));
+        EXPECT_EQ(small.stack_used - used_before, capacity == *function_words ? 0 : *function_words);
+        EXPECT_EQ(destination.piece_list, nullptr);
+        EXPECT_EQ(destination.anime_list, nullptr);
+        destination.func_point_mngr.GetStart(FUNC_POINT_ANIME);
+        EXPECT_EQ(destination.func_point_mngr.Get(), nullptr);
+        EXPECT_EQ(source.anime_list->next, nullptr);
+    }
+    std::vector<u_long128> copied_storage(2048);
+    mgCMemory              copies;
+    copies.stSetBuffer(copied_storage.data(), static_cast<int>(copied_storage.size()));
+    CMapParts copied;
+    ASSERT_TRUE(source.Copy(copied, &copies));
+    EXPECT_NE(copied.anime_list, source.anime_list);
+    EXPECT_EQ(source.anime_list->next, nullptr);
+}
+
+TEST(PlacedPartBindings, AssignmentAndTableReplacementRevokeViewsAndUnexpectedFrameLinksRejectResolution) {
+    std::vector<u_long128> storage(2048);
+    std::vector<u_long128> replacement_storage(2048);
+    mgCMemory              memory;
+    mgCMemory              replacement;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    replacement.stSetBuffer(replacement_storage.data(), static_cast<int>(replacement_storage.size()));
+    CMap map;
+    ASSERT_TRUE(map.SetPlacePartsBuff(&memory, 2));
+    auto parts = map.PlacedParts();
+    char name[] = "placed";
+    parts[0].SetName(name);
+    const auto original = map.FindPlacedPart(name);
+    ASSERT_EQ(original.Get(map), &parts[0]);
+    parts[0].Initialize();
+    parts[0].SetName(name);
+    EXPECT_EQ(original.Get(map), nullptr);
+    const auto previous_binding = map.FindPlacedPart(name);
+    ASSERT_EQ(previous_binding.Get(map), &parts[0]);
+    ASSERT_TRUE(parts[0].PublishPieceBindings({}));
+    EXPECT_EQ(previous_binding.Get(map), nullptr);
+    const auto current = map.FindPlacedPart(name);
+    ASSERT_EQ(current.Get(map), &parts[0]);
+    parts[0].frame.parent = reinterpret_cast<mgCFrame *>(std::uintptr_t{1});
+    EXPECT_EQ(current.Get(map), nullptr);
+    sceVu0FMATRIX matrix;
+    parts[0].GetLWMatrix(matrix);
+    EXPECT_FLOAT_EQ(matrix[0][0], 1.0f);
+    parts[0].frame.parent = nullptr;
+    ASSERT_TRUE(map.SetPlacePartsBuff(&replacement, 2));
+    map.PlacedParts()[0].SetName(name);
+    EXPECT_EQ(current.Get(map), nullptr);
+    EXPECT_NE(map.FindPlacedPart(name).Get(map), nullptr);
+}
 
 namespace {
 namespace fs = std::filesystem;
@@ -111,6 +318,39 @@ protected:
     }
 };
 } // namespace
+
+TEST_F(SceneLoadMapBuffer, PieceLookupKeepsTheResolvedCanonicalModelSpellingAndExplicitOverrides) {
+    auto *entry = dc2::memory::NewObject<CMdsInfo>(stack);
+    ASSERT_NE(entry, nullptr);
+    entry->resource_lifetime = dc2::memory::ArenaLifetime::Capture(stack);
+    ASSERT_TRUE(entry->AssignName(stack, "Foo"));
+    CMdsListSet models;
+    models.mds_list_num = 1;
+    models.mds_list[0].resource_lifetime = dc2::memory::ArenaLifetime::Capture(stack);
+    models.mds_list[0].num = 1;
+    models.mds_list[0].list = entry;
+    std::string document = R"({"schema_version":2,"kind":"scene_map","info":{"texture_packs":[],"model_packs":[],"light_sets":[]},"parts":[{"name":"definition","pieces":[{"model":"foo"},{"model":"foo","name":"named"}]}],"placements":[]})";
+    fs::create_directories(root / "map");
+    std::ofstream(root / "map/canonical.map.json") << document;
+    DataReadIndex(root);
+    DataReadRegisterAsset(document.data(), "map/canonical.map.json", document.size());
+    CMap map;
+    map.mds_list_set = &models;
+    map.LoadMapFile(document.data(), static_cast<int>(document.size()), &stack, 0);
+    char  definition[] = "definition";
+    auto *part = map.GetParts(definition);
+    ASSERT_NE(part, nullptr);
+    char canonical[] = "Foo";
+    char authored[] = "foo";
+    char overridden[] = "named";
+    EXPECT_NE(part->SearchPiece(canonical), nullptr);
+    EXPECT_EQ(part->SearchPiece(authored), nullptr);
+    EXPECT_NE(part->SearchPiece(overridden), nullptr);
+    CMdsInfo retained_name;
+    ASSERT_TRUE(retained_name.AssignName(stack, "retained"));
+    stack.stReset();
+    EXPECT_FALSE(retained_name.CanonicalName());
+}
 
 TEST_F(SceneLoadMapBuffer, MeasuresEachReadRoundedTo64AndTheLastSectorTail) {
     SCN_LOADMAP_INFO2 info = Info(nullptr);
@@ -252,4 +492,49 @@ TEST_F(SceneLoadMapBuffer, CopiesKeepTheirFileBytesAcrossThreeGrowingLoadsAndOri
     EXPECT_FALSE(lifetime.expired());
     retained.Initialize();
     EXPECT_TRUE(lifetime.expired());
+}
+
+TEST(SceneMapSettings, PackSearchUsesTheSettingsMemberAndHonorsExcludedSlots) {
+    auto scene = std::make_unique<CScene>();
+    auto map = std::make_unique<CMap>();
+    scene->map_num = 1;
+    char map_name[] = "map";
+    ASSERT_EQ(scene->map[0].AssignData(map.get(), map_name), 1);
+    char texture[] = "texture.json";
+    char model[] = "model.pcp";
+    map->map_info.img_num = 16;
+    map->map_info.pcp_num = 16;
+    map->map_info.img_name[0] = texture;
+    map->map_info.pcp_name[0] = model;
+    EXPECT_EQ(scene->CheckIMGName(-1, texture), 1);
+    EXPECT_EQ(scene->CheckMDSName(-1, model), 1);
+    EXPECT_EQ(scene->CheckIMGName(0, texture), 0);
+    EXPECT_EQ(scene->CheckMDSName(0, model), 0);
+    EXPECT_EQ(scene->CheckIMGName(-1, nullptr), 0);
+    EXPECT_EQ(scene->CheckMDSName(-1, nullptr), 0);
+}
+
+TEST(SceneMapSettings, LightingExchangeSwapsTypedSetsAndRejectsMissingInputs) {
+    dc2::test::ScopedGlobalObject<DngMainScene> scene;
+    auto                                        map = std::make_unique<CMap>();
+    scene->map_num = 1;
+    scene->active_map = 0;
+    char map_name[] = "lighting";
+    ASSERT_EQ(scene->map[0].AssignData(map.get(), map_name), 1);
+    std::array<CMapLightingInfo, MAP_INFO_LIGHTING_MAX> lighting{};
+    for (std::size_t index = 0; index < lighting.size(); ++index) {
+        lighting[index].bg_color[0] = static_cast<float>(index);
+    }
+    XChgMapLighting();
+    map->map_info.lighting_info = lighting.data();
+    map->map_info.lighting_info_num = MAP_INFO_LIGHTING_MAX - 1;
+    XChgMapLighting();
+    EXPECT_FLOAT_EQ(lighting[0].bg_color[0], 0.0f);
+    map->map_info.lighting_info_num = MAP_INFO_LIGHTING_MAX;
+    XChgMapLighting();
+    for (std::size_t index = 0; index < lighting.size(); ++index) {
+        EXPECT_FLOAT_EQ(lighting[index].bg_color[0], static_cast<float>((index + 8) % lighting.size()));
+    }
+    XChgMapLighting();
+    EXPECT_FLOAT_EQ(lighting[0].bg_color[0], 0.0f);
 }

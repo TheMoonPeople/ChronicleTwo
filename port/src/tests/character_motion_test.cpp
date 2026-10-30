@@ -687,10 +687,21 @@ TEST(CharacterMetadata,
     ASSERT_NE(allocation, nullptr);
     mgCMemory child;
     child.stSetChildBuffer(parent, allocation, 16);
-    CCharacter2 source;
-    CHRINFO_SE  cue{};
+    CCharacter2                source;
+    std::array<u_long128, 512> source_storage{};
+    mgCMemory                  source_memory;
+    source_memory.stSetBuffer(source_storage.data(), static_cast<int>(source_storage.size()));
+    source.CObjectFrame::frame = dc2::memory::NewObject<mgCFrame>(source_memory);
+    ASSERT_NE(source.CObjectFrame::frame, nullptr);
+    ASSERT_TRUE(dc2::character::CaptureModelResources(source, source_memory));
     source.se_num[0] = 1;
-    source.se_list[0] = &cue;
+    source.se_list[0] = dc2::memory::NewObject<CHRINFO_SE>(source_memory);
+    ASSERT_NE(source.se_list[0], nullptr);
+    auto                           *cue = source.se_list[0];
+    const auto                      resources = source.resource_state.Acquire<dc2::character::ResourceState>();
+    dc2::character::CloneAuxBuilder builder(resources->clone_inputs);
+    ASSERT_TRUE(builder.RegisterSounds(source_memory, 0, {cue, 1}));
+    ASSERT_TRUE(dc2::character::PublishCloneInputs(source, std::move(builder)));
     child.stSetLocked(true);
     EXPECT_EQ(source.GetSoundInfoCopy(&child), nullptr);
     EXPECT_EQ(child.stack_used, 0);
@@ -698,6 +709,6 @@ TEST(CharacterMetadata,
     parent.stClearUsed();
     EXPECT_EQ(source.GetSoundInfoCopy(&child), nullptr);
     EXPECT_EQ(child.stack_used, 0);
-    EXPECT_EQ(source.se_list[0], &cue);
+    EXPECT_EQ(source.se_list[0], cue);
     EXPECT_EQ(source.se_num[0], 1);
 }

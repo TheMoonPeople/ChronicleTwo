@@ -571,5 +571,9 @@ void CEffectList::LoadEFPFile(const dc2::io::FileRead &directory, int block, mgC
         managers[i].Load(data, files[static_cast<std::size_t>(i)].read.Size());
         dc2::text::Copy(managers[i].name, basename);
         managers[i].Run();
+        if (!dc2::render::VisualCloneInputs::Publish(*stack, sprites[i], dc2::render::VisualCloneKind::Sprite3D)) {
+            effect_num = 0;
+            return;
+        }
     }
 }

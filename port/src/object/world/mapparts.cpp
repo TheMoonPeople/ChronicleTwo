@@ -1,10 +1,17 @@
 #include "common.h"
 
+#include <algorithm>
+#include <atomic>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <utility>
 
 #include "character.hpp"
 #include "collision.hpp"
 #include "funcpoint.hpp"
+#include "log/game_output.hpp"
 #include "map.hpp"
 #include "mapload.hpp"
 #include "mapparts.hpp"
@@ -44,10 +51,114 @@ union PartsVector {
 
 #include "intersection.hpp"
 
+namespace {
+using PieceBindings = std::vector<dc2::world::PieceBinding>;
+std::atomic<std::uint64_t> next_part_assignment{1}; /**< Monotonic identities of initialized and copied part assignments. */
+
+void TracePartFailure(const char *reason, std::string_view name) {
+    static std::atomic<unsigned> emitted{};
+    const auto                  *enabled = std::getenv("DC2_SWITCH_MODEL_TRACE");
+    if (enabled == nullptr || std::strcmp(enabled, "1") != 0 || emitted.fetch_add(1, std::memory_order_relaxed) >= 32) {
+        return;
+    }
+    dc2::log::PrintGame("switch-model: %s name=%.*s\n", reason, static_cast<int>(std::min<std::size_t>(name.size(), 128)), name.empty() ? "" : name.data());
+}
+
+/**
+ * Issues an identity independent of source object addresses and arena reuse.
+ */
+std::uint64_t NewPartAssignment() {
+    return next_part_assignment.fetch_add(1, std::memory_order_relaxed);
+}
+} // namespace
+
+dc2::world::PieceView dc2::world::PieceView::Capture(mgCMemory &producer, CList<CMapPiece> &node) {
+    PieceView result;
+    result.node_storage = dc2::memory::ArenaBuffer::Bind(producer, std::span(reinterpret_cast<u8 *>(&node), sizeof(node)));
+    const auto offset = static_cast<std::size_t>(reinterpret_cast<u8 *>(&node.data) - reinterpret_cast<u8 *>(&node));
+    result.piece_storage = result.node_storage.Subspan(offset, sizeof(node.data));
+    if (result.node_storage.Bytes().size() != sizeof(node) || result.piece_storage.Bytes().size() != sizeof(node.data)) {
+        return {};
+    }
+    result.material_count = node.data.material_num;
+    if (result.material_count < 0) {
+        return {};
+    }
+    if (result.material_count > 0) {
+        if (node.data.material == nullptr) {
+            return {};
+        }
+        result.material_storage = dc2::memory::ArenaBuffer::Bind(
+            producer, std::span(reinterpret_cast<u8 *>(node.data.material), static_cast<std::size_t>(result.material_count) * sizeof(PieceMaterial)));
+    }
+    result.frame_graph = node.data.frame_graph;
+    return result.Get() != nullptr ? result : PieceView{};
+}
+
+CMapPiece *dc2::world::PieceView::Get() const {
+    const auto node = node_storage.Bytes();
+    const auto object = piece_storage.Bytes();
+    if (node.size() != sizeof(CList<CMapPiece>) || object.size() != sizeof(CMapPiece)) {
+        return nullptr;
+    }
+    auto *piece = reinterpret_cast<CMapPiece *>(object.data());
+    if (piece->material_num != material_count) {
+        return nullptr;
+    }
+    if (material_count > 0) {
+        const auto materials = material_storage.Bytes();
+        if (materials.size() != static_cast<std::size_t>(material_count) * sizeof(PieceMaterial) || materials.data() != reinterpret_cast<u8 *>(piece->material)) {
+            return nullptr;
+        }
+    }
+    if (!frame_graph.HasValue()) {
+        return !piece->frame_graph.HasValue() && piece->frame == nullptr && piece->chara == nullptr ? piece : nullptr;
+    }
+    return piece->frame_graph.SameIdentity(frame_graph) && frame_graph.Matches(piece->frame, piece->chara) ? piece : nullptr;
+}
+
+bool CMapParts::PublishPieceBindings(std::vector<dc2::world::PieceBinding> bindings) {
+    piece_bindings = {};
+    assignment_token = NewPartAssignment();
+    if (bindings.empty()) {
+        return piece_list == nullptr;
+    }
+    if (bindings.front().view.NodeStorage().Bytes().data() != reinterpret_cast<u8 *>(piece_list)) {
+        return false;
+    }
+    for (const auto &binding : bindings) {
+        if (binding.view.Get() == nullptr) {
+            return false;
+        }
+    }
+    const auto anchor = bindings.front().view.NodeStorage();
+    piece_bindings = dc2::memory::ArenaResource::Store(anchor, std::make_shared<PieceBindings>(std::move(bindings)));
+    return piece_bindings.IsLive();
+}
+
+dc2::world::PieceView CMapParts::FindPieceView(std::string_view name) const {
+    const auto bindings = piece_bindings.Acquire<PieceBindings>();
+    if (bindings == nullptr) {
+        return {};
+    }
+    for (const auto &binding : *bindings) {
+        if (binding.name == name && binding.view.Get() != nullptr) {
+            return binding.view;
+        }
+    }
+    return {};
+}
+
+bool CMapParts::HasStandaloneFrame() const {
+    return frame.parent == nullptr && frame.child == nullptr && frame.brother == nullptr && frame.elder == nullptr;
+}
+
 void CMapParts::Initialize() {
     int i = {};
 
     piece_list = nullptr;
+    piece_bindings = {};
+    assignment_token = NewPartAssignment();
     name[0] = 0;
     parts_name[0] = 0;
     frame.Initialize();
@@ -135,37 +246,18 @@ void CMapParts::AddPiece(CList<CMapPiece> *node) {
     }
 }
 
-CMapPiece *CMapParts::SearchPiece(char *piece_name) {
-    CList<CMapPiece> *node = {};
-    CMapPiece        *piece = {};
-
-    if (piece_list == nullptr || piece_name == nullptr) {
-        return nullptr;
-    }
-
-    for (node = piece_list; node != nullptr; node = node->next) {
-        piece = node->pGetData();
-
-        if (strcmp(piece_name, piece->name) == 0) {
-            return piece;
-        }
-    }
-
-    return nullptr;
+CMapPiece *CMapParts::SearchPiece(const char *piece_name) {
+    return piece_name != nullptr ? FindPieceView(piece_name).Get() : nullptr;
 }
 
 CMapPiece *CMapParts::SearchPieceColType(int col_type) {
-    CList<CMapPiece> *node = {};
-    CMapPiece        *piece = {};
-
-    if (piece_list == nullptr) {
+    const auto bindings = piece_bindings.Acquire<PieceBindings>();
+    if (bindings == nullptr) {
         return nullptr;
     }
-
-    for (node = piece_list; node != nullptr; node = node->next) {
-        piece = node->pGetData();
-
-        if (piece->col_type == col_type) {
+    for (const auto &binding : *bindings) {
+        auto *piece = binding.view.Get();
+        if (piece != nullptr && piece->col_type == col_type) {
             return piece;
         }
     }
@@ -240,7 +332,7 @@ int CMapParts::SetColor(int no, float *rgba) {
         return 0;
     }
 
-    *reinterpret_cast<u_long128 *>(color[no]) = *reinterpret_cast<u_long128 *>(rgba);
+    std::memmove(color[no], rgba, sizeof(float) * 4);
     color[no][3] = 1.0f;
     return 1;
 }
@@ -250,7 +342,7 @@ int CMapParts::GetColor(int no, float *out_rgba) {
         return 0;
     }
 
-    *reinterpret_cast<u_long128 *>(out_rgba) = *reinterpret_cast<u_long128 *>(color[no]);
+    std::memmove(out_rgba, color[no], sizeof(float) * 4);
     return 1;
 }
 
@@ -548,7 +640,7 @@ int CMapParts::CheckColBox(mgVu0FBOX *box) {
     }
 
     GetLWMatrix(lw_matrix);
-    *reinterpret_cast<u_long128 *>(sphere) = *reinterpret_cast<u_long128 *>(col_bound_sphere);
+    std::memmove(sphere, col_bound_sphere, sizeof(float) * 4);
     sphere[3] = 1.0f;
     sceVu0ApplyMatrix(sphere, lw_matrix, sphere);
     sphere[3] = col_bound_sphere[3];
@@ -618,6 +710,10 @@ int CMapParts::GetBoundSphere(float *sphere) {
 }
 
 void CMapParts::GetLWMatrix(sceVu0FMATRIX out_matrix) {
+    if (!HasStandaloneFrame()) {
+        mgUnitMatrix(out_matrix);
+        return;
+    }
     UpDatePosition();
     frame.GetLWMatrix(out_matrix);
 }
@@ -735,7 +831,7 @@ CFuncPoint *CMapParts::InScreenFunc(InScreenFuncInfo *info) {
                 mgGetCameraPos(camera_pos);
                 mgGetCameraPose(camera_pose);
                 sceVu0Normalize(ray_far, camera_pose[2]);
-                *reinterpret_cast<u_long128 *>(ray_near) = *reinterpret_cast<u_long128 *>(ray_far);
+                std::memmove(ray_near, ray_far, sizeof(float) * 4);
                 sceVu0ScaleVector(ray_far, ray_far, range);
                 sceVu0ScaleVector(ray_near, ray_near, 1.0f);
                 sceVu0AddVector(ray_start, camera_pos, ray_near);
@@ -884,59 +980,105 @@ void CMapParts::CopyFuncPointCheck(CFuncPointCheck &check) {
     }
 }
 
-void CMapParts::Copy(CMapParts &dest, mgCMemory *memory) {
-    if (memory != nullptr) {
-        dest = *this;
-
-        CList<CMapPiece> *copies = nullptr;
-        CList<CMapPiece> *source = piece_list;
-
-        while (source != nullptr) {
-            if (source->data.col_type == 0) {
-                CList<CMapPiece> *copy = dc2::memory::NewObject<CList<CMapPiece>>(*memory);
-
-                if (copy == nullptr) {
-                    return;
-                }
-
-                source->data.Copy(copy->data, memory);
-
-                CList<CMapPiece> *last = copies;
-
-                if (last != nullptr) {
-                    CList<CMapPiece> *next = {};
-
-                    if (last != nullptr) {
-                        do {
-                            next = last->next;
-
-                            if (next == nullptr) {
-                                break;
-                            }
-
-                            last = next;
-                        } while (next);
-                    }
-
-                    last->next = copy;
-
-                    if (copy != nullptr) {
-                        copy->prev = last;
-                    }
-                } else {
-                    copies = copy;
-                }
-            }
-
-            source = source->next;
-        }
-
-        dest.piece_list = copies;
-        func_point_mngr.Copy(dest.func_point_mngr, memory);
-        dest.AssignFuncAnime(memory);
-    } else {
-        dest = *this;
+bool CMapParts::Copy(CMapParts &dest, mgCMemory *memory) {
+    const auto bindings = piece_bindings.Acquire<PieceBindings>();
+    CMapParts  source = *this;
+    dest.Initialize();
+    if (!source.HasStandaloneFrame()) {
+        TracePartFailure("copy-part-frame", dc2::text::View(source.name));
+        return false;
     }
+    if (source.piece_list != nullptr && bindings == nullptr) {
+        TracePartFailure("copy-part-bindings", dc2::text::View(source.name));
+        return false;
+    }
+    if (bindings != nullptr) {
+        for (const auto &binding : *bindings) {
+            if (binding.view.Get() == nullptr) {
+                TracePartFailure("copy-source-piece", binding.name);
+                return false;
+            }
+        }
+    }
+    dest = source;
+    dest.assignment_token = NewPartAssignment();
+    dest.piece_list = nullptr;
+    dest.piece_bindings = {};
+    if (memory == nullptr) {
+        dest.piece_list = source.piece_list;
+        dest.piece_bindings = source.piece_bindings;
+        return true;
+    }
+    dest.anime_list = nullptr;
+    PieceBindings     copies;
+    CList<CMapPiece> *last = nullptr;
+    if (bindings != nullptr) {
+        for (const auto &binding : *bindings) {
+            auto *piece = binding.view.Get();
+            if (piece == nullptr) {
+                TracePartFailure("copy-retired-piece", binding.name);
+                dest.Initialize();
+                return false;
+            }
+            if (piece->col_type != 0) {
+                continue;
+            }
+            auto *copy = dc2::memory::NewObject<CList<CMapPiece>>(*memory);
+            if (copy == nullptr) {
+                TracePartFailure("copy-piece-allocation", binding.name);
+                dest.Initialize();
+                return false;
+            }
+            if (!piece->Copy(copy->data, memory)) {
+                TracePartFailure("copy-piece-copy", binding.name);
+                dest.Initialize();
+                return false;
+            }
+            auto        view = dc2::world::PieceView::Capture(*memory, *copy);
+            auto       *name = dc2::memory::CopyText(*memory, binding.name);
+            const char *failure = nullptr;
+            if (view.Get() == nullptr) {
+                failure = "copy-piece-view";
+            } else if (name == nullptr) {
+                failure = "copy-piece-name";
+
+            } else if (piece->frame != nullptr && copy->data.frame == nullptr) {
+                failure = "copy-piece-frame";
+            } else if (piece->chara != nullptr && copy->data.chara == nullptr) {
+                failure = "copy-piece-character";
+            }
+            if (failure != nullptr) {
+                TracePartFailure(failure, binding.name);
+                dest.Initialize();
+                return false;
+            }
+            copy->data.SetName(name);
+            copy->prev = last;
+            if (last != nullptr) {
+                last->next = copy;
+            } else {
+                dest.piece_list = copy;
+            }
+            last = copy;
+            copies.push_back({binding.name, view});
+        }
+    }
+    if (!dest.PublishPieceBindings(std::move(copies))) {
+        TracePartFailure("copy-publish-bindings", dc2::text::View(source.name));
+        dest.Initialize();
+        return false;
+    }
+    if (source.func_point_mngr.Copy(dest.func_point_mngr, memory) == 0) {
+        TracePartFailure("copy-function-points", dc2::text::View(source.name));
+        dest.Initialize();
+        return false;
+    }
+    if (dest.AssignFuncAnime(memory) == 0) {
+        TracePartFailure("copy-function-animation", dc2::text::View(source.name));
+        dest.Initialize();
+        return false;
+    }
+    return true;
 }
 
 int CMapParts::AssignFuncAnime(mgCMemory *memory) {

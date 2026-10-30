@@ -293,3 +293,13 @@ TEST_F(AssetDirectory, OwningMembersKeepActualContentsAcrossRepeatedReadsAndDire
     EXPECT_EQ(std::string(reinterpret_cast<const char *>(members[0].read.Bytes().data()), members[0].read.Bytes().size()), "abc");
     EXPECT_EQ(members[0].read.Source(), "bundle/raw.bin");
 }
+
+TEST(AssetMemberNames, BoundedPathsKeepTheExactFinalComponent) {
+    constexpr char path[] = {'a', '/', 'b', '\\', 'c', '.', 'j', 's', 'o', 'n'};
+    const auto     member = dc2::assets::MemberName(std::string_view(path, sizeof(path)));
+    EXPECT_EQ(member, "c.json");
+    EXPECT_EQ(member.data(), path + 4);
+    EXPECT_EQ(dc2::assets::MemberName("bare.json"), "bare.json");
+    EXPECT_TRUE(dc2::assets::MemberName("parent/").empty());
+    EXPECT_TRUE(dc2::assets::MemberName({}).empty());
+}

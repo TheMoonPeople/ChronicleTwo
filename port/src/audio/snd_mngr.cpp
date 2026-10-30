@@ -1438,8 +1438,8 @@ void sndSetSePitch(unsigned int snd_id, int se_no, int pitch, int voice) {
 }
 
 void sndSetMicPos(float *position, float *direction) {
-    *(u_long128 *) MicPos = *(u_long128 *) position;
-    *(u_long128 *) MicDir = *(u_long128 *) direction;
+    std::memmove(MicPos, position, sizeof(float) * 4);
+    std::memmove(MicDir, direction, sizeof(float) * 4);
 }
 
 void sndGetVolPan(float *vol, float *pan, float *pos, float near_dist, float far_dist) {

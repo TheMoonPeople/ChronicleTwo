@@ -29,6 +29,10 @@ C_ALLOCATION_CALLS = {
 TYPED_ARENA_CALLS = {
     "NewObject": "arena_object_call",
     "NewArray": "arena_array_call",
+    "AllocateMapObject": "arena_object_call",
+    "AllocateMapArray": "arena_array_call",
+    "CopyText": "arena_text_call",
+    "mgCopyString": "arena_text_call",
     "Allocate": "arena_template_call",
 }
 OWNERSHIP_FACTORIES = {

@@ -16,12 +16,16 @@ namespace options {
 
 // iOS has no window to size, no mouse and no DualSense speaker: there the page leaves those rows out and is
 // called APP SETTINGS.
-#if defined(__APPLE__) && TARGET_OS_IPHONE
+#if defined(__SWITCH__) || (defined(__APPLE__) && TARGET_OS_IPHONE)
 inline constexpr bool kAppPage = true;
 #else
 inline constexpr bool kAppPage = false;
 #endif
+#ifdef __SWITCH__
+inline constexpr const char *kPageTitle = "SWITCH SETTINGS";
+#else
 inline constexpr const char *kPageTitle = kAppPage ? "APP SETTINGS" : "PC SETTINGS";
+#endif
 
 struct Row {
     std::string                                key;

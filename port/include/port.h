@@ -6,14 +6,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <new>
-#ifdef _WIN32
-#include <cstring>
-
-// mingw's <strings.h> has no BSD index(); the PS2 libc's index() is strchr().
-inline char *index(const char *s, int c) {
-    return const_cast<char *>(strchr(s, c));
-}
-#endif
 
 /**
  *

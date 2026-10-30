@@ -3,52 +3,20 @@
 
 #include <libvu0.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <format>
+#include <limits>
 
+#include "assets/data_registry.hpp"
 #include "mapinfo.hpp"
 #include "mapload.hpp"
 #include "memory/tracked_copy.hpp"
 #include "mg_math.hpp"
 #include "mg_memory.hpp"
 #include "mglib.hpp"
-#include "scriptinterpreter.hpp"
-
-/**
- *
- * Map settings being filled in by the running configuration script.
- *
- */
-static CMapInfo *MapInfo;
-
-/**
- *
- * Memory that the copies of the script's names are taken from.
- *
- */
-static mgCMemory *MapInfoStack;
-
-/**
- *
- * Index of the next texture pack name the configuration script gives.
- *
- */
-static int now_img_num;
-
-/**
- *
- * Index of the next model pack name the configuration script gives.
- *
- */
-static int now_pcp_num;
-
-/**
- *
- * Lighting set that the configuration script's lighting tags fill in, or null outside a set.
- *
- */
-static CMapLightingInfo *LightingInfo;
 
 void CCameraInfo::Initialize() {
     int i = {};
@@ -84,10 +52,7 @@ CCameraDrawInfo *CCameraInfo::GetDrawInfo(int index) {
 }
 
 void CMapInfo::Initialize() {
-    memset(this, 0, sizeof(CMapInfo));
-    time_light_num = 4;
-    fixed_time = 12.0f;
-    lens_flare = 1;
+    *this = CMapInfo{};
 }
 
 char *CMapInfo::GetImgName(int index) {
@@ -124,53 +89,47 @@ CMapLightingInfo *CMapInfo::GetLightingInfo(int index) {
     return &lighting_info[index];
 }
 
-int CMapInfo::OutputLightData(char *buff) {
-    char *cursor = buff;
-    int   set = {};
-    int   light = {};
-
-    struct {
-        float x, y, z, w;
-    } color{};
-
-    struct {
-        int x, y, z, w;
-    } ambient{};
-
-    cursor += sprintf(cursor, "MPL_ACTIVE_LIGHT_SET %d;\n", active_light_no);
-
-    for (set = 0; set < lighting_info_num; set++) {
-        CMapLightingInfo *info = &lighting_info[set];
-        cursor += sprintf(cursor, "MPL_LIGHT_SET %d;\n", set);
-        cursor += sprintf(cursor, " MPL_FOV 52;\n");
-        cursor += sprintf(cursor, " MPL_BGCOLOR %d,%d,%d;\n", static_cast<int>(info->bg_color[0]), static_cast<int>(info->bg_color[1]), static_cast<int>(info->bg_color[2]));
-        cursor += sprintf(cursor, " MPL_BGCOLOR2 %d,%d,%d;\n", static_cast<int>(info->bg_color2[0]), static_cast<int>(info->bg_color2[1]), static_cast<int>(info->bg_color2[2]));
-        ambient.x = fptosi(info->ambient[0]);
-        int  converted_y = fptosi(info->ambient[1]);
-        int *ambient_y = &ambient.y;
-        *ambient_y = converted_y;
-        int  converted_z = fptosi(info->ambient[2]);
-        int *ambient_z = &ambient.z;
-        *ambient_z = converted_z;
-        cursor += sprintf(cursor, " MPL_AMBIENT %d,%d,%d;\n", ambient.x, *ambient_y, *ambient_z);
-        light = 0;
-
-        do {
-            float *color_y = &color.y;
-            float *color_z = &color.z;
-            color.x = info->light_color[light][0];
-            *color_y = info->light_color[light][1];
-            *color_z = info->light_color[light][2];
-            cursor += sprintf(cursor, " MPL_LIGHT %d,%f,%f,%f,%d,%d,%d,1;\n", light, info->light_dir[0][light], info->light_dir[1][light], info->light_dir[2][light], static_cast<int>(color.x), static_cast<int>(*color_y), static_cast<int>(*color_z));
-            light++;
-        } while (light < 4);
-
-        cursor += sprintf(cursor, " MPL_FOG_ENABLE %d;\n", info->fog_enable);
-        cursor += sprintf(cursor, " MPL_FOG %f,%f,%d,%d,%d,%d,%d;\n", info->fog.near_dist, info->fog.far_dist, info->fog.r, info->fog.g, info->fog.b, static_cast<int>(info->fog.far_value), static_cast<int>(info->fog.near_value));
-        cursor += sprintf(cursor, "MPL_LIGHT_SET_END;\n");
+namespace {
+/**
+ *
+ * Converts edited lighting components without overflowing the integer representation.
+ *
+ */
+int LightingInteger(float value) {
+    if (std::isnan(value)) {
+        return 0;
     }
+    if (value >= static_cast<float>(std::numeric_limits<int>::max())) {
+        return std::numeric_limits<int>::max();
+    }
+    if (value <= static_cast<float>(std::numeric_limits<int>::min())) {
+        return std::numeric_limits<int>::min();
+    }
+    return static_cast<int>(value);
+}
+} // namespace
 
-    return cursor - buff;
+std::string dc2::world::LightingText(const CMapInfo &map) {
+    if (map.lighting_info_num < 0 || (map.lighting_info_num > 0 && map.lighting_info == nullptr)) {
+        return {};
+    }
+    auto text = std::format("MPL_ACTIVE_LIGHT_SET {};\n", map.active_light_no);
+    for (int set = 0; set < map.lighting_info_num; ++set) {
+        const auto &info = map.lighting_info[set];
+        text += std::format("MPL_LIGHT_SET {};\n MPL_FOV 52;\n", set);
+        text += std::format(" MPL_BGCOLOR {},{},{};\n", LightingInteger(info.bg_color[0]), LightingInteger(info.bg_color[1]), LightingInteger(info.bg_color[2]));
+        text += std::format(" MPL_BGCOLOR2 {},{},{};\n", LightingInteger(info.bg_color2[0]), LightingInteger(info.bg_color2[1]), LightingInteger(info.bg_color2[2]));
+        text += std::format(" MPL_AMBIENT {},{},{};\n", LightingInteger(info.ambient[0]), LightingInteger(info.ambient[1]), LightingInteger(info.ambient[2]));
+        for (std::size_t light = 0; light < std::size(info.light_color); ++light) {
+            text += std::format(" MPL_LIGHT {},{:.6f},{:.6f},{:.6f},{},{},{},1;\n", light,
+                                info.light_dir[0][light], info.light_dir[1][light], info.light_dir[2][light],
+                                LightingInteger(info.light_color[light][0]), LightingInteger(info.light_color[light][1]), LightingInteger(info.light_color[light][2]));
+        }
+        text += std::format(" MPL_FOG_ENABLE {};\n", info.fog_enable);
+        text += std::format(" MPL_FOG {:.6f},{:.6f},{},{},{},{},{};\nMPL_LIGHT_SET_END;\n", info.fog.near_dist, info.fog.far_dist,
+                            info.fog.r, info.fog.g, info.fog.b, LightingInteger(info.fog.far_value), LightingInteger(info.fog.near_value));
+    }
+    return text;
 }
 
 #include "common.h"
@@ -190,21 +149,10 @@ int CMapInfo::OutputLightData(char *buff) {
 namespace {
 
 /**
- * Gives the number of quadwords that hold a byte count.
- */
-u32 Quadwords(u32 bytes) {
-    return (bytes & 0xF) != 0 ? (bytes >> 4) + 1 : bytes >> 4;
-}
-
-/**
  * Keeps a copy of a pack name in the map's memory, as mapIMG and mapPCP do.
  */
 char *CopyName(const std::string &name, mgCMemory *memory) {
-    auto *copy = reinterpret_cast<char *>(memory->Alloc(static_cast<int>(Quadwords(static_cast<u32>(name.size() + 1)))));
-    if (copy != nullptr) {
-        std::strcpy(copy, name.c_str());
-    }
-    return copy;
+    return memory == nullptr ? nullptr : dc2::memory::CopyText(*memory, name);
 }
 
 /**
@@ -344,80 +292,106 @@ void ApplySettings(CMapInfo &info, const SceneInfo &settings) {
 }
 
 /**
- * Copies the map script into the map's memory so the map loads from it later, as retail does.
+ *
+ * Copies a registered map document into a checked arena allocation.
+ *
  */
 char *CopyScript(char *script, int size, mgCMemory *memory) {
-    auto *copy = reinterpret_cast<char *>(memory->Alloc(static_cast<int>(Quadwords(static_cast<u32>(size)))));
+    if (script == nullptr || memory == nullptr || size <= 0 ||
+        static_cast<std::size_t>(size) > DataReadBufferSize(script)) {
+        return nullptr;
+    }
+    const auto count = static_cast<std::size_t>(size);
+    auto      *copy = dc2::memory::NewArray<char>(*memory, count);
     if (copy != nullptr) {
-        dc2::memory::CopyTrackedBytes(copy, script, static_cast<std::size_t>(size));
+        dc2::memory::CopyTrackedBytes(copy, script, count);
     }
     return copy;
 }
 
 /**
- * Adds a pack name in the first free entry of a 16-entry name list, as the add-map tags do.
+ *
+ * Adds a pack name to a bounded list without publishing failed allocations.
+ *
  */
-void AddName(char **names, const SceneText &name, mgCMemory *memory) {
+bool AddName(std::span<char *> names, const SceneText &name, mgCMemory *memory) {
     if (!name) {
-        return;
+        return true;
     }
-    for (int index = 0; index < 16; ++index) {
-        if (names[index] == nullptr) {
-            names[index] = CopyName(*name, memory);
-            return;
+    for (auto &slot : names) {
+        if (slot == nullptr) {
+            auto *copy = CopyName(*name, memory);
+            if (copy == nullptr) {
+                return false;
+            }
+            slot = copy;
+            return true;
         }
     }
+    return true;
 }
 
 } // namespace
 
 void CMapInfo::LoadMapInfo(char *script, int script_size, mgCMemory *stack) {
-    img_num = 16;
-    for (int index = 0; index < img_num; ++index) {
-        img_name[index] = nullptr;
+    if (stack == nullptr || script == nullptr || script_size <= 0 ||
+        static_cast<std::size_t>(script_size) > DataReadBufferSize(script)) {
+        return;
     }
-    pcp_num = 16;
-    // The model pack names are cleared up to the texture pack capacity.
-    for (int index = 0; index < img_num; ++index) {
-        pcp_name[index] = nullptr;
-    }
-    map_file = CopyScript(script, script_size, stack);
-    map_file_size = script_size;
-    lighting_info_num = 16;
-    const int count = lighting_info_num;
-    const u32 blocks = Quadwords(count * sizeof(CMapLightingInfo));
-    lighting_info = new (stack->Alloc(static_cast<int>(blocks + 2))) CMapLightingInfo[count];
-
     const auto document = ReadSceneMap(script);
     if (!document) {
         return;
     }
-    int images = 0;
+    auto pending = *this;
+    pending.img_num = static_cast<int>(std::size(pending.img_name));
+    std::fill(std::begin(pending.img_name), std::end(pending.img_name), nullptr);
+    pending.pcp_num = static_cast<int>(std::size(pending.pcp_name));
+    std::fill(std::begin(pending.pcp_name), std::end(pending.pcp_name), nullptr);
+    pending.map_file = CopyScript(script, script_size, stack);
+    pending.map_file_size = script_size;
+    pending.lighting_info_num = 16;
+    pending.lighting_info = dc2::memory::NewArray<CMapLightingInfo>(*stack, static_cast<std::size_t>(pending.lighting_info_num));
+    if (pending.map_file == nullptr || pending.lighting_info == nullptr) {
+        return;
+    }
     for (const auto &name : document->info.texture_packs) {
-        if (images < img_num && name) {
-            img_name[images++] = CopyName(*name, stack);
+        if (!AddName(pending.img_name, name, stack)) {
+            return;
         }
     }
-    int models = 0;
     for (const auto &name : document->info.model_packs) {
-        if (models < pcp_num && name) {
-            pcp_name[models++] = CopyName(*name, stack);
+        if (!AddName(pending.pcp_name, name, stack)) {
+            return;
         }
     }
-    ApplySettings(*this, document->info);
+    ApplySettings(pending, document->info);
+    *this = pending;
 }
 
 void CMapInfo::AddMapInfo(char *script, int script_size, mgCMemory *stack) {
-    add_map_file = CopyScript(script, script_size, stack);
-    add_map_file_size = script_size;
+    if (stack == nullptr || script == nullptr || script_size <= 0 ||
+        static_cast<std::size_t>(script_size) > DataReadBufferSize(script)) {
+        return;
+    }
     const auto document = ReadSceneMap(script);
     if (!document) {
         return;
     }
+    auto pending = *this;
+    pending.add_map_file = CopyScript(script, script_size, stack);
+    if (pending.add_map_file == nullptr) {
+        return;
+    }
+    pending.add_map_file_size = script_size;
     for (const auto &name : document->info.texture_packs) {
-        AddName(img_name, name, stack);
+        if (!AddName(pending.img_name, name, stack)) {
+            return;
+        }
     }
     for (const auto &name : document->info.model_packs) {
-        AddName(pcp_name, name, stack);
+        if (!AddName(pending.pcp_name, name, stack)) {
+            return;
+        }
     }
+    *this = pending;
 }

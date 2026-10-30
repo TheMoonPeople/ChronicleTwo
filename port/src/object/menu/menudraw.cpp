@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <format>
 
 #include "actionchara.hpp"
 #include "character.hpp"
@@ -14,6 +15,7 @@
 #include "editmenu.hpp"
 #include "effscript.hpp"
 #include "gamedata.hpp"
+#include "gfx/gfx.hpp"
 #include "inventmn.hpp"
 #include "mainloop.hpp"
 #include "memory/tracked_copy.hpp"
@@ -31,6 +33,7 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "nd_meswin.hpp"
+#include "text/bounded.hpp"
 #include "userdata.hpp"
 
 /**
@@ -273,7 +276,7 @@ static MENUFORM_MAKEBRD_INFO CommonBoardDrawInfo;
  * Selects the source item-icon texture and palette.
  *
  */
-static short use_trans_rect;
+short use_trans_rect;
 
 /**
  *
@@ -640,13 +643,6 @@ static float fish_boiled_streatch_rate[8];
  */
 static mgCTexture *fish_boiled_effect_tex;
 
-/**
- *
- * Holds the generated item-icon texture name.
- *
- */
-static char temp_3925[32];
-
 void MENU_BASETEXINFO_Init(MENU_BASETEXINFO *info);
 
 /**
@@ -701,6 +697,7 @@ void InitInitBuildUpInfoEffectPos();
 #include "render/texture_runtime.hpp"
 #include "stubs/menudraw.hpp"
 #include "text/bounded.hpp"
+#include "text/title_lettering.hpp"
 
 /**
  *
@@ -787,7 +784,7 @@ static float spectol_break_angle[16][6] = {
  * Gives the item icon texture rectangles for the two source textures.
  *
  */
-static MENU_SHORT_RECT item_transtbl[2] = {
+MENU_SHORT_RECT item_transtbl[2] = {
     {224, 736, 32, 32},
     {224, 736, 32, 32}
 };
@@ -1062,7 +1059,7 @@ static s8 get_btntbl_1810[2][2] = {
  * Holds the centre position used by circular menu frames.
  *
  */
-static float MenuWakuPutXY[2] = {0.0f, 0.0f};
+float MenuWakuPutXY[2] = {0.0f, 0.0f};
 
 /**
  *
@@ -1213,6 +1210,20 @@ void SetPartEffectInfoRandFunc(MENU_PARTS_EFFECT_STRUCT1 *effect, short *values,
     }
 }
 
+namespace {
+/**
+ *
+ * Returns whether the current UI anchor moves draws towards a side of the window.
+ *
+ */
+bool UiAnchored() {
+    const gfx::UiAnchor anchor = gfx::CurrentUiAnchor();
+    const gfx::UiAnchor none{};
+    return anchor.left_until != none.left_until || anchor.right_from != none.right_from ||
+           anchor.top_until != none.top_until || anchor.bottom_from != none.bottom_from;
+}
+} // namespace
+
 void SetSpriteEnv(mgCDrawPrim *prim, int mode) {
     if (prim != nullptr) {
         prim->Initialize(nullptr, nullptr);
@@ -1254,7 +1265,9 @@ void SetSpriteEnv(mgCDrawPrim *prim, int mode) {
                 prim->AlphaBlendEnable(1);
                 prim->AlphaBlend(MG_ALPHA_BLEND_NORMAL);
                 prim->TextureMapEnable(0);
-                prim->DepthTestEnable(1);
+                // Only depthless 2D follows a UI anchor, so a colour box backing an anchored panel, such as the
+                // Ridepod's fuel gauge fill on the spread Item page, draws depthless to move with it.
+                prim->DepthTestEnable(UiAnchored() ? 0 : 1);
 
                 if (mode == MENU_SPRITE_ENV_COLOR_AA) {
                     prim->DepthTestEnable(0);
@@ -1304,6 +1317,9 @@ void PushPrimRepeat(mgCDrawPrim *prim, float *positions, int *tex_coords, int co
 }
 
 void PrimQuad(mgCDrawPrim *prim, float x, float y, mgRect<int> cell) {
+    if (prim != nullptr && dc2::text::DrawTitleLettering(*prim, x, y, cell)) {
+        return;
+    }
     prim->TextureCrd(cell.left, cell.top);
     prim->Vertex(x, y, 0.0f);
     prim->TextureCrd(cell.left + cell.right, cell.top + cell.bottom);
@@ -2710,7 +2726,7 @@ void CMenuPosDataForm::Initialize() {
     next = nullptr;
 }
 
-MENUFORMPARTS_TYPE *CMenuPosDataForm::GetPartInfo(char *name) {
+MENUFORMPARTS_TYPE *CMenuPosDataForm::GetPartInfo(const char *name) {
     int i = 0;
 
     while (i < parts_num) {
@@ -2724,7 +2740,7 @@ MENUFORMPARTS_TYPE *CMenuPosDataForm::GetPartInfo(char *name) {
     return nullptr;
 }
 
-void CMenuPosDataForm::SetPartDrawFlag(char *name, bool draw_flag) {
+void CMenuPosDataForm::SetPartDrawFlag(const char *name, bool draw_flag) {
     MENUFORMPARTS_TYPE *part = GetPartInfo(name);
 
     if (part != nullptr) {
@@ -4585,12 +4601,11 @@ void CPosDataManage::EtcTbl2Clear(int from, int to) {
     }
 }
 
-char *GetMenuMainIconChar(int icon_no) {
-    sprintf(temp_3925, "mi%d", icon_no - 2);
-    return temp_3925;
+std::string dc2::menu::MainIconName(int icon_no) {
+    return std::format("mi{}", static_cast<std::int64_t>(icon_no) - 2);
 }
 
-CMenuPosDataForm *CPosDataManage::GetFormInfo(char *name) {
+CMenuPosDataForm *CPosDataManage::GetFormInfo(const char *name) {
     CMenuPosDataForm *form = {};
     int               i = {};
 
@@ -5240,6 +5255,13 @@ void Func_MenuItemIconSetEffectOne(MENUFORMPARTS_TYPE *part) {
 }
 
 void MenuItemBrdItemIconEffectMalloc(mgCMemory *memory, MENUFORMPARTS_TYPE *parts, int count) {
+    if (memory == nullptr || parts == nullptr || count <= 0) {
+        return;
+    }
+    auto *name = dc2::memory::CopyText(*memory, "icon");
+    if (name == nullptr) {
+        return;
+    }
     int i = {};
 
     for (i = 0; i < count; i++) {
@@ -5249,8 +5271,7 @@ void MenuItemBrdItemIconEffectMalloc(mgCMemory *memory, MENUFORMPARTS_TYPE *part
         Func_MenuItemIconSetEffectOne(&parts[i]);
     }
 
-    parts->name = reinterpret_cast<char *>(memory->Alloc(1));
-    strcpy(parts->name, "icon");
+    parts->name = name;
     parts->w = 32.0f;
     parts->h = 40.0f;
 }
@@ -7579,7 +7600,7 @@ int CMenuPosDataManage::MoveMainMenuIconsCore(int *icons, int select, int mode) 
     slot = 0;
 
     for (i = 0; (icon = icons[i]) >= 0 && count < 19; i++, count++) {
-        form = GetFormInfo(GetMenuMainIconChar(icon));
+        form = GetFormInfo(dc2::menu::MainIconName(icon).data());
 
         if (form != nullptr) {
             icon_move_pos target = {
@@ -7870,8 +7891,8 @@ constexpr int kFrameCorner = 23;
 //   its other tails start at or right of the frame's left edge, less 10, and its corners are 7.
 constexpr int kFloatingTail = 13;
 // - a character is drawn from its pen (DrawFont, nd_meswin.cpp:3830-3962): gaiji 0xFD21 starts 6
-//   left of it (DrawGaiji_sub, font.cpp:1181, 1197), and outlines and sharp text reach 2
-//   (set2DSprite_Fuchi, port/src/font.cpp DrawSharp).
+//   left of it (DrawGaiji_sub, font.cpp:1181, 1197); retail outlines reach 2 and the sharp
+//   font's widest rim 2.5 (set2DSprite_Fuchi, DrawSharpFuchi in port/src/object/menu/font.cpp).
 constexpr int kGlyphReach = 6;
 // - the choice cursor's goal is 40 and half a character left of the text (ClsMes::SetGoalCursorXY,
 //   nd_meswin.cpp:3984), and it sways 6 more (ClsMes::DrawSelectCursor, nd_meswin.cpp:4075); its
@@ -8223,7 +8244,7 @@ void CentreItemTitle(CMenuPosDataForm &title) {
 int CMenuPosDataManage::StepMainMenuIconMove(int *icons, int select, int mode) {
     const int arrived = MoveMainMenuIconsCore(icons, select, mode);
     if (select == MENU_MODE_ITEM && mode == kSelectedIconMove && menuworld::ItemBackdrop()) {
-        if (CMenuPosDataForm *title = GetFormInfo(GetMenuMainIconChar(MENU_MODE_ITEM)); title != nullptr) {
+        if (CMenuPosDataForm *title = GetFormInfo(dc2::menu::MainIconName(MENU_MODE_ITEM).data()); title != nullptr) {
             CentreItemTitle(*title);
         }
     }

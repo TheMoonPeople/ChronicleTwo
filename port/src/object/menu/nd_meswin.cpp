@@ -126,9 +126,12 @@ const int mes_page_break = 0xFF03;
 #include "common.h"
 #include "mw_runtime.h"
 
+#include <algorithm>
 #include <limits>
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "menu_mouse.hpp"
 #include "render/renderer.hpp"
@@ -401,12 +404,63 @@ void GetScrPosFromChar(CCharacter2 *character, int *screen_position) {
     screen_position[1] = projected_position[1] / 16;
 }
 
+namespace {
+
+/**
+ *
+ * Each laid-out window's kerned pens in logical pixels, one per table entry, which can fall between pixels.
+ *
+ */
+std::unordered_map<const ClsMes *, std::vector<float>> kerned_pens;
+
+/**
+ *
+ * Set while a message is laid out, so the names and items it inserts are measured at retail's widths.
+ *
+ */
+bool retail_widths = false;
+
+/**
+ *
+ * Returns how far kerning moves what follows a half-width character: its message font advance less retail's.
+ *
+ */
+float KernShift(const ClsMes &mes, int font_no) {
+    if (retail_widths) {
+        return 0.0f;
+    }
+    const int space = GetHalfFontNo(' ');
+    if (font_no == MES_CODE_SPACE || font_no == space) {
+        const int half = mes.font_w / 2;
+        return (dc2::font::HalfAdvance(space) - 1.0f) * static_cast<float>(half);
+    }
+    return (dc2::font::HalfAdvance(font_no) - 1.0f) *
+           static_cast<float>(static_cast<int>(static_cast<float>(mes.font_w) * mes.half_font_w_percent));
+}
+
+/**
+ *
+ * Returns the fraction of a pixel a laid-out character's kerned pen lies right of its table position.
+ *
+ */
+float PenFraction(const ClsMes &mes, int index) {
+    const auto found = kerned_pens.find(&mes);
+    if (found == kerned_pens.end() || index < 0 || static_cast<std::size_t>(index) >= found->second.size()) {
+        return 0.0f;
+    }
+    // A window laid out since without kerning, or another one at the same address, no longer matches its pens.
+    const float fraction = found->second[static_cast<std::size_t>(index)] - static_cast<float>(mes.tbl[index].x);
+    return fraction >= 0.0f && fraction < 1.0f ? fraction : 0.0f;
+}
+
+} // namespace
+
 int ClsMes::GetStrWidth(char *text) {
     if (text == nullptr) {
         return -1;
     }
 
-    int   width = 0;
+    float width = 0;
     int   length = strlen(text);
     int   index = 0;
     int   font_number = {};
@@ -416,7 +470,8 @@ int ClsMes::GetStrWidth(char *text) {
         cursor = text + index;
 
         if (strncmp(cursor, "[UNI0", 5) == 0) {
-            width += fptosi(static_cast<float>(font_w) * half_font_w_percent);
+            width += static_cast<float>(fptosi(static_cast<float>(font_w) * half_font_w_percent)) +
+                     KernShift(*this, dc2::font::AlphabeticalCode(std::string_view(cursor, static_cast<std::size_t>(length - index))));
             index += 9;
         } else {
             unsigned short gaiji = GetFontGaijiFontNo(cursor);
@@ -441,6 +496,7 @@ int ClsMes::GetStrWidth(char *text) {
                         width += fptosi(static_cast<float>(font_w) * half_font_w_percent);
                     }
 
+                    width += KernShift(*this, font_number);
                     index++;
                 } else {
                     font_number = GetFontNo(cursor);
@@ -448,13 +504,7 @@ int ClsMes::GetStrWidth(char *text) {
                     if (font_number <= 0) {
                         index++;
                     } else {
-                        if (CheckKanjiFont(font_number)) {
-                            width += font_w;
-                        } else if (CheckKanjiFont(GetFontNo(cursor + 2))) {
-                            width += font_w;
-                        } else {
-                            width += font_w;
-                        }
+                        width += font_w;
 
                         index += 2;
                     }
@@ -463,7 +513,7 @@ int ClsMes::GetStrWidth(char *text) {
         }
     }
 
-    return width;
+    return static_cast<int>(std::lround(width));
 }
 
 int ClsMes::GetStrWidth(int name_index) {
@@ -1989,7 +2039,7 @@ void ClsMes::MakeMesWinTbl_str(const char *input, int *x, int *y) {
             return;
         }
         suffix = &str[position];
-        gaiji_no = length - position >= 9 ? GetAlphabeticalFontNo_cp(suffix) : 0;
+        gaiji_no = length - position >= 9 ? dc2::font::AlphabeticalCode(std::string_view(suffix, static_cast<std::size_t>(length - position))) : 0;
 
         if (0 < gaiji_no) {
             SetMesWinTbl(gaiji_no, *x, *y);
@@ -2247,8 +2297,8 @@ int ClsMes::GetMesWidth_system(int mes_no) {
     int                   inserted_width = {};
     const unsigned short *text = {};
     int                   code = {};
-    int                   width = {};
-    int                   maximum = {};
+    float                 width = {};
+    float                 maximum = {};
 
     if (mes_no < 0) {
         return -1;
@@ -2276,7 +2326,7 @@ int ClsMes::GetMesWidth_system(int mes_no) {
                     maximum = width;
                 }
 
-                return maximum;
+                return static_cast<int>(std::lround(maximum));
             case MES_CODE_NEWLINE:
                 if (maximum < width) {
                     maximum = width;
@@ -2293,7 +2343,8 @@ int ClsMes::GetMesWidth_system(int mes_no) {
                 width += inserted_width;
             }
         } else if (code >= 0xFFA0 && code <= 0xFFFF) {
-            width += static_cast<int>(font_w * half_font_w_percent);
+            width += static_cast<float>(static_cast<int>(font_w * half_font_w_percent)) +
+                     KernShift(*this, GetAlphabeticalFontNo_us(static_cast<u16>(code)));
         } else if (code >= 0xFDE0 && code < 0xFDF8) {
             if (GetFontGaijiHankaku(code) != 0) {
                 width += static_cast<int>(font_w * half_font_w_percent);
@@ -2310,10 +2361,8 @@ int ClsMes::GetMesWidth_system(int mes_no) {
             } else {
                 width += static_cast<int>(font_w * half_font_w_percent);
             }
-        } else if (CheckKanjiFont(code) != 0) {
-            width += font_w;
-        } else if (CheckKanjiFont(*text) != 0) {
-            width += font_w;
+
+            width += KernShift(*this, code);
         } else {
             width += font_w;
         }
@@ -3320,7 +3369,7 @@ void ClsMes::NeedMesWinWH(const char *text) {
             }
             cursor = message + position;
 
-            if (length - position >= 9 && 0 < static_cast<u16>(GetAlphabeticalFontNo_cp(cursor))) {
+            if (length - position >= 9 && 0 < static_cast<u16>(dc2::font::AlphabeticalCode(std::string_view(cursor, static_cast<std::size_t>(length - position))))) {
                 AddYokoHaba(line, fptosi(static_cast<float>(font_w) * half_font_w_percent));
                 position += 9;
             } else {
@@ -3453,11 +3502,98 @@ static inline int PageCharTotal(ClsMes *mes, int pages) {
     return total;
 }
 
-void ClsMes::MakeMesWin(int message) {
-    int extra_width = {};
-    int current_page = {};
-    int character_count = {};
+namespace {
 
+/**
+ *
+ * Measures inserted names and items at retail's widths while a message is laid out.
+ *
+ */
+class RetailWidths {
+public:
+    RetailWidths() : previous(retail_widths) { retail_widths = true; }
+
+    ~RetailWidths() { retail_widths = previous; }
+
+    RetailWidths(const RetailWidths &) = delete;
+    RetailWidths &operator=(const RetailWidths &) = delete;
+
+private:
+    bool previous; /**< Setting restored when the layout ends. */
+};
+
+/**
+ *
+ * Returns the bubble's width for the laid-out text, 20 wider where a page's last line is the widest.
+ *
+ */
+int BubbleWidth(ClsMes &mes) {
+    if (mes.text_w < 45) {
+        return 105;
+    }
+    const int width = mes.text_w + 60;
+    for (int page = 0; page < mes.page_num && page < MES_PAGE_MAX; page++) {
+        const int lines = PageCharTotal(&mes, page + 1);
+        if (lines > 0 && lines <= MES_LINE_MAX && mes.text_w <= mes.line_w[lines - 1]) {
+            return width + 20;
+        }
+    }
+    return width;
+}
+
+/**
+ *
+ * Moves a laid-out message's characters, lines and bubble to the message font's letter widths.
+ *
+ */
+void Kern(ClsMes &mes) {
+    if (!dc2::font::Proportional()) {
+        kerned_pens.erase(&mes);
+        return;
+    }
+    std::vector<float> &pens = kerned_pens[&mes];
+    pens.assign(static_cast<std::size_t>(std::clamp(mes.tbl_num, 0, static_cast<int>(MES_WIN_TBL_MAX))), 0.0f);
+    const int space = GetHalfFontNo(' ');
+    float     shift = 0.0f;
+    int       line = 0;
+
+    // Each character moves by how much the half-width characters before it on its line widen or narrow.
+    for (std::size_t index = 0; index < pens.size(); index++) {
+        MES_WIN_TBL &entry = mes.tbl[index];
+        const int    x = entry.x;
+        pens[index] = static_cast<float>(x) + shift;
+        entry.x = static_cast<s16>(std::floor(pens[index]));
+
+        if (entry.code == MES_CODE_NEWLINE || entry.code == MES_CODE_PAGE || entry.code == MES_CODE_END) {
+            if (line < MES_LINE_MAX && mes.line_w[line] >= 0) {
+                mes.line_w[line] += static_cast<int>(std::lround(shift));
+            }
+            line++;
+            shift = 0.0f;
+        } else if (mes.CheckHalfFont(entry.code) != 0) {
+            // A space the text sets a width for keeps it (the European text narrows its spaces line by line).
+            const bool is_space = entry.code == MES_CODE_SPACE || std::cmp_equal(entry.code, space);
+            if (!is_space || index + 1 >= pens.size() || mes.tbl[index + 1].x - x == mes.font_w / 2) {
+                shift += KernShift(mes, entry.code);
+            }
+        }
+    }
+
+    mes.text_w = 0;
+    for (const int width : mes.line_w) {
+        if (width >= 0 && mes.text_w < width) {
+            mes.text_w = width;
+        }
+    }
+    for (int index = 0; index < MES_LINE_MAX; index++) {
+        mes.line_indent[index] = (mes.text_w - mes.line_w[index]) / 2;
+    }
+    mes.fukidashi_w = BubbleWidth(mes);
+}
+
+} // namespace
+
+void ClsMes::MakeMesWin(int message) {
     if (message < 0) {
         if (mes_no == -2) {
             open = 1;
@@ -3472,77 +3608,48 @@ void ClsMes::MakeMesWin(int message) {
             GoNextPage();
         }
     } else {
-        mes_no = message;
-        MakeMesWin_init(1);
-        NeedMesWinWH(message);
+        {
+            const RetailWidths retail;
+            mes_no = message;
+            MakeMesWin_init(1);
+            NeedMesWinWH(message);
 
-        if (text_w < 45) {
-            fukidashi_w = 105;
-        } else {
-            extra_width = 0;
-            fukidashi_w = text_w + 60;
+            fukidashi_w = BubbleWidth(*this);
+            fukidashi_h = text_h + 48;
 
-            for (current_page = 0; current_page < page_num; current_page++) {
-                character_count = PageCharTotal(this, current_page + 1);
-
-                if (text_w <= line_w[character_count - 1]) {
-                    extra_width = 1;
-                }
-            }
-
-            if (extra_width != 0) {
-                fukidashi_w += 20;
+            if (MakeMesWinTbl(message) != 0) {
+                char_num = tbl_num;
             }
         }
 
-        fukidashi_h = text_h + 48;
-
-        if (MakeMesWinTbl(message) != 0) {
-            char_num = tbl_num;
-        }
+        Kern(*this);
     }
 }
 
 std::string PreMesMake(std::string_view source);
 
 void ClsMes::MakeMesWin(const char *str, int open, int reset_fade) {
-    std::string text;
-    int         extra_width = {};
-    int         current_page = {};
-    int         character_count = {};
+    if (str == nullptr) {
+        return;
+    }
 
-    if (str != nullptr) {
-        text = PreMesMake(str);
+    {
+        const RetailWidths retail;
+        std::string        text = PreMesMake(str);
         mes_no = -2;
         MakeMesWin_init(reset_fade);
         this->open = open;
         NeedMesWinWH(text.data());
 
-        if (text_w < 45) {
-            fukidashi_w = 105;
-        } else {
-            extra_width = 0;
-            fukidashi_w = text_w + 60;
-
-            for (current_page = 0; current_page < page_num; current_page++) {
-                character_count = PageCharTotal(this, current_page + 1);
-
-                if (text_w <= line_w[character_count - 1]) {
-                    extra_width = 1;
-                }
-            }
-
-            if (extra_width != 0) {
-                fukidashi_w += 20;
-            }
-        }
-
+        fukidashi_w = BubbleWidth(*this);
         fukidashi_h = text_h + 48;
 
         if (MakeMesWinTbl(text.data()) != 0) {
             char_num = tbl_num;
         }
     }
+
+    Kern(*this);
 }
 
 int ClsMes::MakeAnd3DPosSet(const char *text, float *world_position, int offset_x, int offset_y) {
@@ -3879,6 +3986,9 @@ void ClsMes::DrawFont() {
             }
         }
 
+        // A kerned pen falls between pixels: glyphs take the rest through the painter, pictures the nearer pixel.
+        const float fraction = PenFraction(*this, index);
+
         if (tbl[index].code >= MES_CODE_GAIJI && tbl[index].code < 0xFD32) {
             RGBAQ_TYPE gaiji_color{};
             int        gaiji_outline = {};
@@ -3891,7 +4001,7 @@ void ClsMes::DrawFont() {
             }
 
             MySetTex("gaiji", &prim);
-            DrawGaiji_sub(&prim, tbl[index].code, x, y, gaiji_color, font_h);
+            DrawGaiji_sub(&prim, tbl[index].code, x + static_cast<int>(std::lround(fraction)), y, gaiji_color, font_h);
         } else {
             int        outline = 1;
             RGBAQ_TYPE glyph_color = GetFontColor(index, &outline);
@@ -3899,9 +4009,10 @@ void ClsMes::DrawFont() {
 
             if (digit_font == 1 && digit != -1) {
                 MySetTex("gaiji", &prim);
-                DrawDigit(&prim, digit, x, y, alpha, &glyph_color);
+                DrawDigit(&prim, digit, x + static_cast<int>(std::lround(fraction)), y, alpha, &glyph_color);
             } else {
                 CFont::alpha = alpha;
+                const dc2::font::SubpixelPen kerned(fraction);
 
                 if (0 <= line_alpha[line]) {
                     DrawChar(&prim, tbl[index].code, x, y, outline, glyph_color, line_alpha[line]);

@@ -121,6 +121,23 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "switch",
+            "displayName": "Nintendo Switch homebrew (Mesa NVK)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/port/build/switch",
+            "toolchainFile": "$env{DEVKITPRO}/cmake/Switch.cmake",
+            "cacheVariables": {
+                "PLATFORM": "SWITCH",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CT_BUILD_TESTS": "OFF",
+                "CT_ENABLE_TRACY": "OFF",
+                "CT_LTO": "off",
+                "CT_SYMBOLS": "off",
+                "CT_LUAU_PRECOMPILE": "ON",
+                "KZ_FFMPEG_DIR": "/opt/switch/ffmpeg"
+            }
         }
     ],
     "buildPresets": [
@@ -139,6 +156,10 @@
         {
             "name": "macos-arm64-release",
             "configurePreset": "macos-arm64-release"
+        },
+        {
+            "name": "switch",
+            "configurePreset": "switch"
         }
     ],
     "testPresets": [

@@ -74,7 +74,7 @@ jobs:
         run: cmake --build port/build/ios-arm64-release --target darkchronicle --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
 
       # The .ipa is unsigned: a sideloading tool (Sideloadly, AltStore) signs it with the installer's Apple ID.
-      # The button symbols and the gameplay seed (assets/data.zip) go inside the bundle, which is where the game
+      # The button symbols, the text fonts and the gameplay seed (assets/data.zip) go inside the bundle, which is where the game
       # looks beside its executable.
       - name: Package the .ipa
         run: |
@@ -83,7 +83,7 @@ jobs:
           cp -R "$build/darkchronicle.app" "$RUNNER_TEMP/ipa/Payload/"
           # The split debug symbols would double the download; they are no part of the app.
           rm -rf "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle.dSYM"
-          cp -R "$build/glyphs" "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/"
+          cp -R "$build/glyphs" "$build/fonts" "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/"
           # The Luau scripts the events run, which the game finds in scripts/ beside its executable.
           cp -R "$build/scripts" "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/"
           test -n "$(find "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/scripts" -name '*.luau' | head -n1)"

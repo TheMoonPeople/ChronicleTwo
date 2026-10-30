@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "character.hpp"
 #include "mg_math.hpp"
@@ -144,7 +145,7 @@ int CVillagerMngr::Register(int vlgr_id, int chara_id, CVillagerPlaceInfo *place
     villager->place = place;
 
     if (place != nullptr) {
-        *reinterpret_cast<u_long128 *>(villager->pos) = *reinterpret_cast<u_long128 *>(place->pos);
+        std::memmove(villager->pos, place->pos, sizeof(float) * 4);
         villager->pos[3] = 1.0f;
         mgZeroVector(villager->rot);
         villager->rot[1] = place->pos[3];
@@ -388,7 +389,7 @@ int CVillagerMngr::GetTalkRect(int chara_id, float *rect) {
         return false;
     }
 
-    *reinterpret_cast<u_long128 *>(rect) = *reinterpret_cast<u_long128 *>(place->talk_offset);
+    std::memmove(rect, place->talk_offset, sizeof(float) * 4);
 
     if (mgDistVector(rect) != 0.0f) {
         is_empty = false;

@@ -101,7 +101,7 @@ jobs:
         if: ${{ !inputs.tests }}
         run: |
           mkdir -p artifacts
-          tar -czf artifacts/chronicletwo-macos-arm64.tar.gz -C port/build/macos-arm64-release darkchronicle dc2data scripts glyphs Luau-LICENSE.txt Tracy-LICENSE.txt -C assets data.zip
+          tar -czf artifacts/chronicletwo-macos-arm64.tar.gz -C port/build/macos-arm64-release darkchronicle dc2data scripts glyphs fonts Luau-LICENSE.txt Tracy-LICENSE.txt -C assets data.zip
 
       - name: Upload the macOS build
         if: ${{ !inputs.tests }}

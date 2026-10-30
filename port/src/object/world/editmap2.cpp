@@ -24,27 +24,7 @@ static const int   kBalanceLimit = 4;
 static const int   kPartsTypeRiver = 0xB;
 static const int   kNpcLiveLength = 7;
 static const int   kChildIdMax = 0x200;
-#ifndef PORT
-/**
- *
- * Calculates a normal for a triangle projected onto the horizontal plane.
- *
- */
-static void PlaneNormalXZ(float *normal, float *p0, float *p1, float *p2) {
-    asm {
-        lqc2 vf15, 0(p0)
-        vsub.xyzw vf10, vf10, vf10
-        lqc2 vf16, 0(p1)
-        vsub.xyzw vf11, vf11, vf11
-        lqc2 vf17, 0(p2)
-        vsub.xz vf10, vf16, vf15
-        vsub.xz vf11, vf17, vf15
-        vopmula.xyz ACC, vf10, vf11
-        vopmsub.xyz vf12, vf11, vf10
-        sqc2 vf12, 0(normal)
-    }
-}
-#endif
+
 float CEditMap::GetEditPartsAlt(CEditPartsInfo *info, sceVu0FVECTOR pos, float rot_y, CEditParts **parts, int num) {
     sceVu0FMATRIX   parts_matrix;
     sceVu0FMATRIX   invers_matrix;
@@ -293,7 +273,7 @@ int CEditMap::CheckEditPartsOnRiver(CEditPartsInfo *info, float *pos, float rot_
 
                 for (int c = 0; c < EDIT_GRID_CORNER_MAX; c++) {
                     sceVu0CopyMatrix(piece_matrix, grid[i]->rot[cell->rot[c]]);
-                    *reinterpret_cast<u_long128 *>(piece_matrix[3]) = *reinterpret_cast<u_long128 *>(corner[c]);
+                    std::memmove(piece_matrix[3], corner[c], sizeof(float) * 4);
                     mgInversMatrix(invers_matrix, piece_matrix);
                     mgMulMatrix(local_matrix, invers_matrix, matrix);
                     river_area += river_info[cell->piece[c]].col_floor.OverlapXZ(info->col_area5, local_matrix, nullptr);
@@ -365,11 +345,11 @@ int CEditMap::CheckRiverParts(float *pos) {
     river->GetRiverPos(x, z, corner);
 
     for (int c = 0; c < EDIT_GRID_CORNER_MAX; c++) {
-        *reinterpret_cast<u_long128 *>(piece_matrix[c][0]) = *reinterpret_cast<u_long128 *>(river->rot[cell_copy.rot[c]][0]);
-        *reinterpret_cast<u_long128 *>(piece_matrix[c][1]) = *reinterpret_cast<u_long128 *>(river->rot[cell_copy.rot[c]][1]);
-        *reinterpret_cast<u_long128 *>(piece_matrix[c][2]) = *reinterpret_cast<u_long128 *>(river->rot[cell_copy.rot[c]][2]);
-        *reinterpret_cast<u_long128 *>(piece_matrix[c][3]) = *reinterpret_cast<u_long128 *>(river->rot[cell_copy.rot[c]][3]);
-        *reinterpret_cast<u_long128 *>(piece_matrix[c][3]) = *reinterpret_cast<u_long128 *>(corner[c]);
+        std::memmove(piece_matrix[c][0], river->rot[cell_copy.rot[c]][0], sizeof(float) * 4);
+        std::memmove(piece_matrix[c][1], river->rot[cell_copy.rot[c]][1], sizeof(float) * 4);
+        std::memmove(piece_matrix[c][2], river->rot[cell_copy.rot[c]][2], sizeof(float) * 4);
+        std::memmove(piece_matrix[c][3], river->rot[cell_copy.rot[c]][3], sizeof(float) * 4);
+        std::memmove(piece_matrix[c][3], corner[c], sizeof(float) * 4);
     }
 
     river->GetGridBox(&box, pos);

@@ -811,14 +811,14 @@ static int FishFontH;
  * Number of fish appearance maps.
  *
  */
-static int FishPlaceMapNum;
+int FishPlaceMapNum;
 
 /**
  *
  * Fish appearance map table.
  *
  */
-static FISH_PLACE_MAP *FishPlaceMap;
+FISH_PLACE_MAP *FishPlaceMap;
 
 /**
  *
@@ -1436,11 +1436,11 @@ static void StepDataLoading(void *arg) {
 
     if (scene->CheckLoadBGM(bgm_no) != 0) {
         const std::string bgm_path = scene->GetBgmFile(bgm_no);
-        u_int            *bgm_pack = AssetDirectoryRead(pack, AssetMemberName(bgm_path.c_str()), nullptr);
+        auto              bgm_pack = dc2::assets::ReadDirectoryMember(read_info, dc2::assets::MemberName(bgm_path));
 
-        if (bgm_pack != nullptr) {
+        if (bgm_pack) {
             BgmReadFlag = 1;
-            scene->LoadBGMPack(bgm_no, bgm_pack);
+            scene->LoadBGMPack(bgm_no, reinterpret_cast<u32 *>(bgm_pack.Bytes().data()));
         }
     }
 
@@ -1798,14 +1798,14 @@ int sgDrawFishing(SubGameInfo *info) {
 
         LureFrame->GetLWMatrix(uki_matrix);
         sceVu0FVECTOR lure_swap_row;
-        *reinterpret_cast<u_long128 *>(lure_swap_row) = *reinterpret_cast<u_long128 *>(uki_matrix[0]);
-        *reinterpret_cast<u_long128 *>(uki_matrix[0]) = *reinterpret_cast<u_long128 *>(uki_matrix[2]);
-        *reinterpret_cast<u_long128 *>(uki_matrix[2]) = *reinterpret_cast<u_long128 *>(lure_swap_row);
+        std::memmove(lure_swap_row, uki_matrix[0], sizeof(float) * 4);
+        std::memmove(uki_matrix[0], uki_matrix[2], sizeof(float) * 4);
+        std::memmove(uki_matrix[2], lure_swap_row, sizeof(float) * 4);
         sceVu0ScaleVector(uki_matrix[2], uki_matrix[2], -1.0f);
-        *reinterpret_cast<u_long128 *>(lure_matrix[0]) = *reinterpret_cast<u_long128 *>(uki_matrix[0]);
-        *reinterpret_cast<u_long128 *>(lure_matrix[1]) = *reinterpret_cast<u_long128 *>(uki_matrix[1]);
-        *reinterpret_cast<u_long128 *>(lure_matrix[2]) = *reinterpret_cast<u_long128 *>(uki_matrix[2]);
-        *reinterpret_cast<u_long128 *>(lure_matrix[3]) = *reinterpret_cast<u_long128 *>(uki_matrix[3]);
+        std::memmove(lure_matrix[0], uki_matrix[0], sizeof(float) * 4);
+        std::memmove(lure_matrix[1], uki_matrix[1], sizeof(float) * 4);
+        std::memmove(lure_matrix[2], uki_matrix[2], sizeof(float) * 4);
+        std::memmove(lure_matrix[3], uki_matrix[3], sizeof(float) * 4);
         LureFrame->GetWorldPosition(lure_matrix[3], hook_offset);
     }
 
@@ -1820,14 +1820,14 @@ int sgDrawFishing(SubGameInfo *info) {
 
         HariFrame->GetLWMatrix(uki_matrix);
         sceVu0FVECTOR hari_swap_row;
-        *reinterpret_cast<u_long128 *>(hari_swap_row) = *reinterpret_cast<u_long128 *>(uki_matrix[1]);
-        *reinterpret_cast<u_long128 *>(uki_matrix[1]) = *reinterpret_cast<u_long128 *>(uki_matrix[2]);
-        *reinterpret_cast<u_long128 *>(uki_matrix[2]) = *reinterpret_cast<u_long128 *>(hari_swap_row);
+        std::memmove(hari_swap_row, uki_matrix[1], sizeof(float) * 4);
+        std::memmove(uki_matrix[1], uki_matrix[2], sizeof(float) * 4);
+        std::memmove(uki_matrix[2], hari_swap_row, sizeof(float) * 4);
         sceVu0ScaleVector(uki_matrix[0], uki_matrix[0], -1.0f);
-        *reinterpret_cast<u_long128 *>(lure_matrix[0]) = *reinterpret_cast<u_long128 *>(uki_matrix[0]);
-        *reinterpret_cast<u_long128 *>(lure_matrix[1]) = *reinterpret_cast<u_long128 *>(uki_matrix[1]);
-        *reinterpret_cast<u_long128 *>(lure_matrix[2]) = *reinterpret_cast<u_long128 *>(uki_matrix[2]);
-        *reinterpret_cast<u_long128 *>(lure_matrix[3]) = *reinterpret_cast<u_long128 *>(uki_matrix[3]);
+        std::memmove(lure_matrix[0], uki_matrix[0], sizeof(float) * 4);
+        std::memmove(lure_matrix[1], uki_matrix[1], sizeof(float) * 4);
+        std::memmove(lure_matrix[2], uki_matrix[2], sizeof(float) * 4);
+        std::memmove(lure_matrix[3], uki_matrix[3], sizeof(float) * 4);
         HariFrame->GetWorldPosition(lure_matrix[3], hook_offset);
     }
 
@@ -2091,7 +2091,7 @@ static void CharaControl(CScene *scene, CPadControl *pad) {
             chara->GetPosition(position);
             chara->GetRotation(rotation);
             mgCreateMatrixPY(matrix, position, rotation[1]);
-            *reinterpret_cast<u_long128 *>(velocity) = *reinterpret_cast<u_long128 *>(chara->velocity);
+            std::memmove(velocity, chara->velocity, sizeof(float) * 4);
 
             if (pad == nullptr) {
                 memset(&idle_info.move_info, 0, sizeof(idle_info.move_info));
@@ -2373,8 +2373,8 @@ void SelectCastingPoint(CScene *scene, CPadControl *pad) {
         CastOKFlag = 0;
     }
 
-    *reinterpret_cast<u_long128 *>(&CastPoint) = *reinterpret_cast<u_long128 *>(cast_dir);
-    *reinterpret_cast<u_long128 *>(&CastPointCur) = *reinterpret_cast<u_long128 *>(cast_dir);
+    std::memmove(&CastPoint, cast_dir, sizeof(float) * 4);
+    std::memmove(&CastPointCur, cast_dir, sizeof(float) * 4);
 
     if (CastOKFlag != 0) {
         SetWaterLevel(cast_dir[1]);
@@ -2430,7 +2430,7 @@ void DrawHamon(float *pos, float scale) {
         scale_vec.v[0] = scale;
         scale_vec.v[1] = scale;
         scale_vec.v[2] = scale;
-        *reinterpret_cast<u_long128 *>(pos_vec) = *reinterpret_cast<u_long128 *>(pos);
+        std::memmove(pos_vec, pos, sizeof(float) * 4);
         pos_vec[1] = 0.5f + GetWaterLevel();
         EffectMan->CreateEffSpt("\x91\xAB\x94\x67\x96\xE4", 0, 0);
         EffectMan->SetScriptVect1(pos_vec, -1, -1);
@@ -2452,7 +2452,7 @@ void DrawSplash(float *pos, float scale) {
         scale_vec.v[0] = scale;
         scale_vec.v[1] = scale;
         scale_vec.v[2] = scale;
-        *reinterpret_cast<u_long128 *>(pos_vec) = *reinterpret_cast<u_long128 *>(pos);
+        std::memmove(pos_vec, pos, sizeof(float) * 4);
         pos_vec[1] = 0.5f + GetWaterLevel();
         EffectMan->CreateEffSpt("\x91\xAB\x90\x85\x83\x70\x83\x56\x83\x83", 0, 0);
         EffectMan->SetScriptVect1(pos_vec, -1, -1);
@@ -3673,7 +3673,7 @@ int CheckFishing(float *pos, CCPoly *polys, int count) {
     float hit_point[32][4];
     int   hits = {};
     int   i = {};
-    *reinterpret_cast<u_long128 *>(end) = *reinterpret_cast<u_long128 *>(pos);
+    std::memmove(end, pos, sizeof(float) * 4);
     end[1] -= 140.0f;
     hits = CheckHits(polys, count, pos, end, 32, hit_index, hit_point, 1, 0);
     i = 0;
@@ -3724,12 +3724,12 @@ int CheckCasting(CScene *scene, float *position, float *direction) {
     direction[1] = 40.0f + position[1];
     sceVu0SubVector(move_dir, direction, position);
     move_dir[1] = 0.0f;
-    *reinterpret_cast<u_long128 *>(end) = *reinterpret_cast<u_long128 *>(direction);
-    *reinterpret_cast<u_long128 *>(from) = *reinterpret_cast<u_long128 *>(position);
-    *reinterpret_cast<u_long128 *>(to) = *reinterpret_cast<u_long128 *>(direction);
+    std::memmove(end, direction, sizeof(float) * 4);
+    std::memmove(from, position, sizeof(float) * 4);
+    std::memmove(to, direction, sizeof(float) * 4);
     from[1] = direction[1];
     from[3] = 1.0f;
-    *reinterpret_cast<u_long128 *>(point_b) = *reinterpret_cast<u_long128 *>(direction);
+    std::memmove(point_b, direction, sizeof(float) * 4);
 
     if (CheckFishing(direction, polys, poly_count) == 0) {
         return 0;
@@ -3739,7 +3739,7 @@ int CheckCasting(CScene *scene, float *position, float *direction) {
     mgNormalizeVector(step_point, move_dir, 80.0f);
     mgAddVector(step_point, position);
     step_point[1] = end[1];
-    *reinterpret_cast<u_long128 *>(point_a) = *reinterpret_cast<u_long128 *>(step_point);
+    std::memmove(point_a, step_point, sizeof(float) * 4);
 
     if (CheckFishing(step_point, polys, poly_count) == 0) {
         return 0;
@@ -3752,7 +3752,7 @@ int CheckCasting(CScene *scene, float *position, float *direction) {
     mgAddVector(point_a, point_dir);
 
     for (int i = 1; i < steps; i++) {
-        *reinterpret_cast<u_long128 *>(probe) = *reinterpret_cast<u_long128 *>(point_a);
+        std::memmove(probe, point_a, sizeof(float) * 4);
 
         if (CheckFishing(probe, polys, poly_count) == 0) {
             return 0;

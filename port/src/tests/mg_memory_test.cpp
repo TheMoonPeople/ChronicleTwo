@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -7,6 +8,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 #include "mg_memory.hpp"
 #include "platform/arena.hpp"
@@ -632,10 +634,14 @@ TEST_F(MgMemory, ArenaBufferSubspansPreserveTheOriginalLeaseIdentity) {
     auto  second = whole.Subspan(8 * sizeof(u_long128), 8 * sizeof(u_long128));
     ASSERT_EQ(first.Bytes().size(), 8 * sizeof(u_long128));
     ASSERT_EQ(second.Bytes().data(), reinterpret_cast<u8 *>(allocation + 8));
+    EXPECT_TRUE(whole.SameIdentity(dc2::memory::ArenaBuffer::Bind(memory, std::span(reinterpret_cast<u8 *>(allocation), 16 * sizeof(u_long128)))));
+    EXPECT_FALSE(whole.SameIdentity(first));
     EXPECT_TRUE(whole.Subspan(16 * sizeof(u_long128), 1).Bytes().empty());
     EXPECT_TRUE(whole.Subspan(std::numeric_limits<std::size_t>::max(), 1).Bytes().empty());
     memory.stReset();
     ASSERT_EQ(memory.Alloc(16), allocation);
+    const auto replacement = dc2::memory::ArenaBuffer::Bind(memory, std::span(reinterpret_cast<u8 *>(allocation), 16 * sizeof(u_long128)));
+    EXPECT_FALSE(whole.SameIdentity(replacement));
     EXPECT_TRUE(first.Bytes().empty());
     EXPECT_TRUE(second.Bytes().empty());
     EXPECT_TRUE(whole.Subspan(0, 1).Bytes().empty());
@@ -1143,4 +1149,90 @@ TEST_F(MgMemory, ImmutableResourcesPreserveUnrelatedCompletedHeapDependencies) {
     heap.EndStackMode();
     heap.Free(first);
     EXPECT_EQ(resource.Acquire<int>(), nullptr);
+}
+
+TEST_F(MgMemory, BoundedTextReadsOnlyItsDeclaredExtentAndPreservesAdjacentStorage) {
+    constexpr std::array<char, 3> source{'a', 'b', 'c'};
+    constexpr std::size_t         capacity = 2 * sizeof(u_long128);
+    std::memset(buffer_, 0xA5, capacity);
+    mgCMemory memory;
+    memory.stSetBuffer(buffer_, 2);
+    const auto *copy = dc2::memory::CopyText(memory, std::string_view(source.data(), source.size()));
+    ASSERT_NE(copy, nullptr);
+    EXPECT_STREQ(copy, "abc");
+    EXPECT_EQ(memory.stGetUsed(), 1);
+    const auto *bytes = reinterpret_cast<const unsigned char *>(buffer_);
+    for (std::size_t index = source.size() + 1; index < capacity; ++index) {
+        EXPECT_EQ(bytes[index], 0xA5);
+    }
+}
+
+TEST_F(MgMemory, EmptyBoundedTextNeedsNoSourcePointerAndOwnsItsTerminator) {
+    std::memset(buffer_, 0xA5, 2 * sizeof(u_long128));
+    mgCMemory memory;
+    memory.stSetBuffer(buffer_, 2);
+    const auto *copy = dc2::memory::CopyText(memory, std::string_view{});
+    ASSERT_NE(copy, nullptr);
+    EXPECT_STREQ(copy, "");
+    EXPECT_EQ(memory.stGetUsed(), 1);
+}
+
+TEST_F(MgMemory, BoundedTextPreservesEmbeddedZeroesWithoutReadingPastTheView) {
+    constexpr std::array<char, 4> source{'a', '\0', 'b', 'c'};
+    mgCMemory                     memory;
+    memory.stSetBuffer(buffer_, 2);
+    const auto *copy = dc2::memory::CopyText(memory, std::string_view(source.data(), source.size()));
+    ASSERT_NE(copy, nullptr);
+    EXPECT_EQ(std::memcmp(copy, source.data(), source.size()), 0);
+    EXPECT_EQ(copy[source.size()], '\0');
+}
+
+TEST_F(MgMemory, ImmutableResourceIdentitiesRemainExactAcrossLeaseGaps) {
+    constexpr std::size_t per_block = 256;
+    mgCMemory             heap;
+    heap.SetHeapMem(buffer_, kQuadwords);
+    std::array<dc2::memory::ArenaResource, per_block * 3> resources;
+    std::array<mgCMemory, 3>                              children;
+    std::array<u_long128 *, 3>                            blocks{};
+    for (std::size_t block = 0; block < blocks.size(); ++block) {
+        ASSERT_NE(heap.StartStackMode(MG_STACK_MODE_FIT, static_cast<int>(per_block + 16)), nullptr);
+        for (std::size_t offset = 0; offset < per_block; ++offset) {
+            auto *storage = heap.Alloc(1);
+            ASSERT_NE(storage, nullptr);
+            if (offset == 0) {
+                blocks[block] = storage;
+            }
+            if (offset == per_block - 1) {
+                children[block].stSetChildBuffer(heap, storage, 1);
+                ASSERT_TRUE(dc2::memory::ArenaStorageLive(children[block]));
+            }
+            const auto anchor = dc2::memory::ArenaBuffer::Bind(heap, std::span(reinterpret_cast<u8 *>(storage), sizeof(u_long128)));
+            const auto index = block * per_block + offset;
+            resources[index] = dc2::memory::ArenaResource::Store(anchor, std::make_shared<const std::size_t>(index));
+            ASSERT_TRUE(resources[index].IsLive());
+        }
+        heap.EndStackMode();
+    }
+    heap.Free(blocks[1]);
+    for (std::size_t index = 0; index < resources.size(); ++index) {
+        const auto value = resources[index].Acquire<std::size_t>();
+        if (index / per_block == 1) {
+            EXPECT_EQ(value, nullptr) << index;
+        } else {
+            ASSERT_NE(value, nullptr) << index;
+            EXPECT_EQ(*value, index);
+        }
+    }
+    EXPECT_TRUE(dc2::memory::ArenaStorageLive(children[0]));
+    EXPECT_FALSE(dc2::memory::ArenaStorageLive(children[1]));
+    EXPECT_TRUE(dc2::memory::ArenaStorageLive(children[2]));
+    ASSERT_NE(heap.StartStackMode(MG_STACK_MODE_FIT, 32), nullptr);
+    auto *replacement = heap.Alloc(1);
+    ASSERT_NE(replacement, nullptr);
+    const auto anchor = dc2::memory::ArenaBuffer::Bind(heap, std::span(reinterpret_cast<u8 *>(replacement), sizeof(u_long128)));
+    const auto resource = dc2::memory::ArenaResource::Store(anchor, std::make_shared<const std::size_t>(resources.size()));
+    ASSERT_NE(resource.Acquire<std::size_t>(), nullptr);
+    EXPECT_EQ(*resource.Acquire<std::size_t>(), resources.size());
+    EXPECT_EQ(resources[per_block].Acquire<std::size_t>(), nullptr);
+    EXPECT_FALSE(dc2::memory::ArenaStorageLive(children[1]));
 }
