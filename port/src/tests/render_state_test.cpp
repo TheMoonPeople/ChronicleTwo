@@ -8,8 +8,8 @@
 #include "gfx_fixture.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 /**

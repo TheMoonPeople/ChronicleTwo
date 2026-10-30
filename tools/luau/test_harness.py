@@ -23,12 +23,12 @@ LOCAL, LOCAL_INDEX = AddrMode.LOCAL, AddrMode.LOCAL_INDEX
 LOCAL_FLOAT, POINTER_INDEX = AddrMode.LOCAL_FLOAT, AddrMode.POINTER_INDEX
 CATALOG = {
     "namespace": "action",
-    "commands": [{"no": 2, "luau": "ProgGet", "signatures": [{"argc": 1, "params": [{"name": "prog", "dir": "out", "type": "s32"}]}]}],
+    "commands": [{"no": 2, "luau": "get_program_value", "signatures": [{"argc": 1, "params": [{"name": "prog", "dir": "out", "type": "s32"}]}]}],
 }
 GOOD_MODULE = """local vm = require("@lib/vm")
 local function p100()
     local x = 0
-    x = action.ProgGet() or x
+    x = action.get_program_value() or x
     vm.wait()
     print(x)
     return x
@@ -42,7 +42,7 @@ WRONG_MODULE = GOOD_MODULE.replace("print(x)", "print(x + 1)")
 STATE_CATALOG = {
     "namespace": "action",
     "commands": [
-        {"no": 1, "luau": "ProgSet", "signatures": [{"argc": 1, "params": [{"name": "prog", "dir": "in", "type": "s32"}]}]},
+        {"no": 1, "luau": "set_program_value", "signatures": [{"argc": 1, "params": [{"name": "prog", "dir": "in", "type": "s32"}]}]},
         CATALOG["commands"][0],
     ],
 }
@@ -102,11 +102,11 @@ def set_then_get_fixture():
 MONSTER_CATALOG = {
     "namespace": "monster",
     "commands": [
-        {"no": 35, "luau": "GetRnd", "signatures": [{"argc": 2, "params": [
+        {"no": 35, "luau": "get_random", "signatures": [{"argc": 2, "params": [
             {"name": "range", "dir": "in", "type": "s32"}, {"name": "argc", "dir": "out", "type": "s32"}]}]},
-        {"no": 37, "luau": "VPush", "signatures": [{"argc": 2, "params": [
+        {"no": 37, "luau": "set_variable", "signatures": [{"argc": 2, "params": [
             {"name": "index", "dir": "in", "type": "s32"}, {"name": "value", "dir": "in", "type": "s32"}]}]},
-        {"no": 38, "luau": "VPop", "signatures": [{"argc": 2, "params": [
+        {"no": 38, "luau": "get_variable", "signatures": [{"argc": 2, "params": [
             {"name": "index", "dir": "in", "type": "s32"}, {"name": "out2", "dir": "out", "type": "s32"}]}]},
     ],
 }
@@ -197,7 +197,7 @@ script.setup = function() end
 script[100] = function()
     local x = 0
     while true do
-        x = action.ProgGet() or x
+        x = action.get_program_value() or x
     end
 end
 return script
@@ -255,7 +255,7 @@ class RecordTest(unittest.TestCase):
             "commands": [
                 {
                     "no": 2,
-                    "luau": "ProgGet",
+                    "luau": "get_program_value",
                     "signatures": [{"argc": 1, "handler_rejects": True, "params": [{"name": "prog", "dir": "out", "type": "s32"}]}],
                 }
             ],
@@ -269,7 +269,7 @@ class RecordTest(unittest.TestCase):
             "commands": [
                 {
                     "no": 30,
-                    "luau": "SetPallet",
+                    "luau": "start_palette_flash",
                     "signatures": [
                         {
                             "argc": 2,
@@ -331,7 +331,7 @@ class RecordTest(unittest.TestCase):
         tagged = {
             "namespace": "monster",
             "commands": [
-                {"no": 37, "luau": "VPush", "signatures": [{"argc": 2, "params": [
+                {"no": 37, "luau": "set_variable", "signatures": [{"argc": 2, "params": [
                     {"name": "index", "dir": "in", "type": "s32"},
                     {"name": "value", "dir": "in", "type": "s32", "tagged": True}]}]},
             ],
@@ -351,7 +351,7 @@ class RecordTest(unittest.TestCase):
         )
 
     def test_output_takes_the_handlers_type_and_loads_read_its_bits(self):
-        # ProgGet writes an integer; the script loads the variable as a float, which reads the integer's bits.
+        # get_program_value writes an integer; the script loads the variable as a float, which reads the integer's bits.
         body = [("push", 2), ("LOAD_ADDR", 0, LOCAL_FLOAT), ("EXT", 2), ("LOAD", 0, LOCAL_FLOAT), ("PRINT", 1), ("push", 0), ("RET",)]
         program = decode(assemble({"main": (0, 0, [("END",)]), "p100": (1, 0, body)}, "main", {100: "p100"}))
         ext = next(i.offset for i in program.functions[max(program.functions)].instructions if i.op == Op.EXT)
@@ -464,15 +464,15 @@ class DifferentialTest(unittest.TestCase):
         "commands": [
             {"no": 163, "luau": "GetLife", "signatures": [{"argc": 1, "params": [
                 {"name": "life", "dir": "out", "type": "f32", "tagged": True}]}]},
-            {"no": 38, "luau": "VPop", "signatures": [{"argc": 1, "params": [
+            {"no": 38, "luau": "get_variable", "signatures": [{"argc": 1, "params": [
                 {"name": "value", "dir": "out", "type": "s32", "tagged": True, "copies": True}]}]},
         ],
     }
 
     def tagged_module(self, call):
         return (
-            'local script = {}\nscript.setup = function() end\n'
-            f'script[100] = function()\n    local x = 0.5\n    x = {call} or x\n    print(x)\n    return 0\nend\n'
+            'local vm = require("@lib/vm")\nlocal script = {}\nscript.setup = function() end\n'
+            f'script[100] = function()\n    local x = 0.5\n    x = {call} or x\n    print(vm.float(x))\n    return 0\nend\n'
             'return script\n'
         )
 
@@ -482,17 +482,17 @@ class DifferentialTest(unittest.TestCase):
         self.write_module(self.tagged_module("action.GetLife()"))
         good = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(4))
         self.assertEqual(good["fail"], [], good)
-        self.write_module(self.tagged_module("action.GetLifeInt()"))
+        self.write_module(self.tagged_module("action.GetLife_int()"))
         bad = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(4))
         self.assertTrue(any("the handler read f32, the call passes s32" in line for line in bad["fail"]), bad)
 
     def test_wrong_variant_of_a_bit_copying_output_fails(self):
-        # VPop copies the stored bits; the script reads them as a float, which the Int variant reads as an integer.
+        # get_variable copies the stored bits; the script reads them as a float, which the Int variant reads as an integer.
         program = self.tagged_output_fixture(38, ("pushf", 0.5))
-        self.write_module(self.tagged_module("action.VPopFloat()"))
+        self.write_module(self.tagged_module("action.get_variable_float()"))
         good = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(8))
         self.assertEqual(good["fail"], [], good)
-        self.write_module(self.tagged_module("action.VPopInt()"))
+        self.write_module(self.tagged_module("action.get_variable_int()"))
         bad = harness.run(self.root, "prog", program, self.TAGGED_CATALOG, "action", seeds=range(8))
         self.assertTrue(bad["fail"], bad)
 
@@ -552,17 +552,17 @@ class DifferentialTest(unittest.TestCase):
         self.assertGreater(bad.failed, 0, bad.lines)
 
     def test_a_signed_zero_stored_and_read_back_as_an_integer_fails(self):
-        # Monster VPush stores a float's bits and VPop copies them into an integer variable: 0.0 reads back as 0 and
+        # Monster set_variable stores a float's bits and get_variable copies them into an integer variable: 0.0 reads back as 0 and
         # -0.0 as -2147483648, so a module that pushes the other zero is a wrong translation.
         body = [
             ("push", 37), ("push", 0), ("pushf", 0.0), ("EXT", 3),
             ("push", 38), ("push", 0), ("LOAD_ADDR", 0, LOCAL), ("EXT", 3),
             ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
         ]
-        self.monster_mutation(1, body, "monster.VPushFloat(0, 0.0)", "monster.VPushFloat(0, -0.0)")
+        self.monster_mutation(1, body, "monster.set_variable_float(0, 0.0)", "monster.set_variable_float(0, -0.0)")
 
     def test_a_negative_zero_passed_for_an_integer_zero_to_a_float_parameter_fails(self):
-        # Retail pushes the integer 0 to CopyVector, whose handler reads it as the float +0.0 and copies its bits into
+        # Retail pushes the integer 0 to copy_vector, whose handler reads it as the float +0.0 and copies its bits into
         # the integer output, which reads 0. The runtime passes -0.0 to the float parameter as is, and the output then
         # reads -2147483648, although the trace marks the input as an integer.
         body = [
@@ -570,7 +570,7 @@ class DifferentialTest(unittest.TestCase):
             ("push", 0), ("push", 0), ("push", 0), ("EXT", 7),
             ("LOAD", 0, LOCAL), ("PRINT", 1), ("push", 0), ("RET",),
         ]
-        self.monster_mutation(3, body, "monster.CopyVector(0, 0, 0)", "monster.CopyVector(-0.0, 0, 0)")
+        self.monster_mutation(3, body, "monster.copy_vector(0, 0, 0)", "monster.copy_vector(-0.0, 0, 0)")
 
     VPUSH_BODY = [
         ("push", 37), ("push", 0), "value", ("EXT", 3),
@@ -579,22 +579,22 @@ class DifferentialTest(unittest.TestCase):
     ]
 
     def test_an_integer_passed_as_a_float_slot_to_a_tagged_handler_fails(self):
-        # Retail pushes INT 1, which VPush stores as is. 1.00000001 does not fit an integer, so the runtime passes FLOAT
-        # 1.0, which VPush stores as the bits 1065353216: the same float32, but another slot.
+        # Retail pushes INT 1, which set_variable stores as is. 1.00000001 does not fit an integer, so the runtime passes FLOAT
+        # 1.0, which set_variable stores as the bits 1065353216: the same float32, but another slot.
         body = [("push", 1) if step == "value" else step for step in self.VPUSH_BODY]
-        self.monster_mutation(1, body, "monster.VPush(0, 1)", "monster.VPush(0, 1.00000001)")
+        self.monster_mutation(1, body, "monster.set_variable(0, 1)", "monster.set_variable(0, 1.00000001)")
 
     def test_an_ext_call_that_changes_a_tagged_handlers_slot_fails(self):
-        # Ext marshals 1.0 as an unknown type, so as INT 1, where retail and VPushFloat pass FLOAT 1.0.
+        # call_command marshals 1.0 as an unknown type, so as INT 1, where retail and set_variable_float pass FLOAT 1.0.
         body = [("pushf", 1.0) if step == "value" else step for step in self.VPUSH_BODY]
-        self.monster_mutation(1, body, "monster.VPushFloat(0, 1.0)", "monster.Ext(37, 0, 1.0)")
+        self.monster_mutation(1, body, "monster.set_variable_float(0, 1.0)", "monster.call_command(37, 0, 1.0)")
 
     def test_a_nan_of_another_payload_or_sign_stored_by_a_tagged_handler_fails(self):
-        # VPush stores the FLOAT's bits and VPop reads them into an integer: 0x7fc00001 reads back as 2143289345, and
+        # set_variable stores the FLOAT's bits and get_variable reads them into an integer: 0x7fc00001 reads back as 2143289345, and
         # the NaNs 0x7fc00002 and 0xffc00001 as 2143289346 and -4194303.
         nan = refvm.bits_to_float(0x7FC00001)
         body = [("pushf", nan) if step == "value" else step for step in self.VPUSH_BODY]
-        right = 'monster.VPushFloat(0, (string.unpack("<f", string.pack("<I4", 0x7fc00001))))'
+        right = 'monster.set_variable_float(0, (string.unpack("<f", string.pack("<I4", 0x7fc00001))))'
         for wrong in ("0x7fc00002", "0xffc00001"):
             with self.subTest(wrong=wrong):
                 self.monster_mutation(1, body, right, right.replace("0x7fc00001", wrong))
@@ -717,7 +717,7 @@ class DifferentialTest(unittest.TestCase):
         self.assertTrue(all(scenario.cut == harness.BUDGET for scenario in result["prefix"]))
 
     def test_step_budget_scenario_fails_when_its_prefix_differs(self):
-        self.write_module(ENDLESS_MODULE.replace("        x = action.ProgGet() or x\n", "        x = action.ProgGet() or x\n        print(x)\n"))
+        self.write_module(ENDLESS_MODULE.replace("        x = action.get_program_value() or x\n", "        x = action.get_program_value() or x\n        print(x)\n"))
         with mock.patch.object(harness, "MAX_STEPS", 2000):
             result = harness.run(self.root, "prog", endless_fixture(), CATALOG, "action", seeds=range(1))
         self.assertEqual(result["prefix"], [])

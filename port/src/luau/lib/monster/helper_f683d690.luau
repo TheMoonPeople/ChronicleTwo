@@ -6,10 +6,10 @@ local vm = require("@lib/vm")
 --- Helper function.
 local function helper_f683d690()
 	local var0: s32 = 0
-	var0 = monster.GetMosStatus() or var0
+	var0 = monster.get_motion_status() or var0
 	while var0 ~= 4 do
 		vm.wait()
-		var0 = monster.GetMosStatus() or var0
+		var0 = monster.get_motion_status() or var0
 	end
 end
 

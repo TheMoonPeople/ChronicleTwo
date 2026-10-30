@@ -7,10 +7,10 @@
 
 #include "gfx/gfx.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 
@@ -28,7 +28,7 @@ public:
         manager.render_info = &render_info;
         prim.Initialize(&memory, &vif_packet);
         // The PC builder never sets write, so Data must find it null and skip the retail copy.
-        prim.write = nullptr;
+        prim.write_buffer = {};
         mgPortSetPrimSink([this](gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices,
                                  const gfx::TextureBinding &texture, const gfx::DrawState &state) {
             batches.push_back({

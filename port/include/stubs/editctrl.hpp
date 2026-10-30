@@ -15,9 +15,6 @@ extern EditCharaMotionMode CharaMotionMode asm("EditCtrl_MotionMode");
 extern int                 CharaMotionModeCnt asm("EditCtrl_MotionCount");
 extern int                 InitEyeViewFlag asm("EditCtrl_EyeInitialized");
 
-void PortRetailResetViewMode(CScene *) asm("EditCtrl_ResetViewMode");
-void PortRetailEditMoveChara(CScene *, sceVu0FVECTOR, EditMoveCharaInfo *) asm("EditCtrl_MoveChara");
-
 static void LadderControl(CScene *scene, CPadControl *pad);
 static void CharaControl(CScene *scene, CPadControl *pad);
 static void CameraControl(CScene *scene, CPadControl *pad);

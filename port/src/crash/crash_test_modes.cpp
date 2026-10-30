@@ -59,16 +59,16 @@ volatile std::uintptr_t g_bad_address = 0x10; /**< Invalid address used by the f
     throw std::runtime_error("crash test");
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winfinite-recursion"
-
 [[gnu::noinline]] int CrashTestStackOverflow(int depth) {
     volatile char frame[4096];
     frame[0] = static_cast<char>(depth);
+    // Four GiB of recursive frames exhausts the process stack before this finite stress budget.
+    constexpr int frame_limit = 1 << 20;
+    if (depth >= frame_limit) {
+        return frame[0];
+    }
     return CrashTestStackOverflow(depth + 1) + frame[0];
 }
-
-#pragma clang diagnostic pop
 
 // Not a tail call, so the callback keeps its own frame in the trace.
 [[clang::disable_tail_calls]] void SDLCALL CrashTestAudioCallback([[maybe_unused]] void *user_data, [[maybe_unused]] SDL_AudioStream *stream,

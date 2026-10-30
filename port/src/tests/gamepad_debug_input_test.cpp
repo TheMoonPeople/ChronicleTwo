@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
+#include "debug_fixture.hpp"
 #include "gamepad.hpp"
 #include "test_hooks.hpp"
 
-TEST(GamePadDebugInput, BothModifierOrdersConsumeSelectAndL2FromTheRoutedPad) {
-    ASSERT_TRUE(GameSetJump("title"));
+using GamePadDebugInput = dc::test::DebugFixture;
+
+TEST_F(GamePadDebugInput, BothModifierOrdersConsumeSelectAndL2FromTheRoutedPad) {
     for (int first : {PAD_SELECT, PAD_L2}) {
         CGamePad pad{};
         pad.key_lock2 = 1;
@@ -17,8 +19,7 @@ TEST(GamePadDebugInput, BothModifierOrdersConsumeSelectAndL2FromTheRoutedPad) {
     }
 }
 
-TEST(GamePadDebugInput, Pad1ConsumesHeldDownUpAndReleaseEdgesOfTheWholeCombo) {
-    ASSERT_TRUE(GameSetJump("title"));
+TEST_F(GamePadDebugInput, Pad1ConsumesHeldDownUpAndReleaseEdgesOfTheWholeCombo) {
     constexpr int consumed = PAD_SELECT | PAD_L2 | PAD_CIRCLE | PAD_CROSS;
     CGamePad      pad{};
     pad.pad[0].button = consumed | PAD_RIGHT;

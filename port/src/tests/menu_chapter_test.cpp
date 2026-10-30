@@ -3,14 +3,15 @@
 
 #include <array>
 #include <chrono>
-#include <cstdlib>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <new>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "mainloop.hpp"
 #include "menucapt.hpp"
 #include "menumain.hpp"
@@ -18,6 +19,18 @@
 #include "mglib.hpp"
 #include "platform/paths.hpp"
 #include "scene.hpp"
+#include "scoped_global_object.hpp"
+
+TEST(MenuChapter, ReusedStorageStartsWithDefinedFadeAndHoldState) {
+    alignas(MENU_CHAPTER_INFO) std::array<std::byte, sizeof(MENU_CHAPTER_INFO)> storage{};
+    storage.fill(std::byte{0xA5});
+    auto *info = ::new (static_cast<void *>(storage.data())) MENU_CHAPTER_INFO;
+    EXPECT_EQ(info->tex_block[0], 0);
+    EXPECT_EQ(info->tex_block[1], 0);
+    EXPECT_EQ(info->show_cnt, 0);
+    EXPECT_FLOAT_EQ(info->logo_alpha, 0.0f);
+    std::destroy_at(info);
+}
 
 TEST(MenuChapter, LoadsLocalizedChapterTextureAndFallbackFromTextureNamespace) {
     namespace fs = std::filesystem;
@@ -52,10 +65,8 @@ TEST(MenuChapter, LoadsLocalizedChapterTextureAndFallbackFromTextureNamespace) {
     mgTexManager.SetTableBuffer(16, 4, &texture_memory);
     mgTexManager.Initialize(0x1000, -1);
 
-    auto scene = std::unique_ptr<CScene, decltype(&std::free)>(static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
-    ASSERT_TRUE(scene);
-    auto *saved_scene = MenuMainScene;
-    MenuMainScene = scene.get();
+    auto scene = dc2::test::BindGlobalOwner<MenuMainScene>(std::make_unique<CScene>());
+    ASSERT_NE(scene.get(), nullptr);
     std::vector<u_long128> storage(0x4000);
     mgCMemory              stack;
     stack.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
@@ -74,7 +85,6 @@ TEST(MenuChapter, LoadsLocalizedChapterTextureAndFallbackFromTextureNamespace) {
     EXPECT_NE(mgTexManager.GetTexture(chapter_zero, blocks[0]), nullptr);
 
     mgTexManager.Initialize(0x1000, -1);
-    MenuMainScene = saved_scene;
     LanguageCode = previous_language;
     DataReadIndex(previous_root);
     std::error_code error;
@@ -88,11 +98,8 @@ TEST(MenuChapter, MissingNarrationTimesOutAndReopeningRestartsFade) {
     PathsConfigure({.app_dir = "dc2-chapter-test", .env_data = "DC2_CHAPTER_TEST_DATA", .env_save = "DC2_CHAPTER_TEST_SAVE"});
     PathsSetDataRoot(root);
     InitCDFile();
-    auto scene = std::unique_ptr<CScene, decltype(&std::free)>(
-        static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
-    ASSERT_TRUE(scene);
-    auto *saved_scene = MenuMainScene;
-    MenuMainScene = scene.get();
+    auto scene = dc2::test::BindGlobalOwner<MenuMainScene>(std::make_unique<CScene>());
+    ASSERT_NE(scene.get(), nullptr);
     std::vector<u_long128> storage(0x4000);
     mgCMemory              stack;
     stack.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
@@ -109,7 +116,6 @@ TEST(MenuChapter, MissingNarrationTimesOutAndReopeningRestartsFade) {
     EXPECT_EQ(MenuChapterKey(), 0);
     EXPECT_EQ(MenuMainScene->fade.end, 0);
     EXPECT_FLOAT_EQ(MenuMainScene->fade.alpha, 128.0f);
-    MenuMainScene = saved_scene;
     std::filesystem::remove_all(root);
 }
 
@@ -120,11 +126,8 @@ TEST(GameplayTimingChapter, NarrationFallbackAndHoldUseNtscFrames) {
     PathsConfigure({.app_dir = "dc2-chapter-timing-test", .env_data = "DC2_CHAPTER_TEST_DATA", .env_save = "DC2_CHAPTER_TEST_SAVE"});
     PathsSetDataRoot(root);
     InitCDFile();
-    auto scene = std::unique_ptr<CScene, decltype(&std::free)>(
-        static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
-    ASSERT_TRUE(scene);
-    auto *saved_scene = MenuMainScene;
-    MenuMainScene = scene.get();
+    auto scene = dc2::test::BindGlobalOwner<MenuMainScene>(std::make_unique<CScene>());
+    ASSERT_NE(scene.get(), nullptr);
     std::vector<u_long128> storage(0x4000);
     mgCMemory              stack;
     stack.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
@@ -149,6 +152,5 @@ TEST(GameplayTimingChapter, NarrationFallbackAndHoldUseNtscFrames) {
     EXPECT_EQ(scene->fade.mode, FADE_MODE_OUT);
     scene->fade.end = 1;
     EXPECT_EQ(MenuChapterKey(), 1);
-    MenuMainScene = saved_scene;
     std::filesystem::remove_all(root);
 }

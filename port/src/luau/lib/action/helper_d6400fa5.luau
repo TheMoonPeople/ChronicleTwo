@@ -11,44 +11,44 @@ local function helper_d6400fa5()
 	local prog: s32 = 0
 	local acumu_pad: s32 = 0
 	local var8: f32 = 0
-	prog = action.ProgGet() or prog
-	var0 = action.GetBtn_2(56) or var0
+	prog = action.get_program_value() or prog
+	var0 = action.get_button_state_2(56) or var0
 	if prog == 1200 then
-		action.SetMos("ためループ")
-		acumu_pad = action.GetAcumuPad() or acumu_pad
+		action.play_motion("ためループ")
+		acumu_pad = action.get_charge_steps() or acumu_pad
 		if acumu_pad == 20 then
-			action.SetPallet(220, 255, 255, 1, 12)
+			action.start_palette_flash(220, 255, 255, 1, 12)
 		end
 		if acumu_pad > 20 then
-			action.ProgSet(prog + 1)
+			action.set_program_value(prog + 1)
 		end
 		if acumu_pad == 0 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 			helper_bac4ec65(2)
 		end
-		action.RunTameMove()
+		action.run_charge_movement()
 		return
 	end
 	if prog == 1201 then
 		if var0 == 0 then
-			action.SetMuteki(30)
-			action.SetMos("ため攻撃", -1, 6)
-			action.GetPos()
-			action.EsmCreate_1("ユリス溜め攻撃")
-			action.ProgSet(prog + 1)
+			action.set_invulnerable_time(30)
+			action.play_motion("ため攻撃", -1, 6)
+			action.get_position()
+			action.create_effect_1("ユリス溜め攻撃")
+			action.set_program_value(prog + 1)
 		else
-			action.RunTameMove()
+			action.run_charge_movement()
 		end
 		return
 	end
 	if prog == 1202 then
-		var8 = action.NowMosWait() or var8
+		var8 = action.get_motion_progress() or var8
 		if var8 >= vm.f32(0.202) and var8 <= vm.f32(0.472) then
-			action.SetBlowMove(1.5, 0.0, 1)
+			action.set_move_impulse(1.5, 0.0, 1)
 		end
-		var1 = action.GetMosStatus() or var1
+		var1 = action.get_motion_status() or var1
 		if var1 == 4 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 			helper_bac4ec65(2)
 		end
 		return

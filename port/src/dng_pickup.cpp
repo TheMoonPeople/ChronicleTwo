@@ -8,9 +8,9 @@
 #include "dng_effect.hpp"
 #include "dng_main.hpp"
 #include "dng_object.hpp"
-#include "dng_pickup_port.hpp"
 #include "gfx/gfx.hpp"
 #include "mglib.hpp"
+#include "object/dun/pickup_presentation.hpp"
 #include "prespr.hpp"
 
 namespace {
@@ -40,7 +40,7 @@ mgPortPickupScope::~mgPortPickupScope() {
     gfx::SetInterp2D({.key = static_cast<gfx::InterpKey>(key_), .generation = generation_, .world_corners = world_corners_, .teleport_distance = teleport_distance_});
 }
 
-PORT_OVERRIDE void CPullItem::Draw(mgCTexture *texture) {
+void CPullItem::Draw(mgCTexture *texture) {
     if (state == PULL_ITEM_STATE_FREE) {
         return;
     }
@@ -94,7 +94,7 @@ PORT_OVERRIDE void CPullItem::Draw(mgCTexture *texture) {
     sprite.End();
 }
 
-PORT_OVERRIDE void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
+void CPullItem::SetItem(float *position, float *new_velocity, int kind) {
     mgPortEmitPickup(this);
     sceVu0CopyVector(pos, position);
     sceVu0CopyVector(velocity, new_velocity);

@@ -11,4 +11,4 @@ inline int32_t Ftoi4(float x) {
     return Ftoi0(16.0f * x);
 }
 
-}  // namespace dc::vu1
+} // namespace dc::vu1

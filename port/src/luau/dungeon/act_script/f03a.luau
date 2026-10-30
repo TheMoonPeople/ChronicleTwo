@@ -16,35 +16,35 @@ function script.setup() end
 --- Sets the character up when its script is initialised.
 function script.init()
 	local monster_id: s32 = 0
-	monster_id = action.GetMonsId() or monster_id
+	monster_id = action.get_monster_form_id() or monster_id
 	if monster_id == 176 then
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.3, 0.45)
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃２", 0.3, 0.42)
-		action.SwEffect(0, "攻撃１", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
-		action.SwEffect(0, "攻撃２", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.3, 0.45)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃２", 0.3, 0.42)
+		action.add_sword_effect(0, "攻撃１", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
+		action.add_sword_effect(0, "攻撃２", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
 	end
 	if monster_id == 177 then
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.42, 0.52)
-		action.SetDmg2("dcol2", "", "モンスター攻撃", 2.5, 1.0, "攻撃２", 0.4, 0.5)
-		action.SwEffect(0, "攻撃１", 0.38, 0.43, "dcol0", "dcol1", 60, 10, 10)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.42, 0.52)
+		action.add_motion_damage("dcol2", "", "モンスター攻撃", 2.5, 1.0, "攻撃２", 0.4, 0.5)
+		action.add_sword_effect(0, "攻撃１", 0.38, 0.43, "dcol0", "dcol1", 60, 10, 10)
 	end
 	if monster_id == 180 then
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.35, 0.45)
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃２", 0.3, 0.4)
-		action.SwEffect(0, "攻撃１", 0.3, 0.36, "dcol0", "dcol1", 60, 10, 10)
-		action.SwEffect(0, "攻撃２", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.35, 0.45)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃２", 0.3, 0.4)
+		action.add_sword_effect(0, "攻撃１", 0.3, 0.36, "dcol0", "dcol1", 60, 10, 10)
+		action.add_sword_effect(0, "攻撃２", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
 	end
 	if monster_id == 183 then
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.35, 0.45)
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃２", 0.3, 0.4)
-		action.SwEffect(0, "攻撃１", 0.3, 0.36, "dcol0", "dcol1", 60, 10, 10)
-		action.SwEffect(0, "攻撃２", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.35, 0.45)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃２", 0.3, 0.4)
+		action.add_sword_effect(0, "攻撃１", 0.3, 0.36, "dcol0", "dcol1", 60, 10, 10)
+		action.add_sword_effect(0, "攻撃２", 0.3, 0.35, "dcol0", "dcol1", 60, 10, 10)
 	end
 	if monster_id == 186 or monster_id == 187 then
-		action.SetDmg2("dcol0", "dcol2", "モンスター剣", 2.5, 1.0, "攻撃１", 0.52, 0.63)
-		action.SetDmg2("dcol1", "dcol3", "モンスター剣", 2.5, 1.0, "攻撃１", 0.52, 0.63)
-		action.SetDmg2("dcol0", "dcol2", "モンス攻撃S", 2.5, 1.0, "攻撃２", 0.27, 0.39)
-		action.SetDmg2("dcol1", "dcol3", "モンス攻撃S", 2.5, 1.0, "攻撃２", 0.48, 0.51)
+		action.add_motion_damage("dcol0", "dcol2", "モンスター剣", 2.5, 1.0, "攻撃１", 0.52, 0.63)
+		action.add_motion_damage("dcol1", "dcol3", "モンスター剣", 2.5, 1.0, "攻撃１", 0.52, 0.63)
+		action.add_motion_damage("dcol0", "dcol2", "モンス攻撃S", 2.5, 1.0, "攻撃２", 0.27, 0.39)
+		action.add_motion_damage("dcol1", "dcol3", "モンス攻撃S", 2.5, 1.0, "攻撃２", 0.48, 0.51)
 	end
 end
 
@@ -53,29 +53,29 @@ function script.loop()
 	local prog: s32 = 0
 	local var3: s32 = 0
 	local var4: s32 = 0
-	action.ProgSet(0)
+	action.set_program_value(0)
 	while true do
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog >= 100 and prog < 199 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_1eb83da1()
 		end
 		if prog >= 200 and prog < 299 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_9a354ac4()
 		end
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog == 0 then
-			action.RunMainMove()
-			var3 = action.GetBtn_2(50) or var3
-			var4 = action.GetBtn_2(51) or var4
+			action.run_movement()
+			var3 = action.get_button_state_2(50) or var3
+			var4 = action.get_button_state_2(51) or var4
 			if var3 ~= 0 then
 				prog = 100
 			end
 			if var4 ~= 0 then
 				prog = 200
 			end
-			action.ProgSet(prog)
+			action.set_program_value(prog)
 		end
 		vm.wait()
 	end

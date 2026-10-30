@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <iterator>
+#include <utility>
+
 #include "gamedata.hpp"
 #include "mainloop.hpp"
 #include "menuaqua.hpp"
@@ -82,6 +85,10 @@ void ShowSlots(CBaseMenuClass *menu) {
 
 // The list of slots takes the keys while it shows; the item's own list only gives up its "Equip Slot" command.
 bool SlotCommand(CBaseMenuClass *menu, int push_button) {
+    if (menu->ask_para.mes_no < 0 || std::cmp_greater_equal(menu->ask_para.mes_no, std::size(MenuDCMsg))) {
+        picking = nullptr;
+        return false;
+    }
     CDC2Mes *message = MenuDCMsg[menu->ask_para.mes_no];
     if (message == nullptr || menu->ask_para.item == nullptr) {
         picking = nullptr;
@@ -89,7 +96,10 @@ bool SlotCommand(CBaseMenuClass *menu, int push_button) {
     }
     if (picking != menu || message->item_mes[0] != kSlotMessage[0]) {
         picking = nullptr;
-        if (!Decide(push_button) || menu->ask_para.cmd_msg[message->GetMsgCursor()] != kEquipSlotMessage) {
+        const int cursor = message->GetMsgCursor();
+        if (!Decide(push_button) || cursor < 0 ||
+            std::cmp_greater_equal(cursor, std::size(menu->ask_para.cmd_msg)) ||
+            cursor >= menu->ask_para.cmd_num || menu->ask_para.cmd_msg[cursor] != kEquipSlotMessage) {
             return false;
         }
         ShowSlots(menu);
@@ -116,7 +126,7 @@ bool SlotCommand(CBaseMenuClass *menu, int push_button) {
 
 } // namespace
 
-PORT_OVERRIDE int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int place, int chara) {
+int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *param, int place, int chara) {
     int num = GetItemCommandMsg(item, param->cmd_msg, param->cmd_color, param->cmd_shade, param->cmd_mark, place, chara);
     int owner = 0;
     int row = 0;
@@ -149,12 +159,12 @@ PORT_OVERRIDE int GetItemCommandMsg(CGameDataUsed *item, MENU_ASKMODE_PARA *para
     return num;
 }
 
-PORT_OVERRIDE int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
+int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
     if (step == 0 && mode == MENU_ASK_MODE_ITEM_COMMAND && SlotCommand(this, push_button)) {
         return 0;
     }
     if (picking == this) {
         picking = nullptr;
     }
-    return PortRetailMenuItemCommandSelect(select_key, push_button);
+    return MenuItemCommandSelectCore(select_key, push_button);
 }

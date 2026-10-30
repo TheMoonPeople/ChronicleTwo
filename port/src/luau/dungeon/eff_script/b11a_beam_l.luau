@@ -37,172 +37,172 @@ function script.on_start()
 	local value_2: s32 = 0
 	local handle: s32 = 0
 	local value_3: s32 = 0
-	local var34: f32 = 0
+	local scale: f32 = 0
 	local var36: f32 = 0
 	local var37: f32 = 0
 	local var38: f32 = 0
 	local var39: f32 = 0
 	value_3 = 0
 	value = 0.0
-	user_id = effect.GetUserId() or user_id
-	value_3 = effect.GetValue(0) or value_3
-	value = effect.GetValueFloat(2) or value
-	effect.ChrSetScale(value, value, value * 2.0)
+	user_id = effect.get_owner_character() or user_id
+	value_3 = effect.get_script_value(0) or value_3
+	value = effect.get_script_value_float(2) or value
+	effect.set_effect_character_scale(value, value, value * 2.0)
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.ChrSetMotion("攻撃２入り", 6)
+	effect.set_effect_character_motion("攻撃２入り", 6)
 	while var30 < 13 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "tama")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "tama")
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.ChrGetRefRot(work_vect1_x, work_vect1_y, work_vect1_z)
+			local out1, out2, out3 = effect.get_effect_character_rotation_toward(work_vect1_x, work_vect1_y, work_vect1_z)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
-		effect.ChrSetRot(var6, var7, var8)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
+		effect.rotate_effect_character_toward(var6, var7, var8)
 		vm.wait()
 		var30 = var30 + 1
-		value_2 = effect.GetValue(1) or value_2
+		value_2 = effect.get_script_value(1) or value_2
 		if value_2 == 1 then
 			break
 		end
 	end
-	handle = effect.EsCreate_2("ＤＥビームＨ") or handle
-	effect.EsSetValue(handle, 0, value_3)
-	effect.EsSetValue(handle, 2, 0)
-	effect.ColprimCreate("通常攻撃")
+	handle = effect.create_effect_2("ＤＥビームＨ") or handle
+	effect.set_effect_value(handle, 0, value_3)
+	effect.set_effect_value(handle, 2, 0)
+	effect.create_collision_primitive("通常攻撃")
 	do
-		local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "tama")
+		local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "tama")
 		pos_x = out1 or pos_x
 		pos_y = out2 or pos_y
 		pos_z = out3 or pos_z
 	end
 	do
-		local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "tama")
+		local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "tama")
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
-	effect.ChrSetPos(pos_x, pos_y, pos_z)
-	effect.ChrSetMotion("攻撃２ループ", 0)
+	effect.set_effect_character_position(pos_x, pos_y, pos_z)
+	effect.set_effect_character_motion("攻撃２ループ", 0)
 	while true do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "tama")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "tama")
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.GetWorkVect1()
+			local out1, out2, out3 = effect.get_first_work_vector()
 			work_vect1_x = out1 or work_vect1_x
 			work_vect1_y = out2 or work_vect1_y
 			work_vect1_z = out3 or work_vect1_z
 		end
 		var7 = helper_f8ea8a52(work_vect1_x, work_vect1_y, work_vect1_z, var7)
-		effect.DistVector2(work_vect1_x, work_vect1_y, work_vect1_z, pos_x, pos_y, pos_z)
+		effect.get_distance_between(work_vect1_x, work_vect1_y, work_vect1_z, pos_x, pos_y, pos_z)
 		do
-			local _, out2, _ = effect.ChrGetPos()
+			local _, out2, _ = effect.get_effect_character_position()
 			pos_y_2 = out2 or pos_y_2
 		end
 		do
-			local out1, out2, out3 = effect.ChrGetRot()
+			local out1, out2, out3 = effect.get_effect_character_rotation()
 			rot_x = out1 or rot_x
 			rot_y = out2 or rot_y
 			rot_z = out3 or rot_z
 		end
 		do
-			local out1, out2, out3 = effect.GetDirVector(rot_x, rot_y, rot_z)
+			local out1, out2, out3 = effect.get_direction_vector(rot_x, rot_y, rot_z)
 			dir_x = out1 or dir_x
 			dir_y = out2 or dir_y
 			dir_z = out3 or dir_z
 		end
-		var34 = pos_y_2
+		scale = pos_y_2
 		do
-			local out1, out2, out3 = effect.CopyVector(dir_x, dir_y, dir_z)
+			local out1, out2, out3 = effect.copy_vector(dir_x, dir_y, dir_z)
 			var36 = out1 or var36
 			var37 = out2 or var37
 			var38 = out3 or var38
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var36, var37, var38, var34)
+			local out1, out2, out3 = effect.scale_vector(var36, var37, var38, scale)
 			var36 = out1 or var36
 			var37 = out2 or var37
 			var38 = out3 or var38
 		end
 		do
-			local out1, out2, out3 = effect.ChrGetRefRot(work_vect1_x, work_vect1_y, work_vect1_z)
+			local out1, out2, out3 = effect.get_effect_character_rotation_toward(work_vect1_x, work_vect1_y, work_vect1_z)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
-		effect.EsSetVect1(handle, work_vect1_x, work_vect1_y, work_vect1_z)
-		effect.EsSetValueFloat(handle, 1, value)
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
-		effect.ChrSetRot(var6, var7, var8)
+		effect.set_effect_first_work_vector(handle, work_vect1_x, work_vect1_y, work_vect1_z)
+		effect.set_effect_value_float(handle, 1, value)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
+		effect.rotate_effect_character_toward(var6, var7, var8)
 		vm.wait()
-		value_2 = effect.GetValue(1) or value_2
+		value_2 = effect.get_script_value(1) or value_2
 		if value_2 == 2 then
 			break
 		end
 	end
-	effect.ColprimDelete(-1)
-	effect.EsSetValue(handle, 2, 1)
+	effect.delete_collision_primitive(-1)
+	effect.set_effect_value(handle, 2, 1)
 	do
-		local out1, out2, out3 = effect.ChrGetRot()
+		local out1, out2, out3 = effect.get_effect_character_rotation()
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
 	var39 = var6
 	do
-		local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "tama")
+		local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "tama")
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
 	var39 = vm.f32(var39 - var6)
-	effect.ChrSetMotion("攻撃２戻り", 6)
+	effect.set_effect_character_motion("攻撃２戻り", 6)
 	while var30 < 40 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "tama")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "tama")
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
-		effect.EsSetVect1(handle, work_vect1_x, work_vect1_y, work_vect1_z)
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
-		effect.ChrSetRot(var6 + var39, var7, var8)
+		effect.set_effect_first_work_vector(handle, work_vect1_x, work_vect1_y, work_vect1_z)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
+		effect.rotate_effect_character_toward(var6 + var39, var7, var8)
 		vm.wait()
 		var30 = var30 + 1
-		value_2 = effect.GetValue(1) or value_2
+		value_2 = effect.get_script_value(1) or value_2
 		if value_2 == 3 then
 			break
 		end

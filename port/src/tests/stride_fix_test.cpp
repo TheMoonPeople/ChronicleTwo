@@ -1,16 +1,20 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <iterator>
+#include <limits>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 #include "mg_drawprim.hpp"
 #include "mg_memory.hpp"
 #include "mg_tanime.hpp"
 #include "mg_texture.hpp"
+#include "platform/arena.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
 
@@ -25,17 +29,10 @@ std::vector<u_long128> Storage(int quadwords, uint8_t fill) {
     return storage;
 }
 
-struct ScenePtrDeleter {
-    void operator()(CScene *scene) const {
-        std::free(scene);
-    }
-};
+using SceneHandle = std::unique_ptr<CScene>;
 
-// CScene's constructor runs the whole scene init; the stack table is the only state under test.
-using SceneHandle = std::unique_ptr<CScene, ScenePtrDeleter>;
-
-SceneHandle ZeroedScene() {
-    return SceneHandle(static_cast<CScene *>(std::calloc(1, sizeof(CScene))));
+SceneHandle EmptyScene() {
+    return std::make_unique<CScene>();
 }
 
 } // namespace
@@ -54,7 +51,7 @@ TEST(StrideFix, DrawManagerTablesHoldPointers) {
     // Retail ctor leaves render_info unset; the game's instance is zero-initialised, so match that default.
     manager.render_info = nullptr;
     manager.SetSortTable(2);
-    manager.BeginDraw(&memory, nullptr);
+    manager.BeginDraw(&memory, {});
 
     ASSERT_EQ(manager.group_num, kGroupCount);
     for (int i = 0; i < kGroupCount; i++) {
@@ -107,7 +104,7 @@ TEST(StrideFix, ClearStackWalksPointerArray) {
     constexpr int kStackQuads = 64;
 
     std::vector<std::vector<u_long128>> buffers;
-    std::vector<mgCMemory>               memories(kStackCount);
+    std::vector<mgCMemory>              memories(kStackCount);
     for (int i = 0; i < kStackCount; i++) {
         buffers.push_back(Storage(kStackQuads, 0));
         memories[i].stSetBuffer(buffers[i].data(), kStackQuads);
@@ -115,7 +112,7 @@ TEST(StrideFix, ClearStackWalksPointerArray) {
         memories[i].lock = 1;
     }
 
-    SceneHandle scene = ZeroedScene();
+    SceneHandle scene = EmptyScene();
     scene->stack_num = kStackCount;
     for (int i = 0; i < kStackCount; i++) {
         scene->stack[i] = &memories[i];
@@ -164,4 +161,155 @@ TEST(StrideFix, TexAnimeGroupAppends) {
     EXPECT_EQ(second->next, nullptr);
     EXPECT_EQ(anime.list[0], nullptr);
     EXPECT_EQ(anime.list[1], nullptr);
+}
+
+TEST(StrideFix, DrawOrderRejectsMissingTerminatorAndOutOfRangeIdsBeforeAllocation) {
+    std::array<u_long128, 64> storage{};
+    std::memset(storage.data(), 0xA5, sizeof(storage));
+    const auto original = storage;
+    mgCMemory  memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCTextureManager textures;
+    textures.block_max = 2;
+    mgCDrawManager manager;
+    manager.texture_manager = &textures;
+    manager.SetSortTable(2);
+    const int unterminated[]{0, 1};
+    const int invalid[]{2, -1};
+    EXPECT_THROW(manager.BeginDraw(&memory, unterminated), std::invalid_argument);
+    EXPECT_THROW(manager.BeginDraw(&memory, invalid), std::invalid_argument);
+    EXPECT_EQ(memory.stack_used, 0);
+    EXPECT_EQ(storage, original);
+}
+
+TEST(StrideFix, DrawTablesRejectShortArenaBeforeAnyAllocationOrWrite) {
+    std::array<u_long128, 4> storage{};
+    std::memset(storage.data(), 0xA5, sizeof(storage));
+    const auto  original = storage;
+    mgCMemory   memory;
+    static char key;
+    auto       *root = reinterpret_cast<u_long128 *>(ArenaBlock(&key, sizeof(storage)));
+    std::memcpy(root, storage.data(), sizeof(storage));
+    memory.stSetBuffer(root, static_cast<int>(storage.size()));
+    ASSERT_EQ(memory.stack_size, static_cast<int>(storage.size()));
+    mgCTextureManager textures;
+    textures.block_max = 2;
+    mgCDrawManager manager;
+    manager.texture_manager = &textures;
+    manager.SetSortTable(2);
+    EXPECT_THROW(manager.BeginDraw(&memory, {}), std::length_error);
+    EXPECT_EQ(memory.stack_used, 0);
+    EXPECT_EQ(std::memcmp(root, original.data(), sizeof(original)), 0);
+}
+
+TEST(StrideFix, NegativePacketGroupUsesTheFirstDrawnGroupAndEmptyOrdersAcceptNoPackets) {
+    std::array<u_long128, 128> storage{};
+    mgCMemory                  memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCTextureManager textures;
+    textures.block_max = 2;
+    mgCDrawManager manager;
+    manager.texture_manager = &textures;
+    manager.SetSortTable(2);
+    const int order[]{1, -1};
+    manager.BeginDraw(&memory, order);
+    manager.AddPacket(-1, nullptr, nullptr, 0);
+    ASSERT_NE(manager.sort_table[0], nullptr);
+    EXPECT_EQ(manager.sort_table[0]->group, 0);
+    EXPECT_EQ(manager.packet_num[0], 1);
+    memory.stReset();
+    const int empty[]{-1};
+    manager.BeginDraw(&memory, empty);
+    const int used = memory.stack_used;
+    manager.AddPacket(-1, nullptr, nullptr, 0);
+    EXPECT_EQ(memory.stack_used, used);
+    EXPECT_EQ(manager.sort_table[0], nullptr);
+}
+
+TEST(StrideFix, FrameTablesRejectTheirOwnersResetBeforeAnyPacketAccess) {
+    std::array<u_long128, 128> storage{};
+    mgCMemory                  memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCTextureManager textures;
+    textures.block_max = 2;
+    mgCDrawManager manager;
+    manager.texture_manager = &textures;
+    manager.SetSortTable(2);
+    manager.BeginDraw(&memory, {});
+    ASSERT_FALSE(manager.frame_tables.Bytes().empty());
+    memory.stReset();
+    std::memset(storage.data(), 0xA5, sizeof(storage));
+    const auto original = storage;
+    manager.AddPacket(0, nullptr, nullptr, 0);
+    manager.ClearTable();
+    manager.PreEndDraw();
+    EXPECT_EQ(manager.Draw(0, nullptr), 0);
+    EXPECT_EQ(manager.ReloadTexture(0, nullptr), 0);
+    EXPECT_EQ(memory.stack_used, 0);
+    EXPECT_EQ(storage, original);
+}
+
+TEST(StrideFix, FrameMutationRejectsHeapStackTransitionsAndFreedTableAddressReuse) {
+    std::array<u_long128, 128> storage{};
+    mgCMemory                  memory;
+    memory.SetHeapMem(storage.data(), static_cast<int>(storage.size()));
+    auto *first = memory.StartStackMode(MG_STACK_MODE_FIRST, 0);
+    ASSERT_NE(first, nullptr);
+    mgCTextureManager textures;
+    textures.block_max = 1;
+    mgCDrawManager manager;
+    manager.texture_manager = &textures;
+    manager.SetSortTable(2);
+    manager.BeginDraw(&memory, {});
+    manager.AddPacket(0, nullptr, nullptr, 0);
+    manager.PreEndDraw();
+    ASSERT_TRUE(manager.packets_prepared);
+    const int first_used = memory.stack_used;
+    memory.EndStackMode();
+    auto *second = memory.StartStackMode(MG_STACK_MODE_FIRST, 0);
+    ASSERT_NE(second, nullptr);
+    ASSERT_NE(second, first);
+    manager.AddPacket(0, nullptr, nullptr, 0);
+    manager.PreEndDraw();
+    EXPECT_EQ(memory.stack_used, 0);
+    EXPECT_TRUE(manager.packets_prepared);
+    EXPECT_EQ(manager.packet_num[0], 1);
+    memory.Free(second);
+    EXPECT_FALSE(manager.frame_tables.Bytes().empty());
+    EXPECT_EQ(manager.Draw(0, nullptr), 1);
+    memory.Free(first);
+    ASSERT_EQ(memory.StartStackMode(MG_STACK_MODE_FIRST, 0), first);
+    std::memset(first, 0xA5, static_cast<std::size_t>(first_used) * sizeof(u_long128));
+    const auto before = std::vector<u_long128>(first, first + first_used);
+    manager.AddPacket(0, nullptr, nullptr, 0);
+    manager.PreEndDraw();
+    EXPECT_EQ(manager.Draw(0, nullptr), 0);
+    EXPECT_EQ(memory.stack_used, 0);
+    EXPECT_TRUE(std::equal(before.begin(), before.end(), first));
+}
+
+TEST(StrideFix, SceneClearStackRejectsInvalidStartsAndClampsTheCountToItsPhysicalSlots) {
+    std::array<u_long128, 32> first_storage{};
+    std::array<u_long128, 32> last_storage{};
+    mgCMemory                 first;
+    mgCMemory                 last;
+    first.stSetBuffer(first_storage.data(), static_cast<int>(first_storage.size()));
+    last.stSetBuffer(last_storage.data(), static_cast<int>(last_storage.size()));
+    auto scene = std::make_unique<CScene>();
+    ASSERT_NE(first.Alloc(1), nullptr);
+    ASSERT_NE(last.Alloc(1), nullptr);
+    std::ranges::fill(scene->stack, nullptr);
+    scene->stack_num = static_cast<int>(std::size(scene->stack));
+    scene->stack[0] = &first;
+    scene->stack[std::size(scene->stack) - 1] = &last;
+    scene->ClearStack(-1);
+    scene->ClearStack(scene->stack_num);
+    EXPECT_EQ(first.stack_used, 1);
+    EXPECT_EQ(last.stack_used, 1);
+    scene->stack_num = std::numeric_limits<int>::max();
+    scene->ClearStack(0);
+    EXPECT_EQ(first.stack_used, 0);
+    EXPECT_EQ(last.stack_used, 0);
+    EXPECT_EQ(last.stack, nullptr);
+    scene->stack_num = static_cast<int>(std::size(scene->stack));
 }

@@ -24,46 +24,46 @@ function script.on_start()
 	local value_2: s32 = 0
 	local check_motion_end: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.GetWorkVect2()
-	value = effect.GetValue(0) or value
-	value_2 = effect.GetValue(1) or value_2
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetRot(0.0, 0.0, 0.0)
-	effect.ChrSetScale(3.0, 3.0, 3.0)
-	effect.ChrSetMotion("火柱", -1, 6)
-	effect.ColprimCreate("Ｍギル火柱１")
-	effect.ColprimSetDamage(value)
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 25.0)
-	effect.MonSePlay2(value_2, 9)
+	effect.get_second_work_vector()
+	value = effect.get_script_value(0) or value
+	value_2 = effect.get_script_value(1) or value_2
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.rotate_effect_character_toward(0.0, 0.0, 0.0)
+	effect.set_effect_character_scale(3.0, 3.0, 3.0)
+	effect.set_effect_character_motion("火柱", -1, 6)
+	effect.create_collision_primitive("Ｍギル火柱１")
+	effect.set_collision_primitive_damage(value)
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 25.0)
+	effect.play_character_sound(value_2, 9)
 	var9 = 0
 	var6 = 0
 	while var6 < 25 do
 		if var6 >= 10 then
 			if var9 == 0 then
-				hit_num = effect.ColprimGetHitcnt() or hit_num
+				hit_num = effect.get_collision_primitive_hit_count() or hit_num
 				if hit_num > 0 then
 					if var9 == 0 then
 						var9 = 1
-						effect.ColprimDelete(-1)
+						effect.delete_collision_primitive(-1)
 					end
 				end
 			end
 		end
 		if var6 == 10 then
-			effect.ColprimDelete(-1)
-			effect.ColprimCreate("攻撃弱")
-			effect.ColprimSetDamage(value)
-			effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 30.0)
+			effect.delete_collision_primitive(-1)
+			effect.create_collision_primitive("攻撃弱")
+			effect.set_collision_primitive_damage(value)
+			effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 30.0)
 		end
 		if var6 == 20 then
 			if var9 == 0 then
 				var9 = 1
-				effect.ColprimDelete(-1)
+				effect.delete_collision_primitive(-1)
 			end
 		end
 		var6 = var6 + 1
@@ -72,11 +72,11 @@ function script.on_start()
 	check_motion_end = 0
 	while check_motion_end == 0 do
 		vm.wait()
-		check_motion_end = effect.ChrChkMotEnd() or check_motion_end
+		check_motion_end = effect.is_effect_character_motion_finished() or check_motion_end
 	end
 	if var9 == 0 then
 		var9 = 1
-		effect.ColprimDelete(-1)
+		effect.delete_collision_primitive(-1)
 	end
 end
 

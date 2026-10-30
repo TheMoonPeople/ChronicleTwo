@@ -6,17 +6,20 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "fishing.hpp"
 #include "inventmn.hpp"
 #include "log_capture.hpp"
+#include "mainloop.hpp"
 #include "mapinfo.hpp"
 #include "mapsky.hpp"
+#include "menuaqua.hpp"
 #include "mg_memory.hpp"
 #include "mglib.hpp"
 #include "platform/datapacks.hpp"
@@ -108,6 +111,51 @@ TEST_F(NativeRecords, OverlongQuestNamesRefuseTheDocument) {
     EXPECT_EQ(manager.num, 0);
 }
 
+TEST_F(NativeRecords, QuestCountsCannotOverflowOrExceedTheAvailableArena) {
+    CQuestManager manager;
+    char         *overflow = Publish("menu/1/quest.pac/quest1.cfg.json", "quests",
+                                     {
+                                         {"count",  std::numeric_limits<int>::max()},
+                                         {"quests", Json::array()                  }
+    });
+    CaptureLoggedStderr();
+    manager.LoadCfg(&memory, overflow, 0);
+    EXPECT_NE(GetLoggedStderr().find("request count exceeds"), std::string::npos);
+    EXPECT_EQ(manager.num, 0);
+
+    const int too_many = static_cast<int>(static_cast<std::size_t>(memory.stGetRest()) * sizeof(u_long128) / sizeof(QUEST_INFO) + 1);
+    char     *too_large = Publish("menu/1/quest.pac/quest1.cfg.json", "quests",
+                                  {
+                                      {"count",  too_many     },
+                                      {"quests", Json::array()}
+    });
+    manager.LoadCfg(&memory, too_large, 0);
+    EXPECT_EQ(manager.num, 0);
+    EXPECT_EQ(manager.info, nullptr);
+    EXPECT_EQ(memory.stack_used, 0);
+}
+
+TEST_F(NativeRecords, RaceFishCountsFitTheArenaAndIndicesStayInRange) {
+    const auto saved_language = LanguageCode;
+    LanguageCode = 0;
+    Publish("sg/gyo/rfd0.cfg.json", "race_fish", {
+                                                     {"classes", Json::array({{{"class", 0}, {"count", 32767}, {"fish", Json::array()}}})}
+    });
+    CGyoraceFishData race{};
+    EXPECT_EQ(race.LoadData(&memory, nullptr), 0);
+    EXPECT_EQ(memory.stack_used, 0);
+    EXPECT_EQ(race.fish_num[0], 0);
+
+    Publish("sg/gyo/rfd0.cfg.json", "race_fish", {
+                                                     {"classes", Json::array({{{"class", 0}, {"count", 1}, {"fish", Json::array()}}})}
+    });
+    ASSERT_EQ(race.LoadData(&memory, nullptr), 1);
+    EXPECT_EQ(race.fish_num[0], 1);
+    EXPECT_EQ(race.GetRaceFish(0, -1), nullptr);
+    EXPECT_EQ(race.GetRaceFish(0, 1), nullptr);
+    LanguageCode = saved_language;
+}
+
 TEST_F(NativeRecords, FishingPlacesKeepTheirAreaAndAtMostEightFish) {
     Json fish = Json::array();
     for (int index = 0; index < 10; ++index) {
@@ -168,6 +216,32 @@ TEST_F(NativeRecords, SkyBandsConvertDegreesAsRetailDoes) {
     EXPECT_STREQ(info.sky_anime_name[0], "cloud");
     EXPECT_FLOAT_EQ(info.sky_anime_speed[0], PI);
     EXPECT_STREQ(info.bg_mds_name, "bg.gltf");
+}
+
+TEST_F(NativeRecords, SkyNameUsesTheFullTerminatedFieldWithoutOverflow) {
+    const std::string maximum(31, 's');
+    auto              sky_document = [&](std::string name) {
+        return Json{
+            {"images",          Json::array()                             },
+            {"models",          Json::array()                             },
+            {"animations",      Json::array()                             },
+            {"suns",            Json::array()                             },
+            {"back_models",     Json::array()                             },
+            {"back_animations", Json::array()                             },
+            {"backgrounds",     Json::array({{{"file", std::move(name)}}})}
+        };
+    };
+    char        *script = Publish("map/s.sky/info.cfg.json", "sky", sky_document(maximum));
+    MAP_SKY_INFO info{};
+    PortLoadSkyInfo(&info, script, 1);
+    EXPECT_STREQ(info.bg_mds_name, maximum.c_str());
+
+    char        *oversized = Publish("map/s.sky/info.cfg.json", "sky", sky_document(maximum + "s"));
+    MAP_SKY_INFO rejected{};
+    CaptureLoggedStderr();
+    PortLoadSkyInfo(&rejected, oversized, 1);
+    EXPECT_NE(GetLoggedStderr().find("name is longer than the sky holds"), std::string::npos);
+    EXPECT_EQ(rejected.bg_mds_name[0], '\0');
 }
 
 TEST_F(NativeRecords, MapInfoReadsPacksLightingAndSettings) {

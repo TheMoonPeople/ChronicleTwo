@@ -60,10 +60,12 @@ std::array<Vec4, 3> Screen10_4() {
     };
 }
 
-std::array<uint32_t, 3> Guards(const std::array<Vec4, 3>& v) {
-    return {{Prog0GuardBits(v[0], kGuardMin, kGuardMax, kInvFar, kInvNear),
-             Prog0GuardBits(v[1], kGuardMin, kGuardMax, kInvFar, kInvNear),
-             Prog0GuardBits(v[2], kGuardMin, kGuardMax, kInvFar, kInvNear)}};
+std::array<uint32_t, 3> Guards(const std::array<Vec4, 3> &v) {
+    return {
+        {Prog0GuardBits(v[0], kGuardMin, kGuardMax, kInvFar, kInvNear),
+         Prog0GuardBits(v[1], kGuardMin, kGuardMax, kInvFar, kInvNear),
+         Prog0GuardBits(v[2], kGuardMin, kGuardMax, kInvFar, kInvNear)}
+    };
 }
 
 std::array<Prog0ClipVertex, 3> Triangle10_5() {
@@ -76,7 +78,7 @@ std::array<Prog0ClipVertex, 3> Triangle10_5() {
     };
 }
 
-Prog0ClipPolygon AsPolygon(const std::array<Prog0ClipVertex, 3>& tri) {
+Prog0ClipPolygon AsPolygon(const std::array<Prog0ClipVertex, 3> &tri) {
     Prog0ClipPolygon poly{};
     for (int i = 0; i < 3; ++i) {
         poly.v[i] = tri[i];
@@ -104,7 +106,6 @@ Fog NormalFog() {
     return MakeFog(10.0f, 1000.0f, 0.0f, 255.0f);
 }
 
-
 TEST(Vu1Prog0Cpu, Vector10_3FogAtNear) {
     EXPECT_NEAR(FogValue(NormalFog(), 0.1f), 255.0f, kTol);
 }
@@ -118,7 +119,7 @@ TEST(Vu1Prog0Cpu, Vector10_3FogMidDepth) {
 }
 
 TEST(Vu1Prog0Cpu, Vector10_3PackedMidDepthF23Adc0) {
-    const float fog = FogValue(NormalFog(), 0.01f);
+    const float  fog = FogValue(NormalFog(), 0.01f);
     const GsXyzf p = PackProg0Xyzf(Vec4{.x = 2048.0f, .y = 2048.0f, .z = 0.0f, .w = 0.0f}, fog, false);
     EXPECT_EQ(p.f, 23);
     EXPECT_FALSE(p.adc);
@@ -132,9 +133,8 @@ TEST(Vu1Prog0Cpu, Vector10_3EditorFogPacksF255Adc0) {
     EXPECT_FALSE(p.adc);
 }
 
-
 TEST(Vu1Prog0Cpu, Vector10_4GuardBitsInsideGive208) {
-    const std::array<Vec4, 3> v = Screen10_4();
+    const std::array<Vec4, 3>     v = Screen10_4();
     const std::array<uint32_t, 3> g = Guards(v);
     EXPECT_EQ(g[0], 0xD0u);
     EXPECT_EQ(g[1], 0xD0u);
@@ -156,21 +156,23 @@ TEST(Vu1Prog0Cpu, Vector10_4OrientBitFollowsCrossZSign) {
 
 TEST(Vu1Prog0Cpu, Vector10_4UnmirroredRejects) {
     const std::array<Vec4, 3> v = Screen10_4();
-    const Prog0Facing f = Prog0ListFacing(v, Guards(v), 0);
+    const Prog0Facing         f = Prog0ListFacing(v, Guards(v), 0);
     EXPECT_FALSE(f.keep);
     EXPECT_EQ(f.adc_vertex, 2);
 }
 
 TEST(Vu1Prog0Cpu, Vector10_4MirroredAccepts) {
     const std::array<Vec4, 3> v = Screen10_4();
-    const Prog0Facing f = Prog0ListFacing(v, Guards(v), 32);
+    const Prog0Facing         f = Prog0ListFacing(v, Guards(v), 32);
     EXPECT_TRUE(f.keep);
     EXPECT_EQ(f.adc_vertex, -1);
 }
 
 TEST(Vu1Prog0Cpu, Vector10_4ReversedUnmirroredAccepts) {
     const std::array<Vec4, 3> v = Screen10_4();
-    const std::array<Vec4, 3> r = {{v[0], v[2], v[1]}};
+    const std::array<Vec4, 3> r = {
+        {v[0], v[2], v[1]}
+    };
     const Prog0Facing f = Prog0ListFacing(r, Guards(r), 0);
     EXPECT_TRUE(f.keep);
     EXPECT_EQ(f.adc_vertex, -1);
@@ -178,12 +180,13 @@ TEST(Vu1Prog0Cpu, Vector10_4ReversedUnmirroredAccepts) {
 
 TEST(Vu1Prog0Cpu, Vector10_4ReversedMirroredRejects) {
     const std::array<Vec4, 3> v = Screen10_4();
-    const std::array<Vec4, 3> r = {{v[0], v[2], v[1]}};
+    const std::array<Vec4, 3> r = {
+        {v[0], v[2], v[1]}
+    };
     const Prog0Facing f = Prog0ListFacing(r, Guards(r), 32);
     EXPECT_FALSE(f.keep);
     EXPECT_EQ(f.adc_vertex, 2);
 }
-
 
 TEST(Vu1Prog0Cpu, Vector10_5InputClipCodes) {
     const std::array<Prog0ClipVertex, 3> tri = Triangle10_5();
@@ -197,7 +200,7 @@ TEST(Vu1Prog0Cpu, Vector10_5ZMinusPassIntermediates) {
     ASSERT_EQ(out.count, 4);
     EXPECT_FALSE(out.overflow);
 
-    const Prog0ClipVertex& i12 = out.v[2];
+    const Prog0ClipVertex &i12 = out.v[2];
     EXPECT_NEAR(i12.pos.x, 0.5f, kTol);
     EXPECT_NEAR(i12.pos.y, 0.5f, kTol);
     EXPECT_NEAR(i12.pos.z, -1.5f, kTol);
@@ -211,7 +214,7 @@ TEST(Vu1Prog0Cpu, Vector10_5ZMinusPassIntermediates) {
     EXPECT_NEAR(i12.uv.z, 1.0f, kTol);
     EXPECT_EQ(i12.uv.w, 0.0f);
 
-    const Prog0ClipVertex& i23 = out.v[3];
+    const Prog0ClipVertex &i23 = out.v[3];
     EXPECT_NEAR(i23.pos.x, 0.0f, kTol);
     EXPECT_NEAR(i23.pos.y, 0.6f, kTol);
     EXPECT_NEAR(i23.pos.z, -1.4f, kTol);
@@ -235,8 +238,8 @@ TEST(Vu1Prog0Cpu, Vector10_5NOutIsFourAfterAllPlanes) {
 TEST(Vu1Prog0Cpu, Vector10_5ScreenRecords) {
     const Prog0ClipPolygon poly = Prog0ClipTriangle(Triangle10_5());
     ASSERT_EQ(poly.count, 4);
-    const Mat4 m = ClipScreen10_5();
-    const Fog fog = EditorFog();
+    const Mat4              m = ClipScreen10_5();
+    const Fog               fog = EditorFog();
     const Prog0ScreenVertex p0 = Prog0ToScreen(poly.v[0], m, fog);
     const Prog0ScreenVertex p1 = Prog0ToScreen(poly.v[1], m, fog);
     const Prog0ScreenVertex p2 = Prog0ToScreen(poly.v[2], m, fog);
@@ -264,8 +267,8 @@ TEST(Vu1Prog0Cpu, Vector10_5ScreenRecords) {
 TEST(Vu1Prog0Cpu, Vector10_5StAndRgbaq) {
     const Prog0ClipPolygon poly = Prog0ClipTriangle(Triangle10_5());
     ASSERT_EQ(poly.count, 4);
-    const Mat4 m = ClipScreen10_5();
-    const Fog fog = EditorFog();
+    const Mat4              m = ClipScreen10_5();
+    const Fog               fog = EditorFog();
     const Prog0ScreenVertex p0 = Prog0ToScreen(poly.v[0], m, fog);
     const Prog0ScreenVertex p1 = Prog0ToScreen(poly.v[1], m, fog);
     const Prog0ScreenVertex p2 = Prog0ToScreen(poly.v[2], m, fog);
@@ -294,7 +297,7 @@ TEST(Vu1Prog0Cpu, Vector10_5XyzfPacked) {
     const Prog0ClipPolygon poly = Prog0ClipTriangle(Triangle10_5());
     ASSERT_EQ(poly.count, 4);
     const Mat4 m = ClipScreen10_5();
-    const Fog fog = EditorFog();
+    const Fog  fog = EditorFog();
 
     const GsXyzf x0 = PackProg0Xyzf(Prog0ToScreen(poly.v[0], m, fog).screen, 255.0f, false);
     EXPECT_EQ(x0.x, 32768);
@@ -327,7 +330,7 @@ TEST(Vu1Prog0Cpu, Vector10_5CullMirror0Culled) {
     const Prog0ClipPolygon poly = Prog0ClipTriangle(Triangle10_5());
     ASSERT_EQ(poly.count, 4);
     const Mat4 m = ClipScreen10_5();
-    const Fog fog = EditorFog();
+    const Fog  fog = EditorFog();
     const Vec4 p0 = Prog0ToScreen(poly.v[0], m, fog).screen;
     const Vec4 p1 = Prog0ToScreen(poly.v[1], m, fog).screen;
     const Vec4 p2 = Prog0ToScreen(poly.v[2], m, fog).screen;
@@ -339,13 +342,12 @@ TEST(Vu1Prog0Cpu, Vector10_5CullMirror32Kept) {
     const Prog0ClipPolygon poly = Prog0ClipTriangle(Triangle10_5());
     ASSERT_EQ(poly.count, 4);
     const Mat4 m = ClipScreen10_5();
-    const Fog fog = EditorFog();
+    const Fog  fog = EditorFog();
     const Vec4 p0 = Prog0ToScreen(poly.v[0], m, fog).screen;
     const Vec4 p1 = Prog0ToScreen(poly.v[1], m, fog).screen;
     const Vec4 p2 = Prog0ToScreen(poly.v[2], m, fog).screen;
     EXPECT_TRUE(Prog0ClipFacingKeep(p0, p1, p2, 32));
 }
-
 
 TEST(Vu1Prog0Cpu, DecisionNoNormalOverridesLighting) {
     EXPECT_EQ(SelectProg0Pipeline(0x018, 0x200),
@@ -465,29 +467,35 @@ TEST(Vu1Prog0Cpu, DecisionVcAddIgnoredWithoutColour) {
               Pipe(false, false, Prog0Lighting::Lighting, false, false, Prog0Clip::None, Prog0Output::Output));
 }
 
-
 // Non-skinned rows. O-24: variant 2 writes dw2 = n as a stale UV count; implemented as written.
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV0) {
     ExpectHeader(0, false, 10, 10, 10);
 }
+
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV1) {
     ExpectHeader(1, false, 10, 10, 10);
 }
+
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV2) {
     ExpectHeader(2, false, 10, 10, 10);
 }
+
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV3) {
     ExpectHeader(3, false, 10, 10, 0);
 }
+
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV4) {
     ExpectHeader(4, false, 10, 0, 10);
 }
+
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV5) {
     ExpectHeader(5, false, 10, 0, 10);
 }
+
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV6) {
     ExpectHeader(6, false, 10, 0, 0);
 }
+
 TEST(Vu1Prog0Cpu, HeaderNonSkinnedV7) {
     ExpectHeader(7, false, 10, 0, 0);
 }
@@ -496,31 +504,38 @@ TEST(Vu1Prog0Cpu, HeaderNonSkinnedV7) {
 TEST(Vu1Prog0Cpu, HeaderSkinnedV0) {
     ExpectHeader(0, true, 10, 10, 0);
 }
+
 TEST(Vu1Prog0Cpu, HeaderSkinnedV1) {
     ExpectHeader(1, true, 10, 10, 10);
 }
+
 TEST(Vu1Prog0Cpu, HeaderSkinnedV2) {
     ExpectHeader(2, true, 10, 0, 0);
 }
+
 TEST(Vu1Prog0Cpu, HeaderSkinnedV3) {
     ExpectHeader(3, true, 10, 10, 0);
 }
+
 TEST(Vu1Prog0Cpu, HeaderSkinnedV4) {
     ExpectHeader(4, true, 10, 0, 0);
 }
+
 TEST(Vu1Prog0Cpu, HeaderSkinnedV5) {
     ExpectHeader(5, true, 10, 0, 10);
 }
+
 TEST(Vu1Prog0Cpu, HeaderSkinnedV6) {
     ExpectHeader(6, true, 0, 0, 0);
 }
+
 TEST(Vu1Prog0Cpu, HeaderSkinnedV7) {
     ExpectHeader(7, true, 10, 0, 0);
 }
 
 // O-26: V6 header dw0 = 0, so the N and W pointers collapse onto V as written.
 TEST(Vu1Prog0Cpu, InputOffsetsSkinnedV6PointersCollapseOntoV) {
-    const Prog0Header h = PackProg0Header(TypeForVariant(6), 10, true);
+    const Prog0Header  h = PackProg0Header(TypeForVariant(6), 10, true);
     const Prog0Offsets o = Prog0InputOffsets(100, h);
     EXPECT_EQ(o.v, 102);
     EXPECT_EQ(o.normal, 102);
@@ -531,7 +546,7 @@ TEST(Vu1Prog0Cpu, InputOffsetsSkinnedV6PointersCollapseOntoV) {
 
 // O-25: V2 dw1 = 0, so the UV pointer equals the N pointer as written.
 TEST(Vu1Prog0Cpu, InputOffsetsSkinnedV2UvAliasesNormal) {
-    const Prog0Header h = PackProg0Header(TypeForVariant(2), 10, true);
+    const Prog0Header  h = PackProg0Header(TypeForVariant(2), 10, true);
     const Prog0Offsets o = Prog0InputOffsets(100, h);
     EXPECT_EQ(o.normal, 112);
     EXPECT_EQ(o.uv, 112);
@@ -539,7 +554,7 @@ TEST(Vu1Prog0Cpu, InputOffsetsSkinnedV2UvAliasesNormal) {
 }
 
 TEST(Vu1Prog0Cpu, InputOffsetsMdtVariant0) {
-    const Prog0Header h = PackProg0Header(TypeForVariant(0), 57, false);
+    const Prog0Header  h = PackProg0Header(TypeForVariant(0), 57, false);
     const Prog0Offsets o = Prog0InputOffsets(60, h);
     EXPECT_EQ(o.v, 62);
     EXPECT_EQ(o.normal, 119);
@@ -547,7 +562,6 @@ TEST(Vu1Prog0Cpu, InputOffsetsMdtVariant0) {
     EXPECT_EQ(o.colour, 233);
     EXPECT_EQ(o.weight, 290);
 }
-
 
 TEST(Vu1Prog0Cpu, BatchLimitMdtNoColour57) {
     EXPECT_EQ(Prog0BatchLimit(180, false, false), 57);
@@ -561,7 +575,6 @@ TEST(Vu1Prog0Cpu, BatchLimitMdtColour42) {
 TEST(Vu1Prog0Cpu, BatchLimitSkinned16BonesNoColour27) {
     EXPECT_EQ(Prog0BatchLimit(148, false, true), 27);
 }
-
 
 TEST(Vu1Prog0Cpu, ClipCodeInsideIsZero) {
     EXPECT_EQ(Prog0ClipCode(Vec4{1.0f, -1.0f, 1.0f, 1.0f}), 0u);
@@ -610,12 +623,12 @@ TEST(Vu1Prog0Cpu, ClassifyTrivialKeep) {
 // Each mask is all ones except the three bits of one plane. O-2: reject reads as ((CF | mask) == 0xFFFFFF).
 TEST(Vu1Prog0Cpu, ClassifyTrivialRejectPerPlane) {
     const uint32_t plane_codes[6] = {
-        1u << 3,  // -y
-        1u << 2,  // +y
-        1u << 1,  // -x
-        1u << 0,  // +x
-        1u << 5,  // -z
-        1u << 4,  // +z
+        1u << 3, // -y
+        1u << 2, // +y
+        1u << 1, // -x
+        1u << 0, // +x
+        1u << 5, // -z
+        1u << 4, // +z
     };
     for (uint32_t code : plane_codes) {
         const uint32_t cf = CfBit(0, code) | CfBit(1, code) | CfBit(2, code);
@@ -631,7 +644,6 @@ TEST(Vu1Prog0Cpu, ClassifyPartialTwoOfThreeSameBit) {
     const uint32_t cf = CfBit(0, 1u << 3) | CfBit(1, 1u << 3);
     EXPECT_EQ(Prog0ClassifyTriangle(cf), Prog0ClipClass::Partial);
 }
-
 
 TEST(Vu1Prog0Cpu, PackXyzfFieldsAndAdc) {
     const GsXyzf p = PackProg0Xyzf(Vec4{.x = 2048.0f, .y = 2048.0f, .z = 4175000.0f, .w = 0.0f}, 255.0f, true);
@@ -649,18 +661,17 @@ TEST(Vu1Prog0Cpu, PackXyzfNegativeXWrapsLow16) {
     EXPECT_FALSE(p.adc);
 }
 
-
 const std::array<uint32_t, 8> kGuardChoice = {kGuardMask, kGuardMask, kGuardMask, kGuardMask,
-                                               kGuardMask, kGuardMask, 0x90u, 0x50u};
+                                              kGuardMask, kGuardMask, 0x90u, 0x50u};
 
-uint32_t RandomGuard(std::mt19937& rng) {
+uint32_t RandomGuard(std::mt19937 &rng) {
     return kGuardChoice[std::uniform_int_distribution<std::size_t>(0, kGuardChoice.size() - 1)(rng)];
 }
 
-std::vector<bool> RunWindowBatches(const std::vector<uint32_t>& guard, const std::vector<std::size_t>& sizes) {
-    Prog0Window carry{};
+std::vector<bool> RunWindowBatches(const std::vector<uint32_t> &guard, const std::vector<std::size_t> &sizes) {
+    Prog0Window       carry{};
     std::vector<bool> out;
-    std::size_t pos = 0;
+    std::size_t       pos = 0;
     for (const std::size_t n : sizes) {
         const std::vector<bool> adc = Prog0WindowAdc(std::span<const uint32_t>(guard).subspan(pos, n), carry);
         out.insert(out.end(), adc.begin(), adc.end());
@@ -678,9 +689,9 @@ std::vector<Vec4> StripWithFourth(Vec4 v3) {
     };
 }
 
-std::vector<bool> StripAdcAllIn(const std::vector<Vec4>& screen, uint32_t mirror) {
+std::vector<bool> StripAdcAllIn(const std::vector<Vec4> &screen, uint32_t mirror) {
     const std::vector<uint32_t> guard(screen.size(), kGuardMask);
-    Prog0StripWindow carry{};
+    Prog0StripWindow            carry{};
     return Prog0StripAdc(screen, guard, mirror, carry);
 }
 
@@ -711,13 +722,13 @@ std::vector<int> ContinuousParity(std::size_t triangles) {
     return p;
 }
 
-void FlipRange(std::vector<int>& p, std::size_t first, std::size_t last) {
+void FlipRange(std::vector<int> &p, std::size_t first, std::size_t last) {
     for (std::size_t t = first; t <= last; ++t) {
         p[t] = -p[t];
     }
 }
 
-void ExpectParity(const std::vector<int>& got, const std::vector<int>& want) {
+void ExpectParity(const std::vector<int> &got, const std::vector<int> &want) {
     ASSERT_EQ(got.size(), want.size());
     for (std::size_t t = 0; t < want.size(); ++t) {
         EXPECT_EQ(got[t], want[t]) << "triangle " << t;
@@ -725,10 +736,10 @@ void ExpectParity(const std::vector<int>& got, const std::vector<int>& want) {
 }
 
 void ExpectStripReorderMatchesRetail(int vertex_num, int batch_limit) {
-    std::mt19937 rng(static_cast<uint32_t>(vertex_num * 131 + batch_limit));
+    std::mt19937                       rng(static_cast<uint32_t>(vertex_num * 131 + batch_limit));
     std::uniform_int_distribution<int> coord(0, 1023);
-    std::vector<Vec4> screen(static_cast<std::size_t>(vertex_num));
-    std::vector<uint32_t> guard(static_cast<std::size_t>(vertex_num));
+    std::vector<Vec4>                  screen(static_cast<std::size_t>(vertex_num));
+    std::vector<uint32_t>              guard(static_cast<std::size_t>(vertex_num));
     for (std::size_t i = 0; i < screen.size(); ++i) {
         screen[i] = {.x = static_cast<float>(coord(rng)), .y = static_cast<float>(coord(rng)), .z = 0.0f, .w = 0.01f};
         guard[i] = RandomGuard(rng);
@@ -737,27 +748,27 @@ void ExpectStripReorderMatchesRetail(int vertex_num, int batch_limit) {
     const std::vector<int> parity = Prog0StripParity(vertex_num, batch_limit);
     ASSERT_EQ(parity.size(), static_cast<std::size_t>(vertex_num - 2));
 
-    const auto at = [](int i) { return static_cast<std::size_t>(i); };
+    const auto  at = [](int i) { return static_cast<std::size_t>(i); };
     std::size_t checked = 0;
-    bool seen_pos = false;
-    bool seen_neg = false;
-    bool seen_keep = false;
-    bool seen_drop = false;
-    for (const Batch& b : StripBatches(vertex_num, batch_limit)) {
+    bool        seen_pos = false;
+    bool        seen_neg = false;
+    bool        seen_keep = false;
+    bool        seen_drop = false;
+    for (const Batch &b : StripBatches(vertex_num, batch_limit)) {
         const auto start = static_cast<std::size_t>(b.start);
         const auto count = static_cast<std::size_t>(b.count);
         for (const uint32_t mirror : {0u, 32u}) {
-            Prog0StripWindow carry{};
+            Prog0StripWindow        carry{};
             const std::vector<bool> adc = Prog0StripAdc(std::span<const Vec4>(screen).subspan(start, count),
                                                         std::span<const uint32_t>(guard).subspan(start, count),
                                                         mirror, carry);
             for (std::size_t k = 2; k < count; ++k) {
-                const std::size_t t = start + k - 2;
-                const std::array<int, 3> tri = Prog0StripTriangle(static_cast<int>(t), parity[t]);
-                const std::array<Vec4, 3> v = {screen[at(tri[0])], screen[at(tri[1])], screen[at(tri[2])]};
+                const std::size_t             t = start + k - 2;
+                const std::array<int, 3>      tri = Prog0StripTriangle(static_cast<int>(t), parity[t]);
+                const std::array<Vec4, 3>     v = {screen[at(tri[0])], screen[at(tri[1])], screen[at(tri[2])]};
                 const std::array<uint32_t, 3> g = {guard[at(tri[0])], guard[at(tri[1])], guard[at(tri[2])]};
-                const bool list_keep = Prog0ListFacing(v, g, mirror).keep;
-                const bool retail_keep = !adc[k];
+                const bool                    list_keep = Prog0ListFacing(v, g, mirror).keep;
+                const bool                    retail_keep = !adc[k];
 
                 EXPECT_EQ(retail_keep, list_keep) << "t=" << t << " mirror=" << mirror;
                 EXPECT_EQ(parity[t], k % 2 == 0 ? 1 : -1) << "t=" << t;
@@ -774,21 +785,21 @@ void ExpectStripReorderMatchesRetail(int vertex_num, int batch_limit) {
 
 TEST(Vu1Prog0Cpu, WindowAdcAllInDrawStartOnly) {
     const std::vector<uint32_t> guard(5, kGuardMask);
-    Prog0Window carry{};
+    Prog0Window                 carry{};
     EXPECT_EQ(Prog0WindowAdc(guard, carry), (std::vector<bool>{true, true, false, false, false}));
 }
 
 TEST(Vu1Prog0Cpu, WindowAdcOneOutPoisonsThreeWindows) {
     const std::vector<uint32_t> guard = {kGuardMask, kGuardMask, kGuardMask, 0x00u,
                                          kGuardMask, kGuardMask, kGuardMask};
-    Prog0Window carry{};
+    Prog0Window                 carry{};
     EXPECT_EQ(Prog0WindowAdc(guard, carry), (std::vector<bool>{true, true, false, true, true, true, false}));
 }
 
 TEST(Vu1Prog0Cpu, WindowAdcCarryKeepsTwoPriorFlags) {
     const std::vector<uint32_t> first = {kGuardMask, kGuardMask};
     const std::vector<uint32_t> second = {kGuardMask};
-    Prog0Window carry{};
+    Prog0Window                 carry{};
     Prog0WindowAdc(first, carry);
     EXPECT_EQ(Prog0WindowAdc(second, carry), (std::vector<bool>{false}));
 }
@@ -796,15 +807,15 @@ TEST(Vu1Prog0Cpu, WindowAdcCarryKeepsTwoPriorFlags) {
 TEST(Vu1Prog0Cpu, WindowAdcCarryBreaksOnOutPriorVertex) {
     const std::vector<uint32_t> first = {0x00u, kGuardMask};
     const std::vector<uint32_t> second = {kGuardMask};
-    Prog0Window carry{};
+    Prog0Window                 carry{};
     Prog0WindowAdc(first, carry);
     EXPECT_EQ(Prog0WindowAdc(second, carry), (std::vector<bool>{true}));
 }
 
 TEST(Vu1Prog0Cpu, WindowAdcBatchSplitInvariant) {
-    std::mt19937 rng(7);
+    std::mt19937          rng(7);
     std::vector<uint32_t> guard(40);
-    for (uint32_t& g : guard) {
+    for (uint32_t &g : guard) {
         g = RandomGuard(rng);
     }
 
@@ -895,5 +906,5 @@ TEST(Vu1Prog0Cpu, GsZToDepthEndpoints) {
     EXPECT_EQ(GsZToDepth(20000000u, 16777215.0f), 1.0f);
 }
 
-}  // namespace
-}  // namespace dc::vu1
+} // namespace
+} // namespace dc::vu1

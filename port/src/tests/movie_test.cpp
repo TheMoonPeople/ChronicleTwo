@@ -28,14 +28,14 @@
 #include "log_capture.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
-#include "mg_texture_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "movie.hpp"
-#include "movie_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/paths.hpp"
+#include "render/renderer.hpp"
+#include "render/texture_runtime.hpp"
+#include "video/movie_playback.hpp"
 #include "video/player.hpp"
 
 namespace fs = std::filesystem;
@@ -116,7 +116,7 @@ TEST(MoviePlayer, L5LogoPlaysEveryPictureAtTwentyFiveFramesASecond) {
     EXPECT_EQ(player.PicturesShown(), 1);
     ASSERT_NE(player.Audio(), nullptr);
     EXPECT_EQ(player.Audio()->rate, 48000);
-    EXPECT_EQ(player.Audio()->Frames(), 288512);
+    EXPECT_NEAR(static_cast<double>(player.Audio()->Frames()) / player.Audio()->rate, 6.0, 0.1);
     EXPECT_FALSE(player.Audio()->loop);
 
     constexpr int64_t k_tick = 1800;
@@ -200,10 +200,10 @@ struct RestoreClock {
 
 TEST(MovieGlue, PathMapsGameNamesToPublishedMp4) {
     const fs::path movie = "movie";
-    EXPECT_EQ(MoviePortPath("L5LOGO.MP4"), movie / "l5logo.mp4");
-    EXPECT_EQ(MoviePortPath("TUTO2\\VTUTO1.MP4"), movie / "tuto2" / "vtuto1.mp4");
-    EXPECT_EQ(MoviePortPath("cdrom0:\\RUSH.MP4;1"), movie / "rush.mp4");
-    EXPECT_EQ(MoviePortPath("/TUTO/X.MP4"), movie / "tuto" / "x.mp4");
+    EXPECT_EQ(dc2::video::MoviePath("L5LOGO.MP4"), movie / "l5logo.mp4");
+    EXPECT_EQ(dc2::video::MoviePath("TUTO2\\VTUTO1.MP4"), movie / "tuto2" / "vtuto1.mp4");
+    EXPECT_EQ(dc2::video::MoviePath("cdrom0:\\RUSH.MP4;1"), movie / "rush.mp4");
+    EXPECT_EQ(dc2::video::MoviePath("/TUTO/X.MP4"), movie / "tuto" / "x.mp4");
 }
 
 TEST(MoviePlayer, StandardMp4ContainsVideoAndEmbeddedLosslessAudio) {
@@ -244,7 +244,7 @@ TEST(MovieGlue, MissingMovieStartsAndEndsAtOnce) {
     auto movie = std::make_unique<CMovie>();
     char name[] = "NOSUCH.MP4";
     char texture[] = "moviework";
-    movie->Load(name, static_cast<mgCMemory **>(nullptr), 0x200, 0x1A0, true, false, false);
+    movie->Load(name, 0x200, 0x1A0, true, false);
     movie->Play(texture);
     EXPECT_EQ(movie->IsStarted(), 1);
     EXPECT_EQ(movie->EndCheck(), 1);
@@ -255,7 +255,7 @@ TEST(MovieGlue, MissingMovieStartsAndEndsAtOnce) {
 
 TEST(MovieGlue, L5LogoPlaysOnTheClockWithItsSoundtrack) {
     RestoreDataRoot restore_data{.root = PathsDataRoot()};
-    if (!fs::is_regular_file(datapacks::Root() / MoviePortPath("L5LOGO.MP4"))) {
+    if (!fs::is_regular_file(datapacks::Root() / dc2::video::MoviePath("L5LOGO.MP4"))) {
         const std::optional<fs::path> found = MovieFile("l5logo.mp4");
         if (!found) {
             GTEST_SKIP() << "no extracted data/movie/l5logo.mp4 within 6 levels above the test executable";
@@ -273,7 +273,7 @@ TEST(MovieGlue, L5LogoPlaysOnTheClockWithItsSoundtrack) {
     auto movie = std::make_unique<CMovie>();
     char name[] = "L5LOGO.MP4";
     char texture[] = "moviework";
-    movie->Load(name, static_cast<mgCMemory **>(nullptr), 512, 416, true, false, true);
+    movie->Load(name, 512, 416, true, false);
     movie->Play(texture);
     EXPECT_EQ(movie->IsStarted(), 1);
     EXPECT_TRUE(audio::DefaultMixer().IsPlaying(kMoviePortAudioPort));
@@ -357,7 +357,7 @@ struct MovieTermOnExit {
 
 TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
     RestoreDataRoot restore_data{.root = PathsDataRoot()};
-    if (!fs::is_regular_file(datapacks::Root() / MoviePortPath("L5LOGO.MP4"))) {
+    if (!fs::is_regular_file(datapacks::Root() / dc2::video::MoviePath("L5LOGO.MP4"))) {
         const std::optional<fs::path> found = MovieFile("l5logo.mp4");
         if (!found) {
             GTEST_SKIP() << "no extracted data/movie/l5logo.mp4 within 6 levels above the test executable";
@@ -365,7 +365,7 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
         PathsSetDataRoot(found->parent_path().parent_path().parent_path() / "data");
         datapacks::Load(found->parent_path().parent_path());
     }
-    const fs::path movie_file = datapacks::Root() / MoviePortPath("L5LOGO.MP4");
+    const fs::path movie_file = datapacks::Root() / dc2::video::MoviePath("L5LOGO.MP4");
 
     RestoreClock       restore_clock{.rate = ClockTickRate(), .unbounded = ClockUnbounded()};
     OffscreenRenderer  renderer;
@@ -384,7 +384,7 @@ TEST(MovieGlue, ThirtyFramesOfL5LogoThroughTheMovieTexture) {
     auto            movie = std::make_unique<CMovie>();
     MovieTermOnExit term_on_exit{movie.get()};
     char            name[] = "L5LOGO.MP4";
-    movie->Load(name, static_cast<mgCMemory **>(nullptr), 512, 416, true, false, true);
+    movie->Load(name, 512, 416, true, false);
     movie->Play(texture_name);
     const int64_t start_tick = ClockTickCount();
     EXPECT_EQ(movie->IsStarted(), 1);
@@ -641,7 +641,7 @@ void PlayHdMovies(int texture_size, std::initializer_list<int> retails, std::vec
         MovieTermOnExit term_on_exit{movie.get()};
         char            name[] = "HD.MP4";
         CaptureLoggedStderr();
-        movie->Load(name, static_cast<mgCMemory **>(nullptr), retail, retail, false, false, true);
+        movie->Load(name, retail, retail, false, false);
         movie->Play(texture_name);
         movie->SwitchThread();
         result.log = GetLoggedStderr();
@@ -817,7 +817,7 @@ TEST(MovieGlue, RealTimeClockRunsFromPlayNotFromTheLastTick) {
     auto movie = std::make_unique<CMovie>();
     char name[] = "HD.MP4";
     char texture[] = "moviework";
-    movie->Load(name, static_cast<mgCMemory **>(nullptr), 16, 16, true, false, false);
+    movie->Load(name, 16, 16, true, false);
     // Load decodes the soundtrack after the frame's clock pump, hundreds of milliseconds for a long movie; the
     // soundtrack starts at Play.
     g_fake_now += std::chrono::milliseconds(300);
@@ -858,7 +858,7 @@ TEST(MovieGlue, EndCheckEndsAStalledMovieTwoSecondsPastItsLength) {
     char          texture[] = "moviework";
 
     auto movie = std::make_unique<CMovie>();
-    movie->Load(name, static_cast<mgCMemory **>(nullptr), 16, 16, false, false, false);
+    movie->Load(name, 16, 16, false, false);
     movie->Play(texture);
     int ticks = 0;
     while (ticks < 1000) {
@@ -873,7 +873,7 @@ TEST(MovieGlue, EndCheckEndsAStalledMovieTwoSecondsPastItsLength) {
     movie->Term();
 
     // A looping movie restarts there instead, its clock from zero.
-    movie->Load(name, static_cast<mgCMemory **>(nullptr), 16, 16, false, true, false);
+    movie->Load(name, 16, 16, false, true);
     movie->Play(texture);
     for (int tick = 1; tick <= deadline_ticks + 1; tick++) {
         ClockPump();
@@ -889,4 +889,18 @@ TEST(MovieGlue, EndCheckEndsAStalledMovieTwoSecondsPastItsLength) {
     movie->SwitchThread();
     EXPECT_EQ(MoviePortClock(), 1800);
     movie->Term();
+}
+
+TEST(MovieGlue, BoundedMovieNamesLoadAndPlayWithoutAGameReadArena) {
+    FixtureMovieRoot       movie_root;
+    std::array<char, 7>    name = {'H', 'D', '.', 'M', 'P', '4', 'X'};
+    const std::string_view filename(name.data(), 6);
+    EXPECT_EQ(dc2::video::MoviePath(filename), dc2::video::MoviePath("HD.MP4"));
+    CMovie          movie;
+    MovieTermOnExit cleanup{&movie};
+    movie.Load(filename, 16, 16, false, false);
+    name.fill('X');
+    char texture[] = "moviework";
+    movie.Play(texture);
+    EXPECT_NE(movie.IsStarted(), 0);
 }

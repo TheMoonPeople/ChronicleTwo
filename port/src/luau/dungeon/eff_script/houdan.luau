@@ -36,45 +36,45 @@ function script.on_start()
 	local var19: f32 = 0
 	local var20: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		work_vect2_x = out1 or work_vect2_x
 		work_vect2_y = out2 or work_vect2_y
 		work_vect2_z = out3 or work_vect2_z
 	end
-	value = effect.GetValue(0) or value
-	value_2 = effect.GetValue(1) or value_2
-	effect.ChrSetScale(0.5, 0.5, 0.5)
+	value = effect.get_script_value(0) or value
+	value_2 = effect.get_script_value(1) or value_2
+	effect.set_effect_character_scale(0.5, 0.5, 0.5)
 	do
-		local out1, out2, out3 = effect.CopyVector(work_vect2_x, work_vect2_y, work_vect2_z)
+		local out1, out2, out3 = effect.copy_vector(work_vect2_x, work_vect2_y, work_vect2_z)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = effect.SubVector(var9, var10, var11, var0, var1, var2)
+		local out1, out2, out3 = effect.subtract_vectors(var9, var10, var11, var0, var1, var2)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = effect.NormalVector(var9, var10, var11)
+		local out1, out2, out3 = effect.normalize_vector(var9, var10, var11)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, 30.0)
+		local out1, out2, out3 = effect.scale_vector(var9, var10, var11, 30.0)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	var15 = effect.DistVector2(var0, var1, var2, work_vect2_x, work_vect2_y, work_vect2_z) or var15
+	var15 = effect.get_distance_between(var0, var1, var2, work_vect2_x, work_vect2_y, work_vect2_z) or var15
 	var14 = vm.f32(vm.f32(-1.1999999) + vm.f32(var15 * vm.f32(0.0004)))
 	var15 = vm.f32(vm.f32(var15 / 30.0) + 1.0)
 	var10 = vm.f32(
@@ -83,24 +83,24 @@ function script.on_start()
 			vm.f32(var15 * 2.0)
 		)
 	)
-	effect.ColprimCreate("円形チェック用")
+	effect.create_collision_primitive("円形チェック用")
 	var16 = 0
 	while var16 < 120 do
 		do
-			local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+			local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
 		var10 = vm.f32(var10 + var14)
 		do
-			local out1, out2, out3, out4 = effect.IntersectionPoint_11(4, var6, var7, var8, var0, var1, var2)
+			local out1, out2, out3, out4 = effect.get_intersection_point_11(4, var6, var7, var8, var0, var1, var2)
 			var18 = out1 or var18
 			var19 = out2 or var19
 			var20 = out3 or var20
@@ -108,35 +108,35 @@ function script.on_start()
 		end
 		if var17 >= 0 then
 			do
-				local out1, out2, out3 = effect.CopyVector(var18, var19, var20)
+				local out1, out2, out3 = effect.copy_vector(var18, var19, var20)
 				var6 = out1 or var6
 				var7 = out2 or var7
 				var8 = out3 or var8
 			end
 			break
 		else
-			effect.ColprimSetCoord(var0, var1, var2, 4.0)
-			var17 = effect.ColprimGetHitcnt() or var17
+			effect.set_collision_primitive_shape(var0, var1, var2, 4.0)
+			var17 = effect.get_collision_primitive_hit_count() or var17
 			if var17 > 0 then
 				do
-					local out1, out2, out3 = effect.ColprimGetHitPos()
+					local out1, out2, out3 = effect.get_collision_primitive_hit_position()
 					var6 = out1 or var6
 					var7 = out2 or var7
 					var8 = out3 or var8
 				end
 				break
 			else
-				effect.ChrSetPos(var0, var1, var2)
+				effect.set_effect_character_position(var0, var1, var2)
 				var16 = var16 + 1
 				vm.wait()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
-	effect.EsCreate_1("Ｍ爆発大")
-	effect.EsSetVect1(var6, var7, var8)
-	effect.EsSetValue(0, value)
-	effect.EsSetValue(1, value_2)
+	effect.delete_collision_primitive(-1)
+	effect.create_effect_1("Ｍ爆発大")
+	effect.set_effect_first_work_vector(var6, var7, var8)
+	effect.set_effect_value(0, value)
+	effect.set_effect_value(1, value_2)
 end
 
 --- Ends an effect.

@@ -1,6 +1,6 @@
 # --jump town:10 --fast-load --frames 1850 --screenshot-display 2
-# Opens retail Options, enters PC SETTINGS, edits each page, captures a key, cancels a
-# second capture with Escape, then returns to the original retail cursor and choices.
+# Opens retail Options, visits all six PC SETTINGS tabs, edits values, captures a key, cancels a
+# second capture with Escape, binds D-pad Up/Down to K/L, then returns to retail Options.
 # Useful screenshots: Display 1070, Audio 1180, Controls 1450, Bind prompt 1750,
 # bound keys 1790, retail Options restored 1850. Use a fresh save root.
 300 triangle
@@ -87,19 +87,31 @@
 1421
 1430 down
 1431
+1434 right
+1435
 1440 down
 1441
 1452 right
 1453
+1460 down
+1461
+1470 down
+1471
+1480 down
+1481
+1490 down
+1491
+1494 right
+1495
 1500 r1
 1501
-1520 down
+1520 r1
 1521
-1540 down
+1540 r1
 1541
-1560 down
+1560 l1
 1561
-1580 down
+1580
 1581
 1600 cross
 1601

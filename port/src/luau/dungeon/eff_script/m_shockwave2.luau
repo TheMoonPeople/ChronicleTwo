@@ -21,29 +21,29 @@ function script.on_start()
 	local value: f32 = 0
 	local value_2: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	value_2 = effect.GetValue(0) or value_2
-	value = effect.GetValueFloat(1) or value
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetScale(value, value, value)
-	effect.ChrSetRot(0.0, 0.0, 0.0)
-	effect.ChrSetShow(1, 1, 0.1)
-	effect.ChrSetMotion("発動", -1, 6)
-	effect.ColprimCreate("吹っ飛び攻撃")
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 30.0)
-	effect.ColprimSetDamage(value_2)
+	value_2 = effect.get_script_value(0) or value_2
+	value = effect.get_script_value_float(1) or value
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_scale(value, value, value)
+	effect.rotate_effect_character_toward(0.0, 0.0, 0.0)
+	effect.set_effect_character_visible(1, 1, 0.1)
+	effect.set_effect_character_motion("発動", -1, 6)
+	effect.create_collision_primitive("吹っ飛び攻撃")
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 30.0)
+	effect.set_collision_primitive_damage(value_2)
 	for var4 = 0, 16 do
 		if var4 == 16 then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		vm.wait()
 	end
 	helper_8b333653()
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

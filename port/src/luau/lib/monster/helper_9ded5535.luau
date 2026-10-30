@@ -3,10 +3,10 @@
 
 --- Helper function.
 local function helper_9ded5535()
-	monster.VPush(1, -1)
-	monster.VPush(2, -1)
-	monster.VPush(3, -1)
-	monster.VPush(4, -1)
+	monster.set_variable(1, -1)
+	monster.set_variable(2, -1)
+	monster.set_variable(3, -1)
+	monster.set_variable(4, -1)
 end
 
 return helper_9ded5535

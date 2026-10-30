@@ -4,6 +4,10 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
+#include <vector>
+
+#include "dataread.hpp"
 
 /**
  * Returns the actual native directory named by a bounded versioned pack.json buffer.
@@ -29,3 +33,36 @@ int AssetDirectoryCount(const void *directory);
  * Selects an explicitly local member name from a caller's full resource path.
  */
 const char *AssetMemberName(const char *path);
+
+namespace dc2::assets {
+/**
+ * Owns a directory member's initialized native contents and logical enumeration name.
+ */
+struct DirectoryMember {
+    std::string  name; /**< Logical direct member name independent of its source path. */
+    io::FileRead read; /**< Owns the complete initialized native member contents. */
+};
+
+/**
+ * Reads deterministic direct native members selected by document kind or file extension.
+ */
+std::vector<DirectoryMember> ReadDirectoryMembers(const io::FileRead &directory, std::string_view kind = {});
+/**
+ *
+ * Gives the native directory of an owned, bounded and validated pack document.
+ *
+ */
+std::optional<std::string> DirectoryPath(const io::FileRead &directory);
+/**
+ *
+ * Resolves a member using an owned directory document and its explicit source identity.
+ *
+ */
+std::optional<std::string> ResolveDirectoryMember(const io::FileRead &directory, std::string_view name);
+/**
+ *
+ * Owns a validated member read from an owned directory document.
+ *
+ */
+io::FileRead ReadDirectoryMember(const io::FileRead &directory, std::string_view name);
+} // namespace dc2::assets

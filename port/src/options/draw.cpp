@@ -96,7 +96,7 @@ void Draw() {
     }
     if (!g_screen.open) {
         Plate(284, 51, 160, 25, hit.kind == HitKind::Entry);
-        Text(ButtonName("select", config) + ": PC SETTINGS", 291, 54, 147, true, 13);
+        Text(ButtonName("select", config) + ": " + kPageTitle, 291, 54, 147, true, 13);
     } else {
         Backdrop();
         // The original scrollbar remains a useful track, with this page's own thumb and count.
@@ -108,13 +108,13 @@ void Draw() {
         const int   thumb_h = 221 * shown / count;
         const int   thumb_y = 100 + (count > shown ? (221 - thumb_h) * first / (count - shown) : 0);
         Fill(447, thumb_y, 3, thumb_h, 95, 67, 35);
-        Text("PC SETTINGS", 83, 55, 190, true, 18);
+        Text(kPageTitle, 83, 55, 190, true, 18);
         Text(std::format("{} / {}", g_screen.page + 1, Pages().size()), 385, 56, 60, false, 14);
         for (int p = 0; p < kPages; ++p) {
             const int  x = kLeft + p * kTabStep;
             const bool selected = p == g_screen.page;
             Plate(x, 91, kTabStep - 3, 23, selected || (hit.kind == HitKind::Tab && hit.index == p));
-            Text(Pages()[p].name, x + 4, 93, kTabStep - 9, selected, 14);
+            Text(Pages()[p].name, x + 4, 93, kTabStep - 9, selected, 13);
         }
         for (int row = first; row < std::min(count, first + kVisibleRows); ++row) {
             int         y = kRowY + (row - first) * kRowStep;
@@ -126,7 +126,12 @@ void Draw() {
             }
             Text(item.label, kLeft + 8, y + 1, kValueX - kLeft - 18, false, 15);
             Plate(kValueX, y + 1, kRight - kValueX, 21, selected);
-            const std::string value = g_screen.binding == row ? "Press a key..." : item.value(config);
+            std::string value;
+            if (g_screen.binding == row) {
+                value = item.pad ? "Press a button..." : "Press a key...";
+            } else {
+                value = item.value(config);
+            }
             Text(value, kValueX + 15, y + 2, kRight - kValueX - 29, selected, 14);
             if (selected && item.step) {
                 Text("<", kValueX + 3, y + 2, 10, true, 14);
@@ -137,7 +142,7 @@ void Draw() {
              332, 314, 103, false, 12);
         Plate(kLeft, 343, 105, 27, hit.kind == HitKind::Back);
         Text(g_screen.binding >= 0 ? "Cancel capture" : "Back to Options", kLeft + 5, 348, 96, false, 12);
-        if (g_screen.page == kBindingsPage && g_screen.binding < 0) {
+        if (BindingPage(g_screen.page) && g_screen.binding < 0) {
             Plate(272, 343, kRight - 272, 27, hit.kind == HitKind::ResetBinding);
             Text(ButtonName("square", config) + ": Restore binding", 278, 348, kRight - 284, false, 12);
         }
@@ -145,6 +150,8 @@ void Draw() {
             Help("Could not save config.json. Settings work this session.\nCheck the folder above the saves; change a setting to retry.");
         } else if (DisplayGetWarning() != DisplayWarning::None) {
             Help("The display could not apply that mode.\nThe setting shows the mode the window kept.");
+        } else if (g_screen.binding >= 0 && g_screen.page == kPadBindingsPage) {
+            Help("Press a controller button or trigger. Escape or five\nseconds cancels. A button another one has swaps.");
         } else if (g_screen.binding >= 0) {
             Help("Press a key or mouse button. Escape cancels.\nEscape is reserved and cannot be bound.");
         } else {

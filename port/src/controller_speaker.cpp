@@ -110,6 +110,14 @@ bool EnsureOpen() {
     if (g_stream != nullptr) {
         return true;
     }
+#ifdef SDL_PLATFORM_IOS
+    // iOS lists one default output and gives apps no way to the pad's speaker over Bluetooth.
+    if (!g_tried) {
+        g_tried = true;
+        CT_LOG_INFO(Audio, "controller speaker: iOS has no DualSense audio device; sounds stay on the main output");
+    }
+    return false;
+#endif
     const Uint64 now = SDL_GetTicks();
     if (g_tried && now - g_last_try < kRetryMs) {
         return false;

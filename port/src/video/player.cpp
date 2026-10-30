@@ -11,6 +11,8 @@ extern "C" {
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <fstream>
 #include <limits>
@@ -222,6 +224,10 @@ std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const vfs::Ref &file, bool &faile
                 return false;
             }
             const auto *frame = reader.frame;
+            if (frame->nb_samples < 0 || frame->sample_rate <= 0 || frame->ch_layout.nb_channels <= 0 ||
+                frame->extended_data == nullptr) {
+                return false;
+            }
             if (!reader.resampler) {
                 track->rate = frame->sample_rate;
                 track->source_channels = frame->ch_layout.nb_channels;
@@ -246,7 +252,10 @@ std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const vfs::Ref &file, bool &faile
             if (!first_audio && frame->best_effort_timestamp != AV_NOPTS_VALUE) {
                 first_audio = av_rescale_q(frame->best_effort_timestamp, stream->time_base, {.num = 1, .den = track->rate});
             }
-            const int                    capacity = swr_get_out_samples(reader.resampler, frame->nb_samples);
+            const int capacity = swr_get_out_samples(reader.resampler, frame->nb_samples);
+            if (capacity < 0 || static_cast<std::size_t>(capacity) > std::vector<int16_t>{}.max_size() / 2) {
+                return false;
+            }
             std::vector<int16_t>         converted(static_cast<std::size_t>(capacity) * 2);
             uint8_t                     *output[] = {reinterpret_cast<uint8_t *>(converted.data())};
             const int                    planes = av_sample_fmt_is_planar(static_cast<AVSampleFormat>(frame->format)) ? frame->ch_layout.nb_channels : 1;
@@ -256,10 +265,14 @@ std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const vfs::Ref &file, bool &faile
                 input.push_back(frame->extended_data[i]);
             }
             const int count = swr_convert(reader.resampler, output, capacity, input.data(), frame->nb_samples);
-            if (count < 0) {
+            if (count < 0 || count > capacity) {
                 return false;
             }
-            track->samples.insert(track->samples.end(), converted.begin(), converted.begin() + count * 2);
+            const auto stereo_samples = static_cast<std::size_t>(count) * 2;
+            if (stereo_samples > track->samples.max_size() - track->samples.size()) {
+                return false;
+            }
+            track->samples.insert(track->samples.end(), converted.begin(), converted.begin() + static_cast<std::ptrdiff_t>(stereo_samples));
             av_frame_unref(reader.frame);
         }
     };
@@ -286,11 +299,24 @@ std::shared_ptr<audio::PcmTrack> EmbeddedAudio(const vfs::Ref &file, bool &faile
             first_video = av_rescale_q(v->start_time, v->time_base, {.num = 1, .den = track->rate});
         }
     }
-    const int64_t offset = first_audio.value_or(first_video) - first_video;
+    const auto audio_start = first_audio.value_or(first_video);
+    if ((first_video > 0 && audio_start < std::numeric_limits<int64_t>::min() + first_video) ||
+        (first_video < 0 && audio_start > std::numeric_limits<int64_t>::max() + first_video)) {
+        failed = true;
+        return nullptr;
+    }
+    const int64_t offset = audio_start - first_video;
     if (offset > 0) {
-        track->samples.insert(track->samples.begin(), static_cast<std::size_t>(offset) * 2, 0);
+        const auto padding_frames = static_cast<std::uint64_t>(offset);
+        if (padding_frames > (track->samples.max_size() - track->samples.size()) / 2) {
+            failed = true;
+            return nullptr;
+        }
+        track->samples.insert(track->samples.begin(), static_cast<std::size_t>(padding_frames) * 2, 0);
     } else if (offset < 0) {
-        track->samples.erase(track->samples.begin(), track->samples.begin() + std::min(-offset, track->Frames()) * 2);
+        const auto magnitude = static_cast<std::uint64_t>(-(offset + 1)) + 1;
+        const auto frames = std::min(magnitude, static_cast<std::uint64_t>(track->Frames()));
+        track->samples.erase(track->samples.begin(), track->samples.begin() + static_cast<std::ptrdiff_t>(frames * 2));
     }
     return track;
 }

@@ -22,26 +22,26 @@ function script.on_start()
 	local var5: f32 = 0
 	local var6: s32 = 0
 	do
-		local out1, out2, out3 = effect.CopyVector(0.0, 0.0, 0.0)
+		local out1, out2, out3 = effect.copy_vector(0.0, 0.0, 0.0)
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetRot(var3, var4, var5)
-	effect.ChrSetMotion("ｴﾌｪｸﾄ_バギー爆発", -1, 6)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.rotate_effect_character_toward(var3, var4, var5)
+	effect.set_effect_character_motion("ｴﾌｪｸﾄ_バギー爆発", -1, 6)
 	var6 = 0
 	while var6 < 47 do
 		var6 = var6 + 1

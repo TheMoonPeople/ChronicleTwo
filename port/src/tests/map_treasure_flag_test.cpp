@@ -2,12 +2,14 @@
 
 #include <array>
 #include <memory>
+#include <string>
 #include <string_view>
 
 #include "map.hpp"
-#include "map_port.hpp"
 #include "mapload.hpp"
 #include "mapparts.hpp"
+#include "mapselect.hpp"
+#include "object/world/treasure_flags.hpp"
 
 namespace {
 
@@ -53,6 +55,14 @@ protected:
 };
 
 } // namespace
+
+TEST(NativeMapPath, OwnsTheFullMapDirectoryWithoutTruncatingLongNames) {
+    EXPECT_EQ(dc2::world::MapPath("f01"), "map/f/f01/f01");
+    EXPECT_EQ(dc2::world::MapPath("abc1234"), "map/a/abc/123/abc1234");
+    const std::string long_name(200, 'x');
+    const std::string path = dc2::world::MapPath(long_name);
+    EXPECT_EQ(path, "map/x/xxx/xxx/" + long_name);
+}
 
 TEST_F(StarlightChests, OpeningTheWeaponChestLeavesTheWindGemChest) {
     Visit("f02");

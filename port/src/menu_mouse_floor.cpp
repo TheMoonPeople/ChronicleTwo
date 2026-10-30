@@ -9,7 +9,6 @@
 
 #include "dngfloor.hpp"
 #include "dngmenu.hpp"
-#include "dngmenu_port.hpp"
 #include "floor_monsters.hpp"
 #include "gamepad.hpp"
 #include "menu_mouse_floor.hpp"
@@ -17,8 +16,9 @@
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "menusys.hpp"
-#include "mglib_port.hpp"
 #include "nd_meswin.hpp"
+#include "object/dun/map_presentation.hpp"
+#include "render/renderer.hpp"
 #include "stubs/dngmenu.hpp"
 
 namespace {
@@ -164,7 +164,7 @@ bool MenuMouseFloor() {
     return true;
 }
 
-PORT_OVERRIDE GLID_INFO *CDngFloorManager::GetKeyNextRoom(int floor_id, int dir, GLID_INFO * /*previous*/) {
+GLID_INFO *CDngFloorManager::GetKeyNextRoom(int floor_id, int dir, GLID_INFO * /*previous*/) {
     if (pending_manager == this && pending_frame == mgPortFrameCount()) {
         auto *room = pending_room;
         pending_manager = nullptr;

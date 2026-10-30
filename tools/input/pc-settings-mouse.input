@@ -1,6 +1,6 @@
 # --headless --window 1280x960 --jump town:10 --fast-load
 # Pointer starts at the window center when Options settles.
-# Click PC SETTINGS, Audio, volume down, Bindings, capture Mouse3, Back.
+# Click PC SETTINGS, Audio, volume down, Keyboard, capture Mouse3, Back.
 300 triangle
 301
 400 down
@@ -18,22 +18,22 @@
 681
 700 mouse1
 701
-# Audio tab (540,202).
-720 mouse:-360,76
+# Audio tab (422,202).
+720 mouse:-478,76
 721
 740 mouse1
 741
 # Master volume left arrow (750,260).
-760 mouse:210,58
+760 mouse:328,58
 761
 780 mouse1
 781
-# Bindings tab (980,202), then first row (960,260).
-800 mouse:230,-58
+# Keyboard tab (858,202), then the D-pad Up row (960,260).
+800 mouse:108,-58
 801
 820 mouse1
 821
-840 mouse:-20,58
+840 mouse:102,58
 841
 860 mouse1
 861

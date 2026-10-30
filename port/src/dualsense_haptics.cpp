@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <SDL3/SDL_platform.h>
+
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -13,10 +15,13 @@
 #include "dualsense_haptics.hpp"
 #include "event_func.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "platform/config.hpp"
+#include "platform/game_loop_state.hpp"
 #include "sceneseq.hpp"
 #include "scenesnd.hpp"
+#ifdef SDL_PLATFORM_IOS
+#include "ios/bridge.hpp"
+#endif
 
 namespace {
 
@@ -121,7 +126,11 @@ bool Enabled() {
 } // namespace
 
 bool HapticsActive() {
+#ifdef SDL_PLATFORM_IOS
+    return Enabled() && IosHapticsReady();
+#else
     return Enabled() && ControllerSpeakerOpen() && ControllerHapticsChannels();
+#endif
 }
 
 bool HapticsEffectsActive() {

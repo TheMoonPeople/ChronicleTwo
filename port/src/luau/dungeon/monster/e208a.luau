@@ -15,15 +15,15 @@ local function helper_1968()
 	local var2: f32 = 0
 	helper_93495fdf()
 	do
-		local out1, out2, out3 = monster.GetTargetPos()
+		local out1, out2, out3 = monster.get_target_position()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
-	monster.SetNextPos(var0, var1, var2, 5.0, 10.0)
-	monster.SetMos("特攻")
+	monster.move_toward_position(var0, var1, var2, 5.0, 10.0)
+	monster.set_motion("特攻")
 	helper_8566bb6e(90)
-	monster.SetMos("立ち")
+	monster.set_motion("立ち")
 	helper_c3e8ae39(8)
 end
 
@@ -38,9 +38,9 @@ function script.init() end
 
 --- Runs the monster's normal behaviour.
 function script.loop()
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
-	monster.SetActStatus(0)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
+	monster.set_action_status(0)
 	while true do
 		vm.wait()
 	end
@@ -48,21 +48,21 @@ end
 
 --- Reacts to a hit that staggers it.
 function script.on_damage()
-	monster.ResetMove()
-	monster.SetMos("ダメージ", -1, 6)
-	monster.BlowStart(4.0, 0.0, 3)
+	monster.stop_moving()
+	monster.set_motion("ダメージ", -1, 6)
+	monster.start_knockback(4.0, 0.0, 3)
 	helper_c3e8ae39(16)
 end
 
 --- Reacts to a hit that knocks it over.
 function script.on_knockdown()
 	local gekirin: s32 = 0
-	monster.ResetMove()
-	monster.SetMos("ダメージ", -1, 6)
-	monster.BlowStart(4.0, 0.0, 3)
+	monster.stop_moving()
+	monster.set_motion("ダメージ", -1, 6)
+	monster.start_knockback(4.0, 0.0, 3)
 	helper_56d63eae()
 	helper_c3e8ae39(16)
-	gekirin = vm.float_bits(monster.GetGekirin()) or gekirin
+	gekirin = vm.float_bits(monster.get_rage_hits_left()) or gekirin
 	if gekirin == 0 then
 		helper_1968()
 	end
@@ -75,7 +75,7 @@ function script.on_guard() end
 --- Dodges the target's first kind of attack.
 function script.on_dodge_1()
 	local gekirin: s32 = 0
-	gekirin = vm.float_bits(monster.GetGekirin()) or gekirin
+	gekirin = vm.float_bits(monster.get_rage_hits_left()) or gekirin
 	if gekirin == 0 then
 		helper_1968()
 	end
@@ -83,21 +83,21 @@ end
 
 --- Dodges the target's second kind of attack.
 function script.on_dodge_2()
-	monster.ResetMove()
+	monster.stop_moving()
 	helper_442b9962()
-	monster.SetMos("攻撃外れ", -1, 2)
+	monster.set_motion("攻撃外れ", -1, 2)
 	helper_56d63eae()
 end
 
 --- Runs the monster's death.
 function script.on_death()
-	monster.ResetMove()
+	monster.stop_moving()
 	helper_442b9962()
-	monster.SetDeadStart()
-	monster.SetMos("吹っ飛び死に", -1, 6)
+	monster.start_death()
+	monster.set_motion("吹っ飛び死に", -1, 6)
 	helper_56d63eae()
-	monster.SetActStatus(1)
-	monster.SetDeadOff()
+	monster.set_action_status(1)
+	monster.spawn_death_effects()
 	while true do
 		vm.wait()
 	end

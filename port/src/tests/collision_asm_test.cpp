@@ -1,6 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "collision.hpp"
+#include "colprim.hpp"
+#include "intersection.hpp"
+#include "platform/arena.hpp"
+#include "scenesnd.hpp"
 #include "stubs/collision.hpp"
 
 namespace {
@@ -21,6 +27,105 @@ void SetIdentity(float (*matrix)[4]) {
 }
 
 } // namespace
+
+TEST(CollisionAsm, SingleHitHistoryCoversEverySceneCharacterSlotAndResets) {
+    auto           scene = std::make_unique<CScene>();
+    auto           character = std::make_shared<CCharacter2>();
+    static char    model_key;
+    constexpr auto words = dc2::memory::ArrayQuadwords<mgCFrame>(1).value() + 8;
+    mgCMemory      memory;
+    memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_key, words * sizeof(u_long128))), words);
+    auto *frame_storage = dc2::memory::NewObject<mgCFrame>(memory);
+    ASSERT_NE(frame_storage, nullptr);
+    auto &frame = *frame_storage;
+    character->CObjectFrame::frame = &frame;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(*character, memory));
+    character->entry_object[0] = {.frame = &frame,
+                                  .size = 1.0f,
+                                  .group = CHARA_ENTRY_GROUP_HIT,
+                                  .enable = true};
+    DAMAGE_PARAM damage{};
+    damage.shape = DAMAGE_SHAPE_POINT;
+    CColPrim primitive{};
+    primitive.Initialize();
+    primitive.param = &damage;
+    float position[4]{0.0f, 0.0f, 0.0f, 1.0f};
+    primitive.SetCoord(position, 1.0f);
+    primitive.active = true;
+
+    EXPECT_FALSE(primitive.IsHit(nullptr, 0));
+    EXPECT_FALSE(primitive.IsHit(scene.get(), -1));
+    EXPECT_FALSE(primitive.IsHit(scene.get(), 128));
+    for (const int slot : {0, 31, 32, 63, 64, 127}) {
+        scene->chara[slot].status = 1;
+        scene->chara[slot].character = dc2::scene::CharacterResource::FromOwned(character);
+        EXPECT_TRUE(primitive.IsHit(scene.get(), slot)) << slot;
+        EXPECT_FALSE(primitive.IsHit(scene.get(), slot)) << slot;
+    }
+
+    primitive.Initialize();
+    primitive.param = &damage;
+    primitive.active = true;
+    EXPECT_TRUE(primitive.IsHit(scene.get(), 127));
+    damage.multi_hit = true;
+    EXPECT_TRUE(primitive.IsHit(scene.get(), 64));
+    EXPECT_TRUE(primitive.IsHit(scene.get(), 64));
+}
+
+TEST(CollisionAsm, BoxIntersectionAcceptsFloatAlignedVectorsAndSortsItsHits) {
+    struct alignas(16) Storage {
+        float prefix{};
+        float from[4]{-2.0f, 0.0f, 0.0f, 1.0f};
+        float to[4]{2.0f, 0.0f, 0.0f, 1.0f};
+        float hits[2][4]{};
+    } storage;
+
+    static_assert(offsetof(Storage, from) == sizeof(float));
+    mgVu0FBOX box{
+        .max = {1.0f,  1.0f,  1.0f,  0.0f},
+        .min = {-1.0f, -1.0f, -1.0f, 0.0f}
+    };
+
+    ASSERT_EQ(IntersectionBox(storage.from, storage.to, &box, storage.hits), 2);
+    EXPECT_FLOAT_EQ(storage.hits[0][0], -1.0f);
+    EXPECT_FLOAT_EQ(storage.hits[1][0], 1.0f);
+    EXPECT_FLOAT_EQ(storage.hits[0][3], 1.0f);
+    EXPECT_FLOAT_EQ(storage.hits[1][3], 3.0f);
+}
+
+TEST(CollisionAsm, BoxIntersectionCanReplaceItsInputEndpointsWithItsHits) {
+    float endpoints[2][4]{
+        {-2.0f, 0.0f, 0.0f, 1.0f},
+        {2.0f,  0.0f, 0.0f, 1.0f}
+    };
+    mgVu0FBOX box{
+        .max = {1.0f,  1.0f,  1.0f,  0.0f},
+        .min = {-1.0f, -1.0f, -1.0f, 0.0f}
+    };
+
+    ASSERT_EQ(IntersectionBox(endpoints[0], endpoints[1], &box, endpoints), 2);
+    EXPECT_FLOAT_EQ(endpoints[0][0], -1.0f);
+    EXPECT_FLOAT_EQ(endpoints[1][0], 1.0f);
+}
+
+TEST(CollisionAsm, UnknownDamageNamesLeaveTheExistingPrimitiveUnchanged) {
+    CColPrim primitive{};
+    primitive.active = true;
+    primitive.owner = 37;
+    primitive.param_no = 11;
+    primitive.damage = 91;
+    primitive.step_count = 4;
+    char unknown[] = "no-such-native-damage-parameter";
+
+    EXPECT_EQ(primitive.SetDamage(unknown, 5), 0);
+    EXPECT_EQ(primitive.SetDamage(nullptr, 5), 0);
+    EXPECT_TRUE(primitive.active);
+    EXPECT_EQ(primitive.owner, 37);
+    EXPECT_EQ(primitive.param_no, 11);
+    EXPECT_EQ(primitive.damage, 91);
+    EXPECT_EQ(primitive.step_count, 4);
+    EXPECT_EQ(primitive.param, nullptr);
+}
 
 TEST(CollisionAsm, TranceNormalIdentityKeepsCornersAndReturnsCrossProduct) {
     float matrix[4][4];

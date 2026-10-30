@@ -1,14 +1,16 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
 #include <cfloat>
-#include <cmath>
 #include <climits>
+#include <cmath>
+#include <cstdlib>
 #include <initializer_list>
+#include <limits>
 
-#include "common.h"
 #include "mg_drawenv.hpp"
 #include "mg_math.hpp"
-#include "stubs/mg_math.hpp"
 
 namespace {
 
@@ -28,13 +30,53 @@ void expect_matrix(float (*got)[4], const float want[4][4]) {
     }
 }
 
-void set_identity(float (*m)[4]) { mgUnitMatrix(m); }
-
 } // namespace
+
+TEST(MgMath, AngleLimitBoundsEveryFiniteFloatAndRejectsNonfiniteInput) {
+    for (const float angle : {0.0f, -0.0f, 0.25f, -0.25f, PI, -PI, TWO_PI, -TWO_PI, FLT_MAX, -FLT_MAX}) {
+        const float limited = mgAngleLimit(angle);
+        EXPECT_TRUE(std::isfinite(limited));
+        EXPECT_GE(limited, -PI);
+        EXPECT_LE(limited, PI);
+    }
+    EXPECT_FLOAT_EQ(mgAngleLimit(0.25f), 0.25f);
+    EXPECT_FLOAT_EQ(mgAngleLimit(-0.25f), -0.25f);
+    EXPECT_FLOAT_EQ(mgAngleLimit(std::numeric_limits<float>::infinity()), 0.0f);
+    EXPECT_FLOAT_EQ(mgAngleLimit(-std::numeric_limits<float>::infinity()), 0.0f);
+    EXPECT_FLOAT_EQ(mgAngleLimit(std::numeric_limits<float>::quiet_NaN()), 0.0f);
+}
+
+TEST(MgMath, QuantizedTrigonometryKeepsOrdinaryAccuracyAndBoundsExtremeInputs) {
+    for (const float angle : {-20.0f, -TWO_PI, -PI, -0.25f, 0.0f, 0.25f, PI, TWO_PI, 20.0f}) {
+        EXPECT_NEAR(mgSinf(angle), std::sin(angle), 0.007f);
+        EXPECT_NEAR(mgCosf(angle), std::cos(angle), 0.007f);
+    }
+    for (const float angle : {FLT_MAX, -FLT_MAX}) {
+        EXPECT_TRUE(std::isfinite(mgSinf(angle)));
+        EXPECT_LE(std::fabs(mgSinf(angle)), 1.0f);
+        EXPECT_TRUE(std::isfinite(mgCosf(angle)));
+        EXPECT_LE(std::fabs(mgCosf(angle)), 1.0f);
+    }
+    for (const float angle : {std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(),
+                              std::numeric_limits<float>::quiet_NaN()}) {
+        EXPECT_FLOAT_EQ(mgSinf(angle), 0.0f);
+        EXPECT_FLOAT_EQ(mgCosf(angle), 0.0f);
+    }
+}
+
+TEST(MgMathDeathTest, RandomMaximumRemainsBelowOne) {
+    ASSERT_EXIT(
+        {
+            std::srand(0x0dbdbb1e);
+            const float value = mgRnd();
+            std::_Exit(value >= 0.0f && value < 1.0f ? EXIT_SUCCESS : EXIT_FAILURE);
+        },
+        ::testing::ExitedWithCode(EXIT_SUCCESS), "");
+}
 
 TEST(MgMath, FotI4TruncatesTowardZeroAfterSixteenthScale) {
     float in[4] = {1.5f, -1.5f, 0.0625f, -0.03f};
-    int out[4] = {0, 0, 0, 0};
+    int   out[4] = {0, 0, 0, 0};
     mgFotI4(out, in);
     EXPECT_EQ(out[0], 24);
     EXPECT_EQ(out[1], -24);
@@ -42,9 +84,49 @@ TEST(MgMath, FotI4TruncatesTowardZeroAfterSixteenthScale) {
     EXPECT_EQ(out[3], 0);
 }
 
+TEST(MgMath, SphereSegmentReportsOnlyWrittenCrossings) {
+    float from[4] = {-2.0f, 1.0f, 0.0f, 1.0f};
+    float to[4] = {-1.0f, 1.0f, 0.0f, 1.0f};
+    float hits[2][4] = {
+        {99.0f, 99.0f, 99.0f, 99.0f},
+        {99.0f, 99.0f, 99.0f, 99.0f}
+    };
+    EXPECT_EQ(mgIntersectionSphereLine0(1.0f, from, to, hits), 0);
+    expect_lanes(hits[0], {99.0f, 99.0f, 99.0f, 99.0f});
+    to[0] = 2.0f;
+    ASSERT_EQ(mgIntersectionSphereLine0(1.0f, from, to, hits), 1);
+    EXPECT_FLOAT_EQ(hits[0][0], 0.0f);
+    EXPECT_FLOAT_EQ(hits[0][1], 1.0f);
+    expect_lanes(hits[1], {99.0f, 99.0f, 99.0f, 99.0f});
+    from[1] = 0.0f;
+    to[1] = 0.0f;
+    ASSERT_EQ(mgIntersectionSphereLine0(1.0f, from, to, hits), 2);
+    EXPECT_FLOAT_EQ(hits[0][0], -1.0f);
+    EXPECT_FLOAT_EQ(hits[1][0], 1.0f);
+}
+
+TEST(MgMath, SphereSegmentRejectsShortOutputAndDegenerateInputsBeforeWriting) {
+    float from[4] = {-2.0f, 0.0f, 0.0f, 1.0f};
+    float to[4] = {2.0f, 0.0f, 0.0f, 1.0f};
+    float hits[2][4] = {
+        {99.0f, 99.0f, 99.0f, 99.0f},
+        {99.0f, 99.0f, 99.0f, 99.0f}
+    };
+    EXPECT_EQ(mgIntersectionSphereLine0(1.0f, from, to, std::span(hits).first(1)), 0);
+    EXPECT_EQ(mgIntersectionSphereLine0(1.0f, from, from, hits), 0);
+    EXPECT_EQ(mgIntersectionSphereLine0(-1.0f, from, to, hits), 0);
+    EXPECT_EQ(mgIntersectionSphereLine0(std::numeric_limits<float>::infinity(), from, to, hits), 0);
+    to[0] = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_EQ(mgIntersectionSphereLine0(1.0f, from, to, hits), 0);
+    to[0] = FLT_MAX;
+    EXPECT_EQ(mgIntersectionSphereLine0(1.0f, from, to, hits), 0);
+    expect_lanes(hits[0], {99.0f, 99.0f, 99.0f, 99.0f});
+    expect_lanes(hits[1], {99.0f, 99.0f, 99.0f, 99.0f});
+}
+
 TEST(MgMath, FotI4SaturatesFiniteOverflow) {
     float in[4] = {1.0e10f, -1.0e10f, 0.0f, 0.0f};
-    int out[4] = {0, 0, 0, 0};
+    int   out[4] = {0, 0, 0, 0};
     mgFotI4(out, in);
     EXPECT_EQ(out[0], INT_MAX);
     EXPECT_EQ(out[1], INT_MIN);
@@ -53,7 +135,7 @@ TEST(MgMath, FotI4SaturatesFiniteOverflow) {
 
 TEST(MgMath, FotI4SaturatesAtExactBoundary) {
     float in[4] = {134217728.0f, -134217728.0f, 134217712.0f, 0.0f};
-    int out[4] = {0, 0, 0, 0};
+    int   out[4] = {0, 0, 0, 0};
     mgFotI4(out, in);
     EXPECT_EQ(out[0], INT_MAX);
     EXPECT_EQ(out[1], INT_MIN);
@@ -309,10 +391,10 @@ TEST(MgMath, VectorMaxMinInPlaceOutputOverlappingInput) {
 TEST(MgMath, BoxMaxMinGrowsToEnclosePatch) {
     mgVu0FBOX box{};
     mgVu0FBOX other{};
-    float bmax[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float bmin[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    float omax[4] = {3.0f, -1.0f, 2.0f, 0.0f};
-    float omin[4] = {-2.0f, 0.0f, 0.0f, 0.0f};
+    float     bmax[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float     bmin[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float     omax[4] = {3.0f, -1.0f, 2.0f, 0.0f};
+    float     omin[4] = {-2.0f, 0.0f, 0.0f, 0.0f};
     for (int i = 0; i < 4; i++) {
         box.max[i] = bmax[i];
         box.min[i] = bmin[i];
@@ -391,7 +473,12 @@ TEST(MgMath, DistVectorBetweenPointsIgnoresW) {
 TEST(MgMath, UnitAndZeroMatrix) {
     float m[4][4];
     mgUnitMatrix(m);
-    const float id[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    const float id[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
     expect_matrix(m, id);
     mgZeroMatrix(m);
     const float zero[4][4] = {};
@@ -399,27 +486,62 @@ TEST(MgMath, UnitAndZeroMatrix) {
 }
 
 TEST(MgMath, MulMatrix3AppliesSecondThenThirdOnTheLeft) {
-    float matrix[4][4] = {{2, 0, 0, 0}, {0, 2, 0, 0}, {0, 0, 2, 0}, {0, 0, 0, 1}};
-    float second[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
+    float matrix[4][4] = {
+        {2, 0, 0, 0},
+        {0, 2, 0, 0},
+        {0, 0, 2, 0},
+        {0, 0, 0, 1}
+    };
+    float second[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
     float third[4][4];
     mgUnitMatrix(third);
     MulMatrix3(matrix, second, third);
-    const float want[4][4] = {{2, 0, 0, 0}, {0, 2, 0, 0}, {0, 0, 2, 0}, {2, 4, 6, 1}};
+    const float want[4][4] = {
+        {2, 0, 0, 0},
+        {0, 2, 0, 0},
+        {0, 0, 2, 0},
+        {2, 4, 6, 1}
+    };
     expect_matrix(matrix, want);
 }
 
 TEST(MgMath, MulMatrix3IdentityLeavesMatrixUnchanged) {
-    float matrix[4][4] = {{1, 2, 3, 0}, {4, 5, 6, 0}, {7, 8, 9, 0}, {1, 2, 3, 1}};
+    float matrix[4][4] = {
+        {1, 2, 3, 0},
+        {4, 5, 6, 0},
+        {7, 8, 9, 0},
+        {1, 2, 3, 1}
+    };
     float id[4][4];
     mgUnitMatrix(id);
-    const float before[4][4] = {{1, 2, 3, 0}, {4, 5, 6, 0}, {7, 8, 9, 0}, {1, 2, 3, 1}};
+    const float before[4][4] = {
+        {1, 2, 3, 0},
+        {4, 5, 6, 0},
+        {7, 8, 9, 0},
+        {1, 2, 3, 1}
+    };
     MulMatrix3(matrix, id, id);
     expect_matrix(matrix, before);
 }
 
 TEST(MgMath, MulMatrixProductIsRightTimesLeft) {
-    float scale[4][4] = {{2, 0, 0, 0}, {0, 2, 0, 0}, {0, 0, 2, 0}, {0, 0, 0, 1}};
-    float trans[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
+    float scale[4][4] = {
+        {2, 0, 0, 0},
+        {0, 2, 0, 0},
+        {0, 0, 2, 0},
+        {0, 0, 0, 1}
+    };
+    float trans[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
     float product[4][4];
     mgMulMatrix(product, scale, trans);
     const float trans_then_scale_row3[4] = {2, 4, 6, 1};
@@ -433,10 +555,25 @@ TEST(MgMath, MulMatrixProductIsRightTimesLeft) {
 }
 
 TEST(MgMath, MulMatrixInPlaceAliasing) {
-    float a[4][4] = {{2, 0, 0, 0}, {0, 2, 0, 0}, {0, 0, 2, 0}, {0, 0, 0, 1}};
-    float b[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
+    float a[4][4] = {
+        {2, 0, 0, 0},
+        {0, 2, 0, 0},
+        {0, 0, 2, 0},
+        {0, 0, 0, 1}
+    };
+    float b[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
     mgMulMatrix(a, a, b);
-    const float want[4][4] = {{2, 0, 0, 0}, {0, 2, 0, 0}, {0, 0, 2, 0}, {2, 4, 6, 1}};
+    const float want[4][4] = {
+        {2, 0, 0, 0},
+        {0, 2, 0, 0},
+        {0, 0, 2, 0},
+        {2, 4, 6, 1}
+    };
     expect_matrix(a, want);
 }
 
@@ -445,43 +582,93 @@ TEST(MgMath, InversMatrixOfIdentityIsIdentity) {
     float inv[4][4];
     mgUnitMatrix(m);
     mgInversMatrix(inv, m);
-    const float id[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    const float id[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
     expect_matrix(inv, id);
 }
 
 TEST(MgMath, InversMatrixOfTranslationNegatesRowThree) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
     float inv[4][4];
     mgInversMatrix(inv, m);
-    const float want[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {-1, -2, -3, 1}};
+    const float want[4][4] = {
+        {1,  0,  0,  0},
+        {0,  1,  0,  0},
+        {0,  0,  1,  0},
+        {-1, -2, -3, 1}
+    };
     expect_matrix(inv, want);
 }
 
 TEST(MgMath, InversMatrixOfScaleUsesDeterminant) {
-    float m[4][4] = {{2, 0, 0, 0}, {0, 4, 0, 0}, {0, 0, 8, 0}, {0, 0, 0, 1}};
+    float m[4][4] = {
+        {2, 0, 0, 0},
+        {0, 4, 0, 0},
+        {0, 0, 8, 0},
+        {0, 0, 0, 1}
+    };
     float inv[4][4];
     mgInversMatrix(inv, m);
-    const float want[4][4] = {{0.5f, 0, 0, 0}, {0, 0.25f, 0, 0}, {0, 0, 0.125f, 0}, {0, 0, 0, 1}};
+    const float want[4][4] = {
+        {0.5f, 0,     0,      0},
+        {0,    0.25f, 0,      0},
+        {0,    0,     0.125f, 0},
+        {0,    0,     0,      1}
+    };
     expect_matrix(inv, want);
 }
 
 TEST(MgMath, InversMatrixOfShearTranslationHandComputed) {
-    float m[4][4] = {{1, 2, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {3, 4, 5, 1}};
+    float m[4][4] = {
+        {1, 2, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {3, 4, 5, 1}
+    };
     float inv[4][4];
     mgInversMatrix(inv, m);
-    const float want[4][4] = {{1, -2, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {-3, 2, -5, 1}};
+    const float want[4][4] = {
+        {1,  -2, 0,  0},
+        {0,  1,  0,  0},
+        {0,  0,  1,  0},
+        {-3, 2,  -5, 1}
+    };
     expect_matrix(inv, want);
 
     float check[4][4];
     mgMulMatrix(check, m, inv);
-    const float id[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    const float id[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
     expect_matrix(check, id);
 }
 
 TEST(MgMath, InversMatrixInPlaceAliasing) {
-    float m[4][4] = {{2, 0, 0, 0}, {0, 4, 0, 0}, {0, 0, 8, 0}, {0, 0, 0, 1}};
+    float m[4][4] = {
+        {2, 0, 0, 0},
+        {0, 4, 0, 0},
+        {0, 0, 8, 0},
+        {0, 0, 0, 1}
+    };
     mgInversMatrix(m, m);
-    const float want[4][4] = {{0.5f, 0, 0, 0}, {0, 0.25f, 0, 0}, {0, 0, 0.125f, 0}, {0, 0, 0, 1}};
+    const float want[4][4] = {
+        {0.5f, 0,     0,      0},
+        {0,    0.25f, 0,      0},
+        {0,    0,     0.125f, 0},
+        {0,    0,     0,      1}
+    };
     expect_matrix(m, want);
 }
 
@@ -489,12 +676,22 @@ TEST(MgMath, InversMatrixOfZeroMatrixSaturatesReciprocal) {
     float m[4][4] = {};
     float inv[4][4];
     mgInversMatrix(inv, m);
-    const float want[4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 1}};
+    const float want[4][4] = {
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 1}
+    };
     expect_matrix(inv, want);
 }
 
 TEST(MgMath, InversMatrixOfRankDeficientMatrixUsesMaxReciprocal) {
-    float m[4][4] = {{1, 0, 0, 0}, {1, 0, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {1, 0, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
     float inv[4][4];
     mgInversMatrix(inv, m);
     EXPECT_FLOAT_EQ(inv[1][0], -FLT_MAX);
@@ -504,8 +701,16 @@ TEST(MgMath, InversMatrixOfRankDeficientMatrixUsesMaxReciprocal) {
 }
 
 TEST(MgMath, ApplyMatrixNTransformsRowVectors) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float in[2][4] = {{0, 0, 0, 1}, {1, 1, 1, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float in[2][4] = {
+        {0, 0, 0, 1},
+        {1, 1, 1, 1}
+    };
     float out[2][4];
     mgApplyMatrixN(out, m, in, 2);
     expect_lanes(out[0], {1, 2, 3, 1});
@@ -513,16 +718,33 @@ TEST(MgMath, ApplyMatrixNTransformsRowVectors) {
 }
 
 TEST(MgMath, ApplyMatrixNInPlace) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float v[2][4] = {{0, 0, 0, 1}, {1, 1, 1, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float v[2][4] = {
+        {0, 0, 0, 1},
+        {1, 1, 1, 1}
+    };
     mgApplyMatrixN(v, m, v, 2);
     expect_lanes(v[0], {1, 2, 3, 1});
     expect_lanes(v[1], {2, 3, 4, 1});
 }
 
 TEST(MgMath, ApplyMatrixNMaxMinTracksBoundsOfResults) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float in[3][4] = {{0, 0, 0, 1}, {1, 1, 1, 1}, {-1, 0, 5, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float in[3][4] = {
+        {0,  0, 0, 1},
+        {1,  1, 1, 1},
+        {-1, 0, 5, 1}
+    };
     float out[3][4];
     float hi[4];
     float lo[4];
@@ -533,8 +755,17 @@ TEST(MgMath, ApplyMatrixNMaxMinTracksBoundsOfResults) {
 }
 
 TEST(MgMath, ApplyMatrixNMaxMinInPlace) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float v[3][4] = {{0, 0, 0, 1}, {1, 1, 1, 1}, {-1, 0, 5, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float v[3][4] = {
+        {0,  0, 0, 1},
+        {1,  1, 1, 1},
+        {-1, 0, 5, 1}
+    };
     float hi[4];
     float lo[4];
     mgApplyMatrixN_MaxMin(v, m, v, 3, hi, lo);
@@ -546,7 +777,11 @@ TEST(MgMath, ApplyMatrixNMaxMinInPlace) {
 }
 
 TEST(MgMath, VectorMinMaxNCoversEveryVector) {
-    float vecs[3][4] = {{1, 5, 0, 2}, {3, -1, 4, 2}, {0, 0, 0, 9}};
+    float vecs[3][4] = {
+        {1, 5,  0, 2},
+        {3, -1, 4, 2},
+        {0, 0,  0, 9}
+    };
     float hi[4];
     float lo[4];
     mgVectorMinMaxN(hi, lo, vecs, 3);
@@ -555,7 +790,9 @@ TEST(MgMath, VectorMinMaxNCoversEveryVector) {
 }
 
 TEST(MgMath, VectorMinMaxNSingleVectorIsItsOwnBounds) {
-    float vecs[1][4] = {{1, -2, 3, 4}};
+    float vecs[1][4] = {
+        {1, -2, 3, 4}
+    };
     float hi[4];
     float lo[4];
     mgVectorMinMaxN(hi, lo, vecs, 1);
@@ -564,8 +801,15 @@ TEST(MgMath, VectorMinMaxNSingleVectorIsItsOwnBounds) {
 }
 
 TEST(MgMath, ApplyMatrixNMaxMinSingleVectorIsItsOwnBounds) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float in[1][4] = {{0, 0, 0, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float in[1][4] = {
+        {0, 0, 0, 1}
+    };
     float out[1][4];
     float hi[4];
     float lo[4];
@@ -576,15 +820,25 @@ TEST(MgMath, ApplyMatrixNMaxMinSingleVectorIsItsOwnBounds) {
 }
 
 TEST(MgMath, ApplyMatrixNSingleVector) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float in[1][4] = {{1, 1, 1, 1}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float in[1][4] = {
+        {1, 1, 1, 1}
+    };
     float out[1][4];
     mgApplyMatrixN(out, m, in, 1);
     expect_lanes(out[0], {2, 3, 4, 1});
 }
 
 TEST(MgMath, VectorMinMaxNTwoVectors) {
-    float vecs[2][4] = {{1, 2, 3, 4}, {0, 0, 0, 0}};
+    float vecs[2][4] = {
+        {1, 2, 3, 4},
+        {0, 0, 0, 0}
+    };
     float hi[4];
     float lo[4];
     mgVectorMinMaxN(hi, lo, vecs, 2);
@@ -675,27 +929,69 @@ TEST(MgMath, ClipInBoxInvertedContainerRejectsContainedBox) {
 }
 
 TEST(MgMath, MulMatrix3AppliesThirdTimesSecondTimesMatrix) {
-    float matrix[4][4] = {{3, 0, 0, 0}, {0, 3, 0, 0}, {0, 0, 3, 0}, {0, 0, 0, 1}};
-    float second[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float third[4][4] = {{2, 0, 0, 0}, {0, 2, 0, 0}, {0, 0, 2, 0}, {0, 0, 0, 1}};
+    float matrix[4][4] = {
+        {3, 0, 0, 0},
+        {0, 3, 0, 0},
+        {0, 0, 3, 0},
+        {0, 0, 0, 1}
+    };
+    float second[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float third[4][4] = {
+        {2, 0, 0, 0},
+        {0, 2, 0, 0},
+        {0, 0, 2, 0},
+        {0, 0, 0, 1}
+    };
     MulMatrix3(matrix, second, third);
-    const float want[4][4] = {{6, 0, 0, 0}, {0, 6, 0, 0}, {0, 0, 6, 0}, {3, 6, 9, 1}};
+    const float want[4][4] = {
+        {6, 0, 0, 0},
+        {0, 6, 0, 0},
+        {0, 0, 6, 0},
+        {3, 6, 9, 1}
+    };
     expect_matrix(matrix, want);
 }
 
 TEST(MgMath, ApplyMatrixNZeroCountWritesNothing) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float in[2][4] = {{0, 0, 0, 1}, {5, 5, 5, 5}};
-    float out[2][4] = {{42, 42, 42, 42}, {42, 42, 42, 42}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float in[2][4] = {
+        {0, 0, 0, 1},
+        {5, 5, 5, 5}
+    };
+    float out[2][4] = {
+        {42, 42, 42, 42},
+        {42, 42, 42, 42}
+    };
     mgApplyMatrixN(out, m, in, 0);
     expect_lanes(out[0], {42, 42, 42, 42});
     expect_lanes(out[1], {42, 42, 42, 42});
 }
 
 TEST(MgMath, ApplyMatrixNMaxMinZeroCountWritesNothing) {
-    float m[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {1, 2, 3, 1}};
-    float in[2][4] = {{0, 0, 0, 1}, {5, 5, 5, 5}};
-    float out[2][4] = {{42, 42, 42, 42}, {42, 42, 42, 42}};
+    float m[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {1, 2, 3, 1}
+    };
+    float in[2][4] = {
+        {0, 0, 0, 1},
+        {5, 5, 5, 5}
+    };
+    float out[2][4] = {
+        {42, 42, 42, 42},
+        {42, 42, 42, 42}
+    };
     float hi[4] = {42, 42, 42, 42};
     float lo[4] = {42, 42, 42, 42};
     mgApplyMatrixN_MaxMin(out, m, in, 0, hi, lo);
@@ -706,7 +1002,10 @@ TEST(MgMath, ApplyMatrixNMaxMinZeroCountWritesNothing) {
 }
 
 TEST(MgMath, VectorMinMaxNZeroCountWritesNothing) {
-    float vecs[2][4] = {{1, -2, 3, 4}, {7, 7, 7, 7}};
+    float vecs[2][4] = {
+        {1, -2, 3, 4},
+        {7, 7,  7, 7}
+    };
     float hi[4] = {42, 42, 42, 42};
     float lo[4] = {42, 42, 42, 42};
     mgVectorMinMaxN(hi, lo, vecs, 0);
@@ -715,7 +1014,12 @@ TEST(MgMath, VectorMinMaxNZeroCountWritesNothing) {
 }
 
 TEST(MgMath, InversMatrixOfSingularMatrixStaysFiniteAndSaturates) {
-    float m[4][4] = {{2, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}, {0, 0, 1, 1}};
+    float m[4][4] = {
+        {2, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 1, 1}
+    };
     float inv[4][4];
     mgInversMatrix(inv, m);
     for (int r = 0; r < 4; r++) {

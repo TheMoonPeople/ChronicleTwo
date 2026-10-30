@@ -21,29 +21,29 @@ function script.on_start()
 	local work_vect1_z: f32 = 0
 	local value: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.SptSetTexname("n_heal")
-	effect.SptSetAlphab(2)
-	effect.SptAssignSprite_1(1)
-	effect.SptInitSprite(0)
-	effect.SptSetDrawFlag(0, 1)
-	effect.SptSetPos(0, work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.SptSetPutSize(0, 6.0, 6.0)
-	effect.SptSetUvSize(0, 0.0, 64.0, 32.0, 32.0)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 128.0)
+	effect.set_sprite_texture("n_heal")
+	effect.set_sprite_blend_mode(2)
+	effect.allocate_sprites_1(1)
+	effect.reset_sprites(0)
+	effect.set_sprite_visible(0, 1)
+	effect.set_sprite_position(0, work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_sprite_size(0, 6.0, 6.0)
+	effect.set_sprite_texture_rect(0, 0.0, 64.0, 32.0, 32.0)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 128.0)
 	var0 = 128.0
-	value = effect.GetRand(40.0) or value
+	value = effect.get_random_number(40.0) or value
 	value = vm.f32(value - 20.0)
 	value = vm.f32(vm.f32(value / 360.0) * vm.f32(3.1415927))
 	var1 = value
 	while true do
-		effect.SptAddPos(0, 0.0, -0.1, 0.0)
-		effect.SptSetColor(0, 128.0, 128.0, 128.0, var0)
-		effect.SptAddRotz(0, var1)
+		effect.offset_sprite_position(0, 0.0, -0.1, 0.0)
+		effect.set_sprite_color(0, 128.0, 128.0, 128.0, var0)
+		effect.offset_sprite_rotation(0, var1)
 		var0 = vm.f32(var0 - 4.0)
 		if var0 <= 0.0 then
 			break

@@ -2,13 +2,13 @@
 
 #include <cmath>
 
-#include "camera_control_port.hpp"
 #include "camera_mouse.hpp"
 #include "dng_main.hpp"
-#include "editctrl_port.hpp"
 #include "editloop.hpp"
 #include "first_person_walk.hpp"
+#include "input/camera_control_state.hpp"
 #include "mainloop.hpp"
+#include "object/world/town_control.hpp"
 #include "photo.hpp"
 #include "subgame.hpp"
 #include "userdata.hpp"
@@ -93,7 +93,7 @@ void FirstPersonShiftSavedEye(float *saved, const float *before, const float *af
 
 // The retail eye routines read these float getters; keyboard movement goes through its own channel,
 // so controller look still works.
-PORT_OVERRIDE float CGamePad::GetLXf() {
+float CGamePad::GetLXf() {
     if (this == &GamePad__2 && walking_script) {
         return script_stick.x;
     }
@@ -106,7 +106,7 @@ PORT_OVERRIDE float CGamePad::GetLXf() {
     return GetLX() / 128.0f;
 }
 
-PORT_OVERRIDE float CGamePad::GetLYf() {
+float CGamePad::GetLYf() {
     if (this == &GamePad__2 && walking_script) {
         return script_stick.y;
     }

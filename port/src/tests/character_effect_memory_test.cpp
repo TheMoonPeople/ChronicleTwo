@@ -43,6 +43,9 @@ TEST(CharacterEffectMemory, ManagerOffsetDoesNotOverlapParticleStorage) {
     ASSERT_NE(character.effect_list, nullptr);
     auto *manager = character.effect_list->effect;
     ASSERT_NE(manager, nullptr);
+    EXPECT_STREQ(character.effect_list->name, "test");
+    EXPECT_STREQ(manager->frame_name, "");
+    EXPECT_STREQ(manager->motion_name, "");
     EXPECT_GE(reinterpret_cast<char *>(manager->particle_pool) - reinterpret_cast<char *>(manager),
               static_cast<std::ptrdiff_t>(sizeof(*manager)));
     // The zero-particle pool still owns one quadword; writing it must not touch offset.

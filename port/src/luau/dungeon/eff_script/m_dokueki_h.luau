@@ -17,18 +17,18 @@ function script.on_start()
 	local work_vect1_x: f32 = 0
 	local work_vect1_y: f32 = 0
 	local work_vect1_z: f32 = 0
-	effect.GetUserId()
+	effect.get_owner_character()
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetRot(0.0, 0.0, 0.0)
-	effect.ChrSetScale(1.5, 1.5, 1.5)
-	effect.ChrSetMotion("ヒット", -1, 2)
-	effect.ChrSetShow(1, 1, 0.1)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.rotate_effect_character_toward(0.0, 0.0, 0.0)
+	effect.set_effect_character_scale(1.5, 1.5, 1.5)
+	effect.set_effect_character_motion("ヒット", -1, 2)
+	effect.set_effect_character_visible(1, 1, 0.1)
 	for var11 = 0, 24 do
 		vm.wait()
 	end

@@ -1,0 +1,122 @@
+name: iOS
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  dependencies:
+    uses: ./.github/workflows/dependencies.yml
+    with:
+      platform: apple
+      artifact: apple-dependencies-ios
+  build:
+    name: Build (iOS arm64)
+    needs: dependencies
+    timeout-minutes: 60
+    runs-on: macos-26
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/.kazarov/cargo-target/ios
+      CCACHE_DIR: ${{ github.workspace }}/.kazarov/ccache/ios
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: apple-dependencies-ios
+          path: .kazarov/bundle
+      - name: Unpack verified dependencies
+        run: |
+          test "$(shasum -a 256 .kazarov/bundle/deps.tar.gz | cut -d' ' -f1)" = "$(cat .kazarov/bundle/deps.sha256)"
+          tar xzf .kazarov/bundle/deps.tar.gz -C .kazarov
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            ~/.cargo/registry
+            ~/.cargo/git
+            .kazarov/ffmpeg/ios-arm64
+            .kazarov/apple/ios-arm64
+            .kazarov/cargo-target/ios
+            .kazarov/ccache/ios
+            port/build/ios-arm64-release/lto-cache
+          key: compile-ios-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            compile-ios-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock') }}-
+      - name: Prepare Apple dependencies
+        run: bash tools/ci/apple-deps.sh ios-arm64
+
+      - name: Configure for iOS
+        run: |
+          cmake --preset ios-arm64-release -C tools/ci/dependencies.cmake -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DSDL3_DIR="$SDL3_PREFIX/lib/cmake/SDL3" \
+            -DVulkan_INCLUDE_DIR="$VULKAN_INCLUDE_DIR" \
+            -DVulkan_LIBRARY="$MOLTENVK_LIBRARY" \
+            -DRust_CARGO_TARGET=aarch64-apple-ios \
+            -DCT_BUILD_TESTS=OFF
+
+      - name: Build for iOS
+        # Cargo's C builds (zstd, cxx, the movie muxer) otherwise target the SDK's own iOS version, not the app's.
+        # Only here: FFmpeg's configure would build its host tools for iOS too and could not run them.
+        env:
+          IPHONEOS_DEPLOYMENT_TARGET: "16.3"
+        run: cmake --build port/build/ios-arm64-release --target darkchronicle --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
+
+      # The .ipa is unsigned: a sideloading tool (Sideloadly, AltStore) signs it with the installer's Apple ID.
+      # The button symbols and the gameplay seed (assets/data.zip) go inside the bundle, which is where the game
+      # looks beside its executable.
+      - name: Package the .ipa
+        run: |
+          build=port/build/ios-arm64-release
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$build/darkchronicle.app" "$RUNNER_TEMP/ipa/Payload/"
+          # The split debug symbols would double the download; they are no part of the app.
+          rm -rf "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle.dSYM"
+          cp -R "$build/glyphs" "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/"
+          # The Luau scripts the events run, which the game finds in scripts/ beside its executable.
+          cp -R "$build/scripts" "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/"
+          test -n "$(find "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/scripts" -name '*.luau' | head -n1)"
+          # Each one with its bytecode, so the device does not compile them (CT_LUAU_PRECOMPILE).
+          test -n "$(find "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/scripts" -name '*.luauc' | head -n1)"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/assets"
+          cp "$build/assets/data.zip" "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/assets/"
+          # The home screen icon, which SideStore and LiveContainer also show.
+          sips -z 120 120 port/assets/icon/chronicletwo-512.png --out "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/AppIcon60x60@2x.png"
+          sips -z 180 180 port/assets/icon/chronicletwo-512.png --out "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/AppIcon60x60@3x.png"
+          # A quick check of what sideloading and LiveContainer need: an arm64, position-independent executable.
+          file "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle"
+          otool -hv "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle" | grep -q PIE
+          otool -l "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle" | grep -A4 LC_BUILD_VERSION
+          # libc++ symbols newer than the minimum iOS kill the app in dyld before main. std::pmr (iOS 17) slipped in
+          # once, and iOS 16.3.1 has no floating-point std::to_chars although the headers say 16.3.
+          if nm -u "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle" | grep -E '__ZNSt3__1(3pmr|8to_chars)'; then
+            echo "the executable imports libc++ symbols that iOS 16 lacks" >&2
+            exit 1
+          fi
+          (cd "$RUNNER_TEMP/ipa" && zip -qry "$GITHUB_WORKSPACE/DarkChronicle.ipa" Payload)
+
+      - name: Upload the .ipa
+        uses: actions/upload-artifact@v7
+        with:
+          name: DarkChronicle-ios-arm64
+          path: DarkChronicle.ipa
+          if-no-files-found: error
+
+      # The symbols stay out of the .ipa but are kept to read the addresses in a device's stack reports.
+      - name: Upload the debug symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: DarkChronicle-ios-arm64-dSYM
+          path: port/build/ios-arm64-release/darkchronicle.app/darkchronicle.dSYM
+          if-no-files-found: warn

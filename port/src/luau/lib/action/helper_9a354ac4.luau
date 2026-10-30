@@ -7,13 +7,13 @@ local vm = require("@lib/vm")
 local function helper_9a354ac4()
 	local var1: s32 = 0
 	local prog: s32 = 0
-	prog = action.ProgGet() or prog
+	prog = action.get_program_value() or prog
 	if prog == 200 then
-		action.SetMos("攻撃２", -1, 6)
+		action.play_motion("攻撃２", -1, 6)
 		vm.wait()
-		var1 = action.GetMosStatus() or var1
+		var1 = action.get_motion_status() or var1
 		if var1 == 4 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 		end
 		return
 	end

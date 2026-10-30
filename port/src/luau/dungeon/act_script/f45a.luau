@@ -15,22 +15,22 @@ function script.setup() end
 --- Sets the character up when its script is initialised.
 function script.init()
 	local monster_id: s32 = 0
-	monster_id = action.GetMonsId() or monster_id
+	monster_id = action.get_monster_form_id() or monster_id
 	if monster_id == 224 then
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.2, 0.25)
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.4, 0.5)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.2, 0.25)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.4, 0.5)
 	end
 	if monster_id == 228 then
-		action.SetDmg2("dcol0", "", "モンスター攻撃", 3.0, 1.0, "攻撃１", 0.28, 0.35)
+		action.add_motion_damage("dcol0", "", "モンスター攻撃", 3.0, 1.0, "攻撃１", 0.28, 0.35)
 	end
 	if monster_id == 232 then
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 3.0, 1.0, "攻撃１", 0.45, 0.7)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 3.0, 1.0, "攻撃１", 0.45, 0.7)
 	end
 	if monster_id == 236 then
-		action.SetDmg2("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.48, 0.56)
+		action.add_motion_damage("dcol0", "dcol1", "モンスター剣", 2.5, 1.0, "攻撃１", 0.48, 0.56)
 	end
 	if monster_id == 240 then
-		action.SetDmg2("dcol0", "", "モンスター攻撃", 3.0, 1.0, "攻撃１", 0.3, 0.5)
+		action.add_motion_damage("dcol0", "", "モンスター攻撃", 3.0, 1.0, "攻撃１", 0.3, 0.5)
 	end
 	print("MONS_ID = ", monster_id)
 end
@@ -39,21 +39,21 @@ end
 function script.loop()
 	local prog: s32 = 0
 	local var3: s32 = 0
-	action.ProgSet(0)
+	action.set_program_value(0)
 	while true do
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog >= 100 and prog < 199 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_1eb83da1()
 		end
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog == 0 then
-			action.RunMainMove()
-			var3 = action.GetBtn_2(50) or var3
+			action.run_movement()
+			var3 = action.get_button_state_2(50) or var3
 			if var3 ~= 0 then
 				prog = 100
 			end
-			action.ProgSet(prog)
+			action.set_program_value(prog)
 		end
 		vm.wait()
 	end

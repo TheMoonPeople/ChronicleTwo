@@ -6,15 +6,15 @@ import sys
 
 root, output = map(pathlib.Path, sys.argv[1:])
 groups = {
-    'Event': ('ps2/src/event_func.cpp', {
+    'Event': ('port/src/object/event/event_func.cpp', {
         '_EOH_GET_POS': ('pos',), '_EOH_GET_ROT': ('rot',),
         '_POST_TREASURE_BOX': ('position',), '_RANDOM_CIRCLE_GET_POS': ('pos',),
         '_MINIMAP_DOOR_ENABLE': ('pos',)}),
-    'Effect': ('ps2/src/effscript.cpp', {
+    'Effect': ('port/src/script/effscript.cpp', {
         '_DIST_VECTOR2': ('from', 'to'), '_SCN_GET_CHR_POS': ('pos',),
         '_SCN_GET_CHR_ROT': ('rot',), '_SCN_GET_ENTRY_OBJ_POS': ('pos',),
         '_SCN_GET_CHR_ENTOBJ_POS': ('pos',), '_GET_EOH_POS': ('pos',)}),
-    'Thunder': ('port/src/editexception.cpp', {'S51Thunder': ('ratio',)})}
+    'Thunder': ('port/src/object/world/editexception.cpp', {'S51Thunder': ('ratio',)})}
 lines = ['#pragma once', '#include "map.hpp"', 'namespace VectorScratchProbe {']
 for group, (path, callbacks) in groups.items():
     source = (root / path).read_text()

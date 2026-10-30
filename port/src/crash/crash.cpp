@@ -85,7 +85,7 @@ enum class Entry : std::uint8_t {
 
 constexpr std::uint32_t kWatchdogMs = 10'000; /**< Maximum report wait in milliseconds. */
 #ifdef _WIN32
-    constexpr UINT kAbortStatus = 0xC0000409; /**< Windows process status used for aborts. */
+constexpr UINT kAbortStatus = 0xC0000409; /**< Windows process status used for aborts. */
 #endif
 
 std::atomic<Phase>         g_phase{Phase::Idle};  /**< Current crash handling phase. */
@@ -226,7 +226,7 @@ bool StartWriter() {
     pthread_attr_init(&attr);
     pthread_attr_setstacksize(&attr, 4 << 20);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_t  thread;
+    pthread_t  thread = {};
     const bool started = pthread_create(
                              &thread, &attr,
                              [](void *) -> void * {

@@ -262,7 +262,7 @@ bool SyncDirectory(const fs::path &path) {
     if (directory < 0) {
         return false;
     }
-    int result;
+    int result = {};
     do {
         result = fsync(directory);
     } while (result != 0 && errno == EINTR);

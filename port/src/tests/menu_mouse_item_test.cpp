@@ -254,7 +254,7 @@ TEST_F(ItemMouse, HoverUpdatesRetailGridSelectionWithoutPressingAnything) {
     Tick(40, 50);
     EXPECT_EQ(class_menu_item_info.key_arg_no, ITEM_MENU_PANEL_BAG);
     EXPECT_EQ(keys.cursor, 7);
-    EXPECT_EQ(keys.select_pos[0], 7);
+    EXPECT_EQ(keys.cursor, 7);
     EXPECT_EQ(keys.key_arg, &layouts[ITEM_MENU_PANEL_BAG]);
     EXPECT_TRUE(keys.CheckKeyInput());
     EXPECT_EQ(GamePad__2.GetPadDown(), 0);
@@ -568,7 +568,7 @@ TEST_F(ItemMouse, WeaponAndRodStatsHoverBothColumnsUsingMovedForms) {
     for (int i = 1; i < 10; ++i) {
         Tick(i % 2 ? 110 : -110, i % 2 ? 0 : 24);
         EXPECT_EQ(keys.cursor, i);
-        EXPECT_EQ(keys.select_pos[0], i);
+        EXPECT_EQ(keys.cursor, i);
         EXPECT_EQ(GamePad__2.GetPadDown(), 0);
     }
     Tick(0, 0, 2);
@@ -821,10 +821,10 @@ TEST_F(ItemMouse, RodPointHoverLeavesTheSoundToTheRetailCursorCheck) {
     stat.h = 24;
     menu.view_form[5] = &form;
     Tick(-140, 35);
-    keys.cursor = 2; // The keys moved the stat cursor, which is select_pos[0].
+    keys.cursor = 2; // Move the stat cursor with the keyboard.
     const int sounds = MenuMouseCursorSounds();
     Tick(1, 0);
-    EXPECT_EQ(keys.select_pos[0], 0);
+    EXPECT_EQ(keys.cursor, 0);
     EXPECT_NE(keys.cursor, keys.save_cursor);   // KeyStepLocal sounds this move...
     EXPECT_EQ(MenuMouseCursorSounds(), sounds); // ...so the mouse does not.
     menu.view_form[5] = nullptr;
@@ -841,7 +841,7 @@ TEST_F(ItemMouse, RodWheelSpendsRefundsAndKeepsRetailPointLimits) {
     menu.mode = MENU_ASK_MODE_ROD_POINTS;
     menu.view_mode = MENU_ITEM_VIEW_FISHING_ROD;
     keys.key_enable = true;
-    keys.select_pos[0] = 0;
+    keys.cursor = 0;
     CMenuPosDataForm   form{};
     MENUFORMPARTS_TYPE stat{};
     form.draw_flag = stat.draw_flag = true;
@@ -1304,4 +1304,22 @@ TEST_F(ItemMouseReturn, PadDuringTheDragLeavesTheSphereCarried) {
     EXPECT_EQ(GamePad__2.GetPadDown(), 0);
     Retail();
     ExpectSphereStillCarried();
+}
+
+TEST_F(ItemMouse, ItemCommandMarksStayWithinTheirDeclaredTable) {
+    auto &menu = class_menu_item_info;
+    menu.mode = MENU_ASK_MODE_ITEM_COMMAND;
+    menu.step = 0;
+    menu.ask_para.mes_no = 5;
+    menu.ask_para.cmd_num = static_cast<s16>(std::size(menu.ask_para.cmd_mark));
+    for (auto &mark : menu.ask_para.cmd_mark) {
+        mark = 1;
+    }
+    message.SetMsgCursor(0);
+    message.item_mes[0] = ITEM_MENU_COMMAND_MSG_BASE;
+    message.item_mes[1] = -1;
+    EXPECT_EQ(menu.MenuItemCommandSelectCore(0, 0), 0);
+    for (std::size_t index = 0; index < std::size(menu.ask_para.cmd_mark); ++index) {
+        EXPECT_TRUE(message.line_color[index] == 0x80DC4848 || message.line_color[index] == 0x80686A6B);
+    }
 }

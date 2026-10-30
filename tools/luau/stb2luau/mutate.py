@@ -248,22 +248,24 @@ def _resolve(
     text: str, name: str, start: int, name_end: int, args: list[tuple[int, int]], kind_catalog: dict
 ) -> Call | None:
     """The call's signature, as the runtime picks it, and how each input is read; None for a command not catalogued."""
-    if name == "Ext":
+    if name == api.EXT_NAME:
         # The command number is not mutated; the others are marshalled as an unknown type and read as the handler of an
         # accepted arity reads them, or not at all.
         number = text[args[0][0] : args[0][1]] if args else ""
         no = int(number) if number.isdigit() else None
         reads = harness._ext_reads(kind_catalog).get(no, {}).get(len(args) - 1, "x" * (len(args) - 1))
         return Call(name, start, name_end, args, "x" + reads, "1" * len(args), None, None)
-    match = re.fullmatch(r"(\w+?)(Int|Float)?(?:_(\d+))?", name)
-    base, suffix, argc = match.group(1), match.group(2), match.group(3)
+    match = re.fullmatch(r"(\w+?)(_int|_float)?(?:_(\d+)(v)?)?", name)
+    base, suffix, argc, values = match.group(1), match.group(2), match.group(3), match.group(4)
     command = next((entry for entry in kind_catalog["commands"] if entry["luau"] == base), None)
     if command is None:
         command = next((entry for entry in kind_catalog["commands"] if entry["luau"] == name), None)
-        base, suffix, argc = name, None, None
+        base, suffix, argc, values = name, None, None, None
     if command is None:
         return None
     signatures = command.get("signatures", [])
+    if values is not None:
+        signatures = api.value_forms(command)
     if suffix is not None:
         type_name = next(key for key, value in api.VARIANTS.items() if value == suffix)
         signatures = [api.variant(signature, type_name) for signature in signatures if api.tagged(signature)]
@@ -272,6 +274,8 @@ def _resolve(
         chosen = [signature for signature in signatures if signature["argc"] == int(argc)]
     else:
         chosen = [s for s in signatures if sum(p["dir"] in api.INPUTS for p in s["params"]) == inputs]
+        if not chosen and suffix is None:
+            chosen = [s for s in api.dispatched_forms(command) if sum(p["dir"] in api.INPUTS for p in s["params"]) == inputs]
         chosen.sort(key=lambda s: (-sum(p["dir"] in api.OUTPUTS for p in s["params"]), s["argc"]))
     if not chosen:
         return None
@@ -283,7 +287,7 @@ def _resolve(
     # The unsuffixed name marshals the catalogued type, which the other variant replaces.
     current = suffix or (api.VARIANTS.get(params[tagged]["type"]) if tagged is not None else None)
     if current is not None:
-        variant = base + ("Float" if current == "Int" else "Int") + (f"_{argc}" if argc is not None else "")
+        variant = base + (api.VARIANTS["f32"] if current == api.VARIANTS["s32"] else api.VARIANTS["s32"]) + (f"_{argc}" if argc is not None else "")
     return Call(name, start, name_end, args, reads, integers, tagged, variant)
 
 

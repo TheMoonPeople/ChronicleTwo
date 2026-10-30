@@ -7,7 +7,7 @@ local helper_0ba23e4e = require("@lib/monster/helper_0ba23e4e")
 local function helper_b0ab6794(arg0: s32)
 	local arrived: s32 = 0
 	for var1 = 0, arg0 - 1 do
-		arrived = monster.ChkMoveEnd() or arrived
+		arrived = monster.is_move_finished() or arrived
 		if arrived == 0 then
 			helper_0ba23e4e()
 		else

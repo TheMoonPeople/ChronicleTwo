@@ -8,16 +8,16 @@
 #include <memory>
 #include <string>
 
+#include "assets/data_registry.hpp"
 #include "charasetup.hpp"
 #include "config_bridges.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "gamedata.hpp"
 #include "log_capture.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "mapselect.hpp"
 #include "platform/datapacks.hpp"
+#include "platform/game_loop_state.hpp"
 #include "savedata.hpp"
 #include "userdata.hpp"
 
@@ -49,12 +49,12 @@ struct ScopedGameSave {
  */
 class NativeGame : public testing::Test {
 protected:
-    std::filesystem::path  previous_root = datapacks::Root(); /**< Data root restored after the fixture. */
-    std::array<char, 1024> previous_directory{};              /**< Current resource directory restored after the fixture. */
-    std::filesystem::path  directory;                         /**< Fixture root holding the unified data tree. */
+    std::filesystem::path previous_root = datapacks::Root(); /**< Data root restored after the fixture. */
+    std::string           previous_directory;                /**< Current resource directory restored after the fixture. */
+    std::filesystem::path directory;                         /**< Fixture root holding the unified data tree. */
 
     void SetUp() override {
-        GetCurrentDir(previous_directory.data());
+        previous_directory = GetCurrentDir();
         SetCurrentDir(nullptr);
         directory = std::filesystem::temp_directory_path() /
                     ("chronicle_native_game_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -187,9 +187,93 @@ TEST_F(NativeGame, RidepodCharacterSoundUsesConvertedArmAsset) {
     auto user = std::make_unique<CUserDataManager>();
     user->robo_data.parts[ROBO_PART_ARM].item_no = 250;
     user->robo_data.parts[ROBO_PART_ARM].item_type = ITEM_DATA_ROBO_ARM;
-    char path[0x60]{};
-    GetCharacterSnd(user.get(), USER_CHARA_ROBO, path);
-    EXPECT_STREQ(path, "snd2/chara/CH_042.sound.json");
+    EXPECT_EQ(dc2::character::SoundAssetPath(user.get(), USER_CHARA_ROBO), "snd2/chara/CH_042.sound.json");
+}
+
+TEST_F(NativeGame, OwnedItemPathsStayValidAfterAnotherLookup) {
+    WriteItemTables();
+    Index();
+    GameItemDataManage.LoadData();
+    EXPECT_EQ(GameItemDataManage.GetDataTypeStartListNo(ITEM_DATA_MAX_MELEE), 11);
+    EXPECT_EQ(GameItemDataManage.GetDataTypeStartListNo(ITEM_DATA_CRYSTAL), 130);
+    EXPECT_EQ(GameItemDataManage.GetDataTypeStartListNo(-1), 0);
+    const auto first = ItemFilePath(11, 0);
+    const auto second = ItemFilePath(172, 0);
+    ASSERT_TRUE(first);
+    ASSERT_TRUE(second);
+    EXPECT_EQ(*first, "mainchr/dagger.gltf");
+    EXPECT_EQ(*second, "item/bread.gltf");
+    EXPECT_EQ(*first, "mainchr/dagger.gltf");
+    EXPECT_FALSE(ItemFilePath(-1, 0));
+
+    auto user = std::make_unique<CUserDataManager>();
+    user->chara_data[USER_CHARA_MAX].equip[0].item_no = 11;
+    user->chara_data[USER_CHARA_MAX].equip[1].item_no = 172;
+    const auto first_equip = user->CharaEquipDataPath(USER_CHARA_MAX, 0);
+    const auto second_equip = user->CharaEquipDataPath(USER_CHARA_MAX, 1);
+    ASSERT_TRUE(first_equip);
+    ASSERT_TRUE(second_equip);
+    EXPECT_EQ(*first_equip, "mainchr/dagger.gltf");
+    EXPECT_EQ(*second_equip, "item/bread.gltf");
+    EXPECT_EQ(*first_equip, "mainchr/dagger.gltf");
+    EXPECT_FALSE(user->CharaEquipDataPath(USER_CHARA_MAX, -1));
+    EXPECT_FALSE(user->CharaEquipDataPath(USER_CHARA_ROBO, 4));
+}
+
+TEST_F(NativeGame, OwnedCharacterAndRidepodNamesStayValid) {
+    ScopedGameSave save;
+    WriteItemTables();
+    Index();
+    GameItemDataManage.LoadData();
+
+    const auto first_model = MainCharaModelName(USER_CHARA_MAX, 0);
+    const auto second_model = MainCharaModelName(USER_CHARA_MONICA, 1);
+    ASSERT_TRUE(first_model);
+    ASSERT_TRUE(second_model);
+    EXPECT_EQ(*first_model, "c01_base2.gltf");
+    EXPECT_EQ(*second_model, "c02_base.gltf");
+    EXPECT_EQ(*first_model, "c01_base2.gltf");
+    EXPECT_FALSE(MainCharaModelName(USER_CHARA_ROBO, 0));
+
+    auto &arm = save.active->user_data.robo_data.parts[ROBO_PART_ARM];
+    arm.item_no = 250;
+    arm.item_type = ITEM_DATA_ROBO_ARM;
+    const auto joint = arm.RoboJointName();
+    const auto sound = arm.RoboSoundFileName();
+    ASSERT_TRUE(joint);
+    ASSERT_TRUE(sound);
+    EXPECT_EQ(*joint, "body3");
+    EXPECT_EQ(*sound, "CH_042");
+    EXPECT_EQ(*joint, "body3");
+}
+
+TEST_F(NativeGame, RidepodPartNamesAndHatPathKeepOwnedStorageAndValidateBodyType) {
+    ScopedGameSave save;
+    WriteItemTables();
+    Index();
+    GameItemDataManage.LoadData();
+    auto user = std::make_unique<CUserDataManager>();
+    user->robo_data.parts[ROBO_PART_BODY].item_no = 250;
+    user->chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_HEAD].item_no = 11;
+
+    CDataRoboPart *body = GetRoboPartInfoData(250);
+    ASSERT_NE(body, nullptr);
+    const int previous_offset = body->offset_no;
+    body->offset_no = 0;
+    ROBO_INFO_DATA *parts = GetRoboPartsInfo(user.get());
+    ASSERT_NE(parts, nullptr);
+    EXPECT_EQ(parts->arm_name, nullptr);
+    EXPECT_STREQ(parts->model_name[ROBO_MODEL_BODY], "arm");
+    ASSERT_NE(parts->hat_file, nullptr);
+    EXPECT_STREQ(parts->hat_file, "mainchr/dagger.gltf");
+
+    const auto other_path = ItemFilePath(172, 0);
+    EXPECT_EQ(other_path, "item/bread.gltf");
+    EXPECT_STREQ(parts->hat_file, "mainchr/dagger.gltf");
+    body->offset_no = 99;
+    parts = GetRoboPartsInfo(user.get());
+    EXPECT_EQ(parts->arm_name, nullptr);
+    body->offset_no = previous_offset;
 }
 
 TEST_F(NativeGame, ItemTablesFillEveryRecordFamilyAndTheItemLookup) {
@@ -296,9 +380,7 @@ TEST_F(NativeGame, GameSetupPerformsItsActionsInOrder) {
     EXPECT_NE(GetSaveData()->GetBitFlag(3), 0);
     EXPECT_EQ(GetSaveData()->GetBitFlag(5), 0);
     // An explicit configuration keeps the caller's directory.
-    char current[1024]{};
-    GetCurrentDir(current);
-    EXPECT_STREQ(current, directory_name);
+    EXPECT_EQ(GetCurrentDir(), directory_name);
 }
 
 TEST_F(NativeGame, AbsentRootGameConfigIsSilentAndClearsTheDirectory) {
@@ -312,9 +394,7 @@ TEST_F(NativeGame, AbsentRootGameConfigIsSilentAndClearsTheDirectory) {
     const auto diagnostic = GetLoggedStderr();
     EXPECT_TRUE(diagnostic.empty()) << diagnostic;
     EXPECT_EQ(GetSaveData()->game_progress, 1);
-    char current[1024]{};
-    GetCurrentDir(current);
-    EXPECT_STREQ(current, "");
+    EXPECT_TRUE(GetCurrentDir().empty());
 }
 
 TEST_F(NativeGame, RootGameConfigLoadsFromTheRootDirectory) {

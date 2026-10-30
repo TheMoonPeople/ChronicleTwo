@@ -8,7 +8,7 @@ local function helper_3c99e866()
 	local var0: s32 = 0
 	while true do
 		helper_0ba23e4e()
-		var0 = monster.CheckMosEnd() or var0
+		var0 = monster.is_motion_finished() or var0
 		if var0 ~= 0 then
 			return
 		end

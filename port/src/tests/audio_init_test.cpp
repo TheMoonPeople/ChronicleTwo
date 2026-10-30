@@ -23,9 +23,9 @@ namespace fs = std::filesystem;
 namespace {
 
 // 1280 frames is a whole number of periods for both tones, so the loop is seamless.
-constexpr int    kLoopFrames = 1280;
-constexpr int    kRenderFrames = 4800;
-constexpr int    kSkipFrames = 480;
+constexpr int kLoopFrames = 1280;
+constexpr int kRenderFrames = 4800;
+constexpr int kSkipFrames = 480;
 // 4096 frames hold 32 periods of 375 Hz and 128 of 1500 Hz, so the DFT bins are exact and no
 // window function is needed.
 constexpr int    kWindowFrames = 4096;

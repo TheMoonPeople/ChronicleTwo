@@ -10,7 +10,7 @@ local helper_ac26cdde = require("@lib/monster/helper_ac26cdde")
 local function helper_1be0f106()
 	helper_ac26cdde(vm.f32(999.9))
 	helper_07b5f915(30.0)
-	monster.SetClipDist(600.0)
+	monster.set_clip_distance(600.0)
 	helper_317bfc18(1)
 end
 

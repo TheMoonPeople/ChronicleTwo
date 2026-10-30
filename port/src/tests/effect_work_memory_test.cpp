@@ -1,10 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <cstring>
+#include <limits>
+#include <memory>
+#include <span>
+#include <string>
 
 #include "character.hpp"
+#include "effect.hpp"
 #include "effscript.hpp"
 #include "mg_memory.hpp"
+#include "native_script_program.hpp"
 #include "platform/arena.hpp"
 
 namespace {
@@ -14,11 +22,11 @@ protected:
         storage = reinterpret_cast<u_long128 *>(ArenaBlock(this, 4096 * sizeof(u_long128)));
         memory.SetHeapMem(storage, 4096);
         character.Initialize();
-        std::memcpy(program.magic, "SB2", 3);
         base.base_no = 7;
         base.texb = 10;
         base.chara = &character;
-        base.script = reinterpret_cast<char *>(&program);
+        base.script = reinterpret_cast<char *>(program.Bytes().data());
+        base.script_size = program.Bytes().size();
         base.work_size = 0x7D + 0x24;
         manager.base[0] = &base;
         manager.base_num = 1;
@@ -39,14 +47,75 @@ protected:
         return barrier;
     }
 
-    u_long128       *storage = nullptr;
-    mgCMemory        memory;
-    CCharacter2      character;
-    RS_PROG_HEADER   program{};
-    EFF_SPT_BASE     base{};
-    CEffectScriptMan manager;
+    u_long128          *storage = nullptr;
+    mgCMemory           memory;
+    CCharacter2         character;
+    NativeScriptProgram program;
+    EFF_SPT_BASE        base{};
+    CEffectScriptMan    manager;
 };
 } // namespace
+
+TEST(EffectScriptTags, DispatchesBoundedNativeHandlersDirectly) {
+    CEffectManager    manager;
+    const std::string long_name(80, 'x');
+    std::string       script =
+        "{\"commands\":["
+        "{\"command\":\"BUFFER_SIZE\",\"args\":[{\"type\":\"int\",\"value\":2},{\"type\":\"int\",\"value\":50}]},"
+        "{\"command\":\"WAIT_FRAME\",\"args\":[{\"type\":\"int\",\"value\":99},{\"type\":\"int\",\"value\":12}]},"
+        "{\"command\":\"IMG_NAME\",\"args\":[{\"type\":\"string\",\"value\":\"" +
+        long_name + "\"}]}]}";
+    int effects = 0;
+    int emitters = 0;
+
+    manager.GetBufferNums(script.data(), static_cast<int>(script.size()), &effects, &emitters);
+
+    EXPECT_EQ(effects, 2);
+    EXPECT_EQ(emitters, 8);
+    EXPECT_EQ(std::strlen(manager.img_name), sizeof(manager.img_name) - 1);
+    EXPECT_EQ(manager.img_name[sizeof(manager.img_name) - 1], '\0');
+    EXPECT_EQ(manager.wait_frame[7], 0);
+}
+
+TEST(EffectScriptTags, EmitterNamesAndCountsStayWithinManagerTables) {
+    CEffectManager             manager;
+    std::array<CEffectCtrl, 9> emitters{};
+    manager.EntryEffCtrls(nullptr, 0, emitters.data(), static_cast<int>(emitters.size()));
+    EXPECT_EQ(manager.ctrl_num, 8);
+
+    std::string long_name(80, 'e');
+    CEffectCtrl emitter{};
+    EXPECT_EQ(manager.EnterEffectCtrl(emitter, long_name.data()), 0);
+    EXPECT_EQ(std::strlen(manager.ctrl_name[0]), sizeof manager.ctrl_name[0] - 1);
+    EXPECT_EQ(manager.ctrl_name[0][sizeof manager.ctrl_name[0] - 1], '\0');
+
+    manager.SetEffectNums(0, -1);
+    EXPECT_EQ(manager.ctrl_num, 0);
+    manager.SetEffectNums(0, 99);
+    EXPECT_EQ(manager.ctrl_num, 8);
+}
+
+TEST(EffectScriptTags, NumericEmitterTagsRejectMissingAndMistypedValuesBeforeMutation) {
+    const auto load_emitter = [](std::string commands) {
+        CEffectManager manager;
+        CEffectCtrl    emitter{};
+        manager.EntryEffCtrls(nullptr, 0, &emitter, 1);
+        manager.Load(commands.data(), static_cast<int>(commands.size()));
+        return emitter;
+    };
+
+    const auto missing = load_emitter(
+        R"({"commands":[{"command":"EFFECT_START","args":[{"type":"string","value":"missing"}]},{"command":"SIZE","args":[{"type":"float","value":9}]},{"command":"EFFECT_END","args":[]}]})");
+    EXPECT_EQ(missing.entry, 1);
+    EXPECT_FLOAT_EQ(missing.width, 1.0f);
+    EXPECT_FLOAT_EQ(missing.height, 1.0f);
+
+    const auto wrong_type = load_emitter(
+        R"({"commands":[{"command":"EFFECT_START","args":[{"type":"string","value":"typed"}]},{"command":"SIZE","args":[{"type":"float","value":4},{"type":"float","value":5}]},{"command":"SIZE","args":[{"type":"float","value":9},{"type":"string","value":"bad"}]},{"command":"EFFECT_END","args":[]}]})");
+    EXPECT_EQ(wrong_type.entry, 1);
+    EXPECT_FLOAT_EQ(wrong_type.width, 4.0f);
+    EXPECT_FLOAT_EQ(wrong_type.height, 5.0f);
+}
 
 TEST_F(EffectWorkMemory, SkipsAGapThatOnlyFitsTheRetailObjectBudget) {
     u_long128   *barrier = Fragment();
@@ -138,4 +207,120 @@ TEST_F(EffectWorkMemory, SecondaryCharacterExhaustionReportsTheNativeBudget) {
     EXPECT_FALSE(manager.AssignCharacter(&script, 1));
     const auto output = testing::internal::GetCapturedStdout();
     EXPECT_NE(output.find("es work max!! (assign character[" + std::to_string(required) + "])"), std::string::npos);
+}
+
+TEST_F(EffectWorkMemory, SpriteAllocationChecksCountAndInitializesEveryHostByte) {
+    u_long128 *barrier = Fragment(64);
+    EXPECT_EQ(manager.AssignSprite(-1), nullptr);
+    EXPECT_EQ(manager.AssignSprite(std::numeric_limits<int>::max()), nullptr);
+
+    _ES_SPRITE *sprites = manager.AssignSprite(2);
+    ASSERT_NE(sprites, nullptr);
+    const auto bytes = std::span(reinterpret_cast<const unsigned char *>(sprites),
+                                 2 * sizeof(_ES_SPRITE));
+    EXPECT_TRUE(std::all_of(bytes.begin(), bytes.end(), [](unsigned char byte) { return byte == 0; }));
+    const auto *guard = reinterpret_cast<const unsigned char *>(barrier);
+    for (int i = 0; i < 4 * sizeof(u_long128); ++i) {
+        EXPECT_EQ(guard[i], 0xA5);
+    }
+    manager.DeleteSprite(sprites);
+}
+
+TEST_F(EffectWorkMemory, ClearBaseOutputRespectsEmptyAndSingleElementSpans) {
+    base.level = 2;
+    base.texb_owned = 1;
+    manager.texb_used = 1;
+    std::array<int, 3> sentinels{111, 222, 333};
+    manager.ClearBaseFromLevel(2, std::span(sentinels).subspan(1, 0));
+    EXPECT_EQ(sentinels, (std::array<int, 3>{111, 222, 333}));
+    EXPECT_EQ(manager.base[0], nullptr);
+    EXPECT_EQ(manager.texb_used, 0);
+
+    manager.base[0] = &base;
+    manager.texb_used = 1;
+    manager.ClearBaseFromLevel(2, std::span(sentinels).subspan(1, 1));
+    EXPECT_EQ(sentinels, (std::array<int, 3>{111, -1, 333}));
+    EXPECT_EQ(manager.base[0], nullptr);
+    EXPECT_EQ(manager.texb_used, 0);
+}
+
+TEST_F(EffectWorkMemory, LockedAndInvalidCharacterRequestsLeaveTheHeapAndSlotsUnchanged) {
+    _EFF_SCRIPT script{};
+    script.chara = &character;
+    manager.now = &script;
+    auto *heap_next = memory.heap_top->next;
+    EXPECT_FALSE(manager.SetCharacter(nullptr, 0, -1));
+    EXPECT_FALSE(manager.SetCharacter(&character, -1, 0));
+    EXPECT_EQ(memory.heap_top->next, heap_next);
+    memory.stSetLocked(true);
+    EXPECT_FALSE(manager.SetCharacter(&character, 0, -1));
+    EXPECT_FALSE(manager.AssignCharacter(&script, 1));
+    EXPECT_EQ(manager.CreateEffSpt(7, 0, 1), nullptr);
+    EXPECT_EQ(script.chara, &character);
+    EXPECT_EQ(script.sub_chara_work, nullptr);
+    EXPECT_EQ(manager.slot[0][0], nullptr);
+    EXPECT_EQ(memory.heap_top->next, heap_next);
+}
+
+TEST(EffectConstruction, PoisonedEmitterStorageHasDefaultRepeatTiming) {
+    alignas(CEffectCtrl) std::array<std::byte, sizeof(CEffectCtrl)> storage{};
+    for (int reuse = 0; reuse < 2; ++reuse) {
+        storage.fill(std::byte{0xA5});
+        auto *emitter = std::construct_at(reinterpret_cast<CEffectCtrl *>(storage.data()));
+        EXPECT_EQ(emitter->repeat_wait_now, 0);
+        EXPECT_EQ(emitter->texture, nullptr);
+        EXPECT_EQ(emitter->entry, 0);
+        EXPECT_EQ(emitter->run, 0);
+        EXPECT_EQ(emitter->width, 1.0f);
+        std::destroy_at(emitter);
+    }
+}
+
+TEST(EffectConstruction, PoisonedPoolsAndCatalogEntriesHaveInitializedInactiveState) {
+    alignas(CEffectManager) std::array<std::byte, sizeof(CEffectManager)> storage{};
+    storage.fill(std::byte{0xA5});
+    auto *manager = std::construct_at(reinterpret_cast<CEffectManager *>(storage.data()));
+    EXPECT_EQ(manager->effects, nullptr);
+    EXPECT_EQ(manager->effect_num, 0);
+    EXPECT_EQ(manager->ctrls, nullptr);
+    EXPECT_EQ(manager->ctrl_num, 0);
+    EXPECT_EQ(manager->ctrl_index, -1);
+    EXPECT_EQ(manager->name[31], char{});
+    EXPECT_EQ(manager->ctrl_name[7][31], char{});
+    EXPECT_EQ(manager->img_name[31], char{});
+    std::destroy_at(manager);
+}
+
+TEST(EffectRectangles, EmissionCopiesCanonicalComponentsAndHandlesAnEmptyAnimationList) {
+    for (int rectangles : {0, 2}) {
+        CEffectCtrl emitter;
+        emitter.entry = 1;
+        emitter.num = 1;
+        emitter.count = 12;
+        emitter.tex_get_type = 1;
+        emitter.tex_rect_num = rectangles;
+        for (int rectangle = 0; rectangle < 8; ++rectangle) {
+            for (int component = 0; component < 4; ++component) {
+                emitter.tex_rect[rectangle][component] = rectangle * 10 + component;
+            }
+        }
+        CEffect particle;
+        emitter.Run();
+        emitter.Ctrl(&particle, 1);
+        ASSERT_EQ(particle.active, 1);
+        EXPECT_EQ(particle.param.tex_frame, rectangles == 0 ? 12 : 6);
+        for (int rectangle = 0; rectangle < 8; ++rectangle) {
+            for (int component = 0; component < 4; ++component) {
+                EXPECT_EQ(particle.param.tex_rect[rectangle][component], rectangle * 10 + component);
+            }
+        }
+    }
+    CEffectCtrl invalid;
+    invalid.entry = 1;
+    invalid.num = 1;
+    invalid.tex_rect_num = 9;
+    CEffect particle;
+    invalid.Run();
+    invalid.Ctrl(&particle, 1);
+    EXPECT_EQ(particle.active, 0);
 }

@@ -1,13 +1,11 @@
 #include "common.h"
 
 #include "dng_main.hpp"
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 
-void PortRetailResetEyeView(CActionChara *) asm("DngMain_ResetEyeView");
-
-PORT_OVERRIDE void ResetEyeView(CActionChara *chara) {
+void ResetEyeView(CActionChara *chara) {
     const bool eye_view = DngStatus.eye_view;
-    PortRetailResetEyeView(chara);
+    dc2::dungeon::ResetEyeViewCore(chara);
     if (eye_view && !DngStatus.eye_view) {
         mgPortCutCameraInterpolation();
     }

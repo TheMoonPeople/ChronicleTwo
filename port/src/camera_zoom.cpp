@@ -10,7 +10,7 @@
 #include "camera_mouse.hpp"
 #include "camera_zoom.hpp"
 #include "gameutil.hpp"
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 #include "scenesnd.hpp"
 
 namespace {
@@ -142,7 +142,7 @@ private:
 
 // Retail's wall correction places the eye five units in front of a hit along
 // the view, which leaves it almost touching a wall it grazes. Move it toward the
-// target until it has the room mouse turning needs to prove motion away.
+// target until it keeps the clearance, so the view does not graze that wall.
 void KeepClear(const float *target, float *eye, CCPoly *polys, int count) {
     if (count <= 0 || MouseCameraClearance(eye, polys, count) > CameraZoom::clearance) {
         return;
@@ -361,13 +361,13 @@ private:
     float  box_max[3]{};
 };
 
-// Whether a wall crosses the surface a view sweeps from one drawn pose to the
-// next, from target a to eye a and target b to eye b. A plane meets the patch
-// in a hyperbola, parabola or lines, never a closed curve, so a wall meets a
-// part of it only where a wall edge crosses that part or one of its edges
-// crosses the wall.
-bool Sweeps(CCPoly *walls, int count, const float *target_a, const float *eye_a, const float *target_b,
-            const float *eye_b) {
+} // namespace
+
+/**
+ * Reports whether a wall intersects the surface swept between two camera views.
+ */
+bool CameraViewSweeps(CCPoly *walls, int count, const float *target_a, const float *eye_a, const float *target_b,
+                      const float *eye_b) {
     if (count <= 0) {
         return false;
     }
@@ -397,7 +397,6 @@ bool Sweeps(CCPoly *walls, int count, const float *target_a, const float *eye_a,
     }
     return false;
 }
-} // namespace
 
 float CameraZoom::HeightScale(CCameraControl &camera) const {
     return active ? std::clamp(requested / std::max(1.0f, camera.GetActiveParam()->min_dist), 0.05f, 1.0f) : 1.0f;
@@ -426,6 +425,7 @@ void CameraZoom::Read(CCameraControl &camera, float wheel, bool reset, bool enab
     // still limited by the walls, without waiting out an earlier hold.
     allowed = requested;
     hold = clear = strikes = calm = 0;
+    pulled = false;
     active = true;
 }
 
@@ -433,10 +433,17 @@ float CameraZoom::Floor(const CameraCtrlParam &retail) const {
     return std::min(requested, retail.min_dist);
 }
 
-void CameraZoom::Strike() {
-    hold = hold_ticks << std::min(strikes, max_strikes);
-    strikes = std::min(strikes + 1, max_strikes);
-    clear = calm = 0;
+void CameraZoom::Strike(float drop) {
+    clear = 0;
+    if (!(drop >= minor_pull_in)) {
+        return;
+    }
+    if (!pulled) {
+        strikes = std::min(strikes + 1, max_strikes + 2);
+        pulled = true;
+    }
+    hold = strikes > 1 ? hold_ticks << std::min(strikes - 2, max_strikes) : 0;
+    calm = 0;
 }
 
 void CameraZoom::Move(CCameraControl &camera, CScene &scene,
@@ -572,13 +579,14 @@ void CameraZoom::Move(CCameraControl &camera, CScene &scene,
     if (reached < 0) {
         camera.MoveCamera(&control, rotation, retail_polys, retail_count);
         allowed = std::min(requested, Distance(camera.next_pos, camera.next_ref));
-        Strike();
+        Strike(first - allowed);
         return;
     }
     if (allowed > least + 0.5f && reached < allowed - 0.5f) {
         // The view is blocked: take the corrected distance at once and hold it.
-        Strike();
-        allowed = std::max(reached, least);
+        const float limited = std::max(reached, least);
+        Strike(allowed - limited);
+        allowed = limited;
     } else {
         if (++calm >= calm_ticks) {
             strikes = std::max(0, strikes - 1);
@@ -605,6 +613,7 @@ void CameraZoom::Move(CCameraControl &camera, CScene &scene,
                 if (evaluate(next, farther) >= next - 0.5f) {
                     allowed = next;
                     chosen = farther;
+                    pulled = false;
                 }
             }
         }
@@ -665,15 +674,23 @@ void CameraZoom::KeepVisible(CCameraControl &camera, CScene &scene, CCPoly *reta
     }
     // Only a zoom beyond retail's own distance holds, as for the destination.
     const float least = Floor(retail);
+    const float shown = std::clamp(Distance(camera.next_pos, camera.next_ref), least, std::max(least, allowed));
     if (allowed > least + 0.5f) {
-        Strike();
+        Strike(allowed - shown);
     }
-    allowed = std::clamp(Distance(camera.next_pos, camera.next_ref), least, std::max(least, allowed));
-    mgPortCutCameraInterpolation();
+    allowed = shown;
+    // Cut only where display frames blending to the placed eye would show a
+    // wall, the characters' walls included, between it and the player;
+    // otherwise they blend as any pull-in does.
+    CCameraControl placed = camera;
+    placed.mgCCamera::Step(1);
+    if (Swept(camera, scene, placed, retail_polys, retail_count, true)) {
+        mgPortCutCameraInterpolation();
+    }
 }
 
 bool CameraZoom::Swept(CCameraControl &camera, CScene &scene, CCameraControl &rendered, CCPoly *retail_polys,
-                       int retail_count) const {
+                       int retail_count, bool walking) const {
     float eye[4] = {0, 0, 0, 1};
     float target[4] = {0, 0, 0, 1};
     for (int i = 0; i < 3; ++i) {
@@ -690,8 +707,13 @@ bool CameraZoom::Swept(CCameraControl &camera, CScene &scene, CCameraControl &re
         return false;
     }
     Collector collector(scene, retail_polys, retail_count);
-    collector.Clear(false);
+    collector.Clear(walking);
     collector.Add(target, eye, 8 + step);
     const int count = collector.Finish();
-    return count >= 0 && Sweeps(collector.Data(), count, target, eye, rendered.ref, rendered.pos);
+    if (count < 0) {
+        // A placed eye that cannot be proved clear of the walls is cut to.
+        return walking;
+    }
+    return walking ? CameraViewSweeps(collector.View(), collector.ViewCount(), target, eye, rendered.ref, rendered.pos)
+                   : CameraViewSweeps(collector.Data(), count, target, eye, rendered.ref, rendered.pos);
 }

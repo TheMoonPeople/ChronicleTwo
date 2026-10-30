@@ -18,9 +18,11 @@ protected:
     SDL_Joystick  *joystick = nullptr; /**< Open virtual controller. */
 
     void SetUp() override {
+        InputShutdown();
         SDL_SetHint(SDL_HINT_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT, "0x1234/0x5678");
         SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
         InputInitForRun(false);
+        InputApplyGameConfig(HostSettings{});
         SDL_VirtualJoystickDesc description{};
         SDL_INIT_INTERFACE(&description);
         description.type = SDL_JOYSTICK_TYPE_GAMEPAD;
@@ -82,6 +84,35 @@ TEST(InputStartup, HeadlessLeavesControllerSubsystemsOff) {
     ASSERT_EQ(SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK), 0u);
     InputInitForRun(true);
     EXPECT_EQ(SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK), 0u);
+    InputShutdown();
+}
+
+TEST(InputStartup, RepeatedInitializationReleasesExactlyItsOwnControllerSubsystemReference) {
+    ASSERT_EQ(SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK), 0u);
+    ASSERT_TRUE(SDL_InitSubSystem(SDL_INIT_GAMEPAD)) << SDL_GetError();
+    InputInitForRun(false);
+    InputInitForRun(false);
+    InputShutdown();
+    EXPECT_NE(SDL_WasInit(SDL_INIT_GAMEPAD), 0u);
+    SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
+    EXPECT_EQ(SDL_WasInit(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK), 0u);
+}
+
+TEST(InputStartup, ShutdownRetiresScriptedControllerSnapshotsBeforeTheNextSession) {
+    const InputPadState scripted{.buttons = kInputCross, .left_x = 255, .right_y = 0, .connected = true};
+    for (int pad = 0; pad < kInputPadCount; ++pad) {
+        InputSetOverride(pad, &scripted);
+        ASSERT_EQ(InputGetPad(pad).buttons, kInputCross);
+    }
+    InputShutdown();
+    InputInitForRun(true);
+    for (int pad = 0; pad < kInputPadCount; ++pad) {
+        const auto &state = InputGetPad(pad);
+        EXPECT_EQ(state.buttons, 0u);
+        EXPECT_EQ(state.left_x, kInputAxisCentre);
+        EXPECT_EQ(state.right_y, kInputAxisCentre);
+        EXPECT_FALSE(state.connected);
+    }
     InputShutdown();
 }
 

@@ -26,30 +26,30 @@ function script.on_start()
 	value = 0
 	value_2 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	value = effect.GetValue(0) or value
-	value_2 = effect.GetValue(1) or value_2
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetMotion("爆発", -1, 6)
-	effect.ColprimCreate("通常ＢＧＣ")
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 50.0)
-	effect.ColprimSetDamage(value)
-	effect.MonSePlay2(value_2, 7)
+	value = effect.get_script_value(0) or value
+	value_2 = effect.get_script_value(1) or value_2
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_motion("爆発", -1, 6)
+	effect.create_collision_primitive("通常ＢＧＣ")
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 50.0)
+	effect.set_collision_primitive_damage(value)
+	effect.play_character_sound(value_2, 7)
 	var6 = 0
 	while var6 < 40 do
 		if var6 == 30 then
 			var2 = 1
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		var6 = var6 + 1
 		vm.wait()
 	end
 	if var2 == 0 then
-		effect.ColprimDelete(-1)
+		effect.delete_collision_primitive(-1)
 	end
 	helper_8b333653()
 end

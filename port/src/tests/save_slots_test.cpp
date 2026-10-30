@@ -2,7 +2,10 @@
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -13,6 +16,7 @@
 #include <string_view>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
 #include "dng_event.hpp"
 #include "dng_main.hpp"
@@ -20,7 +24,6 @@
 #include "gamepad.hpp"
 #include "inventmn.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "menuaqua.hpp"
 #include "menucls1.hpp"
 #include "menucommon.hpp"
@@ -29,18 +32,44 @@
 #include "platform/clock.hpp"
 #include "platform/config.hpp"
 #include "platform/files.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/paths.hpp"
 #include "platform_fixture.hpp"
 #include "play_time.hpp"
 #include "save_json.hpp"
 #include "save_slots.hpp"
 #include "scene.hpp"
+#include "scoped_global_object.hpp"
 
 namespace fs = std::filesystem;
 
 namespace {
+/**
+ * Restores the selected language and its exact font table after localized fixture work.
+ */
+struct FontLanguageState {
+    std::array<u8, sizeof(FONT_TBL_BIN)> previous_table{};                 /**< Font bytes belonging to the enclosing scope. */
+    int                                  previous_language = LanguageCode; /**< Selected language belonging to the enclosing scope. */
+
+    /**
+     * Captures the complete font record before the fixture changes its language.
+     */
+    FontLanguageState() {
+        std::memcpy(previous_table.data(), GetYoyakuTblTop() - offsetof(FONT_TBL_BIN, yoyaku_tbl), previous_table.size());
+    }
+
+    /**
+     * Restores the enclosing language and font record after fixture cleanup.
+     */
+    ~FontLanguageState() {
+        std::memcpy(GetYoyakuTblTop() - offsetof(FONT_TBL_BIN, yoyaku_tbl), previous_table.data(), previous_table.size());
+        LanguageCode = previous_language;
+    }
+};
+
 class SaveSlotTest : public testing::Test {
 protected:
+    FontLanguageState                font_language; /**< Language and font state restored even after a fixture assertion fails. */
     fs::path                         root;
     std::unique_ptr<SAVEDATA_FORMAT> image = std::make_unique<SAVEDATA_FORMAT>();
     std::unique_ptr<SAVEDATA_FORMAT> buffer = std::make_unique<SAVEDATA_FORMAT>();
@@ -196,19 +225,17 @@ std::string MessageText(const CDC2Mes &message) {
     return text;
 }
 
-std::vector<u_long128> SaveMessages(int language) {
-    const auto    path = PathsDataRoot().parent_path() / "data/menu" / std::to_string(language) / "save.pac/allmenu.mes";
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
-    if (!file) {
+/**
+ * Reads exactly the initialized bytes of localized save messages through the native asset index.
+ */
+std::vector<std::uint8_t> SaveMessages(int language) {
+    const auto                path = "menu/" + std::to_string(language) + "/save.pac/allmenu.mes";
+    const auto                file = DataReadFind(path.c_str());
+    std::vector<std::uint8_t> bytes;
+    if (!file || !vfs::Read(*file, bytes) || bytes.empty()) {
         return {};
     }
-    const auto             size = static_cast<std::size_t>(file.tellg());
-    std::vector<u_long128> archive((size + 15) / 16);
-    file.seekg(0);
-    if (!file.read(reinterpret_cast<char *>(archive.data()), size)) {
-        return {};
-    }
-    return archive;
+    return bytes;
 }
 
 struct MenuRig {
@@ -295,7 +322,7 @@ TEST_F(SaveSlotTest, NamesAreCanonicalAndIgnoreTemporaryFiles) {
 }
 
 TEST_F(SaveSlotTest, ImportsBothCardsAndArchivesCompleteOriginalEntries) {
-    std::vector<std::vector<char> > originals;
+    std::vector<std::vector<char>> originals;
     for (int number = 0; number < 3; ++number) {
         image->unique_counter = number + 1;
         Write(Legacy(0, number));
@@ -760,7 +787,7 @@ TEST_F(SaveSlotTest, ArrivalAutosaveWaitsForControlAndEnabledConfigurationThenRu
     const auto old_event = GetMainScene()->event_run;
     const auto old_lock = GamePad__2.key_lock;
     const auto old_config = ConfigGet();
-    auto       area = std::make_unique<DNG_BATTLE_AREA>();
+    auto       area = dc2::test::BindGlobalOwner<BattleAreaScene>(std::make_unique<DNG_BATTLE_AREA>());
 
     struct Restore {
         std::function<void()> action;
@@ -789,7 +816,6 @@ TEST_F(SaveSlotTest, ArrivalAutosaveWaitsForControlAndEnabledConfigurationThenRu
     PortAutosaveResetArrival();
     PortAutosave = true;
     PortCaptureMode = CAPTURE_OFF;
-    BattleAreaScene = area.get();
     GamePad__2.key_lock = 0;
     GetMainScene()->event_run = false;
     live->save_dungeon.stage_id = 2;
@@ -823,7 +849,7 @@ TEST_F(SaveSlotTest, ArrivalAutosaveWaitsForControlAndEnabledConfigurationThenRu
     EXPECT_EQ(Counter(SaveSlotAutosavePath()), 1);
     // With autosave off at a floor's first controllable frame, the floor is passed over: its entry state lacks what
     // the player goes on to do there, so turning autosave on again does not write it.
-    const std::vector<std::function<void(bool)> > switches = {
+    const std::vector<std::function<void(bool)>> switches = {
         [&](bool on) { PortCaptureMode = on ? CAPTURE_OFF : CAPTURE_OFF + 1; },
         [&](bool on) { PortAutosave = on; },
         [&](bool on) { configure(on); },
@@ -1116,7 +1142,8 @@ TEST_F(SaveSlotTest, NewSaveAndFinnyPromptsUseRetailMessagesInEveryPalLanguage) 
         GTEST_SKIP() << "DC2_DATA supplies the retail font table";
     }
     PathsSetDataRoot(data);
-    LoadFontTblBin();
+    DataReadIndex(data);
+    ASSERT_EQ(LoadFontTblBin(), 1);
     image->fish_num = 5;
     Write(SaveSlotPath(7));
     manager.GetAllSaveFileInfo();
@@ -1151,7 +1178,8 @@ TEST_F(SaveSlotTest, NoFishAndOperationFailuresUseRetailNotices) {
         GTEST_SKIP() << "DC2_DATA supplies the retail font table";
     }
     PathsSetDataRoot(data);
-    LoadFontTblBin();
+    DataReadIndex(data);
+    ASSERT_EQ(LoadFontTblBin(), 1);
     Write(SaveSlotPath(7));
     manager.GetAllSaveFileInfo();
     {
@@ -1285,14 +1313,17 @@ TEST_F(SaveSlotTest, LocalizedSavePromptsContainRetailText) {
         GTEST_SKIP() << "DC2_DATA supplies localized menu folders and the font table";
     }
     PathsSetDataRoot(data);
-    LoadFontTblBin();
+    DataReadIndex(data);
     image->fish_num = 5;
     Write(SaveSlotPath(7));
     manager.GetAllSaveFileInfo();
     for (int language : {LANG_ENGLISH, LANG_SPANISH}) {
+        LanguageCode = language;
+        ASSERT_EQ(LoadFontTblBin(), 1);
         auto message_data = SaveMessages(language);
         ASSERT_FALSE(message_data.empty());
-        auto *messages = reinterpret_cast<short *>(message_data.data());
+        const auto messages = dc2::text::MessageTable::Parse(std::as_bytes(std::span(message_data)));
+        ASSERT_TRUE(messages);
         for (bool finny : {false, true}) {
             MenuRig rig;
             LanguageCode = language;
@@ -1317,7 +1348,7 @@ TEST_F(SaveSlotTest, LocalizedSavePromptsContainRetailText) {
 }
 
 TEST_F(SaveSlotTest, ExistingMarkersAreIgnoredAndLeftUntouched) {
-    std::vector<std::vector<char> > originals;
+    std::vector<std::vector<char>> originals;
     for (int card : {0, 1}) {
         Write(Legacy(card, 0));
         originals.push_back(Bytes(Legacy(card, 0)));

@@ -28,7 +28,7 @@
 namespace {
 
 // Function start (relative to the module's load base) and name, sorted by start.
-using SymbolTable = std::vector<std::pair<std::uint64_t, std::string> >;
+using SymbolTable = std::vector<std::pair<std::uint64_t, std::string>>;
 
 template <typename T>
 bool ReadAt(std::ifstream &file, std::uint64_t offset, T &out) {

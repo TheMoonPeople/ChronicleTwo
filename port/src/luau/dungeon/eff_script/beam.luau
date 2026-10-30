@@ -23,46 +23,46 @@ function script.on_start()
 	local var6: f32 = 0
 	local var7: f32 = 0
 	local var8: f32 = 0
-	effect.SptSetTexname("nana_rinpun")
-	effect.SptAssignSprite_1(600)
-	effect.SptInitSprite(0, 600)
-	effect.SptSetAlphab(0, 2, 600)
-	effect.SptSetDrawFlag(0, 1, 600)
-	effect.SptSetPos(0, 0.0, -1000.0, 0.0, 600)
-	effect.SptSetPutSize(0, 4.0, 4.0, 600)
-	effect.SptSetUvSize(0, 129.0, 1.0, 126.0, 126.0, 600)
+	effect.set_sprite_texture("nana_rinpun")
+	effect.allocate_sprites_1(600)
+	effect.reset_sprites(0, 600)
+	effect.set_sprite_blend_mode(0, 2, 600)
+	effect.set_sprite_visible(0, 1, 600)
+	effect.set_sprite_position(0, 0.0, -1000.0, 0.0, 600)
+	effect.set_sprite_size(0, 4.0, 4.0, 600)
+	effect.set_sprite_texture_rect(0, 129.0, 1.0, 126.0, 126.0, 600)
 	while true do
 		do
-			local out1, out2, out3 = effect.GetWorkVect1()
+			local out1, out2, out3 = effect.get_first_work_vector()
 			work_vect1_x = out1 or work_vect1_x
 			work_vect1_y = out2 or work_vect1_y
 			work_vect1_z = out3 or work_vect1_z
 		end
 		do
-			local out1, out2, out3 = effect.GetWorkVect2()
+			local out1, out2, out3 = effect.get_second_work_vector()
 			work_vect2_x = out1 or work_vect2_x
 			work_vect2_y = out2 or work_vect2_y
 			work_vect2_z = out3 or work_vect2_z
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(work_vect2_x, work_vect2_y, work_vect2_z)
+			local out1, out2, out3 = effect.copy_vector(work_vect2_x, work_vect2_y, work_vect2_z)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.SubVector(var6, var7, var8, work_vect1_x, work_vect1_y, work_vect1_z)
+			local out1, out2, out3 = effect.subtract_vectors(var6, var7, var8, work_vect1_x, work_vect1_y, work_vect1_z)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.DivVector(var6, var7, var8, 600.0)
+			local out1, out2, out3 = effect.divide_vector(var6, var7, var8, 600.0)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
-		effect.SptVanSetPos(0, work_vect1_x, work_vect1_y, work_vect1_z, var6, var7, var8, 0.0, 0.0, 0.0, 600)
+		effect.spread_sprite_positions(0, work_vect1_x, work_vect1_y, work_vect1_z, var6, var7, var8, 0.0, 0.0, 0.0, 600)
 		vm.wait()
 	end
 end
@@ -78,49 +78,49 @@ function script.on_finish()
 	local var6: f32 = 0
 	local var7: f32 = 0
 	local var8: f32 = 0
-	local var9: f32 = 0
-	local var10: f32 = 0
-	local var11: f32 = 0
-	local var12: f32 = 0
-	var9 = 128.0
-	var10 = 128.0
-	var11 = 128.0
-	var12 = 128.0
+	local value: f32 = 0
+	local value_2: f32 = 0
+	local value_3: f32 = 0
+	local value_4: f32 = 0
+	value = 128.0
+	value_2 = 128.0
+	value_3 = 128.0
+	value_4 = 128.0
 	while true do
 		do
-			local out1, out2, out3 = effect.GetWorkVect1()
+			local out1, out2, out3 = effect.get_first_work_vector()
 			work_vect1_x = out1 or work_vect1_x
 			work_vect1_y = out2 or work_vect1_y
 			work_vect1_z = out3 or work_vect1_z
 		end
 		do
-			local out1, out2, out3 = effect.GetWorkVect2()
+			local out1, out2, out3 = effect.get_second_work_vector()
 			work_vect2_x = out1 or work_vect2_x
 			work_vect2_y = out2 or work_vect2_y
 			work_vect2_z = out3 or work_vect2_z
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(work_vect2_x, work_vect2_y, work_vect2_z)
+			local out1, out2, out3 = effect.copy_vector(work_vect2_x, work_vect2_y, work_vect2_z)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.SubVector(var6, var7, var8, work_vect1_x, work_vect1_y, work_vect1_z)
+			local out1, out2, out3 = effect.subtract_vectors(var6, var7, var8, work_vect1_x, work_vect1_y, work_vect1_z)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.DivVector(var6, var7, var8, 600.0)
+			local out1, out2, out3 = effect.divide_vector(var6, var7, var8, 600.0)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
-		effect.SptVanSetPos(0, work_vect1_x, work_vect1_y, work_vect1_z, var6, var7, var8, 0.0, 0.0, 0.0, 600)
-		effect.SptSetColor(0, var9, var10, var11, var12, 600)
-		var12 = vm.f32(var12 - 4.0)
-		if var12 <= 0.0 then
+		effect.spread_sprite_positions(0, work_vect1_x, work_vect1_y, work_vect1_z, var6, var7, var8, 0.0, 0.0, 0.0, 600)
+		effect.set_sprite_color(0, value, value_2, value_3, value_4, 600)
+		value_4 = vm.f32(value_4 - 4.0)
+		if value_4 <= 0.0 then
 			break
 		else
 			vm.wait()

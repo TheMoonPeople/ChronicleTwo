@@ -1,5 +1,5 @@
-# Removes the module copies a build or install made earlier whose sources are gone, such as scripts moved to the
-# interpreter's fallback list, and records the copies it makes now.
+# Removes the module copies a build or install made earlier whose sources are gone, such as shared helpers renamed
+# when their body changed, and records the copies it makes now.
 #
 # MANIFEST lists the copies made into SCRIPTS last time, one "<sha256> <path relative to SCRIPTS>" line each. A listed
 # copy that EXPECTED (one path relative to SOURCES per line) no longer names is removed if it still holds the bytes it

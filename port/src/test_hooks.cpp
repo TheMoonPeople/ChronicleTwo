@@ -18,6 +18,7 @@
 #include "log/log.hpp"
 #include "main.hpp"
 #include "mapselect.hpp"
+#include "options/screen.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "platform/vfs.hpp"
@@ -303,14 +304,20 @@ bool GameDeveloperMenuRequested(int mode) {
     constexpr auto chord = kInputStart | kInputSelect;
     const auto     buttons = InputGetPad(0).buttons;
     bool           held = (buttons & chord) == chord;
-    bool           pressed = held && !held_before;
+    // The debug_menu binding (F1 by default) stands in for the chord on a keyboard; its press is
+    // consumed whether or not debug controls are enabled, so it cannot fire later.
+    bool key = false;
+    while (InputHostPressed(InputHostAction::DebugMenu)) {
+        key = true;
+    }
+    bool pressed = (held && !held_before) || key;
     // A partial release must not re-arm a chord carried across a mode change.
     if ((buttons & chord) == 0) {
         held_before = false;
     } else if (held) {
         held_before = true;
     }
-    return pressed && GameDebugEnabled() && mode != LOOP_MENU;
+    return pressed && GameDebugEnabled() && mode != LOOP_MENU && !options::Capturing();
 }
 
 bool GameDebugPauseRequested(CGamePad &pad) {

@@ -33,7 +33,7 @@ OutputId = tuple[int, int]
 _INT = Tags({INT})
 _FLOAT = Tags({FLOAT})
 _UNKNOWN = Tags({UNKNOWN})
-_ROUNDS = 12
+_ROUNDS = 40
 
 
 @dataclasses.dataclass(frozen=True)
@@ -136,6 +136,9 @@ class _Analysis:
         self.directions = directions
         self.graphs = {block: cfg.build(program, function) for block, function in program.functions.items()}
         self.named: dict[int, set[int]] = {}
+        # What a summary not yet computed holds: nothing, so the rounds rise to the least fixed point from the entry
+        # points; a program that does not settle is analysed again from unknown summaries.
+        self.start = Tags()
         # Summaries of the previous round, which each round reads.
         self.param_tags: dict[int, dict[int, Tags]] = {}
         self.ref_tags: dict[int, dict[int, Tags]] = {}
@@ -146,6 +149,15 @@ class _Analysis:
         self.calls: dict[int, CallFacts] = {}
 
     def run(self) -> Facts:
+        if not self._settle() and self.start != _UNKNOWN:
+            self.start = _UNKNOWN
+            self.param_tags, self.ref_tags, self.return_tags = {}, {}, {}
+            self.global_tags, self.global_reads, self.derefs = {}, {}, {}
+            self._settle()
+        return self._facts()
+
+    def _settle(self) -> bool:
+        """Runs rounds until the summaries stop changing; False when they have not after the last round."""
         for _ in range(_ROUNDS):
             self.next_params: dict[int, dict[int, Tags]] = collections.defaultdict(dict)
             self.next_refs: dict[int, dict[int, Tags]] = collections.defaultdict(dict)
@@ -182,7 +194,10 @@ class _Analysis:
                 {b: {p: d.snapshot() for p, d in ds.items()} for b, ds in self.derefs.items()},
             )
             if current == previous:
-                break
+                return True
+        return False
+
+    def _facts(self) -> Facts:
         # A value written into a global reaches every read of that global, in any function and any later run.
         for number, outputs in self.global_outputs.items():
             for output in outputs:
@@ -222,11 +237,11 @@ class _Analysis:
         entry_tags: dict[Slot, Tags] = {}
         for n in range(function.local):
             if n < function.arg:
-                entry_tags[("local", n)] = self.param_tags.get(function.block, {}).get(n, _UNKNOWN)
+                entry_tags[("local", n)] = self.param_tags.get(function.block, {}).get(n, self.start)
             else:
                 entry_tags[("local", n)] = _INT
         for n in range(function.arg):
-            entry_tags[("ptr", n)] = self.ref_tags.get(function.block, {}).get(n, _UNKNOWN)
+            entry_tags[("ptr", n)] = self.ref_tags.get(function.block, {}).get(n, self.start)
         states: dict[int, _State] = {graph.entry: _State((), entry_tags, {})}
         work = [graph.entry]
         visits = collections.Counter()
@@ -393,7 +408,7 @@ class _Analysis:
                                 passed.reads |= deref.reads
                                 passed.stores |= deref.stores
                                 passed.outputs |= deref.outputs
-                    stack.append(_Value(self.return_tags.get(callee.block, _UNKNOWN)))
+                    stack.append(_Value(self.return_tags.get(callee.block, self.start)))
                 elif op == Op.PRINT:
                     for _ in range(instruction.a1):
                         pop()

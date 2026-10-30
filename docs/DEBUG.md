@@ -41,6 +41,38 @@ Start+Select on pad 1 enters the retail developer menu from any active mode when
 lock. Loading between modes finishes first. The chord acts once per press;
 release both buttons before using it again. While frame-paused, modified Start
 captures instead. The existing four-shoulder/R3 toggle remains available.
+The `debug_menu` binding (F1 or controller paddle 1 by default) requests the
+developer menu. The `mode_debug_menu` binding (F2 by default) opens or closes
+the current mode's debug menu as described below. Their bindings are edited on
+**PC SETTINGS** > **Keyboard** or **Gamepad**. Neither binding nor Start+Select
+acts during binding capture or while a newly bound input remains held.
+
+## Debug menu key
+
+`mode_debug_menu` is a one-key shortcut for the current mode. Bind a key under
+**PC SETTINGS** > **Keyboard** > Debug menu (R3), F2 by default. With
+`game.debug_mode` or `--jump`, a press turns `DebugFlag` on and presses the
+buttons the current loop opens its debug menu with: Start+Select on the title,
+which leaves for the developer menu, and R3 in a dungeon or town while the player
+has control. A second press closes the open dungeon or town debug menu.
+
+Presses in ordinary menus, events, Georama edit, sub-games, Spheda, under a pad
+lock (even with a debug menu open) and in other loops are dropped before
+`DebugFlag` or the pad changes. An open menu would otherwise take the R3 as its
+own: the dungeon menu toggles `menu_debug_flag` (`ps2/src/menumain.cpp:1433`),
+and the town debug menu would reset the buffer the open menu uses
+(`ps2/src/editloop.cpp:1730`, `ps2/src/editdebug.cpp:178`). Dungeon fishing and
+Spheda run in field mode but read the pad after the debug R3
+(`ps2/src/dng_main.cpp:2176`, `2235`, `2275`). The control checks are the ones
+floor and town autosave use (`port/src/mainloop.cpp`, `PortDungeonFieldControl`
+and `PortTownFieldControl`); the dungeon adds sub-games, a played Spheda and the
+player-control pause for the key alone (`port/src/debug_mode.cpp`).
+
+The host counts presses whenever it polls input, and MainLoop reads them once a
+tick. Presses made during the pause overlay, the frame pause, a load or a mode
+change are dropped: MainLoop discards them after either pause and when a mode
+starts, and a tick that ended more than its own frame (a loading screen) drops
+the presses read at the next tick.
 
 ## Start+Select transition
 
@@ -88,7 +120,7 @@ These work with the pad-2 Circle toggle. Pad 2 is locked unless the boot unlock 
 ## PC gaps
 
 - The keyboard feeds pad 1 only (`tools/kazarov/src/cpp/platform/input.cpp`, `Compose`); L2+Select makes its debug button reads available too.
-- `developer_menu` (paddle 2) and `debug_menu` (paddle 1) are bound in `input.cpp` but nothing reads them.
+- `developer_menu` (paddle 2) is bound in `input.cpp` but nothing reads it.
 - GyoRace hits the `sgLoopGyoRace` stub (`port/src/gyorace.cpp`).
 
 ## Jump replays

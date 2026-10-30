@@ -48,7 +48,8 @@ enum class Type : unsigned char {
 struct Param {
     Direction direction;      /**< Whether the handler reads the argument or writes it through a reference. */
     Type      type;           /**< Script-side type of the argument. */
-    bool      tagged = false; /**< Whether the handler reads the slot's integer or float tag, so each call chooses the type. */
+    bool      tagged = false;   /**< Whether the handler reads the slot's integer or float tag, so each call chooses the type. */
+    bool      deferred = false; /**< Whether the handler keeps the reference and the engine writes it after the call. */
 };
 
 /**
@@ -60,6 +61,7 @@ struct Signature {
     int                    argc;     /**< Number of arguments the script passes. */
     bool                   rejected; /**< Whether the handler refuses this argument count. */
     std::span<const Param> params;   /**< Parameters in argument order. */
+    bool                   values;   /**< Whether this is the form that passes values where the handler also writes outputs. */
 };
 
 /**
@@ -102,12 +104,5 @@ struct Kind {
  *
  */
 std::span<const Kind> Kinds();
-
-/**
- *
- * Module keys of the scripts tools/luau/fallback.json keeps on the interpreter, which the runtime never loads as modules.
- *
- */
-std::span<const std::string_view> FallbackModules();
 
 } // namespace luau_bindings

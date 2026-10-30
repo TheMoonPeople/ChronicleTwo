@@ -18,40 +18,40 @@ local function helper_110(arg0: s32, arg1: f32, arg2: f32, arg3: f32, arg4: f32,
 	value_2 = 0.0
 	value_3 = 0.0
 	do
-		local out1, out2, out3 = effect.NormalVector(arg4, arg5, arg6)
+		local out1, out2, out3 = effect.normalize_vector(arg4, arg5, arg6)
 		arg4 = out1 or arg4
 		arg5 = out2 or arg5
 		arg6 = out3 or arg6
 	end
-	value = effect.GetRand(0.02) or value
+	value = effect.get_random_number(0.02) or value
 	value = vm.f32(value + vm.f32(0.01))
-	value_2 = effect.GetRand(6.2831855) or value_2
-	value_3 = effect.GetRand(5.0) or value_3
+	value_2 = effect.get_random_number(6.2831855) or value_2
+	value_3 = effect.get_random_number(5.0) or value_3
 	value_3 = vm.f32(value_3 + 5.0)
 	var7 = vm.f32(arg1 + vm.f32(vm.sin(value_2) * value_3))
 	var8 = arg2
 	var9 = vm.f32(arg3 + vm.f32(vm.cos(value_2) * value_3))
 	do
-		local out1, out2, out3 = effect.CopyVector(arg4, arg5, arg6)
+		local out1, out2, out3 = effect.copy_vector(arg4, arg5, arg6)
 		var10 = out1 or var10
 		var11 = out2 or var11
 		var12 = out3 or var12
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var10, var11, var12, 5.0)
+		local out1, out2, out3 = effect.scale_vector(var10, var11, var12, 5.0)
 		var10 = out1 or var10
 		var11 = out2 or var11
 		var12 = out3 or var12
 	end
-	effect.SptSetDrawFlag(arg0, 1)
-	effect.SptSetPos(arg0, var7, var8, var9)
-	effect.SptSetColor(arg0, 128.0, 128.0, 128.0, 8.0)
-	effect.SptSetScale(arg0, 1.0, 1.0, 1.0)
-	effect.SptSetVeloPos(arg0, var10, var11, var12)
-	effect.SptSetVeloCol(arg0, 0.0, 0.0, 0.0, 3.0)
-	effect.SptSetAccPos(arg0, 0.0, -0.05, 0.0)
-	effect.SptSetVeloRotz(arg0, value)
-	effect.SptSetVeloScl(arg0, 0.04, 0.04)
+	effect.set_sprite_visible(arg0, 1)
+	effect.set_sprite_position(arg0, var7, var8, var9)
+	effect.set_sprite_color(arg0, 128.0, 128.0, 128.0, 8.0)
+	effect.set_sprite_scale(arg0, 1.0, 1.0, 1.0)
+	effect.set_sprite_velocity(arg0, var10, var11, var12)
+	effect.set_sprite_color_velocity(arg0, 0.0, 0.0, 0.0, 3.0)
+	effect.set_sprite_acceleration(arg0, 0.0, -0.05, 0.0)
+	effect.set_sprite_angular_velocity(arg0, value)
+	effect.set_sprite_scale_velocity(arg0, 0.04, 0.04)
 end
 
 local script = {}
@@ -82,69 +82,69 @@ function script.on_start()
 	local value_3: f32 = 0
 	local value_4: f32 = 0
 	value = 0.0
-	var17 = effect.SptAssignSprite_2(600) or var17
+	var17 = effect.allocate_sprites_2(600) or var17
 	if var17 == 0 then
 		return
 	end
-	effect.SptSetTexname("Shigu_breath")
-	effect.SptInitSprite(0, 600)
-	effect.SptSetAlphab(0, 2, 600)
-	effect.SptSetUvSize(0, 0.0, 0.0, 128.0, 128.0, 600)
-	effect.SptSetPutSize(0, 32.0, 32.0, 600)
-	effect.SptSetDrawFlag(0, 0, 600)
-	effect.SptSetPos(0, 0.0, -50.0, 0.0, 600)
-	effect.SptSetAccPos(0, 0.0, -0.005, 0.0, 600)
-	user_id = effect.GetUserId() or user_id
-	effect.GetValue(0)
-	value = effect.GetValueFloat(1) or value
+	effect.set_sprite_texture("Shigu_breath")
+	effect.reset_sprites(0, 600)
+	effect.set_sprite_blend_mode(0, 2, 600)
+	effect.set_sprite_texture_rect(0, 0.0, 0.0, 128.0, 128.0, 600)
+	effect.set_sprite_size(0, 32.0, 32.0, 600)
+	effect.set_sprite_visible(0, 0, 600)
+	effect.set_sprite_position(0, 0.0, -50.0, 0.0, 600)
+	effect.set_sprite_acceleration(0, 0.0, -0.005, 0.0, 600)
+	user_id = effect.get_owner_character() or user_id
+	effect.get_script_value(0)
+	value = effect.get_script_value_float(1) or value
 	var16 = 0
 	while true do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "sakana")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "sakana")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "ef_null")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "ef_null")
 			var3 = out1 or var3
 			var4 = out2 or var4
 			var5 = out3 or var5
 		end
 		do
-			local out1, out2, out3 = effect.SubVector(var3, var4, var5, pos_x, pos_y, pos_z)
+			local out1, out2, out3 = effect.subtract_vectors(var3, var4, var5, pos_x, pos_y, pos_z)
 			var3 = out1 or var3
 			var4 = out2 or var4
 			var5 = out3 or var5
 		end
 		var14 = 0
 		while var14 < 600 do
-			var17 = effect.SptGetDrawFlag(var14) or var17
+			var17 = effect.is_sprite_visible(var14) or var17
 			if var17 ~= 0 then
 				do
-					local _, out2, _ = effect.SptGetPos(var14)
+					local _, out2, _ = effect.get_sprite_position(var14)
 					pos_y_3 = out2 or pos_y_3
 				end
 				do
-					local _, out2, _ = effect.ScnGetChrPos(user_id)
+					local _, out2, _ = effect.get_scene_character_position(user_id)
 					pos_y_4 = out2 or pos_y_4
 				end
 				pos_y_4 = vm.f32(pos_y_4 - value)
 				if pos_y_3 < vm.f32(pos_y_4 + 2.0) then
 					pos_y_3 = vm.f32(pos_y_3 * vm.f32(-0.7))
 					pos_y_3 = vm.f32(0.7)
-					effect.SptSetVeloPos(var14, 0.0, pos_y_3, 0.0)
+					effect.set_sprite_velocity(var14, 0.0, pos_y_3, 0.0)
 				end
 				do
-					local _, _, _, out4 = effect.SptGetColor(var14)
+					local _, _, _, out4 = effect.get_sprite_color(var14)
 					color_w = out4 or color_w
 				end
 				if color_w <= 0.0 then
-					effect.SptSetDrawFlag(var14, 0)
+					effect.set_sprite_visible(var14, 0)
 				end
 				if color_w >= 96.0 then
-					effect.SptSetColor(var14, 128.0, 128.0, 128.0, 31.0)
-					effect.SptSetVeloCol(var14, 0.0, 0.0, 0.0, -1.2)
+					effect.set_sprite_color(var14, 128.0, 128.0, 128.0, 31.0)
+					effect.set_sprite_color_velocity(var14, 0.0, 0.0, 0.0, -1.2)
 				end
 			end
 			var14 = var14 + 1
@@ -153,8 +153,8 @@ function script.on_start()
 		while var14 < 2 do
 			value_4 = 0.0
 			value_3 = 0.0
-			value_4 = effect.GetRand(5.0) or value_4
-			value_3 = effect.GetRand(6.2831855) or value_3
+			value_4 = effect.get_random_number(5.0) or value_4
+			value_3 = effect.get_random_number(6.2831855) or value_3
 			value_4 = vm.f32(value_4 + 12.0)
 			helper_110(
 				var16,
@@ -171,17 +171,17 @@ function script.on_start()
 			end
 			var14 = var14 + 1
 		end
-		var17 = effect.GetValue(3) or var17
+		var17 = effect.get_script_value(3) or var17
 		if var17 == 1 then
 			break
 		else
-			effect.ScnGetChrFrmPos(user_id, "ef_null")
+			effect.get_scene_character_frame_position(user_id, "ef_null")
 			vm.wait()
 		end
 	end
-	effect.SptSetVeloCol(0, 0.0, 0.0, 0.0, -1.4, 600)
-	effect.SptSetVeloPos(0, 0.0, -0.5, 0.0, 600)
-	effect.SptSetVeloScl(0, -0.01, -0.01, -0.01, 600)
+	effect.set_sprite_color_velocity(0, 0.0, 0.0, 0.0, -1.4, 600)
+	effect.set_sprite_velocity(0, 0.0, -0.5, 0.0, 600)
+	effect.set_sprite_scale_velocity(0, -0.01, -0.01, -0.01, 600)
 	var14 = 0
 	while var14 < 90 do
 		vm.wait()
@@ -191,9 +191,9 @@ end
 
 --- Ends an effect.
 function script.on_finish()
-	effect.SptSetVeloCol(0, 0.0, 0.0, 0.0, -0.2, 600)
-	effect.SptSetVeloPos(0, 0.0, 0.0, 0.0, 600)
-	effect.SptSetVeloScl(0, 0.0, 0.0, 0.0, 600)
+	effect.set_sprite_color_velocity(0, 0.0, 0.0, 0.0, -0.2, 600)
+	effect.set_sprite_velocity(0, 0.0, 0.0, 0.0, 600)
+	effect.set_sprite_scale_velocity(0, 0.0, 0.0, 0.0, 600)
 	for var0 = 0, 89 do
 		vm.wait()
 	end

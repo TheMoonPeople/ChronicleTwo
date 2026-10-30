@@ -30,7 +30,7 @@ local function helper_c8e37519(arg0: f32, arg1: f32, arg2: f32)
 	var7 = 0.0
 	while var7 < var8 do
 		do
-			local _, out2, _ = monster.GetRot()
+			local _, out2, _ = monster.get_rotation()
 			var4 = out2 or var4
 		end
 		if var4 > vm.f32(arg0 - var9) and var4 < vm.f32(arg0 + var9) then

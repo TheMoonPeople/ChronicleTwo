@@ -13,11 +13,11 @@
 #include "gfx_fixture.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/window.hpp"
+#include "render/renderer.hpp"
+#include "render/screen_effects.hpp"
 #include "screeneffect.hpp"
-#include "screeneffect_port.hpp"
 
 // Register macros must follow the host and test headers.
 // clang-format off

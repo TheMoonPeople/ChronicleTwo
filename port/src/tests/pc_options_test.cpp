@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <set>
 #include <string>
 #include <vector>
@@ -41,6 +42,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "input.mouse_invert_y",
         "input.mouse_capture",
         "input.mouse_zoom",
+        "input.keyboard_walk",
         "input.mouse_fixed_look",
         "input.menu_pointer_speed",
         "input.menu_pointer_acceleration",
@@ -59,6 +61,9 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "game.floor_info_monsters",
         "game.more_monsters",
         "game.debug_mode",
+        "game.transformation_stats",
+        "game.transformation_exp",
+        "game.shared_badge_exp",
     };
     std::set<std::string> actual;
     for (const auto &page : options::Pages()) {
@@ -78,6 +83,28 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
     }
     for (const auto &key : required) {
         EXPECT_TRUE(actual.contains(key)) << key;
+    }
+}
+
+TEST(PcOptions, GamePageHoldsTheMonsterTransformationSettingsBeforeDebugMode) {
+    const auto pages = options::Pages();
+    EXPECT_EQ(static_cast<int>(pages.size()), options::kPages);
+    EXPECT_EQ(std::string(pages[options::kBindingsPage].name), "Keyboard");
+    const auto game = std::ranges::find(pages, std::string("Game"), &options::Page::name);
+    ASSERT_NE(game, pages.end());
+    std::vector<std::string> keys;
+    for (const auto &row : game->rows) {
+        keys.push_back(row.key);
+    }
+    ASSERT_GE(keys.size(), 5u);
+    const std::vector<std::string> tail(keys.end() - 5, keys.end());
+    EXPECT_EQ(tail, (std::vector<std::string>{"game.more_monsters", "game.transformation_stats", "game.transformation_exp", "game.shared_badge_exp", "game.debug_mode"}));
+    for (std::size_t i = keys.size() - 4; i < keys.size() - 1; ++i) {
+        const auto &row = game->rows[i];
+        Config      config;
+        EXPECT_EQ(row.value(config), "Off") << row.key;
+        EXPECT_TRUE(options::StepRow(row, config, 1)) << row.key;
+        EXPECT_EQ(row.value(config), "On") << row.key;
     }
 }
 
@@ -153,6 +180,8 @@ TEST(PcOptions, LongBindingPageScrollsAndEachTabKeepsItsCursor) {
     options::MoveRow(state, -1);
     EXPECT_EQ(state.row[0], 0);
     options::SelectPage(state, -1);
+    EXPECT_EQ(state.page, options::kPadBindingsPage);
+    options::SelectPage(state, options::kBindingsPage);
     EXPECT_EQ(state.page, options::kBindingsPage);
     EXPECT_EQ(state.row[options::kBindingsPage], 12);
     EXPECT_EQ(state.first[options::kBindingsPage], 5);
@@ -302,6 +331,60 @@ TEST(PcOptions, PromptsFollowBindingsAndControllerFamilyWithoutChangingPadAction
     EXPECT_EQ(InputApplyKeyboardMouse(pad, {}).buttons, kInputCross);
     config.glyphs_new = false;
     EXPECT_EQ(options::ButtonName("cross", config), "Cross");
+}
+
+TEST(PcOptions, ControllerBindingsAreASetApartThatSwapsOnConflict) {
+    ASSERT_EXIT(
+        {
+            using Names = std::vector<std::string>;
+            InputApplyConfig(Config{});
+            EXPECT_EQ(InputPadBindingNames("cross"), Names{"a"});
+            EXPECT_EQ(InputPadBindingNames("l2"), Names{"lefttrigger"});
+            EXPECT_EQ(InputPadBindingNames("select"), Names{"touchpad"});
+            EXPECT_EQ(InputPadBindingNames("quick_loadout"), Names{"dpdown"});
+            EXPECT_EQ(InputPadBindingNames("debug_menu"), Names{"paddle1"});
+            EXPECT_TRUE(InputPadBindingNames("lx-").empty());
+            EXPECT_EQ(Find("input.bindings.quick_loadout").label, "Quick loadout");
+            EXPECT_TRUE(Find("input.gamepad_bindings.quick_loadout").pad);
+
+            Config config;
+            EXPECT_FALSE(options::SetPadBinding(config, "lx-", "a"));
+            EXPECT_FALSE(options::SetPadBinding(config, "cross", "not a button"));
+            EXPECT_FALSE(options::SetPadBinding(config, "cross", "a"));
+            EXPECT_TRUE(config.pad_bindings.empty());
+            // Circle gives up b and takes Cross's a.
+            ASSERT_TRUE(options::SetPadBinding(config, "cross", "b"));
+            ASSERT_EQ(config.pad_bindings.size(), 2);
+            EXPECT_EQ(config.pad_bindings[1].action, "circle");
+            EXPECT_EQ(config.pad_bindings[1].keys, Names{"a"});
+            EXPECT_TRUE(config.key_bindings.empty());
+            EXPECT_EQ(ConfigParse(ConfigSerialize(config)), config);
+            // A host action shares a button with a pad button.
+            ASSERT_TRUE(options::SetPadBinding(config, "quick_loadout", "leftstick"));
+            EXPECT_EQ(config.pad_bindings.size(), 3);
+            InputApplyConfig(config);
+            EXPECT_EQ(InputPadBindingNames("cross"), Names{"b"});
+            EXPECT_EQ(InputPadBindingNames("l3"), Names{"leftstick"});
+            EXPECT_EQ(InputPadGlyphAction("cross"), "circle");
+            EXPECT_EQ(InputPadGlyphAction("circle"), "cross");
+            EXPECT_EQ(InputPadGlyphAction("square"), "square");
+            config.glyph_device = ConfigGlyphDevice::Xbox;
+            EXPECT_EQ(options::ButtonName("cross", config), "B");
+            EXPECT_EQ(options::PadButtonName("b", config), "B");
+            config.glyph_device = ConfigGlyphDevice::Switch;
+            EXPECT_EQ(options::PadButtonName("a", config), "B");
+            config.glyph_device = ConfigGlyphDevice::Ps5;
+            EXPECT_EQ(options::PadButtonName("back", config), "Create");
+
+            // Cross takes a back, and Circle, left without a button, its b.
+            options::ResetPadBinding(config, "cross");
+            InputApplyConfig(config);
+            EXPECT_EQ(InputPadBindingNames("cross"), Names{"a"});
+            EXPECT_EQ(InputPadBindingNames("circle"), Names{"b"});
+            InputApplyConfig(Config{});
+            std::_Exit(testing::Test::HasFailure() ? 1 : 0);
+        },
+        testing::ExitedWithCode(0), "");
 }
 
 TEST(PcOptions, ZoomResetHasAVisibleRebindableRow) {

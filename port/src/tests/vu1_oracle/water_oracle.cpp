@@ -1,13 +1,14 @@
 #include "vu1_oracle/water_oracle.hpp"
-#include "vu1_oracle/vu1_pack.hpp"
 
 #include <algorithm>
 #include <cstddef>
 #include <utility>
 
+#include "vu1_oracle/vu1_pack.hpp"
+
 namespace dc::vu1 {
 
-WaterVertex WaterTransform(const WaterParams& params, Vec4 pos, Vec4 slope,
+WaterVertex WaterTransform(const WaterParams &params, Vec4 pos, Vec4 slope,
                            uint32_t prev_pass0, uint32_t prev_pass1) {
     constexpr float kFadeA = 375.0f;
     constexpr float kFadeB = -0.25f;
@@ -25,14 +26,14 @@ WaterVertex WaterTransform(const WaterParams& params, Vec4 pos, Vec4 slope,
     const float alpha = s3a * fade;
 
     // Near (guard_min.w) is not tested: primary reading of open point 9.4.
-    const float far_w = params.guard_max.w;
+    const float    far_w = params.guard_max.w;
     const uint32_t pass_x = (params.guard_min.x < xw && xw < params.guard_max.x) ? 0x80u : 0u;
     const uint32_t pass_y = (params.guard_min.y < yw && yw < params.guard_max.y) ? 0x40u : 0u;
     const uint32_t pass_w = (1.0f / far_w < q && q < far_w) ? 0x10u : 0u;
     const uint32_t pass = pass_x | pass_y | pass_w;
 
     const uint32_t window = prev_pass0 & prev_pass1 & pass;
-    const bool adc = window != kGuardMask;
+    const bool     adc = window != kGuardMask;
 
     float fog = FogValue(params.fog, q);
     if (adc) {
@@ -64,7 +65,7 @@ WaterVertex WaterTransform(const WaterParams& params, Vec4 pos, Vec4 slope,
     return out;
 }
 
-std::vector<WaterVertex> WaterStripTransform(const WaterParams& params,
+std::vector<WaterVertex> WaterStripTransform(const WaterParams                &params,
                                              std::span<const WaterStripVertex> strip,
                                              uint32_t carry0, uint32_t carry1) {
     std::vector<WaterVertex> out;
@@ -72,7 +73,7 @@ std::vector<WaterVertex> WaterStripTransform(const WaterParams& params,
 
     uint32_t prev0 = carry0;
     uint32_t prev1 = carry1;
-    for (const WaterStripVertex& v : strip) {
+    for (const WaterStripVertex &v : strip) {
         const WaterVertex transformed = WaterTransform(params, v.pos, v.slope, prev0, prev1);
         out.push_back(transformed);
         prev0 = prev1;
@@ -105,4 +106,4 @@ WaterRenderState WaterState(bool fog) {
     };
 }
 
-}  // namespace dc::vu1
+} // namespace dc::vu1

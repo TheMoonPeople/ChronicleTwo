@@ -1,14 +1,16 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "editctrl.hpp"
-#include "editctrl_port.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "map.hpp"
 #include "mapinfo.hpp"
-#include "mglib_port.hpp"
+#include "object/world/town_control.hpp"
 #include "photo.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/input.hpp"
+#include "render/renderer.hpp"
 #include "stubs/photo.hpp"
 #include "userdata.hpp"
 
@@ -26,9 +28,10 @@ TEST_P(TownEyeMouse, NativeStateAndBothLookTargetsTurnOnceAndDropOtherOwnersMoti
     const auto  old_debug = DebugInfo.debug_camera;
     const int   old_ladder = PortEditLadderMode;
     CScene      scene;
-    CCharacter2 chara;
+    auto        chara_owner = std::make_shared<CCharacter2>();
+    auto       &chara = *chara_owner;
     chara.SetPosition(0, 0, 0);
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.player_chara = 0;
     CCameraControl camera;
     camera.ControlOff();
@@ -110,10 +113,11 @@ TEST(TownEyeCamera, ContinuousRetailUpdatesDoNotCutButEntryExitAndAuthoredCutsDo
     const auto     old_heading = PortEditEyeHeading;
     const auto     old_tilt = PortEditEyeTilt;
     CScene         scene;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     CPadControl    pad{};
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.player_chara = scene.active_camera = scene.event_run = 0;
     chara.SetPosition(0, 0, 0);
@@ -173,10 +177,11 @@ TEST(TownEyeCamera, ForcedFollowMapsPublishContinuousTicks) {
     PortEditViewMode = EDIT_VIEW_MODE_WALK;
     CScene         scene;
     CMap           map;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     CPadControl    pad{};
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.player_chara = scene.active_camera = scene.active_map = 0;
     for (const auto [debug_flag, debug_camera] : {
@@ -205,13 +210,17 @@ TEST(TownEyeCamera, ForcedFollowMapsPublishContinuousTicks) {
 }
 
 TEST(TownEyeCamera, FixedRoomReseatCutsButForcedFollowInTheSameRoomDoesNot) {
+    const auto previous_debug_flag = DebugFlag;
+    const auto previous_debug_camera = DebugInfo.debug_camera;
+    DebugFlag = DebugInfo.debug_camera = 0;
     auto       save = std::make_unique<CSaveData>();
     auto      *old_save = PortActiveSaveData;
     const auto old_mode = PortEditViewMode;
     const int  old_fixed = PortEditFixedCamera;
     PortActiveSaveData = save.get();
     PortEditViewMode = EDIT_VIEW_MODE_WALK;
-    CScene      scene;
+    CScene scene;
+    EditControlStatusInit(&scene);
     CMap        map;
     CCameraInfo fixed;
     fixed.pos_num = 1;
@@ -220,10 +229,11 @@ TEST(TownEyeCamera, FixedRoomReseatCutsButForcedFollowInTheSameRoomDoesNot) {
     fixed.pos[0][2] = -100;
     fixed.pos[0][3] = 1;
     map.SetCameraInfoTable(&fixed, 1);
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     CPadControl    pad{};
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.AssignMap(0, &map, const_cast<char *>("room"));
     scene.SetStatus(SCENE_DATA_MAP, 0, SCENE_DATA_ACTIVE);
@@ -244,6 +254,8 @@ TEST(TownEyeCamera, FixedRoomReseatCutsButForcedFollowInTheSameRoomDoesNot) {
     PortActiveSaveData = old_save;
     PortEditViewMode = old_mode;
     PortEditFixedCamera = old_fixed;
+    DebugFlag = previous_debug_flag;
+    DebugInfo.debug_camera = previous_debug_camera;
 }
 
 TEST(TownEyeCamera, PhotoEntryAndExitCutAroundRecurringUpdates) {
@@ -262,10 +274,11 @@ TEST(TownEyeCamera, PhotoEntryAndExitCutAroundRecurringUpdates) {
     GamePad__2.pad[0].left_x = GamePad__2.pad[0].left_y = 128;
     CScene         scene;
     CMap           map;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     CPadControl    pad{};
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.AssignMap(0, &map, const_cast<char *>("s07"));
     scene.player_chara = scene.active_camera = scene.active_map = scene.event_run = 0;

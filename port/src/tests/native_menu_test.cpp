@@ -9,13 +9,14 @@
 #include <string>
 #include <vector>
 
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
 #include "mainloop.hpp"
 #include "menucommon.hpp"
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "menusys.hpp"
 #include "mg_memory.hpp"
+#include "platform/arena.hpp"
 #include "platform/datapacks.hpp"
 #include "texture_source.hpp"
 
@@ -27,15 +28,15 @@ using Json = nlohmann::json;
  */
 class NativeMenu : public testing::Test {
 protected:
-    std::filesystem::path                      directory;                 /**< Temporary native data directory. */
-    std::filesystem::path                      previous_root;             /**< Datapack root restored after the fixture. */
-    std::vector<u_long128>                     storage;                   /**< Backing storage of the layout memory. */
-    mgCMemory                                  memory;                    /**< Memory the layouts allocate from. */
-    std::unique_ptr<CMenuPosDataManage>        positions;                 /**< Position manager the layouts fill. */
-    std::unique_ptr<CMenuKeyFunc>              keys;                      /**< Menu state holding the texture blocks. */
-    CMenuPosDataManage                        *saved_positions = nullptr; /**< Position manager restored afterwards. */
-    CMenuKeyFunc                              *saved_keys = nullptr;      /**< Menu state restored afterwards. */
-    std::vector<std::unique_ptr<std::string> > buffers;                   /**< Script buffers registered as loaded files. */
+    std::filesystem::path                     directory;                 /**< Temporary native data directory. */
+    std::filesystem::path                     previous_root;             /**< Datapack root restored after the fixture. */
+    std::vector<u_long128>                    storage;                   /**< Backing storage of the layout memory. */
+    mgCMemory                                 memory;                    /**< Memory the layouts allocate from. */
+    std::unique_ptr<CMenuPosDataManage>       positions;                 /**< Position manager the layouts fill. */
+    std::unique_ptr<CMenuKeyFunc>             keys;                      /**< Menu state holding the texture blocks. */
+    CMenuPosDataManage                       *saved_positions = nullptr; /**< Position manager restored afterwards. */
+    CMenuKeyFunc                             *saved_keys = nullptr;      /**< Menu state restored afterwards. */
+    std::vector<std::unique_ptr<std::string>> buffers;                   /**< Script buffers registered as loaded files. */
 
     void SetUp() override {
         previous_root = datapacks::Root();
@@ -270,3 +271,34 @@ TEST_F(NativeMenu, InvalidDocumentsChangeNothing) {
     EXPECT_EQ(MenuPosData->form_num, 0);
 }
 } // namespace
+
+TEST_F(NativeMenu, LayoutAllocationRejectsShortLockedAndRetiredStorageBeforePublication) {
+    auto     &buffer = Load("short.cfg.json", "menu_layout", {
+                                                                 {"operations", Json::array({{{"op", "allocate_forms"}, {"count", 1}}})}
+    });
+    mgCMemory parent;
+    auto     *root = reinterpret_cast<u_long128 *>(ArenaBlock(&parent, 4 * sizeof(u_long128)));
+    parent.stSetBuffer(root, 4);
+    auto *allocation = parent.Alloc(3);
+    ASSERT_NE(allocation, nullptr);
+    mgCMemory child;
+    child.stSetChildBuffer(parent, allocation, 3);
+    std::memset(allocation, 0xA5, 3 * sizeof(u_long128));
+    const auto previous_forms = MenuPosData->form;
+    const auto previous_count = MenuPosData->form_num;
+    EXPECT_EQ(MenuDataAnalyze(buffer.data(), static_cast<int>(buffer.size()), &child), 0);
+    EXPECT_EQ(child.stGetUsed(), 0);
+    EXPECT_EQ(MenuPosData->form, previous_forms);
+    EXPECT_EQ(MenuPosData->form_num, previous_count);
+    for (const auto value : std::span(reinterpret_cast<const u8 *>(allocation), 3 * sizeof(u_long128))) {
+        EXPECT_EQ(value, 0xA5);
+    }
+    memory.stSetLocked(true);
+    EXPECT_EQ(MenuDataAnalyze(buffer.data(), static_cast<int>(buffer.size()), &memory), 0);
+    EXPECT_EQ(memory.stGetUsed(), 0);
+    parent.stClearUsed();
+    EXPECT_EQ(MenuDataAnalyze(buffer.data(), static_cast<int>(buffer.size()), &child), 0);
+    EXPECT_EQ(child.stGetUsed(), 0);
+    EXPECT_EQ(MenuPosData->form, previous_forms);
+    EXPECT_EQ(MenuPosData->form_num, previous_count);
+}

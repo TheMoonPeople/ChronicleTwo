@@ -270,6 +270,30 @@ class ScriptTest(unittest.TestCase):
         self.assertIn("var0 = 1.0 -- retail: integer bits read as a float", emit_script(functions))
 
 
+class CorrectedTextTest(unittest.TestCase):
+    SCRIPT = {"main": (0, 0, [("pushs", b"ab"), ("PRINT", 1), ("pushs", b"cd"), ("PRINT", 1), ("push", 0), ("RET",)])}
+
+    def corrected(self, lines):
+        data = assemble(self.SCRIPT, "main")
+        pushes = [i.offset for f in decode(data).functions.values() for i in f.instructions if i.op == Op.PUSH_CONST][:2]
+        with tempfile.TemporaryDirectory() as scratch:
+            table = Path(scratch) / "script_text.json"
+            entries = [{"push": hex(pushes[n]), "retail": retail, "text": text} for n, retail, text in lines]
+            table.write_text(json.dumps({"scripts": {"map/t.stb": entries}}), encoding="utf-8")
+            with mock.patch.object(transpile, "SCRIPT_TEXT", table):
+                fixed = transpile.corrected_text("map/t.stb", data)
+        program = decode(fixed)
+        main = next(iter(program.functions.values()))
+        return [program.string(i) for i in main.instructions if i.op == Op.PUSH_CONST][:2]
+
+    def test_shorter_text_replaces_in_place_and_longer_text_is_appended(self):
+        self.assertEqual(self.corrected([(0, "ab", "x"), (1, "cd", "longer")]), [b"x", b"longer"])
+
+    def test_text_that_differs_from_retail_is_refused(self):
+        with self.assertRaises(transpile.TimingError):
+            self.corrected([(0, "zz", "x")])
+
+
 class WrapTest(unittest.TestCase):
     def test_loop_whose_step_overflows_stays_a_while_loop(self):
         # i = 2147483647; while i <= 2147483647 do if i == 2147483647 then print(i) end; i = i + 1 end runs for ever on

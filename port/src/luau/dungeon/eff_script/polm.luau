@@ -29,7 +29,7 @@ function script.on_start()
 	local vector_x: f32 = 0
 	local vector_y: f32 = 0
 	local vector_z: f32 = 0
-	local var15: f32 = 0
+	local scale: f32 = 0
 	local target_id: s32 = 0
 	local var17: s32 = 0
 	local value: s32 = 0
@@ -46,109 +46,109 @@ function script.on_start()
 	local var29: f32 = 0
 	local var30: f32 = 0
 	var17 = 0
-	var15 = 16.0
+	scale = 16.0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	value = effect.GetValue(0) or value
-	target_id = effect.GetTargetId() or target_id
-	effect.ChrSetPos(var0, var1, var2)
-	effect.ChrSetRot(var3, var4, var5)
+	value = effect.get_script_value(0) or value
+	target_id = effect.get_target_character() or target_id
+	effect.set_effect_character_position(var0, var1, var2)
+	effect.rotate_effect_character_toward(var3, var4, var5)
 	do
-		local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+		local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 		vector_x = out1 or vector_x
 		vector_y = out2 or vector_y
 		vector_z = out3 or vector_z
 	end
-	effect.MonSePlay(10)
+	effect.play_owner_sound(10)
 	while true do
 		do
-			local out1, out2, out3 = effect.ChrGetDirVector()
+			local out1, out2, out3 = effect.get_effect_character_direction()
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, var15)
+			local out1, out2, out3 = effect.scale_vector(var9, var10, var11, scale)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
 		do
 			local out1, out2, out3, out4 =
-				effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
+				effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
 			var20 = out1 or var20
 			var21 = out2 or var21
 			var22 = out3 or var22
 			var19 = out4 or var19
 		end
 		if var19 >= 0 then
-			effect.EsCreate_1("ロボミサイル爆発")
-			effect.EsSetVect1(var20, var21, var22)
-			effect.EsSetValue(0, value)
+			effect.create_effect_1("ロボミサイル爆発")
+			effect.set_effect_first_work_vector(var20, var21, var22)
+			effect.set_effect_value(0, value)
 			break
 		else
 			do
-				local out1, out2, out3 = effect.ScnGetChrPos(target_id)
+				local out1, out2, out3 = effect.get_scene_character_position(target_id)
 				pos_x = out1 or pos_x
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
 			pos_y = vm.f32(pos_y + 25.0)
 			do
-				local out1, out2, out3 = effect.ChrGetRefRot(pos_x, pos_y, pos_z)
+				local out1, out2, out3 = effect.get_effect_character_rotation_toward(pos_x, pos_y, pos_z)
 				pitch = out1 or pitch
 				yaw = out2 or yaw
 				var25 = out3 or var25
 			end
 			do
-				local out1, out2, out3 = effect.ChrGetRot()
+				local out1, out2, out3 = effect.get_effect_character_rotation()
 				var3 = out1 or var3
 				var4 = out2 or var4
 				var5 = out3 or var5
 			end
-			var26 = effect.AngleCmp(var4, yaw, 0.76) or var26
+			var26 = effect.compare_angles(var4, yaw, 0.76) or var26
 			if var26 == 0 then
 				do
-					local out1, out2, out3 = effect.CopyVector(pitch, yaw, var25)
+					local out1, out2, out3 = effect.copy_vector(pitch, yaw, var25)
 					var3 = out1 or var3
 					var4 = out2 or var4
 					var5 = out3 or var5
 				end
 			end
-			effect.ChrSetPos(var0, var1, var2)
-			effect.ChrSetRot(var3, var4, var5, 6)
+			effect.set_effect_character_position(var0, var1, var2)
+			effect.rotate_effect_character_toward(var3, var4, var5, 6)
 			do
-				local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+				local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 				vector_x = out1 or vector_x
 				vector_y = out2 or vector_y
 				vector_z = out3 or vector_z
 			end
-			var27 = effect.DistVector2(var0, var1, var2, pos_x, pos_y, pos_z) or var27
+			var27 = effect.get_distance_between(var0, var1, var2, pos_x, pos_y, pos_z) or var27
 			if var27 <= 24.0 then
-				effect.EsCreate_1("ロボミサイル爆発")
-				effect.EsSetVect1(var0, var1, var2)
-				effect.EsSetValue(0, value)
+				effect.create_effect_1("ロボミサイル爆発")
+				effect.set_effect_first_work_vector(var0, var1, var2)
+				effect.set_effect_value(0, value)
 				break
 			else
 				if vm.imod(var17, 3) == 0 then
 					do
-						local out1, out2, out3 = effect.ChrGetDirVector()
+						local out1, out2, out3 = effect.get_effect_character_direction()
 						var28 = out1 or var28
 						var29 = out2 or var29
 						var30 = out3 or var30
@@ -157,18 +157,18 @@ function script.on_start()
 					var29 = -var29
 					var30 = -var30
 					do
-						local out1, out2, out3 = effect.ScaleVector(var28, var29, var30, 40.0)
+						local out1, out2, out3 = effect.scale_vector(var28, var29, var30, 40.0)
 						var28 = out1 or var28
 						var29 = out2 or var29
 						var30 = out3 or var30
 					end
-					effect.EsCreate_1("ロボミサイル煙")
-					effect.EsSetVect1(var0 + var28, var1 + var29, var2 + var30)
+					effect.create_effect_1("ロボミサイル煙")
+					effect.set_effect_first_work_vector(var0 + var28, var1 + var29, var2 + var30)
 				end
 				if var17 >= 150 then
-					effect.EsCreate_1("ロボミサイル爆発")
-					effect.EsSetVect1(var0, var1, var2)
-					effect.EsSetValue(0, value)
+					effect.create_effect_1("ロボミサイル爆発")
+					effect.set_effect_first_work_vector(var0, var1, var2)
+					effect.set_effect_value(0, value)
 					break
 				else
 					var17 = var17 + 1
@@ -177,8 +177,8 @@ function script.on_start()
 			end
 		end
 	end
-	effect.MonSeStop(10)
-	effect.MonSePlay(11)
+	effect.stop_owner_sound(10)
+	effect.play_owner_sound(11)
 end
 
 --- Ends an effect.

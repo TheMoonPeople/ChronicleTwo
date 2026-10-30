@@ -11,13 +11,15 @@
 #include <string>
 #include <vector>
 
-#include "bounded_text.hpp"
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
+#include "event_func.hpp"
+#include "map.hpp"
 #include "mg_memory.hpp"
+#include "object/world/map_load_size.hpp"
 #include "platform/paths.hpp"
-#include "sceneload_port.hpp"
 #include "scenesnd.hpp"
+#include "text/bounded.hpp"
 
 namespace {
 namespace fs = std::filesystem;
@@ -36,11 +38,11 @@ std::size_t Pad64(std::size_t size) {
 
 void SetMapFiles(SCN_LOADMAP_INFO2::MapFiles &files, const char *dir, const char *name) {
     files.enable = 1;
-    bounded_text::Copy(files.dir, dir);
+    dc2::text::Copy(files.dir, dir);
     for (auto *field : {&files.map_name, &files.cfg_name, &files.mpk_name, &files.ipk_name, &files.efp_name, &files.sky_name}) {
-        bounded_text::Copy(*field, name);
+        dc2::text::Copy(*field, name);
     }
-    bounded_text::Copy(files.def_sky_name, "none");
+    dc2::text::Copy(files.def_sky_name, "none");
 }
 
 SCN_LOADMAP_INFO2 Info(u8 *load_buf, const char *dir = "map/t/t01/", const char *name = "t01") {
@@ -75,6 +77,7 @@ protected:
         WriteMap("map/t/t01", "t01", kMapBytes, 'm');
         WriteMap("map/t/t02", "t02", kAddMapBytes, 'n');
         WriteMap("map/t/l01", "l01", kLargeMapBytes, 'l');
+        WriteMap("map/t/l02", "l02", kLargeMapBytes * 2, 'v');
         fs::create_directories(root / "map" / "dsky.sky");
         Write(root / "map" / "dsky.sky" / "pack.json", std::string(kDefaultSkyBytes, 'd'));
         DataReadIndex(root);
@@ -125,7 +128,7 @@ TEST_F(SceneLoadMapBuffer, MeasuresTheSecondFileSetAndTheLargerOfTheMapAndDefaul
     const std::size_t first = Pad64(kMapBytes) + Pad64(kCfgBytes) + Pad64(kPackBytes) * 2;
     const std::size_t second = Pad64(kAddMapBytes) + Pad64(kCfgBytes) + Pad64(kPackBytes) * 2;
     EXPECT_EQ(PortMapLoadBytes(info), first + second + DATAREAD_SECTOR_SIZE);
-    bounded_text::Copy(info.files[1].def_sky_name, "dsky");
+    dc2::text::Copy(info.files[1].def_sky_name, "dsky");
     EXPECT_EQ(PortMapLoadBytes(info), first + second - Pad64(kPackBytes) + Pad64(kDefaultSkyBytes) + DATAREAD_SECTOR_SIZE);
 }
 
@@ -165,5 +168,88 @@ TEST_F(SceneLoadMapBuffer, GrowsForALargerMapAndKeepsThePreviousOne) {
 
     SCN_LOADMAP_INFO2 again = Info(nullptr);
     EXPECT_EQ(scene.LoadMap(0, &again, 0), -1);
-    EXPECT_EQ(again.files[0].map_data, large.files[0].map_data);
+    EXPECT_NE(again.files[0].map_data, large.files[0].map_data);
+    EXPECT_EQ(MapText(again.files[0]), std::string(kMapBytes, 'm'));
+    EXPECT_EQ(MapText(large.files[0]), std::string(kLargeMapBytes, 'l'));
+}
+
+TEST(SceneDeleteMap, ReleasesOnlyMapBackedHandlesInsideTheDeletedArena) {
+    std::vector<u_long128> storage(256);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMap   loaded_map;
+    CScene scene;
+    scene.map_num = 1;
+    scene.map[0].AssignData(&loaded_map, const_cast<char *>("map"));
+    scene.map[0].stack = &memory;
+    EventObjHandleMother = CEohMother{};
+    auto &handles = EventObjHandleMother.eoh;
+    handles[0].Set(EOH_TYPE_OBJECT, reinterpret_cast<CObject *>(memory.stack), 0);
+    handles[1].Set(EOH_TYPE_FRAME, reinterpret_cast<mgCFrame *>(memory.stack + 1));
+    handles[2].Set(EOH_TYPE_FUNC_POINT, reinterpret_cast<CFuncPoint *>(memory.stack + 2));
+    handles[3].Set(EOH_TYPE_OBJECT, reinterpret_cast<CObject *>(memory.stack + memory.stack_size), 0);
+    handles[4].Set(EOH_TYPE_CHARA, 4, reinterpret_cast<CCharacter2 *>(memory.stack));
+    handles[5].Set(EOH_TYPE_SPRITE, reinterpret_cast<CEventSprite2 *>(memory.stack));
+    CObject outside;
+    handles[6].Set(EOH_TYPE_OBJECT, &outside, 0);
+    EXPECT_EQ(scene.DeleteMap(0, 0), 1);
+    for (int index = 0; index < 3; ++index) {
+        EXPECT_EQ(handles[index].type, EOH_TYPE_NONE);
+        EXPECT_EQ(handles[index].scene_no, -1);
+        EXPECT_EQ(handles[index].world_coord, 1);
+        EXPECT_EQ(handles[index].object, nullptr);
+    }
+    EXPECT_EQ(handles[3].type, EOH_TYPE_OBJECT);
+    EXPECT_EQ(handles[4].type, EOH_TYPE_CHARA);
+    EXPECT_EQ(handles[5].type, EOH_TYPE_SPRITE);
+    EXPECT_EQ(handles[6].object, &outside);
+    EXPECT_EQ(scene.GetMap(0), nullptr);
+    EventObjHandleMother = CEohMother{};
+}
+
+TEST(SceneDeleteMap, EmptySlotsPreserveHandlesAndSharedArenaMapsAreDeletedTogether) {
+    std::vector<u_long128> storage(256);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CScene scene;
+    scene.map_num = 2;
+    EventObjHandleMother = CEohMother{};
+    auto &handle = EventObjHandleMother.eoh[0];
+    handle.Set(EOH_TYPE_OBJECT, reinterpret_cast<CObject *>(memory.stack), 0);
+    EXPECT_EQ(scene.DeleteMap(-1, 1), 0);
+    EXPECT_EQ(scene.DeleteMap(0, 1), 0);
+    EXPECT_EQ(handle.type, EOH_TYPE_OBJECT);
+    CMap first;
+    CMap second;
+    scene.map[0].AssignData(&first, const_cast<char *>("first"));
+    scene.map[1].AssignData(&second, const_cast<char *>("second"));
+    scene.map[0].stack = &memory;
+    scene.map[1].stack = &memory;
+    EXPECT_EQ(scene.DeleteMap(0, 1), 1);
+    EXPECT_EQ(handle.type, EOH_TYPE_NONE);
+    EXPECT_EQ(scene.GetMap(0), nullptr);
+    EXPECT_EQ(scene.GetMap(1), nullptr);
+    EventObjHandleMother = CEohMother{};
+}
+
+TEST_F(SceneLoadMapBuffer, CopiesKeepTheirFileBytesAcrossThreeGrowingLoadsAndOriginalRequestReset) {
+    SCN_LOADMAP_INFO2 first = Info(nullptr);
+    EXPECT_EQ(scene.LoadMap(0, &first, 0), -1);
+    SCN_LOADMAP_INFO2 retained = first;
+    first.Initialize();
+    SCN_LOADMAP_INFO2 second = Info(nullptr, "map/t/l01/", "l01");
+    EXPECT_EQ(scene.LoadMap(0, &second, 0), -1);
+    SCN_LOADMAP_INFO2 third = Info(nullptr, "map/t/l02/", "l02");
+    EXPECT_EQ(scene.LoadMap(0, &third, 0), -1);
+    EXPECT_EQ(MapText(retained.files[0]), std::string(kMapBytes, 'm'));
+    EXPECT_EQ(MapText(second.files[0]), std::string(kLargeMapBytes, 'l'));
+    EXPECT_EQ(MapText(third.files[0]), std::string(kLargeMapBytes * 2, 'v'));
+    SCN_LOADMAP_INFO2 shared = second;
+    EXPECT_EQ(scene.LoadMap(0, &second, 0), -1);
+    EXPECT_NE(second.files[0].map_data, shared.files[0].map_data);
+    EXPECT_EQ(MapText(shared.files[0]), std::string(kLargeMapBytes, 'l'));
+    const std::weak_ptr<dc2::scene::MapReadStorage> lifetime = retained.map_read_storage;
+    EXPECT_FALSE(lifetime.expired());
+    retained.Initialize();
+    EXPECT_TRUE(lifetime.expired());
 }

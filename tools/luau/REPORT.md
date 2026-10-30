@@ -131,11 +131,11 @@ Each entry is a program number followed by the number of files that define it.
 
 | Kind | Registered | Used | Signatures | Arity-polymorphic | Parameters | Named from handler | Unknown type | Signatures to review | Non-constant command sites |
 |---|---|---|---|---|---|---|---|---|---|
-| action | 82 | 78 | 106 | 21 | 200 | 106 | 0 | 6 | 0 |
-| effect | 128 | 99 | 168 | 34 | 599 | 348 | 0 | 2 | 0 |
-| monster | 173 | 156 | 237 | 55 | 580 | 278 | 0 | 22 | 0 |
-| event | 696 | 601 | 842 | 106 | 2022 | 1034 | 34 | 39 | 0 |
-| event_arg | 2 | 2 | 5 | 1 | 21 | 4 | 0 | 0 | 0 |
+| action | 82 | 78 | 106 | 21 | 200 | 0 | 0 | 6 | 0 |
+| effect | 128 | 99 | 168 | 34 | 599 | 0 | 0 | 2 | 0 |
+| monster | 173 | 156 | 237 | 55 | 580 | 0 | 0 | 22 | 0 |
+| event | 696 | 601 | 842 | 106 | 2022 | 0 | 47 | 38 | 0 |
+| event_arg | 2 | 2 | 5 | 1 | 21 | 3 | 0 | 0 | 0 |
 
 - Calls to unregistered command numbers: 25
   - action command 6 with 1 arguments: 34 sites, e.g. `dungeon/act_script/c01win.stb`

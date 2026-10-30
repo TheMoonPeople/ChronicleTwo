@@ -9,4 +9,4 @@
  * Replaces event externals that build text in fixed buffers with bounded native ones.
  *
  */
-void ReplaceEventTextExternals(std::span<int (*)(RS_STACKDATA *, int)> table);
+void ReplaceEventTextExternals(std::span<dc2::script::RunFunction> table);

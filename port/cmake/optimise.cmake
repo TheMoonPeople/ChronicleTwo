@@ -1,5 +1,5 @@
 # Optimisation of the shipped configurations (docs/PC.md). Release, RelWithDebInfo and MinSizeRel link the
-# game with link-time optimisation, so ps2/src, port/src and the host code inline across units; symbols.cmake
+# game with link-time optimisation, so the native port and host code inline across units; symbols.cmake
 # keeps their line tables through it. x86-64 builds target x86-64-v2 (SSE4.2 and POPCNT) in every
 # configuration. -ffp-contract=off still holds, so no configuration fuses multiply-adds.
 #
@@ -18,6 +18,12 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64)$")
     target_compile_options(ct_options INTERFACE -march=${CT_X86_64_LEVEL})
     target_compile_options(ct_host PRIVATE -march=${CT_X86_64_LEVEL})
 endif()
+# iOS 16, the minimum, runs only on A11 and later, so iOS builds target that core (ARMv8.2, with LSE atomics) rather
+# than the toolchain's A7 baseline.
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    target_compile_options(ct_options INTERFACE -mcpu=apple-a11)
+    target_compile_options(ct_host PRIVATE -mcpu=apple-a11)
+endif()
 
 if(NOT CT_LTO STREQUAL "off")
     set(ct_optimised $<NOT:$<CONFIG:Debug>>)
@@ -33,6 +39,14 @@ if(NOT CT_LTO STREQUAL "off")
         set(ct_lto_objects ${CMAKE_BINARY_DIR}/lto/darkchronicle)
         if(CT_LTO STREQUAL "thin")
             file(MAKE_DIRECTORY ${ct_lto_objects})
+            foreach(ct_lto_target IN ITEMS darkchronicle darkchronicle_tests)
+                if(TARGET ${ct_lto_target})
+                    set(ct_lto_cache ${CMAKE_BINARY_DIR}/lto-cache/${ct_lto_target})
+                    file(MAKE_DIRECTORY ${ct_lto_cache})
+                    target_link_options(${ct_lto_target} PRIVATE
+                        $<${ct_optimised}:-Wl,-cache_path_lto,${ct_lto_cache}>)
+                endif()
+            endforeach()
         else()
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/lto)
             set(ct_lto_objects ${ct_lto_objects}.o)

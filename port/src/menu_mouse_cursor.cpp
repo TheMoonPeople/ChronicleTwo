@@ -6,7 +6,7 @@
 #include "menu_mouse.hpp"
 #include "menucommon.hpp"
 #include "menusys.hpp"
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 #include "snd_mngr.hpp"
 
 namespace {
@@ -32,7 +32,7 @@ void MenuMouseMove(int *cursor, int selected) {
     pending_frame = mgPortFrameCount();
 }
 
-PORT_OVERRIDE int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int visible, int limit_mode) {
+int MenuKeySelectCheck(int step, int *cursor, int *scroll, int min, int max, int visible, int limit_mode) {
     const int before = *cursor;
     if (cursor == pending_cursor && pending_frame == mgPortFrameCount()) {
         step = pending_selection - before;

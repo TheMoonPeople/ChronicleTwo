@@ -115,17 +115,18 @@ std::size_t ExportScripts(const fs::path &source, const fs::path &output) {
 }
 
 int Usage() {
-    std::fputs("usage: dc2data extract <iso-or-directory> <game-root>/data [--jobs N]\n"
+    std::fputs("usage: dc2data extract <iso-or-directory> <game-root>/data [--jobs N] [--retain-scripts]\n"
                "       dc2data list <iso-or-directory>\n"
                "       dc2data sound <iso-or-directory>\n"
                "       dc2data gameplay <iso-or-directory> <repo>/port/gameplay\n"
                "       dc2data gameplay-audit <iso-or-directory> <repo>/port/gameplay\n"
                "       dc2data gameplay-parity <iso-or-directory> <data.zip> <repo>/port/gameplay <fixture-dir> [--texture-oracle <directory>]\n"
                "       dc2data check <game-root>/data\n"
-               "       dc2data current <iso-or-directory> <game-root>/data\n"
+               "       dc2data current <iso-or-directory> <game-root>/data [--retain-scripts]\n"
                "       dc2data pack <directory> <archive.zip>\n"
                "       dc2data export-scripts <data.zip-or-game-root> <directory>\n"
-               "extract publishes <game-root>/data.zip and <game-root>/data.json.\n",
+               "extract publishes <game-root>/data.zip and <game-root>/data.json. The game runs the scripts' Luau modules,\n"
+               "so the compiled scripts are left out unless --retain-scripts keeps them for export-scripts.\n",
                stderr);
     return 2;
 }
@@ -133,9 +134,13 @@ int Usage() {
 
 int Run(int argc, ArgChar **argv) {
     try {
-        if ((argc == 4 || argc == 6) && ArgEquals(argv[1], ARG_LITERAL("extract"))) {
+        // The compiled scripts are published only for developers who translate them again.
+        const bool retain = argc > 4 && ArgEquals(argv[argc - 1], ARG_LITERAL("--retain-scripts"));
+        const auto policy = retain ? kazarov::ScriptPublicationPolicy::Retain : kazarov::ScriptPublicationPolicy::LuauOnly;
+        const int  args = retain ? argc - 1 : argc;
+        if ((args == 4 || args == 6) && ArgEquals(argv[1], ARG_LITERAL("extract"))) {
             unsigned jobs = std::max(std::thread::hardware_concurrency(), 1u);
-            if (argc == 6) {
+            if (args == 6) {
                 if (!ArgEquals(argv[4], ARG_LITERAL("--jobs"))) {
                     return Usage();
                 }
@@ -151,7 +156,7 @@ int Run(int argc, ArgChar **argv) {
                 }
                 jobs = parsed_jobs;
             }
-            const auto report = kazarov::extract(Utf8Path(argv[2]), Utf8Path(argv[3]), jobs);
+            const auto report = kazarov::extract_with_script_policy(Utf8Path(argv[2]), Utf8Path(argv[3]), jobs, policy);
             std::printf("converted %llu reachable files (%llu source bytes), %llu texture sources, %llu PNGs\n",
                         static_cast<unsigned long long>(report.files),
                         static_cast<unsigned long long>(report.bytes),
@@ -205,8 +210,8 @@ int Run(int argc, ArgChar **argv) {
             std::printf("exported %llu scripts to %s\n", static_cast<unsigned long long>(count), Utf8Path(argv[3]).c_str());
             return 0;
         }
-        if (argc == 4 && ArgEquals(argv[1], ARG_LITERAL("current"))) {
-            return kazarov::current(Utf8Path(argv[2]), Utf8Path(argv[3])) ? 0 : 1;
+        if (args == 4 && ArgEquals(argv[1], ARG_LITERAL("current"))) {
+            return kazarov::current_with_script_policy(Utf8Path(argv[2]), Utf8Path(argv[3]), policy) ? 0 : 1;
         }
         return Usage();
     } catch (const std::exception &error) {

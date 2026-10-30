@@ -20,12 +20,12 @@ local helper_dbfe0a16 = require("@lib/monster/helper_dbfe0a16")
 --- Helper function.
 local function helper_1b98()
 	local boss: s32 = 0
-	boss = monster.GetBossFlag() or boss
+	boss = monster.is_boss() or boss
 	if boss == 0 then
-		monster.GetPos_3()
-		monster.SetClipDist(35.0)
+		monster.get_position_3()
+		monster.set_clip_distance(35.0)
 	else
-		monster.SetClipDist(999999.0)
+		monster.set_clip_distance(999999.0)
 	end
 end
 
@@ -36,16 +36,16 @@ function script.setup() end
 
 --- Sets the monster up when it is placed.
 function script.init()
-	monster.SetDmg2("吹っ飛び攻撃", 12.0, "攻撃２", 0.216, 0.432, 0)
-	monster.SetDmg2("吹っ飛び攻撃", 12.0, "攻撃２", 0.216, 0.432, 1)
-	monster.VPush(0, 0)
-	monster.VPush(1, 0)
-	monster.VPush(2, 0)
-	monster.VPush(3, 0)
-	monster.VPush(4, 0)
-	monster.SetAttrib(32, 1)
-	monster.SetAttrib(1, 1)
-	monster.SetClipDist(9999.9)
+	monster.register_damage_hit("吹っ飛び攻撃", 12.0, "攻撃２", 0.216, 0.432, 0)
+	monster.register_damage_hit("吹っ飛び攻撃", 12.0, "攻撃２", 0.216, 0.432, 1)
+	monster.set_variable(0, 0)
+	monster.set_variable(1, 0)
+	monster.set_variable(2, 0)
+	monster.set_variable(3, 0)
+	monster.set_variable(4, 0)
+	monster.set_monster_attributes(32, 1)
+	monster.set_monster_attributes(1, 1)
+	monster.set_clip_distance(9999.9)
 	helper_1b98()
 end
 
@@ -53,38 +53,38 @@ end
 function script.loop()
 	local argc: s32 = 0
 	local value: s32 = 0
-	monster.SetIntFlag(1, 1)
-	monster.SetIntFlag(2, 1)
-	monster.SetActStatus(0)
-	value = monster.VPop(9) or value
+	monster.set_mask_flags(1, 1)
+	monster.set_mask_flags(2, 1)
+	monster.set_action_status(0)
+	value = monster.get_variable(9) or value
 	if value ~= 0 then
-		monster.SetMonsterLife(0.0)
-		argc = monster.GetRnd(4) or argc
+		monster.set_life(0.0)
+		argc = monster.get_random(4) or argc
 		if argc == 0 then
-			monster.SetPos(33.44, -22.94, 363.45)
-			monster.SetNextPos(-7.18, 10.11, 543.91, 6.0, 6.0)
+			monster.set_position(33.44, -22.94, 363.45)
+			monster.move_toward_position(-7.18, 10.11, 543.91, 6.0, 6.0)
 		end
 		if argc == 1 then
-			monster.SetPos(257.2, -38.39, 408.11)
-			monster.SetNextPos(241.39, -7.5200005, 515.61, 6.0, 6.0)
+			monster.set_position(257.2, -38.39, 408.11)
+			monster.move_toward_position(241.39, -7.5200005, 515.61, 6.0, 6.0)
 		end
 		if argc == 2 then
-			monster.SetPos(471.54, -26.47, 459.18)
-			monster.SetNextPos(457.83, -4.71, 537.63, 5.0, 5.0)
+			monster.set_position(471.54, -26.47, 459.18)
+			monster.move_toward_position(457.83, -4.71, 537.63, 5.0, 5.0)
 		end
 		if argc == 3 then
-			monster.SetPos(-279.93, -35.18, 325.86)
-			monster.SetNextPos(-296.07, -2.6000004, 437.14, 5.0, 5.0)
+			monster.set_position(-279.93, -35.18, 325.86)
+			monster.move_toward_position(-296.07, -2.6000004, 437.14, 5.0, 5.0)
 		end
 		helper_c3e8ae39(30)
-		monster.ResetMove()
-		monster.SetMonsterLife(1.0)
+		monster.stop_moving()
+		monster.set_life(1.0)
 	else
-		monster.VPush(9, 1)
-		monster.SetPos(-81.2, 1.8, 851.5)
-		monster.SetRot(0.0, 3.1415927, 0.0)
+		monster.set_variable(9, 1)
+		monster.set_position(-81.2, 1.8, 851.5)
+		monster.set_rotation(0.0, 3.1415927, 0.0)
 	end
-	monster.SetMos("通常", -1, 4)
+	monster.set_motion("通常", -1, 4)
 	while true do
 		vm.wait()
 	end
@@ -94,13 +94,13 @@ end
 function script.on_damage()
 	local value: s32 = 0
 	helper_5d37e9f4()
-	value = monster.VPop(4) or value
-	monster.SetMos("ダメージ", -1, 6)
-	monster.BlowStart(4.0, 0.0, 3)
+	value = monster.get_variable(4) or value
+	monster.set_motion("ダメージ", -1, 6)
+	monster.start_knockback(4.0, 0.0, 3)
 	helper_56d63eae()
 	helper_c3e8ae39(12)
-	monster.SetMos("立ち")
-	monster.VPush(4, vm.i32(value + 1))
+	monster.set_motion("立ち")
+	monster.set_variable(4, vm.i32(value + 1))
 	helper_1ef0d4b2()
 end
 
@@ -142,28 +142,28 @@ end
 --- Lands the monster after it has been thrown.
 function script.on_land()
 	local value: s32 = 0
-	value = monster.VPop(8) or value
+	value = monster.get_variable(8) or value
 	if value == 128 then
-		monster.SetAttrib(2, 1)
-		monster.SetMonsterLife(0.0)
+		monster.set_monster_attributes(2, 1)
+		monster.set_life(0.0)
 		helper_02ce7891()
-		monster.SetMos("死に", -1, 2)
+		monster.set_motion("死に", -1, 2)
 		helper_56d63eae()
-		monster.SetDeadOff()
+		monster.spawn_death_effects()
 		while true do
 			vm.wait()
 		end
 	end
 	helper_aa93a1aa()
-	monster.ResetMove()
-	monster.SetShrowEnd()
+	monster.stop_moving()
+	monster.end_throw()
 	helper_b44b0a55()
-	monster.SetAttrib(2, 1)
-	monster.SetMonsterLife(0.0)
+	monster.set_monster_attributes(2, 1)
+	monster.set_life(0.0)
 	helper_02ce7891()
-	monster.SetMos("死に", -1, 2)
+	monster.set_motion("死に", -1, 2)
 	helper_56d63eae()
-	monster.SetDeadOff()
+	monster.spawn_death_effects()
 	while true do
 		vm.wait()
 	end

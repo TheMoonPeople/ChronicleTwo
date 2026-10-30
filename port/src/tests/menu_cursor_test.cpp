@@ -4,25 +4,25 @@
 #include "mainloop.hpp"
 #include "menu_mouse.hpp"
 #include "menudraw.hpp"
+#include "menusys.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "nd_meswin.hpp"
 #include "platform/input.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
+#include "scoped_global_object.hpp"
 
 TEST(MenuCursor, BothBandsKeepTheCursorTextureAndColor) {
-    mgRENDER_INFO info{};
-    sceVif1Packet packet{};
-    auto         *saved_info = mgDrawManager.render_info;
-    auto         *saved_packet = mgVif1Packet;
-    const int     saved_width = mgScreenWidth;
-    const int     saved_height = mgScreenHeight;
+    dc2::test::ScopedGlobalObject<mgDrawManager.render_info> info_owner;
+    auto                                                    &info = info_owner.Get();
+    dc2::test::ScopedGlobalObject<mgVif1Packet>              packet_owner;
+    auto                                                    &packet = packet_owner.Get();
+    const int                                                saved_width = mgScreenWidth;
+    const int                                                saved_height = mgScreenHeight;
     mgScreenWidth = 512;
     mgScreenHeight = 480;
-    mgDrawManager.render_info = &info;
-    mgVif1Packet = &packet;
     mgPortSetTextureLookup(nullptr, [](uint64_t tex0) -> mgPortTexture {
         return tex0 != 0 ? mgPortTexture{.texture = 42, .palette = 43} : mgPortTexture{};
     });
@@ -55,23 +55,24 @@ TEST(MenuCursor, BothBandsKeepTheCursorTextureAndColor) {
     EXPECT_GT(vertical, 0);
     mgPortSetPrimSink({});
     mgPortSetTextureLookup(nullptr, nullptr);
-    mgDrawManager.render_info = saved_info;
-    mgVif1Packet = saved_packet;
     mgScreenWidth = saved_width;
     mgScreenHeight = saved_height;
     mgPortResetGs();
 }
 
 TEST(MenuCursor, YesNoMouseTintsEachChoiceOnceAndControllerKeepsRetailColor) {
-    mgRENDER_INFO info{};
-    sceVif1Packet packet{};
-    auto         *saved_info = mgDrawManager.render_info;
-    auto         *saved_packet = mgVif1Packet;
-    mgDrawManager.render_info = &info;
-    mgVif1Packet = &packet;
-    ClsMes message;
-    short  text[] = {0};
-    message.buff = text;
+    const auto    previous_pad = GamePad__2;
+    const auto    previous_input = InputGetPad(0);
+    InputPadState neutral_input;
+    InputSetOverride(0, &neutral_input);
+    GamePad__2.pad[0].button = 0;
+    dc2::test::ScopedGlobalObject<mgDrawManager.render_info> info_owner;
+    auto                                                    &info = info_owner.Get();
+    dc2::test::ScopedGlobalObject<mgVif1Packet>              packet_owner;
+    auto                                                    &packet = packet_owner.Get();
+    ClsMes                                                   message;
+    short                                                    text[] = {0, 0};
+    message.buff = dc2::text::MessageTable::Parse(std::as_bytes(std::span(text)));
     message.fade = 1;
     message.alpha = 128;
     message.font_h = 24;
@@ -129,10 +130,35 @@ TEST(MenuCursor, YesNoMouseTintsEachChoiceOnceAndControllerKeepsRetailColor) {
     EXPECT_FALSE(MenuMousePointerVisible());
     draw();
     GamePad__2.pad[0].button = saved_button;
+    GamePad__2 = previous_pad;
+    InputSetOverride(0, &previous_input);
     MenuMouseEnable(false);
     InputSetScriptedDevices({});
     mgPortSetPrimSink({});
-    mgDrawManager.render_info = saved_info;
-    mgVif1Packet = saved_packet;
     mgPortResetGs();
+}
+
+TEST(MenuCursor, ResetReleasesBorrowedMenuStateAndRestoresInactiveModes) {
+    CMenuKeyFunc      keys;
+    CMenuPosDataForm  form{};
+    MENU_INPUTKEY_ARG layout{};
+    keys.cursor_form = &form;
+    keys.key_arg = &layout;
+    keys.cursor = 37;
+    keys.top_line = 12;
+    keys.now_mode = 7;
+    keys.next_mode = 9;
+    keys.key_enable = false;
+    keys.tex_block[0] = 23;
+    keys.Initialize();
+    EXPECT_EQ(keys.cursor_form, nullptr);
+    EXPECT_EQ(keys.key_arg, nullptr);
+    EXPECT_EQ(keys.cursor, 0);
+    EXPECT_EQ(keys.top_line, 0);
+    EXPECT_EQ(keys.now_mode, -1);
+    EXPECT_EQ(keys.next_mode, -1);
+    EXPECT_TRUE(keys.key_enable);
+    for (const int block : keys.tex_block) {
+        EXPECT_EQ(block, -1);
+    }
 }

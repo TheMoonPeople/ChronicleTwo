@@ -7,12 +7,12 @@ local helper_4403befa = require("@lib/monster/helper_4403befa")
 
 --- Helper function.
 local function helper_aada6ba2()
-	monster.SetMos("気絶", -1)
+	monster.set_motion("気絶", -1)
 	helper_27f80314()
 	helper_317bfc18(1)
 	helper_4403befa()
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
 end
 
 return helper_aada6ba2

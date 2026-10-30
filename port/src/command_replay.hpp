@@ -22,7 +22,7 @@ bool IsCommandBuffer(const char *script, int size);
 /**
  * Runs a {"commands": [...]} buffer through a tag table, as the interpreter runs a script.
  */
-bool RunBuffer(const char *script, int size, SPI_TAG_PARAM *tags);
+bool RunBuffer(const char *script, int size, std::span<const SPI_TAG_PARAM> tags);
 
 /**
  * Builds the typed argument slots of one profile command, with strings kept in the given storage.

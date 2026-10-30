@@ -6,16 +6,16 @@ local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
 
 --- Helper function.
 local function helper_42e38fa0()
-	action.BlowStart(5.0, 0.0, 10)
-	action.SetBlowAngle()
-	action.ReleaseObj(0)
-	action.SetMos("吹っ飛び", -1, 6)
+	action.start_knockback(5.0, 0.0, 10)
+	action.face_against_knockback()
+	action.release_held_object(0)
+	action.play_motion("吹っ飛び", -1, 6)
 	helper_9da84b8b()
 	helper_bac4ec65(8)
-	action.SetMos("起き上がり", -1, 6)
+	action.play_motion("起き上がり", -1, 6)
 	helper_9da84b8b()
 	helper_bac4ec65(2)
-	action.ProgSet(0)
+	action.set_program_value(0)
 end
 
 return helper_42e38fa0

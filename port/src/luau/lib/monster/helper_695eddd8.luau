@@ -16,31 +16,31 @@ local function helper_695eddd8()
 	local pos_y: f32 = 0
 	local pos_z: f32 = 0
 	var0 = 0
-	argc = monster.GetRnd(60) or argc
+	argc = monster.get_random(60) or argc
 	argc = vm.i32(argc + 40)
 	while true do
-		var2 = monster.GetTargetDist() or var2
+		var2 = monster.get_target_distance() or var2
 		if (if var2 <= 80.0 then 1 else if var0 >= argc then helper_661d392d(180, 200) else 0) ~= 0 then
 			helper_9ded5535()
 			helper_442b9962()
-			monster.ResetMove()
+			monster.stop_moving()
 			return
 		end
 		if helper_661d392d(0, 20) ~= 0 then
-			monster.SetMos("歩き", 0.55)
+			monster.set_motion("歩き", 0.55)
 		elseif helper_661d392d(90, 180) ~= 0 then
-			monster.SetMos("回転右", 0.55)
+			monster.set_motion("回転右", 0.55)
 		else
-			monster.SetMos("回転左", 0.55)
+			monster.set_motion("回転左", 0.55)
 		end
 		do
-			local out1, out2, out3 = monster.GetRefanglePos(0.0, 3.0)
+			local out1, out2, out3 = monster.get_point_from_facing(0.0, 3.0)
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
 		helper_82cb5588(vm.f32(0.017453292))
-		monster.SetNextPos(pos_x, pos_y, pos_z, 1.6, 1.0)
+		monster.move_toward_position(pos_x, pos_y, pos_z, 1.6, 1.0)
 		var0 = vm.i32(var0 + 1)
 		vm.wait()
 	end

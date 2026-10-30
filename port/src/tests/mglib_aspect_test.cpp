@@ -17,24 +17,25 @@
 
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
-#include "mainloop_port.hpp"
 #include "menu_mouse.hpp"
 #include "menuaqua.hpp"
 #include "menucls1.hpp"
 #include "menucommon.hpp"
 #include "menudraw.hpp"
-#include "menudraw_port.hpp"
 #include "menumain.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "object/menu/menu_presentation.hpp"
 #include "options/screen.hpp"
 #include "platform/clock.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/input.hpp"
 #include "platform/window.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
+#include "scoped_global_object.hpp"
 
 // dngmenu.hpp and font.hpp bring libgraph.h, whose register macros must follow the host and test headers.
 // clang-format off
@@ -367,11 +368,10 @@ TEST(MglibAspect, ItemMenuLensStaysWithModelAtFourThree) {
 }
 
 TEST(MglibAspect, MenuFormsHideParkedStatsWithoutClippingEnteringPanel) {
-    AspectRenderer     renderer(1920, 1080);
-    CMenuPosDataManage layout{};
-    auto              *saved_layout = MenuPosData;
-    MenuPosData = &layout;
-    MENU_BASETEXINFO texture_info{};
+    AspectRenderer                             renderer(1920, 1080);
+    dc2::test::ScopedGlobalObject<MenuPosData> layout_owner;
+    auto                                      &layout = layout_owner.Get();
+    MENU_BASETEXINFO                           texture_info{};
     layout.tex_info = &texture_info;
     layout.tex_info_num = 1;
     MENU_PARTS_EFFECT_STRUCT1 fill{};
@@ -464,15 +464,13 @@ TEST(MglibAspect, MenuFormsHideParkedStatsWithoutClippingEnteringPanel) {
     uint32_t             height = 0;
     ASSERT_TRUE(mgPortCanonicalReadColor(gfx::kMainTarget, rgba, width, height));
     EXPECT_GT(rgba[(static_cast<size_t>(height / 2) * width + 100) * 4 + 1], 200);
-    MenuPosData = saved_layout;
 }
 
 TEST(MglibAspect, MenuFormsKeepParkedBackdropSliverToScreen) {
-    AspectRenderer     renderer(1920, 1080);
-    CMenuPosDataManage layout{};
-    auto              *saved_layout = MenuPosData;
-    MenuPosData = &layout;
-    MENU_BASETEXINFO texture_info{};
+    AspectRenderer                             renderer(1920, 1080);
+    dc2::test::ScopedGlobalObject<MenuPosData> layout_owner;
+    auto                                      &layout = layout_owner.Get();
+    MENU_BASETEXINFO                           texture_info{};
     layout.tex_info = &texture_info;
     layout.tex_info_num = 1;
     MENU_PARTS_EFFECT_STRUCT1 fill{};
@@ -515,7 +513,6 @@ TEST(MglibAspect, MenuFormsKeepParkedBackdropSliverToScreen) {
             EXPECT_GT(pixel(-50, 200, 1), 200) << "entering backdrop clipped to the screen";
         }
     }
-    MenuPosData = saved_layout;
 }
 
 namespace {
@@ -524,7 +521,7 @@ namespace {
 void PrepareMessageForm(CDC2Mes &message, int preset, CMenuPosDataForm &form) {
     static short buffer[4] = {};
     message.MsgPreset(preset);
-    message.SetBuff(buffer);
+    message.SetBuff(dc2::text::MessageTable::Parse(std::as_bytes(std::span(buffer))));
     // StepMsg lays out no message, and DrawMesWin still draws the window.
     message.CDC2Mes::mes_no = -1;
     message.ClsMes::mes_no = 0;
@@ -843,10 +840,9 @@ struct PartFormCase {
 void ExpectPartForms(int window_width, int window_height, float ui_scale, bool ui, std::initializer_list<PartFormCase> cases) {
     AspectRenderer renderer(window_width, window_height);
     gfx::SetFrameLayout({.aspect = gfx::AspectMode::Fill, .ui_scale = ui_scale});
-    CMenuPosDataManage layout{};
-    auto              *saved_layout = MenuPosData;
-    MenuPosData = &layout;
-    MENU_BASETEXINFO texture_info{};
+    dc2::test::ScopedGlobalObject<MenuPosData> layout_owner;
+    auto                                      &layout = layout_owner.Get();
+    MENU_BASETEXINFO                           texture_info{};
     layout.tex_info = &texture_info;
     layout.tex_info_num = 1;
     MENU_PARTS_EFFECT_STRUCT1 fill{};
@@ -907,7 +903,6 @@ void ExpectPartForms(int window_width, int window_height, float ui_scale, bool u
         EXPECT_GT(pixel(ui_mapping, c.quad_x + 12, c.quad_y + 12, 2), 240) << "form clip leaked to a following draw";
     }
     gfx::SetFrameLayout({.aspect = gfx::AspectMode::Fill, .ui_scale = 1.0f});
-    MenuPosData = saved_layout;
 }
 
 } // namespace
@@ -1114,7 +1109,7 @@ void ExpectMenuTilesCoverWindow(int width, int height) {
     mgCDrawPrim prim;
     prim.draw_manager = &manager;
     prim.Initialize(&memory, &packet);
-    prim.write = nullptr;
+    prim.write_buffer = {};
     prim.Coord(1);
     for (float scroll : {-1.0f, -127.5f, -255.0f, 40.5f}) {
         float left = 1e9f;
@@ -1188,7 +1183,7 @@ public:
         manager.render_info = &info;
         prim->draw_manager = &manager;
         prim->Initialize(&memory, &packet);
-        prim->write = nullptr;
+        prim->write_buffer = {};
     }
 
     ~MenuPrimScope() {

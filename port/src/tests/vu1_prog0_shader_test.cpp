@@ -15,12 +15,12 @@ using namespace dc::test;
 
 namespace {
 
-constexpr int kWidth = 64;
-constexpr int kHeight = 48;
-constexpr int kTolerance = 1;
-const std::array<uint8_t, 4> kClear = {0, 0, 0, 0x80};
-const std::vector<uint32_t> kTriangle = {0, 1, 2};
-const std::vector<uint32_t> kSquareIndices = {0, 1, 2, 0, 2, 3};
+constexpr int                   kWidth = 64;
+constexpr int                   kHeight = 48;
+constexpr int                   kTolerance = 1;
+const std::array<uint8_t, 4>    kClear = {0, 0, 0, 0x80};
+const std::vector<uint32_t>     kTriangle = {0, 1, 2};
+const std::vector<uint32_t>     kSquareIndices = {0, 1, 2, 0, 2, 3};
 constexpr std::array<float, 12> kIdentityBone = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
 constexpr std::array<float, 12> kTranslateXBone = {1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0};
 using Point = std::array<float, 2>;
@@ -63,7 +63,7 @@ void SetFogParam(float (&fog)[4], float near_dist, float far_dist, float far_val
 }
 
 struct Prog0Draw {
-    gfx::MeshConstants mesh;
+    gfx::MeshConstants  mesh;
     gfx::Prog0Constants prog0;
     gfx::Prog0Palette   palette;
 };
@@ -99,9 +99,9 @@ void SetBone(gfx::Prog0Palette &p, uint32_t slot, const std::array<float, 12> &r
 gfx::Vertex3D Vert(const std::array<float, 3> &position, const std::array<float, 3> &normal) {
     return {
         .position = {position[0], position[1], position[2]},
-          .normal = {normal[0], normal[1], normal[2]},
-          .uv = {0.0f, 0.0f},
-          .color = {0, 0, 0, 0}
+        .normal = {normal[0], normal[1], normal[2]},
+        .uv = {0.0f, 0.0f},
+        .color = {0, 0, 0, 0}
     };
 }
 
@@ -166,7 +166,7 @@ void Render(GfxFixture &fixture, const std::vector<gfx::Vertex3D> &vertices, con
 // prog0.md 10.1
 TEST(Vu1Prog0Shader, LightingOffVector) {
     GfxFixture fixture(kWidth, kHeight, 1.0f, Prog0Options());
-    Prog0Draw c = Prog0(gfx::kProg0Unlit);
+    Prog0Draw  c = Prog0(gfx::kProg0Unlit);
     Set(c.prog0.object_color, {128, 64, 32, 128});
     Set(c.prog0.diffuse, {0.5f, 0.5f, 0.5f, 1.0f});
     Render(fixture, ScreenVertices({0, 0, 1}), kTriangle, c);
@@ -183,7 +183,7 @@ TEST(Vu1Prog0Shader, LightingOffVector) {
 // prog0.md 10.2
 TEST(Vu1Prog0Shader, OneDirectionalLightVector) {
     GfxFixture fixture(kWidth, kHeight, 1.0f, Prog0Options());
-    Prog0Draw c = Prog0(0);
+    Prog0Draw  c = Prog0(0);
     SetDirectional(c.prog0, 0, {0, 0, 1}, {128, 64, 0, 0});
     Set(c.prog0.ambient, {32, 32, 32, 128});
     Render(fixture, ScreenVertices({0, 0, 1}), kTriangle, c);
@@ -193,7 +193,7 @@ TEST(Vu1Prog0Shader, OneDirectionalLightVector) {
 // prog0.md 10.3
 TEST(Vu1Prog0Shader, FogVector) {
     GfxFixture fixture(kWidth, kHeight, 1.0f, Prog0Options());
-    Prog0Draw c = Prog0(gfx::kProg0Unlit);
+    Prog0Draw  c = Prog0(gfx::kProg0Unlit);
     Set(c.prog0.object_color, {255, 255, 255, 128});
     SetFogParam(c.prog0.fog, 10, 1000, 0, 255);
     gfx::DrawState state;
@@ -213,7 +213,7 @@ TEST(Vu1Prog0Shader, FogVector) {
 // prog0.md 10.3, editor fog
 TEST(Vu1Prog0Shader, EditorFogVector) {
     GfxFixture fixture(kWidth, kHeight, 1.0f, Prog0Options());
-    Prog0Draw c = Prog0(gfx::kProg0Unlit);
+    Prog0Draw  c = Prog0(gfx::kProg0Unlit);
     Set(c.prog0.object_color, {255, 255, 255, 128});
     SetFogParam(c.prog0.fog, 10, 1000, 255, 0);
     SetWMvp(c.mesh.mvp, 100);
@@ -225,7 +225,7 @@ TEST(Vu1Prog0Shader, EditorFogVector) {
 
 // prog0.md 10.4
 TEST(Vu1Prog0Shader, FacingVector) {
-    GfxFixture fixture(kWidth, kHeight, 1.0f, Prog0Options());
+    GfxFixture                       fixture(kWidth, kHeight, 1.0f, Prog0Options());
     const std::vector<gfx::Vertex3D> forward =
         Triangle({Gs(2100), Gs(2100)}, {Gs(2200), Gs(2100)}, {Gs(2100), Gs(2200)}, 0.5f, {0, 0, 1});
     const std::vector<gfx::Vertex3D> reversed =

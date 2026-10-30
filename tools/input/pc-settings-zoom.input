@@ -35,8 +35,18 @@
 941
 960 down
 961
-1020 mouse:320,114
+980 down
+981
+1000 down
+1001
+1020 down
 1021
-1060 mouse1
+1040 down
+1041
+1060 down
 1061
+1080 mouse:320,114
+1081
+1100 mouse1
+1101
 # Capture at 1120: Mouse wheel zoom is On; input.mouse_zoom persists.

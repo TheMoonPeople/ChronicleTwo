@@ -10,9 +10,9 @@ local function helper_6958e50d()
 	local pos_y: f32 = 0
 	local pos_z: f32 = 0
 	local var3: f32 = 0
-	monster.SetMos("歩き", -1, 0)
+	monster.set_motion("歩き", -1, 0)
 	do
-		local out1, out2, out3 = monster.GetPos_3()
+		local out1, out2, out3 = monster.get_position_3()
 		pos_x = out1 or pos_x
 		pos_y = out2 or pos_y
 		pos_z = out3 or pos_z

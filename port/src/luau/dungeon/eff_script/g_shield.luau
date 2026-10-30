@@ -23,29 +23,29 @@ function script.on_start()
 	local work_vect2_z: f32 = 0
 	local var6: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		work_vect2_x = out1 or work_vect2_x
 		work_vect2_y = out2 or work_vect2_y
 		work_vect2_z = out3 or work_vect2_z
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetRot(work_vect2_x, work_vect2_y, work_vect2_z)
-	effect.ChrSetMotion("発動", -1, 6)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.rotate_effect_character_toward(work_vect2_x, work_vect2_y, work_vect2_z)
+	effect.set_effect_character_motion("発動", -1, 6)
 	vm.wait()
 	helper_8b333653()
-	effect.ChrSetMotion("ループ")
+	effect.set_effect_character_motion("ループ")
 	var6 = 0
 	while var6 < 30 do
 		var6 = var6 + 1
 		vm.wait()
 	end
-	effect.ChrSetShow(0, 1, 0.04)
+	effect.set_effect_character_visible(0, 1, 0.04)
 	var6 = 0
 	while var6 < 25 do
 		var6 = var6 + 1

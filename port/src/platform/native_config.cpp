@@ -11,7 +11,7 @@
 #include <string_view>
 #include <utility>
 
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
 #include "log/log.hpp"
 #include "platform/config_catalog.hpp"
 #include "platform/datapacks.hpp"
@@ -106,8 +106,8 @@ std::string GameBytes(const std::string &hex) {
 
 } // namespace
 
-std::vector<std::shared_ptr<const Json> > Candidates(std::string_view relative, std::vector<std::string> &names) {
-    std::vector<std::shared_ptr<const Json> > documents;
+std::vector<std::shared_ptr<const Json>> Candidates(std::string_view relative, std::vector<std::string> &names) {
+    std::vector<std::shared_ptr<const Json>> documents;
     names.clear();
     for (const auto &candidate : config_catalog::Paths(relative)) {
         auto document = Parse(candidate);
@@ -214,11 +214,12 @@ float Float(const Json &value) {
     if (!value.is_number()) {
         throw std::runtime_error("expected a number");
     }
-    const auto number = static_cast<float>(value.get<double>());
-    if (!std::isfinite(number)) {
-        throw std::runtime_error("non-finite number");
+    const double number = value.get<double>();
+    if (!std::isfinite(number) || number < static_cast<double>(std::numeric_limits<float>::lowest()) ||
+        number > static_cast<double>(std::numeric_limits<float>::max())) {
+        throw std::runtime_error("non-finite or out-of-range number");
     }
-    return number;
+    return static_cast<float>(number);
 }
 
 int Int(const Json &object, const char *key) {

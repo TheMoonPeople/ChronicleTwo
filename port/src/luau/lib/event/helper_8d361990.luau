@@ -1,0 +1,43 @@
+--!strict
+-- Shared event helper used by 21 scripts, translated by tools/luau/stb2luau.
+
+local helper_0ffc2526 = require("@lib/event/helper_0ffc2526")
+local helper_13d40adf = require("@lib/event/helper_13d40adf")
+local helper_c8484b43 = require("@lib/event/helper_c8484b43")
+
+--- Helper function.
+local function helper_8d361990(arg0: s32, arg1: s32)
+	local active_chr_no: s32 = 0
+	active_chr_no = event.get_playable_character() or active_chr_no
+	if active_chr_no == 1 then
+		helper_13d40adf(arg0, arg1)
+		return
+	end
+	event.apply_message_window_preset(0, 0)
+	helper_c8484b43(arg0, 0, 0)
+	event.open_message_window_2(
+		0,
+		"Dovresti gi[UNI00e0] sapere la risposta:\nNEANCHE PER SOGNO!<page>Perch[UNI00e9] dovrei faticare per\nfare un favore a qualcun altro?"
+	)
+	helper_0ffc2526(0, -1, arg0, arg1, 0)
+	event.open_message_window_2(0, "A me non ne viene niente\ned [UNI00e8] troppo pericoloso.")
+	helper_0ffc2526(0, -1, arg0, arg1, 0)
+	event.open_message_window_2(0, "Comunque, siccome sei tu, potrei\nanche farci un pensierino.")
+	helper_0ffc2526(0, -1, arg0, arg1, 0)
+	event.open_message_window_2(0, "Sono figlio di un commerciante io,\nnon faccio certo favori gratis!")
+	helper_0ffc2526(0, -1, arg0, arg1, 0)
+	event.open_message_window_2(
+		0,
+		"Saprai che colleziono monete.<page>Sono il perno degli affari. Come\nvorrei completare la collezione!"
+	)
+	helper_0ffc2526(0, -1, arg0, arg1, 0)
+	event.open_message_window_2(
+		0,
+		"Non riesco mai a mettere\nle mani sulla Moneta oscura\ne sulla Moneta eterna.<page>Se mi aiutassi,\nforse io potrei aiutare te."
+	)
+	helper_0ffc2526(0, -1, arg0, arg1, 0)
+	event.finish_event()
+	event.set_quest_request(0, 2, 1)
+end
+
+return helper_8d361990

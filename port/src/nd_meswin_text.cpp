@@ -1,51 +1,30 @@
 #include "common.h"
 
-#include <cstddef>
-
 #include "nd_meswin.hpp"
 
-namespace {
-
-/**
- *
- * Bytes of the message buffer ClsMes::MakeMesWin passes, which ClsMes::NeedMesWinWH copies.
- *
- */
-constexpr std::size_t kMessageCapacity = 0x200;
-
-} // namespace
-
-// Retail stops after 512 bytes without a terminator, which NeedMesWinWH's strcpy then ran past, and its
-// '@' branch wrote a second terminator one byte beyond the buffer. Text is held to 510 bytes so both
-// terminators always fit.
-PORT_OVERRIDE void PreMesMake(char *source, char *buffer) {
-    constexpr std::size_t limit = kMessageCapacity - 2;
-    const char           *src = source;
-    std::size_t           length = 0;
-
-    while (length < limit && *src != '\0') {
-        const char c = *src;
-        if (c == '\\' && src[1] == 'n') {
-            src += 2;
-            buffer[length++] = '\n';
-        } else if (c == '\n') {
-            if (src[1] == '@') {
+std::string PreMesMake(std::string_view source) {
+    std::string output;
+    for (std::size_t index = 0; index < source.size() && source[index] != '\0';) {
+        const char value = source[index];
+        if (value == '\\' && index + 1 < source.size() && source[index + 1] == 'n') {
+            output.push_back('\n');
+            index += 2;
+        } else if (value == '\n') {
+            if (index + 1 < source.size() && source[index + 1] == '@') {
                 break;
             }
-            ++src;
-            buffer[length++] = '\n';
-        } else if (c == '\r' && src[1] == '\n') {
-            if (src[2] == '@') {
+            output.push_back('\n');
+            ++index;
+        } else if (value == '\r' && index + 1 < source.size() && source[index + 1] == '\n') {
+            if (index + 2 < source.size() && source[index + 2] == '@') {
                 break;
             }
-            src += 2;
-            buffer[length++] = '\n';
+            output.push_back('\n');
+            index += 2;
         } else {
-            buffer[length++] = c;
-            ++src;
+            output.push_back(value);
+            ++index;
         }
     }
-
-    buffer[length] = '\0';
-    buffer[length + 1] = '\0';
+    return output;
 }

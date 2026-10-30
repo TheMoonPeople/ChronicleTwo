@@ -10,34 +10,34 @@ local function on_death()
 	local var2: f32 = 0
 	local var3: f32 = 0
 	local var4: f32 = 0
-	monster.SetShrowEnd()
-	monster.ResetMove()
+	monster.end_throw()
+	monster.stop_moving()
 	helper_442b9962()
-	monster.SetAttrib(86, 1)
-	monster.SetMonsterLifeInt(0)
-	monster.SetDeadStart()
-	monster.SetDeadOff()
-	attack = monster.GetBaseAttack_1() or attack
+	monster.set_monster_attributes(86, 1)
+	monster.set_life_int(0)
+	monster.start_death()
+	monster.spawn_death_effects()
+	attack = monster.get_attack_power_1() or attack
 	do
-		local out1, out2, out3 = monster.GetPos_3()
+		local out1, out2, out3 = monster.get_position_3()
 		var2 = out1 or var2
 		var3 = out2 or var3
 		var4 = out3 or var4
 	end
 	if var2 == 0.0 and var3 == -2.0 and var4 == 0.0 then
 		do
-			local out1, out2, out3 = monster.GetTargetPos()
+			local out1, out2, out3 = monster.get_target_position()
 			var2 = out1 or var2
 			var3 = out2 or var3
 			var4 = out3 or var4
 		end
 		var3 = vm.f32(var3 + 25.0)
 	end
-	monster.MySePlay(8)
-	monster.EsmCreate_1("海賊爆弾爆発")
-	monster.EsmSetVect1(-1, var2, var3, var4)
-	monster.EsmSetValue(-1, 0, attack)
-	monster.MySePlay(8)
+	monster.play_sound(8)
+	monster.create_effect_1("海賊爆弾爆発")
+	monster.set_effect_first_vector(-1, var2, var3, var4)
+	monster.set_effect_value(-1, 0, attack)
+	monster.play_sound(8)
 	while true do
 		vm.wait()
 	end
@@ -50,11 +50,11 @@ function script.setup() end
 
 --- Sets the monster up when it is placed.
 function script.init()
-	monster.SetAttrib(1, 1)
-	monster.VPush(0, 0)
-	monster.VPush(1, 0)
-	monster.VPush(2, 0)
-	monster.SetClipDist(10000000.0)
+	monster.set_monster_attributes(1, 1)
+	monster.set_variable(0, 0)
+	monster.set_variable(1, 0)
+	monster.set_variable(2, 0)
+	monster.set_clip_distance(10000000.0)
 end
 
 --- Runs the monster's normal behaviour.
@@ -72,7 +72,7 @@ function script.loop()
 	local var10: f32 = 0
 	local var11: f32 = 0
 	local var12: f32 = 0
-	local var13: f32 = 0
+	local scale: f32 = 0
 	local var14: f32 = 0
 	local var15: f32 = 0
 	local var16: f32 = 0
@@ -84,84 +84,84 @@ function script.loop()
 	local var25: f32 = 0
 	local var26: f32 = 0
 	local value: s32 = 0
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
-	monster.SetActStatus(0)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
+	monster.set_action_status(0)
 	vm.wait()
 	do
-		local out1, out2, out3 = monster.GetTargetPos()
+		local out1, out2, out3 = monster.get_target_position()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = monster.GetPos_3()
+		local out1, out2, out3 = monster.get_position_3()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	var12 = monster.GetTargetDist() or var12
+	var12 = monster.get_target_distance() or var12
 	do
-		local out1, out2, out3 = monster.CopyVector(var0, var1, var2)
+		local out1, out2, out3 = monster.copy_vector(var0, var1, var2)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = monster.SubVector(var9, var10, var11, var3, var4, var5)
+		local out1, out2, out3 = monster.subtract_vectors(var9, var10, var11, var3, var4, var5)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = monster.NormalVector(var9, var10, var11)
+		local out1, out2, out3 = monster.normalize_vector(var9, var10, var11)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	var24 = monster.GetDistVector2(var3, 0.0, var5, var0, 0.0, var2) or var24
+	var24 = monster.get_distance_between(var3, 0.0, var5, var0, 0.0, var2) or var24
 	if var24 < 30.0 then
 		do
-			local out1, out2, out3 = monster.CopyVector(0.0, 1.0, 0.0)
+			local out1, out2, out3 = monster.copy_vector(0.0, 1.0, 0.0)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
-		monster.SetPos(var3, var4 - 15.0, var5)
+		monster.set_position(var3, var4 - 15.0, var5)
 		var4 = vm.f32(var4 - 15.0)
 	end
-	monster.SetAttrib(4, 1)
-	monster.SetAttrib(16, 1)
+	monster.set_monster_attributes(4, 1)
+	monster.set_monster_attributes(16, 1)
 	var15 = 2.5
 	var17 = vm.f32(0.3926991)
 	var21 = vm.f32(0.27)
-	monster.ResetMove()
+	monster.stop_moving()
 	var22 = 0
 	while var22 < 120 do
-		var12 = monster.GetTargetDist() or var12
+		var12 = monster.get_target_distance() or var12
 		if var12 < 50.0 then
 			on_death()
 		end
 		var16 = var22
 		var15 = vm.f32(var15 - vm.f32(0.04))
-		var13 = vm.f32(vm.f32(var15 * vm.cos(var17)) * var16)
+		scale = vm.f32(vm.f32(var15 * vm.cos(var17)) * var16)
 		var14 =
 			vm.f32(vm.f32(vm.f32(var15 * vm.sin(var17)) * var16) - vm.f32(vm.f32(vm.f32(var21 * var16) * var16) / 2.0))
 		do
-			local out1, out2, out3 = monster.CopyVector(var9, var10, var11)
+			local out1, out2, out3 = monster.copy_vector(var9, var10, var11)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = monster.ScaleVector(var6, var7, var8, var13)
+			local out1, out2, out3 = monster.scale_vector(var6, var7, var8, scale)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		var7 = vm.f32(1.0 * var14)
 		do
-			local out1, out2, out3 = monster.AddVector(var3, var4, var5, var6, var7, var8)
+			local out1, out2, out3 = monster.add_vectors(var3, var4, var5, var6, var7, var8)
 			var3 = out1 or var3
 			var4 = out2 or var4
 			var5 = out3 or var5
@@ -172,34 +172,34 @@ function script.loop()
 			break
 		else
 			if var22 == 5 then
-				monster.SetAttrib(16, 0)
+				monster.set_monster_attributes(16, 0)
 			end
-			monster.SetPos(var3, var4, var5)
+			monster.set_position(var3, var4, var5)
 			vm.wait()
 			var22 = var22 + 1
 		end
 	end
-	monster.MySePlay(6)
-	monster.SetAttrib(4, 0)
-	chara_type = monster.GetUserid() or chara_type
+	monster.play_sound(6)
+	monster.set_monster_attributes(4, 0)
+	chara_type = monster.get_character_number() or chara_type
 	var26 = 0.0
 	value = 0
 	while value < 195 do
 		if value >= 165 then
 			if value == 165 then
-				monster.SetPalletAnim(128, 128, 255, 4, 30)
+				monster.start_palette_pulse(128, 128, 255, 4, 30)
 			end
 			var25 = vm.f32(vm.f32(vm.sin(var26) / 10.0) + 1.0)
 			var26 = vm.f32(var26 + vm.f32(0.4))
 			if var26 >= vm.f32(3.1415927) then
-				monster.MonsSePlay(chara_type, 7)
+				monster.play_monster_sound(chara_type, 7)
 				var26 = 0.0
 			end
-			monster.SetScale(var25, var25, var25)
+			monster.set_scale(var25, var25, var25)
 		end
-		value = monster.VPop(2) or value
+		value = monster.get_variable(2) or value
 		value = vm.i32(value + 1)
-		monster.VPush(2, value)
+		monster.set_variable(2, value)
 		vm.wait()
 	end
 	on_death()
@@ -236,10 +236,10 @@ function script.on_caught()
 	local var5: f32 = 0
 	local value: s32 = 0
 	local chara_type: s32 = 0
-	monster.ResetMove()
-	monster.SetAttrib(4, 0)
-	monster.ResetPalletAnim()
-	monster.VPush(1, 1)
+	monster.stop_moving()
+	monster.set_monster_attributes(4, 0)
+	monster.stop_palette_pulse()
+	monster.set_variable(1, 1)
 	var5 = 0.0
 	value = 0
 	var0 = 128.0
@@ -247,18 +247,18 @@ function script.on_caught()
 	var2 = 8.0
 	var3 = 128.0
 	print("kita-----------\n")
-	chara_type = monster.GetUserid() or chara_type
-	value = monster.VPop(2) or value
+	chara_type = monster.get_character_number() or chara_type
+	value = monster.get_variable(2) or value
 	while value < 195 do
 		if value >= 165 then
 			if value == 165 then
-				monster.SetModelLightSwitch(0)
+				monster.set_model_lighting(0)
 			end
 			var0 = 128.0
 			var1 = 128.0
 			var2 = 128.0
 			if vm.imod(value, 6) == 0 then
-				monster.MonsSePlay(chara_type, 7)
+				monster.play_monster_sound(chara_type, 7)
 				var0 = 196.0
 				var1 = 128.0
 			end
@@ -270,16 +270,16 @@ function script.on_caught()
 				var0 = 168.0
 				var1 = 168.0
 			end
-			monster.SetModelLightColor(var0, var1, var2, var3)
+			monster.set_model_color(var0, var1, var2, var3)
 			var5 = vm.f32(var5 + vm.f32(0.4))
 			if var5 >= vm.f32(3.1415927) then
-				monster.MySePlay(7)
+				monster.play_sound(7)
 				var5 = 0.0
 			end
 		end
-		value = monster.VPop(2) or value
+		value = monster.get_variable(2) or value
 		value = vm.i32(value + 1)
-		monster.VPush(2, value)
+		monster.set_variable(2, value)
 		vm.wait()
 	end
 	on_death()
@@ -290,8 +290,8 @@ end
 
 --- Lands the monster after it has been thrown.
 function script.on_land()
-	monster.ResetMove()
-	monster.SetShrowEnd()
+	monster.stop_moving()
+	monster.end_throw()
 	on_death()
 end
 

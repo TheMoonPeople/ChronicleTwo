@@ -5,14 +5,18 @@
 
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
 #include "dng_main.hpp"
+#include "luau_runtime.hpp"
 #include "mg_memory.hpp"
 #include "monster.hpp"
 #include "native_document_fixture.hpp"
@@ -28,7 +32,7 @@ protected:
     std::filesystem::path root = std::filesystem::temp_directory_path() / ("native_monster_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::path previous = PathsDataRoot();
     u_long128            *previous_buffer = BuffReadData;
-    alignas(16) std::array<u_long128, 128> scratch {};
+    alignas(16) std::array<u_long128, 128> scratch{};
     std::vector<u_long128>       storage = std::vector<u_long128>(16384);
     mgCMemory                    memory;
     std::unique_ptr<CMonsterMan> manager = std::make_unique<CMonsterMan>();
@@ -71,18 +75,9 @@ protected:
         };
         game["profiles"]["p00_23a"]["commands"] = Json::array({command});
         dc::test::WriteNativeDocument(root / "data/dungeon/monster/p00_23a.game.json", game);
-        std::array<unsigned char, 132> script{};
-        std::memcpy(script.data(), "SB2", 4);
-        const auto put = [&](int offset, int value) { std::memcpy(script.data() + offset, &value, sizeof(value)); };
-        put(4, 64);
-        put(8, 64);
-        put(12, 28);
-        put(64, 56);
-        put(120, 27);
-        std::filesystem::create_directories(root / "data/dungeon/monster");
-        std::ofstream output(root / "data/dungeon/monster/native_fixture.stb", std::ios::binary);
-        output.write(reinterpret_cast<const char *>(script.data()), script.size());
-        output.close();
+        std::filesystem::create_directories(root / "scripts/dungeon/monster");
+        std::ofstream(root / "scripts/dungeon/monster/native_fixture.luau") << "return { setup = function() end }\n";
+        luau_runtime::SetScriptsRoot(root / "scripts");
         DataReadIndex(root / "data");
         std::memset(scratch.data(), 0xA5, sizeof(scratch));
         BuffReadData = scratch.data();
@@ -93,6 +88,7 @@ protected:
     }
 
     void TearDown() override {
+        luau_runtime::SetScriptsRoot({});
         BuffReadData = previous_buffer;
         model_assets::Clear();
         DataReadIndex(previous);
@@ -113,6 +109,29 @@ TEST_F(NativeMonsterLoad, LoadsOversizedGltfWithoutWritingOriginalReadScratch) {
     EXPECT_EQ(manager->refer[0].id, 511);
     EXPECT_EQ(manager->refer[0].chara.tbl, &table);
     ASSERT_NE(manager->refer[0].chara.GetFrame(), nullptr);
-    ASSERT_NE(manager->refer[0].script, nullptr);
-    EXPECT_EQ(std::memcmp(manager->refer[0].script, "SB2", 4), 0);
+    const auto script = manager->refer[0].script;
+    EXPECT_EQ(luau_runtime::HandleModule({reinterpret_cast<const char *>(script.data()), script.size()}),
+              std::optional<std::string>("dungeon/monster/native_fixture"));
+}
+
+TEST_F(NativeMonsterLoad, RejectsSwordEffectCountsBeyondCharacterSlots) {
+    BASE_MONSTER_TBL table{};
+    table.sw_effect_num = CHARA_SWORD_EFFECT_MAX + 1;
+    EXPECT_FALSE(manager->LoadReferMonsterFile(511, &table, &memory));
+    EXPECT_EQ(manager->refer[0].id, -1);
+}
+
+TEST_F(NativeMonsterLoad, SwordEffectUsesItsFullHostAllocation) {
+    BASE_MONSTER_TBL table{};
+    std::strcpy(table.model, "p00_23a");
+    std::strcpy(table.script, "native_fixture");
+    table.sw_effect_num = 1;
+    ASSERT_TRUE(manager->LoadReferMonsterFile(511, &table, &memory));
+    auto *effect = manager->refer[0].chara.sword_effect[0];
+    ASSERT_NE(effect, nullptr);
+    const auto lease = dc2::memory::AllocationBytes(memory, effect);
+    ASSERT_GE(lease.size(), sizeof(CSWordAfterEffect));
+    ASSERT_NE(effect->point0, nullptr);
+    EXPECT_GE(reinterpret_cast<std::uintptr_t>(effect->point0),
+              reinterpret_cast<std::uintptr_t>(effect) + sizeof(CSWordAfterEffect));
 }

@@ -16,6 +16,9 @@
 #include "kazarov/data_version.hpp"
 #include "log/log.hpp"
 #include "platform/firstrun.hpp"
+#ifdef SDL_PLATFORM_IOS
+#include "ios/bridge.hpp"
+#endif
 #include "platform/paths.hpp"
 
 namespace fs = std::filesystem;
@@ -61,6 +64,19 @@ std::string FirstRunDataMessage(const fs::path &root) {
 }
 
 void FirstRunRequireData(const fs::path &root, bool headless) {
+#ifdef SDL_PLATFORM_IOS
+    // An iOS app does not quit itself: the launcher stays up until the data is current and the player starts the
+    // game.
+    if (!headless) {
+        ct::ios::LeaveNote();
+        if (FirstRunDataMissing(root)) {
+            CT_LOG_INFO(Main, "No current game data at {}: the launcher offers its extraction",
+                        PathsDisplay(root));
+        }
+        IosLauncherRunAt(root.c_str());
+        return;
+    }
+#endif
     if (!FirstRunDataMissing(root)) {
         return;
     }
@@ -70,8 +86,10 @@ void FirstRunRequireData(const fs::path &root, bool headless) {
     if (!headless) {
         try {
             const auto path = root.u8string();
-            if (kazarov::setup_data("Dark Chronicle — Game data", std::string(
-                                                                      reinterpret_cast<const char *>(path.data()), path.size())) &&
+            // The game runs the scripts' Luau modules, so the compiled scripts are not published.
+            if (kazarov::setup_data_with_script_policy("Dark Chronicle — Game data",
+                                                       std::string(reinterpret_cast<const char *>(path.data()), path.size()),
+                                                       kazarov::ScriptPublicationPolicy::LuauOnly) &&
                 !FirstRunDataMissing(root)) {
                 return;
             }

@@ -5,14 +5,15 @@
 
 A record is read in place from a disc file or a save image, so its PC layout is the disc's: the table row
 for each record names its STATIC_ASSERT, its PORT_RECORD_ASSERT (`assert` rows) and its PC approach.
-Checks: the rows against the text of their declaring files; the layout libclang computes for them under the
-build's compile flags (size, and no pointer-wide member); the PS2-only readers against the port's overrides
-and the linked binary.
+Checks: the rows against the text of their declaring files; the layout libclang computes for their native
+counterparts under the build's compile flags (size, and no pointer-wide member); the PS2-only readers against
+the linked binary.
 """
 
 import argparse
 import collections
 import contextlib
+import functools
 import os
 import re
 import sys
@@ -30,7 +31,7 @@ ASSERT_SCAN_SUFFIXES = (".h", ".hpp", ".c", ".cpp")
 MENTION_SCAN_DIRS = ("ps2/src", "port/src")
 MENTION_SCAN_SUFFIXES = (".h", ".hpp", ".c", ".cpp", ".inc", ".inl")
 PS2_ONLY_READERS = {
-    "DATA_HEADER": ("ps2/src/dataread.cpp", ["InitCDFile", "SearchFile", "LoadFileBG", "LoadFile2", "CDRead"]),
+    "DATA_HEADER": ("ps2/src/dataread.cpp", ["SearchFile", "CDRead"]),
 }
 RECORD_ASSERT_RE = re.compile(r"PORT_RECORD_ASSERT\s*\(\s*sizeof\s*\(\s*(\w+)\s*\)")
 DECLARED_RE = re.compile(r"`([^`]+):(\d+)`")
@@ -52,6 +53,7 @@ def normal(text):
     return re.sub(r"\s+", "", text)
 
 
+@functools.lru_cache(maxsize=None)
 def read_lines(path):
     with open(path, encoding="latin-1", newline="") as f:
         return f.read().split("\n")
@@ -207,12 +209,10 @@ def unqualified(name):
 
 
 def check_ps2_only_functions(build):
-    """Failures for the PS2-only readers' functions, or None when the build has nothing to check them against."""
+    """Failures for disc-index readers that have no native use."""
     darkchronicle = os.path.join(build, "darkchronicle")
-    overrides_path = os.path.join(build, "port_overrides.txt")
-    if not (os.path.isfile(darkchronicle) and os.path.isfile(overrides_path)):
+    if not os.path.isfile(darkchronicle):
         return None
-    replaced = {unqualified(signature) for signature in truncations.load_overrides(build)}
     try:
         linked = {unqualified(name) for name in truncations.linked_functions(darkchronicle)}
     except SystemExit as error:
@@ -220,10 +220,8 @@ def check_ps2_only_functions(build):
     failures = []
     for struct, (reader, functions) in PS2_ONLY_READERS.items():
         for function in functions:
-            if function in replaced:
-                continue
             if any(name == function or name.startswith(function + ".") for name in linked):
-                failures.append("%s: %s (reader of PS2-only %s) is linked and not in port_overrides.txt"
+                failures.append("%s: %s (reader of PS2-only %s) is linked in the native game"
                                 % (reader, function, struct))
     return failures
 
@@ -240,6 +238,27 @@ def in_directory(path):
 
 def size_constants(rows):
     return "".join("enum { %s%s = (%s) };\n" % (SIZE_PREFIX, r.struct, r.size) for r in rows)
+
+
+def source_record_declaration(path, row):
+    """Extract one source-local record so libclang need not parse unrelated game functions."""
+    source = "\n".join(read_lines(path))
+    match = re.search(r"\b(?:struct|class|union)\s+" + re.escape(row.struct) + r"\s*\{", source)
+    if match is None:
+        raise ValueError("%s: no source-local definition of %s" % (path, row.struct))
+    depth = 0
+    end = None
+    for index in range(match.end() - 1, len(source)):
+        if source[index] == "{":
+            depth += 1
+        elif source[index] == "}":
+            depth -= 1
+            if depth == 0:
+                end = index + 1
+                break
+    if end is None or source[end:].lstrip()[:1] != ";":
+        raise ValueError("%s: incomplete source-local definition of %s" % (path, row.struct))
+    return '#include "common.h"\n' + source[match.start():end] + ";\n"
 
 
 def has_virtual(decl):
@@ -275,12 +294,33 @@ def member_problems(type_, name, where, out):
             member_problems(field.type, "%s.%s" % (name, field.spelling or "<anonymous>"), where, out)
 
 
-def check_tu(tu, rows):
+def record_cursors(tu, allowed_files):
+    """Visit record/enum declaration containers without entering unrelated library ASTs or bodies."""
+    K = truncations.ci.CursorKind
+    containers = {K.NAMESPACE, K.LINKAGE_SPEC, K.STRUCT_DECL, K.CLASS_DECL, K.UNION_DECL,
+                  K.ENUM_DECL, K.CLASS_TEMPLATE, K.CLASS_TEMPLATE_PARTIAL_SPECIALIZATION,
+                  K.UNEXPOSED_DECL}
+    allowed = {truncations.canon(path) for path in allowed_files}
+    pending = list(tu.cursor.get_children())
+    while pending:
+        cursor = pending.pop()
+        location = cursor.location
+        if location.file is None or truncations.canon(location.file.name) not in allowed:
+            continue
+        yield cursor
+        if cursor.kind in containers:
+            pending.extend(cursor.get_children())
+
+
+def check_tu(tu, rows, root, synthetic_source=None):
     K = truncations.ci.CursorKind
     wanted = {r.struct for r in rows}
     decls = collections.defaultdict(list)
     sizes = {}
-    for cursor in tu.cursor.walk_preorder():
+    declarations = {synthetic_source} if synthetic_source else {runtime_declared_path(root, row) for row in rows}
+    # The generated size enum lives in the unsaved main source, while each record belongs to its exact header.
+    cursors = record_cursors(tu, declarations | {tu.spelling})
+    for cursor in cursors:
         if cursor.kind == K.ENUM_CONSTANT_DECL and cursor.spelling.startswith(SIZE_PREFIX):
             sizes[cursor.spelling[len(SIZE_PREFIX):]] = cursor.enum_value
         elif cursor.spelling in wanted and cursor.location.file is not None and cursor.kind in (
@@ -289,7 +329,8 @@ def check_tu(tu, rows):
 
     failures = []
     for row in rows:
-        here = [c for c in decls[row.struct] if truncations.rel(c.location.file.name) == row.declared]
+        runtime = synthetic_source or runtime_declared_path(root, row)
+        here = [c for c in decls[row.struct] if truncations.canon(c.location.file.name) == truncations.canon(runtime)]
         definitions = [c for c in here if c.kind != K.TYPEDEF_DECL and c.is_definition()]
         typedefs = [c for c in here if c.kind == K.TYPEDEF_DECL]
         if not definitions and not typedefs:
@@ -316,11 +357,35 @@ def diagnostics(tu):
                                                         if len(errors) > 3 else [])
 
 
-def header_path(root, build, declared):
-    mirror = os.path.join(build, "ps2_include", declared[len("ps2/include/"):])
-    if declared.startswith("ps2/include/") and os.path.isfile(mirror):
-        return mirror
-    return os.path.join(root, declared)
+@functools.lru_cache(maxsize=None)
+def native_candidates(base):
+    paths = []
+    for directory, _, files in os.walk(base):
+        paths.extend(os.path.join(directory, filename) for filename in files
+                     if filename.endswith((".h", ".hpp", ".cpp")))
+    return tuple(paths)
+
+
+def runtime_declared_path(root, row):
+    """Find the port-owned declaration corresponding to a documented PS2 record."""
+    if row.declared.startswith("ps2/include/"):
+        base = os.path.join(root, "port", "include")
+    elif row.declared.startswith("ps2/src/"):
+        base = os.path.join(root, "port", "src")
+    else:
+        return os.path.join(root, row.declared)
+    name = os.path.basename(row.declared)
+    matches = []
+    for path in native_candidates(base):
+        filename = os.path.basename(path)
+        if filename != name and not (row.declared.startswith("ps2/include/") and filename.endswith((".h", ".hpp"))):
+            continue
+        if static_assert_lines(read_lines(path), row):
+            matches.append(path)
+    if len(matches) != 1:
+        raise ValueError("%s: expected one native declaration for %s, found %d" %
+                         (row.declared, row.struct, len(matches)))
+    return matches[0]
 
 
 def clang_checks(root, build, rows):
@@ -330,31 +395,40 @@ def clang_checks(root, build, rows):
 
     headers = [r for r in rows if not r.declared.endswith(".cpp")]
     if headers:
-        seed = next((e for e in entries if truncations.rel(e["file"]).startswith("ps2/src/")), None)
+        seed = next((e for e in entries if truncations.rel(e["file"]).startswith("port/src/")), None)
         if seed is None:
-            return ["no ps2/src unit in compile_commands.json to take the PC flags from"]
+            return ["no native game unit in compile_commands.json to take the PC flags from"]
         args = truncations.command_args(seed)
-        declared = list(dict.fromkeys(r.declared for r in headers))
-        includes = "".join('#include "%s"\n' % header_path(root, build, d).replace(os.sep, "/") for d in declared)
-        name = os.path.join(seed["directory"], "records_check.cpp")
-        with in_directory(seed["directory"]):
-            tu = parse_tu(name, args, includes + size_constants(headers))
-        failures += diagnostics(tu)
-        failures += check_tu(tu, headers)
+        by_header = collections.defaultdict(list)
+        for row in headers:
+            by_header[runtime_declared_path(root, row)].append(row)
+        for index, (header, group) in enumerate(by_header.items()):
+            source = '#include "%s"\n' % header.replace(os.sep, "/")
+            name = os.path.join(seed["directory"], "records_check_%d.cpp" % index)
+            with in_directory(seed["directory"]):
+                tu = parse_tu(name, args, source + size_constants(group))
+            parse_failures = diagnostics(tu)
+            failures += parse_failures
+            if not parse_failures:
+                failures += check_tu(tu, group, root)
 
     for row in rows:
         if not row.declared.endswith(".cpp"):
             continue
-        entry = by_file.get(row.declared)
+        native_path = runtime_declared_path(root, row)
+        entry = by_file.get(truncations.rel(native_path))
         if entry is None:
             failures.append("%s:%d %s: no compile command for the unit" % (row.declared, row.line, row.struct))
             continue
-        path = truncations.canon(os.path.join(root, row.declared))
+        path = entry["file"]
         args = truncations.command_args(entry)
+        synthetic = os.path.join(entry["directory"], "records_check_source.cpp")
         with in_directory(entry["directory"]):
-            tu = parse_tu(path, args, truncations.unit_source(path) + size_constants([row]))
-        failures += diagnostics(tu)
-        failures += check_tu(tu, [row])
+            tu = parse_tu(synthetic, args, source_record_declaration(path, row) + size_constants([row]))
+        parse_failures = diagnostics(tu)
+        failures += parse_failures
+        if not parse_failures:
+            failures += check_tu(tu, [row], root, synthetic_source=synthetic)
     return failures
 
 
@@ -425,7 +499,7 @@ def run(options, root):
         truncations.set_mirrors(build)
         reader_failures = check_ps2_only_functions(build)
         if reader_failures is None:
-            notes.append("PS2-only reader functions skipped: %s has no darkchronicle or port_overrides.txt" % build)
+            notes.append("PS2-only reader functions skipped: %s has no darkchronicle" % build)
         else:
             failures += reader_failures
     else:

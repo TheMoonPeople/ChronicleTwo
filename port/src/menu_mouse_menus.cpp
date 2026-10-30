@@ -22,7 +22,7 @@
 #include "menuop.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 #include "save_slots.hpp"
 #include "stubs/dngmenu.hpp"
 #include "stubs/menuchr.hpp"
@@ -159,7 +159,7 @@ void TitleMouse() {
 }
 } // namespace
 
-PORT_OVERRIDE int CMenuKeyFunc::CheckSelectKey() {
+int CMenuKeyFunc::CheckSelectKey() {
     if (now_mode == MENU_MODE_SHOP) {
         MenuMouseShopTick(*this);
     }
@@ -211,7 +211,7 @@ PORT_OVERRIDE int CMenuKeyFunc::CheckSelectKey() {
     return select_key;
 }
 
-PORT_OVERRIDE int MenuCheckPushButton() {
+int MenuCheckPushButton() {
     TitleMouse();
     const int confirm = LanguageCode > 0 ? PAD_CROSS : PAD_CIRCLE;
     const int cancel = LanguageCode > 0 ? PAD_CIRCLE : PAD_CROSS;

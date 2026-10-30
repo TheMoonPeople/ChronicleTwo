@@ -1,15 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "editctrl.hpp"
-#include "editctrl_port.hpp"
 #include "mainloop.hpp"
-#include "mglib_port.hpp"
+#include "object/world/town_control.hpp"
 #include "photo.hpp"
+#include "render/renderer.hpp"
 #include "scenevillager.hpp"
 #include "stubs/photo.hpp"
 
-extern mgCCamera    *PortContinuousEyeCamera;
-extern int           PortTownEyeInitialized asm("EditCtrl_EyeInitialized");
+extern mgCCamera *PortContinuousEyeCamera;
+extern int        PortTownEyeInitialized asm("EditCtrl_EyeInitialized");
 
 TEST(TownEyeCamera, RetailResetCutsEvenInsideAContinuousScope) {
     const auto    old_mode = PortEditViewMode;
@@ -19,12 +21,13 @@ TEST(TownEyeCamera, RetailResetCutsEvenInsideAContinuousScope) {
     sceVu0FVECTOR old_eye;
     std::copy_n(PortTownSavedEye, 4, old_eye);
     CScene         scene;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     camera.ControlOff();
     camera.FollowOff();
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.active_camera = scene.player_chara = 0;
     for (auto mode : {EDIT_VIEW_MODE_EYE, EDIT_VIEW_MODE_PHOTO}) {
         PortEditViewMode = mode;

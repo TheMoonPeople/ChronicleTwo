@@ -85,4 +85,4 @@ inline void Transform(float *out, const float (*m)[4], const float *v) {
     }
 }
 
-}  // namespace vu0
+} // namespace vu0

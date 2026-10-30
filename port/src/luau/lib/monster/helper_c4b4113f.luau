@@ -12,20 +12,20 @@ local helper_c6577076 = require("@lib/monster/helper_c6577076")
 local function helper_c4b4113f()
 	local argc: s32 = 0
 	vm.wait()
-	argc = monster.GetRnd(100) or argc
+	argc = monster.get_random(100) or argc
 	if argc < 50 then
-		monster.SetMos("立ち", -1, 0)
+		monster.set_motion("立ち", -1, 0)
 		helper_890ee63a(10.0)
 		helper_1ae935f0(9.0, 45.0, 0.5, 27)
-		monster.SetMos("立ち", -1, 0)
+		monster.set_motion("立ち", -1, 0)
 		helper_c3e8ae39(3)
 	else
-		argc = monster.GetRnd(100) or argc
+		argc = monster.get_random(100) or argc
 		if argc < 50 then
-			monster.SetMos("立ち", -1, 0)
+			monster.set_motion("立ち", -1, 0)
 			helper_7ca8a12f(100.0, 45.0, 30)
 		else
-			monster.SetMos("立ち", -1, 0)
+			monster.set_motion("立ち", -1, 0)
 			helper_890ee63a(10.0)
 			helper_c6577076()
 		end

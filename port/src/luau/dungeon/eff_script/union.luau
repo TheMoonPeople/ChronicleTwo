@@ -18,14 +18,14 @@ function script.on_start()
 	local work_vect1_y: f32 = 0
 	local work_vect1_z: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetScale(20.0, 20.0, 20.0)
-	effect.ChrSetShow(1, 1, 0.1)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_scale(20.0, 20.0, 20.0)
+	effect.set_effect_character_visible(1, 1, 0.1)
 	while true do
 		vm.wait()
 	end
@@ -34,7 +34,7 @@ end
 --- Ends an effect.
 function script.on_finish()
 	local var0: s32 = 0
-	effect.ChrSetShow(0, 1, 0.04)
+	effect.set_effect_character_visible(0, 1, 0.04)
 	var0 = 0
 	while true do
 		if var0 == 25 then

@@ -3,37 +3,41 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <print>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "character.hpp"
 #include "character_motion.hpp"
 #include "collision.hpp"
 #include "collision_assets.hpp"
-#include "dataread_port.hpp"
 #include "dng_event.hpp"
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
 #include "dungeon_articles.hpp"
+#include "dynamicanime.hpp"
 #include "gameutil.hpp"
 #include "mdslist.hpp"
 #include "menu_character_assets.hpp"
 #include "mg_dataset.hpp"
-#include "mg_texture_port.hpp"
-#include "mg_visual_port.hpp"
 #include "mglib.hpp"
 #include "platform/arena.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/model_assets.hpp"
 #include "platform/texture_catalog.hpp"
+#include "render/texture_runtime.hpp"
+#include "render/visual_mesh.hpp"
 #include "texture_source.hpp"
 #include "visualmotion.hpp"
 
@@ -132,6 +136,91 @@ protected:
     }
 };
 } // namespace
+
+TEST(NativeModelBounds, RejectsSlotAtTheEndOfTheModelList) {
+    CMdsListSet models;
+    ASSERT_EQ(models.mds_list_num, 8);
+    EXPECT_EQ(models.GetMdsList(0), &models.mds_list[0]);
+    EXPECT_EQ(models.GetMdsList(models.mds_list_num - 1), &models.mds_list[7]);
+    EXPECT_EQ(models.GetMdsList(-1), nullptr);
+    EXPECT_EQ(models.GetMdsList(models.mds_list_num), nullptr);
+}
+
+TEST(NativeModelBounds, MapPieceCopyRejectsAClaimedMaterialCountBeyondItsArena) {
+    alignas(64) u_long128 storage[128]{};
+    mgCMemory             arena;
+    arena.stSetBuffer(storage, 128);
+    CMapPiece     source;
+    CMapPiece     copy;
+    PieceMaterial material;
+
+    source.SetMaterial(&material, std::numeric_limits<int>::max());
+    source.Copy(copy, &arena);
+    EXPECT_EQ(copy.material_num, 0);
+    EXPECT_EQ(copy.material, nullptr);
+    EXPECT_EQ(arena.stack_used, 0);
+
+    source.SetMaterial(&material, 1);
+    source.Copy(copy, &arena);
+    EXPECT_EQ(copy.material_num, 1);
+    ASSERT_NE(copy.material, nullptr);
+    EXPECT_EQ(copy.material[0].color_no, material.color_no);
+}
+
+TEST(NativeModelBounds, MotionVisualCopyRejectsInvalidMaterialStorageAndLockedArena) {
+    std::vector<u_long128> storage(1024);
+    mgCMemory              arena;
+    arena.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCVisualMotionMDT visual;
+
+    visual.material_num = 1;
+    visual.material = nullptr;
+    EXPECT_EQ(visual.Copy(&arena), nullptr);
+
+    mgMaterial material{};
+    visual.material = &material;
+    visual.material_num = std::numeric_limits<int>::max();
+    EXPECT_EQ(visual.Copy(&arena), nullptr);
+
+    visual.material_num = 0;
+    arena.stSetLocked(true);
+    EXPECT_EQ(visual.Copy(&arena), nullptr);
+}
+
+TEST(NativeModelBounds, DynamicAnimationTablesInitializeOnlyTheirAllocatedElements) {
+    alignas(64) u_long128 storage[128]{};
+    mgCMemory             arena;
+    arena.stSetBuffer(storage, 128);
+    CDynamicAnime                 animation;
+    std::array<unsigned char, 16> sentinel{};
+    sentinel.fill(0x5a);
+
+    animation.vertex_num = 9;
+    auto *fix_guard = reinterpret_cast<unsigned char *>(arena.stGetTop()) +
+                      ((2 * sizeof(DA_FIX_VERTEX) + 15) / 16) * 16;
+    std::memcpy(fix_guard, sentinel.data(), sentinel.size());
+    animation.NewFixVertexTable(2, &arena);
+    ASSERT_EQ(animation.fix_vertex_num, 2);
+    ASSERT_NE(animation.fix_vertex, nullptr);
+    EXPECT_EQ(std::memcmp(fix_guard, sentinel.data(), sentinel.size()), 0);
+
+    animation.bind_vertex_num = 9;
+    auto *box_guard = reinterpret_cast<unsigned char *>(arena.stGetTop()) +
+                      ((2 * sizeof(DA_BOUNDING_BOX) + 15) / 16) * 16;
+    std::memcpy(box_guard, sentinel.data(), sentinel.size());
+    animation.NewBoundingBoxTable(2, &arena);
+    ASSERT_EQ(animation.bbox_num, 2);
+    ASSERT_NE(animation.bbox, nullptr);
+    EXPECT_EQ(std::memcmp(box_guard, sentinel.data(), sentinel.size()), 0);
+
+    animation.NewFixVertexTable(-1, &arena);
+    EXPECT_EQ(animation.fix_vertex_num, 0);
+    EXPECT_EQ(animation.fix_vertex, nullptr);
+    arena.stSetLocked(true);
+    animation.NewVertexTable(2, &arena);
+    EXPECT_EQ(animation.vertex_num, 0);
+    EXPECT_EQ(animation.init_vertex, nullptr);
+}
 
 TEST_F(NativeModel, DistinctModelDocumentsReuseIdenticalEmbeddedTexturesWithinTableCapacity) {
     std::vector<u_long128> texture_storage(4096);
@@ -272,6 +361,67 @@ TEST_F(NativeModel, CharacterTextureOwnershipDoesNotSkipDeletedReinitializedOrSu
     EXPECT_EQ(textures.SearchHash(name, 2), nullptr);
     EXPECT_EQ(textures.texture_num, 0);
     textures.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, BlocklessCharacterBorrowsItsMapsExistingTextures) {
+    Json model = game;
+    model["texture_sets"] = {0};
+    model["meshes"][0]["materials"][0]["texture"] = "shared";
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    const Json textures_document{
+        {"schema_version", 3                                                                                                                          },
+        {"groups",         {1}                                                                                                                        },
+        {"entries",        Json::array({{{"name", "shared"}, {"block", 1}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array({{{"document", textures_document}}})}}                                },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    CCharacter2                        character;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory, .textures = &textures, .parent = nullptr, .texture_block = 2, .outline = false};
+    std::string                        error;
+    auto                               load = [&] {
+        character.Initialize();
+        memory.stReset();
+        return model_assets::LoadCharacter(character, "models/model.gltf", "info", options, error);
+    };
+    const auto catalog_path = directory / "data/textures/map/piece.json";
+    std::filesystem::create_directories(catalog_path.parent_path());
+    Write(catalog_path, textures_document);
+    std::string catalog_error;
+    ASSERT_TRUE(texture_catalog::Load(directory / "data", catalog_error)) << catalog_error;
+    MgTextureEnterDocument(&textures, "textures/map/piece.json", 0, &texture_memory, nullptr);
+    char  name[] = "shared";
+    auto *map_texture = textures.GetTexture(name, 1);
+    ASSERT_NE(map_texture, nullptr);
+    options.texture_block = -1;
+    ASSERT_TRUE(load()) << error;
+    ASSERT_NE(character.GetFrame(), nullptr);
+    ASSERT_NE(character.GetFrame()->visual, nullptr);
+    ASSERT_NE(character.GetFrame()->visual->GetMaterial(0), nullptr);
+    EXPECT_EQ(character.GetFrame()->visual->GetMaterial(0)->texture, map_texture);
+    EXPECT_EQ(textures.GetTexture(name, 1), map_texture);
+    EXPECT_EQ(textures.GetTexture(name, 0), nullptr);
+    EXPECT_EQ(textures.texture_num, 1);
+    model_assets::DeleteCharacterTextures(character, 0, 0);
+    EXPECT_EQ(textures.GetTexture(name, 1), map_texture);
+    textures.Initialize(0x1000, -1);
+    texture_catalog::Clear();
 }
 
 TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
@@ -512,7 +662,12 @@ TEST_F(NativeModel, ExternalMotionPlaysActionsPublishedIntoTheCharacterModelAndB
     const Json empty = {
         {"asset", {{"version", "2.0"}}}
     };
-    ASSERT_TRUE(LoadNamedActionCharacter(character, empty, extension, memory, error)) << error;
+    std::vector<u_long128> extension_storage(16384);
+    mgCMemory              extension_memory;
+    extension_memory.stSetBuffer(extension_storage.data(), static_cast<int>(extension_storage.size()));
+    ASSERT_TRUE(LoadNamedActionCharacter(character, empty, extension, extension_memory, error)) << error;
+    ASSERT_TRUE(dc2::character::ResourcesLive(character));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, extension_memory, dc2::memory::ArenaResetKind::Stack));
     auto *wave = character.GetKeyListPtr(const_cast<char *>("wave_game"), nullptr);
     ASSERT_NE(wave, nullptr);
     // Extension actions continue after every game frame the base set uses.
@@ -529,6 +684,11 @@ TEST_F(NativeModel, ExternalMotionPlaysActionsPublishedIntoTheCharacterModelAndB
     character.DeleteExtMotion();
     EXPECT_TRUE(character_motion::Actions(character.motion[1]).empty());
     EXPECT_FALSE(character_motion::Actions(character.motion[0]).empty());
+    EXPECT_EQ(character.motion[1].motion_list, nullptr);
+    EXPECT_EQ(character.shadow_motion[1].motion_list, nullptr);
+    EXPECT_FALSE(dc2::character::ResourcesWouldRetireOnReset(character, extension_memory, dc2::memory::ArenaResetKind::Stack));
+    extension_memory.stClearUsed();
+    EXPECT_TRUE(dc2::character::ResourcesLive(character));
 }
 
 TEST_F(NativeModel, ProfilesNamingUnknownActionsOrMissingExternalActionsFail) {
@@ -669,7 +829,7 @@ TEST_F(NativeModel, SelectsNondefaultStandardScenesWithoutGameplayJson) {
 }
 
 TEST_F(NativeModel, DungeonArticlesLoadNamedScenesAndAllDirectChildCharacters) {
-    const auto metadata = game;
+    const auto                            metadata = game;
     constexpr std::array<const char *, 6> scenes{"bikkuri_aka", "bteffe_att_a", "bteffe_att_b", "bteffe_att_c", "bteffe_cyc", "cursor"};
     auto                                  bundle = gltf;
     bundle["nodes"] = Json::array();
@@ -763,6 +923,30 @@ TEST_F(NativeModel, PreservesEscapedGameNamesAndUntexturedNullMetadata) {
     auto *frame = Instantiate();
     ASSERT_NE(frame, nullptr);
     EXPECT_STREQ(frame->name, "\x81\x5C");
+}
+
+TEST_F(NativeModel, RejectsMetadataNumbersBeforeNarrowingNativeFields) {
+    const auto source = gltf.dump();
+    const auto bytes = std::as_bytes(std::span(source));
+    const auto original = game;
+    for (int malformed = 0; malformed < 4; ++malformed) {
+        auto  metadata = original;
+        auto &mesh = metadata.at("meshes").at(0);
+        if (malformed == 0) {
+            mesh["vertex_count"] = 1.0e100;
+        } else if (malformed == 1) {
+            mesh["vertex_count"] = std::numeric_limits<std::uint64_t>::max();
+        } else if (malformed == 2) {
+            mesh["primitives"][0]["material"] = 1.0e100;
+        } else {
+            mesh["primitives"][0]["source_vertices"][0] = 1.0e100;
+        }
+        mgLoadData load{};
+        load.memory = &memory;
+        std::string error;
+        EXPECT_EQ(model_assets::LoadModel(bytes, metadata, load, error), nullptr) << malformed;
+        EXPECT_FALSE(error.empty()) << malformed;
+    }
 }
 
 TEST_F(NativeModel, LoadsActualGltfBytesWithExplicitGameplayJson) {
@@ -1348,6 +1532,22 @@ TEST_F(NativeModel, ModelListsIncludeModelsAddedOnlyByDatapacks) {
     ASSERT_NE(added, nullptr);
     ASSERT_NE(added->frame, nullptr);
     EXPECT_EQ(static_cast<mgCVisualMDT *>(added->frame->visual)->vertex_num, 3);
+
+    alignas(16) std::array<u_long128, 1> tiny_storage{};
+    mgCMemory                            tiny_memory;
+    tiny_memory.stSetBuffer(tiny_storage.data(), static_cast<int>(tiny_storage.size()));
+    CMdsList tiny_list{};
+    tiny_list.LoadPCPFile(label, reinterpret_cast<u_int *>(metadata.data()), &tiny_memory, 0);
+    EXPECT_EQ(tiny_list.num, 0);
+    EXPECT_EQ(tiny_memory.stGetUsed(), 0);
+
+    const auto producer = added->resource_lifetime;
+    ASSERT_TRUE(producer.IsLive());
+    memory.stClearUsed();
+    EXPECT_FALSE(producer.IsLive());
+    EXPECT_EQ(list.GetList(added_name), nullptr);
+    EXPECT_EQ(list.GetList(0), nullptr);
+
     TextureSourceForget(metadata.data());
     DataReadRegisterBuffer(metadata.data(), 0);
 }
@@ -1773,7 +1973,7 @@ TEST_F(NativeModel, ShadowCpuSkinRetainsMoreThanThirtyTwoBones) {
         ++count;
     }
     ASSERT_EQ(count, 34);
-    std::vector<std::array<float, 16> > bind(35);
+    std::vector<std::array<float, 16>> bind(35);
     for (auto &matrix : bind) {
         matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1;
     }
@@ -1783,7 +1983,7 @@ TEST_F(NativeModel, ShadowCpuSkinRetainsMoreThanThirtyTwoBones) {
     tagFRAME_INF *info = nullptr;
     AnimeDataInit(frame, &motion, &memory, &info);
     ASSERT_NE(info, nullptr);
-    DeformMesh(frame, &motion, info, false);
+    DeformMesh(frame, &motion, motion.frame_info_view, false);
     EXPECT_NEAR(static_cast<mgCVisualMDT *>(frame->visual)->vertex[0][0], 2.0f, .0001f);
 }
 
@@ -2119,23 +2319,24 @@ TEST_F(NativeModel, ReadsAllStandardJointGroupsAndPreservesNativeGpuInfluenceLim
 }
 
 TEST(NativeCharacterRetail, LoadsConvertedC01ProfileAndEvaluatesItsNativeMotion) {
-    const auto *fixture = std::getenv("CT_NATIVE_CHARACTER_FIXTURE");
-    if (!fixture) {
-        GTEST_SKIP() << "CT_NATIVE_CHARACTER_FIXTURE selects an extracted glTF/game JSON pair";
+    const auto *data = std::getenv("DC2_DATA");
+    if (data == nullptr || *data == '\0') {
+        GTEST_SKIP() << "DC2_DATA supplies the converted character and gameplay documents";
     }
-    std::filesystem::path path(fixture);
-    std::filesystem::path sidecar = path;
-    sidecar.replace_extension(".game.json");
-    std::ifstream gltf_file(path, std::ios::binary);
-    std::ifstream game_file(sidecar, std::ios::binary);
-    ASSERT_TRUE(gltf_file && game_file);
-    const std::string gltf((std::istreambuf_iterator<char>(gltf_file)), {});
-    Json              game;
-    game_file >> game;
-    std::vector<u_long128> arena(2 * 1024 * 1024);
-    std::vector<u_long128> texture_arena(65536);
-    mgCMemory              memory;
-    mgCMemory              textures;
+    const std::filesystem::path path("chara/c01_base.gltf");
+    std::vector<u_long128>      arena(2 * 1024 * 1024);
+    std::vector<u_long128>      texture_arena(65536);
+    mgCMemory                   memory;
+    mgCMemory                   textures;
+
+    struct AssetCleanup {
+        ~AssetCleanup() {
+            mgTexManager.Initialize(0x1000, -1);
+            model_assets::Clear();
+            datapacks::Clear();
+        }
+    } cleanup;
+
     memory.stSetBuffer(arena.data(), static_cast<int>(arena.size()));
     textures.stSetBuffer(texture_arena.data(), static_cast<int>(texture_arena.size()));
     mgTexManager.SetTableBuffer(1024, 64, &textures);
@@ -2145,14 +2346,13 @@ TEST(NativeCharacterRetail, LoadsConvertedC01ProfileAndEvaluatesItsNativeMotion)
     model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
     options.outline = false;
     std::string error;
-    // The fixture's directory supplies its buffer file and PNGs.
-    datapacks::Load(path.parent_path());
-    ASSERT_TRUE(model_assets::LoadCharacter(character, {reinterpret_cast<const std::byte *>(gltf.data()), gltf.size()}, game, "info", options, error)) << error;
+    DataReadIndex(data);
+    ASSERT_TRUE(model_assets::LoadCharacter(character, path, "info", options, error)) << error;
     ASSERT_NE(character.CObjectFrame::frame, nullptr);
     EXPECT_GT(character.CObjectFrame::frame->frame_num, 1);
     ASSERT_NE(character.GetKeyListIndexPtr(0, nullptr), nullptr);
     EXPECT_GT(character.key_num[0], 1);
-    const auto estimate = model_assets::EstimateCharacterMemory(path.filename(), "info", error);
+    const auto estimate = model_assets::EstimateCharacterMemory(path, "info", error);
     ASSERT_TRUE(estimate.has_value()) << error;
     EXPECT_GE(*estimate, static_cast<std::size_t>(memory.stack_used) * 16);
     std::println(stderr, "native c01 arena: {} bytes; allocation estimate: {} bytes", static_cast<std::size_t>(memory.stack_used) * 16, *estimate);
@@ -2171,7 +2371,180 @@ TEST(NativeCharacterRetail, LoadsConvertedC01ProfileAndEvaluatesItsNativeMotion)
             }
         }
     }
-    mgTexManager.Initialize(0x1000, -1);
-    model_assets::Clear();
-    datapacks::Clear();
+}
+
+TEST(NativeModelBounds, MapPieceCharacterCopyRejectsAnArenaTooSmallForTheHostController) {
+    static char key;
+    auto       *storage = reinterpret_cast<u_long128 *>(ArenaBlock(&key, 2 * sizeof(u_long128)));
+    mgCMemory   arena;
+    arena.stSetBuffer(storage, 2);
+    CCharacter2 character;
+    CMapPiece   source;
+    CMapPiece   destination;
+    source.chara = &character;
+    source.Copy(destination, &arena);
+    EXPECT_EQ(destination.chara, nullptr);
+    EXPECT_EQ(arena.stack_used, 0);
+}
+
+TEST_F(NativeModel, AStrictEndOrLockedFrameAllocationReturnsAnErrorBeforeChangingTheArena) {
+    Write(directory / "data/models/model.gltf", gltf);
+    static char    identity;
+    constexpr auto reserved = (sizeof(mgCFrame) + 15) / 16 + 2;
+    auto          *buffer = reinterpret_cast<u_long128 *>(ArenaBlock(&identity, reserved * sizeof(u_long128)));
+    for (bool locked : {false, true}) {
+        mgCMemory small;
+        small.stSetBuffer(buffer, static_cast<int>(reserved));
+        ASSERT_EQ(small.stGetSize(), static_cast<int>(reserved));
+        small.stSetLocked(locked);
+        mgLoadData load{};
+        load.memory = &small;
+        std::string error;
+        EXPECT_EQ(model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error), nullptr);
+        EXPECT_FALSE(error.empty());
+        EXPECT_EQ(small.stGetUsed(), 0);
+    }
+}
+
+TEST(ModelCatalogLifetime, ImageNamesAndBlocksRejectResetAndAddressReuse) {
+    alignas(16) std::array<u_long128, 64> storage{};
+    mgCMemory                             memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMdsListSet     catalog;
+    mgCEnterIMGInfo info{};
+    char            name[] = "image.img";
+    ASSERT_TRUE(catalog.LoadIMGFile(name, &info, &memory));
+    ASSERT_NE(catalog.SearchIMGList(name), nullptr);
+    memory.stClearUsed();
+    EXPECT_EQ(catalog.SearchIMGList(name), nullptr);
+    int block = -2;
+    EXPECT_EQ(catalog.GetTextureBlockNo(0, &block, 1), 0);
+    EXPECT_EQ(block, -2);
+    char replacement[] = "replacement.img";
+    ASSERT_TRUE(catalog.LoadIMGFile(replacement, &info, &memory));
+    EXPECT_EQ(catalog.SearchIMGList(name), nullptr);
+    EXPECT_NE(catalog.SearchIMGList(replacement), nullptr);
+}
+
+TEST_F(NativeModel, CharacterResourceCapabilitiesFollowModelMotionAndCopiedStorage) {
+    const auto             commands = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"}, {"args", Json::array()}                                            },
+        {{"command", "KEY"},       {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                            }
+    });
+    const auto             profile = NamedActionCharacter(game, commands);
+    const auto             bytes = gltf.dump();
+    std::vector<u_long128> motion_storage(16384), copy_storage(16384), unrelated_storage(16);
+    mgCMemory              motions, copies, unrelated;
+    motions.stSetBuffer(motion_storage.data(), static_cast<int>(motion_storage.size()));
+    copies.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+    unrelated.stSetBuffer(unrelated_storage.data(), static_cast<int>(unrelated_storage.size()));
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &motions, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character, copied;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, {reinterpret_cast<const std::byte *>(bytes.data()), bytes.size()}, profile, "info", options, error)) << error;
+    ASSERT_TRUE(dc2::character::ResourcesLive(character));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, memory, dc2::memory::ArenaResetKind::Stack));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, motions, dc2::memory::ArenaResetKind::Stack));
+    EXPECT_FALSE(dc2::character::ResourcesWouldRetireOnReset(character, unrelated, dc2::memory::ArenaResetKind::Stack));
+    character.Copy(copied, &copies);
+    ASSERT_NE(copied.CObjectFrame::frame, nullptr);
+    ASSERT_TRUE(dc2::character::ResourcesLive(copied));
+    unrelated.stClearUsed();
+    EXPECT_TRUE(dc2::character::ResourcesLive(copied));
+    copies.stClearUsed();
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+    EXPECT_TRUE(dc2::character::ResourcesLive(character));
+    character.Copy(copied, &copies);
+    ASSERT_TRUE(dc2::character::ResourcesLive(copied));
+    motions.stClearUsed();
+    EXPECT_FALSE(dc2::character::ResourcesLive(character));
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+    // Reusing the motion address cannot revive either immutable producer snapshot.
+    EXPECT_NE(dc2::memory::NewArray<u8>(motions, 16), nullptr);
+    EXPECT_FALSE(dc2::character::ResourcesLive(character));
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+}
+
+TEST_F(NativeModel, RepeatingAnUnchangedResourceSlotReusesItsImmutableSnapshot) {
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    CCharacter2 character;
+    character.CObjectFrame::frame = frame;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(character, memory));
+    ASSERT_TRUE(dc2::character::RetainResource(character, dc2::character::ResourceChannel::Sword, 0, memory));
+    ASSERT_TRUE(dc2::character::RetainResource(character, dc2::character::ResourceChannel::Sword, 1, memory));
+    auto before = character.resource_state.Acquire<dc2::character::ResourceState>();
+    ASSERT_NE(before, nullptr);
+    ASSERT_TRUE(dc2::character::RetainResource(character, dc2::character::ResourceChannel::Sword, 0, memory));
+    EXPECT_EQ(character.resource_state.Acquire<dc2::character::ResourceState>(), before);
+    auto reordered = *before;
+    reordered.producers.push_back(reordered.producers.front());
+    std::reverse(reordered.producers.begin(), reordered.producers.end());
+    ASSERT_TRUE(dc2::character::PublishResources(character, std::move(reordered)));
+    EXPECT_EQ(character.resource_state.Acquire<dc2::character::ResourceState>(), before);
+}
+
+TEST_F(NativeModel, ANewImageSlotOnACopyPreservesItsSharedBaseImageProducer) {
+    const auto image_document = [](const char *name) {
+        return Json{
+            {"schema_version", 3                                                                                                        },
+            {"groups",         {0}                                                                                                      },
+            {"entries",        Json::array({{{"name", name}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+        };
+    };
+    Json model = game;
+    model["texture_sets"] = {0};
+    model["meshes"][0]["materials"][0]["texture"] = "shared_base";
+    Json base = {
+        {"schema_version", 1                                                                                                                                                  },
+        {"kind",           "character"                                                                                                                                        },
+        {"models",         Json::array({model})                                                                                                                               },
+        {"resources",      {{"texture_sets", Json::array({{{"document", image_document("shared_base")}}})}}                                                                   },
+        {"profiles",       {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({{{"type", "resource"}, {"kind", "model"}, {"index", 0}}})}}})}}}}}
+    };
+    Json extension = {
+        {"schema_version", 1                                                                                                                                                                          },
+        {"kind",           "character"                                                                                                                                                                },
+        {"models",         Json::array()                                                                                                                                                              },
+        {"resources",      {{"texture_sets", Json::array({{{"document", image_document("extension")}}})}}                                                                                             },
+        {"profiles",       {{"info", {{"commands", Json::array({{{"command", "IMG"}, {"args", Json::array({IntegerArgument(1), {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}})}}})}}}}}
+    };
+    std::vector<u_long128> base_image_storage(4096), extension_image_storage(4096), copy_storage(4096), table_storage(4096);
+    mgCMemory              base_images, extension_images, copies, table_memory;
+    base_images.stSetBuffer(base_image_storage.data(), static_cast<int>(base_image_storage.size()));
+    extension_images.stSetBuffer(extension_image_storage.data(), static_cast<int>(extension_image_storage.size()));
+    copies.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+    table_memory.stSetBuffer(table_storage.data(), static_cast<int>(table_storage.size()));
+    mgCTextureManager textures;
+
+    struct TextureCleanup {
+        mgCTextureManager &manager;
+
+        ~TextureCleanup() { manager.Initialize(0x1000, -1); }
+    } cleanup{textures};
+
+    textures.SetTableBuffer(16, 8, &table_memory);
+    textures.Initialize(0x1000, -1);
+    CCharacter2                        original, copied;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &base_images, .textures = &textures};
+    options.texture_block = 2;
+    options.outline = false;
+    const auto                       bytes = gltf.dump();
+    const std::span<const std::byte> source(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    std::string                      error;
+    ASSERT_TRUE(model_assets::LoadCharacter(original, source, base, "info", options, error)) << error;
+    original.Copy(copied, &copies);
+    ASSERT_TRUE(dc2::character::ResourcesLive(copied));
+    options.model_memory = &copies;
+    options.motion_memory = &copies;
+    options.image_memory = &extension_images;
+    ASSERT_TRUE(model_assets::LoadCharacter(copied, source, extension, "info", options, error)) << error;
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(copied, base_images, dc2::memory::ArenaResetKind::Stack));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(copied, extension_images, dc2::memory::ArenaResetKind::Stack));
+    base_images.stClearUsed();
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
 }

@@ -1,23 +1,34 @@
 #include "vu1_oracle/sdw_oracle.hpp"
-#include "vu1_oracle/vu1_pack.hpp"
 
 #include <cmath>
+
+#include "vu1_oracle/vu1_pack.hpp"
 
 namespace dc::vu1 {
 namespace {
 
 // Vertex indices: 0..2 = C0..C2, 3..5 = T0..T2. Spec 5.3.
 constexpr uint8_t kPathA[kSdwQuadCount][4] = {
-    {0, 3, 4, 1}, {1, 4, 5, 2}, {2, 5, 3, 0}, {5, 4, 3, 3}, {0, 1, 2, 2}};
+    {0, 3, 4, 1},
+    {1, 4, 5, 2},
+    {2, 5, 3, 0},
+    {5, 4, 3, 3},
+    {0, 1, 2, 2}
+};
 constexpr uint8_t kPathB[kSdwQuadCount][4] = {
-    {0, 1, 4, 3}, {1, 2, 5, 4}, {2, 0, 3, 5}, {3, 4, 5, 5}, {2, 1, 0, 0}};
+    {0, 1, 4, 3},
+    {1, 2, 5, 4},
+    {2, 0, 3, 5},
+    {3, 4, 5, 5},
+    {2, 1, 0, 0}
+};
 
-bool OutsideFrustum(const Vec4& v) {
+bool OutsideFrustum(const Vec4 &v) {
     const float aw = std::fabs(v.w);
     return v.x > aw || v.x < -aw || v.y > aw || v.y < -aw || v.z > aw || v.z < -aw;
 }
 
-SdwScreenVertex Project(const Mat4& cs, const Vec4& v) {
+SdwScreenVertex Project(const Mat4 &cs, const Vec4 &v) {
     const Vec4 p = Mul(cs, v);
     const Vec4 s = p * (1.0f / p.w);
     return {
@@ -29,9 +40,9 @@ SdwScreenVertex Project(const Mat4& cs, const Vec4& v) {
     };
 }
 
-}  // namespace
+} // namespace
 
-SdwLight SdwPrepare(const SdwParams& p) {
+SdwLight SdwPrepare(const SdwParams &p) {
     const Vec4  a{.x = Dot3(p.object[0], p.light), .y = Dot3(p.object[1], p.light), .z = Dot3(p.object[2], p.light), .w = 0.0f};
     const float len = std::sqrt(Dot3(a, a));
     const Vec4  a_hat{.x = a.x / len, .y = a.y / len, .z = a.z / len, .w = 0.0f};
@@ -43,21 +54,21 @@ SdwLight SdwPrepare(const SdwParams& p) {
     return {.a_hat = a_hat, .lc = lc, .mirrored = det < 0.0f};
 }
 
-SdwTriangle SdwExtrude(const SdwParams& p, const SdwLight& light, Vec4 v0, Vec4 v1, Vec4 v2) {
+SdwTriangle SdwExtrude(const SdwParams &p, const SdwLight &light, Vec4 v0, Vec4 v1, Vec4 v2) {
     SdwTriangle tri{};
-    const Vec4 in[3] = {v0, v1, v2};
+    const Vec4  in[3] = {v0, v1, v2};
     for (uint32_t j = 0; j < 3; ++j) {
         tri.c[j] = Mul(p.vc, in[j]);
         tri.t[j] = Mul(p.sm, in[j]);
     }
 
-    for (const Vec4& c : tri.c) {
+    for (const Vec4 &c : tri.c) {
         if (OutsideFrustum(c)) {
             tri.reject = SdwReject::CClip;
             return tri;
         }
     }
-    for (const Vec4& t : tri.t) {
+    for (const Vec4 &t : tri.t) {
         if (OutsideFrustum(t)) {
             tri.reject = SdwReject::TClip;
             return tri;
@@ -74,20 +85,20 @@ SdwTriangle SdwExtrude(const SdwParams& p, const SdwLight& light, Vec4 v0, Vec4 
     }
 
     tri.path = tri.q < 0.0f ? SdwPath::B : SdwPath::A;
-    const Vec4 pts[6] = {tri.c[0], tri.c[1], tri.c[2], tri.t[0], tri.t[1], tri.t[2]};
-    const auto& order = tri.path == SdwPath::B ? kPathB : kPathA;
+    const Vec4  pts[6] = {tri.c[0], tri.c[1], tri.c[2], tri.t[0], tri.t[1], tri.t[2]};
+    const auto &order = tri.path == SdwPath::B ? kPathB : kPathA;
 
     std::array<bool, kSdwQuadCount> back{};
     for (uint32_t g = 0; g < kSdwQuadCount; ++g) {
-        SdwQuad& quad = tri.quads[g];
+        SdwQuad &quad = tri.quads[g];
         for (uint32_t i = 0; i < 4; ++i) {
             quad.v[i] = Project(p.cs, pts[order[g][i]]);
         }
 
         // Spec tabulates s in 12.4 units; the sign is taken on the float S, before ftoi4 (5.4).
-        const Vec4& s0 = quad.v[0].s;
-        const Vec4& s1 = quad.v[1].s;
-        const Vec4& s2 = quad.v[2].s;
+        const Vec4 &s0 = quad.v[0].s;
+        const Vec4 &s1 = quad.v[1].s;
+        const Vec4 &s2 = quad.v[2].s;
         const float e1x = s1.x - s0.x;
         const float e1y = s1.y - s0.y;
         const float e2x = s2.x - s0.x;
@@ -106,7 +117,7 @@ SdwTriangle SdwExtrude(const SdwParams& p, const SdwLight& light, Vec4 v0, Vec4 
     return tri;
 }
 
-std::vector<SdwKick> SdwKickOrder(const std::array<bool, kSdwQuadCount>& back) {
+std::vector<SdwKick> SdwKickOrder(const std::array<bool, kSdwQuadCount> &back) {
     uint32_t front_count = 0;
     uint32_t back_count = 0;
     for (bool b : back) {
@@ -142,4 +153,4 @@ std::vector<SdwKick> SdwKickOrder(const std::array<bool, kSdwQuadCount>& back) {
     return kicks;
 }
 
-}  // namespace dc::vu1
+} // namespace dc::vu1

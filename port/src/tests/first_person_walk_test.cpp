@@ -3,20 +3,22 @@
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <numbers>
 
-#include "camera_control_port.hpp"
 #include "dng_main.hpp"
-#include "editctrl_port.hpp"
 #include "editloop.hpp"
 #include "first_person_walk.hpp"
+#include "input/camera_control_state.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "map.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "object/world/town_control.hpp"
 #include "photo.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/input_script.hpp"
+#include "render/renderer.hpp"
+#include "scoped_global_object.hpp"
 #include "stubs/photo.hpp"
 #include "sprint_setting.hpp"
 #include "userdata.hpp"
@@ -26,6 +28,56 @@ extern int           PortTownEyeInitialized asm("EditCtrl_EyeInitialized");
 extern int           PortDungeonEyeInitialized asm("DngMain_EyeInitialized");
 
 namespace {
+/**
+ * Owns dungeon inputs until their global references have been restored.
+ */
+struct DungeonInputState {
+    CScene                            scene;  /**< Scene whose battle-area member is published with it. */
+    CCameraControl                    camera; /**< Camera referenced by the owned scene. */
+    std::shared_ptr<CActionChara>     chara_owner = std::make_shared<CActionChara>();
+    CActionChara                     &chara = *chara_owner;     /**< Player referenced by the dungeon globals. */
+    std::unique_ptr<CUserDataManager> user;                     /**< Optional user data for cases exercising dungeon controls. */
+    CScene                           *previous_scene = nullptr; /**< Scene binding retained by the enclosing scope. */
+    DNG_BATTLE_AREA                  *previous_area = nullptr;  /**< Battle-area binding retained by the enclosing scope. */
+    CActionChara                     *previous_chara = nullptr; /**< Player binding retained by the enclosing scope. */
+    CUserDataManager                 *previous_user = nullptr;  /**< User binding retained by the enclosing scope. */
+    bool                              bound = false;            /**< Whether this scope has published its owned inputs. */
+
+    explicit DungeonInputState(bool with_user = false) {
+        if (with_user) {
+            user = std::make_unique<CUserDataManager>();
+        }
+    }
+
+    DungeonInputState(const DungeonInputState &) = delete;
+    DungeonInputState &operator=(const DungeonInputState &) = delete;
+    DungeonInputState(DungeonInputState &&) = delete;
+    DungeonInputState &operator=(DungeonInputState &&) = delete;
+
+    void Bind() {
+        previous_scene = DngMainScene;
+        previous_area = BattleAreaScene;
+        previous_chara = MainChara__2;
+        previous_user = DngUserData;
+        DngMainScene = &scene;
+        BattleAreaScene = &scene.battle_area;
+        MainChara__2 = &chara;
+        if (user) {
+            DngUserData = user.get();
+        }
+        bound = true;
+    }
+
+    ~DungeonInputState() {
+        if (bound) {
+            DngMainScene = previous_scene;
+            BattleAreaScene = previous_area;
+            MainChara__2 = previous_chara;
+            DngUserData = previous_user;
+        }
+    }
+};
+
 struct RestoreFirstPersonState {
     std::function<void()> restore;
 
@@ -50,7 +102,7 @@ struct RestoreFirstPersonState {
             TakePhotoMode = photo;
             DebugInfo.debug_camera = debug;
         };
-        std::vector<std::pair<int *, int> > flags;
+        std::vector<std::pair<int *, int>> flags;
         for (auto *flag : {&PortLoopNo, &PortTownLoopMode, &PortTownControlMode, &PortTownLockChara,
                            &PortTownPause, &PortEditLadderMode, &PortDungeonDebugPause,
                            &PortTownEyeInitialized, &PortDungeonEyeInitialized}) {
@@ -75,12 +127,14 @@ TEST(FirstPersonWalk, AcceptedDisplacementRestoresThirdPersonEyeAtNewPlayerPosit
     const float             before[] = {10, 20, 30, 1};
     const float             after[] = {310, 5, -70, 1};
     for (bool dungeon : {false, true}) {
-        CScene         scene;
-        CCameraControl camera;
-        CActionChara   chara;
+        DungeonInputState inputs;
+        auto             &scene = inputs.scene;
+        auto             &camera = inputs.camera;
+        auto             &chara = inputs.chara;
+        auto              chara_owner = inputs.chara_owner;
         chara.next = nullptr;
         scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
-        scene.AssignChara(0, &chara, const_cast<char *>("player"));
+        scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
         scene.active_camera = scene.player_chara = 0;
         float      *saved = dungeon ? PortDungeonSavedEye : PortTownSavedEye;
         const float entry[] = {10, 60, 130, 1};
@@ -89,9 +143,7 @@ TEST(FirstPersonWalk, AcceptedDisplacementRestoresThirdPersonEyeAtNewPlayerPosit
         camera.SetPos(after[0], after[1], after[2]);
         camera.FollowOff();
         if (dungeon) {
-            DngMainScene = &scene;
-            BattleAreaScene = &scene.battle_area;
-            MainChara__2 = &chara;
+            inputs.Bind();
             DngStatus.eye_view = 1;
             PortDungeonEyeInitialized = 1;
             TakePhotoMode = TAKE_PHOTO_OFF;
@@ -115,10 +167,11 @@ TEST(FirstPersonWalk, AirborneContinuationKeepsFreshMouseLookAndLocomotion) {
         int GetColPoly(CCPoly * /*polys*/, mgVu0FBOX & /*box*/, int /*max*/) override { return 0; }
     } map;
 
-    CScene           scene;
-    CCameraControl   camera;
-    CActionChara     chara;
-    CUserDataManager user;
+    DungeonInputState inputs(true);
+    auto             &scene = inputs.scene;
+    auto             &camera = inputs.camera;
+    auto             &chara = inputs.chara;
+    auto             &user = *inputs.user;
     chara.Initialize(nullptr);
     scene.AssignMap(0, &map, const_cast<char *>("map"));
     scene.active_map = 0;
@@ -129,10 +182,8 @@ TEST(FirstPersonWalk, AirborneContinuationKeepsFreshMouseLookAndLocomotion) {
     scene.battle_area.pause_flag = 0;
     scene.battle_area.script.running = 0;
     scene.battle_area.lock_on_mode = -1;
-    DngMainScene = &scene;
-    BattleAreaScene = &scene.battle_area;
-    MainChara__2 = &chara;
-    DngUserData = &user;
+    inputs.Bind();
+
     user.active_chr_no = USER_CHARA_MAX;
     PortLoopNo = LOOP_DUNGEON;
     DngStatus = {};
@@ -219,12 +270,13 @@ TEST(FirstPersonWalk, ViewRelativeForwardBackAndStrafePreserveMagnitude) {
 TEST(FirstPersonWalk, TownGatesSpecialOwnersAndKeepsPadLook) {
     RestoreFirstPersonState restore;
     auto                   &scene = *GetMainScene();
-    CCharacter2             chara;
+    auto                    chara_owner = std::make_shared<CCharacter2>();
+    auto                   &chara = *chara_owner;
     CCameraControl          camera;
     camera.ControlOff();
     camera.FollowOff();
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.player_chara = scene.active_camera = scene.event_run = 0;
     PortLoopNo = LOOP_EDIT;
     PortTownLoopMode = EDIT_LOOP_WALK;
@@ -296,15 +348,14 @@ TEST(FirstPersonWalk, TownGatesSpecialOwnersAndKeepsPadLook) {
 
 TEST(FirstPersonWalk, DungeonGatesPhotoRidepodPauseEventsAndActions) {
     RestoreFirstPersonState restore;
-    CScene                  scene;
-    CCameraControl          camera;
-    CActionChara            chara;
-    CUserDataManager        user;
+    DungeonInputState       inputs(true);
+    auto                   &scene = inputs.scene;
+    auto                   &camera = inputs.camera;
+    auto                   &chara = inputs.chara;
+    auto                   &user = *inputs.user;
     chara.next = nullptr;
-    DngMainScene = &scene;
-    BattleAreaScene = &scene.battle_area;
-    MainChara__2 = &chara;
-    DngUserData = &user;
+    inputs.Bind();
+
     PortLoopNo = LOOP_DUNGEON;
     DngStatus = {};
     DngStatus.eye_view = 1;
@@ -418,27 +469,26 @@ extern EditCharaMotionMode PortTownMotionMode asm("EditCtrl_MotionMode");
 extern int                 PortTownMotionCount asm("EditCtrl_MotionCount");
 
 TEST(FirstPersonWalk, TownLocomotionAirborneAndLandingKeepFreshMouseLook) {
-    RestoreFirstPersonState restore;
-    const int               old_rate = mgFrameRate;
+    const int old_rate = mgFrameRate;
     mgFrameRate = 2;
-    auto        save = std::make_unique<CSaveData>();
-    auto       *old_save = PortActiveSaveData;
-    const int   old_fall = PortTownFallFlag;
-    const int   old_count = PortTownMotionCount;
-    const auto  old_motion = PortTownMotionMode;
-    const float old_heading = PortEditEyeHeading;
-    const float old_tilt = PortEditEyeTilt;
-    PortActiveSaveData = save.get();
+    auto           save = dc2::test::BindGlobalOwner<PortActiveSaveData>(std::make_unique<CSaveData>());
+    const int      old_fall = PortTownFallFlag;
+    const int      old_count = PortTownMotionCount;
+    const auto     old_motion = PortTownMotionMode;
+    const float    old_heading = PortEditEyeHeading;
+    const float    old_tilt = PortEditEyeTilt;
     auto          &scene = *GetMainScene();
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     camera.FollowOff();
     camera.ControlOff();
     chara.SetPosition(0, 100, 0);
     camera.SetPos(0, 128, 0);
     camera.SetRef(0, 128, 10);
+    RestoreFirstPersonState restore;
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.player_chara = scene.active_camera = scene.event_run = 0;
     PortLoopNo = LOOP_EDIT;
     PortTownLoopMode = EDIT_LOOP_WALK;
@@ -500,21 +550,19 @@ TEST(FirstPersonWalk, TownLocomotionAirborneAndLandingKeepFreshMouseLook) {
     PortTownMotionMode = old_motion;
     PortEditEyeHeading = old_heading;
     PortEditEyeTilt = old_tilt;
-    PortActiveSaveData = old_save;
     mgFrameRate = old_rate;
 }
 
 TEST(FirstPersonWalk, DungeonEyeEntryExitPublishCutsBeforeDrawing) {
     RestoreFirstPersonState restore;
-    CScene                  scene;
-    CCameraControl          camera;
-    CActionChara            chara;
+    DungeonInputState       inputs;
+    auto                   &scene = inputs.scene;
+    auto                   &camera = inputs.camera;
+    auto                   &chara = inputs.chara;
     chara.next = nullptr;
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.active_camera = scene.event_run = 0;
-    DngMainScene = &scene;
-    BattleAreaScene = &scene.battle_area;
-    MainChara__2 = &chara;
+    inputs.Bind();
     PortLoopNo = LOOP_DUNGEON;
     DngStatus.eye_view = 0;
     TakePhotoMode = TAKE_PHOTO_OFF;
@@ -546,9 +594,7 @@ TEST(FirstPersonWalk, TownReleasedWalkFallsLandsAndRestoresFollowOffset) {
     const int               old_fall = PortTownFallFlag;
     const auto              old_motion = PortTownMotionMode;
     const auto              old_saved_eye = std::to_array(PortTownSavedEye);
-    auto                    save = std::make_unique<CSaveData>();
-    auto                   *old_save = PortActiveSaveData;
-    PortActiveSaveData = save.get();
+    auto                    save = dc2::test::BindGlobalOwner<PortActiveSaveData>(std::make_unique<CSaveData>());
     mgFrameRate = 2;
 
     class FloorMap : public CMap {
@@ -575,13 +621,14 @@ TEST(FirstPersonWalk, TownReleasedWalkFallsLandsAndRestoresFollowOffset) {
     } map;
 
     CScene         scene;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     CPadControl    pad{};
     scene.AssignMap(0, &map, const_cast<char *>("map"));
     scene.map[0].status |= SCENE_DATA_ACTIVE;
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.player_chara = scene.active_camera = scene.active_map = scene.event_run = 0;
     chara.SetPosition(0, 100, 0); // Just over the ledge, before gravity starts.
     camera.FollowOff();
@@ -626,7 +673,6 @@ TEST(FirstPersonWalk, TownReleasedWalkFallsLandsAndRestoresFollowOffset) {
         EXPECT_NEAR(camera.pos[i], entry[i] + landed[i] - (i == 1 ? 100 : 0), 0.001f);
     }
     std::copy_n(old_saved_eye.data(), 4, PortTownSavedEye);
-    PortActiveSaveData = old_save;
     PortTownFallFlag = old_fall;
     PortTownMotionMode = old_motion;
     mgFrameRate = old_rate;

@@ -21,9 +21,9 @@ namespace datapacks {
  * Holds physical RGBA canvases while the catalog retains the game's logical dimensions.
  */
 struct DecodedTexture {
-    std::vector<std::vector<uint8_t> > levels;     /**< RGBA mip canvases, largest first. */
-    uint32_t                           width = 0;  /**< Padded physical width of the base level. */
-    uint32_t                           height = 0; /**< Padded physical height of the base level. */
+    std::vector<std::vector<uint8_t>> levels;     /**< RGBA mip canvases, largest first. */
+    uint32_t                          width = 0;  /**< Padded physical width of the base level. */
+    uint32_t                          height = 0; /**< Padded physical height of the base level. */
 };
 
 /**

@@ -15,8 +15,8 @@ function script.setup() end
 
 --- Sets the character up when its script is initialised.
 function script.init()
-	action.SetDmg2("dcol00", "", "モンスター攻撃", 4.5, 1.0, "攻撃１", 0.38, 0.6)
-	action.SetDmg2("dcol01", "", "モンスター攻撃", 4.5, 1.2, "攻撃２", 0.4, 0.7)
+	action.add_motion_damage("dcol00", "", "モンスター攻撃", 4.5, 1.0, "攻撃１", 0.38, 0.6)
+	action.add_motion_damage("dcol01", "", "モンスター攻撃", 4.5, 1.2, "攻撃２", 0.4, 0.7)
 end
 
 --- Runs the character's normal behaviour.
@@ -24,29 +24,29 @@ function script.loop()
 	local prog: s32 = 0
 	local var3: s32 = 0
 	local var4: s32 = 0
-	action.ProgSet(0)
+	action.set_program_value(0)
 	while true do
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog >= 100 and prog < 199 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_1eb83da1()
 		end
 		if prog >= 200 and prog < 299 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_9a354ac4()
 		end
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog == 0 then
-			action.RunMainMove()
-			var3 = action.GetBtn_2(50) or var3
-			var4 = action.GetBtn_2(51) or var4
+			action.run_movement()
+			var3 = action.get_button_state_2(50) or var3
+			var4 = action.get_button_state_2(51) or var4
 			if var3 ~= 0 then
 				prog = 100
 			end
 			if var4 ~= 0 then
 				prog = 200
 			end
-			action.ProgSet(prog)
+			action.set_program_value(prog)
 		end
 		vm.wait()
 	end

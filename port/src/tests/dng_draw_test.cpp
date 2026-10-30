@@ -1,28 +1,43 @@
 #include <gtest/gtest.h>
 
-#include <cstdlib>
+#include <array>
 #include <memory>
 
 #include "dng_event.hpp"
 #include "dng_hud.hpp"
 #include "scenesnd.hpp"
+#include "sphida.hpp"
 
 namespace {
 
-struct ScenePtrDeleter {
-    void operator()(CScene *scene) const {
-        std::free(scene);
-    }
-};
-
-// A zeroed scene holds no characters, so every slot reads as empty.
-using SceneHandle = std::unique_ptr<CScene, ScenePtrDeleter>;
+using SceneHandle = std::unique_ptr<CScene>;
 
 SceneHandle EmptyScene() {
-    return SceneHandle(static_cast<CScene *>(std::calloc(1, sizeof(CScene))));
+    return std::make_unique<CScene>();
 }
 
 } // namespace
+
+TEST(DngDraw, PoisonedSphidaConstructionStartsWithAnIdleGaugeAndEmptyOptionalState) {
+    alignas(CSphida) std::array<std::byte, sizeof(CSphida)> storage{};
+    storage.fill(std::byte{0xA5});
+    auto *game = ::new (storage.data()) CSphida;
+    EXPECT_EQ(game->play_flag, 0);
+    EXPECT_EQ(game->col_model, nullptr);
+    EXPECT_EQ(game->mini_level, 0);
+    EXPECT_EQ(game->club_no, 0);
+    EXPECT_FLOAT_EQ(game->carry, 0.0f);
+    EXPECT_FLOAT_EQ(game->spin_mark_pos_x, 0.0f);
+    EXPECT_FLOAT_EQ(game->spin_mark_pos_y, 0.0f);
+    EXPECT_EQ(game->pow_gage.count, 0);
+    EXPECT_EQ(game->pow_gage.state, -1);
+    EXPECT_EQ(game->pow_gage.code, -10);
+    EXPECT_EQ(game->pow_gage.safe_level, 2);
+    EXPECT_EQ(game->red_mark.draw_request, 0);
+    EXPECT_FLOAT_EQ(game->red_mark.angle, 0.0f);
+    EXPECT_EQ(game->unk_198[0], 0x80);
+    std::destroy_at(game);
+}
 
 TEST(DngDraw, RedMarkDrawsOnlyWhenRequested) {
     CRedMarkModel model{};

@@ -15,8 +15,8 @@
 
 namespace {
 
-std::unordered_map<uint64_t, std::vector<uint8_t> > photos;
-std::unordered_set<uint64_t>                        missing;
+std::unordered_map<uint64_t, std::vector<uint8_t>> photos;
+std::unordered_set<uint64_t>                       missing;
 
 uint64_t Hash(const uint8_t *bytes, size_t size) {
     uint64_t hash = 0xCBF29CE484222325ull;

@@ -25,120 +25,120 @@ function script.on_start()
 	local value_4: s32 = 0
 	local var13: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	value = effect.GetValueFloat(0) or value
+	value = effect.get_script_value_float(0) or value
 	var5 = vm.f32(16 + vm.f32(16 * value))
-	effect.SptSetTexname("c02lightning_hit")
-	effect.SptAssignSprite_1(5 + var5)
-	effect.SptInitSprite(0, 5 + var5)
-	effect.SptSetAlphab(0, 2, 5 + var5)
-	effect.SptSetDrawFlag(0, 1, 5 + var5)
-	effect.SptSetUvSize(0, 0.0, 0.0, 48.0, 48.0)
-	effect.SptSetPutSize(0, 20.0, 20.0)
-	effect.SptSetPos(0, work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.SptSetScale(0, vm.f32(0.2) + vm.f32(vm.f32(0.2) * value), vm.f32(0.2) + vm.f32(vm.f32(0.2) * value))
-	effect.SptScaleConv(0, 2.0 + vm.f32(2.0 * value), 2.0 + vm.f32(2.0 * value), 4.0)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 255.0)
-	effect.SptColorConv(0, 128.0, 128.0, 128.0, 0.0, 6.0)
-	effect.SptSetUvSize(1, 16, 96, 32, 32, var5)
-	effect.SptSetPutSize(1, 6.0, 6.0, var5)
-	effect.SptSetPos(1, work_vect1_x, work_vect1_y, work_vect1_z, var5)
-	effect.SptSetColor(1, 128.0, 128.0, 128.0, 128.0, var5)
-	effect.SptSetAccCol(1, 0.0, 0.0, 0.0, -1.4, var5)
-	effect.SptSetScale(1, vm.f32(0.6) + vm.f32(vm.f32(0.6) * value), vm.f32(0.6) + vm.f32(vm.f32(0.6) * value), var5)
+	effect.set_sprite_texture("c02lightning_hit")
+	effect.allocate_sprites_1(5 + var5)
+	effect.reset_sprites(0, 5 + var5)
+	effect.set_sprite_blend_mode(0, 2, 5 + var5)
+	effect.set_sprite_visible(0, 1, 5 + var5)
+	effect.set_sprite_texture_rect(0, 0.0, 0.0, 48.0, 48.0)
+	effect.set_sprite_size(0, 20.0, 20.0)
+	effect.set_sprite_position(0, work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_sprite_scale(0, vm.f32(0.2) + vm.f32(vm.f32(0.2) * value), vm.f32(0.2) + vm.f32(vm.f32(0.2) * value))
+	effect.ease_sprite_scale(0, 2.0 + vm.f32(2.0 * value), 2.0 + vm.f32(2.0 * value), 4.0)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 255.0)
+	effect.ease_sprite_color(0, 128.0, 128.0, 128.0, 0.0, 6.0)
+	effect.set_sprite_texture_rect(1, 16, 96, 32, 32, var5)
+	effect.set_sprite_size(1, 6.0, 6.0, var5)
+	effect.set_sprite_position(1, work_vect1_x, work_vect1_y, work_vect1_z, var5)
+	effect.set_sprite_color(1, 128.0, 128.0, 128.0, 128.0, var5)
+	effect.set_sprite_color_acceleration(1, 0.0, 0.0, 0.0, -1.4, var5)
+	effect.set_sprite_scale(1, vm.f32(0.6) + vm.f32(vm.f32(0.6) * value), vm.f32(0.6) + vm.f32(vm.f32(0.6) * value), var5)
 	var4 = 0
 	while var4 < var5 do
-		value_3 = effect.GetRand(6.2831855) or value_3
+		value_3 = effect.get_random_number(6.2831855) or value_3
 		value_3 = vm.f32(value_3 - vm.f32(3.1415927))
-		value_2 = effect.GetRand(6.2831855) or value_2
+		value_2 = effect.get_random_number(6.2831855) or value_2
 		value_2 = vm.f32(value_2 - vm.f32(3.1415927))
 		do
-			local out1, out2, out3 = effect.GetDirVector(value_3, value_2, 0.0)
+			local out1, out2, out3 = effect.get_direction_vector(value_3, value_2, 0.0)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.NormalVector(var6, var7, var8)
+			local out1, out2, out3 = effect.normalize_vector(var6, var7, var8)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var6, var7, var8, vm.f32(1.6) + vm.f32(vm.f32(1.6) * value))
+			local out1, out2, out3 = effect.scale_vector(var6, var7, var8, vm.f32(1.6) + vm.f32(vm.f32(1.6) * value))
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
-		effect.SptSetVeloPos(vm.i32(1 + var4), var6, var7, var8)
+		effect.set_sprite_velocity(vm.i32(1 + var4), var6, var7, var8)
 		var6 = -vm.f32(var6 * vm.f32(0.05))
 		var7 = -vm.f32(var7 * vm.f32(0.05))
 		var8 = -vm.f32(var8 * vm.f32(0.05))
-		effect.SptSetAccPos(vm.i32(1 + var4), var6, var7, var8)
+		effect.set_sprite_acceleration(vm.i32(1 + var4), var6, var7, var8)
 		var4 = vm.i32(var4 + 1)
 	end
-	effect.SptSetPutSize(1 + var5, 2.0, 12.8, 4)
-	effect.SptSetColor(1 + var5, 128.0, 128.0, 128.0, 255.0, 4)
-	effect.SptColorConv(1 + var5, 128.0, 128.0, 128.0, 0.0, 5.0, 4)
-	effect.SptSetScale(
+	effect.set_sprite_size(1 + var5, 2.0, 12.8, 4)
+	effect.set_sprite_color(1 + var5, 128.0, 128.0, 128.0, 255.0, 4)
+	effect.ease_sprite_color(1 + var5, 128.0, 128.0, 128.0, 0.0, 5.0, 4)
+	effect.set_sprite_scale(
 		1 + var5,
 		vm.f32(0.2) + vm.f32(vm.f32(0.2) * value),
 		vm.f32(0.2) + vm.f32(vm.f32(0.2) * value),
 		4
 	)
-	effect.SptScaleConv(1 + var5, 2.0 + vm.f32(2.0 * value), 2.0 + vm.f32(2.0 * value), 8.0, 4)
-	var11 = effect.GetRand(6.2831855) or var11
+	effect.ease_sprite_scale(1 + var5, 2.0 + vm.f32(2.0 * value), 2.0 + vm.f32(2.0 * value), 8.0, 4)
+	var11 = effect.get_random_number(6.2831855) or var11
 	var11 = vm.f32(var11 - vm.f32(3.1415927))
 	var4 = 0
 	while var4 < 4 do
 		var11 = vm.f32(var11 + vm.f32(0.7853982))
-		var11 = effect.AngleLimit(var11) or var11
-		effect.SptSetRotz(vm.f32(1 + var5) + var4, var11)
-		value_3 = effect.GetRand(6.2831855) or value_3
+		var11 = effect.wrap_angle(var11) or var11
+		effect.set_sprite_rotation(vm.f32(1 + var5) + var4, var11)
+		value_3 = effect.get_random_number(6.2831855) or value_3
 		value_3 = vm.f32(value_3 - vm.f32(3.1415927))
-		value_2 = effect.GetRand(6.2831855) or value_2
+		value_2 = effect.get_random_number(6.2831855) or value_2
 		value_2 = vm.f32(value_2 - vm.f32(3.1415927))
 		do
-			local out1, out2, out3 = effect.GetDirVector(value_3, value_2, 0.0)
+			local out1, out2, out3 = effect.get_direction_vector(value_3, value_2, 0.0)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.NormalVector(var6, var7, var8)
+			local out1, out2, out3 = effect.normalize_vector(var6, var7, var8)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var6, var7, var8, vm.f32(2.8) + vm.f32(vm.f32(2.8) * value))
+			local out1, out2, out3 = effect.scale_vector(var6, var7, var8, vm.f32(2.8) + vm.f32(vm.f32(2.8) * value))
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var6, var7, var8, work_vect1_x, work_vect1_y, work_vect1_z)
+			local out1, out2, out3 = effect.add_vectors(var6, var7, var8, work_vect1_x, work_vect1_y, work_vect1_z)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
-		effect.SptSetPos(vm.f32(1 + var5) + var4, var6, var7, var8)
-		value_4 = effect.GetRandInt(4) or value_4
-		effect.SptSetUvSize(vm.f32(1 + var5) + var4, vm.i32(vm.i32(value_4 * 20) + 48), 0, 20, 128)
+		effect.set_sprite_position(vm.f32(1 + var5) + var4, var6, var7, var8)
+		value_4 = effect.get_random_number_int(4) or value_4
+		effect.set_sprite_texture_rect(vm.f32(1 + var5) + var4, vm.i32(vm.i32(value_4 * 20) + 48), 0, 20, 128)
 		var4 = var4 + 1
 	end
 	var13 = 0
 	var4 = 0
 	while var4 < 32 do
 		if var4 < var5 then
-			effect.SptSetBlinking(1 + var4, 0.0, 0.0, 0.0, 32.0, 1.5707964)
+			effect.set_sprite_blinking(1 + var4, 0.0, 0.0, 0.0, 32.0, 1.5707964)
 		end
-		value_4 = effect.GetRandInt(4) or value_4
-		effect.SptSetUvSize(vm.f32(1 + var5) + var13, vm.i32(vm.i32(value_4 * 20) + 48), 0, 20, 128)
+		value_4 = effect.get_random_number_int(4) or value_4
+		effect.set_sprite_texture_rect(vm.f32(1 + var5) + var13, vm.i32(vm.i32(value_4 * 20) + 48), 0, 20, 128)
 		var13 = var13 + 1
 		if var13 >= 4 then
 			var13 = 0

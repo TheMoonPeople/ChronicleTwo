@@ -56,9 +56,9 @@ TEST_F(CrashContext, LongTextIsCutToTheSlot) {
 }
 
 TEST_F(CrashContext, ConcurrentWritersNeverExposeMixedValues) {
-    constexpr CrashKey key = CrashKey::Map;
-    const std::string  text_a(crash_detail::kSlotSize, 'A');
-    const std::string  text_b(crash_detail::kSlotSize, 'B');
+    constexpr CrashKey         key = CrashKey::Map;
+    const std::string          text_a(crash_detail::kSlotSize, 'A');
+    const std::string          text_b(crash_detail::kSlotSize, 'B');
     constexpr std::string_view number = "1234567890123456789";
     std::atomic<bool>          start{false};
     std::atomic<bool>          invalid{false};
@@ -69,106 +69,106 @@ TEST_F(CrashContext, ConcurrentWritersNeverExposeMixedValues) {
         for (int i = 0; i < 20'000; i++) {
             CrashContextSet(key, text);
             CrashContextSetInt(key, 1234567890123456789LL);
-    }
-};
+        }
+    };
 
-std::thread first(writer, std::cref(text_a));
-std::thread second(writer, std::cref(text_b));
-start.store(true, std::memory_order_release);
+    std::thread first(writer, std::cref(text_a));
+    std::thread second(writer, std::cref(text_b));
+    start.store(true, std::memory_order_release);
     for (int i = 0; i < 40'000; i++) {
         const std::string value = Read(key);
         if (!value.empty() && value != text_a && value != text_b && value != number) {
-    invalid.store(true, std::memory_order_relaxed);
-    break;
+            invalid.store(true, std::memory_order_relaxed);
+            break;
         }
     }
 
     first.join();
     second.join();
     EXPECT_FALSE(invalid.load(std::memory_order_relaxed));
-    }
+}
 
-    TEST(CrashText, FormatsWithoutAllocating) {
-        char               buffer[64];
-        crash_detail::Text text(buffer, sizeof(buffer));
-        text.Put("a=").Dec(-42).Put(' ').Hex(0xbeef).Put(' ').Pointer(0x10);
-        EXPECT_EQ(text.View(), "a=-42 beef 0x0000000000000010");
-        EXPECT_FALSE(text.Truncated());
-    }
+TEST(CrashText, FormatsWithoutAllocating) {
+    char               buffer[64];
+    crash_detail::Text text(buffer, sizeof(buffer));
+    text.Put("a=").Dec(-42).Put(' ').Hex(0xbeef).Put(' ').Pointer(0x10);
+    EXPECT_EQ(text.View(), "a=-42 beef 0x0000000000000010");
+    EXPECT_FALSE(text.Truncated());
+}
 
-    TEST(CrashText, StopsAtCapacity) {
-        char               buffer[4];
-        crash_detail::Text text(buffer, sizeof(buffer));
-        text.Put("abcdef");
-        EXPECT_EQ(text.View(), "abcd");
-        EXPECT_TRUE(text.Truncated());
-    }
+TEST(CrashText, StopsAtCapacity) {
+    char               buffer[4];
+    crash_detail::Text text(buffer, sizeof(buffer));
+    text.Put("abcdef");
+    EXPECT_EQ(text.View(), "abcd");
+    EXPECT_TRUE(text.Truncated());
+}
 
-    TEST(CrashHeader, NamesBuildSessionAndFrame) {
-        char               buffer[1024];
-        crash_detail::Text out(buffer, sizeof(buffer));
-        crash_detail::FormatHeader(out, {.kind = "crash",
-                                         .session = "20261018-142233-7f3a",
-                                         .build_id = "ABCDEF01",
-                                         .build_type = "Debug",
-                                         .platform = "x86_64-windows",
-                                         .time_utc = "2026-10-18T14:25:01Z",
-                                         .frame = 77});
-        EXPECT_EQ(out.View(), "Dark Chronicle crash report\n"
-                              "kind:       crash\n"
-                              "session:    20261018-142233-7f3a\n"
-                              "build id:   ABCDEF01\n"
-                              "build type: Debug\n"
-                              "platform:   x86_64-windows\n"
-                              "time:       2026-10-18T14:25:01Z\n"
-                              "frame:      77\n");
-    }
+TEST(CrashHeader, NamesBuildSessionAndFrame) {
+    char               buffer[1024];
+    crash_detail::Text out(buffer, sizeof(buffer));
+    crash_detail::FormatHeader(out, {.kind = "crash",
+                                     .session = "20261018-142233-7f3a",
+                                     .build_id = "ABCDEF01",
+                                     .build_type = "Debug",
+                                     .platform = "x86_64-windows",
+                                     .time_utc = "2026-10-18T14:25:01Z",
+                                     .frame = 77});
+    EXPECT_EQ(out.View(), "Dark Chronicle crash report\n"
+                          "kind:       crash\n"
+                          "session:    20261018-142233-7f3a\n"
+                          "build id:   ABCDEF01\n"
+                          "build type: Debug\n"
+                          "platform:   x86_64-windows\n"
+                          "time:       2026-10-18T14:25:01Z\n"
+                          "frame:      77\n");
+}
 
-    TEST(CrashHeader, MissingValuesShowADash) {
-        char               buffer[1024];
-        crash_detail::Text out(buffer, sizeof(buffer));
-        crash_detail::FormatHeader(out, {.kind = "assert", .session = "", .build_id = "", .build_type = "", .platform = "arm64-linux", .time_utc = "t"});
-        const std::string_view text = out.View();
-        EXPECT_NE(text.find("session:    -\n"), std::string_view::npos);
-        EXPECT_NE(text.find("build id:   -\n"), std::string_view::npos);
-        EXPECT_NE(text.find("frame:      -\n"), std::string_view::npos);
-    }
+TEST(CrashHeader, MissingValuesShowADash) {
+    char               buffer[1024];
+    crash_detail::Text out(buffer, sizeof(buffer));
+    crash_detail::FormatHeader(out, {.kind = "assert", .session = "", .build_id = "", .build_type = "", .platform = "arm64-linux", .time_utc = "t"});
+    const std::string_view text = out.View();
+    EXPECT_NE(text.find("session:    -\n"), std::string_view::npos);
+    EXPECT_NE(text.find("build id:   -\n"), std::string_view::npos);
+    EXPECT_NE(text.find("frame:      -\n"), std::string_view::npos);
+}
 
-    TEST(CrashBuildId, PlatformNameIsArchThenOs) {
-        const std::string_view name = crash_detail::PlatformName();
-        EXPECT_TRUE(name.starts_with("x86_64-") || name.starts_with("arm64-"));
-    }
+TEST(CrashBuildId, PlatformNameIsArchThenOs) {
+    const std::string_view name = crash_detail::PlatformName();
+    EXPECT_TRUE(name.starts_with("x86_64-") || name.starts_with("arm64-"));
+}
 
-    TEST(CrashRedact, ReplacesRootsAndHome) {
-        const crash_detail::RedactRoots roots{.save_root = "/home/max/.local/share/chronicletwo/saves",
-                                              .data_root = "/opt/dc2/data",
-                                              .home = "/home/max"};
-        EXPECT_EQ(crash_detail::RedactPath("/home/max/.local/share/chronicletwo/saves/config.json", roots), "<save>/config.json");
-        EXPECT_EQ(crash_detail::RedactPath("data at /opt/dc2/data", roots), "data at <data>");
-        EXPECT_EQ(crash_detail::RedactPath("/home/max/Games/x", roots), "<home>/Games/x");
-        EXPECT_EQ(crash_detail::RedactPath("/home/maxine/x", roots), "/home/maxine/x");
-        EXPECT_EQ(crash_detail::RedactPath("nothing here", roots), "nothing here");
-    }
+TEST(CrashRedact, ReplacesRootsAndHome) {
+    const crash_detail::RedactRoots roots{.save_root = "/home/max/.local/share/chronicletwo/saves",
+                                          .data_root = "/opt/dc2/data",
+                                          .home = "/home/max"};
+    EXPECT_EQ(crash_detail::RedactPath("/home/max/.local/share/chronicletwo/saves/config.json", roots), "<save>/config.json");
+    EXPECT_EQ(crash_detail::RedactPath("data at /opt/dc2/data", roots), "data at <data>");
+    EXPECT_EQ(crash_detail::RedactPath("/home/max/Games/x", roots), "<home>/Games/x");
+    EXPECT_EQ(crash_detail::RedactPath("/home/maxine/x", roots), "/home/maxine/x");
+    EXPECT_EQ(crash_detail::RedactPath("nothing here", roots), "nothing here");
+}
 
-    TEST(CrashRedact, MatchesEitherSeparatorAndJsonEscaping) {
-        const crash_detail::RedactRoots roots{.save_root = R"(C:\Users\Max\AppData\Local\chronicletwo\saves)",
-                                              .data_root = "",
-                                              .home = R"(C:\Users\Max)"};
-        EXPECT_EQ(crash_detail::RedactPath(R"({"path": "C:\\Users\\Max\\AppData\\Local\\chronicletwo\\saves\\x"})", roots),
-                  R"({"path": "<save>\\x"})");
-        EXPECT_EQ(crash_detail::RedactPath("C:/Users/Max/Documents", roots), "<home>/Documents");
-        EXPECT_EQ(crash_detail::RedactPath("C:\\Users\\Max\\Documents", roots), "<home>\\Documents");
-    }
+TEST(CrashRedact, MatchesEitherSeparatorAndJsonEscaping) {
+    const crash_detail::RedactRoots roots{.save_root = R"(C:\Users\Max\AppData\Local\chronicletwo\saves)",
+                                          .data_root = "",
+                                          .home = R"(C:\Users\Max)"};
+    EXPECT_EQ(crash_detail::RedactPath(R"({"path": "C:\\Users\\Max\\AppData\\Local\\chronicletwo\\saves\\x"})", roots),
+              R"({"path": "<save>\\x"})");
+    EXPECT_EQ(crash_detail::RedactPath("C:/Users/Max/Documents", roots), "<home>/Documents");
+    EXPECT_EQ(crash_detail::RedactPath("C:\\Users\\Max\\Documents", roots), "<home>\\Documents");
+}
 
-    TEST(CrashTestOption, ParsesModesAndTiming) {
-        const CrashTest segv = CrashTestParse("segv").value_or(CrashTest{});
-        EXPECT_EQ(segv.mode, CrashTestMode::Segv);
-        EXPECT_EQ(segv.when, CrashTestWhen::FirstFrame);
-        const CrashTest early = CrashTestParse("audio-thread:early").value_or(CrashTest{});
-        EXPECT_EQ(early.mode, CrashTestMode::AudioThread);
-        EXPECT_EQ(early.when, CrashTestWhen::Early);
-        EXPECT_FALSE(CrashTestParse("explode").has_value());
-        EXPECT_FALSE(CrashTestParse("segv:late").has_value());
-    }
+TEST(CrashTestOption, ParsesModesAndTiming) {
+    const CrashTest segv = CrashTestParse("segv").value_or(CrashTest{});
+    EXPECT_EQ(segv.mode, CrashTestMode::Segv);
+    EXPECT_EQ(segv.when, CrashTestWhen::FirstFrame);
+    const CrashTest early = CrashTestParse("audio-thread:early").value_or(CrashTest{});
+    EXPECT_EQ(early.mode, CrashTestMode::AudioThread);
+    EXPECT_EQ(early.when, CrashTestWhen::Early);
+    EXPECT_FALSE(CrashTestParse("explode").has_value());
+    EXPECT_FALSE(CrashTestParse("segv:late").has_value());
+}
 
-    } // namespace
+} // namespace

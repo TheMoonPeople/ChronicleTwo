@@ -7,7 +7,7 @@
 #include "nd_meswin.hpp"
 #include "platform/subtitle_config.hpp"
 
-PORT_OVERRIDE void MovieCCAnalyze(char *text, int size, int id) {
+void MovieCCAnalyze(char *text, int size, int id) {
     if (!text || size <= 0) {
         return;
     }

@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -11,10 +12,8 @@ import truncations  # noqa: E402
 
 # LLP64 hosts make unsigned long 4 bytes; the pointer-wide integer is what uptr names on every host.
 PRELUDE = "typedef __UINTPTR_TYPE__ uptr;\ntypedef __INTPTR_TYPE__ sptr;\n"
-# The build's flags for ps2 units: its pointer-to-int casts are warnings, not errors. C++20 stands in for the
-# build's C++26, which the test source does not need.
-PARSE_ARGS = ["-x", "c++", "-std=c++20", "-fms-extensions", "-Wno-pointer-to-int-cast", "-Wno-int-to-pointer-cast",
-              "-Wno-void-pointer-to-int-cast"]
+# Synthetic audit inputs deliberately contain narrowing conversions; keep their diagnostics enabled.
+PARSE_ARGS = ["-x", "c++", "-std=c++26", "-fms-extensions", "-Weverything"]
 
 
 def setUpModule():
@@ -28,7 +27,7 @@ def setUpModule():
 
 def analyse(source):
     with tempfile.TemporaryDirectory() as root:
-        path = os.path.join(root, "ps2", "src", "t.cpp")
+        path = os.path.join(root, "port", "src", "t.cpp")
         os.makedirs(os.path.dirname(path))
         with open(path, "w") as f:
             f.write(PRELUDE + source)
@@ -37,6 +36,25 @@ def analyse(source):
 
 
 class NarrowingTests(unittest.TestCase):
+
+    def test_real_standard_headers_and_missing_header_are_reported(self):
+        compiler = shutil.which("clang++-23") or shutil.which("clang++")
+        self.assertIsNotNone(compiler)
+        with tempfile.TemporaryDirectory() as root:
+            path = os.path.join(root, "port", "src", "standard_headers.cpp")
+            os.makedirs(os.path.dirname(path))
+            with open(path, "w") as source:
+                source.write("#include <cstddef>\n#include <new>\n#include <string>\n"
+                             "std::string title() { return \"valid\"; }\n")
+            entry = {"file": path, "directory": root,
+                     "arguments": [compiler, "-std=c++26", "-c", path]}
+            args = truncations.command_args(entry)
+            self.assertIn("-resource-dir", args)
+            with mock.patch.object(truncations, "ROOT", root):
+                self.assertEqual(truncations.walk(path, args)["error_count"], 0)
+                with open(path, "w") as source:
+                    source.write('#include "missing_truncation_header.hpp"\n')
+                self.assertGreater(truncations.walk(path, args)["error_count"], 0)
 
     def narrowing(self, source):
         result = analyse(source)
@@ -73,7 +91,7 @@ class NarrowingTests(unittest.TestCase):
     def test_field_destination(self):
         sites = self.narrowing("struct S { int field; };\nvoid f(char *p, S *s) { s->field = (int) p; }")
         self.assertEqual(len(sites), 1)
-        self.assertRegex(sites[0]["destination"], r"^field S::field \(ps2/src/t\.cpp:\d+\)$")
+        self.assertRegex(sites[0]["destination"], r"^field S::field \(port/src/t\.cpp:\d+\)$")
 
     def test_return_destination(self):
         sites = self.narrowing("int f(char *p) { return (int) p; }")
@@ -134,9 +152,9 @@ class NarrowingTests(unittest.TestCase):
 
     def test_worklist_is_sorted_tsv(self):
         sites = [
-            {"file": "ps2/src/b.cpp", "line": 3, "column": 1, "function": "g", "state": "open",
+            {"file": "port/src/b.cpp", "line": 3, "column": 1, "function": "g", "state": "open",
              "kind": "pointer cast", "destination": "local x", "class": "counted", "expression": "(int)p"},
-            {"file": "ps2/src/a.cpp", "line": 9, "column": 5, "function": "f", "state": "replaced",
+            {"file": "port/src/a.cpp", "line": 9, "column": 5, "function": "f", "state": "open",
              "kind": "uptr narrowed", "destination": "return f (int)", "class": "benign:residue",
              "expression": "a\tb"},
         ]
@@ -147,8 +165,8 @@ class NarrowingTests(unittest.TestCase):
                 lines = f.read().splitlines()
         self.assertEqual(lines, [
             truncations.WORKLIST_HEADER,
-            "ps2/src/a.cpp\t9\t5\tf\treplaced\tuptr narrowed\treturn f (int)\tbenign:residue\ta b",
-            "ps2/src/b.cpp\t3\t1\tg\topen\tpointer cast\tlocal x\tcounted\t(int)p",
+            "port/src/a.cpp\t9\t5\tf\topen\tuptr narrowed\treturn f (int)\tbenign:residue\ta b",
+            "port/src/b.cpp\t3\t1\tg\topen\tpointer cast\tlocal x\tcounted\t(int)p",
         ])
 
 
@@ -169,23 +187,22 @@ class DiagnosticTests(unittest.TestCase):
 class OwnerAndSummaryTests(unittest.TestCase):
 
     def test_owner_lookup_prefers_the_function_then_the_unit(self):
-        owners = {("ps2/src/t.cpp", None): "unit owner", ("ps2/src/t.cpp", "f"): "function owner"}
+        owners = {("port/src/t.cpp", None): "unit owner", ("port/src/t.cpp", "f"): "function owner"}
         with mock.patch.dict(truncations.NARROWING_OWNER, owners, clear=True):
-            self.assertEqual(truncations.owner_of(site("ps2/src/t.cpp", "f", "open", "counted")), "function owner")
-            self.assertEqual(truncations.owner_of(site("ps2/src/t.cpp", "g", "open", "counted")), "unit owner")
-            self.assertIsNone(truncations.owner_of(site("ps2/src/u.cpp", "g", "open", "counted")))
+            self.assertEqual(truncations.owner_of(site("port/src/t.cpp", "f", "open", "counted")), "function owner")
+            self.assertEqual(truncations.owner_of(site("port/src/t.cpp", "g", "open", "counted")), "unit owner")
+            self.assertIsNone(truncations.owner_of(site("port/src/u.cpp", "g", "open", "counted")))
 
-    def test_summary_partitions_benign_and_replaced(self):
+    def test_summary_partitions_reviewed_and_unreviewed(self):
         sites = [
-            site("ps2/src/t.cpp", "f", "open", "counted"),
-            site("ps2/src/t.cpp", "g", "open", "counted"),
-            site("ps2/src/t.cpp", "h", "open", "benign:low-bits"),
-            site("ps2/src/t.cpp", "i", "replaced", "counted"),
+            site("port/src/t.cpp", "f", "open", "counted"),
+            site("port/src/t.cpp", "g", "open", "counted"),
+            site("port/src/t.cpp", "h", "open", "benign:low-bits"),
+            site("port/src/t.cpp", "i", "open", "counted"),
         ]
-        with mock.patch.dict(truncations.NARROWING_OWNER, {("ps2/src/t.cpp", "f"): "owned"}, clear=True):
+        with mock.patch.dict(truncations.NARROWING_OWNER, {("port/src/t.cpp", "f"): "owned"}, clear=True):
             self.assertEqual(truncations.narrowing_summary(sites),
-                             "2 narrowing sites in compiled ps2/ code (1 owned, 1 unowned), 1 benign, "
-                             "1 in replaced functions")
+                             "3 counted narrowing sites in compiled native code (1 reviewed, 2 unreviewed), 1 benign")
 
 
 if __name__ == "__main__":

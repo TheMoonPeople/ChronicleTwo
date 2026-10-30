@@ -1,5 +1,5 @@
 // Ahead of common.h: libgraph.h defines A, B, C and D as macros that would rewrite the vu1 header's names.
-#include "vu1/water_geom.hpp"
+#include "common.h"
 
 #include <gtest/gtest.h>
 
@@ -8,16 +8,16 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_frame.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/window.hpp"
+#include "render/renderer.hpp"
+#include "vu1/water_geom.hpp"
 #include "water.hpp"
 
 // Register macros must follow the host and test headers.
@@ -52,7 +52,7 @@ TEST(WaterHost, FlatGridHasNoRefraction) {
     mesh[0] = {FlatAt(100.0f), FlatAt(100.0f), FlatAt(100.0f), FlatAt(100.0f)};
 
     std::vector<WaterHostVertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<uint32_t>        indices;
     WaterHostMesh(Surface(), Identity(), mesh, vertices, indices);
 
     ASSERT_EQ(vertices.size(), 4u);
@@ -75,7 +75,7 @@ TEST(WaterHost, SlopeScalesUvOffsetByP1AndWeightsAlpha) {
                FlatAt(100.0f)};
 
     std::vector<WaterHostVertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<uint32_t>        indices;
     WaterHostMesh(Surface(), Identity(), mesh, vertices, indices);
 
     ASSERT_EQ(vertices.size(), 3u);
@@ -90,7 +90,7 @@ TEST(WaterHost, FarAndBehindEyeVerticesFadeOut) {
     mesh[0] = {FlatAt(2000.0f), FlatAt(-5.0f), FlatAt(100.0f)};
 
     std::vector<WaterHostVertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<uint32_t>        indices;
     WaterHostMesh(Surface(), Identity(), mesh, vertices, indices);
 
     ASSERT_EQ(vertices.size(), 3u);
@@ -107,7 +107,7 @@ TEST(WaterHost, FadeReadsEyeDepthThroughModelToEye) {
     mesh[0] = {FlatAt(-1800.0f), FlatAt(-1800.0f), FlatAt(-1800.0f)};
 
     std::vector<WaterHostVertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<uint32_t>        indices;
     WaterHostMesh(Surface(), model_to_eye, mesh, vertices, indices);
 
     ASSERT_EQ(vertices.size(), 3u);
@@ -120,7 +120,7 @@ TEST(WaterHost, StripExpandsToTrianglesAndIndexesItsOwnVertices) {
     mesh[1] = {FlatAt(100.0f), FlatAt(100.0f), FlatAt(100.0f)};
 
     std::vector<WaterHostVertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<uint32_t>        indices;
     WaterHostMesh(Surface(), Identity(), mesh, vertices, indices);
 
     ASSERT_EQ(vertices.size(), 7u);
@@ -166,17 +166,17 @@ constexpr float kFar = 1000.0f;
 constexpr float kPlaneZ = 100.0f;
 // Edge weights taper over the outer three cells, so the grid extends past the screen and the screen
 // sits in the full-weight interior.
-constexpr int kRows = 16;
-constexpr int kColumns = 16;
+constexpr int   kRows = 16;
+constexpr int   kColumns = 16;
 constexpr float kExtent = 150.0f;
 // A height that falls by this much per row gives a slope of -kRamp along x, a shift of -2 * kRamp pixels.
 constexpr float kRamp = 8.0f;
 
 struct Pixels {
     std::vector<uint8_t> rgba;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    gfx::LogicalMapping mapping{};
+    uint32_t             width = 0;
+    uint32_t             height = 0;
+    gfx::LogicalMapping  mapping{};
 
     [[nodiscard]] const uint8_t *At(float x, float y) const {
         const auto px = static_cast<size_t>(x * mapping.scale_x + mapping.offset_x);
@@ -195,10 +195,12 @@ bool IsBlue(const uint8_t *p) {
 
 Pixels RenderScene(float ramp, uint8_t tint = 0x80) {
     mgSetRenderInfo(kEyeDistance, kNear, kFar);
-    float view[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
-                        {0.0f, 1.0f, 0.0f, 0.0f},
-                        {0.0f, 0.0f, 1.0f, 0.0f},
-                        {0.0f, 0.0f, 0.0f, 1.0f}};
+    float view[4][4] = {
+        {1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 1.0f}
+    };
     float origin[3] = {0.0f, 0.0f, 0.0f};
     mgSetViewMatrix(view, origin);
 
@@ -213,8 +215,13 @@ Pixels RenderScene(float ramp, uint8_t tint = 0x80) {
     mgBeginFrame(nullptr);
 
     std::vector<gfx::Vertex2D> background;
-    const auto stripe = [&](float x0, float x1, uint8_t r, uint8_t g, uint8_t b) {
-        const float corners[4][2] = {{x0, 0.0f}, {x1, 0.0f}, {x1, 480.0f}, {x0, 480.0f}};
+    const auto                 stripe = [&](float x0, float x1, uint8_t r, uint8_t g, uint8_t b) {
+        const float corners[4][2] = {
+            {x0, 0.0f  },
+            {x1, 0.0f  },
+            {x1, 480.0f},
+            {x0, 480.0f}
+        };
         for (const auto &corner : corners) {
             gfx::Vertex2D vertex{};
             vertex.x = corner[0];
@@ -264,10 +271,12 @@ Pixels RenderScene(float ramp, uint8_t tint = 0x80) {
     water.max[3] = 0.0f;
 
     // Object x runs along world x, object z along world y, and the surface lies at kPlaneZ.
-    float model[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
-                         {0.0f, 0.0f, 1.0f, 0.0f},
-                         {0.0f, 1.0f, 0.0f, 0.0f},
-                         {0.0f, 0.0f, kPlaneZ, 1.0f}};
+    float model[4][4] = {
+        {1.0f, 0.0f, 0.0f,    0.0f},
+        {0.0f, 0.0f, 1.0f,    0.0f},
+        {0.0f, 1.0f, 0.0f,    0.0f},
+        {0.0f, 0.0f, kPlaneZ, 1.0f}
+    };
     water.Draw(nullptr, model, nullptr);
 
     mgEndFrame(nullptr);
@@ -309,4 +318,31 @@ TEST(Water, SlopeShiftsRefractedEdge) {
 
     EXPECT_TRUE(IsRed(sloped.At(264.0f, 240.0f)));
     EXPECT_TRUE(IsBlue(sloped.At(384.0f, 240.0f)));
+}
+
+TEST(WaterHost, ReusesGridStorageAndReplacesEarlierGeometry) {
+    WaterMeshDesc desc{
+        .min = {.x = 0, .y = 0, .z = 0, .w = 1},
+        .max = {.x = 4, .y = 0, .z = 4, .w = 1},
+        .rows = 4,
+        .columns = 4
+    };
+    std::vector<float> heights(16, 0.0f);
+    WaterMesh          mesh;
+    BuildWaterMesh(desc, heights, mesh);
+    ASSERT_EQ(mesh.size(), 3u);
+    const auto *storage = mesh[0].data();
+    const auto  capacity = mesh[0].capacity();
+    heights[1] = 2;
+    BuildWaterMesh(desc, heights, mesh);
+    EXPECT_EQ(mesh[0].data(), storage);
+    EXPECT_EQ(mesh[0].capacity(), capacity);
+    EXPECT_EQ(mesh[0].size(), 8u);
+    EXPECT_FLOAT_EQ(mesh[0][0].slope.y, -2.0f);
+    desc.rows = 2;
+    BuildWaterMesh(desc, heights, mesh);
+    EXPECT_EQ(mesh.size(), 1u);
+    desc.rows = 1;
+    BuildWaterMesh(desc, heights, mesh);
+    EXPECT_TRUE(mesh.empty());
 }

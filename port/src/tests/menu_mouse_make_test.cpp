@@ -218,8 +218,8 @@ namespace {
 class MakeMouse : public testing::Test {
 protected:
     CMenuKeyFunc keys;
-    alignas(CMenuInvent) unsigned char invent_storage[sizeof(CMenuInvent)] {};
-    alignas(CMenuMosSelect) unsigned char box_storage[sizeof(CMenuMosSelect)] {};
+    alignas(CMenuInvent) unsigned char invent_storage[sizeof(CMenuInvent)]{};
+    alignas(CMenuMosSelect) unsigned char box_storage[sizeof(CMenuMosSelect)]{};
     CMenuInvent        &invent = *reinterpret_cast<CMenuInvent *>(invent_storage);
     CMenuMosSelect     &box = *reinterpret_cast<CMenuMosSelect *>(box_storage);
     CMenuPosDataForm    makebrd{}, badges{};

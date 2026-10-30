@@ -47,27 +47,37 @@ uint8_t ToByte(float x) {
 } // namespace
 
 WaterMesh BuildWaterMesh(const WaterMeshDesc &desc, std::span<const float> height) {
+    WaterMesh mesh;
+    BuildWaterMesh(desc, height, mesh);
+    return mesh;
+}
+
+void BuildWaterMesh(const WaterMeshDesc &desc, std::span<const float> height, WaterMesh &mesh) {
     const int rows = desc.rows;
     const int columns = desc.columns;
-    const int count = rows * columns;
-
-    std::vector<float> weight(static_cast<std::size_t>(count), 1.0f);
+    if (rows < 2 || columns < 2 || height.size() < static_cast<std::size_t>(rows) * static_cast<std::size_t>(columns)) {
+        mesh.clear();
+        return;
+    }
+    const auto                             count = static_cast<std::size_t>(rows) * static_cast<std::size_t>(columns);
+    static thread_local std::vector<float> weight;
+    weight.assign(count, 1.0f);
     ApplyEdgeWeights(weight, rows, columns);
 
     const float dx = (desc.max.x - desc.min.x) / static_cast<float>(rows - 1);
     const float dz = (desc.max.z - desc.min.z) / static_cast<float>(columns - 1);
 
-    WaterMesh mesh;
-    mesh.reserve(static_cast<std::size_t>(rows - 1));
+    mesh.resize(static_cast<std::size_t>(rows - 1));
     for (int row = 0; row + 1 < rows; ++row) {
-        std::vector<WaterStripVertex> strip;
+        auto &strip = mesh[row];
+        strip.clear();
         strip.reserve(static_cast<std::size_t>(2 * columns));
 
         // Retail steps columns by 27 but pointers by 26, dropping columns for N >= 28; every column is emitted.
         for (int c = 0; c < columns; ++c) {
             for (int r = 0; r < 2; ++r) {
-                const int         i = row + r;
-                const auto        cell = static_cast<std::size_t>(i * columns + c);
+                const int  i = row + r;
+                const auto cell = static_cast<std::size_t>(i * columns + c);
 
                 float slope_x = 0.0f;
                 if (i > 0) {
@@ -92,9 +102,7 @@ WaterMesh BuildWaterMesh(const WaterMeshDesc &desc, std::span<const float> heigh
                 strip.push_back(v);
             }
         }
-        mesh.push_back(std::move(strip));
     }
-    return mesh;
 }
 
 void WaterHostMesh(const WaterSurface &surface, const Mat4 &model_to_eye, const WaterMesh &mesh,

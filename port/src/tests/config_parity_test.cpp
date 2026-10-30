@@ -33,10 +33,10 @@ Json observations;
 /**
  * Captures exact native types, integer values, float bits, and game-encoded string bytes.
  */
-int CaptureParity(SPI_STACK *stack, int count) {
+int CaptureParity(dc2::script::TagArguments stack, int count) {
     Json arguments = Json::array();
     for (int index = 0; index < std::min(count, static_cast<int>(SPI_STACK_SIZE)); ++index) {
-        const auto &argument = stack[index];
+        const auto &argument = stack.At(static_cast<std::size_t>(index));
         Json        value{
             {"type", argument.type}
         };
@@ -49,8 +49,8 @@ int CaptureParity(SPI_STACK *stack, int count) {
         if (argument.type == SPI_STACK_TYPE_STRING) {
             Json bytes = Json::array();
             if (argument.value.string) {
-                for (const auto *text = reinterpret_cast<const unsigned char *>(argument.value.string); *text; ++text) {
-                    bytes.push_back(*text);
+                for (const char byte : dc2::script::TagText(stack + static_cast<std::size_t>(index))) {
+                    bytes.push_back(static_cast<unsigned char>(byte));
                 }
             }
             value["string_bytes"] = std::move(bytes);
@@ -84,7 +84,7 @@ bool TagName(const std::string &name) {
 Json Execute(char *script, int size, std::vector<SPI_TAG_PARAM> &tags) {
     observations = Json::array();
     CScriptInterpreter interpreter;
-    interpreter.SetTag(tags.data());
+    interpreter.SetTag(tags);
     interpreter.SetScript(script, size);
     for (;;) {
         const auto previous = observations.size();
@@ -191,9 +191,13 @@ std::string CapturedString(const Json &argument) {
  * Observes typed arguments through the same game-text decoder used by profile playback.
  */
 Json ObserveTyped(const Json &arguments) {
-    std::vector<std::string> strings;
-    auto                     slots = command_replay::Arguments(arguments, strings);
-    CaptureParity(slots.data(), static_cast<int>(slots.size()));
+    std::vector<std::string>           strings;
+    auto                               slots = command_replay::Arguments(arguments, strings);
+    std::vector<std::span<const char>> text_sources;
+    for (const auto &text : strings) {
+        text_sources.emplace_back(text.data(), text.size() + 1);
+    }
+    CaptureParity(dc2::script::TagArguments(slots, {}, {}, text_sources), static_cast<int>(slots.size()));
     auto result = observations.back();
     observations.erase(observations.end() - 1);
     return result;
@@ -508,7 +512,7 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
             }
             auto text = sanitized.dump();
             observations = Json::array();
-            ASSERT_TRUE(command_replay::RunBuffer(text.data(), static_cast<int>(text.size()), tags.data()));
+            ASSERT_TRUE(command_replay::RunBuffer(text.data(), static_cast<int>(text.size()), tags));
             auto native = observations;
             for (std::size_t row = 0; row < native.size() && row < executed.size(); ++row) {
                 const auto name = executed.at(row)->value("command", std::string{});
@@ -516,10 +520,10 @@ TEST(NativeConfigParity, MatchesEveryOfflineOriginalInManifest) {
             }
             ASSERT_EQ(native.size(), original.size());
             ASSERT_EQ(native.size(), executed.size());
-            const auto                                        container = alias.substr(0, alias.rfind('/'));
-            auto                                              effect_container = container;
-            const Json                                       *active_actions = nullptr;
-            std::map<std::string, std::pair<double, double> > action_intervals;
+            const auto                                       container = alias.substr(0, alias.rfind('/'));
+            auto                                             effect_container = container;
+            const Json                                      *active_actions = nullptr;
+            std::map<std::string, std::pair<double, double>> action_intervals;
             for (std::size_t row = 0; row < native.size(); ++row) {
                 const auto &command = *executed.at(row);
                 const auto  name = command.value("command", std::string{});

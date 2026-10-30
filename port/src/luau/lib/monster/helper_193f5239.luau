@@ -5,7 +5,7 @@ local vm = require("@lib/vm")
 
 --- Helper function.
 local function helper_193f5239()
-	monster.SetDeadOff()
+	monster.spawn_death_effects()
 	while true do
 		vm.wait()
 	end

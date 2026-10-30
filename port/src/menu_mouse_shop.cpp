@@ -217,7 +217,7 @@ void MenuMouseShopTick(CMenuKeyFunc &keys) {
     }
 }
 
-PORT_OVERRIDE void CShop::CheckSyojiHin() {
+void CShop::CheckSyojiHin() {
     shop_stock = this;
     auto *user = GetUserDataMan();
     for (int i = 0; i < item_num; ++i) {
@@ -225,7 +225,7 @@ PORT_OVERRIDE void CShop::CheckSyojiHin() {
     }
 }
 
-PORT_OVERRIDE void CShopMenu::AttachForm() {
+void CShopMenu::AttachForm() {
     if (shop_menu != this || shop_forms != MenuPosData) {
         shop_stock = nullptr;
     }

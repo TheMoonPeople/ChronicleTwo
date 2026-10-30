@@ -21,14 +21,15 @@ from __future__ import annotations
 
 import argparse
 import collections
-import concurrent.futures
 import dataclasses
 import enum
 import functools
 import hashlib
 import json
+import multiprocessing
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -45,15 +46,16 @@ if str(TOOLS) not in sys.path:
 from stb import corpus as stb_corpus  # noqa: E402
 from stb.analysis import Analysis  # noqa: E402
 from stb.corpus import Kind, classify  # noqa: E402
-from stb.opcodes import FLOAT_MODES, Op  # noqa: E402
+from stb.opcodes import FLOAT_MODES, ConstType, Op  # noqa: E402
 from stb.program import DecodeError, Program, decode  # noqa: E402
-from stb2luau import harness, ir, tags, timing  # noqa: E402
+from stb2luau import event_args, harness, ir, skip, tags, timing  # noqa: E402
 from stb2luau.emit import (  # noqa: E402
     EmitError,
     FunctionInput,
     Module,
     ModuleInput,
     called_blocks,
+    curated_names,
     emit,
     emit_library,
     handlers,
@@ -69,7 +71,6 @@ from survey import resolve_data  # noqa: E402
 OUTPUT = REPO / "port/src/luau"
 CHECK = REPO / "port/build/luau-harness" / ("luau-check.exe" if os.name == "nt" else "luau-check")
 CATALOG = TOOLS / "commands.json"
-FALLBACK = TOOLS / "fallback.json"
 LUAURC = '{"aliases": {"lib": "./lib"}}\n'
 STYLUA_ARGS = ("--indent-type", "Tabs", "--column-width", "120")
 BATCH = 100
@@ -206,29 +207,206 @@ def _annotate(stmts: list, calls: dict[int, tags.CallFacts]) -> list:
     return annotated
 
 
+class _FrameNeeded(Exception):
+    """A skipped stream indexes an array, so its function must keep its frame in one table."""
+
+
+def _apply_skip(
+    program: Program,
+    original: Program,
+    function: Any,
+    plan: skip.Plan,
+    body: list,
+    lifted: ir.LiftedFunction,
+    analysis: Analysis,
+    refs: dict[int, tuple[int, ...]],
+) -> tuple[list, ir.Tail | None, dict[int, int]]:
+    """The function body with its sections, the tail a guarded function runs when skip mode unwinds through it, and the
+    resume points of the calls its chunks make that suspend skip mode, by the call's offset in the stream.
+
+    Each run that has something to execute has a synthetic stream function, lifted here and cut into chunks. A stream
+    starts mid-function, so no bound on its indices is known: one that indexes an array shares the function's frame
+    table, and raises _FrameNeeded when the function was lifted without one.
+    """
+    function_plan = plan.functions[function.block]
+    guarded = {block: found.guarded for block, found in plan.functions.items()}
+    chunks: dict[int, skip.Chunks] = {}
+    for run in function_plan.runs:
+        if run.stream is None:
+            continue
+        facts, source = analysis.facts[run.stream], analysis.facts[function.block]
+        for slot, kinds in source.stores.items():
+            facts.stores[slot] |= kinds
+        facts.float_slots |= source.float_slots
+        refs[run.stream] = refs.get(function.block, ())
+        framed = ir.FRAME in lifted.arrays
+        lifted_stream = lift(program, program.functions[run.stream], analysis, refs, frame=framed)
+        if lifted_stream.arrays and not framed:
+            raise _FrameNeeded()
+        base = len(lifted.temps)
+        lifted.temps.extend(lifted_stream.temps)
+        chunks[id(run)] = skip.build_chunks(function, run, structure(lifted_stream), base, refs, guarded, original)
+    extra = _add_carries(function, function_plan, plan, chunks, body)
+    wanted: list[bool] = []
+    skips: list[ir.Skip | None] = []
+    for run, returning in skip.regions(function_plan):
+        wanted.append(bool(run.resumes))
+        escape = max((resume.ordinal for other in returning for resume in other.resumes), default=0)
+        found = chunks.get(id(run))
+        if not run.resumes:
+            skips.append(None)
+        elif found is not None or escape:
+            skips.append(ir.Skip(found.chunks if found else [], escape, found.prologues if found else {}))
+        else:
+            skips.append(None)
+    first_runs = {}
+    for number, run in enumerate(function_plan.runs):
+        if number in function_plan.entries:
+            first_runs[sum(1 for earlier in function_plan.runs[:number] if earlier.terminal == "skip_end")] = function_plan.entries[number]
+    body = skip.split_sections(body, wanted, skips, first_runs)
+    tail = None
+    if function_plan.guarded:
+        runs = []
+        for run in function_plan.runs:
+            if run.terminal == "return" and run.resumes:
+                found = chunks.get(id(run))
+                last = max(resume.ordinal for resume in run.resumes)
+                runs.append(ir.TailRun(last, found.chunks if found else [], found.value if found else None, found.prologues if found else {}))
+        tail = ir.Tail(runs) if runs else None
+    return body, tail, extra
+
+
+def _add_carries(
+    function: Any, function_plan: skip.FunctionPlan, plan: skip.Plan, chunks: dict[int, skip.Chunks], body: list
+) -> dict[int, int]:
+    """Appends to each chunk statement that calls a function suspending in skip mode what runs when it is resumed normally.
+
+    The call can come back normally only when the script is resumed without skipping inside it, after which the rest of
+    the function runs as usual from the call. That is the code of the function's body after the call.
+    """
+    extra: dict[int, int] = {}
+    regions = skip.regions_of(body)
+    for run in function_plan.runs:
+        built = chunks.get(id(run))
+        if built is None:
+            continue
+        suspended = {resume.offset: resume for resume in run.resumes if resume.is_call}
+        rewritten = []
+        for ordinal, part in built.chunks:
+            out = []
+            for stmt in part:
+                out.append(stmt)
+                calls = [
+                    sub
+                    for expr in skip._expressions(stmt)
+                    for sub in ir.walk(expr)
+                    if isinstance(sub, ir.Call) and sub.function in plan.entered
+                ]
+                if not calls:
+                    continue
+                origin = run.origins[calls[0].offset]
+                extra[calls[0].offset] = suspended[origin].ordinal
+                home = next((number for number, region in enumerate(regions) if skip.mentions_call(region, origin)), None)
+                if home is None or (run.terminal == "skip_end") != (home < len(regions) - 1):
+                    raise skip.SkipError(
+                        f"the call at {origin:#x} that suspends skip mode is in a branch that returns before the skip end"
+                    )
+                result = None
+                if isinstance(stmt, ir.Assign) and stmt.value is calls[0]:
+                    result = stmt.target if isinstance(stmt.target, ir.Temp) else None
+                    if isinstance(stmt.target, tuple):
+                        result = ir.Var(stmt.target, calls[0].type)
+                out.append(ir.Carry(skip.resume_after(regions[home], origin, result)))
+            rewritten.append((ordinal, out))
+        built.chunks = rewritten
+    return extra
+
+
+SCRIPT_TEXT = Path(__file__).resolve().parents[1] / "script_text.json"
+# Offset of the code section's offset in a script's header.
+CODE_FIELD = 8
+
+
+def corrected_text(key: str, data: bytes) -> bytes:
+    """The script with its text corrections: each line's PUSH_CONST must push exactly its retail text, which the
+    corrected text replaces in place when it is no longer, and otherwise is appended to the file for the push to name."""
+    lines = json.loads(SCRIPT_TEXT.read_text(encoding="utf-8"))["scripts"].get(key, [])
+    if not lines:
+        return data
+    out = bytearray(data)
+    code = struct.unpack_from("<i", data, CODE_FIELD)[0]
+    for line in lines:
+        push = int(line["push"], 16)
+        retail, text = line["retail"].encode("latin-1"), line["text"].encode("latin-1")
+        op, kind, relative = struct.unpack_from("<iii", data, push)
+        at = code + relative
+        if (op, kind) != (Op.PUSH_CONST, ConstType.STR) or data[at : at + len(retail) + 1] != retail + b"\0":
+            raise TimingError(f"{key}: the text at {push:#x} is not the retail text a correction expects")
+        if len(text) <= len(retail):
+            out[at : at + len(text) + 1] = text + b"\0"
+        else:
+            struct.pack_into("<i", out, push + 8, len(out) - code)
+            out += text + b"\0"
+    return bytes(out)
+
+
 def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
     """Decodes and lifts one script of the published corpus; the module input is None when it failed."""
     name = module_name(path)
     try:
-        normalized = timing.apply(timing.key(path), data)
+        normalized = corrected_text(timing.key(path), timing.apply(timing.key(path), data))
         program = decode(normalized)
     except (DecodeError, TimingError) as error:
         return Result(path, name, None, str(error), [], None), None
 
     result = Result(path, name, None, None, [], program, normalized)
-    analysis = Analysis(program)
+    if classify(path) is Kind.EVENT_ARG:
+        # An argument script is data: its commands are read at load time, so it needs no functions.
+        try:
+            result.text = event_args.transpile(path, normalized)
+        except (DecodeError, EmitError) as error:
+            result.error = str(error)
+        return result, None
+    # Skip mode exists for event scripts only; their skip streams are lifted as synthetic functions of the program.
+    skipping = classify(path) in (Kind.EVENT, Kind.EVENT_ARG)
     refs = references(program)
     pointer_flow = tags.analyse(program, _directions(classify(path).value)).references
     for block, positions in pointer_flow.items():
         refs[block] = tuple(sorted(set(refs.get(block, ())) | set(positions)))
+    plan = skip.plan(program, refs) if skipping else skip.Plan({}, {}, {})
+    whole = skip.with_synthetic(program, plan)
+    analysis = Analysis(whole)
+    for synthetic, found in references(whole).items():
+        refs[synthetic] = tuple(sorted(set(refs.get(synthetic, ())) | set(found)))
+    for callee, twin in plan.twins.items():
+        refs[twin] = tuple(sorted(set(refs.get(twin, ())) | set(refs.get(callee, ()))))
     errors: list[str] = []
     functions: dict[int, FunctionInput] = {}
     folded: set[int] = set()
+    # Functions kept in a frame table only because a skipped stream indexes past an array: their own indices stay
+    # within their arrays.
+    stream_framed: set[int] = set()
     for block in _reachable(program):
         try:
-            lifted = lift(program, program.functions[block], analysis, refs)
+            if block in plan.errors:
+                raise skip.SkipError(plan.errors[block])
+            lifted = lift(whole, program.functions[block], analysis, refs)
             body = structure(lifted)
-        except (LiftError, StructureError) as error:
+            tail = None
+            extra: dict[int, int] = {}
+            temps_before = len(lifted.temps)
+            if block in plan.functions:
+                try:
+                    body, tail, extra = _apply_skip(whole, program, program.functions[block], plan, body, lifted, analysis, refs)
+                except _FrameNeeded:
+                    stream_framed.add(block)
+                    lifted = lift(whole, program.functions[block], analysis, refs, frame=True)
+                    if ir.FRAME not in lifted.arrays:
+                        raise skip.SkipError("a skipped stream indexes an array the function does not") from None
+                    body = structure(lifted)
+                    temps_before = len(lifted.temps)
+                    body, tail, extra = _apply_skip(whole, program, program.functions[block], plan, body, lifted, analysis, refs)
+        except (LiftError, StructureError, skip.SkipError) as error:
             errors.append(f"function {block:#x}: {error}")
             continue
         folded |= lifted.folded
@@ -243,11 +421,38 @@ def transpile(path: str, data: bytes) -> tuple[Result, ModuleInput | None]:
             is_main=block == program.main,
             refs=lifted.refs,
             arrays=lifted.arrays,
+            resumes={**plan.functions[block].by_offset, **extra} if block in plan.functions else {},
+            tail=tail,
+            hoisted=tuple(range(temps_before, len(lifted.temps))),
+            load_kinds=lifted.load_kinds,
         )
+    synthetic = dict(plan.twins)
+    if plan.discard is not None:
+        synthetic[plan.discard] = plan.discard
+    for callee, twin in synthetic.items():
+        try:
+            lifted_twin = lift(whole, whole.functions[twin], analysis, refs)
+            functions[twin] = FunctionInput(
+                block=twin,
+                arg=lifted_twin.arg,
+                local=lifted_twin.local,
+                slot_types=lifted_twin.slot_types,
+                temps=lifted_twin.temps,
+                body=structure(lifted_twin),
+                programs=[],
+                is_main=False,
+                refs=lifted_twin.refs,
+                arrays=lifted_twin.arrays,
+                load_kinds=lifted_twin.load_kinds,
+            )
+        except (LiftError, StructureError) as error:
+            errors.append(f"twin of function {callee:#x}: {error}")
     if errors:
         result.error = "; ".join(errors)
         return result, None
-    bounded = frozenset(block for block, function in functions.items() if ir.FRAME not in function.arrays)
+    bounded = frozenset(
+        block for block, function in functions.items() if ir.FRAME not in function.arrays or block in stream_framed
+    )
     call_tags = tags.analyse(program, _directions(classify(path).value), bounded_functions=bounded).calls
     for function in functions.values():
         function.body = _annotate(function.body, call_tags)
@@ -287,6 +492,10 @@ class _Keys:
             f"temps={self.value(function.temps)}",
             f"body={self.value(function.body)}",
         ]
+        if function.tail is not None:
+            parts.append(f"tail={self.value(function.tail)}")
+        if function.hoisted:
+            parts.append(f"hoisted={self.value(function.hoisted)}")
         if function.refs:
             parts.append(f"refs={self.value(function.refs)}")
         if function.arrays:
@@ -331,16 +540,18 @@ def shareable_blocks(functions: dict[int, FunctionInput]) -> set[int]:
             # A call cycle is rejected by emission, so an entry is provisionally false while it is visited.
             memo[block] = False
             function = functions[block]
-            touches_global = any(slot[0] == "global" for slot in mentioned_slots(function.body) | set(function.slot_types))
+            touches_global = any(slot[0] == "global" for slot in mentioned_slots(function.statements) | set(function.slot_types))
             local = not function.is_main and not function.programs and not touches_global
-            memo[block] = local and all(visit(callee) for callee in sorted(called_blocks(function.body)))
+            memo[block] = local and all(visit(callee) for callee in sorted(called_blocks(function.statements)))
         return memo[block]
 
     return {block for block in functions if visit(block)}
 
 
-def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[_Shared]]:
-    """Chooses the shared helpers of one kind: returns each script's block-to-library names and the libraries."""
+def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[_Shared], dict[str, set[int]]]:
+    """Chooses the shared helpers of one kind: returns each script's block-to-library names, the libraries, and the
+    blocks of each script whose library returns a value (a call anywhere in the kind uses it), which every caller must
+    take into account when it receives the library's results."""
     keys: dict[str, dict[int, str]] = {}
     shareable: dict[str, set[int]] = {}
     occurrences: dict[str, list[tuple[str, int]]] = collections.defaultdict(list)
@@ -357,8 +568,9 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
         if len({path for path, _ in occurring}) >= 2
     }
     names: dict[str, str] = {}
+    curated = curated_names(modules[0].kind) if modules else {}
     for key in sorted(shared_keys):
-        name = f"helper_{key[:KEY_LENGTH]}"
+        name = curated.get(key[:KEY_LENGTH], {}).get("name") or f"helper_{key[:KEY_LENGTH]}"
         if name in names.values():
             raise ValueError(f"shared helper names collide: {name}")
         names[key] = name
@@ -367,7 +579,7 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
     returns: set[str] = set()
     for module in modules:
         for function in module.functions.values():
-            for callee in used_call_blocks(function.body):
+            for callee in used_call_blocks(function.statements):
                 key = keys[module.path][callee]
                 if key in shared_keys:
                     returns.add(key)
@@ -378,6 +590,10 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
             for block in shareable[module.path]
             if keys[module.path][block] in shared_keys
         }
+        for module in modules
+    }
+    returning = {
+        module.path: {block for block, key in keys[module.path].items() if key in returns and key in shared_keys}
         for module in modules
     }
     shared = [
@@ -391,7 +607,7 @@ def _share(modules: list[ModuleInput]) -> tuple[dict[str, dict[int, str]], list[
         )
         for key in sorted(shared_keys)
     ]
-    return module_names, shared
+    return module_names, shared, returning
 
 
 def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[str, Any]) -> Corpus:
@@ -403,7 +619,9 @@ def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[s
     names: dict[str, dict[int, str]] = {}
     for kind in sorted({module.kind for module in modules}):
         kind_modules = [module for module in modules if module.kind == kind]
-        kind_names, shared = _share(kind_modules)
+        kind_names, shared, returning = _share(kind_modules)
+        for path, blocks in returning.items():
+            by_path[path] = dataclasses.replace(by_path[path], returns_value=set(by_path[path].returns_value) | blocks)
         names.update(kind_names)
         for item in shared:
             source = by_path[item.path]
@@ -434,6 +652,7 @@ def emit_corpus(lifted: list[tuple[Result, ModuleInput | None]], catalog: dict[s
         if module.path in errors:
             continue
         try:
+            module = by_path[module.path]
             emitted[module.path] = emit(dataclasses.replace(module, libraries=names.get(module.path, {})), catalog)
         except EmitError as error:
             errors[module.path] = str(error)
@@ -528,17 +747,33 @@ def corpus(source: Path, kinds: set[str]) -> Iterator[tuple[str, bytes]]:
             yield path, data
 
 
-def _map(function: Any, items: list[Any], jobs: int) -> list[Any]:
-    """Applies a function to each item, in a process pool when more than one job is asked for."""
+# Tasks a worker process runs before it is replaced, so that what a worker keeps from earlier items is returned to the system.
+TASKS_PER_WORKER = 4
+
+
+def default_jobs() -> int:
+    """Worker processes used when --jobs is not given: half the logical CPUs, at most 8, so a run leaves room for others."""
+    return max(1, min(8, (os.cpu_count() or 2) // 2))
+
+
+def _map(function: Any, items: list[Any], jobs: int, chunksize: int = 8) -> list[Any]:
+    """Applies a function to each item, in a process pool when more than one job is asked for.
+
+    Each worker is replaced after TASKS_PER_WORKER tasks (a task being a chunk of chunksize items).
+    """
     if jobs <= 1 or len(items) <= 1:
         return [function(item) for item in items]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=jobs) as pool:
-        return list(pool.map(function, items, chunksize=8))
+    # multiprocessing.Pool rather than ProcessPoolExecutor: on Python 3.11 the executor can stop replacing retired workers and hang.
+    with multiprocessing.get_context("spawn").Pool(processes=min(jobs, len(items)), maxtasksperchild=TASKS_PER_WORKER) as pool:
+        return pool.map(function, items, chunksize=chunksize)
 
 
 def _transpile_job(job: tuple[str, bytes]) -> tuple[Result, ModuleInput | None]:
     path, data = job
-    return transpile(path, data)
+    result, module = transpile(path, data)
+    # The decoded program is several times the size of its bytes; users decode it again from the normalized bytes.
+    result.program = None
+    return result, module
 
 
 @dataclasses.dataclass
@@ -603,7 +838,7 @@ def _harness_job(job: tuple[Result, Module, dict[str, Any], range, Path]) -> Har
             report = harness.run(
                 root,
                 result.module,
-                result.program,
+                decode(result.normalized),
                 kind,
                 kind["namespace"],
                 seeds,
@@ -658,9 +893,15 @@ def _stale_libraries(out: Path, kinds: set[str], generated: set[str]) -> list[st
     return stale
 
 
-def fallback_scripts() -> dict[str, str]:
-    """The scripts the interpreter keeps, with the reason, from tools/luau/fallback.json."""
-    return json.loads(FALLBACK.read_text(encoding="utf-8"))["scripts"]
+def stale_names(libraries: list[Library], kinds: set[str]) -> list[str]:
+    """The names.json entries of the processed kinds that name no shared helper."""
+    found = {(lib.kind, lib.name) for lib in libraries}
+    return sorted(
+        f"{kind}/{key}"
+        for kind in kinds
+        for key, entry in curated_names(kind).items()
+        if (kind, entry["name"]) not in found
+    )
 
 
 def _write_manifest(
@@ -670,19 +911,15 @@ def _write_manifest(
     libraries: list[Library],
     kinds: set[str],
 ) -> None:
-    """Merges the results into the previous manifest: successes are added, scripts the interpreter keeps are listed with
-    the reason, other failures are removed.
+    """Merges the results into the previous manifest: successes are added, failures are removed.
 
     The libraries of the processed kinds are replaced; those of other kinds are kept.
     """
     manifest = json.loads(previous.read_text(encoding="utf-8")) if previous.is_file() else {}
     shared = manifest.pop("libraries", {})
-    fallback = fallback_scripts()
     for result in results:
         if result.error is None and result.normalized is not None:
             manifest[result.path] = {"module": result.module, "sha256": _sha256(result.normalized)}
-        elif result.path in fallback:
-            manifest[result.path] = {"interpreter": fallback[result.path]}
         else:
             manifest.pop(result.path, None)
     shared = {name: entry for name, entry in shared.items() if name.split("/")[0] not in kinds}
@@ -746,13 +983,18 @@ def _harness_rows(
     )
     work = []
     for result in good:
+        if classify(result.path) is Kind.EVENT_ARG:
+            difference = event_args.verify(decode(result.normalized)) if result.normalized is not None else "script did not decode"
+            rows.append(HarnessRow(result.path, 0 if difference else 1, 1 if difference else 0, [difference] if difference else []))
+            continue
         module = exposed.modules.get(result.path)
         if module is None:
             rows.append(HarnessRow(result.path, 0, 1, [exposed.errors.get(result.path, "emit failed")]))
             continue
         kind = catalog["kinds"][classify(result.path).value]
         work.append((result, module, kind, range(seeds), out))
-    return rows + _map(_harness_job, work, jobs)
+    # One script per task: a harness run is heavy, and the worker that ran it is replaced soon after.
+    return rows + _map(_harness_job, work, jobs, chunksize=1)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -788,8 +1030,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--jobs",
         type=int,
-        default=os.cpu_count() or 1,
-        help="worker processes (default: CPU count)",
+        default=default_jobs(),
+        help="worker processes (default: half the CPU count, at most 8)",
     )
     args = parser.parse_args(argv)
 
@@ -822,9 +1064,8 @@ def main(argv: list[str] | None = None) -> int:
     corpus_ = emit_corpus(lifted, catalog)
     results = _apply(lifted, corpus_)
     good = [result for result in results if result.error is None]
-    fallback = fallback_scripts()
-    kept = [result for result in results if result.error is not None and result.path in fallback]
-    unneeded = sorted(result.path for result in good if result.path in fallback)
+    # Names are checked only when every script of the kinds was translated, since a part may not share a helper.
+    unused_names = stale_names(corpus_.libraries, kinds) if not args.only else []
 
     stale: list[str] = []
     harness_rows: list[HarnessRow] = []
@@ -834,7 +1075,6 @@ def main(argv: list[str] | None = None) -> int:
             root = Path(scratch)
             written = _write_tree(root, results, corpus_, previous=args.out, kinds=kinds)
             stale = _out_of_date(root, args.out) + _stale_libraries(args.out, kinds, _library_files(corpus_.libraries))
-            stale += [f"{result.module}.luau" for result in kept if (args.out / f"{result.module}.luau").is_file()]
             check_lines = check(written, root=root) if written else []
             if args.harness:
                 harness_rows = _harness_rows(lifted, good, catalog, args.seeds, args.jobs, root)
@@ -843,22 +1083,17 @@ def main(argv: list[str] | None = None) -> int:
         written = _write_tree(args.out, results, corpus_, previous=args.out, kinds=kinds)
         for name in _stale_libraries(args.out, kinds, _library_files(corpus_.libraries)):
             (args.out / name).unlink()
-        # A script the interpreter keeps has no module, so the runtime falls back to the interpreter.
-        for result in kept:
-            (args.out / f"{result.module}.luau").unlink(missing_ok=True)
         check_lines = check(written, root=args.out) if written else []
         if args.harness:
             harness_rows = _harness_rows(lifted, good, catalog, args.seeds, args.jobs, args.out)
 
     for name in stale:
         print(f"out of date: {name}")
-    failed = [result for result in results if result.error is not None and result.path not in fallback]
-    print(f"transpiled {len(good)} of {len(results)} scripts; {len(kept)} kept on the interpreter; {len(failed)} failed")
+    failed = [result for result in results if result.error is not None]
+    print(f"transpiled {len(good)} of {len(results)} scripts; {len(failed)} failed")
     _print_failures(failed)
-    for result in kept:
-        print(f"interpreter {result.path}: {result.error.splitlines()[0] if result.error else ''}")
-    for path in unneeded:
-        print(f"stale fallback entry: {path} transpiles; remove it from {FALLBACK.name}")
+    for name in unused_names:
+        print(f"stale names.json entry: {name} names no shared helper")
     print(f"libraries: {len(corpus_.libraries)} shared helpers")
     for lib in corpus_.libraries:
         print(f"    {lib.kind}/{lib.name}: {len(lib.users)} scripts")
@@ -896,7 +1131,7 @@ def main(argv: list[str] | None = None) -> int:
         for message, count in sorted(diagnostics.items(), key=lambda item: (-item[1], item[0])):
             print(f"    {count:6d}  {message}")
 
-    return 1 if stale or failed or unneeded or check_lines or harness_failed else 0
+    return 1 if stale or failed or unused_names or check_lines or harness_failed else 0
 
 
 if __name__ == "__main__":

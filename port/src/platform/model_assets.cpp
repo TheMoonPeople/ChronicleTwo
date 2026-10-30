@@ -19,6 +19,7 @@
 #include <span>
 #include <stdexcept>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -33,8 +34,6 @@
 #include "mg_dataset.hpp"
 #include "mg_math.hpp"
 #include "mg_shadow.hpp"
-#include "mg_texture_port.hpp"
-#include "mg_visual_port.hpp"
 #include "mglib.hpp"
 #include "monster.hpp"
 #include "outline.hpp"
@@ -42,14 +41,35 @@
 #include "platform/legacy_encoding.hpp"
 #include "platform/model_assets.hpp"
 #include "profile.hpp"
+#include "render/texture_runtime.hpp"
+#include "render/visual_mesh.hpp"
+#include "text/bounded.hpp"
 #include "visualmotion.hpp"
-
-int conv_new_text(char *, char *);
 
 namespace model_assets {
 namespace {
 using Json = nlohmann::json;
 using Matrix = std::array<float, 16>;
+
+/**
+ * Reads an exact integer after checking the JSON numeric kind and destination range.
+ */
+template <class T>
+T ModelInteger(const Json &value) {
+    static_assert(std::is_integral_v<T> && !std::is_same_v<T, bool>);
+    if (value.is_number_unsigned()) {
+        const auto integer = value.get<Json::number_unsigned_t>();
+        if (std::in_range<T>(integer)) {
+            return static_cast<T>(integer);
+        }
+    } else if (value.is_number_integer()) {
+        const auto integer = value.get<Json::number_integer_t>();
+        if (std::in_range<T>(integer)) {
+            return static_cast<T>(integer);
+        }
+    }
+    throw std::runtime_error("native model integer has an invalid kind or range");
+}
 
 /** Native stream size keys, in POSITION, NORMAL, TEXCOORD_0, COLOR_0 order. */
 constexpr std::array<const char *, 4> kStreamCounts{"vertex_count", "normal_count", "uv_count", "colour_count"};
@@ -111,7 +131,8 @@ std::string ContentHash(std::span<const std::byte> bytes) {
         value *= 0xC4CEB9FE1A85EC53ull;
         return value ^ (value >> 33);
     };
-    char text[48];
+    constexpr std::size_t kHashTextCapacity = 16 + 16 + 1 + std::numeric_limits<std::size_t>::digits10 + 1 + 1;
+    char                  text[kHashTextCapacity];
     std::snprintf(text, sizeof(text), "%016llx%016llx:%llu", static_cast<unsigned long long>(avalanche(mixed)),
                   static_cast<unsigned long long>(avalanche(folded)), static_cast<unsigned long long>(bytes.size()));
     return text;
@@ -121,22 +142,22 @@ std::string ContentHash(std::span<const std::byte> bytes) {
  * A standard glTF document and its adjacent native gameplay semantics.
  */
 struct Document : std::enable_shared_from_this<Document> {
-    std::shared_ptr<fastgltf::Asset>                                           storage;               /**< Shared standard glTF contents for every scene of a bundle. */
-    fastgltf::Asset                                                           &asset;                 /**< Parsed standard model, material, skin, and animation data. */
-    std::shared_ptr<Json>                                                      custom;                /**< Adjacent minimal game-specific JSON. */
-    std::shared_ptr<Json>                                                      images;                /**< Image replacement paths stored in the gameplay JSON. */
-    std::unordered_map<std::size_t, std::shared_ptr<texture_catalog::Source> > texture_sets;          /**< Stable native image and animation sets. */
-    Json                                                                       metadata;              /**< Engine-specific decoded model information. */
-    std::filesystem::path                                                      relative;              /**< Model path used to resolve external resources. */
-    bool                                                                       overlaid = false;      /**< Whether a datapack supplies this model document. */
-    std::string                                                                source;                /**< Datapack glTF path, size and write time naming its embedded images. */
-    std::size_t                                                                node_offset = 0;       /**< First standard node belonging to the selected native model. */
-    std::unordered_map<std::size_t, std::size_t>                               rotation_nodes;        /**< Standard rotation helpers mapped to their original gameplay frame. */
-    std::vector<std::size_t>                                                   frame_nodes;           /**< Standard scene nodes mapped to native frames when gameplay identities are absent. */
-    std::optional<fastgltf::Node>                                              scene_root;            /**< Identity parent joining multiple roots of a standard scene. */
-    bool                                                                       standard_only = false; /**< Whether the standard scene supplies all model identities. */
-    mutable std::unordered_map<std::size_t, std::string>                       embedded_keys;         /**< Content identities of embedded images by standard image index. */
-    std::shared_ptr<const std::vector<bool> >                                  scaled_nodes;          /**< Standard nodes some animation scales to other than one, once computed. */
+    std::shared_ptr<fastgltf::Asset>                                          storage;               /**< Shared standard glTF contents for every scene of a bundle. */
+    fastgltf::Asset                                                          &asset;                 /**< Parsed standard model, material, skin, and animation data. */
+    std::shared_ptr<Json>                                                     custom;                /**< Adjacent minimal game-specific JSON. */
+    std::shared_ptr<Json>                                                     images;                /**< Image replacement paths stored in the gameplay JSON. */
+    std::unordered_map<std::size_t, std::shared_ptr<texture_catalog::Source>> texture_sets;          /**< Stable native image and animation sets. */
+    Json                                                                      metadata;              /**< Engine-specific decoded model information. */
+    std::filesystem::path                                                     relative;              /**< Model path used to resolve external resources. */
+    bool                                                                      overlaid = false;      /**< Whether a datapack supplies this model document. */
+    std::string                                                               source;                /**< Datapack glTF path, size and write time naming its embedded images. */
+    std::size_t                                                               node_offset = 0;       /**< First standard node belonging to the selected native model. */
+    std::unordered_map<std::size_t, std::size_t>                              rotation_nodes;        /**< Standard rotation helpers mapped to their original gameplay frame. */
+    std::vector<std::size_t>                                                  frame_nodes;           /**< Standard scene nodes mapped to native frames when gameplay identities are absent. */
+    std::optional<fastgltf::Node>                                             scene_root;            /**< Identity parent joining multiple roots of a standard scene. */
+    bool                                                                      standard_only = false; /**< Whether the standard scene supplies all model identities. */
+    mutable std::unordered_map<std::size_t, std::string>                      embedded_keys;         /**< Content identities of embedded images by standard image index. */
+    std::shared_ptr<const std::vector<bool>>                                  scaled_nodes;          /**< Standard nodes some animation scales to other than one, once computed. */
 
     explicit Document(std::shared_ptr<fastgltf::Asset> input) : storage(std::move(input)), asset(*storage) {}
 };
@@ -160,7 +181,7 @@ void EnterModelTextures(const std::shared_ptr<Document> &source, std::optional<s
     if (source->custom->contains("models")) {
         const auto &selected = source->custom->at("models").at(model.value_or(0));
         for (const auto &set : selected.value("texture_sets", Json::array())) {
-            EnterTextureSet(source, set.get<std::size_t>(), options, character, 0);
+            EnterTextureSet(source, ModelInteger<std::size_t>(set), options, character, 0);
         }
     } else {
         const auto &sets = source->custom->value("texture_sets", Json::array());
@@ -173,7 +194,7 @@ void EnterModelTextures(const std::shared_ptr<Document> &source, std::optional<s
 /**
  * Parsed documents shared by the model and its associated motion resources.
  */
-std::unordered_map<std::string, std::shared_ptr<Document> > documents;
+std::unordered_map<std::string, std::shared_ptr<Document>> documents;
 
 /**
  * Standard inverse-bind matrices shared by copied visuals through their weight arrays.
@@ -248,16 +269,15 @@ struct MotionOwner {
 /**
  * The model bundle each character was built from, which holds the actions external motions add.
  */
-std::unordered_map<const CCharacter2 *, MotionOwner> character_models;
 
 /**
  * Base streams and glTF morph deltas indexed by the native mesh's persistent positions.
  */
 struct NativeMorph {
-    std::vector<std::array<float, 4> >               positions;       /**< Undeformed native positions. */
-    std::vector<std::array<float, 4> >               normals;         /**< Undeformed native normals. */
-    std::vector<std::vector<std::array<float, 4> > > position_deltas; /**< Position deltas for each morph target. */
-    std::vector<std::vector<std::array<float, 4> > > normal_deltas;   /**< Normal deltas for each morph target. */
+    std::vector<std::array<float, 4>>              positions;       /**< Undeformed native positions. */
+    std::vector<std::array<float, 4>>              normals;         /**< Undeformed native normals. */
+    std::vector<std::vector<std::array<float, 4>>> position_deltas; /**< Position deltas for each morph target. */
+    std::vector<std::vector<std::array<float, 4>>> normal_deltas;   /**< Normal deltas for each morph target. */
 };
 
 /**
@@ -269,31 +289,32 @@ std::unordered_map<const void *, NativeMorph> native_morphs;
  * Keeps a directly entered character texture set alive for explicit image deletion.
  */
 struct CharacterImages {
-    int                                      slot;    /**< Character image slot owning the set. */
-    int                                      block;   /**< Destination texture block before per-entry offsets. */
-    mgCTextureManager                       *manager; /**< Native manager receiving the textures. */
-    std::shared_ptr<texture_catalog::Source> source;  /**< Stable picture and animation definitions. */
-    mgCMemory                               *memory;  /**< Arena used by native texture animation records. */
-    std::string                              suffix;  /**< Texture identity suffix at registration time. */
+    int                                      slot;       /**< Character image slot owning the set. */
+    int                                      block;      /**< Destination texture block before per-entry offsets. */
+    mgCTextureManager                       *manager;    /**< Native manager receiving the textures. */
+    std::shared_ptr<texture_catalog::Source> source;     /**< Stable picture and animation definitions. */
+    mgCMemory                               *memory;     /**< Arena used by native texture animation records. */
+    dc2::memory::ArenaLifetime               lifetime{}; /**< Explicit lifetime of native texture animation allocations. */
+    std::string                              suffix;     /**< Texture identity suffix at registration time. */
 };
 
 /**
  * Associates entered native image sets with the character slots that own them.
  */
-std::unordered_map<CCharacter2 *, std::vector<CharacterImages> > character_images;
+std::unordered_map<CCharacter2 *, std::vector<CharacterImages>> character_images;
 
 /**
  * Owns parsed monster texture resources until their reserved slots are replaced.
  */
 struct ReservedImages {
-    std::shared_ptr<texture_catalog::Source>                               source; /**< Parsed picture and animation definitions. */
-    std::shared_ptr<std::vector<std::vector<datapacks::DecodedTexture> > > pixels; /**< Reserved RGBA mip chains for every variant. */
+    std::shared_ptr<texture_catalog::Source>                             source; /**< Parsed picture and animation definitions. */
+    std::shared_ptr<std::vector<std::vector<datapacks::DecodedTexture>>> pixels; /**< Reserved RGBA mip chains for every variant. */
 };
 
 /**
  * Keeps reserved native resource objects alive without serialized image buffers.
  */
-std::unordered_map<CActiveMonster *, std::array<ReservedImages, 2> > reserved_images;
+std::unordered_map<CActiveMonster *, std::array<ReservedImages, 2>> reserved_images;
 
 /**
  * Converts readable or escaped model names to the byte strings used by game frame and texture lookups.
@@ -409,7 +430,7 @@ std::shared_ptr<Document> SelectModel(const std::shared_ptr<Document> &source, s
     const auto &frames = selected->metadata.at("frames");
     for (std::size_t frame = 0; frame < frames.size(); ++frame) {
         if (frames[frame].contains("rotation_node")) {
-            const auto  helper = frames[frame].at("rotation_node").get<std::size_t>();
+            const auto  helper = ModelInteger<std::size_t>(frames[frame].at("rotation_node"));
             const auto &logical = selected->asset.nodes.at(selected->node_offset + frame);
             if (!selected->overlaid || (!logical.meshIndex && helper < selected->asset.nodes.size() && std::ranges::find(logical.children, helper) != logical.children.end())) {
                 selected->rotation_nodes.emplace(helper, frame);
@@ -418,7 +439,7 @@ std::shared_ptr<Document> SelectModel(const std::shared_ptr<Document> &source, s
     }
     const auto rotation_nodes = selected->metadata.value("rotation_nodes", Json::object());
     for (const auto &[node, frame] : rotation_nodes.items()) {
-        selected->rotation_nodes.insert_or_assign(static_cast<std::size_t>(std::stoull(node)), frame.get<std::size_t>());
+        selected->rotation_nodes.insert_or_assign(static_cast<std::size_t>(std::stoull(node)), ModelInteger<std::size_t>(frame));
     }
     return selected;
 }
@@ -509,7 +530,7 @@ std::shared_ptr<const Json> ParseGameplay(const std::filesystem::path &gltf, std
                     if (gameplay.contains("cloth_commands")) {
                         auto &cloths = game->at("resources").at("cloths");
                         for (const auto &entry : gameplay.at("cloth_commands")) {
-                            const auto index = entry.at("index").get<std::size_t>();
+                            const auto index = ModelInteger<std::size_t>(entry.at("index"));
                             if (index >= cloths.size() || !entry.at("commands").is_array()) {
                                 throw std::runtime_error("invalid external character cloth commands");
                             }
@@ -526,10 +547,10 @@ std::shared_ptr<const Json> ParseGameplay(const std::filesystem::path &gltf, std
                 }
                 std::size_t index = 0;
                 for (const auto &frame : model.at("frames")) {
-                    if (frame.contains("id") && (!frame.at("id").is_number_integer() || frame.at("id").get<std::size_t>() != index)) {
+                    if (frame.contains("id") && (!frame.at("id").is_number_integer() || ModelInteger<std::size_t>(frame.at("id")) != index)) {
                         throw std::runtime_error("invalid native frame ID");
                     }
-                    if (!frame.at("mdt").is_null() && (!frame.at("mdt").is_number_integer() || frame.at("mdt").get<std::size_t>() >= model.at("meshes").size())) {
+                    if (!frame.at("mdt").is_null() && (!frame.at("mdt").is_number_integer() || ModelInteger<std::size_t>(frame.at("mdt")) >= model.at("meshes").size())) {
                         throw std::runtime_error("invalid native mesh ID");
                     }
                     ++index;
@@ -539,7 +560,7 @@ std::shared_ptr<const Json> ParseGameplay(const std::filesystem::path &gltf, std
                         throw std::runtime_error("invalid native mesh records");
                     }
                     for (const auto *count : kStreamCounts) {
-                        if (!mesh.at(count).is_number_integer() || mesh.at(count).get<std::int64_t>() < 0) {
+                        if (!mesh.at(count).is_number_integer() || ModelInteger<std::int64_t>(mesh.at(count)) < 0) {
                             throw std::runtime_error("invalid native stream count");
                         }
                     }
@@ -550,7 +571,7 @@ std::shared_ptr<const Json> ParseGameplay(const std::filesystem::path &gltf, std
                                 throw std::runtime_error("invalid native stream identities");
                             }
                             for (const auto &identity : mapping) {
-                                if (!identity.is_number_integer() || identity.get<std::size_t>() >= mesh.at(kStreamCounts[stream]).get<std::size_t>()) {
+                                if (!identity.is_number_integer() || ModelInteger<std::size_t>(identity) >= ModelInteger<std::size_t>(mesh.at(kStreamCounts[stream]))) {
                                     throw std::runtime_error("invalid native stream identity");
                                 }
                             }
@@ -615,7 +636,9 @@ std::shared_ptr<Document> ReadBytes(std::span<const std::byte> bytes, const Json
             datapacks::Trace("model.buffer_bytes", data.size());
             fastgltf::sources::Vector storage;
             storage.bytes.resize(data.size());
-            std::memcpy(storage.bytes.data(), data.data(), data.size());
+            if (!data.empty()) {
+                std::memcpy(storage.bytes.data(), data.data(), data.size());
+            }
             buffer.data = std::move(storage);
         }
     }
@@ -681,12 +704,23 @@ std::shared_ptr<Document> Read(const std::filesystem::path &relative, bool allow
 /**
  * Allocates value-initialized native objects in the game's persistent model arena.
  */
+static_assert(sizeof(CEffectCtrl) == 0x310);
+static_assert(std::is_trivially_destructible_v<EffectTypeTriple>);
+static_assert(std::is_pointer_v<decltype(CEffectCtrl::texture)>);
+
 template <class T>
 T *Allocate(mgCMemory &memory, std::size_t count = 1) {
+    static_assert(alignof(T) <= alignof(u_long128));
+    static_assert(std::is_trivially_destructible_v<T>,
+                  "model arena reset cannot run object destructors");
     if (count > (1u << 26) / sizeof(T)) {
         throw std::runtime_error("native model allocation too large");
     }
-    auto *storage = memory.Alloc(static_cast<int>((count * sizeof(T) + 15) / 16 + 2));
+    const auto quadwords = (count * sizeof(T) + 15) / 16 + 2;
+    if (memory.lock != 0 || dc2::memory::RemainingBytes(memory).size() / sizeof(u_long128) <= quadwords) {
+        throw std::runtime_error("model arena exhausted");
+    }
+    auto *storage = memory.Alloc(static_cast<int>(quadwords));
     if (!storage) {
         throw std::runtime_error("model arena exhausted");
     }
@@ -714,8 +748,8 @@ void Stream(const fastgltf::Asset &asset, const fastgltf::Primitive &primitive, 
     if (accessor.count != mapping.size()) {
         throw std::runtime_error("glTF attribute/identity count mismatch");
     }
-    fastgltf::iterateAccessorWithIndex<fastgltf::math::vec<float, N> >(asset, accessor, [&](auto value, std::size_t corner) {
-        const auto index = mapping.at(corner).get<int>();
+    fastgltf::iterateAccessorWithIndex<fastgltf::math::vec<float, N>>(asset, accessor, [&](auto value, std::size_t corner) {
+        const auto index = ModelInteger<int>(mapping.at(corner));
         if (index < 0 || index >= count) {
             throw std::runtime_error("glTF stream index out of range");
         }
@@ -789,14 +823,17 @@ Json MeshIdentity(const Document &document, const fastgltf::Node &node, Json det
         }
         detail.erase("streams");
     }
-    Json                                 primitives = Json::array();
+    Json primitives = Json::array();
+    if (detail.at("materials").size() > static_cast<std::size_t>(std::numeric_limits<short>::max())) {
+        throw std::runtime_error("native material table exceeds its face field");
+    }
     int                                  material_count = static_cast<int>(detail.at("materials").size());
     std::unordered_map<std::size_t, int> material_slots;
     std::unordered_map<int, std::size_t> assigned_slots;
     for (std::size_t index = 0; index < mesh.primitives.size(); ++index) {
         const auto &primitive = mesh.primitives[index];
         Json        metadata = index < detail.at("primitives").size() ? detail.at("primitives").at(index) : Json::object();
-        int         type = metadata.value("type", 0) & MG_FACE_FLAT;
+        int         type = (metadata.contains("type") ? ModelInteger<int>(metadata.at("type")) : 0) & MG_FACE_FLAT;
         switch (primitive.type) {
             case fastgltf::PrimitiveType::Triangles:
                 type |= MG_PRIM_TRIANGLE;
@@ -815,7 +852,10 @@ Json MeshIdentity(const Document &document, const fastgltf::Node &node, Json det
             const auto        count = attribute == primitive.attributes.end() ? 0 : document.asset.accessors.at(attribute->accessorIndex).count;
             if (document.overlaid || Mapping(metadata, kStreamMappings[stream]).size() != count) {
                 Json mapping = Json::array();
-                int  next = detail.at(kStreamCounts[stream]);
+                int  next = ModelInteger<int>(detail.at(kStreamCounts[stream]));
+                if (next < 0 || count > static_cast<std::size_t>(std::numeric_limits<int>::max() - next)) {
+                    throw std::runtime_error("native stream identity count exceeds its index field");
+                }
                 for (std::size_t element = 0; element < count; ++element) {
                     mapping.push_back(next++);
                 }
@@ -839,9 +879,12 @@ Json MeshIdentity(const Document &document, const fastgltf::Node &node, Json det
         const auto global_material = primitive.materialIndex ? *primitive.materialIndex : document.asset.materials.size();
         auto       assigned = material_slots.find(global_material);
         if (assigned == material_slots.end()) {
-            int local = metadata.value("material", -1);
+            int local = (metadata.contains("material") ? ModelInteger<int>(metadata.at("material")) : -1);
             if (local < 0 || assigned_slots.contains(local)) {
-                local = material_count++;
+                local = material_count;
+            }
+            if (local > std::numeric_limits<short>::max()) {
+                throw std::runtime_error("native material index exceeds its face field");
             }
             material_count = std::max(material_count, local + 1);
             assigned_slots.emplace(local, global_material);
@@ -895,9 +938,9 @@ void ImageExtent(const Document &document, std::size_t index, int &width, int &h
     if (!embedded.reference.empty()) {
         // The base game data never changes while running, so each external PNG's header is read once:
         // an area registers the same few thousand images many times over.
-        static std::mutex                                            extents_mutex;
-        static std::unordered_map<std::string, std::pair<int, int> > extents;
-        const auto                                                   key = vfs::FoldKey(embedded.reference);
+        static std::mutex                                           extents_mutex;
+        static std::unordered_map<std::string, std::pair<int, int>> extents;
+        const auto                                                  key = vfs::FoldKey(embedded.reference);
         {
             std::scoped_lock lock(extents_mutex);
             if (const auto found = extents.find(key); found != extents.end()) {
@@ -912,7 +955,7 @@ void ImageExtent(const Document &document, std::size_t index, int &width, int &h
         if (!file) {
             file = Asset(embedded.reference);
         }
-        std::array<std::uint8_t, 24> header{};
+        std::array<std::uint8_t, 24>          header{};
         constexpr std::array<std::uint8_t, 8> signature{137, 80, 78, 71, 13, 10, 26, 10};
         if (!vfs::ReadPrefix(file, header) || !std::equal(signature.begin(), signature.end(), header.begin()) ||
             !std::equal(header.begin() + 12, header.begin() + 16, "IHDR")) {
@@ -971,7 +1014,7 @@ ImageSource ResolveImage(const Document &document, std::size_t index) {
     // A datapack glTF owns its embedded images; replacement PNGs apply only to the converted document.
     if (!document.overlaid) {
         for (const auto &metadata : *document.images) {
-            if (metadata.at("image").get<std::size_t>() != index || !metadata.contains("png")) {
+            if (ModelInteger<std::size_t>(metadata.at("image")) != index || !metadata.contains("png")) {
                 continue;
             }
             const auto path = Relative(metadata.at("png").get<std::string>()).generic_string();
@@ -1059,7 +1102,7 @@ std::shared_ptr<const datapacks::DecodedTexture> SourcePixels(const ImageSource 
 /**
  * Prefetches every image decode a texture registration will request, on worker threads.
  */
-void PrefetchImages(std::span<const std::shared_ptr<const ImageSource> > sources) {
+void PrefetchImages(std::span<const std::shared_ptr<const ImageSource>> sources) {
     std::vector<datapacks::DecodeJob> jobs;
     std::unordered_set<std::string>   queued;
     for (const auto &source : sources) {
@@ -1204,10 +1247,10 @@ void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mg
     if (mesh.primitives.size() != detail.at("primitives").size()) {
         throw std::runtime_error("primitive identity count mismatch");
     }
-    visual.vertex_num = detail.at("vertex_count");
-    visual.normal_num = detail.at("normal_count");
-    visual.uv_num = detail.at("uv_count");
-    visual.colour_num = detail.at("colour_count");
+    visual.vertex_num = ModelInteger<int>(detail.at("vertex_count"));
+    visual.normal_num = ModelInteger<int>(detail.at("normal_count"));
+    visual.uv_num = ModelInteger<int>(detail.at("uv_count"));
+    visual.colour_num = ModelInteger<int>(detail.at("colour_count"));
     visual.vertex = Allocate<sceVu0FVECTOR>(memory, visual.vertex_num);
     visual.normal = Allocate<sceVu0FVECTOR>(memory, visual.normal_num);
     visual.uv = Allocate<sceVu0FVECTOR>(memory, visual.uv_num);
@@ -1227,15 +1270,15 @@ void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mg
             }
         }
     }
-    visual.material_num = detail.at("material_count");
+    visual.material_num = ModelInteger<int>(detail.at("material_count"));
     visual.material = Allocate<mgMaterial>(memory, visual.material_num);
     for (int index = 0; index < visual.material_num; ++index) {
         const Json *material = std::cmp_less(index, detail.at("materials").size()) ? &detail.at("materials").at(index) : nullptr;
         std::size_t gltf_material = document.asset.materials.size();
         for (std::size_t primitive_index = 0; primitive_index < mesh.primitives.size(); ++primitive_index) {
             const auto &primitive = detail.at("primitives").at(primitive_index);
-            if (primitive.at("material").get<int>() == index) {
-                gltf_material = primitive.at("gltf_material");
+            if (ModelInteger<int>(primitive.at("material")) == index) {
+                gltf_material = ModelInteger<std::size_t>(primitive.at("gltf_material"));
                 break;
             }
         }
@@ -1266,8 +1309,8 @@ void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mg
         Stream<2>(document.asset, primitive, "TEXCOORD_0", Mapping(metadata, "source_uvs"), visual.uv, visual.uv_num, 0);
         Stream<4>(document.asset, primitive, "COLOR_0", Mapping(metadata, "source_colours"), visual.colour, visual.colour_num, 0);
         auto *face = Allocate<mgCFace>(memory);
-        face->type = metadata.at("type");
-        face->material = metadata.at("material");
+        face->type = ModelInteger<decltype(face->type)>(metadata.at("type"));
+        face->material = ModelInteger<decltype(face->material)>(metadata.at("material"));
         if (face->material < 0 || face->material >= visual.material_num) {
             throw std::runtime_error("material index out of range");
         }
@@ -1285,15 +1328,15 @@ void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mg
         for (std::size_t corner = 0; corner < count; ++corner) {
             const auto source = primitive.indicesAccessor ? fastgltf::getAccessorElement<uint32_t>(document.asset, document.asset.accessors.at(*primitive.indicesAccessor), corner) : corner;
             auto      *write = face->index + corner * face->index_stride;
-            *write++ = Mapping(metadata, "source_vertices").at(source);
+            *write++ = ModelInteger<int>(Mapping(metadata, "source_vertices").at(source));
             if (!(face->type & MG_FACE_NO_NORMAL)) {
-                *write++ = Mapping(metadata, "source_normals").at(source);
+                *write++ = ModelInteger<int>(Mapping(metadata, "source_normals").at(source));
             }
             if (!(face->type & MG_FACE_NO_TEXTURE)) {
-                *write++ = Mapping(metadata, "source_uvs").at(source);
+                *write++ = ModelInteger<int>(Mapping(metadata, "source_uvs").at(source));
             }
             if (face->type & MG_FACE_COLOUR) {
-                *write++ = Mapping(metadata, "source_colours").at(source);
+                *write++ = ModelInteger<int>(Mapping(metadata, "source_colours").at(source));
             }
         }
         auto *group = Allocate<mgFACE_GROUP>(memory);
@@ -1326,8 +1369,8 @@ void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mg
     if (!document.overlaid && detail.contains("stream_overrides")) {
         for (int stream = 0; stream < 4; ++stream) {
             for (const auto &change : detail.at("stream_overrides").value(kStreamValues[stream], Json::array())) {
-                const auto index = change.at(0).get<int>();
-                const auto component = change.at(1).get<int>();
+                const auto index = ModelInteger<int>(change.at(0));
+                const auto component = ModelInteger<int>(change.at(1));
                 if (index < 0 || index >= counts[stream] || component < 0 || component >= 4) {
                     throw std::runtime_error("invalid native stream override");
                 }
@@ -1339,11 +1382,15 @@ void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mg
         NativeMorph morph;
         morph.positions.resize(visual.vertex_num);
         morph.normals.resize(visual.normal_num);
-        std::memcpy(morph.positions.data(), visual.vertex, visual.vertex_num * sizeof(sceVu0FVECTOR));
-        std::memcpy(morph.normals.data(), visual.normal, visual.normal_num * sizeof(sceVu0FVECTOR));
+        if (visual.vertex_num != 0) {
+            std::memcpy(morph.positions.data(), visual.vertex, visual.vertex_num * sizeof(sceVu0FVECTOR));
+        }
+        if (visual.normal_num != 0) {
+            std::memcpy(morph.normals.data(), visual.normal, visual.normal_num * sizeof(sceVu0FVECTOR));
+        }
         const auto count = mesh.primitives.front().targets.size();
-        morph.position_deltas.resize(count, std::vector<std::array<float, 4> >(visual.vertex_num));
-        morph.normal_deltas.resize(count, std::vector<std::array<float, 4> >(visual.normal_num));
+        morph.position_deltas.resize(count, std::vector<std::array<float, 4>>(visual.vertex_num));
+        morph.normal_deltas.resize(count, std::vector<std::array<float, 4>>(visual.normal_num));
         for (std::size_t primitive_index = 0; primitive_index < mesh.primitives.size(); ++primitive_index) {
             const auto &primitive = mesh.primitives[primitive_index];
             if (primitive.targets.size() != count) {
@@ -1363,7 +1410,7 @@ void Mesh(Document &document, const fastgltf::Node &node, const Json &detail, mg
                         throw std::runtime_error("glTF morph identity count mismatch");
                     }
                     fastgltf::iterateAccessorWithIndex<fastgltf::math::fvec3>(document.asset, accessor, [&](auto value, std::size_t corner) {
-                        const auto index = mapping.at(corner).get<std::size_t>();
+                        const auto index = ModelInteger<std::size_t>(mapping.at(corner));
                         for (int axis = 0; axis < 3; ++axis) {
                             destination.at(index)[axis] = value[axis];
                         }
@@ -1408,8 +1455,8 @@ void Skin(Document &document, const fastgltf::Node &node, const Json &detail, mg
     inverse_binds.insert_or_assign(visual.weight, InverseBinds{.frames = visual.frame, .frame_id = visual.frame_id, .matrices = std::move(inverse)});
     const auto &mesh = document.asset.meshes.at(*node.meshIndex);
     for (std::size_t primitive_index = 0; primitive_index < mesh.primitives.size(); ++primitive_index) {
-        const auto                                       &primitive = mesh.primitives[primitive_index];
-        std::vector<std::pair<std::size_t, std::size_t> > attributes;
+        const auto                                      &primitive = mesh.primitives[primitive_index];
+        std::vector<std::pair<std::size_t, std::size_t>> attributes;
         for (std::size_t group = 0;; ++group) {
             const auto *const joints = primitive.findAttribute("JOINTS_" + std::to_string(group));
             const auto *const weights = primitive.findAttribute("WEIGHTS_" + std::to_string(group));
@@ -1431,7 +1478,7 @@ void Skin(Document &document, const fastgltf::Node &node, const Json &detail, mg
             }
         }
         for (std::size_t corner = 0; corner < mapping.size(); ++corner) {
-            auto &destination = visual.weight[mapping.at(corner).get<int>()];
+            auto &destination = visual.weight[ModelInteger<int>(mapping.at(corner))];
             destination = {};
             int influences = 0;
             for (const auto &[joints, weights] : attributes) {
@@ -1472,15 +1519,18 @@ void Skin(Document &document, const fastgltf::Node &node, const Json &detail, mg
 Mot_List *Channel(const Json &channel, mgCMemory &memory) {
     auto *list = Allocate<Mot_List>(memory);
     native_channels.erase(list);
-    list->frame = channel.at("frame");
-    list->target = channel.at("target");
-    list->type = channel.at("type");
+    list->frame = ModelInteger<decltype(list->frame)>(channel.at("frame"));
+    list->target = ModelInteger<decltype(list->target)>(channel.at("target"));
+    list->type = ModelInteger<decltype(list->type)>(channel.at("type"));
+    if (channel.at("keys").size() > std::numeric_limits<u32>::max()) {
+        throw std::runtime_error("native motion key count exceeds its field");
+    }
     list->key_count = static_cast<u32>(channel.at("keys").size());
     list->values = Allocate<sceVu0FVECTOR>(memory, list->key_count);
     list->key_frames = Allocate<u32>(memory, list->key_count);
     for (u32 key = 0; key < list->key_count; ++key) {
         const auto &value = channel.at("keys").at(key);
-        list->key_frames[key] = value.at("frame");
+        list->key_frames[key] = ModelInteger<u32>(value.at("frame"));
         for (int component = 0; component < 4; ++component) {
             list->values[key][component] = value.at("value").at(component);
         }
@@ -1518,7 +1568,6 @@ std::string PictureName(const texture_catalog::Entry &entry, const std::string &
 } // namespace
 
 void Clear() {
-    character_models.clear();
     character_motion::Clear();
     documents.clear();
     inverse_binds.clear();
@@ -1536,6 +1585,7 @@ bool UsesStandardScaleOrder(const mgCFrame *frame) {
 
 void ForgetFrame(const mgCFrame *frame) {
     FrameConventions().erase(frame);
+    character_motion::ForgetPose(frame);
 }
 
 std::shared_ptr<const Json> ReadGameplay(const std::filesystem::path &gltf, std::string &error) {
@@ -1573,7 +1623,11 @@ struct ArenaEstimate {
         if (count > (std::size_t{1} << 30) / std::max<std::size_t>(1, size)) {
             throw std::runtime_error("native character allocation exceeds limit");
         }
-        bytes += ((count * size + 15) / 16 + 2) * 16;
+        const auto allocation = ((count * size + 15) / 16 + 2) * 16;
+        if (allocation > std::numeric_limits<std::size_t>::max() - 1023 - bytes) {
+            throw std::runtime_error("native character allocation total exceeds its size field");
+        }
+        bytes += allocation;
     }
 
     /**
@@ -1616,20 +1670,20 @@ void MeasureModel(const std::shared_ptr<Document> &source, std::size_t index, bo
         estimate.Add(1, shadow ? sizeof(mgCShadowMDT) : motion ? sizeof(mgCVisualMotionMDT)
                                                     : shape    ? sizeof(mgCVisualMDT)
                                                                : sizeof(mgCVisualFixMDT));
-        const auto detail = MeshIdentity(*document, node, document->metadata.at("meshes").at(frames.at(frame).at("mdt").get<std::size_t>()));
+        const auto detail = MeshIdentity(*document, node, document->metadata.at("meshes").at(ModelInteger<std::size_t>(frames.at(frame).at("mdt"))));
         for (const char *count : kStreamCounts) {
-            estimate.Add(detail.at(count).get<std::size_t>(), sizeof(sceVu0FVECTOR));
+            estimate.Add(ModelInteger<std::size_t>(detail.at(count)), sizeof(sceVu0FVECTOR));
         }
-        estimate.Add(detail.at("material_count").get<std::size_t>(), sizeof(mgMaterial));
+        estimate.Add(ModelInteger<std::size_t>(detail.at("material_count")), sizeof(mgMaterial));
         estimate.Add(1, sizeof(mgCFrame::BoundInfo));
         if (motion) {
-            estimate.Add(detail.at("vertex_count").get<std::size_t>(), sizeof(mgVertexWeight));
+            estimate.Add(ModelInteger<std::size_t>(detail.at("vertex_count")), sizeof(mgVertexWeight));
         }
         const auto &mesh = document->asset.meshes.at(*node.meshIndex);
         for (std::size_t primitive = 0; primitive < mesh.primitives.size(); ++primitive) {
             const auto &standard = mesh.primitives[primitive];
             const auto &native = detail.at("primitives").at(primitive);
-            const auto  type = native.at("type").get<int>();
+            const auto  type = ModelInteger<int>(native.at("type"));
             const auto  count = standard.indicesAccessor ? document->asset.accessors.at(*standard.indicesAccessor).count : Mapping(native, "source_vertices").size();
             const auto  stride = IndexStride(type);
             estimate.Add(1, sizeof(mgCFace));
@@ -1656,8 +1710,8 @@ std::optional<std::size_t> EstimateCharacterMemory(const std::filesystem::path &
         const auto   &commands = game.at("profiles").at(selected).at("commands");
         ArenaEstimate estimate;
         estimate.Add(1, sizeof(CCharacter2));
-        std::vector<std::pair<const Json *, std::size_t> > measured_textures;
-        auto                                               measure_texture = [&](const std::shared_ptr<Document> &owner, std::size_t index) {
+        std::vector<std::pair<const Json *, std::size_t>> measured_textures;
+        auto                                              measure_texture = [&](const std::shared_ptr<Document> &owner, std::size_t index) {
             const auto identity = std::pair<const Json *, std::size_t>{owner->custom.get(), index};
             if (std::ranges::find(measured_textures, identity) != measured_textures.end()) {
                 return;
@@ -1690,7 +1744,7 @@ std::optional<std::size_t> EstimateCharacterMemory(const std::filesystem::path &
             if (index >= args.size() || args.at(index).value("type", std::string{}) != "resource" || args.at(index).at("index").is_null()) {
                 return std::nullopt;
             }
-            return args.at(index).at("index").get<std::size_t>();
+            return ModelInteger<std::size_t>(args.at(index).at("index"));
         };
         auto number = [](const Json &args, std::size_t index = 0) -> std::size_t {
             if (index >= args.size() || !args.at(index).contains("value") || !args.at(index).at("value").is_number()) {
@@ -1721,7 +1775,7 @@ std::optional<std::size_t> EstimateCharacterMemory(const std::filesystem::path &
                 }
                 MeasureModel(source, *scene, shadow, shape, animated, estimate);
                 for (const auto &set : game.at("models").at(*scene).value("texture_sets", Json::array())) {
-                    measure_texture(source, set.get<std::size_t>());
+                    measure_texture(source, ModelInteger<std::size_t>(set));
                 }
                 const auto frames = game.at("models").at(*scene).at("frames").size();
                 if (shadow) {
@@ -1754,7 +1808,7 @@ std::optional<std::size_t> EstimateCharacterMemory(const std::filesystem::path &
                         if (!variant || variant->at("animations").at(index).is_null()) {
                             continue;
                         }
-                        const auto &clip = source->asset.animations.at(variant->at("animations").at(index).get<std::size_t>());
+                        const auto &clip = source->asset.animations.at(ModelInteger<std::size_t>(variant->at("animations").at(index)));
                         for (std::size_t channel = 0; channel < clip.channels.size(); ++channel) {
                             estimate.Add(1, sizeof(Mot_List));
                         }
@@ -1772,7 +1826,7 @@ std::optional<std::size_t> EstimateCharacterMemory(const std::filesystem::path &
                     if (weights) {
                         std::vector<int> driven;
                         for (const auto &channel : resources.at("weights").at(*weights).at("channels")) {
-                            const int frame = channel.at("frame");
+                            const int frame = ModelInteger<int>(channel.at("frame"));
                             if (std::ranges::find(driven, frame) != driven.end()) {
                                 continue;
                             }
@@ -1781,10 +1835,9 @@ std::optional<std::size_t> EstimateCharacterMemory(const std::filesystem::path &
                             if (identity.at("mdt").is_null()) {
                                 continue;
                             }
-                            const auto &mesh = selected_model.at("meshes").at(identity.at("mdt").get<std::size_t>());
-                            estimate.Add(mesh.at("vertex_count").get<std::size_t>(), sizeof(sceVu0FVECTOR));
-                            estimate.Add(mesh.at("normal_count").get<std::size_t>(), sizeof(sceVu0FVECTOR));
-                            estimate.Add(mesh.at("vertex_count").get<std::size_t>(), sizeof(FrameLinkRecord));
+                            const auto &mesh = selected_model.at("meshes").at(ModelInteger<std::size_t>(identity.at("mdt")));
+                            estimate.Add(ModelInteger<std::size_t>(mesh.at("vertex_count")), sizeof(sceVu0FVECTOR));
+                            estimate.Add(ModelInteger<std::size_t>(mesh.at("normal_count")), sizeof(sceVu0FVECTOR));
                         }
                     }
                 }
@@ -1851,7 +1904,7 @@ std::optional<std::size_t> EstimateCharacterMemory(const std::filesystem::path &
                 if (const auto script = reference(args, 0)) {
                     const auto &resource = resources.at("scripts").at(*script);
                     for (const auto &set : resource.value("texture_sets", Json::array())) {
-                        measure_texture(source, set.get<std::size_t>());
+                        measure_texture(source, ModelInteger<std::size_t>(set));
                     }
                     if (resource.contains("character")) {
                         const auto  child = Read(Relative(resource.at("character").get<std::string>()));
@@ -1890,7 +1943,7 @@ namespace {
  */
 const std::vector<bool> &ScaledNodes(Document &document) {
     if (!document.scaled_nodes) {
-        auto scaled = std::make_shared<std::vector<bool> >(document.asset.nodes.size(), false);
+        auto scaled = std::make_shared<std::vector<bool>>(document.asset.nodes.size(), false);
         for (const auto &animation : document.asset.animations) {
             for (const auto &channel : animation.channels) {
                 if (channel.path != fastgltf::AnimationPath::Scale || !channel.nodeIndex || *channel.nodeIndex >= scaled->size() || (*scaled)[*channel.nodeIndex]) {
@@ -1948,14 +2001,13 @@ mgCFrame *Instantiate(const std::shared_ptr<Document> &document, mgLoadData &loa
             const auto &logical = LogicalNode(*document, index);
             const auto &node = ContentNode(*document, index);
             const auto  name = GameName(logical.name.empty() ? detail.value("name", std::string{}) : std::string(logical.name));
-            char        converted[512]{};
             if (name.size() >= 200) {
                 throw std::runtime_error("frame name too long");
             }
             // The name's attribute suffix drives the game's native frame-attribute parser.
-            ::conv_new_text(converted, const_cast<char *>(name.c_str()));
-            auto *text = Allocate<char>(memory, std::strlen(converted) + 1);
-            std::strcpy(text, converted);
+            const auto converted = ConvertFrameName(name);
+            auto      *text = Allocate<char>(memory, converted.size() + 1);
+            std::memcpy(text, converted.c_str(), converted.size() + 1);
             native[index].SetName(text);
             float           matrix[4][4];
             auto            transform = fastgltf::getLocalTransformMatrix(logical);
@@ -1998,7 +2050,7 @@ mgCFrame *Instantiate(const std::shared_ptr<Document> &document, mgLoadData &loa
                 std::memcpy(matrix, original.data(), sizeof(matrix));
             }
             native[index].SetTransMatrix(matrix);
-            if (index == 0 || node.meshIndex || std::strstr(converted, "--") || !node.visible || !logical.visible) {
+            if (index == 0 || node.meshIndex || converted.find("--") != std::string::npos || !node.visible || !logical.visible) {
                 native[index].attr = Allocate<mgCFrameAttr>(memory);
             }
             if (!node.visible || !logical.visible) {
@@ -2007,7 +2059,7 @@ mgCFrame *Instantiate(const std::shared_ptr<Document> &document, mgLoadData &loa
             if (!node.meshIndex) {
                 continue;
             }
-            const auto mesh = MeshIdentity(*document, node, document->metadata.at("meshes").at(detail.at("mdt").get<std::size_t>()));
+            const auto mesh = MeshIdentity(*document, node, document->metadata.at("meshes").at(ModelInteger<std::size_t>(detail.at("mdt"))));
             int        type = VisualType(load.visual_type, name);
             if (type == MG_VISUAL_CREATE_MOTION_MDT && !node.skinIndex) {
                 type = MG_VISUAL_CREATE_FIX_MDT;
@@ -2188,7 +2240,7 @@ mgCFrame *LoadModelScene(const std::filesystem::path &gltf, std::string_view nam
         if (document->custom->contains("models")) {
             const auto &models = document->custom->at("models");
             for (std::size_t index = 0; index < models.size(); ++index) {
-                if (models[index].at("scene").get<std::size_t>() == *selected_scene) {
+                if (ModelInteger<std::size_t>(models[index].at("scene")) == *selected_scene) {
                     selected_model = index;
                     break;
                 }
@@ -2213,13 +2265,13 @@ Mot_List *BuildChannels(const std::shared_ptr<Document> &document, std::optional
     Mot_List *head = nullptr;
     auto    **tail = &head;
     for (const auto &channel : auxiliary) {
-        if (channel.at("type").get<int>() <= MOTION_KEY_TRANSLATION && animation_index) {
+        if (ModelInteger<int>(channel.at("type")) <= MOTION_KEY_TRANSLATION && animation_index) {
             continue;
         }
-        if (channel.at("type").get<int>() == MOTION_KEY_VERTEX && animation_index) {
+        if (ModelInteger<int>(channel.at("type")) == MOTION_KEY_VERTEX && animation_index) {
             bool morph = false;
             for (const auto &target : document->asset.animations.at(*animation_index).channels) {
-                if (target.path == fastgltf::AnimationPath::Weights && target.nodeIndex && NativeFrameIndex(*document, *target.nodeIndex) == channel.at("frame").get<std::size_t>()) {
+                if (target.path == fastgltf::AnimationPath::Weights && target.nodeIndex && NativeFrameIndex(*document, *target.nodeIndex) == ModelInteger<std::size_t>(channel.at("frame"))) {
                     morph = true;
                 }
             }
@@ -2301,7 +2353,7 @@ const Json *SelectVariant(const Json &resource, std::optional<std::size_t> model
         return nullptr;
     }
     for (const auto &variant : resource.at("variants")) {
-        if (!model || variant.at("model").get<std::size_t>() == *model) {
+        if (!model || ModelInteger<std::size_t>(variant.at("model")) == *model) {
             return &variant;
         }
     }
@@ -2317,11 +2369,11 @@ std::vector<character_motion::Action> BuildActions(const std::shared_ptr<Documen
                                                    std::optional<std::size_t> model, mgCMemory &memory) {
     const auto *variant = SelectVariant(resource, model);
     if (variant) {
-        model = variant->at("model").get<std::size_t>();
+        model = ModelInteger<std::size_t>(variant->at("model"));
     }
     auto document = SelectModel(owner, model);
     if (variant) {
-        document->node_offset = variant->at("node_offset").get<std::size_t>();
+        document->node_offset = ModelInteger<std::size_t>(variant->at("node_offset"));
     }
     const auto                           &actions = resource.at("actions");
     std::vector<character_motion::Action> built;
@@ -2329,7 +2381,7 @@ std::vector<character_motion::Action> BuildActions(const std::shared_ptr<Documen
         const auto                &action = actions.at(index);
         std::optional<std::size_t> clip;
         if (variant && !variant->at("animations").at(index).is_null()) {
-            clip = variant->at("animations").at(index).get<std::size_t>();
+            clip = ModelInteger<std::size_t>(variant->at("animations").at(index));
         }
         built.push_back({.name = action.at("name").get<std::string>(), .duration = action.at("duration").get<float>(), .base = 0, .head = BuildChannels(document, clip, action.value("channels", Json::array()), memory)});
     }
@@ -2353,14 +2405,22 @@ const Json &ExternalResource(const Json &resource, const std::optional<MotionOwn
 }
 
 /**
+ * The named actions of a built motion set and the arena memory that holds them.
+ */
+struct BuiltMotion {
+    std::vector<character_motion::Action> actions; /**< Actions with game frames from zero. */
+    std::span<const std::byte>            storage; /**< Arena run holding the actions' channels and the anchor. */
+};
+
+/**
  * Builds motion records from direct resource indices in the embedded glTF semantics.
  *
  * Returns the named actions of the selected animation, with game frames from zero.
  */
-std::vector<character_motion::Action> BuildMotion(const std::shared_ptr<Document> &source, tagMOTION_TYPE &motion, mgCMemory &memory,
-                                                  std::optional<std::size_t> animation, std::optional<std::size_t> bind_pose,
-                                                  std::optional<std::size_t> weights, std::optional<std::size_t> model,
-                                                  const std::optional<MotionOwner> &owner = std::nullopt) {
+BuiltMotion BuildMotion(const std::shared_ptr<Document> &source, tagMOTION_TYPE &motion, mgCMemory &memory,
+                        std::optional<std::size_t> animation, std::optional<std::size_t> bind_pose,
+                        std::optional<std::size_t> weights, std::optional<std::size_t> model,
+                        const std::optional<MotionOwner> &owner = std::nullopt) {
     const auto &resources = Resources(*source);
     auto        document = SelectModel(source, model);
     motion = {};
@@ -2375,8 +2435,10 @@ std::vector<character_motion::Action> BuildMotion(const std::shared_ptr<Document
             std::memcpy(motion.base_matrices[index], value.data(), sizeof(sceVu0FMATRIX));
         }
     }
-    std::vector<character_motion::Action> actions;
+    BuiltMotion built;
+    auto       &actions = built.actions;
     if (animation) {
+        const auto *storage = reinterpret_cast<const std::byte *>(memory.stGetTop());
         if (source->custom->contains("resources")) {
             const auto &resource = resources.at("animations").at(*animation);
             if (resource.contains("external") && !resource.contains("variants")) {
@@ -2399,11 +2461,12 @@ std::vector<character_motion::Action> BuildMotion(const std::shared_ptr<Document
         native_channels.erase(anchor);
         anchor->frame = -1;
         motion.motion_list = anchor;
+        built.storage = {storage, reinterpret_cast<const std::byte *>(memory.stGetTop())};
     }
     if (weights) {
         motion.skin_list = BuildChannels(document, std::nullopt, resources.at("weights").at(*weights).at("channels"), memory);
     }
-    return actions;
+    return built;
 }
 
 /**
@@ -2411,15 +2474,15 @@ std::vector<character_motion::Action> BuildMotion(const std::shared_ptr<Document
  *
  * Intervals are two frames apart, so a frame rounded up at an action's end stays in that action.
  */
-void RegisterActions(const tagMOTION_TYPE &motion, std::vector<character_motion::Action> actions, int base) {
+void RegisterActions(const tagMOTION_TYPE &motion, BuiltMotion built, int base) {
     if (!motion.motion_list) {
         return;
     }
-    for (auto &action : actions) {
+    for (auto &action : built.actions) {
         action.base = base;
         base += static_cast<int>(std::ceil(action.duration)) + 2;
     }
-    character_motion::Register(motion.motion_list, std::move(actions));
+    character_motion::Register(motion.motion_list, std::move(built.actions), built.storage);
 }
 
 /**
@@ -2439,7 +2502,7 @@ std::optional<std::size_t> Reference(const Json &arguments, std::size_t index, s
     if (value.at("index").is_null()) {
         return std::nullopt;
     }
-    return value.at("index").get<std::size_t>();
+    return ModelInteger<std::size_t>(value.at("index"));
 }
 
 /**
@@ -2447,6 +2510,22 @@ std::optional<std::size_t> Reference(const Json &arguments, std::size_t index, s
  */
 std::vector<SPI_STACK> Arguments(const Json &arguments, std::vector<std::string> &strings) {
     return command_replay::Arguments(arguments, strings);
+}
+
+/**
+ *
+ * Applies metadata with the exact text allocations owned by the current decoded command.
+ *
+ */
+bool ApplyCharacterMetadata(const char *name, std::span<SPI_STACK> arguments,
+                            std::span<const std::string> strings, bool skin) {
+    std::vector<std::span<const char>> text_sources;
+    text_sources.reserve(strings.size());
+    for (const auto &text : strings) {
+        text_sources.emplace_back(text.data(), text.size() + 1);
+    }
+    return PortCharacterMetadataApply(name, dc2::script::TagArguments(arguments, {}, {}, text_sources),
+                                      static_cast<int>(arguments.size()), skin);
 }
 
 /**
@@ -2562,7 +2641,7 @@ std::string ScriptBytes(const Json &resource) {
             return data;
         }
         const auto json = Json::parse(data, nullptr, false);
-        if (!json.is_discarded() && json.value("schema_version", 0) == 1) {
+        if (!json.is_discarded() && json.contains("schema_version") && ModelInteger<int>(json.at("schema_version")) == 1) {
             return data;
         }
     }
@@ -2589,9 +2668,9 @@ std::size_t ImageIndex(std::string_view reference) {
  * Shares resolved image sources between prefetching, identities and decoding for one texture registration.
  */
 struct ResolvedImages {
-    std::shared_ptr<Document>                                            document;      /**< Document owning the images. */
-    std::unordered_map<std::size_t, std::shared_ptr<const ImageSource> > images;        /**< Resolved sources by standard image index. */
-    bool                                                                 active = true; /**< Whether resolutions are reused; later decodes resolve afresh. */
+    std::shared_ptr<Document>                                           document;      /**< Document owning the images. */
+    std::unordered_map<std::size_t, std::shared_ptr<const ImageSource>> images;        /**< Resolved sources by standard image index. */
+    bool                                                                active = true; /**< Whether resolutions are reused; later decodes resolve afresh. */
 
     /**
      * Resolves one image, reusing an earlier resolution while the registration is active.
@@ -2652,17 +2731,15 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
     }
     auto *textures = options.textures ? options.textures : &mgTexManager;
     auto *memory = options.image_memory ? options.image_memory : options.model_memory;
-    // Retail models look their textures up by name. A plain model's set whose pictures are all registered already,
-    // as a map piece's copy of the set its map entered into the map's own blocks, stays with that owner: entering it
-    // again from block 0 would put the pictures, and the texture animation that follows them by name, in blocks
-    // that outlive the memory the animation is allocated from.
-    if (!character && SetAlreadyEntered(*cached, *textures)) {
+    // Models and blockless characters borrow pictures already owned by the map.
+    if ((!character || options.texture_block < 0) && SetAlreadyEntered(*cached, *textures)) {
         return;
     }
     bool owned = false;
     if (character) {
-        for (const auto &entered : character_images[character]) {
-            if (entered.source == cached && entered.manager == textures && entered.block == options.texture_block &&
+        auto &images = character_images[character];
+        for (const auto &entered : images) {
+            if ((!entered.lifetime.HasValue() || entered.lifetime.IsLive()) && entered.source == cached && entered.manager == textures && entered.block == options.texture_block &&
                 entered.slot == slot && entered.suffix == textures->name_suffix) {
                 owned = true;
                 break;
@@ -2672,7 +2749,7 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
     auto resolved = std::make_shared<ResolvedImages>();
     resolved->document = document;
     {
-        std::vector<std::shared_ptr<const ImageSource> > sources;
+        std::vector<std::shared_ptr<const ImageSource>> sources;
         for (const auto &entry : cached->entries) {
             if (entry.type == "cfg" || entry.no_image) {
                 continue;
@@ -2730,7 +2807,13 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
         return;
     }
     if (!owned) {
-        character_images[character].push_back({.slot = slot, .block = options.texture_block, .manager = textures, .source = cached, .memory = memory, .suffix = textures->name_suffix});
+        auto &images = character_images[character];
+        // A producer reset renews ownership without accumulating duplicate cleanup records.
+        std::erase_if(images, [&](const auto &image) {
+            return image.slot == slot && image.block == options.texture_block && image.manager == textures &&
+                   image.source == cached && image.suffix == textures->name_suffix;
+        });
+        images.push_back({.slot = slot, .block = options.texture_block, .manager = textures, .source = cached, .memory = memory, .lifetime = memory ? dc2::memory::ArenaLifetime::Capture(*memory) : dc2::memory::ArenaLifetime{}, .suffix = textures->name_suffix});
     }
     character->texture_block = options.texture_block;
     RefreshTexAnimeGroups(*character, *textures, slot);
@@ -2739,8 +2822,8 @@ void EnterTextureSet(const std::shared_ptr<Document> &document, std::size_t inde
 /**
  * Instantiates an effect's native pools and attachment metadata from typed profile values.
  */
-void CharacterEffect(CCharacter2 &character, const Json &resource, std::vector<SPI_STACK> &stack, mgCMemory &memory) {
-    if (stack.size() < 7) {
+void CharacterEffect(CCharacter2 &character, const Json &resource, dc2::script::TagArguments arguments, mgCMemory &memory) {
+    if (arguments.Remaining() < 7) {
         throw std::runtime_error("character effect lacks attachment arguments");
     }
     auto  script = ScriptBytes(resource);
@@ -2763,24 +2846,22 @@ void CharacterEffect(CCharacter2 &character, const Json &resource, std::vector<S
     }
     manager->EntryEffCtrls(manager->particle_pool, particles, manager->emitter_pool, emitters);
     manager->Load(script.data(), static_cast<int>(script.size()));
-    manager->local_draw = spiGetStackInt(&stack[2]);
-    for (int axis = 0; axis < 3; ++axis) {
-        manager->offset[axis] = spiGetStackFloat(&stack[4 + axis]);
-    }
+    manager->local_draw = dc2::script::TagInteger(arguments + 2);
+    dc2::script::TagVector(manager->offset, arguments + 4);
     manager->offset[3] = 1;
-    auto copy = [](char *destination, std::size_t capacity, const char *value) {
-        if (!value) {
-            value = "";
-        }
-        if (std::strlen(value) >= capacity) {
+    const auto copy = []<std::size_t Size>(char (&destination)[Size], std::string_view value) {
+        if (value.size() >= Size) {
             throw std::runtime_error("character effect metadata too long");
         }
-        std::strcpy(destination, value);
+        if (!value.empty()) {
+            std::memcpy(destination, value.data(), value.size());
+        }
+        destination[value.size()] = 0;
     };
-    copy(entry->name, sizeof(entry->name), spiGetStackString(&stack[1]));
-    copy(manager->frame_name, sizeof(manager->frame_name), spiGetStackString(&stack[3]));
-    copy(manager->motion_name, sizeof(manager->motion_name), stack.size() > 7 ? spiGetStackString(&stack[7]) : nullptr);
-    manager->start_ratio = stack.size() > 8 ? spiGetStackFloat(&stack[8]) : 0;
+    copy(entry->name, dc2::script::TagText(arguments + 1));
+    copy(manager->frame_name, dc2::script::TagText(arguments + 3));
+    copy(manager->motion_name, arguments.Remaining() > 7 ? dc2::script::TagText(arguments + 7) : std::string_view{});
+    manager->start_ratio = arguments.Remaining() > 8 ? dc2::script::TagFloat(arguments + 8) : 0.0f;
     entry->effect = manager;
     auto **tail = &character.effect_list;
     while (*tail) {
@@ -2831,20 +2912,67 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
     const auto &resources = custom.at("resources");
     const auto  selected_profile = profile.empty() ? custom.at("default_profile").get<std::string>() : std::string(profile);
     const auto &commands = custom.at("profiles").at(selected_profile).at("commands");
-    auto       *had_motion = character.GetKeyListIndexPtr(0, nullptr);
-    const int   initial_used = memory.stack_used;
-    std::string name(skin_name);
-    PortCharacterMetadataBegin(&character, &memory, &motion_memory, options.image_memory, options.texture_block, options.parent, options.outline, name.c_str());
-    std::optional<std::size_t> selected_model;
-    std::optional<std::size_t> shadow_model;
-    int                        motion_slot = 0;
+    const auto  previous_resource_handle = character.resource_state;
+    if (!dc2::character::ResourcesLive(character)) {
+        throw std::runtime_error("character profile requires live prior resources or an empty character");
+    }
+    dc2::character::ResourceState resource_state;
+    if (character.resource_state.HasValue()) {
+        auto previous = character.resource_state.Acquire<dc2::character::ResourceState>();
+        if (!previous) {
+            throw std::runtime_error("character resources have retired before profile load");
+        }
+        resource_state = *previous;
+    }
+    if (options.parent != nullptr && options.outline) {
+        auto parent_resources = options.parent->resource_state.Acquire<dc2::character::ResourceState>();
+        if (!parent_resources) {
+            throw std::runtime_error("character outline parent resources are not live");
+        }
+        std::erase_if(resource_state.producers, [](const auto &entry) { return entry.channel == dc2::character::ResourceChannel::ParentOutline; });
+        for (const auto &producer : parent_resources->producers) {
+            if (producer.channel == dc2::character::ResourceChannel::Model || producer.channel == dc2::character::ResourceChannel::Copy ||
+                producer.channel == dc2::character::ResourceChannel::Image || producer.channel == dc2::character::ResourceChannel::ParentOutline) {
+                resource_state.producers.push_back({dc2::character::ResourceChannel::ParentOutline, producer.index, producer.lifetime});
+            }
+        }
+    }
+    const auto remember = [&](dc2::character::ResourceChannel channel, int index, mgCMemory &owner) {
+        const auto lifetime = dc2::memory::ArenaLifetime::Capture(owner);
+        if (!lifetime.IsLive()) {
+            throw std::runtime_error("character resource producer is not live");
+        }
+        auto &producers = resource_state.producers;
+        if (std::ranges::none_of(producers, [&](const auto &entry) { return entry.channel == channel && entry.index == index && entry.lifetime == lifetime; })) {
+            producers.push_back({channel, index, lifetime});
+        }
+    };
+    const auto replace = [&](dc2::character::ResourceChannel channel, int index, mgCMemory &owner) {
+        std::erase_if(resource_state.producers, [&](const auto &entry) { return entry.channel == channel && entry.index == index; });
+        remember(channel, index, owner);
+    };
+    auto *had_motion = character.GetKeyListIndexPtr(0, nullptr);
+    character.resource_state = {};
+    const int                     initial_used = memory.stack_used;
+    std::string                   name(skin_name);
+    dc2::character::MetadataScope context(&character, &memory,
+                                          options.texture_block, options.parent, options.outline, name);
+    std::optional<std::size_t>    selected_model;
+    std::optional<std::size_t>    shadow_model;
+    int                           motion_slot = 0;
     // Actions of the current motion set by English name, for the KEY commands that follow.
     std::vector<character_motion::Action> slot_actions;
     for (const auto &command : commands) {
-        const auto               tag_name = command.at("command").get<std::string>();
-        const auto              &args = command.at("args");
-        std::vector<std::string> strings;
-        auto                     stack = Arguments(args, strings);
+        const auto                         tag_name = command.at("command").get<std::string>();
+        const auto                        &args = command.at("args");
+        std::vector<std::string>           strings;
+        auto                               stack = Arguments(args, strings);
+        std::vector<std::span<const char>> text_sources;
+        text_sources.reserve(strings.size());
+        for (const auto &text : strings) {
+            text_sources.emplace_back(text.data(), text.size() + 1);
+        }
+        const dc2::script::TagArguments checked(stack, {}, {}, text_sources);
         if (tag_name == "MODEL") {
             selected_model = Reference(args, 0, "model");
             if (!selected_model) {
@@ -2852,7 +2980,12 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
             }
             if (!skin) {
                 PortCharacterMetadataModel(Scene(document, *selected_model, options, PortCharacterMetadataVisualTypes(false), &character));
-                character_models.insert_or_assign(&character, MotionOwner{.document = document, .model = *selected_model});
+                resource_state.anchor = dc2::memory::ArenaBuffer::Bind(memory, std::span<u8>(reinterpret_cast<u8 *>(character.CObjectFrame::frame), sizeof(mgCFrame)));
+                replace(dc2::character::ResourceChannel::Model, 0, memory);
+                const auto prior_context = std::static_pointer_cast<const MotionOwner>(resource_state.model_context);
+                if (!prior_context || prior_context->document != document || prior_context->model != *selected_model) {
+                    resource_state.model_context = std::make_shared<MotionOwner>(MotionOwner{.document = document, .model = *selected_model});
+                }
             }
         } else if (tag_name == "SHADOW_MODEL") {
             auto index = Reference(args, 0, "model");
@@ -2865,13 +2998,14 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                 {.type = MG_VISUAL_CREATE_END,        .name = nullptr}
             };
             character.shadow_frame = Scene(document, *index, options, types, &character);
+            replace(dc2::character::ResourceChannel::Shadow, 0, memory);
             shadow_model = index;
             MatchShadow(character, memory);
         } else if (tag_name == "MOTION" || tag_name == "SHADOW_MOTION") {
             const bool        shadow = tag_name == "SHADOW_MOTION";
             const std::size_t start = shadow ? 0 : 1;
             if (!shadow) {
-                motion_slot = spiGetStackInt(stack.data());
+                motion_slot = dc2::script::TagInteger(checked);
                 PortCharacterMetadataMotionSlot(motion_slot);
             }
             if (motion_slot < 0 || motion_slot >= CHARA_MOTION_SET_MAX) {
@@ -2901,6 +3035,7 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                     if (character.shape_anime && !skin_name.empty() && skin_name != frame->name) {
                         continue;
                     }
+                    replace(dc2::character::ResourceChannel::Skin, root->SearchFrameID(frame->name), memory);
                     target->SetVisual(frame->visual);
                     float maximum[4];
                     float minimum[4];
@@ -2923,7 +3058,9 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                         channel->frame = target_id;
                     }
                     *tail = replacement_motion.skin_list;
-                    AnimeDataInit(root, &character.motion[0], &memory, character.motion[0].frame_info);
+                    if (!AnimeDataInit(root, &character.motion[0], &memory, character.motion[0].frame_info_view)) {
+                        throw std::runtime_error("invalid initialized motion frame extent");
+                    }
                 }
                 continue;
             }
@@ -2933,15 +3070,18 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
             }
             auto                      &motion = shadow ? character.shadow_motion[motion_slot] : character.motion[motion_slot];
             std::optional<MotionOwner> owner;
-            if (const auto found = character_models.find(&character); found != character_models.end()) {
-                owner = found->second;
+            if (resource_state.model_context) {
+                owner = *std::static_pointer_cast<const MotionOwner>(resource_state.model_context);
             }
+            const auto channel = shadow ? dc2::character::ResourceChannel::ShadowMotion : dc2::character::ResourceChannel::Motion;
+            replace(channel, motion_slot, motion_memory);
+            remember(channel, motion_slot, memory);
             if (!shadow && motion.motion_list) {
                 character_motion::Forget(motion.motion_list);
             }
-            auto actions = BuildMotion(document, motion, motion_memory, shadow ? std::nullopt : animation, bind, weights, shadow ? shadow_model : selected_model, owner);
+            auto built = BuildMotion(document, motion, motion_memory, shadow ? std::nullopt : animation, bind, weights, shadow ? shadow_model : selected_model, owner);
             if (!shadow) {
-                RegisterActions(motion, actions, NextActionFrame(character, motion_slot));
+                RegisterActions(motion, std::move(built), NextActionFrame(character, motion_slot));
                 slot_actions = std::vector<character_motion::Action>(character_motion::Actions(motion).begin(), character_motion::Actions(motion).end());
             }
             if (!shadow && motion.base_matrices && root->init_matrix) {
@@ -2950,11 +3090,14 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
             if (shadow) {
                 if (!character.shadow_frame_info) {
                     AnimeDataInit(root, &motion, &memory, &character.shadow_frame_info);
+                    character.shadow_frame_info_view = motion.frame_info_view;
                 }
                 motion.frame_info = character.shadow_frame_info;
+                motion.frame_info_view = character.shadow_frame_info_view;
             } else if (motion_slot > 0) {
                 character.shadow_motion[motion_slot] = character.shadow_motion[0];
                 character.shadow_motion[motion_slot].frame_info = nullptr;
+                character.shadow_motion[motion_slot].frame_info_view = {};
             }
         } else if (tag_name == "CLOTH") {
             for (std::size_t index = 0; index < args.size(); ++index) {
@@ -2977,7 +3120,7 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                 }
             }
         } else if (tag_name == "LOD_MODEL") {
-            const int index = spiGetStackInt(stack.data());
+            const int index = dc2::script::TagInteger(checked);
             if (index < 0 || index >= character.lod_num) {
                 throw std::runtime_error("character LOD index out of range");
             }
@@ -2987,8 +3130,9 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
             if (!model) {
                 continue;
             }
+            replace(dc2::character::ResourceChannel::Lod, index, memory);
             auto &level = character.lod[index];
-            level.distance = spiGetStackFloat(&stack.at(4));
+            level.distance = dc2::script::TagFloat(checked + 4);
             level.motion = weights && bind;
             level.standalone = !level.motion;
             level.frame = Scene(document, *model, options, level.motion ? PortCharacterMetadataVisualTypes(true) : nullptr, &character);
@@ -3015,7 +3159,7 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
             const auto &script = resources.at("scripts").at(*resource);
             if (character.effect_image_load) {
                 for (const auto &set : script.value("texture_sets", Json::array())) {
-                    EnterTextureSet(document, set.get<std::size_t>(), options, &character, 0);
+                    EnterTextureSet(document, ModelInteger<std::size_t>(set), options, &character, 0);
                 }
                 if (script.contains("character") || script.contains("external_texture_bundle")) {
                     const auto  child = Read(Relative(script.at(script.contains("character") ? "character" : "external_texture_bundle").get<std::string>()));
@@ -3025,13 +3169,15 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                     }
                 }
             }
-            CharacterEffect(character, script, stack, memory);
+            remember(dc2::character::ResourceChannel::Effect, 0, memory);
+            CharacterEffect(character, script, checked, memory);
         } else if (tag_name == "EFFECT_START" || tag_name == "EFFECT_END") {
             // Effects carry direct script references rather than a selected archive.
         } else if (tag_name == "IMG") {
-            const int  slot = skin ? 0 : spiGetStackInt(stack.data());
+            const int  slot = skin ? 0 : dc2::script::TagInteger(checked);
             const auto set = Reference(args, skin ? 0 : 1, "texture_set");
             if (set) {
+                replace(dc2::character::ResourceChannel::Image, slot, options.image_memory ? *options.image_memory : memory);
                 EnterTextureSet(document, *set, options, &character, slot);
             }
         } else if (tag_name == "IMG_END") {
@@ -3039,6 +3185,7 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                 character.texture_block = options.texture_block;
             }
         } else if (tag_name == "KEY" && !skin) {
+            remember(dc2::character::ResourceChannel::Motion, motion_slot, memory);
             // A KEY names an action; the game sees its original name and game-frame interval.
             const auto name = args.at(0).at("value").get<std::string>();
             const auto action = std::ranges::find(slot_actions, name, &character_motion::Action::name);
@@ -3052,14 +3199,46 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
                 args.at(1)
             });
             auto       retail = Arguments(key, strings);
-            PortCharacterMetadataApply(tag_name.c_str(), retail.data(), static_cast<int>(retail.size()), skin);
+            ApplyCharacterMetadata(tag_name.c_str(), retail, strings, skin);
         } else if ((tag_name == "SE" || tag_name == "SELP" || tag_name == "SEQ" || tag_name == "SEQ_START") && !skin && !args.empty()) {
+            remember(dc2::character::ResourceChannel::Motion, motion_slot, memory);
             auto named = args;
             named.at(0) = OriginalMotionName(custom, args.at(0));
             auto retail = Arguments(named, strings);
-            PortCharacterMetadataApply(tag_name.c_str(), retail.data(), static_cast<int>(retail.size()), skin);
+            ApplyCharacterMetadata(tag_name.c_str(), retail, strings, skin);
         } else {
-            PortCharacterMetadataApply(tag_name.c_str(), stack.data(), static_cast<int>(stack.size()), skin);
+            if (tag_name == "CLOTH_START") {
+                replace(dc2::character::ResourceChannel::Cloth, 0, memory);
+            } else if (tag_name == "LOD_MODEL_START") {
+                std::erase_if(resource_state.producers, [](const auto &entry) { return entry.channel == dc2::character::ResourceChannel::Lod; });
+                remember(dc2::character::ResourceChannel::Lod, -1, memory);
+            } else if (tag_name.starts_with("KEY_") || tag_name.starts_with("SEQ_") || tag_name.starts_with("SE_")) {
+                remember(dc2::character::ResourceChannel::Motion, motion_slot, memory);
+            }
+            ApplyCharacterMetadata(tag_name.c_str(), stack, strings, skin);
+        }
+    }
+    if (const auto images = character_images.find(&character); images != character_images.end()) {
+        std::erase_if(resource_state.producers, [&](const auto &entry) {
+            return entry.channel == dc2::character::ResourceChannel::Image &&
+                   std::ranges::any_of(images->second, [&](const auto &image) {
+                       return image.slot == entry.index && (!image.lifetime.HasValue() || image.lifetime.IsLive());
+                   });
+        });
+        for (const auto &image : images->second) {
+            if (image.lifetime.HasValue() && image.lifetime.IsLive()) {
+                resource_state.producers.push_back({dc2::character::ResourceChannel::Image, image.slot, image.lifetime});
+            }
+        }
+    }
+    if (character.CObjectFrame::frame && resource_state.anchor.Bytes().empty()) {
+        throw std::runtime_error("character model has no explicit allocation anchor");
+    }
+    if (character.CObjectFrame::frame) {
+        character.resource_state = previous_resource_handle;
+        if (!dc2::character::PublishResources(character, std::move(resource_state))) {
+            character.resource_state = {};
+            throw std::runtime_error("character resource publication failed");
         }
     }
     if (!skin) {
@@ -3092,7 +3271,7 @@ void DeleteCharacterTextures(CCharacter2 &character, int first_slot, int last_sl
         for (const auto &texture : entry->source->entries) {
             if (texture.type == "texture" && !texture.name.starts_with('#')) {
                 auto              name = PictureName(texture, entry->suffix);
-                const std::string previous = entry->manager->name_suffix;
+                const std::string previous(dc2::text::View(entry->manager->name_suffix));
                 entry->manager->name_suffix[0] = 0;
                 // The record can outlive a DeleteBlock and Initialize, after which another model can enter a
                 // picture under the same name; only pictures this set entered last are deleted.
@@ -3100,7 +3279,7 @@ void DeleteCharacterTextures(CCharacter2 &character, int first_slot, int last_sl
                 if (registered != nullptr && MgTextureEnteredFrom(registered, *entry->source)) {
                     entry->manager->DeleteTexture(registered);
                 }
-                std::strcpy(entry->manager->name_suffix, previous.c_str());
+                dc2::text::Copy(entry->manager->name_suffix, previous);
             }
         }
         entry = images.erase(entry);
@@ -3114,8 +3293,8 @@ namespace {
 /**
  * Validates a texture document and retains its native picture and animation definitions.
  */
-std::shared_ptr<texture_catalog::Source> ReadReplacementTextures(const std::filesystem::path                          &path,
-                                                                 std::vector<std::vector<datapacks::DecodedTexture> > *pixels = nullptr) {
+std::shared_ptr<texture_catalog::Source> ReadReplacementTextures(const std::filesystem::path                         &path,
+                                                                 std::vector<std::vector<datapacks::DecodedTexture>> *pixels = nullptr) {
     const auto *source = texture_catalog::Find(path.generic_string());
     if (!source) {
         throw std::runtime_error("invalid native texture document: " + path.generic_string());
@@ -3149,9 +3328,13 @@ std::shared_ptr<texture_catalog::Source> ReadReplacementTextures(const std::file
  */
 void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catalog::Source> &source, int slot,
                      int block, mgCMemory *memory,
-                     const std::shared_ptr<std::vector<std::vector<datapacks::DecodedTexture> > > &pixels = {}) {
+                     const std::shared_ptr<std::vector<std::vector<datapacks::DecodedTexture>>> &pixels = {}) {
     if (slot < 0 || slot >= CHARA_IMAGE_MAX) {
         throw std::runtime_error("invalid character image slot");
+    }
+    auto character_resources = character.resource_state.Acquire<dc2::character::ResourceState>();
+    if (!character_resources) {
+        throw std::runtime_error("character texture replacement requires live model resources");
     }
 
     /**
@@ -3187,11 +3370,11 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
         }
     }
     auto                          *manager = &mgTexManager;
-    std::string                    suffix = manager->name_suffix;
+    std::string                    suffix(dc2::text::View(manager->name_suffix));
     std::optional<CharacterImages> previous;
     if (const auto found = character_images.find(&character); found != character_images.end()) {
         for (const auto &image : found->second) {
-            if (image.slot == slot) {
+            if (image.slot == slot && (!image.lifetime.HasValue() || image.lifetime.IsLive())) {
                 previous = image;
                 break;
             }
@@ -3201,7 +3384,7 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
     if (!previous) {
         for (const auto &[owner, images] : character_images) {
             for (const auto &image : images) {
-                if (image.slot == slot && image.block == block) {
+                if (image.slot == slot && image.block == block && (!image.lifetime.HasValue() || image.lifetime.IsLive())) {
                     previous = image;
                     break;
                 }
@@ -3218,7 +3401,7 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
             memory = previous->memory;
         }
     }
-    const std::string saved_suffix = manager->name_suffix;
+    const std::string saved_suffix(dc2::text::View(manager->name_suffix));
 
     /**
      * Restores the caller's texture identity suffix after replacement.
@@ -3227,7 +3410,7 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
         mgCTextureManager &manager; /**< Manager whose registration context is restored. */
         const std::string &suffix;  /**< Original caller context. */
 
-        ~RestoreSuffix() { std::strcpy(manager.name_suffix, suffix.c_str()); }
+        ~RestoreSuffix() { dc2::text::Copy(manager.name_suffix, suffix); }
     } restore{.manager = *manager, .suffix = saved_suffix};
 
     manager->name_suffix[0] = 0;
@@ -3249,7 +3432,7 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
     }
     auto &owned = character_images[&character];
     std::erase_if(owned, [slot](const auto &image) { return image.slot == slot; });
-    std::strcpy(manager->name_suffix, suffix.c_str());
+    dc2::text::Copy(manager->name_suffix, suffix);
     if (!pixels) {
         std::vector<const texture_catalog::Entry *> entries;
         for (const auto &entry : source->entries) {
@@ -3267,7 +3450,7 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
                                 }
                                 return datapacks::Decode(entry, variant, decoded, error);
                             });
-    owned.push_back({.slot = slot, .block = block, .manager = manager, .source = source, .memory = memory, .suffix = suffix});
+    owned.push_back({.slot = slot, .block = block, .manager = manager, .source = source, .memory = memory, .lifetime = memory ? dc2::memory::ArenaLifetime::Capture(*memory) : dc2::memory::ArenaLifetime{}, .suffix = suffix});
     manager->name_suffix[0] = 0;
     for (auto &binding : bindings) {
         binding.material->texture = manager->GetTexture(binding.name.data(), binding.block);
@@ -3276,6 +3459,17 @@ void ReplaceTextures(CCharacter2 &character, const std::shared_ptr<texture_catal
         character.texture_block = block;
     }
     RefreshTexAnimeGroups(character, *manager, slot);
+    auto state = *character_resources;
+    std::erase_if(state.producers, [slot](const auto &entry) {
+        return entry.channel == dc2::character::ResourceChannel::Image && entry.index == slot;
+    });
+    if (memory != nullptr) {
+        state.producers.push_back({dc2::character::ResourceChannel::Image, slot, dc2::memory::ArenaLifetime::Capture(*memory)});
+    }
+    if (!dc2::character::PublishResources(character, std::move(state))) {
+        character.resource_state = {};
+        throw std::runtime_error("character replacement texture producer is not live");
+    }
 }
 } // namespace
 
@@ -3295,7 +3489,7 @@ bool ReserveMonsterTextureDocument(CActiveMonster &monster, int slot, const std:
         if (slot < 0 || slot >= 2) {
             throw std::runtime_error("invalid reserved monster image slot");
         }
-        auto pixels = std::make_shared<std::vector<std::vector<datapacks::DecodedTexture> > >();
+        auto pixels = std::make_shared<std::vector<std::vector<datapacks::DecodedTexture>>>();
         auto source = ReadReplacementTextures(document, pixels.get());
         reserved_images[&monster][slot] = {.source = source, .pixels = pixels};
         monster.reserv_img[slot] = source.get();
@@ -3547,8 +3741,12 @@ void ApplyWeights(mgCFrame &frame, std::span<const float> weights) {
     if (morph == native_morphs.end()) {
         return;
     }
-    std::memcpy(visual->vertex, morph->second.positions.data(), visual->vertex_num * sizeof(sceVu0FVECTOR));
-    std::memcpy(visual->normal, morph->second.normals.data(), visual->normal_num * sizeof(sceVu0FVECTOR));
+    if (visual->vertex_num != 0) {
+        std::memcpy(visual->vertex, morph->second.positions.data(), visual->vertex_num * sizeof(sceVu0FVECTOR));
+    }
+    if (visual->normal_num != 0) {
+        std::memcpy(visual->normal, morph->second.normals.data(), visual->normal_num * sizeof(sceVu0FVECTOR));
+    }
     for (std::size_t target = 0; target < weights.size(); ++target) {
         const auto weight = weights[target];
         for (int vertex = 0; vertex < visual->vertex_num; ++vertex) {

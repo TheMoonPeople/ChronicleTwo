@@ -3,9 +3,9 @@
 
 --- Helper function.
 local function helper_6a21fe95()
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
-	monster.SetActStatus(0)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
+	monster.set_action_status(0)
 end
 
 return helper_6a21fe95

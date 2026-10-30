@@ -30,94 +30,94 @@ function script.on_start()
 	local var14: f32 = 0
 	local var15: f32 = 0
 	local var16: s32 = 0
-	value = effect.GetValue(0) or value
-	user_id = effect.GetUserId() or user_id
+	value = effect.get_script_value(0) or value
+	user_id = effect.get_owner_character() or user_id
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var2 = out1 or var2
 		var3 = out2 or var3
 		var4 = out3 or var4
 	end
 	do
-		local out1, out2, out3 = effect.ScnGetChrRot_4(user_id)
+		local out1, out2, out3 = effect.get_scene_character_rotation_4(user_id)
 		var5 = out1 or var5
 		var6 = out2 or var6
 		var7 = out3 or var7
 	end
 	do
-		local out1, out2, out3 = effect.GetDirVector(var5, var6, var7)
+		local out1, out2, out3 = effect.get_direction_vector(var5, var6, var7)
 		var8 = out1 or var8
 		var9 = out2 or var9
 		var10 = out3 or var10
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var8, var9, var10, 20.0)
+		local out1, out2, out3 = effect.scale_vector(var8, var9, var10, 20.0)
 		var8 = out1 or var8
 		var9 = out2 or var9
 		var10 = out3 or var10
 	end
-	effect.SptSetTexname("effect00")
-	effect.SptAssignSprite_1(16)
-	effect.SptInitSprite(0, 16)
-	effect.SptSetAlphab(0, 2, 16)
-	effect.SptSetDrawFlag(0, 1, 16)
-	effect.SptSetPutSize(0, 3.0, 3.0, 16)
-	effect.SptSetUvSize(0, 32.0, 80.0, 16.0, 16.0, 16)
-	effect.ColprimCreate("通常攻撃")
-	effect.ColprimSetDamage(value)
-	effect.EsSetVect1(var2, var3, var4)
+	effect.set_sprite_texture("effect00")
+	effect.allocate_sprites_1(16)
+	effect.reset_sprites(0, 16)
+	effect.set_sprite_blend_mode(0, 2, 16)
+	effect.set_sprite_visible(0, 1, 16)
+	effect.set_sprite_size(0, 3.0, 3.0, 16)
+	effect.set_sprite_texture_rect(0, 32.0, 80.0, 16.0, 16.0, 16)
+	effect.create_collision_primitive("通常攻撃")
+	effect.set_collision_primitive_damage(value)
+	effect.set_effect_first_work_vector(var2, var3, var4)
 	var12 = 0
 	while var12 < 300 do
 		do
-			local out1, out2, out3 = effect.CopyVector(var2, var3, var4)
+			local out1, out2, out3 = effect.copy_vector(var2, var3, var4)
 			var5 = out1 or var5
 			var6 = out2 or var6
 			var7 = out3 or var7
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var2, var3, var4, var8, var9, var10)
+			local out1, out2, out3 = effect.add_vectors(var2, var3, var4, var8, var9, var10)
 			var2 = out1 or var2
 			var3 = out2 or var3
 			var4 = out3 or var4
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(var8, var9, var10)
+			local out1, out2, out3 = effect.copy_vector(var8, var9, var10)
 			var13 = out1 or var13
 			var14 = out2 or var14
 			var15 = out3 or var15
 		end
 		do
-			local out1, out2, out3 = effect.NormalVector(var13, var14, var15)
+			local out1, out2, out3 = effect.normalize_vector(var13, var14, var15)
 			var13 = out1 or var13
 			var14 = out2 or var14
 			var15 = out3 or var15
 		end
-		effect.ColprimSetCoord(var2, var3, var4, 5.0)
+		effect.set_collision_primitive_shape(var2, var3, var4, 5.0)
 		do
-			local out1, out2, out3 = effect.CopyVector(-var8, -var9, -var10)
-			var13 = out1 or var13
-			var14 = out2 or var14
-			var15 = out3 or var15
-		end
-		do
-			local out1, out2, out3 = effect.NormalVector(var13, var14, var15)
+			local out1, out2, out3 = effect.copy_vector(-var8, -var9, -var10)
 			var13 = out1 or var13
 			var14 = out2 or var14
 			var15 = out3 or var15
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var13, var14, var15, 0.5)
+			local out1, out2, out3 = effect.normalize_vector(var13, var14, var15)
 			var13 = out1 or var13
 			var14 = out2 or var14
 			var15 = out3 or var15
 		end
-		effect.SptVanSetPos(0, var2, var3, var4, var13, var14, var15, 0.0, 0.0, 0.0, 16)
-		effect.SptVanSetCol(0, 128.0, 128.0, 128.0, 128.0, 2.0, 2.0, 2.0, -10.0, 0.0, 0.0, 0.0, 0.0, 16)
-		var16 = effect.ColprimGetHitcnt() or var16
+		do
+			local out1, out2, out3 = effect.scale_vector(var13, var14, var15, 0.5)
+			var13 = out1 or var13
+			var14 = out2 or var14
+			var15 = out3 or var15
+		end
+		effect.spread_sprite_positions(0, var2, var3, var4, var13, var14, var15, 0.0, 0.0, 0.0, 16)
+		effect.spread_sprite_colors(0, 128.0, 128.0, 128.0, 128.0, 2.0, 2.0, 2.0, -10.0, 0.0, 0.0, 0.0, 0.0, 16)
+		var16 = effect.get_collision_primitive_hit_count() or var16
 		if var16 > 0 then
 			break
 		else
-			var16 = effect.IntersectionPoint_8(4, var5, var6, var7, var2, var3, var4) or var16
+			var16 = effect.get_intersection_point_8(4, var5, var6, var7, var2, var3, var4) or var16
 			if var16 >= 0 then
 				break
 			else
@@ -126,7 +126,7 @@ function script.on_start()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

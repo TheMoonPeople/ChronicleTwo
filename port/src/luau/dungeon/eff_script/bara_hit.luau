@@ -19,18 +19,18 @@ function script.on_start()
 	local work_vect1_y: f32 = 0
 	local work_vect1_z: f32 = 0
 	local value_2: s32 = 0
-	effect.GetValue(0)
+	effect.get_script_value(0)
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetRot(0.0, 0.0, 0.0)
-	effect.ChrSetMotion("薔薇ヒット", -1, 6)
-	value_2 = effect.GetValue(1) or value_2
-	effect.MonSePlay2(value_2, 8)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.rotate_effect_character_toward(0.0, 0.0, 0.0)
+	effect.set_effect_character_motion("薔薇ヒット", -1, 6)
+	value_2 = effect.get_script_value(1) or value_2
+	effect.play_character_sound(value_2, 8)
 	vm.wait()
 	helper_8b333653()
 end

@@ -25,6 +25,8 @@ using WaterMesh = std::vector<std::vector<WaterStripVertex>>;
 
 // height is row-major, rows * columns entries.
 WaterMesh BuildWaterMesh(const WaterMeshDesc &desc, std::span<const float> height);
+// Reuses strip storage when rebuilding a water grid.
+void BuildWaterMesh(const WaterMeshDesc &desc, std::span<const float> height, WaterMesh &mesh);
 
 struct WaterSurface {
     float p0;

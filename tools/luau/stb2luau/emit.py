@@ -20,6 +20,7 @@ from pathlib import Path
 from stb import opcodes
 
 from . import api, ir, numbers
+from .tags import UNKNOWN
 
 PROGRAMS = Path(__file__).resolve().parents[1] / "programs.json"
 # Program number of the script's setup, which the engine runs when the script is loaded.
@@ -95,6 +96,7 @@ _LUAU_BUILTINS = frozenset(
 NUMERIC_TYPES = frozenset("s8 u8 s16 u16 s32 u32 f32".split())
 # Expression types whose value may carry an integer tag, which a float load reinterprets bit for bit.
 _MAYBE_INT = frozenset((ir.INT, ir.BOOL, ir.ANY))
+NAMES = Path(__file__).resolve().parents[1] / "names.json"
 _IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _POSITIONAL = re.compile(r"(arg|out)\d+")
 
@@ -113,6 +115,20 @@ class FunctionInput:
     is_main: bool
     refs: tuple[int, ...] = ()
     arrays: dict[ir.Slot, int] = dataclasses.field(default_factory=dict)
+    # Ordinal of each resume point (a wait, or a call of a function that may wait) by instruction offset, for event
+    # scripts, whose waits are numbered and whose sections record where they were suspended.
+    resumes: dict[int, int] = dataclasses.field(default_factory=dict)
+    # For a guarded function, what it runs when skip mode unwinds through it.
+    tail: ir.Tail | None = None
+    # Temporaries of skip functions, which are declared with the function's variables since chunks share them.
+    hoisted: tuple[int, ...] = ()
+    # Per variable, whether its loads read it as a float (True), by its tag (False) or both.
+    load_kinds: dict[ir.Slot, frozenset[bool]] = dataclasses.field(default_factory=dict)
+
+    @property
+    def statements(self) -> list:
+        """The body and, for a guarded function, the statements of its tail."""
+        return [*self.body, *_tail_statements(self.tail)]
 
 
 @dataclasses.dataclass
@@ -153,6 +169,12 @@ class _Plan:
     inouts: list[ir.Addr] = dataclasses.field(default_factory=list)
     # Per output, the vm helper that reinterprets the bits the handler writes as the variable holds them, or None.
     conversions: list[str | None] = dataclasses.field(default_factory=list)
+    # The positions, among all the handler's outputs, whose argument is a value: the call returns them but nothing
+    # receives them.
+    discarded: tuple[int, ...] = ()
+    # The variable a deferred output names: the handler keeps the reference, and the engine writes it while the
+    # script waits, so the script reads it back after its next wait.
+    deferred: ir.Addr | None = None
 
 
 @dataclasses.dataclass
@@ -162,7 +184,10 @@ class _Usage:
     mentioned: set[ir.Slot] = dataclasses.field(default_factory=set)
     reads: set[ir.Slot] = dataclasses.field(default_factory=set)
     out_names: dict[ir.Slot, set[str]] = dataclasses.field(default_factory=dict)
+    # The catalogued names of the native inputs each variable is passed to as itself.
+    in_names: dict[ir.Slot, set[str]] = dataclasses.field(default_factory=dict)
     temp_reads: set[int] = dataclasses.field(default_factory=set)
+    assigned: set[ir.Slot] = dataclasses.field(default_factory=set)
     loop_vars: set[ir.Slot] = dataclasses.field(default_factory=set)
 
 
@@ -205,6 +230,8 @@ def _string_text(raw: bytes) -> str:
         text = raw.decode("cp932")
     except UnicodeDecodeError as error:
         raise EmitError("string is not valid cp932") from error
+    if text.encode("cp932") != raw:
+        raise EmitError("string does not round-trip through UTF-8")
     pieces = []
     for char in text:
         if char in _ESCAPES:
@@ -217,6 +244,8 @@ def _string_text(raw: bytes) -> str:
 
 
 def _const_text(const: ir.Const) -> Text:
+    if const.value is None:
+        return "nil", Prec.ATOM
     if const.type in (ir.INT, ir.BOOL):
         number = int(const.value)
         return str(number), (Prec.UNARY if number < 0 else Prec.ATOM)
@@ -266,6 +295,167 @@ def _default(type_name: str) -> str:
     return _DEFAULTS.get(type_name, "0")
 
 
+def _skip_statements(skip: ir.Skip | None) -> list:
+    """Every statement a skip function runs."""
+    if skip is None:
+        return []
+    return [stmt for _, chunk in skip.chunks for stmt in chunk] + [stmt for part in skip.prologues.values() for stmt in part]
+
+
+def _tail_statements(tail: ir.Tail | None) -> list:
+    """Every statement a guarded function's tail runs, with its return values as returns."""
+    found: list = []
+    for run in tail.runs if tail else ():
+        found += [stmt for _, chunk in run.chunks for stmt in chunk]
+        found += [stmt for part in run.prologues.values() for stmt in part]
+        if run.value is not None:
+            found.append(ir.Return(run.value))
+    return found
+
+
+def _children(expr: ir.Expr) -> list[ir.Expr]:
+    """The operands of an expression in the order they are evaluated."""
+    if isinstance(expr, ir.Unary):
+        return [expr.operand]
+    if isinstance(expr, (ir.Binary, ir.Compare, ir.Logical)):
+        return [expr.lhs, expr.rhs]
+    if isinstance(expr, ir.Call):
+        return list(expr.args)
+    if isinstance(expr, ir.Elem) or (isinstance(expr, ir.Addr) and expr.index is not None):
+        return [expr.index]
+    return []
+
+
+def _loads(expr: ir.Expr, slot: ir.Slot) -> bool:
+    return any(isinstance(sub, ir.Var) and sub.slot == slot for sub in ir.walk(expr))
+
+
+def _simple_exprs(stmt: object) -> tuple[ir.Expr, ...]:
+    """The expressions a straight-line statement evaluates, always and before it stores anything."""
+    if isinstance(stmt, ir.Assign):
+        return (stmt.value,)
+    if isinstance(stmt, (ir.ExtCall, ir.Print)):
+        return stmt.args
+    if isinstance(stmt, ir.CallStmt):
+        return (stmt.call,)
+    return ()
+
+
+def _check_flag(exprs: list, slot: ir.Slot, may_int: bool) -> None:
+    if may_int and any(_loads(expr, slot) for expr in exprs):
+        raise EmitError(f"a condition loads variable {slot[1]}, whose tag a native call reads, while it may be an integer's")
+
+
+def _flag_path(stmts: list, slot: ir.Slot, may_int: bool) -> tuple[bool, bool]:
+    """Whether a variable whose loads all read it as a float may still hold an integer tag after a statement list, and
+    at any point in it.
+
+    Every load retags it as a float, a store gives it the stored value's tag, and a native output keeps its tag. A
+    condition that loads it while it may hold an integer tag would retag it only when it is evaluated, so it is refused.
+    Branches join, and a loop's entry takes every state its body reaches, since a break or a continue may leave there.
+    """
+    anywhere = may_int
+    for stmt in stmts:
+        if isinstance(stmt, ir.If):
+            _check_flag([stmt.cond], slot, may_int)
+            then_end, then_any = _flag_path(stmt.then, slot, may_int)
+            else_end, else_any = _flag_path(stmt.orelse, slot, may_int)
+            may_int, anywhere = then_end or else_end, anywhere or then_any or else_any
+        elif isinstance(stmt, (ir.While, ir.Repeat, ir.NumericFor)):
+            if isinstance(stmt, ir.NumericFor):
+                _check_flag([stmt.start, stmt.limit, stmt.step], slot, may_int)
+                if stmt.var == slot:
+                    raise EmitError(f"variable {slot[1]}, whose tag a native call reads, counts a loop")
+            head = may_int
+            while True:
+                if isinstance(stmt, ir.While):
+                    _check_flag([stmt.cond], slot, head)
+                end, inside = _flag_path(stmt.body, slot, head)
+                if isinstance(stmt, ir.Repeat):
+                    _check_flag([stmt.cond], slot, end)
+                if (head or inside) == head:
+                    break
+                head = True
+            may_int = head or inside
+            anywhere = anywhere or may_int
+        else:
+            if any(_loads(expr, slot) for expr in _simple_exprs(stmt)):
+                may_int = False
+            if isinstance(stmt, ir.Assign) and stmt.target == slot:
+                may_int = stmt.value.type in (ir.INT, ir.BOOL)
+            anywhere = anywhere or may_int
+    return may_int, anywhere
+
+
+def tag_flags(fn: FunctionInput, commands: dict[int, dict]) -> dict[ir.Slot, bool]:
+    """The variables whose integer or float tag a native call needs at run time, each with whether all its loads read it
+    as a float.
+
+    A native output does not retag its variable, so where the variable may hold either tag at the call, a handler that
+    branches on the destination's tag (GetMonsterLife), or a script that reads the written bits by the tag (an integer
+    load), sees a different value on different passes. Such a variable gets a flag that follows its tag: a store sets
+    it from the stored value, a float load clears it, and a call starts with its locals as integers.
+    """
+    found: dict[ir.Slot, bool] = {}
+    for stmt in statements(fn.statements):
+        if not isinstance(stmt, ir.ExtCall) or not stmt.tags:
+            continue
+        command = commands.get(stmt.command)
+        signature = next((s for s in command["signatures"] if s["argc"] == len(stmt.args)), None) if command else None
+        if signature is None or len(signature["params"]) != len(stmt.args):
+            continue
+        for position, (param, arg, entry) in enumerate(zip(signature["params"], stmt.args, stmt.tags), 1):
+            if entry is None or entry[0] != "ref":
+                continue
+            # A handler with a tagged input takes its variant from that input, not from the destination.
+            tagged_in = any(other.get("tagged") and other["dir"] == "in" for other in signature["params"])
+            branches = param.get("tagged") and param["dir"] in api.OUTPUTS and not param.get("copies") and not tagged_in
+            if len(entry[1]) == 1 and isinstance(arg, ir.Addr):
+                # One tag, which the reads follow, but not the one the variable is declared with.
+                declared = {ir.INT: "int", ir.BOOL: "int", ir.FLOAT: "float"}.get(fn.slot_types.get(arg.slot, ir.INT))
+                if (
+                    declared is None
+                    or set(entry[2]) != set(entry[1])
+                    or entry[1][0] == declared
+                    or True in fn.load_kinds.get(arg.slot, ())
+                ):
+                    continue
+            elif set(entry[1]) != {"int", "float"} or not isinstance(arg, ir.Addr):
+                continue
+            elif not branches and not {"int", "float"} <= set(entry[2]):
+                continue
+            slot = arg.slot
+            if slot[0] != "local" or slot[1] < fn.arg or arg.index is not None:
+                raise EmitError(f"{command['luau']}: the tag of the variable argument {position} names varies, and it is not a local")
+            kinds = fn.load_kinds.get(slot, frozenset())
+            if kinds == {True, False}:
+                raise EmitError(f"{command['luau']}: variable {slot[1]}, whose tag varies, is loaded both as an integer and as a float")
+            found[slot] = kinds == {True}
+    if not found:
+        return found
+    if fn.tail is not None or ir.FRAME in fn.arrays or any(isinstance(stmt, ir.Section) for stmt in fn.body):
+        raise EmitError("a variable whose tag a native call reads is in a function skip mode resumes")
+    for slot, float_loads in found.items():
+        for expr, _used in _roots(fn.statements):
+            for sub in ir.walk(expr):
+                if isinstance(sub, ir.Call) and any(isinstance(a, ir.Addr) and a.slot == slot for a in sub.args):
+                    raise EmitError(f"variable {slot[1]}, whose tag a native call reads, is passed to a script function")
+        for stmt in statements(fn.statements):
+            if isinstance(stmt, ir.Assign) and stmt.target == slot and stmt.value.type not in (ir.INT, ir.BOOL, ir.FLOAT):
+                raise EmitError(f"variable {slot[1]}, whose tag a native call reads, is stored a value of unknown type")
+            if isinstance(stmt, ir.ExtCall):
+                command = commands.get(stmt.command)
+                signature = next((s for s in command["signatures"] if s["argc"] == len(stmt.args)), None) if command else None
+                for position, arg in enumerate(stmt.args):
+                    if isinstance(arg, ir.Addr) and arg.slot == slot and (
+                        signature is None or signature["params"][position]["dir"] != "out"
+                    ):
+                        raise EmitError(f"variable {slot[1]}, whose tag a native call reads, is passed by reference")
+        if float_loads:
+            _flag_path(fn.statements, slot, True)
+    return found
+
+
 def _roots(stmts: list) -> Iterator[tuple[ir.Expr, bool]]:
     """Every expression of a statement list, paired with whether the call at its root has its result used."""
     for stmt in stmts:
@@ -298,6 +488,11 @@ def _roots(stmts: list) -> Iterator[tuple[ir.Expr, bool]]:
             yield stmt.limit, True
             yield stmt.step, True
             yield from _roots(stmt.body)
+        elif isinstance(stmt, ir.Section):
+            yield from _roots(stmt.body)
+            yield from _roots(_skip_statements(stmt.skip))
+        elif isinstance(stmt, ir.Carry):
+            yield from _roots(stmt.body)
 
 
 def statements(stmts: list) -> Iterator:
@@ -308,6 +503,11 @@ def statements(stmts: list) -> Iterator:
             yield from statements(stmt.then)
             yield from statements(stmt.orelse)
         elif isinstance(stmt, (ir.While, ir.Repeat, ir.NumericFor)):
+            yield from statements(stmt.body)
+        elif isinstance(stmt, ir.Section):
+            yield from statements(stmt.body)
+            yield from statements(_skip_statements(stmt.skip))
+        elif isinstance(stmt, ir.Carry):
             yield from statements(stmt.body)
 
 
@@ -390,7 +590,12 @@ def _write(target: ir.Slot | ir.Elem, usage: _Usage, active: frozenset[ir.Slot])
 
 
 def _collect(
-    mod: _Module, stmts: list, usage: _Usage, active: frozenset[ir.Slot] = frozenset(), keeps_return: bool = True
+    mod: _Module,
+    stmts: list,
+    usage: _Usage,
+    active: frozenset[ir.Slot] = frozenset(),
+    keeps_return: bool = True,
+    dead: frozenset[ir.Slot] = frozenset(),
 ) -> None:
     """Records the variables a statement list mentions; active holds the loop variables of the enclosing loops.
 
@@ -399,18 +604,29 @@ def _collect(
     """
     for stmt in stmts:
         if isinstance(stmt, ir.Assign):
-            _read(stmt.value, usage, active)
+            if isinstance(stmt.target, tuple):
+                usage.assigned.add(stmt.target)
+            # A store to a variable that nothing reads is dropped, so its value reads nothing.
+            if not (isinstance(stmt.target, tuple) and stmt.target in dead and not ir.has_call(stmt.value)):
+                _read(stmt.value, usage, active)
             if not isinstance(stmt.target, ir.Temp):
                 _write(stmt.target, usage, active)
         elif isinstance(stmt, ir.ExtCall):
             plan = mod.resolve(stmt)
             if plan.dropped:
                 continue
+            command = mod.commands.get(stmt.command)
+            signature = next((s for s in command["signatures"] if s["argc"] == len(stmt.args)), None) if command else None
+            if signature is not None and len(signature["params"]) == len(stmt.args) and not plan.name.endswith(f".{api.EXT_NAME}"):
+                for param, arg in zip(signature["params"], stmt.args):
+                    if param["dir"] == "in" and isinstance(arg, ir.Var) and arg.slot[0] == "local":
+                        usage.in_names.setdefault(arg.slot, set()).add(param["name"])
             for arg in plan.ins:
                 # An in-out reference past the frame is passed as 0, so it reads no variable.
                 if not (isinstance(arg, ir.Addr) and arg.slot[0] == "stack"):
                     _read(arg, usage, active)
-            for out, name in zip(plan.outs, plan.out_names):
+            deferred = [(plan.deferred, "item")] if plan.deferred is not None else []
+            for out, name in [*zip(plan.outs, plan.out_names), *deferred]:
                 if out.slot in active:
                     continue
                 usage.mentioned.add(out.slot)
@@ -429,24 +645,29 @@ def _collect(
                 _read(stmt.value, usage, active)
         elif isinstance(stmt, ir.If):
             _read(stmt.cond, usage, active)
-            _collect(mod, stmt.then, usage, active, keeps_return)
-            _collect(mod, stmt.orelse, usage, active, keeps_return)
+            _collect(mod, stmt.then, usage, active, keeps_return, dead)
+            _collect(mod, stmt.orelse, usage, active, keeps_return, dead)
         elif isinstance(stmt, ir.While):
             _read(stmt.cond, usage, active)
-            _collect(mod, stmt.body, usage, active, keeps_return)
+            _collect(mod, stmt.body, usage, active, keeps_return, dead)
         elif isinstance(stmt, ir.Repeat):
-            _collect(mod, stmt.body, usage, active, keeps_return)
+            _collect(mod, stmt.body, usage, active, keeps_return, dead)
             _read(stmt.cond, usage, active)
+        elif isinstance(stmt, ir.Section):
+            _collect(mod, stmt.body, usage, active, keeps_return, dead)
+            _collect(mod, _skip_statements(stmt.skip), usage, active, keeps_return, dead)
+        elif isinstance(stmt, ir.Carry):
+            _collect(mod, stmt.body, usage, active, keeps_return, dead)
         elif isinstance(stmt, ir.NumericFor):
             for expr in (stmt.start, stmt.limit, stmt.step):
                 _read(expr, usage, active)
             if stmt.var[0] == "local":
                 # The loop's own variable is not a mention; only its uses outside the loop are.
                 usage.loop_vars.add(stmt.var)
-                _collect(mod, stmt.body, usage, active | {stmt.var}, keeps_return)
+                _collect(mod, stmt.body, usage, active | {stmt.var}, keeps_return, dead)
             else:
                 usage.mentioned.add(stmt.var)
-                _collect(mod, stmt.body, usage, active, keeps_return)
+                _collect(mod, stmt.body, usage, active, keeps_return, dead)
 
 
 def _keeps_return(mod: _Module, fn: FunctionInput) -> bool:
@@ -456,28 +677,62 @@ def _keeps_return(mod: _Module, fn: FunctionInput) -> bool:
 
 def _usage(mod: _Module, fn: FunctionInput) -> _Usage:
     """The variables a function mentions and reads, including the frame table its returned references live in."""
-    usage = _Usage()
-    _collect(mod, fn.body, usage, keeps_return=_keeps_return(mod, fn))
-    if fn.refs and FRAME in fn.arrays:
-        usage.mentioned.add(FRAME)
-        usage.reads.add(FRAME)
-    return usage
+    dead: frozenset[ir.Slot] = frozenset()
+    while True:
+        usage = _Usage()
+        _collect(mod, fn.body, usage, keeps_return=_keeps_return(mod, fn), dead=dead)
+        _collect(mod, _tail_statements(fn.tail), usage, dead=dead)
+        if fn.refs and FRAME in fn.arrays:
+            usage.mentioned.add(FRAME)
+            usage.reads.add(FRAME)
+        found = frozenset(
+            slot for slot in usage.assigned if slot[0] == "local" and slot[1] >= fn.arg and slot not in usage.reads
+        )
+        if found <= dead or mod.kind_name != "event":
+            return usage
+        dead |= found
 
 
-def _allocate_names(fn: FunctionInput, usage: _Usage, reserved: set[str]) -> dict[ir.Slot, str]:
-    names: dict[ir.Slot, str] = {("local", n): f"arg{n}" for n in range(fn.arg)}
+@functools.cache
+def curated_names(kind: str) -> dict[str, dict]:
+    """The hand names of a kind's shared helpers (tools/luau/names.json), by the first digits of their canonical key."""
+    return json.loads(NAMES.read_text(encoding="utf-8")).get(kind, {})
+
+
+def curated_helper(kind: str, name: str) -> dict | None:
+    """The hand name entry of the shared helper a module calls name, if it has one."""
+    return next((entry for entry in curated_names(kind).values() if entry["name"] == name), None)
+
+
+def _allocate_names(
+    fn: FunctionInput, usage: _Usage, reserved: set[str], params: list[str] | None = None
+) -> dict[ir.Slot, str]:
+    if params is not None and len(params) != fn.arg:
+        raise EmitError(f"names.json names {len(params)} parameters of a helper that takes {fn.arg}")
+    names: dict[ir.Slot, str] = {("local", n): (params[n] if params else f"arg{n}") for n in range(fn.arg)}
     for slot in usage.mentioned | usage.loop_vars:
         if slot[0] in ("local", "array") and slot[1] >= fn.arg:
             names[slot] = f"var{slot[1]}"
     if FRAME in fn.arrays:
         names[FRAME] = "frame"
-    # A local written only as one catalogued, non-positional output takes that output's name.
+    # A local written only as one catalogued, non-positional output takes that output's name; a parameter, or a local no
+    # output names, passed as itself only to native inputs of one such name takes that name.
     candidates: dict[ir.Slot, str] = {}
     for slot, found in usage.out_names.items():
         if slot[0] == "local" and slot[1] >= fn.arg and len(found) == 1:
             (name,) = found
             if _IDENTIFIER.fullmatch(name) and not _POSITIONAL.fullmatch(name):
                 candidates[slot] = name
+    for slot, found in usage.in_names.items():
+        if slot in candidates or slot in usage.out_names or slot in usage.loop_vars or len(found) != 1:
+            continue
+        if params and slot[1] < fn.arg:
+            continue
+        if slot[1] >= fn.arg and slot not in names:
+            continue
+        (name,) = found
+        if _IDENTIFIER.fullmatch(name) and not _POSITIONAL.fullmatch(name):
+            candidates[slot] = name
     taken = set(reserved) | {f"t{index}" for index in range(len(fn.temps))}
     taken |= {name for slot, name in names.items() if slot not in candidates}
     for slot in sorted(candidates, key=lambda s: s[1]):
@@ -578,7 +833,7 @@ class _Module:
         order = self._post_order(list(owners))
         called: set[int] = set()
         for block in order:
-            called |= called_blocks(self.function(block).body)
+            called |= called_blocks(self.function(block).statements)
 
         for block in order:
             if block in self.module.libraries:
@@ -614,7 +869,7 @@ class _Module:
         self.used_returns |= set(self.module.returns_value)
         for block in order:
             if block not in self.module.libraries:
-                self.used_returns |= used_call_blocks(self.function(block).body)
+                self.used_returns |= used_call_blocks(self.function(block).statements)
 
         usages = {block: _usage(self, self.function(block)) for block in local + inline}
         global_numbers = {slot[1] for u in usages.values() for slot in u.mentioned if slot[0] == "global"}
@@ -673,7 +928,8 @@ class _Module:
                 for n in declared_globals
             ])
         sections += [texts[block] for block in local]
-        sections.append(["local script = {}"])
+        # Entry functions that skip mode guards return what the guard returns, so the table holds any kind of function.
+        sections.append(["local script: { [any]: (...any) -> ...any } = {}" if self.kind_name == "event" else "local script = {}"])
         sections += handler_sections
         if tail:
             sections.append(tail)
@@ -696,10 +952,13 @@ class _Module:
             if block not in self.module.libraries:
                 raise EmitError(f"shared function {function.block:#x} calls {block:#x}, which is not shared")
             self.names[block] = self.module.libraries[block]
-        self.used_returns = set(self.module.returns_value)
+        self.used_returns = set(self.module.returns_value) | used_call_blocks(function.statements)
         usage = _usage(self, function)
         reserved = set(self.names.values()) | {self.namespace} | _LUAU_RESERVED | _LUAU_BUILTINS
-        body = _Function(self, function, usage, reserved, f"local function {name}", ["--- Helper function."]).lines()
+        curated = curated_helper(self.kind_name, name)
+        doc = [f"--- {curated['doc']}"] if curated else ["--- Helper function."]
+        params = curated["params"] if curated else None
+        body = _Function(self, function, usage, reserved, f"local function {name}", doc, params).lines()
         requires = ['local vm = require("@lib/vm")'] if self.uses_vm else []
         requires += [f'local {dep} = require("@lib/{self.kind_name}/{dep}")' for dep in sorted(self.used_libraries)]
         header = [
@@ -713,11 +972,14 @@ class _Module:
             lines.extend(section)
         return Module("\n".join(lines) + "\n", list(self.diagnostics))
 
-    def resolve(self, stmt: ir.ExtCall, type_of: Callable[[ir.Expr], str] | None = None) -> _Plan:
+    def resolve(
+        self, stmt: ir.ExtCall, type_of: Callable[[ir.Expr], str] | None = None, held: dict[ir.Slot, str] | None = None
+    ) -> _Plan:
         """Maps an external call to its Luau function, input arguments and by-reference outputs.
 
         type_of gives an argument's type at the call site; a command whose handler reads a parameter's integer or float
-        tag is then called through the variant for the type of its first tagged argument.
+        tag is then called through the variant for the type of its first tagged argument. held gives the type a
+        variable holds at this call where it differs from its declaration's.
         """
         args = list(stmt.args)
         number = ir.Const(stmt.command, ir.INT)
@@ -725,7 +987,7 @@ class _Module:
         if command is None:
             message = f"command {stmt.command} is not registered by {self.kind_name} scripts"
             return _Plan(
-                f"{self.namespace}.Ext",
+                f"{self.namespace}.{api.EXT_NAME}",
                 [number, *args],
                 [],
                 [],
@@ -736,13 +998,20 @@ class _Module:
         signature = next((s for s in command["signatures"] if s["argc"] == len(args)), None)
         if signature is None or len(signature["params"]) != len(args):
             return _Plan(
-                f"{self.namespace}.Ext",
+                f"{self.namespace}.{api.EXT_NAME}",
                 [number, *args],
                 [],
                 [],
                 f"retail: {len(args)} arguments are not catalogued for {luau}",
                 [f"{len(args)} arguments to {luau} are not catalogued"],
             )
+        # Values passed where the handler writes outputs reach it as values, as in retail.
+        values = {
+            position
+            for position, (param, arg) in enumerate(zip(signature["params"], args), 1)
+            if param["dir"] == "out" and not isinstance(arg, ir.Addr)
+        }
+        signature = api.site_signature(signature, values)
         ins: list = []
         outs: list[ir.Addr] = []
         out_names: list[str] = []
@@ -751,8 +1020,18 @@ class _Module:
         clauses: list[str] = []
         mismatched = False
         refs_as_values: list[int] = []
+        discarded: list[int] = []
+        deferred = None
+        ignored = None
+        output_position = -1
         for position, (param, arg) in enumerate(zip(signature["params"], args), 1):
+            if param.get("deferred"):
+                if not isinstance(arg, ir.Addr) or arg.slot[0] == "stack":
+                    raise EmitError(f"{luau}: argument {position} names no variable for the output written later")
+                deferred = arg
+                continue
             if param["dir"] in api.OUTPUTS:
+                output_position += 1
                 if isinstance(arg, ir.Addr):
                     # An in-out reference passes the variable's value in as well.
                     if param["dir"] == "inout":
@@ -761,6 +1040,7 @@ class _Module:
                     outs.append(arg)
                     out_names.append(param["name"])
                 else:
+                    discarded.append(output_position)
                     diagnostics.append(f"value passed as output of {luau}")
                     clauses.append(
                         f"argument {position} is a value where the handler writes an output; "
@@ -769,19 +1049,38 @@ class _Module:
             else:
                 if isinstance(arg, ir.Addr):
                     diagnostics.append(f"reference passed as input to {luau}")
-                    clauses.append(f"argument {position} passes a reference where the handler reads a value")
+                    clauses.append(
+                        f"argument {position} passes a reference where the handler reads a value, the low bits of the "
+                        "variable's address; the variable's value is passed"
+                    )
                     refs_as_values.append(position)
                 mismatch = _kind_mismatch(position, param["type"], arg)
-                if mismatch is not None:
+                handling = param.get("other_kind")
+                if mismatch is not None and handling == "ignored":
+                    ignored = f"{'a string' if arg.type == ir.STR else 'a number'} as argument {position}"
+                elif mismatch is not None and handling in ("nonzero", "address") and isinstance(arg, ir.Const):
+                    value = api.other_value(param, arg.value)
+                    passed = _const_text(arg)[0]
+                    if handling == "nonzero":
+                        clauses.append(f"argument {position} is {passed}, whose address the handler only tests for zero")
+                    elif value is None:
+                        clauses.append(f"argument {position} is {passed}, which the handler reads as no string")
+                    else:
+                        clauses.append(f"argument {position} is {passed}, an address that names nothing the handler finds")
+                    arg = ir.Const(value.encode("cp932"), ir.STR) if isinstance(value, str) else ir.Const(value, ir.INT)
+                elif mismatch is not None and handling != "accepted":
                     mismatched = True
                     diagnostics.append(mismatch)
                     clauses.append(mismatch)
                 ins.append(arg)
         comment = f"retail: {'; '.join(clauses)}" if clauses else ""
+        if ignored is not None and not mismatched:
+            name = f"{self.namespace}.{self._dispatch_name(command, signature)}"
+            return _Plan(name, args, [], [], f"does nothing, since its handler ignores {ignored}", [], dropped=True)
         if signature.get("handler_rejects"):
             # The typed entry point does not fit the arguments these scripts pass, so the raw command is used.
             return _Plan(
-                f"{self.namespace}.Ext",
+                f"{self.namespace}.{api.EXT_NAME}",
                 [number, *args],
                 [],
                 [],
@@ -796,12 +1095,9 @@ class _Module:
             # The handler stores a tagged input only when it holds an integer or a float, so retail did nothing.
             name = f"{self.namespace}.{self._dispatch_name(command, signature)}"
             message = f"reference passed as the value {luau} stores"
-            return _Plan(name, args, [], [], "", [message], dropped=True)
-        if refs_as_values:
-            # The handler reads the reference's slot as a value: on the PC, the low bits of the variable's address.
-            positions = ", ".join(map(str, refs_as_values))
-            raise EmitError(f"{luau}: argument {positions} passes a reference the handler reads as a value, an address")
-        variant, conversions = self._typing(command, signature, args, stmt.tags, type_of)
+            reason = "does nothing, since its handler stores only an integer or a float"
+            return _Plan(name, args, [], [], reason, [message], dropped=True)
+        variant, conversions = self._typing(command, signature, args, stmt.tags, type_of, held or {})
         name = f"{self.namespace}.{self._dispatch_name(command, signature)}"
         default = next((param["type"] for param in signature["params"] if param.get("tagged")), None)
         if variant is not None and variant != default:
@@ -813,10 +1109,19 @@ class _Module:
             for position, (param, arg) in enumerate(zip(signature["params"], args), 1)
             if param["dir"] in api.OUTPUTS and isinstance(arg, ir.Addr)
         ]
-        return _Plan(name, ins, outs, out_names, comment, diagnostics, inouts=inouts, conversions=out_conversions)
+        return _Plan(
+            name, ins, outs, out_names, comment, diagnostics, inouts=inouts, conversions=out_conversions,
+            discarded=tuple(discarded), deferred=deferred,
+        )
 
     def _typing(
-        self, command: dict, signature: dict, args: list, tags: tuple, type_of: Callable[[ir.Expr], str] | None
+        self,
+        command: dict,
+        signature: dict,
+        args: list,
+        tags: tuple,
+        type_of: Callable[[ir.Expr], str] | None,
+        held_types: dict[ir.Slot, str],
     ) -> tuple[str | None, dict[int, str]]:
         """The type a call gives its tagged parameters, and the reinterpretation of each output it writes.
 
@@ -836,9 +1141,14 @@ class _Module:
                 return "s32"
             if kinds == {"float"}:
                 return "f32"
+            if type_of is None:
+                # Usage collection needs only the arguments; the function's emission decides the typing.
+                return None
             raise EmitError(f"{luau}: {what} may be {' or '.join(sorted(kinds)) or 'unknown'}, on which its handler branches")
 
         def held(arg: ir.Expr) -> str | None:
+            if isinstance(arg, ir.Addr) and arg.slot in held_types:
+                return held_types[arg.slot]
             kind = type_of(arg) if type_of is not None else None
             return "f32" if kind == ir.FLOAT else "s32" if kind in (ir.INT, ir.BOOL) else None
 
@@ -878,8 +1188,13 @@ class _Module:
             target = held(arg)
             entry = info.get(position)
             reads = set(entry[2]) if entry is not None and entry[0] == "ref" else set()
+            if UNKNOWN not in (entry[1] if entry is not None and entry[0] == "ref" else {UNKNOWN}):
+                # A load joins the slot's tags over every path into it, so an unknown one comes from a value that
+                # reaches it another way: along the output's own path the slot keeps the tag it had at the call.
+                reads.discard(UNKNOWN)
             if reads:
-                wanted = {"f32": "float", "s32": "int"}.get(target or "")
+                # A variable of no one type holds what the handler writes, when every read takes it as that.
+                wanted = {"f32": "float", "s32": "int"}.get(target or written)
                 if wanted is None or reads != {wanted}:
                     raise EmitError(
                         f"{luau}: the script reads what argument {position} receives as {' and '.join(sorted(reads))}, "
@@ -895,8 +1210,19 @@ class _Module:
         def inputs(sig: dict) -> int:
             return sum(param["dir"] != "out" for param in sig["params"])
 
+        # An input of any type matches whatever the other arities take, which Luau reports as an ambiguous overload.
+        untyped = len(command["signatures"]) > 1 and any(
+            param["type"] == "unknown" and param["dir"] != "out"
+            for sig in command["signatures"]
+            for param in sig["params"]
+        )
+        if signature.get("values"):
+            # A value form is reached by the unsuffixed name only for an input count that no other form takes.
+            if any(form["argc"] == signature["argc"] for form in api.dispatched_forms(command)):
+                return command["luau"]
+            return f"{command['luau']}_{api.suffix(signature)}"
         same = [sig for sig in command["signatures"] if inputs(sig) == inputs(signature)]
-        if len(same) == 1:
+        if len(same) == 1 and not untyped:
             return command["luau"]
         return f"{command['luau']}_{signature['argc']}"
 
@@ -942,7 +1268,7 @@ class _Module:
             if block in active:
                 raise EmitError("recursive script functions are unsupported")
             active.add(block)
-            for expr, _used in _roots(self.function(block).body):
+            for expr, _used in _roots(self.function(block).statements):
                 for sub in ir.walk(expr):
                     if isinstance(sub, ir.Call):
                         visit(sub.function)
@@ -959,7 +1285,14 @@ class _Function:
     """Emission of one function: its names, variable scopes and statements."""
 
     def __init__(
-        self, mod: _Module, fn: FunctionInput, usage: _Usage, reserved: set[str], head: str, doc: list[str]
+        self,
+        mod: _Module,
+        fn: FunctionInput,
+        usage: _Usage,
+        reserved: set[str],
+        head: str,
+        doc: list[str],
+        params: list[str] | None = None,
     ) -> None:
         self.mod = mod
         self.fn = fn
@@ -967,7 +1300,7 @@ class _Function:
         self.doc = doc
         self.reads = usage.reads
         self.temp_reads = usage.temp_reads
-        self.names = _allocate_names(fn, usage, reserved)
+        self.names = _allocate_names(fn, usage, reserved, params)
         self.declared_slots = sorted(
             (
                 slot
@@ -981,9 +1314,29 @@ class _Function:
         self.renamed_loops = {slot for slot in usage.loop_vars if slot in usage.reads}
         # Control variables of the loops being printed, mapped to the names they take inside those loops.
         self.active_loops: dict[ir.Slot, str] = {}
-        self.scopes: list[set[int]] = [set()]
+        self.scopes: list[set[int]] = [set(fn.hoisted)]
+        # The variable a call's deferred output names, which the next wait reads back.
+        self.deferred: ir.Addr | None = None
         # Retail quirks found while printing the current statement, which its first line notes.
         self.notes: list[str] = []
+        # Depth of the section closures being printed, inside which a return packs its values for the section.
+        self.in_section = 0
+        # Whether a return printed inside the current section packs any values.
+        self.packed_values = False
+        # Whether the chunks being printed belong to a section's skip function, rather than a guarded function's tail.
+        self.in_chunk_section = False
+        self.valued_return = mod.kind_name == "event" and any(
+            isinstance(stmt, ir.Return)
+            and not (isinstance(stmt.value, ir.Const) and stmt.value.type == ir.INT and stmt.value.value == 0)
+            for stmt in statements(fn.statements)
+        )
+        # The resume point the statement being printed notes before it runs; None when each of its calls notes itself.
+        self.primary: int | None = 0
+        self.needs_at = fn.tail is not None or any(
+            isinstance(stmt, ir.Section) and stmt.skip is not None for stmt in fn.body
+        )
+        # Variables whose integer or float tag a native call reads, each with whether all its loads read it as a float.
+        self.tag_flags = tag_flags(fn, mod.commands)
         if fn.is_main:
             self.role = "main"
         elif fn.programs:
@@ -1044,6 +1397,16 @@ class _Function:
         if isinstance(expr, ir.Temp):
             return self.temp_type(expr.index)
         return expr.type
+
+    def printed(self, expr: ir.Expr) -> str:
+        """A print argument: a float goes through vm.float, which prints it as retail does even when it is integral."""
+        if isinstance(expr, ir.Var) and self.tag_flags.get(expr.slot) is False:
+            # Retail prints a variable it loads as itself by its tag.
+            name = self.value(expr)[0]
+            return f"if {self.flag_name(expr.slot)} then {name} else {self._call_text('vm.float', name)[0]}"
+        if self.expr_type(expr) == ir.FLOAT:
+            return self._call_text("vm.float", self.value(expr)[0])[0]
+        return self.value(expr)[0]
 
     def may_be_int(self, expr: ir.Expr) -> bool:
         """Whether a value may carry an integer tag: arithmetic with a float operand always yields a float."""
@@ -1114,7 +1477,14 @@ class _Function:
                 )
             else:
                 args.append(self.value(arg)[0])
-        return self._call_text(self.mod.function_name(expr.function), *args)
+        name = self.mod.function_name(expr.function)
+        ordinal = self.fn.resumes.get(expr.offset, 0) if self.needs_at else 0
+        if ordinal and ordinal != self.primary:
+            # Another call of the statement runs first, so this one notes where it is suspended once its arguments are
+            # evaluated, which a closure that takes them as parameters does.
+            params = ", ".join(f"p{index}" for index in range(len(args)))
+            return f"(function({params}) at = {ordinal}; return {name}({params}) end)({', '.join(args)})", Prec.ATOM
+        return self._call_text(name, *args)
 
     # Expressions.
 
@@ -1189,6 +1559,8 @@ class _Function:
             if self.mod.function(expr.function).refs:
                 raise EmitError("a call that copies references back is used inside an expression")
             return self.function_call(expr)
+        if isinstance(expr, ir.Received):
+            return f"(received[{expr.index + 1}] :: number)", Prec.ATOM
         raise EmitError(f"unknown expression {type(expr).__name__}")
 
     def _unary(self, expr: ir.Unary) -> Text:
@@ -1264,6 +1636,8 @@ class _Function:
         for index, stmt in enumerate(stmts):
             last = index == len(stmts) - 1
             lines += self.statement(stmt, depth, last, tail and last)
+            if self.deferred is not None and (last or not isinstance(stmts[index + 1], ir.Wait)):
+                raise EmitError("an output the engine writes later is not followed by a wait")
         return lines
 
     def nested(self, stmts: list, depth: int, tail: bool = False) -> list[str]:
@@ -1277,14 +1651,25 @@ class _Function:
     def statement(self, stmt, depth: int, last: bool, tail: bool) -> list[str]:
         """The lines of one statement, the first of them noting the retail quirks its own expressions translate."""
         outer, self.notes = self.notes, []
+        outer_primary = self.primary
+        ordinal = self.resume_of(stmt) if self.needs_at else 0
         try:
             lines = self._statement(stmt, depth, last, tail)
+            for slot, float_loads in self.tag_flags.items():
+                if float_loads and not (isinstance(stmt, ir.Assign) and stmt.target == slot) and self.declared(slot):
+                    if any(_loads(expr, slot) for expr in _simple_exprs(stmt)):
+                        # Its float load retagged the variable.
+                        lines.append(f"{'	' * depth}{self.flag_name(slot)} = false")
+            if ordinal:
+                # A skip function finds the resume point the script was suspended at in `at`.
+                lines.insert(0, f"{'	' * depth}at = {ordinal}")
             if self.notes and lines:
                 separator = "; " if " -- retail: " in lines[0] else " -- retail: "
                 lines[0] += separator + "; ".join(dict.fromkeys(self.notes))
             return lines
         finally:
             self.notes = outer
+            self.primary = outer_primary
 
     def _statement(self, stmt, depth: int, last: bool, tail: bool) -> list[str]:
         ind = "\t" * depth
@@ -1297,10 +1682,27 @@ class _Function:
                 return self.ref_call(stmt.call, None, ind)
             return [f"{ind}{self.function_call(stmt.call)[0]}"]
         if isinstance(stmt, ir.Print):
-            return [f"{ind}print({', '.join(self.value(arg)[0] for arg in stmt.args)})"]
+            return [f"{ind}print({', '.join(self.printed(arg) for arg in stmt.args)})"]
         if isinstance(stmt, ir.Wait):
             self.mod.uses_vm = True
-            return [f"{ind}vm.wait()"]
+            site = self.fn.resumes.get(stmt.offset)
+            lines = [f"{ind}vm.wait({site})" if site else f"{ind}vm.wait()"]
+            if self.deferred is not None:
+                # The engine wrote the item while the script waited.
+                if self.declared(self.deferred.slot):
+                    lines.append(f"{ind}{self._out_assign(self.deferred, 'vmhost.used_item()')}")
+                self.deferred = None
+            return lines
+        if isinstance(stmt, ir.Section):
+            return self.section(stmt, depth, last)
+        if isinstance(stmt, ir.SkipEnd):
+            self.mod.uses_vm = True
+            return [f"{ind}vm.skip_end()"]
+        if isinstance(stmt, ir.Entry):
+            self.mod.uses_vm = True
+            return [f"{ind}vm.entry({stmt.ordinal})"]
+        if isinstance(stmt, ir.Carry):
+            return self.carry(stmt, depth)
         if isinstance(stmt, ir.Return):
             return self.return_(stmt, depth, last, tail)
         if isinstance(stmt, ir.If):
@@ -1344,11 +1746,163 @@ class _Function:
             raise EmitError("end opcode unsupported")
         raise EmitError(f"unknown statement {type(stmt).__name__}")
 
+    def resume_of(self, stmt) -> int:
+        """The ordinal of the resume point a statement runs first, which it notes before running, or 0.
+
+        The other calls of the statement that may wait note themselves after their arguments are evaluated. A loop
+        condition runs on every pass, so each of its calls does.
+        """
+        self.primary = 0
+        if isinstance(stmt, ir.Entry):
+            self.primary = stmt.ordinal
+            return stmt.ordinal
+        if isinstance(stmt, (ir.Section, ir.Carry)):
+            return 0
+        if isinstance(stmt, ir.Wait):
+            self.primary = self.fn.resumes.get(stmt.offset, 0)
+            return self.primary
+        if isinstance(stmt, (ir.If, ir.While, ir.Repeat, ir.NumericFor)):
+            heads = {
+                ir.If: lambda s: (s.cond,),
+                ir.While: lambda s: (s.cond,),
+                ir.Repeat: lambda s: (s.cond,),
+                ir.NumericFor: lambda s: (s.start, s.limit, s.step),
+            }[type(stmt)](stmt)
+        else:
+            heads = tuple(expr for expr, _ in _roots([stmt]))
+        found: list[int] = []
+
+        def visit(expr: ir.Expr) -> None:
+            for child in _children(expr):
+                visit(child)
+            if isinstance(expr, ir.Call) and expr.offset in self.fn.resumes:
+                found.append(self.fn.resumes[expr.offset])
+
+        for expr in heads:
+            visit(expr)
+        if not found:
+            return 0
+        if isinstance(stmt, (ir.While, ir.Repeat)):
+            self.primary = None
+            return 0
+        self.primary = found[0]
+        return found[0]
+
+    def skip_lines(self, skip: ir.Skip, depth: int) -> list[str]:
+        """The body of a section's skip function: its escape test, prologues and chunks, then true for a skip end."""
+        ind = "\t" * depth
+        lines: list[str] = []
+        if skip.escape:
+            lines += [f"{ind}if at <= {skip.escape} then", f"{ind}\treturn false", f"{ind}end"]
+        self.in_chunk_section = True
+        try:
+            lines += self.chunk_lines(skip.chunks, skip.prologues, depth)
+        finally:
+            self.in_chunk_section = False
+        lines.append(f"{ind}return true")
+        return lines
+
+    def carry(self, stmt: ir.Carry, depth: int) -> list[str]:
+        """The rest of the code after a call that skip mode made and the script then resumed normally, run as usual.
+
+        A section's skip function hands it back to the section as the section's new body, so its returns are packed as
+        a section's are; a guarded function's tail hands it back as the function's new body.
+        """
+        self.mod.uses_vm = True
+        ind = "\t" * depth
+        packed = self.in_chunk_section
+        returns = packed and any(isinstance(sub, ir.Return) for sub in statements(stmt.body))
+        if packed:
+            self.in_section += 1
+        try:
+            body = self.nested(stmt.body, depth + 1)
+        finally:
+            if packed:
+                self.in_section -= 1
+        if returns:
+            body.append(f"{ind}\treturn nil")
+        return [f"{ind}return vm.continue_with(function()", *body, f"{ind}end)"]
+
+    def chunk_lines(
+        self, chunks: list[tuple[int, list]], prologues: dict[int, list], depth: int, always: int = 0
+    ) -> list[str]:
+        """The prologues, which run for one resume point, then the chunks, each running from its resume point on.
+
+        A chunk numbered from always on runs whatever resume point the caller already established.
+        """
+        ind = "\t" * depth
+        lines: list[str] = []
+        for ordinal, part in sorted(prologues.items()):
+            body = self.nested(part, depth + 1)
+            if body:
+                lines += [f"{ind}if at == {ordinal} then", *body, f"{ind}end"]
+        for ordinal, chunk in chunks:
+            if always and ordinal >= always:
+                lines += self.nested(chunk, depth)
+            else:
+                body = self.nested(chunk, depth + 1)
+                if body:
+                    lines += [f"{ind}if at <= {ordinal} then", *body, f"{ind}end"]
+        return lines
+
+    def tail_lines(self, tail: ir.Tail, depth: int) -> list[str]:
+        """The body of a guarded function's tail: for the run skip mode was in, its chunks, then what it returns."""
+        ind = "\t" * depth
+        refs = [self.ref_value(p) for p in self.fn.refs]
+        lines: list[str] = []
+        for run in tail.runs:
+            value = self.value(run.value)[0] if run.value is not None else "nil"
+            lines += [f"{ind}if at <= {run.last} then", *self.chunk_lines(run.chunks, run.prologues, depth + 1, run.last)]
+            lines += [f"{ind}\treturn {', '.join([value, *refs])}", f"{ind}end"]
+        lines.append(f"{ind}return {', '.join(['nil', *refs])}")
+        return lines
+
+    def section(self, stmt: ir.Section, depth: int, last: bool) -> list[str]:
+        """A region between skip ends: a closure that skip mode can leave, and the function that skips the rest of it."""
+        self.mod.uses_vm = True
+        ind = "\t" * depth
+        returns = any(isinstance(sub, ir.Return) for sub in statements(stmt.body))
+        outer_values, self.packed_values = self.packed_values, False
+        self.in_section += 1
+        try:
+            body = self.nested(stmt.body, depth + 2 if returns else depth + 1)
+        finally:
+            self.in_section -= 1
+        inner = ind + ("\t" if returns else "")
+        if returns:
+            body.append(f"{inner}	return nil")
+        lines = [f"{inner}{'local ret = ' if returns else ''}vm.section(function()", *body]
+        if stmt.skip is None:
+            lines.append(f"{inner}end)")
+        else:
+            carries = any(isinstance(sub, ir.Carry) for _, chunk in stmt.skip.chunks for sub in chunk)
+            result = "boolean | vm.Continue" if carries else "boolean"
+            lines.append(f"{inner}end, function(received: {{ any }}): {result}")
+            lines += self.skip_lines(stmt.skip, depth + (2 if returns else 1))
+            lines.append(f"{inner}end)")
+        valued, self.packed_values = self.packed_values, outer_values
+        if returns:
+            # A region whose returns carry no values leaves a function that returns none.
+            leave = "return table.unpack(ret, 1, ret.n)" if valued else "return"
+            lines = [
+                f"{ind}do",
+                *lines,
+                f"{ind}\tif ret ~= nil then",
+                f"{ind}\t\t{leave}",
+                f"{ind}\tend",
+                f"{ind}end",
+            ]
+        return lines
+
     def if_(self, stmt: ir.If, depth: int, tail: bool) -> list[str]:
         """An if statement, flattening a single nested if in the else branch to elseif."""
         ind = "\t" * depth
         first = self.cond(stmt.cond)[0]
-        lines = [f"{ind}if {first} then", *self.nested(stmt.then, depth + 1, tail)]
+        then = self.nested(stmt.then, depth + 1, tail)
+        if not then and not stmt.orelse and not ir.has_call(stmt.cond):
+            # A test whose branch does nothing.
+            return []
+        lines = [f"{ind}if {first} then", *then]
         tested = {first}
         orelse = stmt.orelse
         while len(orelse) == 1 and isinstance(orelse[0], ir.If):
@@ -1374,9 +1928,17 @@ class _Function:
         """A return statement; values nobody reads are dropped unless they carry a call.
 
         A function that takes references returns their values after its own, which it returns when any caller uses it.
+        Inside a section the values are packed, since the closure's return must tell the function to return.
         """
-        ind = "\t" * depth
+        ind = "	" * depth
         expr = stmt.value
+
+        def ret(values: list[str]) -> str:
+            if self.in_section:
+                self.packed_values = self.packed_values or bool(values)
+                return f"return table.pack({', '.join(values)})"
+            return f"return {', '.join(values)}" if values else "return"
+
         if self.fn.refs:
             lines = []
             values = [self.ref_value(p) for p in self.fn.refs]
@@ -1384,18 +1946,19 @@ class _Function:
                 values.insert(0, self.value(expr)[0])
             elif ir.has_call(expr):
                 lines.append(f"local _ = {self.value(expr)[0]}")
-            lines.append(f"return {', '.join(values)}")
+            lines.append(ret(values))
             if last:
                 return [f"{ind}{line}" for line in lines]
-            return [f"{ind}do", *(f"{ind}\t{line}" for line in lines), f"{ind}end"]
+            return [f"{ind}do", *(f"{ind}	{line}" for line in lines), f"{ind}end"]
         if self.role == "helper":
             keep = self.fn.block in self.mod.used_returns
         else:
-            keep = not (isinstance(expr, ir.Const) and expr.type == ir.INT and expr.value == 0)
+            # An entry that returns a number on some path returns it on every path, so the function has one type.
+            keep = self.valued_return or not (isinstance(expr, ir.Const) and expr.type == ir.INT and expr.value == 0)
         keep = keep or ir.has_call(expr)
-        if not keep and tail:
+        if not keep and tail and not self.in_section:
             return []
-        text = f"return {self.value(expr)[0]}" if keep else "return"
+        text = ret([self.value(expr)[0]] if keep else [])
         return [f"{ind}{text}"] if last else [f"{ind}do {text} end"]
 
     def ref_call(self, call: ir.Call, result: ir.Temp | None, ind: str) -> list[str]:
@@ -1426,9 +1989,11 @@ class _Function:
         text = self.function_call(call)[0]
         if all(target == "_" for target in targets):
             lines.append(f"{ind}{text}")
+        elif "_" in targets:
+            lines += [f"{ind}do", f"{ind}\tlocal _: any", f"{ind}\t{', '.join(targets)} = {text}", f"{ind}end"]
         else:
             lines.append(f"{ind}{', '.join(targets)} = {text}")
-        if self.mod.module.probe_refs and all(self.declared(ref.slot) for ref in refs):
+        if self.mod.module.probe_refs and call.offset < ir.SYNTHETIC_BASE and all(self.declared(ref.slot) for ref in refs):
             self.mod.probes.add(call.offset)
             lines.append(f"{ind}__ref({call.offset}, {', '.join(self.target_text(ref) for ref in refs)})")
         return lines
@@ -1478,8 +2043,18 @@ class _Function:
                 return [f"{ind}local _ = {self.value(stmt.value)[0]}"]
             return []
         name = self.name_of(target)
+        if isinstance(stmt.value, ir.Var) and stmt.value.slot == target and target not in self.tag_flags:
+            # Storing a variable's value back into it changes nothing the translation holds.
+            return []
         text, comment = self.store(stmt.value, self.slot_type(target), name)
-        return [f"{ind}{name} = {text}{comment}"]
+        lines = [f"{ind}{name} = {text}{comment}"]
+        if target in self.tag_flags:
+            lines.append(f"{ind}{self.flag_name(target)} = {'true' if stmt.value.type in (ir.INT, ir.BOOL) else 'false'}")
+        return lines
+
+    def flag_name(self, slot: ir.Slot) -> str:
+        """The name of the flag that holds whether a variable's tag is an integer's."""
+        return f"{self.name_of(slot)}_int"
 
     def _int_inout(self, plan: _Plan, arg: ir.Expr) -> bool:
         # An integer variable passed in-out: the handler reads its bits as a float.
@@ -1529,16 +2104,25 @@ class _Function:
 
     def ext_call(self, stmt: ir.ExtCall, ind: str) -> list[str]:
         """An external command call, capturing the by-reference outputs that are declared."""
+        flagged = [
+            (position, arg)
+            for position, arg in enumerate(stmt.args, 1)
+            if isinstance(arg, ir.Addr) and arg.slot in self.tag_flags and stmt.tags and stmt.tags[position - 1]
+            and stmt.tags[position - 1][0] == "ref"
+        ]
+        if flagged:
+            return self.flagged_call(stmt, flagged, ind)
         plan = self.mod.resolve(stmt, self.expr_type)
         for message in plan.diagnostics:
             self.mod.diagnose(message)
         if plan.dropped:
             args = ", ".join(self._dropped_arg(arg) for arg in plan.ins)
-            return [f"{ind}-- retail: {plan.name}({args}) does nothing, since its handler stores only an integer or a float"]
+            return [f"{ind}-- retail: {plan.name}({args}) {plan.comment}"]
         if any(self._past_frame(arg) and not any(arg is inout for inout in plan.inouts) for arg in plan.ins):
             raise EmitError("a reference past the frame is passed where the handler reads a value")
         args = ", ".join(self._input(plan, arg) for arg in plan.ins)
         call = f"{plan.name}({args})"
+        self.deferred = plan.deferred
         clauses = [plan.comment.removeprefix("retail: ")] if plan.comment else []
         lost = [position for position, out in enumerate(plan.outs, 1) if self._past_frame(out)]
         if lost:
@@ -1550,15 +2134,59 @@ class _Function:
         if not any(self.declared(out.slot) for out in plan.outs):
             return [f"{ind}{call}{comment}"]
         conversions = plan.conversions or [None] * len(plan.outs)
-        if len(plan.outs) == 1:
+        if len(plan.outs) == 1 and not plan.discarded:
             return [f"{ind}{self._out_assign(plan.outs[0], call, conversions[0])}{comment}"]
-        names = [f"out{index}" if self.declared(out.slot) else "_" for index, out in enumerate(plan.outs, 1)]
-        lines = [f"{ind}do", f"{ind}\tlocal {', '.join(names)} = {call}{comment}"]
+        # The call returns every output of the handler in order; a discarded one is received by nothing.
+        names: list[str] = []
+        kept = iter(enumerate(plan.outs, 1))
+        for position in range(len(plan.outs) + len(plan.discarded)):
+            if position in plan.discarded:
+                names.append("_")
+                continue
+            index, out = next(kept)
+            names.append(f"out{index}" if self.declared(out.slot) else "_")
+        lines = [f"{ind}do", f"{ind}	local {', '.join(names)} = {call}{comment}"]
         for index, out in enumerate(plan.outs, 1):
             if self.declared(out.slot):
-                lines.append(f"{ind}\t{self._out_assign(out, f'out{index}', conversions[index - 1])}")
+                lines.append(f"{ind}	{self._out_assign(out, f'out{index}', conversions[index - 1])}")
         lines.append(f"{ind}end")
         return lines
+
+    def flagged_call(self, stmt: ir.ExtCall, flagged: list[tuple[int, ir.Addr]], ind: str) -> list[str]:
+        """A native call whose output variable may hold either tag: the call as the flag finds the tag at run time.
+
+        Each branch is the call for one tag, with the written value read as that tag's loads read it: by the tag for a
+        variable loaded as itself, as a float for one loaded only as a float.
+        """
+        if len(flagged) != 1:
+            raise EmitError("a native call writes two variables whose tags vary")
+        position, out = flagged[0]
+        slot = out.slot
+        found = set(stmt.tags[position - 1][1])
+        if not found or not found <= {"int", "float"}:
+            raise EmitError(f"the tag of variable {slot[1]} at a native call is not known")
+        branches: list[str] = []
+        comment = ""
+        for tag in sorted(found, key=("int", "float").index):
+            read = "float" if self.tag_flags[slot] else tag
+            tags = list(stmt.tags)
+            tags[position - 1] = ("ref", (tag,), (read,))
+            plan = self.mod.resolve(
+                dataclasses.replace(stmt, tags=tuple(tags)), self.expr_type, {slot: "s32" if read == "int" else "f32"}
+            )
+            if plan.dropped or len(plan.outs) != 1 or plan.discarded or plan.deferred is not None:
+                raise EmitError("a native call whose output's tag varies writes more than that output")
+            for message in plan.diagnostics:
+                self.mod.diagnose(message)
+            call = f"{plan.name}({', '.join(self._input(plan, arg) for arg in plan.ins)})"
+            conversion = (plan.conversions or [None])[0]
+            branches.append(self._call_text(conversion, call)[0] if conversion else call)
+            comment = comment or plan.comment
+        if not self.declared(slot):
+            raise EmitError("a native call whose output's tag varies writes a variable nothing reads")
+        expr = branches[0] if len(branches) == 1 else f"(if {self.flag_name(slot)} then {branches[0]} else {branches[1]})"
+        suffix = f" -- {comment}" if comment else ""
+        return [f"{ind}{self._out_assign(out, expr)}{suffix}"]
 
     def lines(self) -> list[str]:
         """The lines of the function's declaration."""
@@ -1580,7 +2208,25 @@ class _Function:
             decls.append(f"\tlocal {name}: {{ {_ANNOTATIONS[storage]} }} = table.create({fn.arrays[slot]}, {_default(storage)})")
             if slot == FRAME:
                 decls += [f"\t{self.element(FRAME, ir.Const(n, ir.INT))} = {self.name_of(('local', n))}" for n in range(fn.arg)]
-        body = self.block(fn.body, 1, tail=True)
+        for slot in self.tag_flags:
+            if self.declared(slot):
+                # A call starts with its locals as integers.
+                decls.append(f"	local {self.flag_name(slot)} = true")
+        if self.needs_at:
+            decls.append("	local at: number = 0")
+        for index in (i for i in fn.hoisted if i in self.temp_reads):
+            decls.append(f"	local t{index}: {_ANNOTATIONS[self.temp_type(index)]} = {_default(self.temp_type(index))}")
+        if fn.tail is not None:
+            self.mod.uses_vm = True
+            body = [
+                "	return vm.guard(function()",
+                *self.block(fn.body, 2, tail=False),
+                "	end, function(received: { any })",
+                *self.tail_lines(fn.tail, 2),
+                "	end)",
+            ]
+        else:
+            body = self.block(fn.body, 1, tail=True)
         return [
             *self.doc,
             f"{self.head}({params})",

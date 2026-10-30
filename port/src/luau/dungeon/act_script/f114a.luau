@@ -21,69 +21,69 @@ local function helper_d24()
 	local front_z: f32 = 0
 	local var14: s32 = 0
 	local monster_id: s32 = 0
-	action.ProgGet()
-	action.SetMos("攻撃１", -1, 6)
-	action.SetMos("攻撃１", -1, 6)
+	action.get_program_value()
+	action.play_motion("攻撃１", -1, 6)
+	action.play_motion("攻撃１", -1, 6)
 	helper_9559fe61(vm.f32(0.4), vm.f32(0.45))
 	do
-		local out1, out2, out3 = action.GetObjectPos("dcol0")
+		local out1, out2, out3 = action.get_object_position("dcol0")
 		var4 = out1 or var4
 		var5 = out2 or var5
 		var6 = out3 or var6
 	end
 	do
-		local out1, out2, out3 = action.GetFrontVec()
+		local out1, out2, out3 = action.get_facing_direction()
 		front_x = out1 or front_x
 		front_y = out2 or front_y
 		front_z = out3 or front_z
 	end
 	do
-		local out1, out2, out3 = action.GetRot()
+		local out1, out2, out3 = action.get_rotation()
 		rot_x = out1 or rot_x
 		rot_y = out2 or rot_y
 		rot_z = out3 or rot_z
 	end
-	var14 = action.GetAttkPoint(0) or var14
-	monster_id = action.GetMonsId() or monster_id
+	var14 = action.get_weapon_attack(0) or var14
+	monster_id = action.get_monster_form_id() or monster_id
 	if monster_id == 112 then
-		action.EsmCreate_1("火弾Ｆ")
+		action.create_effect_1("火弾Ｆ")
 	end
 	if monster_id == 116 then
-		action.EsmCreate_1("氷弾Ｆ")
+		action.create_effect_1("氷弾Ｆ")
 	end
 	if monster_id == 120 then
-		action.EsmCreate_1("雷弾Ｆ")
+		action.create_effect_1("雷弾Ｆ")
 	end
 	if monster_id == 124 then
-		action.EsmCreate_1("風弾Ｆ")
+		action.create_effect_1("風弾Ｆ")
 	end
 	if monster_id == 128 then
-		action.EsmCreate_1("聖弾Ｆ")
+		action.create_effect_1("聖弾Ｆ")
 	end
-	action.EsmSetVect1(-1, var4, var5 - vm.f32(2.6), var6)
-	action.EsmSetVect2(-1, rot_x, rot_y, rot_z)
+	action.set_effect_first_vector(-1, var4, var5 - vm.f32(2.6), var6)
+	action.set_effect_second_vector(-1, rot_x, rot_y, rot_z)
 	helper_9559fe61(vm.f32(0.45), vm.f32(0.52))
 	if monster_id == 112 then
-		action.EsmCreate_1("火弾Ｌ３")
+		action.create_effect_1("火弾Ｌ３")
 	end
 	if monster_id == 116 then
-		action.EsmCreate_1("氷弾Ｌ２")
+		action.create_effect_1("氷弾Ｌ２")
 	end
 	if monster_id == 120 then
-		action.EsmCreate_1("雷弾Ｌ２")
+		action.create_effect_1("雷弾Ｌ２")
 	end
 	if monster_id == 124 then
-		action.EsmCreate_1("風弾Ｌ２")
+		action.create_effect_1("風弾Ｌ２")
 	end
 	if monster_id == 128 then
-		action.EsmCreate_1("聖弾Ｌ２")
+		action.create_effect_1("聖弾Ｌ２")
 	end
-	action.EsmSetVect1(-1, var4, var5 - vm.f32(2.6), var6)
-	action.EsmSetVect2(-1, front_x, front_y, front_z)
-	action.EsmSetValue(-1, 0, var14)
-	action.EsmSetValueFloat(-1, 1, 12.0)
+	action.set_effect_first_vector(-1, var4, var5 - vm.f32(2.6), var6)
+	action.set_effect_second_vector(-1, front_x, front_y, front_z)
+	action.set_effect_value(-1, 0, var14)
+	action.set_effect_value_float(-1, 1, 12.0)
 	helper_bac4ec65(2)
-	action.ProgSet(0)
+	action.set_program_value(0)
 end
 
 local script = {}
@@ -93,28 +93,28 @@ function script.setup() end
 
 --- Sets the character up when its script is initialised.
 function script.init()
-	action.SetMoveSpeed(3.4)
+	action.set_move_speed(3.4)
 end
 
 --- Runs the character's normal behaviour.
 function script.loop()
 	local prog: s32 = 0
 	local var3: s32 = 0
-	action.ProgSet(0)
+	action.set_program_value(0)
 	while true do
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog >= 100 and prog < 199 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_d24()
 		end
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog == 0 then
-			action.RunMainMove()
-			var3 = action.GetBtn_2(50) or var3
+			action.run_movement()
+			var3 = action.get_button_state_2(50) or var3
 			if var3 ~= 0 then
 				prog = 100
 			end
-			action.ProgSet(prog)
+			action.set_program_value(prog)
 		end
 		vm.wait()
 	end

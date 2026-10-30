@@ -6,26 +6,26 @@
 
 namespace dc::vu1 {
 
-inline constexpr float kGsCentre = 2048.0f;
+inline constexpr float    kGsCentre = 2048.0f;
 inline constexpr uint32_t kGuardMask = 0xD0;
 
 struct Vec4 {
     float x, y, z, w;
 };
 
-constexpr Vec4 operator+(const Vec4& a, const Vec4& b) {
+constexpr Vec4 operator+(const Vec4 &a, const Vec4 &b) {
     return {.x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z, .w = a.w + b.w};
 }
 
-constexpr Vec4 operator-(const Vec4& a, const Vec4& b) {
+constexpr Vec4 operator-(const Vec4 &a, const Vec4 &b) {
     return {.x = a.x - b.x, .y = a.y - b.y, .z = a.z - b.z, .w = a.w - b.w};
 }
 
-constexpr Vec4 operator*(const Vec4& v, float s) {
+constexpr Vec4 operator*(const Vec4 &v, float s) {
     return {.x = v.x * s, .y = v.y * s, .z = v.z * s, .w = v.w * s};
 }
 
-constexpr Vec4 operator*(float s, const Vec4& v) {
+constexpr Vec4 operator*(float s, const Vec4 &v) {
     return v * s;
 }
 
@@ -45,7 +45,7 @@ constexpr Mat4 Identity() {
 
 // Left-to-right accumulation matches the VU MULAx/MADDAy/MADDAz/MADDw chain. Reordering changes
 // the result under cancellation, so do not sum pairwise or via a generic dot product.
-constexpr Vec4 Mul(const Mat4& m, const Vec4& v) {
+constexpr Vec4 Mul(const Mat4 &m, const Vec4 &v) {
     return m.q[0] * v.x + m.q[1] * v.y + m.q[2] * v.z + m.q[3] * v.w;
 }
 
@@ -74,8 +74,8 @@ inline int32_t Ftoi0(float x) {
 // Lanes of qw 0x3B, in lane order x, y, z, w.
 struct Fog {
     float offset;
-    float near_value;  // lane y; the 7th mgSetFogParam argument
-    float far_value;   // lane z; the 6th mgSetFogParam argument
+    float near_value; // lane y; the 7th mgSetFogParam argument
+    float far_value;  // lane z; the 6th mgSetFogParam argument
     float scale;
 };
 
@@ -92,10 +92,10 @@ constexpr Fog MakeFog(float near_dist, float far_dist, float far_value, float ne
 }
 
 // q = 1/w. min applies before max: when far_value > near_value the result is far_value.
-constexpr float FogValue(const Fog& f, float q) {
+constexpr float FogValue(const Fog &f, float q) {
     const float raw = f.offset + f.scale * q;
     const float lo = raw < f.near_value ? raw : f.near_value;
     return lo > f.far_value ? lo : f.far_value;
 }
 
-}  // namespace dc::vu1
+} // namespace dc::vu1

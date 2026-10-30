@@ -23,6 +23,7 @@ import random
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterator
 from pathlib import Path
 
 from stb.opcodes import ConstType, Op
@@ -36,6 +37,13 @@ REPO = Path(__file__).resolve().parents[3]
 HOST = REPO / "port" / "build" / "luau-harness" / ("luau-harness.exe" if sys.platform == "win32" else "luau-harness")
 
 MAX_STEPS = 500_000
+# Distinct waits of a scenario at which an event script's skip variants skip.
+SKIP_SITES = 12
+# The size of the scenario tables, as Luau source, after which a batch is replayed and discarded. It bounds the driver
+# and the host process, whose memory grows with the tables they hold, whatever the number of scenarios of a script.
+BATCH_BYTES = 2_000_000
+# The exit code luau-harness gives when its Luau state hits its memory limit (see host.cpp).
+MEMORY_LIMIT_EXIT = 3
 BUDGET = "step budget exceeded"
 # Operand-stack slots and call depth that each kind's Set*Script gives its machine (actscript.cpp SetActionScript,
 # effscript.cpp SetEffectScript, runscript_opcodes.cpp SetMonsterScript); other kinds use the action sizes.
@@ -50,6 +58,24 @@ STRING_CHOICES = ("", "a")
 STATE = {
     "action": {"set": {1: ("prog", None, 0)}, "get": {2: ("prog", None)}},
     "effect": {"set": {58: ("value", 0, 1)}, "get": {57: ("value", 0)}},
+    "event": {
+        "set": {
+            13: ("flag", 0, 1),
+            32: ("local_flag", 0, 1),
+            71: ("npc_status", 0, 1),
+            581: ("event_data", 0, 1),
+            590: ("omake_flag", None, 0),
+            764: ("par_count", None, 0),
+        },
+        "get": {
+            14: ("flag", 0),
+            33: ("local_flag", 0),
+            70: ("npc_status", 0),
+            1035: ("event_data", 0),
+            588: ("omake_flag", None),
+            765: ("par_count", None),
+        },
+    },
     "monster": {
         "set": {37: ("var", 0, 1), 54: ("flag", 0, 1), 59: ("var2", 0, 1)},
         "get": {38: ("var", 0), 53: ("flag", 0), 60: ("var2", 0)},
@@ -82,6 +108,8 @@ class Scenario:
     unsupported: bool = False
     covered: frozenset[int] = frozenset()
     compared: frozenset[int] = frozenset()
+    # The offset each suspension stopped at, for choosing where a skip variant skips.
+    wait_pcs: tuple[int, ...] = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -150,16 +178,18 @@ def _signature(kind_catalog: dict, command: int, argc: int) -> dict | None:
     return None
 
 
-def _kind_mismatch(params: list[dict], args: tuple[Slot, ...]) -> bool:
+def _other_kind(param: dict, slot: Slot) -> bool:
     """Whether an input holds a number where its parameter reads a string, or a string where it reads a number."""
-    for param, slot in zip(params, args):
-        if param["dir"] != "in":
-            continue
-        if param["type"] == "string" and slot.tag in (Tag.INT, Tag.FLOAT):
-            return True
-        if param["type"] in NUMERIC_TYPES and slot.tag == Tag.STR:
-            return True
-    return False
+    if param["dir"] != "in":
+        return False
+    if param["type"] == "string" and slot.tag in (Tag.INT, Tag.FLOAT):
+        return True
+    return param["type"] in NUMERIC_TYPES and slot.tag == Tag.STR
+
+
+def _kind_mismatch(params: list[dict], args: tuple[Slot, ...]) -> bool:
+    """Whether an input holds the other kind than its parameter reads, where the catalog says nothing of how."""
+    return any(_other_kind(param, slot) and param.get("other_kind") is None for param, slot in zip(params, args))
 
 
 def _choose(rng: random.Random, type_name: str, pools: Pools) -> object:
@@ -289,6 +319,9 @@ class _TracingMachine(refvm.Machine):
         self.views = views or FloatViews({}, frozenset())
         # The first access outside a frame, and the number of events recorded before it.
         self.cut: tuple[str, int] | None = None
+        # The offset each suspension stopped at, and the message of the error that ended the run, if any.
+        self.wait_pcs: list[int] = []
+        self.error: str | None = None
 
     def emit(self, event: tuple) -> None:
         """Append an event to the trace."""
@@ -317,7 +350,8 @@ class _TracingMachine(refvm.Machine):
 
     def returned(self, call: int, callee: int, frame: int) -> None:
         """Record the values the references of a probed call name, now that the callee has written them."""
-        if call not in self.probes:
+        # Skip mode makes the calls too, but the module does not run them, so their references are not reported.
+        if call not in self.probes or self.skip_wait:
             return
         args = self.memory[frame : frame + self.program.functions[callee].arg]
         values = tuple(
@@ -348,6 +382,7 @@ def _play(
     views: FloatViews | None,
     folded: frozenset[int],
     max_steps: int,
+    skip_at: frozenset[int] = frozenset(),
 ) -> tuple[_TracingMachine, dict[int, int]]:
     """Runs the programs on a fresh reference machine and mock; returns the machine and the step each offset first ran."""
     default_stack, call_num = STACKS.get(namespace, STACKS["action"])
@@ -380,6 +415,16 @@ def _play(
             return
         if api.ignores_reference(signature, args, lambda slot: slot.tag == Tag.PTR):
             return
+        other = [i for i, (param, slot) in enumerate(zip(signature["params"], args)) if _other_kind(param, slot)]
+        if any(signature["params"][i]["other_kind"] == "ignored" for i in other):
+            return
+        values = tuple(
+            api.other_value(signature["params"][i], value) if i in other else value for i, value in enumerate(values)
+        )
+        signature = api.site_signature(
+            signature,
+            {i for i, (param, slot) in enumerate(zip(signature["params"], args), 1) if param["dir"] == "out" and slot.tag != Tag.PTR},
+        )
         params = signature["params"]
         # An in-out handler reads the float bits its reference names; one past the frame reads an operand-stack slot,
         # which the module passes as 0.
@@ -435,6 +480,7 @@ def _play(
     )
     first_steps: dict[int, int] = {}
     machine.trace = first_steps
+    suspension = 0
     try:
         for number in programs:
             machine.result = 0
@@ -442,17 +488,32 @@ def _play(
                 machine.emit(("missing", number))
                 continue
             resumed = 0
+            ended_skipping = False
             while not machine.end:
                 machine.emit(("wait",))
+                machine.wait_pcs.append(machine.pc)
                 if resumed == resumes:
                     machine.emit(("suspended",))
                     break
                 resumed += 1
-                machine.resume()
+                if suspension in skip_at:
+                    # Skip mode runs the script on to its next skip end, or to its end.
+                    machine.emit(("skip",))
+                    machine.skip()
+                    if machine.end:
+                        machine.emit(("end_skipped",))
+                        ended_skipping = True
+                else:
+                    machine.resume()
+                suspension += 1
             else:
-                machine.emit(("end", machine.result))
+                if not ended_skipping:
+                    machine.emit(("end", machine.result))
+            if machine.skip_end_count:
+                machine.emit(("skipends", machine.skip_end_count))
     except refvm.VMError as exc:
         if str(exc) != BUDGET:
+            machine.error = str(exc)
             machine.emit(("error",))
         elif machine.cut is None:
             machine.cut = (BUDGET, len(machine.events))
@@ -472,6 +533,7 @@ def record(
     probes: frozenset[int] = frozenset(),
     views: FloatViews | None = None,
     folded: frozenset[int] = frozenset(),
+    skip_at: frozenset[int] = frozenset(),
 ) -> Scenario:
     """Run the programs in order on the reference VM with seeded native outputs and record the event trace.
 
@@ -484,12 +546,13 @@ def record(
     stack_num is given.
 
     A trace cut at an access outside a frame ends with ("cut", "frame"), and one cut at the step budget with
-    ("cut", "budget").
+    ("cut", "budget"). skip_at holds the numbers of the suspensions (counted over all programs) at which the run skips
+    instead of resuming.
     """
     if pools is None:
         pools = value_pools(program)
     options = (program, kind_catalog, programs, seed, name, resumes, stack_num, pools, namespace, probes, views, folded)
-    machine, first_steps = _play(*options, MAX_STEPS)
+    machine, first_steps = _play(*options, MAX_STEPS, skip_at)
     global_num = machine.global_num
     float_globals = views.globals if views is not None else frozenset()
     globals_ = [_as_read(machine.memory, slot, n in float_globals) for n, slot in enumerate(machine.memory[:global_num])]
@@ -512,7 +575,64 @@ def record(
         unsupported=cut is not None and cut != BUDGET,
         covered=frozenset(first_steps),
         compared=compared,
+        wait_pcs=tuple(machine.wait_pcs),
     )
+
+
+def iter_scenarios(
+    program: Program,
+    kind_catalog: dict,
+    seeds: range | list[int] = range(4),
+    probes: frozenset[int] = frozenset(),
+    views: FloatViews | None = None,
+    folded: frozenset[int] = frozenset(),
+    skip_sites: int = SKIP_SITES,
+    exits: list[str] | None = None,
+) -> Iterator[Scenario]:
+    """Yield one scenario per program, one running it twice, one for main and one running main then every program, for each seed.
+
+    An event script also has skip variants of the scenarios that run each program once: one per distinct wait the run
+    stops at (the first suspension at each, up to skip_sites of them), which skips at that suspension. A variant in
+    which skip mode makes the reference machine exit (retail calls exit(-1) there, which ends the game) has no behaviour
+    to match: it is left out and its name is appended to exits.
+    """
+    numbers = sorted(number for number, _ in program.programs)
+    options = {
+        "pools": value_pools(program),
+        "namespace": kind_catalog["namespace"],
+        "probes": probes,
+        "views": views,
+        "folded": folded,
+    }
+    for seed in seeds:
+        singles = []
+        for number in numbers:
+            singles.append(record(program, kind_catalog, [number], seed, f"{number}/s{seed}", **options))
+            yield singles[-1]
+            yield record(program, kind_catalog, [number, number], seed, f"{number}x2/s{seed}", **options)
+        singles.append(record(program, kind_catalog, [-1], seed, f"main/s{seed}", **options))
+        singles.append(record(program, kind_catalog, [-1, *numbers], seed, f"all/s{seed}", **options))
+        yield from singles[-2:]
+        if kind_catalog["namespace"] != "event":
+            continue
+        for base in singles:
+            seen: set[int] = set()
+            for index, pc in enumerate(base.wait_pcs):
+                if pc in seen or len(seen) >= skip_sites:
+                    continue
+                seen.add(pc)
+                # The same skip, and one that skips again at the next suspension, which is the skip end it stopped at.
+                for repeats, suffix in ((1, ""), (2, "k")):
+                    at = frozenset(range(index, index + repeats))
+                    variant = record(
+                        program, kind_catalog, base.programs, seed, f"{base.name}/k{index}{suffix}", skip_at=at, **options
+                    )
+                    skipped = next((i for i, event in enumerate(variant.events) if event[0] == "skip"), len(variant.events))
+                    if any(event[0] == "error" for event in variant.events[skipped:]):
+                        if exits is not None:
+                            exits.append(variant.name)
+                        continue
+                    yield variant
 
 
 def scenarios(
@@ -522,24 +642,11 @@ def scenarios(
     probes: frozenset[int] = frozenset(),
     views: FloatViews | None = None,
     folded: frozenset[int] = frozenset(),
+    skip_sites: int = SKIP_SITES,
+    exits: list[str] | None = None,
 ) -> list[Scenario]:
-    """Record one scenario per program, one running it twice, one for main and one running main then every program, for each seed."""
-    numbers = sorted(number for number, _ in program.programs)
-    options = {
-        "pools": value_pools(program),
-        "namespace": kind_catalog["namespace"],
-        "probes": probes,
-        "views": views,
-        "folded": folded,
-    }
-    recorded = []
-    for seed in seeds:
-        for number in numbers:
-            recorded.append(record(program, kind_catalog, [number], seed, f"{number}/s{seed}", **options))
-            recorded.append(record(program, kind_catalog, [number, number], seed, f"{number}x2/s{seed}", **options))
-        recorded.append(record(program, kind_catalog, [-1], seed, f"main/s{seed}", **options))
-        recorded.append(record(program, kind_catalog, [-1, *numbers], seed, f"all/s{seed}", **options))
-    return recorded
+    """All the scenarios iter_scenarios yields, held in memory together."""
+    return list(iter_scenarios(program, kind_catalog, seeds, probes, views, folded, skip_sites, exits))
 
 
 def _reachable(program: Program) -> set[int]:
@@ -562,8 +669,13 @@ def coverage(program: Program, recorded: list[Scenario], compared: bool = False)
 
     With compared, only the instructions the scenarios executed before their last compared event count.
     """
-    total = {instruction.offset for block in _reachable(program) for instruction in program.functions[block].instructions}
     executed = set().union(*((scenario.compared if compared else scenario.covered) for scenario in recorded))
+    return _fraction(program, executed)
+
+
+def _fraction(program: Program, executed: set[int]) -> float:
+    """Fraction of the instructions of the reachable functions whose offsets are in executed."""
+    total = {instruction.offset for block in _reachable(program) for instruction in program.functions[block].instructions}
     return len(executed & total) / len(total) if total else 0.0
 
 
@@ -612,13 +724,13 @@ def _list(values: tuple | list) -> str:
 def _event(event: tuple) -> str:
     """Luau table literal for one trace event."""
     tag = event[0]
-    if tag in ("wait", "suspended", "error"):
+    if tag in ("wait", "suspended", "error", "skip", "end_skipped"):
         return '{ "%s" }' % tag
     if tag == "cut":
         return "{ %s }" % ", ".join(_lit(field) for field in event)
     if tag == "print":
         return '{ "print", %s }' % _list(event[1])
-    if tag in ("end", "missing"):
+    if tag in ("end", "missing", "skipends"):
         return '{ "%s", %s }' % (tag, _lit(event[1]))
     if tag == "ref":
         return '{ "ref", %d, %s }' % (event[1], _list(event[2]))
@@ -682,7 +794,9 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
     """
     lines = []
     chosen: dict[int, tuple[tuple[int, int], dict]] = {}
-    for signature in command.get("signatures", []) if signatures is None else signatures:
+    forms = api.value_forms(command) if signatures is None else []
+    dispatched = api.dispatched_forms(command) if signatures is None else []
+    for signature in (command.get("signatures", []) if signatures is None else signatures) + forms:
         argc = signature["argc"]
         params = signature["params"]
         inputs = sum(1 for param in params if param["dir"] in api.INPUTS)
@@ -709,12 +823,28 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
             + ", " + _string("".join(_read(param) for param in inputs_))
             + ", " + _string("".join(_integer(param) for param in inputs_))
         )
+        # A deferred output is not returned: the module reads it back through vmhost.used_item after its next wait.
+        written = [param for param in params if param["dir"] in api.OUTPUTS]
+        deferred = next((index for index, param in enumerate(written, 1) if param.get("deferred")), None)
+        returned = len(written) - (deferred is not None)
+        dropped = ", ".join(["nil"] * returned)
+        if deferred is None:
+            give = "    return table.unpack(outs, 1, outs.n)\n"
+        else:
+            kept = ", ".join(f"outs[{index}]" for index in range(1, len(written) + 1) if index != deferred)
+            give = f"    used_item = outs[{deferred}]\n" + (f"    return {kept}\n" if kept else "")
         lines.append(
-            f"{namespace}.{name}_{argc} = function(...)\n"
+            f"{namespace}.{name}_{api.suffix(signature)} = function(...)\n"
+            # Skip mode drops the call, so every output stays as the script left it.
+            "    if vmhost.skipping() then\n"
+            f"        return {dropped}\n"
+            "    end\n"
             f"    local outs = ext_call({command['no']}, {argc}, table.pack(...){tag})\n"
-            "    return table.unpack(outs, 1, outs.n)\n"
+            f"{give}"
             "end"
         )
+        if signature.get("values") and signature not in dispatched:
+            continue
         key = (outputs, -argc)
         if inputs not in chosen or key > chosen[inputs][0]:
             chosen[inputs] = (key, signature)
@@ -724,7 +854,7 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
     lines.append("    local count = select(\"#\", ...)")
     for inputs, (_, signature) in sorted(chosen.items()):
         lines.append(f"    if count == {inputs} then")
-        lines.append(f"        return {namespace}.{name}_{signature['argc']}(...)")
+        lines.append(f"        return {namespace}.{name}_{api.suffix(signature)}(...)")
         lines.append("    end")
     lines.append(f'    fail("{namespace}.{name}: no arity takes " .. count .. " inputs")')
     lines.append("end")
@@ -732,6 +862,13 @@ def _dispatch(name: str, namespace: str, command: dict, signatures: list[dict] |
 
 
 _RUNTIME_HEAD = """local MISMATCH = {}
+-- The item a deferred output's call recorded, which the module reads back after its next wait.
+local used_item = nil
+vmhost.used_item = function()
+    local item = used_item
+    used_item = nil
+    return item
+end
 -- Raised when the script reaches a cut event: the rest of the run is not compared.
 local CUT = {}
 local events, cursor, failure = {}, 1, nil
@@ -980,26 +1117,70 @@ __ref = function(call, ...)
     end
 end
 
--- Checks each printed value against the next event.
+-- vm.float formats a float for printing; here it hands the value back marked, so the print compares it exactly.
+local FLOATED = {}
+require("@lib/vm").float = function(value)
+    return setmetatable({ value = value }, FLOATED)
+end
+
+-- Checks each printed value against the next event. A value the reference printed as a float must come through
+-- vm.float when it is integral and in the int32 range, since the runtime prints such a bare number as an integer.
 print = function(...)
     local values = table.pack(...)
     local at = cursor
     local event = next_event("print")
-    if event == nil or event[1] ~= "print" or not same_list(event[2], values) then
+    local matches = event ~= nil and event[1] == "print"
+    if matches then
+        local expected, integers = event[2], event[2].i
+        for i = 1, values.n do
+            local value = values[i]
+            local float = type(expected[i]) == "number" and not (integers ~= nil and string.sub(integers, i, i) == "i")
+            if getmetatable(value) == FLOATED then
+                matches = matches and float
+                values[i] = value.value
+            elseif float and type(value) == "number" and value == math.floor(value)
+                and value >= -2147483648 and value <= 2147483647 then
+                matches = false
+            end
+        end
+        matches = matches and same_list(expected, values)
+    end
+    if not matches then
         fail(("event %d: expected %s, got %s"):format(at, show(event), show(table.pack("print", values))))
     end
 end
 """
 
 _RUNTIME_TAIL = """
+-- Checks the number of skip ends the program reached against the trace.
+local function check_skip_ends()
+    local count = vmhost.skip_end_count()
+    local event = events[cursor]
+    if event ~= nil and event[1] == "skipends" then
+        cursor = cursor + 1
+        if event[2] ~= count then
+            fail("expected " .. event[2] .. " skip ends, got " .. count)
+        end
+    elseif count ~= 0 then
+        fail("expected no skip ends, got " .. count)
+    end
+end
+
 -- Runs one program to its end, checking each wait; returns "errored" when the script raised an error.
 local function run_program(fn)
+    vmhost.reset()
     local co = coroutine.create(fn)
     local ok, result = coroutine.resume(co)
     while true do
         if not ok then
             if result == MISMATCH or result == CUT then
                 error(result, 0)
+            end
+            if type(result) == "table" and result.site ~= nil then
+                -- Skip mode ran past the last skip end, so the program ends.
+                expect("end_skipped")
+                check_skip_ends()
+                return "done"
             end
             local at = cursor
             local event = next_event("error", result)
@@ -1015,14 +1196,26 @@ local function run_program(fn)
             if result == nil then
                 result = 0
             end
-            expect("end", result)
+            local following = events[cursor]
+            if following ~= nil and following[1] == "end_skipped" then
+                -- Skip mode ended the program: the reference ran it on linearly, the module ran it structured.
+                cursor = cursor + 1
+            else
+                expect("end", result)
+            end
+            check_skip_ends()
             return "done"
         end
         expect("wait")
         local following = events[cursor]
         if following ~= nil and following[1] == "suspended" then
             cursor = cursor + 1
+            check_skip_ends()
             return "done"
+        end
+        if following ~= nil and following[1] == "skip" then
+            cursor = cursor + 1
+            vmhost.set_skipping(true)
         end
         ok, result = coroutine.resume(co)
     end
@@ -1090,6 +1283,17 @@ def driver(
     module: str, namespace: str, kind_catalog: dict, scenario_list: list[Scenario], names: dict[int, str]
 ) -> str:
     """Luau source of the host driver that replays the scenarios against a module."""
+    head = driver_head(module, namespace, kind_catalog, names)
+    return head + "".join(f"    {_scenario_literal(scenario)},\n" for scenario in scenario_list) + driver_tail()
+
+
+def driver_tail() -> str:
+    """Luau source that closes the scenario table and replays it."""
+    return "}\n" + _RUNTIME_TAIL
+
+
+def driver_head(module: str, namespace: str, kind_catalog: dict, names: dict[int, str]) -> str:
+    """Luau source of a driver up to the entries of its scenario table, the part every batch of scenarios shares."""
     handlers = {SETUP: "setup", **names}
     lines = [
         "-- Generated by tools/luau/stb2luau/harness.py: replays recorded reference VM traces.",
@@ -1114,7 +1318,10 @@ def driver(
         lines.append(f"    [{no}] = {{ " + ", ".join(f"[{argc}] = {_string(reads)}" for argc, reads in sorted(arities.items())) + " },")
     lines.append("}")
     lines.append(
-        f"{namespace}.Ext = function(no, ...)\n"
+        f"{namespace}.{api.EXT_NAME} = function(no, ...)\n"
+        "    if vmhost.skipping() then\n"
+        "        return\n"
+        "    end\n"
         "    local args = table.pack(...)\n"
         "    local reads = EXT_READS[no] and EXT_READS[no][args.n] or string.rep(\"x\", args.n)\n"
         "    local outs = ext_call(no, args.n, args, nil, nil, reads, string.rep(\"1\", args.n))\n"
@@ -1124,10 +1331,14 @@ def driver(
         "end"
     )
     lines.append("local SCENARIOS = {")
-    lines.extend(f"    {_scenario_literal(scenario)}," for scenario in scenario_list)
-    lines.append("}")
-    lines.append(_RUNTIME_TAIL)
-    return "\n".join(lines)
+    return "\n".join(lines) + "\n"
+
+
+def _slim(scenario: Scenario) -> Scenario:
+    """The scenario without the data of its trace, keeping its name, its cut and the number of its events."""
+    return dataclasses.replace(
+        scenario, events=[("elided",)] * len(scenario.events), globals=None, covered=frozenset(), compared=frozenset(), wait_pcs=()
+    )
 
 
 def run(
@@ -1152,45 +1363,75 @@ def run(
     cut: "prefix" for a step budget and "unsupported" for an access outside a frame. "coverage" is the instruction
     coverage of the reference runs, and "compared" that of the matching scenarios up to their last compared event.
     """
-    recorded = scenarios(program, kind_catalog, seeds, probes, views, folded)
-    source = driver(module, namespace, kind_catalog, recorded, names or {})
-    with tempfile.TemporaryDirectory() as directory:
-        driver_path = Path(directory) / "driver.luau"
-        driver_path.write_text(source, encoding="utf-8")
-        completed = subprocess.run(
-            [str(HOST), str(scripts_root), str(driver_path)],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=600,
-            check=False,
-        )
-    by_name = {scenario.name: scenario for scenario in recorded}
+    exits: list[str] = []
+    head = driver_head(module, namespace, kind_catalog, names or {})
     passed = 0
     failed: list[str] = []
     prefix: list[Scenario] = []
     unsupported: list[Scenario] = []
-    matched: list[Scenario] = []
-    for line in completed.stdout.splitlines():
-        if line.startswith("PASS "):
-            scenario = by_name[line[len("PASS ") :]]
-            matched.append(scenario)
-            if scenario.cut is None:
-                passed += 1
-            elif scenario.unsupported:
-                unsupported.append(scenario)
-            else:
-                prefix.append(scenario)
-        elif line.startswith("FAIL "):
-            failed.append(line)
+    covered: set[int] = set()
+    compared: set[int] = set()
+    returncode = 0
+    stderr = ""
+
+    def replay(batch: list[Scenario], literals: list[str]) -> int:
+        """Replays a batch under luau-harness and folds its results into the summary; returns the host's exit code."""
+        nonlocal passed, stderr
+        source = head + "".join(literals) + driver_tail()
+        with tempfile.TemporaryDirectory() as directory:
+            driver_path = Path(directory) / "driver.luau"
+            driver_path.write_text(source, encoding="utf-8")
+            completed = subprocess.run(
+                [str(HOST), str(scripts_root), str(driver_path)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=600,
+                check=False,
+            )
+        by_name = {scenario.name: scenario for scenario in batch}
+        for line in completed.stdout.splitlines():
+            if line.startswith("PASS "):
+                scenario = by_name[line[len("PASS ") :]]
+                compared.update(scenario.compared)
+                if scenario.cut is None:
+                    passed += 1
+                elif scenario.unsupported:
+                    unsupported.append(_slim(scenario))
+                else:
+                    prefix.append(_slim(scenario))
+            elif line.startswith("FAIL "):
+                failed.append(line)
+        if completed.returncode == MEMORY_LIMIT_EXIT:
+            failed.append(f"FAIL {batch[0].name} memory limit exceeded in a batch of {len(batch)} scenarios: {completed.stderr.strip()[-200:]}")
+        stderr = completed.stderr
+        return completed.returncode
+
+    batch: list[Scenario] = []
+    literals: list[str] = []
+    size = 0
+    for scenario in iter_scenarios(program, kind_catalog, seeds, probes, views, folded, exits=exits):
+        covered.update(scenario.covered)
+        literal = f"    {_scenario_literal(scenario)},\n"
+        if batch and size + len(literal) > BATCH_BYTES:
+            returncode = replay(batch, literals)
+            batch, literals, size = [], [], 0
+            if returncode != 0:
+                break
+        batch.append(scenario)
+        literals.append(literal)
+        size += len(literal)
+    if batch and returncode == 0:
+        returncode = replay(batch, literals)
     return {
         "pass": passed,
         "fail": failed,
         "prefix": prefix,
         "unsupported": unsupported,
-        "coverage": coverage(program, recorded),
-        "compared": coverage(program, matched, compared=True),
-        "stderr": completed.stderr,
-        "returncode": completed.returncode,
+        "coverage": _fraction(program, covered),
+        "compared": _fraction(program, compared),
+        "retail_exits": exits,
+        "stderr": stderr,
+        "returncode": returncode,
     }

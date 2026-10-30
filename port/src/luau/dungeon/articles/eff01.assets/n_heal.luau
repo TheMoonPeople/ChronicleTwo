@@ -50,82 +50,82 @@ function script.on_start()
 	local var51: s32 = 0
 	local var52: f32 = 0
 	local var53: s32 = 0
-	target_id = effect.GetTargetId() or target_id
+	target_id = effect.get_target_character() or target_id
 	do
-		local out1, out2, out3 = effect.ScnGetChrPos(target_id)
+		local out1, out2, out3 = effect.get_scene_character_position(target_id)
 		var5 = out1 or var5
 		var6 = out2 or var6
 		var7 = out3 or var7
 	end
 	value = 0
-	value = effect.GetValue(0) or value
-	effect.SptSetTexname("n_heal")
-	effect.SptAssignSprite_1(132)
-	effect.SptInitSprite(0, 3)
-	effect.SptSetAlphab(0, 2, 3)
-	effect.SptSetUvSize(0, 0.0, 0.0, 64.0, 64.0, 3)
+	value = effect.get_script_value(0) or value
+	effect.set_sprite_texture("n_heal")
+	effect.allocate_sprites_1(132)
+	effect.reset_sprites(0, 3)
+	effect.set_sprite_blend_mode(0, 2, 3)
+	effect.set_sprite_texture_rect(0, 0.0, 0.0, 64.0, 64.0, 3)
 	if value == 0 then
-		effect.SptSetColor(0, 96.0, 210.0, 250.0, 0.0, 3)
+		effect.set_sprite_color(0, 96.0, 210.0, 250.0, 0.0, 3)
 	end
 	if value == 1 then
-		effect.SptSetColor(0, 225.0, 220.0, 0.0, 0.0, 3)
+		effect.set_sprite_color(0, 225.0, 220.0, 0.0, 0.0, 3)
 	end
-	effect.SptSetDrawFlag(0, 0, 3)
-	effect.SptSetPutSize(0, 20.0, 20.0, 3)
-	effect.SptSetPos(0, 0.0, 0.0, 0.0, 3)
-	effect.SptSetScale(0, 0.5, 0.46, 3)
-	effect.SptInitSprite(3, 120)
-	effect.SptSetAlphab(3, 2, 120)
-	effect.SptSetUvSize(3, 0.0, 64.0, 32.0, 32.0, 120)
+	effect.set_sprite_visible(0, 0, 3)
+	effect.set_sprite_size(0, 20.0, 20.0, 3)
+	effect.set_sprite_position(0, 0.0, 0.0, 0.0, 3)
+	effect.set_sprite_scale(0, 0.5, 0.46, 3)
+	effect.reset_sprites(3, 120)
+	effect.set_sprite_blend_mode(3, 2, 120)
+	effect.set_sprite_texture_rect(3, 0.0, 64.0, 32.0, 32.0, 120)
 	if value == 0 then
-		effect.SptSetColor(3, 96.0, 210.0, 250.0, 128.0, 120)
-		effect.SetValue(1, 96.0)
-		effect.SetValue(2, 210.0)
-		effect.SetValue(3, 250.0)
+		effect.set_sprite_color(3, 96.0, 210.0, 250.0, 128.0, 120)
+		effect.set_script_value(1, 96.0)
+		effect.set_script_value(2, 210.0)
+		effect.set_script_value(3, 250.0)
 	end
 	if value == 1 then
-		effect.SptSetColor(3, 225.0, 220.0, 0.0, 128.0, 120)
-		effect.SetValue(1, 225.0)
-		effect.SetValue(2, 220.0)
-		effect.SetValue(3, 0.0)
+		effect.set_sprite_color(3, 225.0, 220.0, 0.0, 128.0, 120)
+		effect.set_script_value(1, 225.0)
+		effect.set_script_value(2, 220.0)
+		effect.set_script_value(3, 0.0)
 	end
-	effect.SptSetDrawFlag(3, 0, 120)
-	effect.SptSetPutSize(3, 6.0, 6.0, 120)
-	effect.SptSetPos(3, 0.0, 0.0, 0.0, 120)
-	effect.SptInitSprite(123, 9)
-	effect.SptSetAlphab(123, 2, 9)
-	effect.SptSetUvSize(123, 64.0, 64.0, 64.0, 64.0, 9)
+	effect.set_sprite_visible(3, 0, 120)
+	effect.set_sprite_size(3, 6.0, 6.0, 120)
+	effect.set_sprite_position(3, 0.0, 0.0, 0.0, 120)
+	effect.reset_sprites(123, 9)
+	effect.set_sprite_blend_mode(123, 2, 9)
+	effect.set_sprite_texture_rect(123, 64.0, 64.0, 64.0, 64.0, 9)
 	if value == 0 then
-		effect.SptSetColor(123, 96.0, 210.0, 250.0, 36.0, 9)
-		effect.SetValue(4, 64.0)
-		effect.SetValue(5, 148.0)
-		effect.SetValue(6, 128.0)
+		effect.set_sprite_color(123, 96.0, 210.0, 250.0, 36.0, 9)
+		effect.set_script_value(4, 64.0)
+		effect.set_script_value(5, 148.0)
+		effect.set_script_value(6, 128.0)
 	end
 	if value == 1 then
-		effect.SptSetColor(123, 225.0, 220.0, 0.0, 36.0, 9)
-		effect.SetValue(4, 225.0)
-		effect.SetValue(5, 220.0)
-		effect.SetValue(6, 128.0)
+		effect.set_sprite_color(123, 225.0, 220.0, 0.0, 36.0, 9)
+		effect.set_script_value(4, 225.0)
+		effect.set_script_value(5, 220.0)
+		effect.set_script_value(6, 128.0)
 	end
-	effect.SptSetDrawFlag(123, 0, 9)
-	effect.SptSetPutSize(123, 32.0, 32.0, 9)
-	effect.SptSetPos(123, 0.0, 0.0, 0.0, 9)
+	effect.set_sprite_visible(123, 0, 9)
+	effect.set_sprite_size(123, 32.0, 32.0, 9)
+	effect.set_sprite_position(123, 0.0, 0.0, 0.0, 9)
 	var1 = 0
 	value = 0
 	while value < 3 do
-		value_2 = effect.GetRand(2.0) or value_2
+		value_2 = effect.get_random_number(2.0) or value_2
 		value_2 = vm.f32(value_2 + 11.0)
 		var23 = vm.f32(vm.f32(2.0943952) * value)
 		var19 = vm.f32(vm.sin(var23) * value_2)
 		var20 = vm.f32(var6 + 6.0)
 		var21 = vm.f32(vm.cos(var23) * value_2)
-		effect.SptSetPos(value, var19, var20, var21)
+		effect.set_sprite_position(value, var19, var20, var21)
 		var8[value + 1] = vm.f32(120.0 * value)
 		var11[value + 1] = value_2
 		var14[value + 1] = 6.0
 		value = value + 1
 	end
-	effect.SptSetVeloRotz(0, 0.1, 3)
+	effect.set_sprite_angular_velocity(0, 0.1, 3)
 	var24 = 0
 	while var24 < 3 do
 		var25[var24 + 1] = 0
@@ -136,21 +136,21 @@ function script.on_start()
 	var24 = 0
 	while var1 < 60 do
 		if var1 > var24 * 7 and var24 < 3 then
-			effect.SptSetDrawFlag(var24, 1)
+			effect.set_sprite_visible(var24, 1)
 			do
-				local out1, out2, out3 = effect.CopyVector(0.0, 0.0, 0.0)
+				local out1, out2, out3 = effect.copy_vector(0.0, 0.0, 0.0)
 				var5 = out1 or var5
 				var6 = out2 or var6
 				var7 = out3 or var7
 			end
-			var5 = effect.GetValueFloat(1) or var5
-			var6 = effect.GetValueFloat(2) or var6
-			var7 = effect.GetValueFloat(3) or var7
-			effect.SptSetVeloCol(var24, 0.0, 0.0, 0.0, 15.0)
+			var5 = effect.get_script_value_float(1) or var5
+			var6 = effect.get_script_value_float(2) or var6
+			var7 = effect.get_script_value_float(3) or var7
+			effect.set_sprite_color_velocity(var24, 0.0, 0.0, 0.0, 15.0)
 			var24 = var24 + 1
 		end
 		do
-			local out1, out2, out3 = effect.ScnGetChrPos(target_id)
+			local out1, out2, out3 = effect.get_scene_character_position(target_id)
 			var5 = out1 or var5
 			var6 = out2 or var6
 			var7 = out3 or var7
@@ -167,55 +167,55 @@ function script.on_start()
 				var7 + vm.f32(vm.cos(vm.f32(vm.f32(var8[value + 1] / 180.0) * vm.f32(3.1415927))) * var11[value + 1])
 			)
 			var34[value + 1] = vm.f32(var34[value + 1] - vm.f32(0.05))
-			effect.SptSetPos(value, var38, var39, var40)
+			effect.set_sprite_position(value, var38, var39, var40)
 			if var1 > value * 7 + 8 then
-				effect.SptSetVeloCol(value, 0.0, 0.0, 0.0, 0.0)
-				effect.SptAddColor(value, 0.0, 0.0, 0.0, -7.0)
+				effect.set_sprite_color_velocity(value, 0.0, 0.0, 0.0, 0.0)
+				effect.offset_sprite_color(value, 0.0, 0.0, 0.0, -7.0)
 			end
-			var37 = effect.SptGetDrawFlag(value) or var37
+			var37 = effect.is_sprite_visible(value) or var37
 			if var37 == 1 then
 				if var25[value + 1] < 40 then
-					effect.SptSetDrawFlag(vm.i32(3 + value * 20 * 2 + var25[value + 1]), 1)
-					value_3 = effect.GetRand(4.0) or value_3
-					effect.GetRand(0.5)
-					value_4 = effect.GetRand(360.0) or value_4
+					effect.set_sprite_visible(vm.i32(3 + value * 20 * 2 + var25[value + 1]), 1)
+					value_3 = effect.get_random_number(4.0) or value_3
+					effect.get_random_number(0.5)
+					value_4 = effect.get_random_number(360.0) or value_4
 					value_3 = vm.f32(value_3 + 2.0)
 					var41 = vm.f32(var38 + vm.f32(vm.sin(value_4) * value_3))
 					var42 = var39
 					var43 = vm.f32(var40 + vm.f32(vm.cos(value_4) * value_3))
-					effect.SptSetPos(vm.i32(3 + value * 20 * 2 + var25[value + 1]), var41, var42, var43)
-					value_3 = effect.GetRand(4.0) or value_3
-					effect.GetRand(0.5)
-					value_4 = effect.GetRand(360.0) or value_4
+					effect.set_sprite_position(vm.i32(3 + value * 20 * 2 + var25[value + 1]), var41, var42, var43)
+					value_3 = effect.get_random_number(4.0) or value_3
+					effect.get_random_number(0.5)
+					value_4 = effect.get_random_number(360.0) or value_4
 					value_3 = vm.f32(value_3 + 2.0)
 					var41 = vm.f32(var38 + vm.f32(vm.sin(value_4) * value_3))
 					var42 = var39
 					var43 = vm.f32(var40 + vm.f32(vm.cos(value_4) * value_3))
-					effect.SptSetPos(vm.i32(vm.i32(3 + value * 20 * 2 + var25[value + 1]) + 1), var41, var42, var43)
+					effect.set_sprite_position(vm.i32(vm.i32(3 + value * 20 * 2 + var25[value + 1]) + 1), var41, var42, var43)
 					var25[value + 1] = vm.i32(var25[value + 1] + 2)
 				end
 				var3 = 0
 				while var3 < var25[value + 1] do
 					var50 = vm.i32(3 + value * 20 * 2 + var3)
 					do
-						local out1, out2, out3 = effect.SptGetPos(var50)
+						local out1, out2, out3 = effect.get_sprite_position(var50)
 						pos_x = out1 or pos_x
 						pos_y = out2 or pos_y
 						pos_z = out3 or pos_z
 					end
 					pos_y = vm.f32(pos_y + -1.0)
-					effect.SptSetPos(var50, pos_x, pos_y, pos_z)
-					effect.SptAddColor(var50, 0.0, 0.0, 0.0, -5.0)
+					effect.set_sprite_position(var50, pos_x, pos_y, pos_z)
+					effect.offset_sprite_color(var50, 0.0, 0.0, 0.0, -5.0)
 					var3 = var3 + 1
 				end
 			end
-			var37 = effect.SptGetDrawFlag(value) or var37
+			var37 = effect.is_sprite_visible(value) or var37
 			var37 = 1
 			if var37 ~= 0 then
 				if var28[value + 1] < 3 then
 					var51 = vm.i32(123 + value * 3 + var28[value + 1])
-					effect.SptSetDrawFlag(var51, 1)
-					effect.SptSetPos(var51, var38, var39, var40)
+					effect.set_sprite_visible(var51, 1)
+					effect.set_sprite_position(var51, var38, var39, var40)
 					var28[value + 1] = vm.i32(var28[value + 1] + 1)
 				end
 				var4 = 0
@@ -237,10 +237,10 @@ function script.on_start()
 									* var11[value + 1]
 							)
 					)
-					effect.SptSetPos(var53, var38, var39, var40)
+					effect.set_sprite_position(var53, var38, var39, var40)
 					if var1 > value * 7 + 12 then
-						effect.SptSetVeloCol(var53, 0.0, 0.0, 0.0, 0.0)
-						effect.SptAddColor(var53, 0.0, 0.0, 0.0, -2.0)
+						effect.set_sprite_color_velocity(var53, 0.0, 0.0, 0.0, 0.0)
+						effect.offset_sprite_color(var53, 0.0, 0.0, 0.0, -2.0)
 					end
 					var4 = var4 + 1
 				end

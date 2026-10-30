@@ -1,10 +1,4 @@
-# The x64 port: the game's code built with clang as C++26 for the host.
-#
-# ps2/src holds the game's code as the PS2 build compiles it. A definition port/src tags PORT_OVERRIDE
-# replaces the one ps2/src gives the same name: each unit of ps2/src is compiled without those
-# definitions (tools/kazarov/scripts/build/port_override.py) and linked with port/src. That is how the PS2-only
-# parts are replaced: the SDK, the Metrowerks runtime, the functions that touch the hardware and the
-# functions written in assembly.
+# The x64 port: native game sources built with clang as C++26 for the host.
 
 if(NOT CMAKE_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER clang++)
@@ -16,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+option(CT_BUILD_TESTS "Build darkchronicle_tests" ON)
 
 set(KZ_ROOT ${CMAKE_SOURCE_DIR}/tools/kazarov)
 if(NOT EXISTS ${KZ_ROOT}/include/kazarov/port.h)
@@ -51,7 +46,7 @@ if(CT_ENABLE_TRACY)
     FetchContent_Declare(tracy
         URL https://codeload.github.com/wolfpld/tracy/tar.gz/30997d5ca6bb632cc10807a1da8a6d3de0aeeb3c
         URL_HASH SHA256=e9d527343623435de954a72ad211a1ae4b205cb877d5cc81b8bd505aac0a2cde
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+        DOWNLOAD_EXTRACT_TIMESTAMP FALSE)
     set(TRACY_STATIC ON CACHE BOOL "" FORCE)
     set(TRACY_ENABLE ON CACHE BOOL "" FORCE)
     set(TRACY_ON_DEMAND ON CACHE BOOL "" FORCE)
@@ -72,168 +67,227 @@ endif()
 # Retail textures are converted offline; the native executable only loads PNG assets.
 set(KZ_PORT_BUILD_TIM2 OFF CACHE BOOL "Build legacy TIM2 decoding into the native runtime" FORCE)
 
+# All Clang diagnostics, except those about compatibility with C++ standards older than the one the port uses.
+set(CT_WARNINGS -Weverything
+    -Wno-c++98-compat -Wno-c++98-compat-pedantic
+    -Wno-pre-c++14-compat -Wno-pre-c++14-compat-pedantic -Wno-pre-c++17-compat -Wno-pre-c++17-compat-pedantic
+    -Wno-pre-c++20-compat -Wno-pre-c++20-compat-pedantic -Wno-pre-c++23-compat -Wno-pre-c++23-compat-pedantic
+    -Wno-pre-c++26-compat -Wno-pre-c++26-compat-pedantic)
+
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 kz_port_host_library(ct_host)
+set_property(SOURCE
+    ${KZ_ROOT}/src/cpp/platform/arena.cpp
+    ${KZ_ROOT}/src/cpp/platform/input.cpp
+    ${KZ_ROOT}/src/cpp/platform/memory.cpp
+    ${KZ_ROOT}/src/cpp/sce/eekernel_threads.cpp
+    ${KZ_ROOT}/src/cpp/sce/libmc.cpp
+    TARGET_DIRECTORY ct_host
+    APPEND PROPERTY COMPILE_OPTIONS ${CT_WARNINGS})
 
-# ps2/include is compiled through a mirror in the build tree with the fixups of scripts/port/header_fixups.py
-# applied. The mirror is written only where its content changes, so an unchanged header keeps its timestamp.
-set(PS2_INCLUDE_SRC ${CMAKE_SOURCE_DIR}/ps2/include)
-set(PS2_INCLUDE_DIR ${CMAKE_BINARY_DIR}/ps2_include)
-set(PS2_INCLUDE_STAMP ${CMAKE_BINARY_DIR}/ps2_include.stamp)
-set(HEADER_FIXUPS_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/port/header_fixups.py)
-# The PS2's long is 64-bit and Windows' (LLP64) is not, so game sources and headers are rewritten to long long
-# on every host, keeping the types identical everywhere.
-set(LONG64_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/port/long64.py)
-file(GLOB_RECURSE PS2_INCLUDE_FILES CONFIGURE_DEPENDS LIST_DIRECTORIES false ${PS2_INCLUDE_SRC}/*)
-set(PS2_INCLUDE_MIRROR "")
-foreach(ps2_header IN LISTS PS2_INCLUDE_FILES)
-    file(RELATIVE_PATH ps2_header_rel ${PS2_INCLUDE_SRC} ${ps2_header})
-    list(APPEND PS2_INCLUDE_MIRROR ${PS2_INCLUDE_DIR}/${ps2_header_rel})
-endforeach()
-execute_process(COMMAND ${Python3_EXECUTABLE} ${HEADER_FIXUPS_SCRIPT} ${PS2_INCLUDE_SRC} ${PS2_INCLUDE_DIR} ${PS2_INCLUDE_STAMP}
-    RESULT_VARIABLE header_fixups_result
-    OUTPUT_VARIABLE header_fixups_output
-    ERROR_VARIABLE header_fixups_error)
-if(NOT header_fixups_result EQUAL 0)
-    message(FATAL_ERROR "header_fixups.py failed (${header_fixups_result}):\n${header_fixups_output}${header_fixups_error}")
-endif()
-# Objects find these headers through their depfiles. Undeclared, ninja judges the objects before the mirror is
-# refreshed, so an edited ps2/include header reaches its dependents only on the second build.
-add_custom_command(OUTPUT ${PS2_INCLUDE_STAMP}
-    COMMAND ${Python3_EXECUTABLE} ${HEADER_FIXUPS_SCRIPT} ${PS2_INCLUDE_SRC} ${PS2_INCLUDE_DIR} ${PS2_INCLUDE_STAMP}
-    DEPENDS ${PS2_INCLUDE_FILES} ${HEADER_FIXUPS_SCRIPT} ${LONG64_SCRIPT}
-    BYPRODUCTS ${PS2_INCLUDE_MIRROR}
-    COMMENT "Mirroring ps2/include with the header fixups"
-    VERBATIM)
-add_custom_target(ps2_include DEPENDS ${PS2_INCLUDE_STAMP})
-
-set(PS2_DIR ${CMAKE_SOURCE_DIR}/ps2/src)
+# Native game sources and headers are tracked alongside the port. These files contain the
+# effective host adaptations of the retail units and require no build-time PS2 source rewriting.
 set(PORT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-file(GLOB_RECURSE PS2_SOURCES CONFIGURE_DEPENDS RELATIVE ${PS2_DIR} ${PS2_DIR}/*.cpp)
+set(PORT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(PORT_DEFINITIONS PORT PAL)
+# Game units retain their arithmetic options independently of their domain directories.
+set(NATIVE_SOURCES
+    audio/ezbgm.cpp
+    audio/ezmidi.cpp
+    audio/scenesnd.cpp
+    audio/snd_mngr.cpp
+    audio/snd_seseq.cpp
+    audio/sndviewlp.cpp
+    audio/sound.cpp
+    audio/wavetable.cpp
+    input/cameracontrol.cpp
+    input/gamepad.cpp
+    input/padcontrol.cpp
+    memory/mg_memory.cpp
+    object/character/character.cpp
+    object/character/charasetup.cpp
+    object/character/charaviewlp.cpp
+    object/character/dynamicanime.cpp
+    object/character/mdslist.cpp
+    object/character/photo.cpp
+    object/character/visualmotion.cpp
+    object/core/intersection.cpp
+    object/core/object.cpp
+    object/dun/actionchara.cpp
+    object/dun/automap.cpp
+    object/dun/collision.cpp
+    object/dun/colprim.cpp
+    object/dun/dng_debug.cpp
+    object/dun/dng_effect.cpp
+    object/dun/dng_event.cpp
+    object/dun/dng_hud.cpp
+    object/dun/dng_main.cpp
+    object/dun/dng_object.cpp
+    object/dun/dng_status.cpp
+    object/dun/dngfloor.cpp
+    object/dun/dngmenu.cpp
+    object/dun/monster.cpp
+    object/dun/occlusion.cpp
+    object/dun/savedatadungeon.cpp
+    object/dun/sphida.cpp
+    object/dun/swordeffect.cpp
+    object/event/event.cpp
+    object/event/event_func.cpp
+    object/event/eventedit.cpp
+    object/event/eventsprite.cpp
+    object/event/quest.cpp
+    object/event/scene.cpp
+    object/event/sceneevent.cpp
+    object/event/sceneload.cpp
+    object/event/sceneseq.cpp
+    object/menu/drawwin.cpp
+    object/menu/font.cpp
+    object/menu/gaiji.cpp
+    object/menu/helpmes.cpp
+    object/menu/inventmn.cpp
+    object/menu/menuaqua.cpp
+    object/menu/menucapt.cpp
+    object/menu/menuchr.cpp
+    object/menu/menucls1.cpp
+    object/menu/menucommon.cpp
+    object/menu/menudraw.cpp
+    object/menu/menumain.cpp
+    object/menu/menumap.cpp
+    object/menu/menuop.cpp
+    object/menu/menushop.cpp
+    object/menu/menusys.cpp
+    object/menu/menusystemdata.cpp
+    object/menu/nameregi.cpp
+    object/menu/nd_meswin.cpp
+    object/menu/nowload.cpp
+    object/menu/prespr.cpp
+    object/menu/sysmes.cpp
+    object/menu/title.cpp
+    object/subgame/fishing.cpp
+    object/subgame/fishingobj.cpp
+    object/subgame/gyorace.cpp
+    object/subgame/gyoracesim.cpp
+    object/subgame/subgame.cpp
+    object/world/data_packets.cpp
+    object/world/editanalyze.cpp
+    object/world/editcoll.cpp
+    object/world/editctrl.cpp
+    object/world/editdata.cpp
+    object/world/editdebug.cpp
+    object/world/editeff.cpp
+    object/world/editevent.cpp
+    object/world/editexception.cpp
+    object/world/editinfo.cpp
+    object/world/editloop.cpp
+    object/world/editmap.cpp
+    object/world/editmap2.cpp
+    object/world/editmapeffect.cpp
+    object/world/editmenu.cpp
+    object/world/editmode.cpp
+    object/world/editparts.cpp
+    object/world/editriver.cpp
+    object/world/map.cpp
+    object/world/mapinfo.cpp
+    object/world/mapjump.cpp
+    object/world/mapload.cpp
+    object/world/mapparts.cpp
+    object/world/mapselect.cpp
+    object/world/mapsky.cpp
+    object/world/mapviewlp.cpp
+    object/world/npccfg.cpp
+    object/world/pbuggy.cpp
+    object/world/pot.cpp
+    object/world/scenevillager.cpp
+    object/world/villagermngr.cpp
+    object/world/vlgr_info.cpp
+    object/world/water.cpp
+    platform/crandom.cpp
+    platform/dataread.cpp
+    platform/dbg_font.cpp
+    platform/filesocket.cpp
+    platform/frame_timing.cpp
+    platform/gamedata.cpp
+    platform/gameutil.cpp
+    platform/hddinstall.cpp
+    platform/main.cpp
+    platform/mainloop.cpp
+    platform/mainloop3.cpp
+    platform/memcard.cpp
+    platform/savedata.cpp
+    platform/userdata.cpp
+    render/maintex.cpp
+    render/mg_camera.cpp
+    render/mg_dataset.cpp
+    render/mg_drawenv.cpp
+    render/mg_drawprim.cpp
+    render/mg_frame.cpp
+    render/mg_math.cpp
+    render/mg_shadow.cpp
+    render/mg_sprite.cpp
+    render/mg_tanime.cpp
+    render/mg_texture.cpp
+    render/mg_visual.cpp
+    render/mglib.cpp
+    render/outline.cpp
+    render/screeneffect.cpp
+    render/texviewlp.cpp
+    script/actscript.cpp
+    script/effect.cpp
+    script/effectlist.cpp
+    script/effscript.cpp
+    script/funcpoint.cpp
+    script/runscript.cpp
+    script/runscript_opcodes.cpp
+    script/scriptinterpreter.cpp
+    storage/album.cpp
+    storage/password.cpp
+    video/convviewlp.cpp
+    video/movie.cpp
+    video/movieviewlp.cpp
+)
+list(TRANSFORM NATIVE_SOURCES PREPEND "${PORT_DIR}/")
 file(GLOB_RECURSE PORT_SOURCES CONFIGURE_DEPENDS ${PORT_DIR}/*.cpp)
 list(FILTER PORT_SOURCES EXCLUDE REGEX "/tests/")
-# Scratch files left beside a unit are not units.
-list(FILTER PS2_SOURCES EXCLUDE REGEX "(^|/)tmp[^/]*$")
+list(REMOVE_ITEM PORT_SOURCES ${NATIVE_SOURCES})
 
-set(PS2_UNITS "")
-# C2 ships only the PAL release, so PAL is the one region the port is built for.
-set(PORT_DEFINITIONS PORT PAL)
-list(TRANSFORM PORT_DEFINITIONS PREPEND --define= OUTPUT_VARIABLE port_override_defines)
-# ps2/src spells the 64-bit long that long64.py turns into the long long port/src has to spell.
-list(APPEND port_override_defines --long-is-64)
-# The names port/src's PORT_OVERRIDE definitions link under. PORT_OVERRIDE_SOURCES is written only when
-# its content changes, and a unit or stub header appearing or vanishing changes no timestamp, so it is a
-# dependency of its own.
-set(PORT_OVERRIDE_SCRIPT ${KZ_ROOT}/scripts/build/port_override.py)
-set(UNIT_COPY_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/port/unit_copy.py)
-set(PORT_OVERRIDES ${CMAKE_BINARY_DIR}/port_overrides.txt)
-set(PORT_OVERRIDE_SOURCES ${CMAKE_BINARY_DIR}/port_override_sources.txt)
-file(GLOB_RECURSE PORT_OVERRIDE_STUBS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/port/include/stubs/*.hpp)
-# A config bridge appearing or vanishing changes which units append one, so it reconfigures.
-file(GLOB PORT_CONFIG_BRIDGES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/port/src/*_config_bridge.inc)
-string(JOIN "\n" port_override_sources ${PORT_SOURCES} ${PS2_SOURCES} ${PORT_OVERRIDE_STUBS})
-file(CONFIGURE OUTPUT ${PORT_OVERRIDE_SOURCES} CONTENT "${port_override_sources}\n" @ONLY)
-add_custom_command(OUTPUT ${PORT_OVERRIDES}
-    COMMAND ${Python3_EXECUTABLE} ${PORT_OVERRIDE_SCRIPT} list ${PORT_DIR} -o ${PORT_OVERRIDES}
-    DEPENDS ${PORT_SOURCES} ${PORT_OVERRIDE_SOURCES} ${PORT_OVERRIDE_SCRIPT}
-    COMMENT "Listing port/src's PORT_OVERRIDE definitions"
-    VERBATIM)
-# port/include/stubs/<unit>.hpp, when it exists, is included ahead of its unit: it declares what the port
-# defines in place of code PORT leaves out, and renames what the unit takes from MWCC alone.
-# The check writes each unit's own overrides entries to a split file. A unit depends only on that file, so a
-# PORT_OVERRIDE edit recopies the units it reaches, not all 149. One process per unit: start-up dominates the copy.
-set(PORT_OVERRIDE_SPLITS "")
-foreach(unit IN LISTS PS2_SOURCES)
-    set(copy ${CMAKE_BINARY_DIR}/ps2_src/${unit})
-    set(split ${CMAKE_BINARY_DIR}/port_overrides/${unit}.txt)
-    list(APPEND PORT_OVERRIDE_SPLITS ${split})
-    string(REGEX REPLACE "\\.cpp$" ".hpp" header ${CMAKE_SOURCE_DIR}/port/include/stubs/${unit})
-    if(EXISTS ${header})
-        set(stubs --stubs ${header})
-    else()
-        set(stubs "")
-        set(header "")
-    endif()
-    # unit_copy.py appends port/src/<unit>_config_bridge.inc, when it exists, to the unit's copy.
-    string(REGEX REPLACE "\\.cpp$" "_config_bridge.inc" config_bridge ${CMAKE_CURRENT_SOURCE_DIR}/src/${unit})
-    set(native_bridge "")
-    if(unit STREQUAL "character.cpp")
-        set(native_bridge ${CMAKE_CURRENT_SOURCE_DIR}/src/character_metadata_bridge.inc)
-    elseif(EXISTS ${config_bridge})
-        set(native_bridge ${config_bridge})
-    elseif(unit STREQUAL "menuchr.cpp")
-        set(native_bridge ${CMAKE_CURRENT_SOURCE_DIR}/src/menu_character_assets.hpp)
-    endif()
-    add_custom_command(OUTPUT ${copy}
-        COMMAND ${Python3_EXECUTABLE} ${UNIT_COPY_SCRIPT} --port-override ${PORT_OVERRIDE_SCRIPT} --overrides ${split}
-            ${stubs} ${port_override_defines} ${PS2_DIR}/${unit} ${copy}
-        DEPENDS ${PS2_DIR}/${unit} ${split} ${PORT_OVERRIDE_SCRIPT} ${UNIT_COPY_SCRIPT} ${LONG64_SCRIPT} ${HEADER_FIXUPS_SCRIPT} ${CMAKE_SOURCE_DIR}/scripts/port/native_asset_paths.py ${header} ${native_bridge}
-        COMMENT "Removing overridden definitions from ps2/src/${unit}"
-        VERBATIM)
-    list(APPEND PS2_UNITS ${copy})
-    list(APPEND PS2_ORIGINALS ${PS2_DIR}/${unit} ${header})
-    if(header)
-        set_property(SOURCE ${copy} APPEND PROPERTY COMPILE_OPTIONS -include ${header})
-        set_property(SOURCE ${copy} APPEND PROPERTY OBJECT_DEPENDS ${header})
+# Some retail units use declarations supplied by a per-unit native compatibility header.
+file(GLOB NATIVE_COMPATIBILITY_HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/stubs/*.hpp)
+foreach(source IN LISTS NATIVE_SOURCES)
+    get_filename_component(unit ${source} NAME_WE)
+    set(stub ${CMAKE_CURRENT_SOURCE_DIR}/include/stubs/${unit}.hpp)
+    if(stub IN_LIST NATIVE_COMPATIBILITY_HEADERS)
+        set_property(SOURCE ${source} APPEND PROPERTY COMPILE_OPTIONS -include ${stub})
     endif()
 endforeach()
-# A tag that names no definition in ps2/src stops the build: its replacement would be unused wherever
-# the two signatures differ.
-set(PORT_OVERRIDES_CHECKED ${CMAKE_BINARY_DIR}/port_overrides.checked)
-set(PORT_OVERRIDE_CACHE ${CMAKE_BINARY_DIR}/port_overrides.cache.json)
-add_custom_command(OUTPUT ${PORT_OVERRIDES_CHECKED}
-    COMMAND ${Python3_EXECUTABLE} ${PORT_OVERRIDE_SCRIPT} check --overrides ${PORT_OVERRIDES}
-        --private-functions --private-function-unit event_func.cpp --private-function-unit editdebug.cpp
-        --stubs ${CMAKE_SOURCE_DIR}/port/include/stubs ${port_override_defines} ${PS2_DIR}
-        --split ${CMAKE_BINARY_DIR}/port_overrides --cache ${PORT_OVERRIDE_CACHE}
-        -o ${PORT_OVERRIDES_CHECKED}
-    DEPENDS ${PS2_ORIGINALS} ${PORT_OVERRIDES} ${PORT_OVERRIDE_SOURCES} ${PORT_OVERRIDE_SCRIPT}
-    BYPRODUCTS ${PORT_OVERRIDE_SPLITS} ${PORT_OVERRIDE_CACHE}
-    COMMENT "Checking that every PORT_OVERRIDE definition replaces one of ps2/src's"
-    VERBATIM)
 
-# The game was written for MWCC, which accepts what clang rejects by default: pointers truncated to
-# 32-bit integers, narrowing in braced initialisers and the register keyword.
+# Every native game, adapter, executable and test compiles with all Clang diagnostics enabled.
 add_library(ct_options INTERFACE)
 target_compile_definitions(ct_options INTERFACE ${PORT_DEFINITIONS})
 target_include_directories(ct_options INTERFACE
     ${CMAKE_BINARY_DIR}/generated/include ${CMAKE_SOURCE_DIR}/port/include ${KZ_ROOT}/include
-    ${PS2_INCLUDE_DIR} ${PS2_INCLUDE_DIR}/sce)
+    ${PORT_INCLUDE_DIR}/sce)
 target_compile_options(ct_options INTERFACE
     "SHELL:-include \"${CMAKE_SOURCE_DIR}/port/include/port.h\""
-    -fms-extensions -ffunction-sections -fdata-sections
-    -Wno-register -Wno-c++11-narrowing -Wno-return-mismatch)
+    -fms-extensions -ffunction-sections -fdata-sections ${CT_WARNINGS}
+    -fcomment-block-commands=mangled,address,size,unknownret)
 # arm64 clang fuses a*b+c into one rounding by default and x86-64 has no FMA in its baseline; off
 # everywhere so the game's arithmetic rounds the same on both.
 target_compile_options(ct_options INTERFACE -ffp-contract=off)
-# Constructor aliases would point C1 into a COMDAT section lld discards under --allow-multiple-definition.
-if(WIN32)
-    target_compile_options(ct_options INTERFACE -Xclang -mno-constructor-aliases)
-endif()
 
 if(WIN32 AND (NOT MINGW OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
     message(FATAL_ERROR "The Windows build requires clang/llvm-mingw")
 endif()
 
-add_library(ct_ps2 OBJECT ${PS2_UNITS} ${PORT_OVERRIDES_CHECKED})
-target_link_libraries(ct_ps2 PRIVATE ct_options)
-target_compile_definitions(ct_ps2 PRIVATE CT_PS2_TEXTURE_COPY CT_PS2_UNIT)
-add_dependencies(ct_ps2 ps2_include)
-# The game reads locals it never sets and falls off the end of functions that return a value, and
-# ps2/src keeps both because the match depends on them. MWCC gave each a defined if arbitrary result;
-# these flags give the port a defined one too, with the type punning and wraparound the code assumes.
-target_compile_options(ct_ps2 PRIVATE -ftrivial-auto-var-init=zero -fno-strict-return
-    -fno-strict-aliasing -fwrapv)
-# What is left on warns about behaviour the port may still need to answer for. What is turned off
-# describes how MWCC-era source is spelled: string literals as char *, MWCC's pragmas, 32-bit pointer
-# casts and the unused names and expressions it leaves behind. ps2/src cannot change those without
-# changing what MWCC compiles.
-target_compile_options(ct_ps2 PRIVATE -Wall -Wno-writable-strings -Wno-unknown-pragmas
-    -Wno-mismatched-tags -Wno-missing-braces -Wno-char-subscripts -Wno-overloaded-virtual
-    -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast -Wno-int-to-void-pointer-cast
-    -Wno-void-pointer-to-int-cast -Wno-unused-variable -Wno-unused-but-set-variable
-    -Wno-unused-local-typedef -Wno-unused-label -Wno-unused-function -Wno-unused-value
-    -Wno-unused-const-variable -Wno-undefined-internal -Wno-self-assign -Wno-deprecated-volatile)
+add_library(ct_native OBJECT ${NATIVE_SOURCES})
+target_link_libraries(ct_native PRIVATE ct_options SDL3::SDL3 Vulkan::Vulkan nlohmann_json::nlohmann_json kz_port_headers fastgltf::fastgltf)
+target_include_directories(ct_native PRIVATE ${PORT_DIR})
+if(NOT WIN32)
+    target_link_libraries(ct_native PRIVATE Iconv::Iconv)
+endif()
+
+# Retained game arithmetic and type punning still rely on signed wrapping and relaxed aliasing.
+# Keep zero initialization until the remaining source paths have explicit initialization.
+target_compile_options(ct_native PRIVATE -ftrivial-auto-var-init=zero -fno-strict-aliasing -fwrapv)
 
 set(PORT_LIB_SOURCES ${PORT_SOURCES})
 list(FILTER PORT_LIB_SOURCES EXCLUDE REGEX "/tests/|/main\\.cpp$")
@@ -255,7 +309,7 @@ if(PORT_BRIDGE_SOURCES)
 endif()
 
 find_path(CT_STB_IMAGE_INCLUDE_DIR stb_image.h
-    PATHS ${KZ_PORT_VENDOR_DIRS} ${CMAKE_BINARY_DIR}/kz_port/vendor NO_DEFAULT_PATH REQUIRED)
+    PATHS ${KZ_PORT_VENDOR_DIRS} ${CMAKE_BINARY_DIR}/kz_port/vendor NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH REQUIRED)
 if(NOT WIN32)
     find_package(Iconv REQUIRED)
 endif()
@@ -267,11 +321,8 @@ foreach(target IN ITEMS ct_port ct_port_bridge)
     if(NOT WIN32)
         target_link_libraries(${target} PRIVATE Iconv::Iconv)
     endif()
-    add_dependencies(${target} ps2_include)
     # Datapack PNGs use the host's decoder with ordinary PNG colour formats.
     target_include_directories(${target} PRIVATE ${PORT_DIR} ${CT_STB_IMAGE_INCLUDE_DIR})
-    target_compile_options(${target} PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-label
-        -Wno-overloaded-virtual -Wno-unused-function)
 endforeach()
 if(CT_ENABLE_TRACY)
     foreach(target IN ITEMS ct_port ct_port_bridge)
@@ -285,18 +336,15 @@ endif()
 # PRIVATE options leave the test sources and GoogleTest at their normal Debug settings.
 option(CT_DEBUG_OPT "Optimise game and host code with -Og in Debug builds" OFF)
 if(CT_DEBUG_OPT)
-    foreach(target IN ITEMS ct_ps2 ct_port ct_port_bridge ct_host)
+    foreach(target IN ITEMS ct_native ct_port ct_port_bridge ct_host)
         target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-Og>)
     endforeach()
 endif()
 
-# Shared by the game and its tests. Names the PS2 build tells apart per object are renamed by
-# port/include/stubs, so no symbol is defined twice. The executable is position-independent on every
-# platform: no game object has to sit below 4 GiB, because pointer-to-32-bit casts are widened in port/src.
+# Shared by the game and its tests. The native game sources and host code are linked into
+# a position-independent executable; pointer-width conversions are handled in port code.
 if(WIN32)
-    # Guard only: COFF cannot resolve a strong definition against COMDAT copies of a header or unit.
-    # header_fixups.py removes the known ones; the flag tolerates any that remain.
-    set(CT_LINK_OPTIONS -fuse-ld=lld -Wl,--gc-sections -Wl,--error-limit=0 -Wl,--allow-multiple-definition)
+    set(CT_LINK_OPTIONS -fuse-ld=lld -Wl,--gc-sections -Wl,--error-limit=0)
 elseif(APPLE)
     set(CT_LINK_OPTIONS -Wl,-dead_strip)
 else()
@@ -304,8 +352,7 @@ else()
 endif()
 
 function(ct_link_game target)
-    target_sources(${target} PRIVATE $<TARGET_OBJECTS:ct_port> $<TARGET_OBJECTS:ct_port_bridge> $<TARGET_OBJECTS:ct_host> $<TARGET_OBJECTS:ct_ps2>)
-    add_dependencies(${target} ps2_include)
+    target_sources(${target} PRIVATE $<TARGET_OBJECTS:ct_port> $<TARGET_OBJECTS:ct_port_bridge> $<TARGET_OBJECTS:ct_host> $<TARGET_OBJECTS:ct_native>)
     target_link_libraries(${target} PRIVATE ct_options kz_port_headers SDL3::SDL3 Vulkan::Vulkan kazarov_bridge kazarov_core fastgltf::fastgltf)
     if(CT_ENABLE_TRACY)
         target_link_libraries(${target} PRIVATE Tracy::TracyClient)
@@ -315,18 +362,52 @@ function(ct_link_game target)
         target_link_libraries(${target} PRIVATE Iconv::Iconv)
     endif()
     target_include_directories(${target} PRIVATE ${PORT_DIR})
-    target_compile_options(${target} PRIVATE -Wall -Wno-mismatched-tags -Wno-unused-label
-        -Wno-overloaded-virtual -Wno-unused-function)
     target_link_options(${target} PRIVATE ${CT_LINK_OPTIONS})
     if(WIN32)
         # The Rust host UI uses Windows input, theme, OpenGL and desktop-composition APIs.
         target_link_libraries(${target} PRIVATE imm32 uxtheme opengl32 dwmapi)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        target_link_libraries(${target} PRIVATE "-framework UIKit" "-framework Metal" "-framework QuartzCore" "-framework CoreMotion" "-framework CoreGraphics" "-framework IOSurface" "-framework Foundation" "-framework GameController" "-framework CoreHaptics" "-framework UniformTypeIdentifiers")
     endif()
 endfunction()
 
 add_executable(darkchronicle ${PORT_DIR}/main.cpp)
 set_target_properties(darkchronicle PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 ct_link_game(darkchronicle)
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # iOS runs only applications: the executable goes inside darkchronicle.app with a generated Info.plist.
+    set_target_properties(darkchronicle PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/assets/ios/Info.plist.in
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.chronicletwo.darkchronicle
+        MACOSX_BUNDLE_BUNDLE_NAME "Dark Chronicle"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING 0.1
+        MACOSX_BUNDLE_BUNDLE_VERSION 1)
+    # The launcher, the on-screen gamepad and the DualSense haptics are Swift (port/src/ios), which calls the game
+    # through Swift's C++ interoperability: ios/module.modulemap makes ios/bridge.hpp the module ChronicleBridge.
+    execute_process(COMMAND xcrun --sdk iphoneos --show-sdk-path OUTPUT_VARIABLE CT_IOS_SDK
+        OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
+    execute_process(COMMAND xcrun --sdk iphoneos --find swiftc OUTPUT_VARIABLE CMAKE_Swift_COMPILER
+        OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
+    set(CMAKE_Swift_COMPILER_TARGET arm64-apple-ios${CMAKE_OSX_DEPLOYMENT_TARGET})
+    set(CMAKE_Swift_FLAGS "-sdk ${CT_IOS_SDK}")
+    set(CMAKE_Swift_LANGUAGE_VERSION 5)
+    enable_language(Swift)
+    add_library(ct_ios_swift STATIC ${PORT_DIR}/ios/Launcher.swift ${PORT_DIR}/ios/TouchOverlay.swift
+        ${PORT_DIR}/ios/Haptics.swift)
+    target_compile_options(ct_ios_swift PRIVATE -cxx-interoperability-mode=default "SHELL:-Xcc -std=c++20"
+        "SHELL:-I ${PORT_DIR}/ios")
+    target_link_libraries(darkchronicle PRIVATE ct_ios_swift)
+    # clang++ links, so the C++ flags apply; the Swift runtime is in iOS, its back-deployment and C++ interop
+    # libraries in the toolchain.
+    set_target_properties(darkchronicle PROPERTIES LINKER_LANGUAGE CXX)
+    get_filename_component(CT_SWIFT_LIBRARIES "${CMAKE_Swift_COMPILER}/../../lib/swift/iphoneos" ABSOLUTE)
+    target_link_directories(darkchronicle PRIVATE ${CT_IOS_SDK}/usr/lib/swift ${CT_SWIFT_LIBRARIES})
+    # iOS 16's libc++ lacks std::to_chars for floating point, which std::format calls; the executable defines it.
+    add_library(ct_ios_to_chars OBJECT ${PORT_DIR}/ios/to_chars.cpp)
+    set_target_properties(ct_ios_to_chars PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
+    target_link_libraries(darkchronicle PRIVATE ct_ios_to_chars)
+endif()
 if(WIN32)
     target_link_options(darkchronicle PRIVATE -municode)
     enable_language(RC)
@@ -334,7 +415,7 @@ if(WIN32)
 endif()
 
 include(GNUInstallDirs)
-install(TARGETS darkchronicle RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS darkchronicle RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} BUNDLE DESTINATION .)
 if(CT_ENABLE_TRACY)
     install(FILES ${CMAKE_BINARY_DIR}/Tracy-LICENSE.txt
         DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/chronicletwo)
@@ -359,7 +440,6 @@ add_custom_target(ct_glyphs DEPENDS ${CT_GLYPH_COPIES})
 add_dependencies(darkchronicle ct_glyphs)
 install(DIRECTORY assets/glyphs/ DESTINATION ${CMAKE_INSTALL_BINDIR}/glyphs)
 
-option(CT_BUILD_TESTS "Build darkchronicle_tests" ON)
 if(CT_BUILD_TESTS)
     add_subdirectory(src/tests)
 endif()
@@ -369,11 +449,43 @@ foreach(f IN LISTS ct_stream_cmake)
     include(${f})
 endforeach()
 
+# Third-party projects build without warnings, and their headers are system headers to the port's sources.
+function(ct_quiet_dependency_directory directory)
+    get_property(targets DIRECTORY ${directory} PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(target IN LISTS targets)
+        get_target_property(type ${target} TYPE)
+        if(type STREQUAL "UTILITY")
+            continue()
+        endif()
+        set_property(TARGET ${target} PROPERTY SYSTEM TRUE)
+        if(NOT type STREQUAL "INTERFACE_LIBRARY")
+            target_compile_options(${target} PRIVATE -w)
+        endif()
+    endforeach()
+    get_property(subdirectories DIRECTORY ${directory} PROPERTY SUBDIRECTORIES)
+    foreach(subdirectory IN LISTS subdirectories)
+        ct_quiet_dependency_directory(${subdirectory})
+    endforeach()
+endfunction()
+foreach(dependency IN ITEMS cpptrace fastgltf googletest libdwarf luau nlohmann_json quill simdjson tracy)
+    FetchContent_GetProperties(${dependency})
+    # Installed packages have no FetchContent source directory.
+    if(${dependency}_POPULATED AND IS_DIRECTORY "${${dependency}_SOURCE_DIR}")
+        ct_quiet_dependency_directory("${${dependency}_SOURCE_DIR}")
+    endif()
+endforeach()
+# SDL's package marks its headers as non-system.
+if(TARGET SDL3::Headers)
+    set_property(TARGET SDL3::Headers PROPERTY SYSTEM TRUE)
+endif()
+
 if(WIN32)
     include(${KZ_ROOT}/cmake/KazarovWindowsRuntime.cmake)
     kz_windows_runtime(darkchronicle INSTALL EXECUTABLES dc2data)
     kz_windows_runtime(dc2data)
-    kz_windows_runtime(dc2data_bridge_test)
+    if(TARGET dc2data_bridge_test)
+        kz_windows_runtime(dc2data_bridge_test)
+    endif()
     if(TARGET darkchronicle_tests)
         kz_windows_runtime(darkchronicle_tests)
     endif()

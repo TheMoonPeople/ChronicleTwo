@@ -19,35 +19,35 @@ function script.on_start()
 	local pos_z: f32 = 0
 	local var6: s32 = 0
 	local user_id: s32 = 0
-	user_id = effect.GetUserId() or user_id
-	effect.ChrSetMotion("ループ", -1, 6)
-	effect.ChrSetShow(1, 1)
-	effect.ChrSetScale(2.0, 2.0, 2.0)
+	user_id = effect.get_owner_character() or user_id
+	effect.set_effect_character_motion("ループ", -1, 6)
+	effect.set_effect_character_visible(1, 1)
+	effect.set_effect_character_scale(2.0, 2.0, 2.0)
 	var6 = 0
 	while var6 < 30 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "marioa_null")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "marioa_null")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
-		effect.ChrSetPos(pos_x, pos_y - 15.0, pos_z)
+		effect.set_effect_character_position(pos_x, pos_y - 15.0, pos_z)
 		vm.wait()
 		var6 = var6 + 1
 	end
-	effect.ChrSetShow(0, 1, -0.2)
+	effect.set_effect_character_visible(0, 1, -0.2)
 	while var6 < 30 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "marioa_null")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "marioa_null")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
-		effect.ChrSetPos(pos_x, pos_y - 15.0, pos_z)
+		effect.set_effect_character_position(pos_x, pos_y - 15.0, pos_z)
 		vm.wait()
 		var6 = vm.i32(var6 + 1)
 	end
-	effect.ChrSetShow(0, 0)
+	effect.set_effect_character_visible(0, 0)
 end
 
 --- Ends an effect.

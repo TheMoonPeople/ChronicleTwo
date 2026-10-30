@@ -1,8 +1,9 @@
 #include "prog0_cpu.hpp"
-#include "vu1_oracle/vu1_pack.hpp"
 
 #include <cmath>
 #include <cstddef>
+
+#include "vu1_oracle/vu1_pack.hpp"
 
 namespace dc::vu1 {
 
@@ -20,17 +21,31 @@ constexpr uint32_t kRejectMask[6] = {0xFF7DF7, 0xFFBEFB, 0xFFDF7D, 0xFFEFBE, 0xF
 
 // Rows: [dw0, dw1, dw2] as 0 or n, indexed by variant.
 constexpr uint32_t kNonSkinnedCounts[8][3] = {
-    {1, 1, 1}, {1, 1, 1}, {1, 1, 1}, {1, 1, 0}, {1, 0, 1}, {1, 0, 1}, {1, 0, 0}, {1, 0, 0},
+    {1, 1, 1},
+    {1, 1, 1},
+    {1, 1, 1},
+    {1, 1, 0},
+    {1, 0, 1},
+    {1, 0, 1},
+    {1, 0, 0},
+    {1, 0, 0},
 };
 constexpr uint32_t kSkinnedCounts[8][3] = {
-    {1, 1, 0}, {1, 1, 1}, {1, 0, 0}, {1, 1, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 0}, {1, 0, 0},
+    {1, 1, 0},
+    {1, 1, 1},
+    {1, 0, 0},
+    {1, 1, 0},
+    {1, 0, 0},
+    {1, 0, 1},
+    {0, 0, 0},
+    {1, 0, 0},
 };
 
 // Plane pairs: Z, X, Y. Within a pair, even index is the minus plane.
 constexpr int kAxisOfPair[3] = {2, 0, 1};
 
 struct PlaneSpec {
-    int axis;
+    int   axis;
     float s;
 };
 
@@ -38,17 +53,17 @@ PlaneSpec PlaneOf(int plane) {
     return {.axis = kAxisOfPair[plane / 2], .s = (plane % 2) == 0 ? -1.0f : 1.0f};
 }
 
-float Component(const Vec4& v, int axis) {
+float Component(const Vec4 &v, int axis) {
     return axis == 0 ? v.x : (axis == 1 ? v.y : v.z);
 }
 
-bool Outside(const Prog0ClipVertex& v, PlaneSpec p) {
+bool Outside(const Prog0ClipVertex &v, PlaneSpec p) {
     const float c = Component(v.pos, p.axis);
     const float aw = std::fabs(v.pos.w);
     return p.s < 0.0f ? c < -aw : c > aw;
 }
 
-Prog0ClipVertex Intersect(const Prog0ClipVertex& cur, const Prog0ClipVertex& nxt, PlaneSpec p) {
+Prog0ClipVertex Intersect(const Prog0ClipVertex &cur, const Prog0ClipVertex &nxt, PlaneSpec p) {
     const float dc = Component(cur.pos, p.axis) - p.s * cur.pos.w;
     const float dn = Component(nxt.pos, p.axis) - p.s * nxt.pos.w;
     const float t = std::fabs(dc / (dn - dc));
@@ -61,7 +76,7 @@ Prog0ClipVertex Intersect(const Prog0ClipVertex& cur, const Prog0ClipVertex& nxt
     return r;
 }
 
-}  // namespace
+} // namespace
 
 Prog0Pipeline SelectProg0Pipeline(uint32_t flags, uint32_t type) {
     const bool strip = (type & kProg0PrimMask) == kProg0PrimStrip;
@@ -115,12 +130,12 @@ int Prog0HeaderVariant(uint32_t type) {
 }
 
 Prog0Header PackProg0Header(uint32_t type, uint32_t n, bool skinned) {
-    const int variant = Prog0HeaderVariant(type);
-    const auto& row = skinned ? kSkinnedCounts[variant] : kNonSkinnedCounts[variant];
+    const int   variant = Prog0HeaderVariant(type);
+    const auto &row = skinned ? kSkinnedCounts[variant] : kNonSkinnedCounts[variant];
     return {.v_count = row[0] * n, .n_count = row[1] * n, .c_count = row[2] * n, .type = type};
 }
 
-Prog0Offsets Prog0InputOffsets(int tops, const Prog0Header& header) {
+Prog0Offsets Prog0InputOffsets(int tops, const Prog0Header &header) {
     const int v = tops + 2;
     const int normal = v + static_cast<int>(header.v_count);
     const int uv = normal + static_cast<int>(header.n_count);
@@ -136,7 +151,7 @@ int Prog0BatchLimit(int vu1_offset, bool colour, bool skinned) {
 
 uint32_t Prog0ClipCode(Vec4 clip) {
     const float aw = std::fabs(clip.w);
-    uint32_t code = 0;
+    uint32_t    code = 0;
     if (clip.x > aw) {
         code |= 1u << 0;
     }
@@ -174,11 +189,11 @@ Prog0ClipClass Prog0ClassifyTriangle(uint32_t cf) {
     return Prog0ClipClass::Partial;
 }
 
-Prog0ClipPolygon Prog0ClipPlane(const Prog0ClipPolygon& in, int plane) {
+Prog0ClipPolygon Prog0ClipPlane(const Prog0ClipPolygon &in, int plane) {
     Prog0ClipPolygon out{};
-    const PlaneSpec p = PlaneOf(plane);
+    const PlaneSpec  p = PlaneOf(plane);
 
-    auto emit = [&out](const Prog0ClipVertex& v) {
+    auto emit = [&out](const Prog0ClipVertex &v) {
         if (out.count == kProg0ClipCapacity) {
             out.overflow = true;
             return;
@@ -188,10 +203,10 @@ Prog0ClipPolygon Prog0ClipPlane(const Prog0ClipPolygon& in, int plane) {
     };
 
     for (int i = 0; i < in.count; ++i) {
-        const Prog0ClipVertex& cur = in.v[i];
-        const Prog0ClipVertex& nxt = in.v[(i + 1) % in.count];
-        const bool cur_in = !Outside(cur, p);
-        const bool nxt_in = !Outside(nxt, p);
+        const Prog0ClipVertex &cur = in.v[i];
+        const Prog0ClipVertex &nxt = in.v[(i + 1) % in.count];
+        const bool             cur_in = !Outside(cur, p);
+        const bool             nxt_in = !Outside(nxt, p);
         if (cur_in) {
             emit(cur);
         }
@@ -203,7 +218,7 @@ Prog0ClipPolygon Prog0ClipPlane(const Prog0ClipPolygon& in, int plane) {
     return out;
 }
 
-Prog0ClipPolygon Prog0ClipTriangle(const std::array<Prog0ClipVertex, 3>& tri) {
+Prog0ClipPolygon Prog0ClipTriangle(const std::array<Prog0ClipVertex, 3> &tri) {
     Prog0ClipPolygon poly{};
     for (int i = 0; i < 3; ++i) {
         poly.v[i] = tri[i];
@@ -215,8 +230,8 @@ Prog0ClipPolygon Prog0ClipTriangle(const std::array<Prog0ClipVertex, 3>& tri) {
     return poly;
 }
 
-Prog0ScreenVertex Prog0ToScreen(const Prog0ClipVertex& v, const Mat4& clip_screen, const Fog& fog) {
-    const Vec4 s = Mul(clip_screen, v.pos);
+Prog0ScreenVertex Prog0ToScreen(const Prog0ClipVertex &v, const Mat4 &clip_screen, const Fog &fog) {
+    const Vec4  s = Mul(clip_screen, v.pos);
     const float q = 1.0f / s.w;
 
     Prog0ScreenVertex out{};
@@ -254,10 +269,10 @@ uint32_t Prog0OrientBit(Vec4 v0, Vec4 v1, Vec4 v2) {
     return Cross3(e2, e1).z < 0.0f ? kOrient : 0u;
 }
 
-Prog0Facing Prog0ListFacing(const std::array<Vec4, 3>& v, const std::array<uint32_t, 3>& guard, uint32_t mirror) {
+Prog0Facing Prog0ListFacing(const std::array<Vec4, 3> &v, const std::array<uint32_t, 3> &guard, uint32_t mirror) {
     const uint32_t in_tri = guard[0] & guard[1] & guard[2];
     const uint32_t sample = in_tri | Prog0OrientBit(v[0], v[1], v[2]);
-    const bool keep = sample == (kGuardMask | (mirror & kOrient));
+    const bool     keep = sample == (kGuardMask | (mirror & kOrient));
     return {.keep = keep, .adc_vertex = keep ? -1 : 2};
 }
 
@@ -265,7 +280,7 @@ bool Prog0ClipFacingKeep(Vec4 p0, Vec4 p1, Vec4 p2, uint32_t mirror) {
     return Prog0OrientBit(p0, p1, p2) == (mirror & kOrient);
 }
 
-std::vector<bool> Prog0WindowAdc(std::span<const uint32_t> guard, Prog0Window& carry) {
+std::vector<bool> Prog0WindowAdc(std::span<const uint32_t> guard, Prog0Window &carry) {
     std::vector<bool> adc;
     adc.reserve(guard.size());
     for (const uint32_t g : guard) {
@@ -278,17 +293,17 @@ std::vector<bool> Prog0WindowAdc(std::span<const uint32_t> guard, Prog0Window& c
 }
 
 std::vector<bool> Prog0StripAdc(std::span<const Vec4> screen, std::span<const uint32_t> guard, uint32_t mirror,
-                                Prog0StripWindow& carry) {
+                                Prog0StripWindow &carry) {
     std::vector<bool> adc;
     adc.reserve(guard.size());
     const uint32_t want = mirror & kOrient;
     for (std::size_t k = 0; k < guard.size(); ++k) {
-        const bool in = guard[k] == kGuardMask;
-        const Vec4 cur = screen[k];
-        const float parity = (k % 2 == 0) ? 1.0f : -1.0f;
-        const float cz = Cross3(carry.pos_prev1 - cur, carry.pos_prev2 - cur).z * parity;
+        const bool     in = guard[k] == kGuardMask;
+        const Vec4     cur = screen[k];
+        const float    parity = (k % 2 == 0) ? 1.0f : -1.0f;
+        const float    cz = Cross3(carry.pos_prev1 - cur, carry.pos_prev2 - cur).z * parity;
         const uint32_t orient = cz < 0.0f ? kOrient : 0u;
-        const bool window = carry.window.in_prev2 && carry.window.in_prev1 && in;
+        const bool     window = carry.window.in_prev2 && carry.window.in_prev1 && in;
         adc.push_back(!window || orient != want);
 
         carry.window.in_prev2 = carry.window.in_prev1;
@@ -304,11 +319,11 @@ std::vector<int> Prog0StripParity(int vertex_num, int batch_limit) {
         return {};
     }
     std::vector<int> parity(static_cast<std::size_t>(vertex_num - 2), 0);
-    int start = 0;
-    int remaining = vertex_num;
+    int              start = 0;
+    int              remaining = vertex_num;
     while (remaining > 0) {
         const bool continues = batch_limit < remaining;
-        const int count = continues ? batch_limit : remaining;
+        const int  count = continues ? batch_limit : remaining;
         for (int k = 2; k < count; ++k) {
             parity[static_cast<std::size_t>(start + k - 2)] = (k % 2 == 0) ? 1 : -1;
         }
@@ -344,4 +359,4 @@ float GsZToDepth(uint32_t z24, float z_range) {
     return d > 1.0f ? 1.0f : d;
 }
 
-}  // namespace dc::vu1
+} // namespace dc::vu1

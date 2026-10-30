@@ -11,11 +11,11 @@
 #include "gfx_fixture.hpp"
 #include "menudraw.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "nd_meswin.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 
@@ -67,7 +67,7 @@ TEST(MgDrawPrimRender, HelpWindowTranslucentTilesHaveContinuousCoverage) {
     prim.draw_manager = &manager;
     manager.render_info = &info;
     prim.Initialize(&memory, &packet);
-    prim.write = nullptr;
+    prim.write_buffer = {};
     prim.AlphaBlendEnable(1);
     prim.TextureMapEnable(1);
     prim.Bilinear(0);
@@ -121,7 +121,7 @@ TEST(MgDrawPrimRender, TileSeamHasNoForeignTexel) {
     std::vector<uint8_t> texels(static_cast<size_t>(kTextureWidth) * kTextureHeight * 4);
     for (uint32_t y = 0; y < kTextureHeight; ++y) {
         for (uint32_t x = 0; x < kTextureWidth; ++x) {
-            uint8_t *p = &texels[(static_cast<size_t>(y) * kTextureWidth + x) * 4];
+            uint8_t   *p = &texels[(static_cast<size_t>(y) * kTextureWidth + x) * 4];
             const bool left = x < kHalfWidth;
             p[0] = left ? 0xFF : 0x00;
             p[1] = left ? 0x00 : 0xFF;
@@ -131,16 +131,16 @@ TEST(MgDrawPrimRender, TileSeamHasNoForeignTexel) {
     }
     ASSERT_TRUE(gfx::UpdateTextureNow(texture, 0, 0, 0, kTextureWidth, kTextureHeight, texels.data()));
 
-    mgCMemory        memory;
-    sceVif1Packet    vif_packet{};
-    mgRENDER_INFO    render_info{};
-    mgCDrawManager   manager;
-    mgCDrawPrim      prim;
-    mgCTexture       source;
+    mgCMemory      memory;
+    sceVif1Packet  vif_packet{};
+    mgRENDER_INFO  render_info{};
+    mgCDrawManager manager;
+    mgCDrawPrim    prim;
+    mgCTexture     source;
     prim.draw_manager = &manager;
     manager.render_info = &render_info;
     prim.Initialize(&memory, &vif_packet);
-    prim.write = nullptr;
+    prim.write_buffer = {};
 
     PrimSinkReset sink_reset;
     int           sprites = 0;
@@ -183,24 +183,28 @@ TEST(MgDrawPrimRender, TileSeamHasNoForeignTexel) {
 
 TEST(MgDrawPrimRender, LinearAtlasCellsKeepTopOutlinesWithoutSamplingTheNextCell) {
     dc::test::GfxFixture gfx(160, 120, 1.0f, true, 64, 48);
-    const auto mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
+    const auto           mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
     ASSERT_FLOAT_EQ(mapping.scale_x, 2.5f);
     ASSERT_FLOAT_EQ(mapping.scale_y, 2.5f);
 
     constexpr uint32_t            width = 16;
     constexpr uint32_t            height = 64;
     const std::array<uint32_t, 4> palette = {
-        dc::test::Rgba(0, 0, 0, 0), dc::test::Rgba(0, 0, 0),
-        dc::test::Rgba(255, 0, 0), dc::test::Rgba(0, 255, 0),
+        dc::test::Rgba(0, 0, 0, 0),
+        dc::test::Rgba(0, 0, 0),
+        dc::test::Rgba(255, 0, 0),
+        dc::test::Rgba(0, 255, 0),
     };
-    std::vector<uint8_t> indices(width * height);
+    std::vector<uint8_t>  indices(width * height);
     std::vector<uint32_t> rgba(width * height);
     for (int top : {2, 22, 42}) {
         for (int y = top + 1; y <= top + 9; ++y) {
             for (int x = 2; x < 10; ++x) {
                 // One transparent row before the outline, three after the artwork,
                 // then a bright sentinel representing the next cell's outline.
-                indices[y * width + x] = y == top + 1 ? 1 : y <= top + 5 ? 2 : y == top + 9 ? 3 : 0;
+                indices[y * width + x] = y == top + 1 ? 1 : y <= top + 5 ? 2
+                                                        : y == top + 9   ? 3
+                                                                         : 0;
             }
         }
     }
@@ -217,15 +221,15 @@ TEST(MgDrawPrimRender, LinearAtlasCellsKeepTopOutlinesWithoutSamplingTheNextCell
     ASSERT_TRUE(gfx::UpdateTextureNow(index, 0, 0, 0, width, height, indices.data()));
     ASSERT_TRUE(gfx::UpdatePalette(clut, palette.data(), 0, palette.size()));
 
-    mgCMemory memory;
-    sceVif1Packet packet{};
-    mgRENDER_INFO info{};
+    mgCMemory      memory;
+    sceVif1Packet  packet{};
+    mgRENDER_INFO  info{};
     mgCDrawManager manager;
-    mgCDrawPrim prim;
+    mgCDrawPrim    prim;
     prim.draw_manager = &manager;
     manager.render_info = &info;
     prim.Initialize(&memory, &packet);
-    prim.write = nullptr;
+    prim.write_buffer = {};
     prim.Coord(1);
     prim.TextureMapEnable(1);
     prim.Bilinear(1);
@@ -257,7 +261,7 @@ TEST(MgDrawPrimRender, LinearAtlasCellsKeepTopOutlinesWithoutSamplingTheNextCell
             });
             SCOPED_TRACE(testing::Message() << "atlas row " << top << ", indexed " << indexed);
             EXPECT_TRUE(gfx.PixelNear(17, 13, 153, 153, 153, 3)); // GS integer-location top outline
-            EXPECT_TRUE(gfx.PixelNear(17, 20, 255, 0, 0, 3)); // artwork
+            EXPECT_TRUE(gfx.PixelNear(17, 20, 255, 0, 0, 3));     // artwork
             EXPECT_TRUE(gfx.PixelNear(17, 29, 255, 255, 255, 3)); // transparent bottom gutter
             if (!indexed) {
                 reference = gfx.pixels;

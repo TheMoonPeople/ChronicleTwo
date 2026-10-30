@@ -1,4 +1,4 @@
-"""Converts the PAL release's script timing to NTSC, mirroring port/src/script_timing.cpp.
+"""Converts the PAL release's script timing to NTSC before the scripts are translated.
 
 The PAL scripts carry the NTSC frame counts and convert them at run time: the event library scales field counts
 by 50/60, monster scripts call a 30 -> 25 frame converter, a few scripts divide by 30 and multiply by 25 in

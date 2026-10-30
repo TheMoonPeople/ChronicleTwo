@@ -4,19 +4,22 @@
 #include <nlohmann/json.hpp>
 
 #include <chrono>
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <vector>
 
 #include "actionchara.hpp"
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
 #include "menudraw.hpp"
 #include "mg_frame.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "native_document_fixture.hpp"
+#include "platform/arena.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/model_assets.hpp"
 #include "texture_source.hpp"
@@ -194,4 +197,80 @@ TEST_F(NativeRepair, MissingNativeResourcesLeaveNoReadyTextureOrPartialModel) {
     manager.GeneratePoly(position, 21);
     EXPECT_EQ(manager.model, nullptr);
     EXPECT_EQ(manager.model_stack.stack_used, 0);
+}
+
+TEST(NativeRepairMemory, TailPartitionsAreDisjointAndResetRevokesTheirEffects) {
+    std::vector<u_long128> storage(0x5000);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CRepairManager manager{};
+    manager.Initialize();
+    manager.SetStack(&memory, 0);
+    ASSERT_NE(manager.model_stack.stGetTop(), nullptr);
+    const auto model_end = reinterpret_cast<std::uintptr_t>(manager.model_stack.stack + manager.model_stack.stack_size);
+    for (std::size_t index = 0; index < std::size(manager.effect_stack); ++index) {
+        const auto &slot = manager.effect_stack[index];
+        ASSERT_NE(slot.stack, nullptr);
+        EXPECT_GE(reinterpret_cast<std::uintptr_t>(slot.stack), model_end);
+        EXPECT_LE(slot.stack + slot.stack_size, memory.stack + memory.stack_size);
+        if (index != 0) {
+            const auto &previous = manager.effect_stack[index - 1];
+            EXPECT_LE(previous.stack + previous.stack_size, slot.stack);
+        }
+    }
+    EXPECT_EQ(memory.stack_used, 0);
+    manager.Generate(2, 3);
+    ASSERT_NE(manager.effect[0], nullptr);
+    memory.stReset();
+    manager.Step();
+    EXPECT_EQ(manager.IsRun(), 0);
+    EXPECT_EQ(manager.effect[0], nullptr);
+}
+
+TEST(NativeRepairMemory, InsufficientStorageAndInvalidParticleCountsDoNotWrite) {
+    std::vector<u_long128> storage(1);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CRepairManager manager{};
+    manager.Initialize();
+    manager.SetStack(&memory, 0);
+    for (const auto &slot : manager.effect_stack) {
+        EXPECT_EQ(slot.stack, nullptr);
+    }
+    EXPECT_EQ(manager.model_stack.stack, nullptr);
+    EXPECT_EQ(memory.stack_used, 0);
+    CRepairEffect effect{};
+    effect.Initialize();
+    effect.Generate(&memory, -1);
+    EXPECT_EQ(effect.particle_num, 0);
+    EXPECT_FALSE(effect.active);
+    effect.Generate(&memory, std::numeric_limits<int>::max());
+    EXPECT_EQ(effect.particle_num, 0);
+    EXPECT_FALSE(effect.active);
+    EXPECT_EQ(memory.stack_used, 0);
+}
+
+TEST_F(NativeRepair, ShortLockedAndRetiredModelWorkspacesDoNotPublishOrOverwriteACharacter) {
+    constexpr auto blocks = dc2::memory::ArrayQuadwords<CActionChara>(1).value_or(0);
+    static_assert(blocks > 0);
+    mgCMemory owner;
+    auto     *storage = reinterpret_cast<u_long128 *>(ArenaBlock(&owner, (blocks + 1) * sizeof(u_long128)));
+    owner.stSetBuffer(storage, blocks + 1);
+    ASSERT_TRUE(manager.model_stack.stShareBuffer(owner, std::span(storage, blocks)));
+    ASSERT_EQ(manager.model_stack.stack_size, blocks);
+    const auto           *bytes = reinterpret_cast<const u8 *>(storage);
+    const std::vector<u8> original(bytes, bytes + (blocks + 1) * sizeof(u_long128));
+    float                 position[4] = {3, 4, 5, 1};
+    for (bool locked : {false, true}) {
+        manager.model_stack.stSetLocked(locked);
+        manager.GeneratePoly(position, 21);
+        EXPECT_EQ(manager.model, nullptr);
+        EXPECT_EQ(manager.model_stack.stGetUsed(), 0);
+        EXPECT_EQ(std::memcmp(storage, original.data(), original.size()), 0);
+    }
+    owner.stReset();
+    manager.GeneratePoly(position, 21);
+    EXPECT_EQ(manager.model, nullptr);
+    EXPECT_TRUE(dc2::memory::RemainingBytes(manager.model_stack).empty());
+    EXPECT_EQ(std::memcmp(storage, original.data(), original.size()), 0);
 }

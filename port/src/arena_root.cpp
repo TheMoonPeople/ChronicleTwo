@@ -7,6 +7,7 @@
 #include <print>
 #include <vector>
 
+#include "character_motion.hpp"
 #include "platform/arena.hpp"
 #include "platform/memory.hpp"
 
@@ -34,6 +35,8 @@ u_long128 *ArenaRootFromBuffer(const u_long128 *buffer, int quadwords, const cha
     // After the first import the game owns the mapped contents. Rebinding a cursor to the
     // same root must not replace live records with the original static buffer's bytes.
     if (std::ranges::find(imported, base) == imported.end()) {
+        // The root may already be mapped for the same key, so the copy can land on registered motion storage.
+        character_motion::ForgetStorage(base, base + quadwords);
         std::memcpy(base, buffer, static_cast<std::size_t>(quadwords) * sizeof(u_long128));
         imported.push_back(base);
     }

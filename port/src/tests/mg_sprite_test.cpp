@@ -2,17 +2,20 @@
 
 #include <array>
 #include <cstdint>
+#include <cstring>
+#include <memory>
 #include <span>
 #include <vector>
 
+#include "effect.hpp"
 #include "gfx/gfx.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_sprite.hpp"
-#include "mg_sprite_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "prespr.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
+#include "render/sprite_batch.hpp"
 
 namespace {
 
@@ -100,6 +103,47 @@ std::array<uint8_t, 4> Rgba(const gfx::Vertex2D &v) {
 }
 
 } // namespace
+
+TEST(MgSprite, ReusedBillboardStorageStartsWithAnEmptyUprightPacket) {
+    alignas(mgC3DSprite) std::array<std::byte, sizeof(mgC3DSprite)> storage{};
+    std::memset(storage.data(), 0xA5, storage.size());
+    auto *sprite = std::construct_at(reinterpret_cast<mgC3DSprite *>(storage.data()));
+    EXPECT_EQ(sprite->packet, nullptr);
+    EXPECT_EQ(sprite->memory, nullptr);
+    EXPECT_EQ(sprite->packet_start, nullptr);
+    EXPECT_EQ(sprite->packet_cur, nullptr);
+    EXPECT_EQ(sprite->batch_tag, nullptr);
+    EXPECT_EQ(sprite->batch_giftag, nullptr);
+    EXPECT_EQ(sprite->batch_header, nullptr);
+    EXPECT_EQ(sprite->sprite_num, 0);
+    EXPECT_EQ(sprite->mode, MG_3DSPRITE_MODE_UPRIGHT);
+    EXPECT_EQ(sprite->prog_started, 0);
+    sprite->mode = MG_3DSPRITE_MODE_ROTATE;
+    sprite->sprite_num = 17;
+    sprite->Initialize();
+    EXPECT_EQ(sprite->mode, MG_3DSPRITE_MODE_UPRIGHT);
+    EXPECT_EQ(sprite->sprite_num, 0);
+    std::destroy_at(sprite);
+}
+
+TEST(MgSprite, ReusedRectangleAndCurveStorageStartsWithDefinedValues) {
+    alignas(mgRect<int>) std::array<std::byte, sizeof(mgRect<int>)> rectangle_storage{};
+    std::memset(rectangle_storage.data(), 0xA5, rectangle_storage.size());
+    auto *rectangle = std::construct_at(reinterpret_cast<mgRect<int> *>(rectangle_storage.data()));
+    EXPECT_EQ(rectangle->left, 0);
+    EXPECT_EQ(rectangle->top, 0);
+    EXPECT_EQ(rectangle->right, 0);
+    EXPECT_EQ(rectangle->bottom, 0);
+    std::destroy_at(rectangle);
+
+    alignas(EffectTypeTriple) std::array<std::byte, sizeof(EffectTypeTriple)> curve_storage{};
+    std::memset(curve_storage.data(), 0x5A, curve_storage.size());
+    auto *curves = std::construct_at(reinterpret_cast<EffectTypeTriple *>(curve_storage.data()));
+    EXPECT_EQ(curves->x, EFFECT_CHANGE_NONE);
+    EXPECT_EQ(curves->y, EFFECT_CHANGE_NONE);
+    EXPECT_EQ(curves->z, EFFECT_CHANGE_NONE);
+    std::destroy_at(curves);
+}
 
 TEST(MgSprite, UntexturedSpriteSubmitsOneQuad) {
     const int         offset = 0x800;

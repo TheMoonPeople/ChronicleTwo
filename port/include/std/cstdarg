@@ -1,0 +1,6 @@
+#pragma once
+
+/* Declarations only. MWCC's variable-argument cursor is a byte pointer into
+ * the caller's argument area. */
+
+typedef char *va_list;

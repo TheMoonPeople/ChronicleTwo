@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import struct
 import sys
 import unittest
@@ -17,8 +16,6 @@ from stb2luau.timing import Counts, Recipe, TimingError  # noqa: E402
 from stb.corpus import scripts  # noqa: E402
 from survey import resolve_data  # noqa: E402
 
-REPO = HERE.parents[1]
-INVENTORY_INC = REPO / "port" / "src" / "script_timing_inventory.inc"
 LOCAL = AddrMode.LOCAL
 LABEL = Op.LABEL
 ZERO = (0,) * 8
@@ -84,17 +81,6 @@ class CountsTest(unittest.TestCase):
 
 
 class InventoryTest(unittest.TestCase):
-    def parse_inc(self):
-        text = INVENTORY_INC.read_text(encoding="utf-8")
-        rows = re.findall(r'\{"([^"]+)", \{([^}]*)\}, (\d+), (\d+)\}', text)
-        return {path: (tuple(int(v) for v in values.split(",")), int(a), int(w)) for path, values, a, w in rows}
-
-    def test_json_equals_the_port_inventory(self):
-        expected = self.parse_inc()
-        self.assertEqual(len(expected), 906)
-        actual = {path: (c.recipes, c.anchors, c.windows) for path, c in timing.inventory().items()}
-        self.assertEqual(actual, expected)
-
     def test_totals(self):
         counts = list(timing.inventory().values())
         self.assertEqual(len(counts), 906)

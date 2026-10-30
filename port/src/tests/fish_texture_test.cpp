@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <gtest/gtest-spi.h>
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
@@ -8,20 +9,27 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "character.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "fishing.hpp"
+#include "mainloop.hpp"
 #include "menuaqua.hpp"
 #include "mg_frame.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mg_visual.hpp"
 #include "mglib.hpp"
+#include "nd_meswin.hpp"
+#include "platform/arena.hpp"
 #include "platform/datapacks.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/model_assets.hpp"
+#include "savedata.hpp"
+#include "scoped_global_object.hpp"
 #include "userdata.hpp"
 
 namespace {
@@ -36,9 +44,9 @@ class NativeFishTexture : public testing::Test {
 protected:
     std::filesystem::path  root = std::filesystem::temp_directory_path() / ("native_fish_texture_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::path  previous = datapacks::Root();
-    std::array<char, 1024> previous_directory{};
+    std::string            previous_directory;
     std::vector<u_long128> storage = std::vector<u_long128>(16384);
-    alignas(16) std::array<u_long128, 128> scratch {};
+    alignas(16) std::array<u_long128, 128> scratch{};
     mgCMemory      memory;
     CCharacter2    character;
     BREEDFISH_USED fish{};
@@ -57,7 +65,7 @@ protected:
     }
 
     void SetUp() override {
-        GetCurrentDir(previous_directory.data());
+        previous_directory = GetCurrentDir();
         SetCurrentDir(nullptr);
         std::filesystem::create_directories(root / "data/models");
         const std::array<float, 9> positions{0, 0, 0, 1, 0, 0, 0, 1, 0};
@@ -172,9 +180,7 @@ TEST_F(NativeFishTexture, StandaloneJsonReplacesNullImagesAndRebindsExistingGeom
     EXPECT_EQ(visual->material[0].texture, replacement);
     EXPECT_EQ(std::memcmp(scratch.data(), before.data(), sizeof(scratch)), 0);
     EXPECT_EQ(std::memcmp(&fish, &fish_before, sizeof(fish)), 0);
-    char current[1024]{};
-    GetCurrentDir(current);
-    EXPECT_STREQ(current, directory);
+    EXPECT_EQ(GetCurrentDir(), directory);
 }
 
 TEST_F(NativeFishTexture, RepeatedReplacementsRetainSlotOwnershipForExplicitDeletion) {
@@ -200,4 +206,166 @@ TEST_F(NativeFishTexture, ElectricOrUnmappedFishPreserveTheirNativeTexture) {
     FishIMGReplace(scratch.data(), &character, -1, &fish);
     EXPECT_EQ(Visual()->material[0].texture, texture);
     EXPECT_EQ(texture->width, 2);
+}
+
+TEST(AquariumMemory, BubbleCountsRejectNegativeAndOversizedAllocationsBeforeWriting) {
+    std::array<u_long128, 8> storage{};
+    std::memset(storage.data(), 0xA5, sizeof(storage));
+    const auto original = storage;
+    mgCMemory  memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CBubble emitter{};
+    float   origin[4]{1.0f, 2.0f, 3.0f, 1.0f};
+    for (const int count : {-1, std::numeric_limits<int>::max()}) {
+        emitter.Initialize(&memory, origin, count, 10.0f);
+        EXPECT_EQ(emitter.bubble, nullptr);
+        EXPECT_EQ(emitter.bubble_num, 0u);
+        EXPECT_FALSE(emitter.active);
+        EXPECT_EQ(memory.stack_used, 0);
+        EXPECT_EQ(storage, original);
+    }
+}
+
+TEST(AquariumMemory, BubbleStorageUsesHostSizeAndRejectsInvalidParticleIndices) {
+    std::array<u_long128, 16> storage{};
+    std::memset(storage.data(), 0xA5, sizeof(storage));
+    mgCMemory memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CBubble emitter{};
+    float   origin[4]{1.0f, 2.0f, 3.0f, 1.0f};
+    emitter.Initialize(&memory, origin, 2, 10.0f);
+    ASSERT_NE(emitter.bubble, nullptr);
+    EXPECT_EQ(memory.stack_used, *dc2::memory::ArrayQuadwords<AQUA_BUBBLE>(2));
+    EXPECT_EQ(emitter.origin[3], 1.0f);
+    EXPECT_EQ(emitter.bubble[0].pos[3], 1.0f);
+    EXPECT_EQ(emitter.bubble[1].pos[3], 1.0f);
+    const auto before = storage;
+    emitter.Generate(-1);
+    emitter.Generate(2);
+    EXPECT_EQ(storage, before);
+    EXPECT_EQ(storage.back(), static_cast<u_long128>(0xA5A5A5A5A5A5A5A5ULL) << 64 | 0xA5A5A5A5A5A5A5A5ULL);
+}
+
+TEST_F(NativeFishTexture, PrizeDocumentsKeepOwnedHostSizedStorageAcrossLaterRefreshes) {
+    Json       groups = Json::array();
+    const Json ranks = Json::array({Json::array({101, 2}), Json::array({102, 3}), Json::array({103, 4})});
+    for (int group = 0; group < 12; ++group) {
+        groups.push_back({
+            {"prize_count", 128                                           },
+            {"rates",       Json::array({1, 1, 1, 1, 1, 1, 1, 1})         },
+            {"prizes",      Json::array({{{"rate", 1}, {"ranks", ranks}}})}
+        });
+    }
+    Write(root / "data/gyop.cfg.json", {
+                                           {"schema_version", 2            },
+                                           {"kind",           "fish_prizes"},
+                                           {"count",          12           },
+                                           {"groups",         groups       }
+    });
+    DataReadIndex(root / "data");
+    auto  save_owner = dc2::test::BindGlobalOwner<PortActiveSaveData>(std::make_unique<CSaveData>());
+    auto *save = GetSaveData();
+    ASSERT_EQ(save, save_owner.get());
+    std::array<s16, 4> previous_wins{};
+    for (int race = 0; race < 4; ++race) {
+        const int flag = SAVE_SHORT_FLAG_FISH_WINS_CLASS0 + race;
+        previous_wins[static_cast<std::size_t>(race)] = save->GetShortFlag(flag);
+        save->SetShortFlag(flag, 0);
+    }
+    EXPECT_EQ(LoadFishPrize(0), 1);
+    RefreshFishPrize();
+    for (int race = 0; race < 4; ++race) {
+        FISH_PRIZE_INFO prize{};
+        EXPECT_EQ(GetFishPrize(race, 2, &prize), 1);
+        EXPECT_EQ(prize.item_no, 103);
+        EXPECT_EQ(prize.num, 4);
+        save->SetShortFlag(SAVE_SHORT_FLAG_FISH_WINS_CLASS0 + race, previous_wins[static_cast<std::size_t>(race)]);
+    }
+    InitFishPrize();
+}
+
+namespace {
+int *scoped_fixture_pointer = nullptr;
+
+/**
+ * Exercises an assertion return while a scoped replacement owns the global binding.
+ */
+void FailInsideScopedGlobalFixture() {
+    dc2::test::ScopedGlobalObject<scoped_fixture_pointer> replacement(42);
+    ASSERT_EQ(*scoped_fixture_pointer, -1) << "fixture early exit";
+}
+
+struct GlobalDestructionProbe;
+GlobalDestructionProbe *destruction_probe = nullptr;
+
+/**
+ * Checks that its global reference has been restored before its destructor runs.
+ */
+struct GlobalDestructionProbe {
+    bool &detached; /**< Result observed by the surrounding test scope. */
+
+    explicit GlobalDestructionProbe(bool &result) : detached(result) {}
+
+    ~GlobalDestructionProbe() { detached = destruction_probe != this; }
+};
+} // namespace
+
+TEST(ScopedGlobalFixture, NestedOwnersRestoreTheSurroundingLiveObject) {
+    ASSERT_EQ(scoped_fixture_pointer, nullptr);
+    {
+        dc2::test::ScopedGlobalObject<scoped_fixture_pointer> outer(7);
+        EXPECT_EQ(scoped_fixture_pointer, outer.get());
+        {
+            dc2::test::ScopedGlobalObject<scoped_fixture_pointer> inner(9);
+            EXPECT_EQ(scoped_fixture_pointer, inner.get());
+            EXPECT_EQ(*scoped_fixture_pointer, 9);
+        }
+        EXPECT_EQ(scoped_fixture_pointer, outer.get());
+        EXPECT_EQ(*scoped_fixture_pointer, 7);
+    }
+    EXPECT_EQ(scoped_fixture_pointer, nullptr);
+}
+
+TEST(ScopedGlobalFixture, AssertionReturnRestoresTheSurroundingLiveObject) {
+    ASSERT_EQ(scoped_fixture_pointer, nullptr);
+    {
+        dc2::test::ScopedGlobalObject<scoped_fixture_pointer> outer(11);
+        EXPECT_FATAL_FAILURE(FailInsideScopedGlobalFixture(), "fixture early exit");
+        EXPECT_EQ(scoped_fixture_pointer, outer.get());
+        EXPECT_EQ(*scoped_fixture_pointer, 11);
+    }
+    EXPECT_EQ(scoped_fixture_pointer, nullptr);
+}
+
+TEST(ScopedGlobalFixture, GlobalIsRestoredBeforeTheReplacementIsDestroyed) {
+    bool detached = false;
+    {
+        dc2::test::ScopedGlobalObject<destruction_probe> fixture(detached);
+        EXPECT_EQ(destruction_probe, fixture.get());
+    }
+    EXPECT_TRUE(detached);
+    EXPECT_EQ(destruction_probe, nullptr);
+}
+
+TEST(NativeFishMessages, MissingDocumentLeavesEveryConstructedWindowUnbound) {
+    static char           identity;
+    constexpr std::size_t quadwords = 7 * ((sizeof(ClsMes) + sizeof(u_long128) - 1) / sizeof(u_long128)) + 8;
+    mgCMemory             memory;
+    auto                 *root = reinterpret_cast<u_long128 *>(ArenaBlock(&identity, quadwords * sizeof(u_long128)));
+    memory.stSetBuffer(root, static_cast<int>(quadwords));
+    std::memset(root, 0xA5, quadwords * sizeof(u_long128));
+    CAquaMes  messages;
+    const int old_language = LanguageCode;
+    LanguageCode = std::numeric_limits<int>::max();
+    messages.Initialize(&memory);
+    LanguageCode = old_language;
+    for (auto *window : {messages.title_mes, messages.menu_mes, messages.guide_mes, messages.question_mes,
+                         messages.help_mes, messages.info_mes, messages.fish_mes}) {
+        ASSERT_NE(window, nullptr);
+        EXPECT_EQ(window->buff, nullptr);
+    }
+    EXPECT_FALSE(messages.title_draw);
+    EXPECT_FALSE(messages.menu_draw);
+    EXPECT_FALSE(messages.info_draw);
+    EXPECT_EQ(messages.question_num, 0);
 }

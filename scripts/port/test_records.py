@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -11,7 +12,7 @@ import records  # noqa: E402
 import truncations  # noqa: E402
 
 PRELUDE = "typedef __UINTPTR_TYPE__ uptr;\ntypedef __INTPTR_TYPE__ sptr;\n"
-PARSE_ARGS = ["-x", "c++", "-std=c++20", "-fms-extensions", "-Wno-pointer-to-int-cast", "-Wno-int-to-pointer-cast"]
+PARSE_ARGS = ["-x", "c++", "-std=c++26", "-fms-extensions", "-Weverything"]
 
 TABLE = """# Records
 
@@ -162,16 +163,15 @@ class PS2OnlyTests(unittest.TestCase):
             failures = records.check_ps2_only_mentions(root)
         self.assertEqual(failures, ["port/src/other.cpp:3 mentions DATA_HEADER, which only ps2/src/dataread.cpp reads"])
 
-    def test_reader_functions_must_be_replaced_or_unlinked(self):
+    def test_ps2_only_reader_functions_must_be_unlinked(self):
         with tempfile.TemporaryDirectory() as root:
-            write(root, "build/port_overrides.txt", "SearchFile(char*,int)\nCDRead(int)\n")
             write(root, "build/darkchronicle", "")
             linked = {"InitCDFile", "SearchFile", "CDRead", "LoadFile2.isra.0"}
             with mock.patch.object(truncations, "linked_functions", return_value=linked):
                 failures = records.check_ps2_only_functions(os.path.join(root, "build"))
         self.assertEqual(len(failures), 2)
-        self.assertIn("InitCDFile", failures[0])
-        self.assertIn("LoadFile2", failures[1])
+        self.assertIn("SearchFile", failures[0])
+        self.assertIn("CDRead", failures[1])
 
     def test_no_binary_means_no_function_check(self):
         with tempfile.TemporaryDirectory() as root:
@@ -215,21 +215,59 @@ class LayoutTests(unittest.TestCase):
 
     def check(self, body, struct, size):
         with tempfile.TemporaryDirectory() as root:
-            write(root, "ps2/include/t.hpp", PRELUDE + body)
-            header = os.path.join(root, "ps2", "include", "t.hpp").replace(os.sep, "/")
-            main = os.path.join(root, "ps2", "src", "t.cpp")
-            row = records.Row(struct=struct, size=size, declared="ps2/include/t.hpp", line=1, pc="assert",
+            write(root, "port/include/t.hpp", PRELUDE + body)
+            header = os.path.join(root, "port", "include", "t.hpp").replace(os.sep, "/")
+            main = os.path.join(root, "port", "src", "t.cpp")
+            row = records.Row(struct=struct, size=size, declared="port/include/t.hpp", line=1, pc="assert",
                               line_index=0, declared_cell=0)
             source = '#include "%s"\n%s' % (header, records.size_constants([row]))
+            compiler = shutil.which("clang++-23") or shutil.which("clang++")
+            self.assertIsNotNone(compiler)
+            args = truncations.command_args({"file": main, "directory": root,
+                                            "arguments": [compiler, *PARSE_ARGS, "-c", main]})
             with mock.patch.object(truncations, "ROOT", root):
-                tu = records.parse_tu(main, PARSE_ARGS, source)
+                tu = records.parse_tu(main, args, source)
                 self.assertEqual(records.diagnostics(tu), [])
-                return records.check_tu(tu, [row])
+                return records.check_tu(tu, [row], root)
+
+    def test_compiler_headers_parse_and_missing_header_fails(self):
+        compiler = shutil.which("clang++-23") or shutil.which("clang++")
+        self.assertIsNotNone(compiler)
+        with tempfile.TemporaryDirectory() as root:
+            path = os.path.join(root, "records_standard_headers.cpp")
+            args = truncations.command_args({"file": path, "directory": root,
+                                            "arguments": [compiler, "-std=c++26", "-c", path]})
+            source = "#include <cstddef>\n#include <new>\n#include <string>\n"
+            self.assertEqual(records.diagnostics(records.parse_tu(path, args, source)), [])
+            missing = '#include "missing_record_header.hpp"\n'
+            self.assertTrue(records.diagnostics(records.parse_tu(path, args, missing)))
+
+    def test_record_traversal_skips_unowned_library_declarations_and_method_bodies(self):
+        from types import SimpleNamespace
+
+        K = truncations.ci.CursorKind
+        def cursor(path, kind, children):
+            return SimpleNamespace(location=SimpleNamespace(file=SimpleNamespace(name=path)), kind=kind,
+                                   get_children=children)
+
+        vendor = cursor("/vendor/unsupported.hpp", K.NAMESPACE,
+                        mock.Mock(side_effect=AssertionError("must not traverse library declarations")))
+        method = cursor("/owned/record.hpp", K.CXX_METHOD,
+                        mock.Mock(side_effect=AssertionError("must not traverse function bodies")))
+        record = cursor("/owned/record.hpp", K.STRUCT_DECL, lambda: [method])
+        unit = SimpleNamespace(cursor=SimpleNamespace(get_children=lambda: [vendor, record]))
+        self.assertEqual(list(records.record_cursors(unit, {"/owned/record.hpp"})), [record, method])
+        vendor.get_children.assert_not_called()
+        method.get_children.assert_not_called()
+
+    def test_record_with_standard_headers_and_inline_bodies_is_checked(self):
+        body = "#include <string>\nstruct T { int a; char b[4]; int f() { std::string value; return value.size(); } };"
+        self.assertEqual(self.check(body, "T", "0x8"), [])
 
     def test_char_pointer_member_fails(self):
         failures = self.check("struct T { char *p; };", "T", "0x8")
         self.assertEqual(len(failures), 1)
-        self.assertRegex(failures[0], r"^ps2/include/t\.hpp:\d+ T\.p: pointer member in a record$")
+        self.assertRegex(failures[0], r"^port/include/t\.hpp:\d+ T\.p: pointer member in a record$")
 
     def test_plain_members_pass(self):
         self.assertEqual(self.check("struct T { int a; char b[4]; };", "T", "0x8"), [])

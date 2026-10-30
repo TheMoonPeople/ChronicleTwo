@@ -2,10 +2,10 @@
 
 #include <string_view>
 
-#include "bounded_text.hpp"
 #include "mg_math.hpp"
 #include "pal_timing.hpp"
 #include "sceneseq.hpp"
+#include "text/bounded.hpp"
 
 namespace {
 
@@ -26,7 +26,7 @@ int TimedFrames(int frames) {
 
 // The scene sequence setters copy event-script names into 32-byte node names without a bound; each
 // copy here is held to the node's field.
-PORT_OVERRIDE void CSceneCmrSeq::SetSyncObj(int kind, float *offset, float angle, float height, float dist, int option, char *frame_name) {
+void CSceneCmrSeq::SetSyncObj(int kind, float *offset, float angle, float height, float dist, int option, char *frame_name) {
     _SEN_CMR_SEQ *node = SearchNextAhdSeq();
     if (node == nullptr) {
         return;
@@ -38,51 +38,51 @@ PORT_OVERRIDE void CSceneCmrSeq::SetSyncObj(int kind, float *offset, float angle
     node->vec0[2] = dist;
     node->frame = kind;
     node->mode = option;
-    bounded_text::Copy(node->name, bounded_text::View(frame_name));
+    dc2::text::Copy(node->name, dc2::text::View(frame_name));
 }
 
-PORT_OVERRIDE void CSceneObjSeq::SetEohFramePos(int eoh_no, char *frame_name, int frames, float *offset) {
+void CSceneObjSeq::SetEohFramePos(int eoh_no, char *frame_name, int frames, float *offset) {
     _SEN_OBJ_SEQ *node = SearchNextPosSeq();
     if (node == nullptr) {
         return;
     }
     node->cmd = SCENE_OBJ_CMD_SET_EOH_FRAME_POS;
     node->no = eoh_no;
-    bounded_text::Copy(node->name, bounded_text::View(frame_name));
+    dc2::text::Copy(node->name, dc2::text::View(frame_name));
     node->sub_frame = TimedFrames(frames);
     sceVu0CopyVector(node->vec, offset);
 }
 
-PORT_OVERRIDE void CSceneObjSeq::SetMotion(char *name, int frames, float speed) {
+void CSceneObjSeq::SetMotion(char *name, int frames, float speed) {
     _SEN_OBJ_SEQ *node = SearchNextMotSeq();
     if (node == nullptr) {
         return;
     }
     node->cmd = SCENE_OBJ_CMD_SET_MOTION;
-    bounded_text::Copy(node->name, bounded_text::View(name));
+    dc2::text::Copy(node->name, dc2::text::View(name));
     node->frame = frames;
     node->step = speed;
     node->ease_rate = 0;
 }
 
-PORT_OVERRIDE void CSceneObjSeq::NextMotion(char *name, int frames, float speed) {
+void CSceneObjSeq::NextMotion(char *name, int frames, float speed) {
     _SEN_OBJ_SEQ *node = SearchNextMotSeq();
     if (node == nullptr) {
         return;
     }
     node->cmd = SCENE_OBJ_CMD_NEXT_MOTION;
-    bounded_text::Copy(node->name, bounded_text::View(name));
+    dc2::text::Copy(node->name, dc2::text::View(name));
     node->frame = frames;
     node->step = speed;
     node->ease_rate = 0;
 }
 
-PORT_OVERRIDE void CSceneObjSeq::TexAnime(char *name, int frames) {
+void CSceneObjSeq::TexAnime(char *name, int frames) {
     _SEN_OBJ_SEQ *node = SearchNextAnmSeq();
     if (node == nullptr) {
         return;
     }
     node->cmd = SCENE_OBJ_CMD_TEX_ANIME;
-    bounded_text::Copy(node->name, bounded_text::View(name));
+    dc2::text::Copy(node->name, dc2::text::View(name));
     node->frame = frames;
 }

@@ -8,18 +8,18 @@ local helper_442b9962 = require("@lib/monster/helper_442b9962")
 local function helper_83dc8947()
 	local var0: s32 = 0
 	local height: f32 = 0
-	monster.ResetMove()
+	monster.stop_moving()
 	helper_442b9962()
-	monster.SetDeadStart()
-	monster.SetAttrib(4, 0)
-	monster.SetAttrib(256, 0)
-	monster.SetAttrib(8, 0)
-	monster.SetMos("ダメージ", -1, 0)
+	monster.start_death()
+	monster.set_monster_attributes(4, 0)
+	monster.set_monster_attributes(256, 0)
+	monster.set_monster_attributes(8, 0)
+	monster.set_motion("ダメージ", -1, 0)
 	var0 = 0
 	while var0 < 900 do
 		vm.wait()
-		monster.GetPos_3()
-		height = monster.GetHigh() or height
+		monster.get_position_3()
+		height = monster.get_height_above_ground() or height
 		if height <= 0.0 then
 			break
 		else

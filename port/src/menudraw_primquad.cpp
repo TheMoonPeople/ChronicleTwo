@@ -7,10 +7,10 @@
 #include "menu_mouse.hpp"
 #include "menudraw.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 
@@ -93,8 +93,8 @@ void DrawBackdrop(mgCDrawPrim &prim, mgRect<float> rect, mgRect<int> uv, float a
 
 } // namespace
 
-PORT_OVERRIDE void PrimQuad(mgCTexture *texture, float x, float y, mgRect<int> uv,
-                            int alpha, int red, int green, int blue) {
+void PrimQuad(mgCTexture *texture, float x, float y, mgRect<int> uv,
+              int alpha, int red, int green, int blue) {
     // The title and language menus use their own atlas rather than MenuCursorDraw.
     const bool         cursor = GetNowLoopNo() == LOOP_TITLE && uv.right == 40 && uv.bottom == 24 &&
                                 ((uv.left == 0 && uv.top == 40 && texture == mgTexManager.GetTexture(const_cast<char *>("moji"), -1)) ||

@@ -22,24 +22,24 @@ function script.on_start()
 	local rot_z: f32 = 0
 	local var6: s32 = 0
 	local user_id: s32 = 0
-	effect.ChrSetMotion("発動", -1, 6)
-	user_id = effect.GetUserId() or user_id
+	effect.set_effect_character_motion("発動", -1, 6)
+	user_id = effect.get_owner_character() or user_id
 	var6 = 0
 	while var6 < 48 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrPos(user_id)
+			local out1, out2, out3 = effect.get_scene_character_position(user_id)
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
 		do
-			local out1, out2, out3 = effect.ScnGetChrRot_4(user_id)
+			local out1, out2, out3 = effect.get_scene_character_rotation_4(user_id)
 			rot_x = out1 or rot_x
 			rot_y = out2 or rot_y
 			rot_z = out3 or rot_z
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
-		effect.ChrSetRot(rot_x, rot_y, rot_z)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
+		effect.rotate_effect_character_toward(rot_x, rot_y, rot_z)
 		var6 = var6 + 1
 		vm.wait()
 	end

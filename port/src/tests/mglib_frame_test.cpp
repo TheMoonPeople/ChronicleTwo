@@ -15,8 +15,8 @@
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "render/renderer.hpp"
 
 using namespace dc::test;
 
@@ -197,6 +197,13 @@ TEST(MglibFrameDeathTest, ExitAfterFramesWritesScreenshot) {
     EXPECT_EXIT(
         {
             OffscreenRenderer renderer;
+            std::atexit([] {
+                gfx::RendererShutdown();
+                WindowShutdown();
+                if (gfx::ValidationMessageCount() != 0) {
+                    std::_Exit(kExitGameAssert);
+                }
+            });
             mgSetBackGround(64.0f, 128.0f, 192.0f, 128.0f);
             mgPortExitAfterFrames(2, std::getenv("DC_MGLIB_FRAME_SHOT"));
             for (int i = 0; i < 3; ++i) {

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <vector>
 
 #include "gamepad.hpp"
@@ -94,4 +95,41 @@ TEST_F(PadCapture, MissingAndPartialFilesCannotReplayStaleFrames) {
     pad.Play(&input);
     EXPECT_EQ(input.button, 0);
     EXPECT_EQ(pad.capture_mode, PAD_CAPTURE_OFF);
+}
+
+TEST(PadCaptureOwnership, IndependentControllersKeepIndependentRecordings) {
+    CGamePad   first;
+    CGamePad   second;
+    PAD_STATUS input{};
+    input.button = PAD_CROSS;
+    first.CaptureStart();
+    first.Capture(&input);
+    input.button = PAD_CIRCLE;
+    second.CaptureStart();
+    second.Capture(&input);
+    PAD_STATUS output{};
+    first.CapturePlay();
+    first.Play(&output);
+    EXPECT_EQ(output.button, PAD_CROSS);
+    second.CapturePlay();
+    second.Play(&output);
+    EXPECT_EQ(output.button, PAD_CIRCLE);
+}
+
+TEST(PadCaptureOwnership, MalformedAxesAreClampedBeforeEncoding) {
+    CGamePad   controller;
+    PAD_STATUS input{};
+    input.left_x = std::numeric_limits<int>::min();
+    input.left_y = std::numeric_limits<int>::max();
+    input.right_x = -1;
+    input.right_y = 256;
+    controller.CaptureStart();
+    controller.Capture(&input);
+    controller.CapturePlay();
+    PAD_STATUS output{};
+    controller.Play(&output);
+    EXPECT_EQ(output.left_x, 0);
+    EXPECT_EQ(output.left_y, 255);
+    EXPECT_EQ(output.right_x, 0);
+    EXPECT_EQ(output.right_y, 255);
 }

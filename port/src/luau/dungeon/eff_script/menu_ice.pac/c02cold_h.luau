@@ -29,77 +29,77 @@ function script.on_start()
 	local var16: f32 = 0
 	local var17: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, out3 = effect.CopyVector(work_vect1_x, work_vect1_y, work_vect1_z)
+		local out1, out2, out3 = effect.copy_vector(work_vect1_x, work_vect1_y, work_vect1_z)
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	work_vect1_y = vm.f32(work_vect1_y + 2.0)
 	var1 = vm.f32(var1 - 30.0)
-	value = effect.GetValueFloat(0) or value
-	value_2 = effect.GetRand(6.2831855) or value_2
+	value = effect.get_script_value_float(0) or value
+	value_2 = effect.get_random_number(6.2831855) or value_2
 	value_2 = vm.f32(value_2 - vm.f32(3.1415927))
-	effect.ChrSetRot(0.0, value_2, 0.0)
-	effect.ChrSetScale(4.0 + vm.f32(4.0 * value), 4.0 + vm.f32(4.0 * value), 4.0 + vm.f32(4.0 * value))
-	effect.ChrSetShow(1, 1, 0.0625)
-	effect.SptAssignSprite_1(10)
-	effect.SptSetTexname("c02cold")
-	effect.SptInitSprite(0, 10)
-	effect.SptSetDrawFlag(0, 1, 10)
-	effect.SptSetAlphab(0, 2, 10)
-	effect.SptSetPutSize(0, 6.0, 6.0, 10)
-	effect.SptSetUvSize(0, 0.0, 64.0, 64.0, 64.0, 10)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 0.0, 10)
+	effect.rotate_effect_character_toward(0.0, value_2, 0.0)
+	effect.set_effect_character_scale(4.0 + vm.f32(4.0 * value), 4.0 + vm.f32(4.0 * value), 4.0 + vm.f32(4.0 * value))
+	effect.set_effect_character_visible(1, 1, 0.0625)
+	effect.allocate_sprites_1(10)
+	effect.set_sprite_texture("c02cold")
+	effect.reset_sprites(0, 10)
+	effect.set_sprite_visible(0, 1, 10)
+	effect.set_sprite_blend_mode(0, 2, 10)
+	effect.set_sprite_size(0, 6.0, 6.0, 10)
+	effect.set_sprite_texture_rect(0, 0.0, 64.0, 64.0, 64.0, 10)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 0.0, 10)
 	var11 = 0
 	while var11 < 10 do
 		do
-			local out1, out2, out3 = effect.CopyVector(work_vect1_x, work_vect1_y, work_vect1_z)
+			local out1, out2, out3 = effect.copy_vector(work_vect1_x, work_vect1_y, work_vect1_z)
 			var8 = out1 or var8
 			var9 = out2 or var9
 			var10 = out3 or var10
 		end
 		do
-			local out1, out2, out3 = effect.SubVector(var8, var9, var10, var0, var1, var2)
+			local out1, out2, out3 = effect.subtract_vectors(var8, var9, var10, var0, var1, var2)
 			var8 = out1 or var8
 			var9 = out2 or var9
 			var10 = out3 or var10
 		end
 		do
-			local out1, out2, out3 = effect.DivVector(var8, var9, var10, 2.0)
+			local out1, out2, out3 = effect.divide_vector(var8, var9, var10, 2.0)
 			var8 = out1 or var8
 			var9 = out2 or var9
 			var10 = out3 or var10
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var8, var9, var10)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var8, var9, var10)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		effect.ChrSetPos(var0, var1, var2)
-		value_3 = effect.GetRand(6.2831855) or value_3
+		effect.set_effect_character_position(var0, var1, var2)
+		value_3 = effect.get_random_number(6.2831855) or value_3
 		value_3 = vm.f32(value_3 - vm.f32(3.1415927))
-		value_4 = effect.GetRand(2.0) or value_4
+		value_4 = effect.get_random_number(2.0) or value_4
 		value_4 = vm.f32(value_4 + vm.f32(6.0 + vm.f32(6.0 * value)))
-		value_5 = effect.GetRand(10.0 + vm.f32(10.0 * value)) or value_5
+		value_5 = effect.get_random_number(10.0 + vm.f32(10.0 * value)) or value_5
 		value_5 = vm.f32(value_5 - vm.f32(vm.f32(10.0 + vm.f32(10.0 * value)) / 2.0))
 		var15 = vm.f32(vm.f32(vm.sin(value_3) * value_4) + var0)
 		var16 = vm.f32(value_5 + var1)
 		var17 = vm.f32(vm.f32(vm.cos(value_3) * value_4) + var2)
-		effect.SptSetPos(var11, var15, var16, var17)
-		effect.SptSetColor(var11, 128.0, 128.0, 128.0, 92.0)
-		effect.SptColorConv(var11, 128.0, 128.0, 128.0, 0.0, 8.0)
-		effect.SptSetScale(var11, 2.0 + vm.f32(2.0 * value), 2.0 + vm.f32(2.0 * value))
-		effect.SptScaleConv(var11, 4.0 + vm.f32(4.0 * value), 4.0 + vm.f32(4.0 * value), 6.0)
-		value_3 = effect.GetRand(6.2831855) or value_3
+		effect.set_sprite_position(var11, var15, var16, var17)
+		effect.set_sprite_color(var11, 128.0, 128.0, 128.0, 92.0)
+		effect.ease_sprite_color(var11, 128.0, 128.0, 128.0, 0.0, 8.0)
+		effect.set_sprite_scale(var11, 2.0 + vm.f32(2.0 * value), 2.0 + vm.f32(2.0 * value))
+		effect.ease_sprite_scale(var11, 4.0 + vm.f32(4.0 * value), 4.0 + vm.f32(4.0 * value), 6.0)
+		value_3 = effect.get_random_number(6.2831855) or value_3
 		value_3 = vm.f32(value_3 - vm.f32(3.1415927))
-		effect.SptSetRotz(var11, value_3)
+		effect.set_sprite_rotation(var11, value_3)
 		var11 = var11 + 1
 		vm.wait()
 	end
@@ -108,7 +108,7 @@ function script.on_start()
 		var11 = var11 + 1
 		vm.wait()
 	end
-	effect.ChrSetShow(0, 1, 0.2)
+	effect.set_effect_character_visible(0, 1, 0.2)
 	var11 = 0
 	while var11 < 5 do
 		var11 = var11 + 1

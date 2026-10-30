@@ -28,7 +28,7 @@ inline constexpr int kSchemaVersion = 2;
 /**
  * Lists the parsed JSON of every datapack candidate of a converted-data-relative path in priority order.
  */
-std::vector<std::shared_ptr<const Json> > Candidates(std::string_view relative, std::vector<std::string> &names);
+std::vector<std::shared_ptr<const Json>> Candidates(std::string_view relative, std::vector<std::string> &names);
 
 /**
  * Parses the JSON of a host save-directory file such as "host:gyorace.cfg.json".

@@ -1,0 +1,1558 @@
+#include "common.h"
+
+#include <cstdio>
+#include <cstring>
+
+#include "character.hpp"
+#include "dataread.hpp"
+#include "funcpoint.hpp"
+#include "log/game_output.hpp"
+#include "mainloop.hpp"
+#include "map.hpp"
+#include "mg_frame.hpp"
+#include "mg_math.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "savedata.hpp"
+#include "scene.hpp"
+#include "sceneevent.hpp"
+#include "scenesnd.hpp"
+#include "scenevillager.hpp"
+#include "text/bounded.hpp"
+#include "userdata.hpp"
+#include "villagermngr.hpp"
+#include "vlgr_info.hpp"
+
+/**
+ *
+ * Rounds a byte count up to the number of 16-byte memory blocks it occupies.
+ *
+ */
+static inline u_int align16_blocks(u_int size) {
+    if (size & 0xF) {
+        return (size >> 4) + 1;
+    }
+
+    return size >> 4;
+}
+
+/**
+ *
+ * Villager motion names indexed by VILLAGER_MOTION.
+ *
+ */
+static char *motion_name[] = {
+    "\x97\xa7\x82\xbf",
+    "\x95\xe0\x82\xab",
+    "\x91\x96\x82\xe8",
+    "\x89\xef\x98"
+    "b",
+    "\x8d\xc0\x82\xe8",
+    "\x83J\x83\x81\x83\x89\x93\xfc\x82\xe8",
+    "\x83J\x83\x81\x83\x89",
+    "\x83J\x83\x81\x83\x89\x96\xdf\x82\xe8",
+    "\x93\xc1\x95\xca",
+    nullptr};
+
+/**
+ *
+ * Map placements of red and blue goal markers and save points.
+ *
+ */
+static GAMEOBJ_INFO GameObjInfo[] = {
+    {0, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{-697.8f, -0.0f, -1087.4f}, 0.22f}}},
+    {25, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{107.5f, 24.7f, 1527.8f}, -2.85f}}},
+    {1, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{-741.2f, 1.0f, -709.9f}, -2.59f}}},
+    {26, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{-620.5f, 151.0f, -899.2f}, 0.5f}}},
+    {2, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{-138.5f, 166.0f, 1863.7f}, -3.08f}}},
+    {82, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{160.5f, 287.0f, 1850.2f}, 0.5f}}},
+    {3, GAMEOBJ_TYPE_TG_RED, 1, 0, {{{1770.9f, 1.0f, -417.5f}, -1.7f}}},
+    {102, GAMEOBJ_TYPE_TG_BLUE, 1, 0, {{{0.0f, 0.0f, 0.0f}, 0.0f}}},
+    {10, GAMEOBJ_TYPE_SAVEPOINT, 4, 0, {{{559.3f, 4.1f, 120.1f}, 1.58f}, {{2094.2f, 0.0f, 2066.3f}, 0.17f}, {{-4241.7f, 353.0f, 2876.7f}, 3.04f}, {{-3796.3f, 359.4f, -1639.8f}, 1.63f}}},
+    {17, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{2100.2f, 0.0f, 2248.6f}, 2.89f}}},
+    {22, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-112.3f, 104.0f, -160.7f}, -0.69f}}},
+    {86, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{40.3f, 24.7f, -70.8f}, -2.25f}}},
+    {34, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-240.6f, 35.8f, 177.2f}, -2.78f}}},
+    {23, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{33.9f, 36.1f, -102.7f}, 3.07f}}},
+    {16, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-769.7f, 0.0f, -78.7f}, 1.05f}}},
+    {65, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{2805.7f, 0.0f, 1630.3f}, -1.77f}}},
+    {54, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-387.7f, 0.0f, -209.7f}, -2.15f}}},
+    {1, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{1961.2f, 0.0f, -189.0f}, 1.46f}}},
+    {83, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-1861.1f, 29.2f, -336.5f}, 2.8f}}},
+    {2, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{1835.6f, -6.3f, -425.0f}, 2.34f}}},
+    {87, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{2394.5f, 0.0f, 1511.4f}, 2.76f}}},
+    {3, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-1378.5f, 0.0f, -1369.0f}, -2.39f}}},
+    {24, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{85.6f, -0.0f, 213.5f}, 3.04f}}},
+    {76, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{94.9f, 38.0f, 2816.2f}, 3.14f}}},
+    {81, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{184.3f, 57.9f, 1249.0f}, -1.62f}}},
+    {61, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{971.7f, 49.3f, -15.5f}, -0.2f}}},
+    {84, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{43.6f, -18.1f, 1007.0f}, -2.66f}}},
+    {90, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{1875.3f, -0.0f, -338.6f}, 0.26f}}},
+    {88, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-2268.1f, -0.0f, 2502.4f}, -2.91f}}},
+    {92, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-88.1f, -30.0f, 1727.0f}, -1.82f}}},
+    {187, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{70.1f, 140.0f, -865.0f}, 0.0f}}},
+    {103, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{-71.1f, -268.0f, 3166.0f}, 0.0f}}},
+    {72, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{96.0f, 0.0f, 3451.0f}, 0.0f}}},
+    {4, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{78.0f, 0.0f, 1338.0f}, 3.14f}}},
+    {109, GAMEOBJ_TYPE_SAVEPOINT, 1, 0, {{{54.0f, 280.0f, -607.0f}, 0.0f}}},
+    {-1, GAMEOBJ_TYPE_NONE, 0, 0},
+};
+
+int GetChrFileSize(u32 *pack, int file_size);
+
+int CScene::CheckDrawChara(int index) {
+    if (IsActive(1, index) == 0) {
+        return 0;
+    }
+
+    int status = GetStatus(1, index);
+
+    if (status & SCENE_CHARA_HIDE) {
+        return 0;
+    }
+
+    return ((status & SCENE_CHARA_NO_MODEL) != 0) ^ 1;
+}
+
+int CScene::CheckDrawCharaShadow(int index) {
+    if (IsActive(1, index) == 0) {
+        return 0;
+    }
+
+    int status = GetStatus(1, index);
+
+    if (status & SCENE_CHARA_HIDE) {
+        return 0;
+    }
+
+    return ((status & SCENE_CHARA_NO_SHADOW) != 0) ^ 1;
+}
+
+int CScene::StepChara(int index) {
+    float        entry_pos[4];
+    CCharacter2 *chara = GetCharacter(index);
+
+    if (chara == nullptr) {
+        return 0;
+    }
+
+    chara->sound_info.foot_se_bank = se_base_id;
+
+    if (chara->CheckDraw() == 0) {
+        return 0;
+    }
+
+    if (CheckDrawChara(index) == 0 && CheckDrawCharaShadow(index) == 0) {
+        return 0;
+    }
+
+    chara->SetWind(wind_power, wind_dir);
+
+    if (chara->GetEntryObjectPos(1, entry_pos) != 0) {
+        chara->SetFloor(entry_pos[1]);
+    }
+
+    chara->Step();
+    return 1;
+}
+
+void CScene::GetCharaLighting(float (*lights)[4], float *ambient) {
+    CMap *map = GetMap(active_map);
+
+    if (map != nullptr) {
+        float light_scale = 0.3f;
+        float ambient_scale = 1.8f;
+        float ambient_floor = 56.0f;
+
+        int   i = {};
+        float lowest = {};
+        float next = {};
+        float third = {};
+
+        if (map->map_info.chara_light_adjust != 0) {
+            light_scale = map->map_info.chara_light_adjust_value[0];
+            ambient_scale = map->map_info.chara_light_adjust_value[1];
+            ambient_floor = 128.0f * map->map_info.chara_light_adjust_value[2];
+        }
+
+        sceVu0FVECTOR limit = {255.0f, 255.0f, 255.0f, 128.0f};
+
+        for (i = 0; i < 4; i++) {
+            sceVu0ScaleVectorXYZ(lights[i], lights[i], light_scale);
+            mgVectorMin(lights[i], lights[i], limit);
+        }
+
+        sceVu0ScaleVectorXYZ(ambient, ambient, ambient_scale);
+        lowest = ambient[0] < ambient[1] ? (ambient[0] < ambient[2] ? ambient[0] : ambient[2])
+                                         : (ambient[1] < ambient[2] ? ambient[1] : ambient[2]);
+
+        if (lowest < ambient_floor) {
+            float lift = ambient_floor - lowest;
+            ambient[0] += lift;
+            ambient[1] += lift;
+            ambient[2] += lift;
+        }
+
+        if (!(ambient[0] <= 128.0f)) {
+            ambient[0] = 128.0f;
+        }
+
+        if (!(ambient[1] <= 128.0f)) {
+            ambient[1] = 128.0f;
+        }
+
+        if (!(ambient[2] <= 128.0f)) {
+            ambient[2] = 128.0f;
+        }
+    }
+}
+
+int CScene::DrawChara(int index, int pass) {
+    float              light_dir[4][4];
+    float              light_color[4][4];
+    float              ambient[4];
+    CMap              *maps[4];
+    mgCTextureManager *tex_man = &mgTexManager;
+    CCharacter2       *chara = GetCharacter(index);
+    int                use_parts = {};
+
+    if (chara == nullptr) {
+        return 0;
+    }
+
+    int   status = GetStatus(1, index);
+    int   fade_flag = chara->GetFadeFlag();
+    float near_dist = chara->GetNearDist();
+    float far_dist = chara->GetFarDist();
+
+    if (CheckDrawChara(index) == 0) {
+        return 0;
+    }
+
+    int tex_block = GetCharaTexb(index);
+
+    if (tex_block <= 0) {
+        return 0;
+    }
+
+    int prev_lighting = mgActiveLighting(1, 1);
+
+    if (pass < 2) {
+        if (!(GetStatus(1, index) & SCENE_CHARA_NO_LIGHTING)) {
+            mgGetLight(light_dir, light_color);
+            mgGetAmbient(ambient);
+            GetCharaLighting(light_color, ambient);
+            mgSetLight(light_dir, light_color);
+            mgSetAmbient(ambient);
+        }
+
+        use_parts = 0;
+
+        if (pass <= 0) {
+            use_parts = 1;
+        }
+
+        int        map_num = GetActiveMap(maps, 4);
+        int        light_num = 0;
+        CFuncPoint points[2];
+
+        for (int m = 0; m < map_num; m++) {
+            light_num += maps[m]->GetCharaLight(chara, &points[light_num], 2 - light_num, use_parts);
+
+            if (light_num >= 3) {
+                break;
+            }
+        }
+    }
+
+    int no_fade = status & SCENE_CHARA_NO_FADE;
+
+    if (no_fade) {
+        chara->SetFadeFlag(0);
+    }
+
+    int no_dist = status & SCENE_CHARA_NO_DIST;
+
+    if (no_dist) {
+        chara->SetNearDist(-1.0f);
+        chara->SetFarDist(-1.0f);
+    }
+
+    tex_man->ReloadTexture(tex_block, (sceVif1Packet *) nullptr);
+    chara->DrawDirect();
+
+    if (no_fade) {
+        chara->SetFadeFlag(fade_flag);
+    }
+
+    if (no_dist) {
+        chara->SetNearDist(near_dist);
+        chara->SetFarDist(far_dist);
+    }
+
+    mgActiveLighting(prev_lighting, 0);
+    return 1;
+}
+
+static inline float ShadowAbs(float value) {
+    if (value < 0.0f) {
+        return -value;
+    }
+
+    return value;
+}
+
+int CScene::DrawCharaShadow(int index) {
+    float        light_dir[4][4];
+    float        light_color[4][4];
+    CCharacter2 *chara = GetCharacter(index);
+
+    if (chara == nullptr) {
+        return 0;
+    }
+
+    mgGetLight(light_dir, light_color);
+    float direction[4] = {light_dir[0][0], light_dir[1][0], light_dir[2][0], 0.0f};
+    direction[1] = ShadowAbs(direction[1]);
+
+    if (direction[1] < 0.8f) {
+        direction[1] = 0.8f;
+    }
+
+    float position[4] = {0.0f, -10.0f, 0.0f, 0.0f};
+    float color[4] = {0.0f, 1.0f, 0.0f, 0.0f};
+
+    if (CheckDrawCharaShadow(index) == 0) {
+        return 0;
+    }
+
+    chara->GetEntryObjectPos(1, position);
+    position[1] -= 20.0f;
+    mgSetDropShadowMatrix(direction, position, color);
+    chara->DrawShadowDirect();
+    return 1;
+}
+
+void CScene::DrawExclamationMark(mgCFrame *frame) {
+    float position[4];
+    int   index = {};
+
+    if (frame != nullptr) {
+        for (index = 0; index < SCENE_CHARA_SLOT_NUM; index++) {
+            if (CheckDrawChara(index) != 0) {
+                CCharacter2 *chara = GetCharacter(index);
+
+                if (chara != nullptr && (GetStatus(1, index) & SCENE_CHARA_EXCLAMATION) != 0) {
+                    chara->GetPosition(position);
+
+                    if (chara->body_height > 0.0f) {
+                        position[1] -= 32.0f;
+                        position[1] += 2.0f * chara->body_height;
+                    }
+
+                    frame->SetPosition(position);
+                    mgDrawDirect(frame);
+                }
+            }
+        }
+    }
+}
+
+int CScene::SearchCharaTexb(int slot) {
+    int texb = {};
+    int other = {};
+    int i = {};
+    int j = {};
+
+    texb = GetCharaTexb(slot);
+    i = 0;
+
+    if (texb < 0) {
+        return -1;
+    }
+
+    do {
+        j = i + SCENE_VILLAGER_SLOT_TOP;
+
+        if (j != slot) {
+            other = GetCharaTexb(j);
+
+            if ((other >= 0) && (other == texb)) {
+                return j;
+            }
+        }
+
+        i += 1;
+    } while (i < (SCENE_VILLAGER_SLOT_NUM + SCENE_SUB_VILLAGER_SLOT_NUM));
+
+    return -1;
+}
+
+int CScene::PreLoadVillager(int map_id, dc2::memory::ArenaBuffer cache) {
+    int                 chara_ids[32];
+    CVillagerPlaceInfo *places[32];
+    int                 count = {};
+    int                 i = {};
+    count = GetLoadVillagerList(map_id, chara_ids, places);
+    InitFileCache(cache, FILE_CACHE_DOWN);
+
+    for (i = 0; i < count; i++) {
+        if (auto model_name = GetVillagerModelName(chara_ids[i])) {
+            LoadFileCacheBG(model_name->data());
+        }
+    }
+
+    return count;
+}
+
+void CScene::PreLoadVillagerEnd() {
+    DeleteFileCache();
+}
+
+int CScene::DeleteVillager(int chara_id) {
+    villager_mngr.DeleteCharaID(chara_id);
+    return 1;
+}
+
+void CScene::DeleteSubVillager() {
+    mgCTextureManager *tex_manager = &mgTexManager;
+    int                i = {};
+
+    for (i = 0; i < SCENE_SUB_VILLAGER_SLOT_NUM; i++) {
+        int texb = GetCharaTexb(i + SCENE_SUB_VILLAGER_SLOT_TOP);
+
+        if (texb > 0 && SearchCharaTexb(i + SCENE_SUB_VILLAGER_SLOT_TOP) < 0) {
+            tex_manager->DeleteBlock(texb);
+        }
+
+        DeleteChara(i + SCENE_SUB_VILLAGER_SLOT_TOP);
+
+        villager_mngr.DeleteCharaID(i + SCENE_SUB_VILLAGER_SLOT_TOP);
+    }
+
+    ClearStack(4);
+    sub_villager_time = -1;
+}
+
+void CScene::DeleteVillager() {
+    mgCTextureManager *tex_manager = &mgTexManager;
+    int                i = {};
+
+    for (i = 0; i < SCENE_VILLAGER_SLOT_NUM; i++) {
+        int texb = GetCharaTexb(i + SCENE_VILLAGER_SLOT_TOP);
+
+        if (texb > 0 && SearchCharaTexb(i + SCENE_VILLAGER_SLOT_TOP) < 0) {
+            tex_manager->DeleteBlock(texb);
+        }
+
+        DeleteChara(i + SCENE_VILLAGER_SLOT_TOP);
+
+        villager_mngr.DeleteCharaID(i + SCENE_VILLAGER_SLOT_TOP);
+    }
+
+    ClearStack(2);
+    villager_time = -1;
+}
+
+int CScene::SearchCharaID(int chara_id) {
+    int i = SCENE_VILLAGER_SLOT_TOP;
+
+    do {
+        int no = GetCharaNo(i);
+
+        if (no == chara_id) {
+            return i;
+        }
+
+        i++;
+    } while (i < SCENE_TALK_SLOT_END);
+
+    return -1;
+}
+
+int CScene::GetNowVillagerTime() {
+    int is_night = {};
+
+    float end_hour = 6.0f;
+    float start_hour = 21.0f;
+
+    is_night = 0;
+
+    if (CheckTime(time, start_hour, end_hour) != 0) {
+        is_night = 1;
+    }
+
+    return is_night;
+}
+
+int CScene::GetLoadVillagerList(int map_id, int *chara_ids, CVillagerPlaceInfo **places) {
+    CSaveData        *save = save_data;
+    int               chapter = {};
+    int               villager_time = {};
+    int               count = {};
+    int               i = {};
+    CUserDataManager *user_data = {};
+
+    if (save == nullptr) {
+        return 0;
+    }
+
+    if (map_id < 0) {
+        return 0;
+    }
+
+    chapter = save->game_progress;
+    villager_time = GetNowVillagerTime();
+    count = villager_mngr.GetAppearVlgr(chapter, villager_time, map_id, chara_ids, places);
+    user_data = &save_data->user_data;
+
+    if (user_data == nullptr) {
+        return count;
+    }
+
+    for (i = 0; i < count; i++) {
+        if (user_data->GetPartyCharaStatus(chara_ids[i]) > 0) {
+            chara_ids[i] += 1000;
+        }
+    }
+
+    return count;
+}
+
+int CScene::SearchCopyModel(int villager_id) {
+    CVillagerInfo *info = GetVillagerInfo(villager_id);
+    int            i = {};
+
+    if (info == nullptr) {
+        return -1;
+    }
+
+    for (i = 0; i < (SCENE_VILLAGER_SLOT_NUM + SCENE_SUB_VILLAGER_SLOT_NUM); i++) {
+        int              slot = i + SCENE_VILLAGER_SLOT_TOP;
+        CSceneCharacter *scene_chara = GetSceneCharacter(slot);
+
+        if (scene_chara != nullptr && GetCharacter(slot) != nullptr) {
+            CVillagerInfo *other = GetVillagerInfo(scene_chara->chara_no);
+
+            if (other != nullptr && other->model_name != nullptr && info->model_name != nullptr &&
+                strcmp(other->model_name, info->model_name) == 0) {
+                return slot;
+            }
+        }
+    }
+
+    return -1;
+}
+
+int GetObjectNameList(char *names, CCharacter2 *chara, mgCFrame **frames, int max) {
+    char      name[64];
+    char     *cursor = {};
+    int       count = {};
+    mgCFrame *model = {};
+    int       index = {};
+
+    if (names == nullptr || max <= 0 || chara == nullptr) {
+        return 0;
+    }
+
+    model = chara->CObjectFrame::frame;
+    count = 0;
+
+    if (model == nullptr) {
+        return 0;
+    }
+
+    index = 0;
+
+    while (static_cast<s8>(*names) != 0) {
+        if (!(count < max)) {
+            return count;
+        }
+
+        cursor = name;
+
+        for (;;) {
+            if (static_cast<s8>(*names) == ';' || static_cast<s8>(*names) == 0) {
+                break;
+            }
+
+            *cursor++ = static_cast<s8>(*names++);
+        }
+
+        *cursor = 0;
+        frames[index] = model->SearchFrame(name);
+
+        if (static_cast<s8>(*names) == 0) {
+            count++;
+            break;
+        }
+
+        names++;
+
+        if (frames[index] != nullptr) {
+            index++;
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void CScene::CharaObjectOnOff(int index, mgCMemory *memory) {
+    mgCFrame        *frames[16];
+    CVillagerInfo   *info = {};
+    int              i = {};
+    CCharacter2     *chara = {};
+    int              j = {};
+    CSceneCharacter *scene_chara = GetSceneCharacter(index);
+
+    if (scene_chara == nullptr) {
+        return;
+    }
+
+    chara = scene_chara->character.Get();
+
+    if (chara == nullptr) {
+        return;
+    }
+
+    info = GetVillagerInfo(scene_chara->chara_no);
+
+    if (info == nullptr) {
+        return;
+    }
+
+    int count = GetObjectNameList(info->show_frames, chara, frames, 16);
+
+    for (i = 0; i < count; i++) {
+        if (frames[i] != nullptr) {
+            mgCFrameAttr *attr = frames[i]->attr;
+
+            if (attr == nullptr && memory != nullptr) {
+                attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
+
+                frames[i]->attr = attr;
+            }
+
+            if (attr != nullptr) {
+                attr->draw = 1;
+            }
+        }
+    }
+
+    count = GetObjectNameList(info->hide_frames, chara, frames, 16);
+
+    for (j = 0; j < count; j++) {
+        if (frames[j] != nullptr) {
+            mgCFrameAttr *attr = frames[j]->attr;
+
+            if (attr == nullptr && memory != nullptr) {
+                attr = new (memory->Alloc(align16_blocks(sizeof(mgCFrameAttr)) + 2)) mgCFrameAttr;
+
+                frames[j]->attr = attr;
+            }
+
+            if (attr != nullptr) {
+                attr->draw = 2;
+            }
+        }
+    }
+}
+
+int CScene::LoadVillager(int map_no, int texb) {
+    int                 chara_nos[32];
+    CVillagerPlaceInfo *places[32];
+    int                 file_size = {};
+    char                suffix[4];
+    mgCMemory          *stack = {};
+    int                 count = {};
+    int                 loaded = {};
+    int                 i = {};
+
+    DeleteVillager();
+    DeleteSubVillager();
+    villager_mngr.Initialize();
+
+    if (skip_load_villager != 0) {
+        skip_load_villager = 0;
+        return 0;
+    }
+
+    skip_load_sub_villager = 0;
+    mgCTextureManager *tex_manager = &mgTexManager;
+    count = GetLoadVillagerList(map_no, chara_nos, places);
+    AssignStack(SCENE_STACK_VILLAGER);
+    stack = GetStack(SCENE_STACK_VILLAGER);
+    loaded = 0;
+
+    for (i = 0; i < count; i++) {
+        auto model_name = GetVillagerModelName(chara_nos[i]);
+        if (!model_name) {
+            continue;
+        }
+
+        const auto read_storage = GetReadBufferBytes();
+        auto      *buffer = reinterpret_cast<u_int *>(read_storage.data());
+        int        rest_before = {};
+        int        block = texb + loaded;
+        int        slot = {};
+        tex_manager->DeleteBlock(block);
+        int copy_from = SearchCopyModel(chara_nos[i]);
+        slot = -1;
+
+        if (copy_from >= 0) {
+            if (stack->stGetRest() >= 0x1900) {
+                slot = CopyChara(loaded + SCENE_VILLAGER_SLOT_TOP, copy_from, stack);
+            } else {
+                dc2::log::PrintGame("load vlgr memory over!!!");
+            }
+        } else {
+            if (LoadFile2(model_name->data(), read_storage, &file_size, LOAD_FILE_READ) == 0) {
+                continue;
+            }
+
+            int chr_size = GetChrFileSize(buffer, file_size);
+            rest_before = stack->stGetRest();
+
+            if (rest_before < chr_size / 16 + 1) {
+                dc2::log::PrintGame("load vlgr memory over!!!");
+                continue;
+            }
+
+            std::snprintf(suffix, sizeof(suffix), "%d", loaded + SCENE_VILLAGER_SLOT_TOP);
+            dc2::text::Copy(tex_manager->name_suffix, dc2::text::View(suffix));
+            slot = LoadChara(loaded + SCENE_VILLAGER_SLOT_TOP, buffer, "info", stack, stack, stack, texb + loaded, 0);
+            tex_manager->name_suffix[0] = 0;
+            dc2::log::PrintGame("used : %dkb (%dkb)\n", (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
+        }
+
+        SetCharaNo(slot, chara_nos[i]);
+        CharaObjectOnOff(slot, stack);
+
+        if (GetCharacter(slot) != nullptr && RegisterVillager(slot, chara_nos[i], places[i]) != 0) {
+            SetActive(1, slot);
+            loaded++;
+        }
+    }
+
+    villager_time = GetNowVillagerTime();
+    dc2::log::PrintGame("remain %dkByte\n", stack->stGetRest() * 16 / 1024);
+    return count;
+}
+
+int CScene::LoadSubVillager(int map_no, int texb) {
+    int                 chara_nos[32];
+    CVillagerPlaceInfo *places[32];
+    int                 file_size = {};
+    char                suffix[4];
+    mgCMemory          *stack = {};
+    int                 count = {};
+    int                 loaded = {};
+    int                 i = {};
+
+    DeleteSubVillager();
+
+    if (skip_load_sub_villager != 0) {
+        skip_load_sub_villager = 1;
+        return 0;
+    }
+
+    mgCTextureManager *tex_manager = &mgTexManager;
+    count = GetLoadVillagerList(map_no, chara_nos, places);
+    AssignStack(SCENE_STACK_SUB_VILLAGER);
+    stack = GetStack(SCENE_STACK_SUB_VILLAGER);
+    loaded = 0;
+
+    for (i = 0; i < count; i++) {
+        auto model_name = GetVillagerModelName(chara_nos[i]);
+        if (!model_name) {
+            continue;
+        }
+
+        const auto read_storage = GetReadBufferBytes();
+        auto      *buffer = reinterpret_cast<u_int *>(read_storage.data());
+        int        rest_before = {};
+        int        block = texb + loaded;
+        int        slot = {};
+        tex_manager->DeleteBlock(block);
+        slot = -1;
+        int copy_from = SearchCopyModel(chara_nos[i]);
+
+        if (copy_from >= 0) {
+            if (stack->stGetRest() >= 0x1900) {
+                slot = CopyChara(loaded + SCENE_SUB_VILLAGER_SLOT_TOP, copy_from, stack);
+            } else {
+                dc2::log::PrintGame("load vlgr memory over!!!");
+            }
+        } else {
+            if (LoadFile2(model_name->data(), read_storage, &file_size, LOAD_FILE_READ) == 0) {
+                continue;
+            }
+
+            int chr_size = GetChrFileSize(buffer, file_size);
+            rest_before = stack->stGetRest();
+
+            if (rest_before < chr_size / 16 + 1) {
+                dc2::log::PrintGame("load vlgr memory over!!!");
+                continue;
+            }
+
+            std::snprintf(suffix, sizeof(suffix), "%d", loaded + SCENE_SUB_VILLAGER_SLOT_TOP);
+            dc2::text::Copy(tex_manager->name_suffix, dc2::text::View(suffix));
+            slot = LoadChara(loaded + SCENE_SUB_VILLAGER_SLOT_TOP, buffer, "info", stack, stack, stack, texb + loaded, 0);
+            tex_manager->name_suffix[0] = 0;
+            dc2::log::PrintGame("used : %dkb (%dkb)\n", (rest_before - stack->stGetRest()) * 16 / 1024, chr_size / 1024);
+        }
+
+        SetCharaNo(slot, chara_nos[i]);
+        CharaObjectOnOff(slot, stack);
+
+        if (GetCharacter(slot) != nullptr && RegisterVillager(slot, chara_nos[i], places[i]) != 0) {
+            SetActive(1, slot);
+            loaded++;
+        }
+    }
+
+    sub_villager_time = GetNowVillagerTime();
+    dc2::log::PrintGame("remain %dkByte\n", stack->stGetRest() * 16 / 1024);
+    return count;
+}
+
+void CScene::RegisterVillager(int chara_id, int slot, int place_no) {
+    RegisterVillager(chara_id, slot, GetVlgrPlaceInfo(place_no));
+}
+
+int CScene::RegisterVillager(int chara_id, int slot, CVillagerPlaceInfo *place) {
+    return villager_mngr.Register(slot, chara_id, place);
+}
+
+int CScene::RegisterVillager(int chara_id, int slot, mgCMemory *memory) {
+    if (memory == nullptr) {
+        return 0;
+    }
+    auto *character = GetCharacter(chara_id);
+    if (character == nullptr) {
+        return 0;
+    }
+    auto *place = dc2::memory::NewObject<CVillagerPlaceInfo>(*memory);
+    if (place == nullptr) {
+        return 0;
+    }
+    sceVu0FVECTOR rotation{};
+    character->GetPosition(place->pos);
+    character->GetRotation(rotation);
+    place->pos[3] = rotation[1];
+    return RegisterVillager(chara_id, slot, place);
+}
+
+int CScene::GetTalkEvent(float *position, CSceneEventData *event) {
+    float character_position[4];
+    float character_rotation[4];
+    float talk_rect[4];
+    float rotation[4][4];
+    float range = {};
+    int   slot = {};
+
+    for (slot = SCENE_VILLAGER_SLOT_TOP; slot < SCENE_TALK_SLOT_END; slot++) {
+        range = 30.0f;
+
+        if (IsActive(1, slot) != 0) {
+            CCharacter2 *chara = GetCharacter(slot);
+
+            if (chara != nullptr) {
+                int rect_kind = {};
+                chara->GetPosition(character_position);
+                chara->GetRotation(character_rotation);
+                rect_kind = villager_mngr.GetTalkRect(slot, talk_rect);
+
+                if (rect_kind >= 0) {
+                    if (!(talk_rect[3] <= 0.0f)) {
+                        range = talk_rect[3];
+                    }
+
+                    talk_rect[3] = 1.0f;
+
+                    if (rect_kind != 0) {
+                        mgUnitMatrix(rotation);
+                        mgCreateMatrixPY(rotation, character_position, character_rotation[1]);
+                        sceVu0ApplyMatrix(character_position, rotation, talk_rect);
+                    }
+
+                    if (mgDistVector(character_position, position) < range) {
+
+                        CSceneEventData cleared_event;
+                        event->chara_slot = slot;
+                        event->chara_no = GetCharaNo(slot);
+                        event->event.point_no = slot - SCENE_VILLAGER_SLOT_TOP;
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ *
+ * Returns the name of a villager motion, or the default name for an unknown number.
+ *
+ */
+static char *GetMotionName(int motion_id) {
+    switch (motion_id) {
+        case VILLAGER_MOTION_WALK:
+            return motion_name[VILLAGER_MOTION_WALK];
+        case VILLAGER_MOTION_RUN:
+            return motion_name[VILLAGER_MOTION_RUN];
+        case VILLAGER_MOTION_TALK:
+            return motion_name[VILLAGER_MOTION_TALK];
+        case VILLAGER_MOTION_SIT:
+            return motion_name[VILLAGER_MOTION_SIT];
+        case VILLAGER_MOTION_CAMERA_IN:
+            return motion_name[VILLAGER_MOTION_CAMERA_IN];
+        case VILLAGER_MOTION_CAMERA:
+            return motion_name[VILLAGER_MOTION_CAMERA];
+        case VILLAGER_MOTION_CAMERA_OUT:
+            return motion_name[VILLAGER_MOTION_CAMERA_OUT];
+        case VILLAGER_MOTION_SPECIAL:
+            return motion_name[VILLAGER_MOTION_SPECIAL];
+        default:
+            return motion_name[VILLAGER_MOTION_STAND];
+    }
+}
+
+int GetMotionID(char *name) {
+    int i = {};
+
+    if (name == nullptr) {
+        return -1;
+    }
+
+    for (i = 0; motion_name[i] != nullptr; i++) {
+        if (strcmp(name, motion_name[i]) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+void SetCharaMotion(CCharacter2 *chara, int motion_id, int mode) {
+    char *name = GetMotionName(motion_id);
+
+    if (name != nullptr) {
+        if (motion_id == 4 && chara->GetKeyListPtr(name, nullptr) == nullptr) {
+            name = GetMotionName(0);
+        }
+
+        if (name != nullptr) {
+            chara->SetMotion(name, mode);
+        }
+    }
+}
+
+void CScene::StepVillager() {
+    CScene *scene = this;
+    int     count = {};
+    int     i = {};
+
+    villager_mngr.Step();
+    count = villager_mngr.data_num;
+
+    for (i = 0; i < count; i++) {
+        CVillagerData *villager = villager_mngr.GetData(i);
+
+        if (villager == nullptr) {
+            continue;
+        }
+
+        int unused = villager->vlgr_id < 0;
+
+        if (unused == 0) {
+            unused = (villager->place != nullptr) ^ 1;
+        }
+
+        if ((unused & 0xFF) || villager->place == nullptr) {
+            continue;
+        }
+
+        CCharacter2 *chara = GetCharacter(villager->chara_id);
+
+        if (chara == nullptr) {
+            continue;
+        }
+
+        if (villager->ex_mode != 0) {
+            villager->now_motion = GetMotionID(chara->GetNowMotionName());
+        }
+
+        if (villager->vlgr_id == 14 && villager->parts_mode > 0) {
+            mgCFrame *hide_a = {};
+            mgCFrame *hide_b = {};
+            mgCFrame *show_a = {};
+            mgCFrame *show_b = {};
+            mgCFrame *model = chara->CObjectFrame::frame;
+
+            if (model != nullptr) {
+                hide_a = model->SearchFrame("hand_R");
+                hide_b = model->SearchFrame("hand_L");
+                show_a = model->SearchFrame("v_R");
+                show_b = model->SearchFrame("v_L");
+
+                if (villager->parts_mode == VLGR_PARTS_MODE_POSE) {
+                    if (hide_a != nullptr && hide_a->attr != nullptr) {
+                        hide_a->attr->draw = 0;
+                    }
+
+                    if (hide_b != nullptr && hide_b->attr != nullptr) {
+                        hide_b->attr->draw = 0;
+                    }
+
+                    if (show_a != nullptr && show_a->attr != nullptr) {
+                        show_a->attr->draw = 1;
+                    }
+
+                    if (show_b != nullptr && show_b->attr != nullptr) {
+                        show_b->attr->draw = 1;
+                    }
+                }
+
+                if (villager->parts_mode == VLGR_PARTS_MODE_NORMAL) {
+                    if (hide_a != nullptr && hide_a->attr != nullptr) {
+                        hide_a->attr->draw = 1;
+                    }
+
+                    if (hide_b != nullptr && hide_b->attr != nullptr) {
+                        hide_b->attr->draw = 1;
+                    }
+
+                    if (show_a != nullptr && show_a->attr != nullptr) {
+                        show_a->attr->draw = 0;
+                    }
+
+                    if (show_b != nullptr && show_b->attr != nullptr) {
+                        show_b->attr->draw = 0;
+                    }
+                }
+            }
+        }
+
+        villager->motion_end = chara->CheckMotionEnd();
+
+        if (villager_mngr.CheckStay(i) != 0) {
+            continue;
+        }
+
+        if (villager->req_motion >= 0) {
+            SetCharaMotion(chara, villager->req_motion, villager->motion_flag);
+            villager->motion_flag = 0;
+            villager->req_motion = -1;
+        }
+
+        sceVu0FVECTOR position;
+        sceVu0FVECTOR from;
+        sceVu0FVECTOR ground;
+        mgVu0FBOX     box{};
+        *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(villager->pos);
+        CVillagerPlaceInfo *place = villager->place;
+        mgCMemory          *work = work_stack;
+
+        if (place != nullptr && place->no_shadow != 0) {
+            SetStatus(1, villager->chara_id, SCENE_CHARA_NO_SHADOW);
+        }
+
+        if (work != nullptr && villager->place != nullptr && villager->place->route != nullptr) {
+            *reinterpret_cast<u_long128 *>(from) = *reinterpret_cast<u_long128 *>(position);
+            from[1] += 100.0f;
+            work->stReset();
+            CCPoly *polys = reinterpret_cast<CCPoly *>(work->Alloc(0x280));
+            *reinterpret_cast<u_long128 *>(box.min) = *reinterpret_cast<u_long128 *>(position);
+            box.min[1] -= 100.0f;
+            box.min[3] = 1.0f;
+            *reinterpret_cast<u_long128 *>(box.max) = *reinterpret_cast<u_long128 *>(position);
+            box.max[1] += 100.0f;
+            box.max[3] = 1.0f;
+            int poly_count = GetColPoly(polys, box, 0x80);
+
+            if (poly_count > 0 && CheckHitVertical(polys, poly_count, from, -200.0f, ground, 0) >= 0) {
+                *reinterpret_cast<u_long128 *>(position) = *reinterpret_cast<u_long128 *>(ground);
+            }
+        }
+
+        chara->SetPosition(position);
+        chara->SetRotation(villager->rot);
+        chara->SetFarDist(800.0f);
+        chara->SetNearDist(15.0f);
+        chara->SetFadeFlag(1);
+    }
+}
+
+void CScene::StayNearVillager(float *position, int *stayed) {
+
+    CScene *scene = this;
+    int     count = villager_mngr.data_num;
+    int     i = {};
+
+    if (scene->villager_mngr.stop == 0) {
+        for (i = 0; i < count; i++) {
+            CVillagerData *villager = {};
+            stayed[i] = 0;
+            villager = scene->villager_mngr.GetData(i);
+
+            if (villager != nullptr) {
+                int unusable = villager->vlgr_id < 0 || !(villager->place != nullptr);
+
+                if (!(unusable & 0xFF) && villager->stay <= 0 &&
+                    mgDistVectorXZ(position, villager->pos) < position[3]) {
+                    CCharacter2 *chara = {};
+                    scene->villager_mngr.Stay(i);
+                    chara = scene->GetCharacter(villager->chara_id);
+
+                    if (chara != nullptr) {
+                        int motion = GetMotionID(chara->GetNowMotionName());
+
+                        if (chara != nullptr && scene->villager_mngr.CheckStay(i) != 0) {
+                            CVillagerPlaceInfo *place = villager->place;
+
+                            if (motion == place->move_motion) {
+                                SetCharaMotion(chara, place->motion, 0);
+                            }
+                        }
+
+                        stayed[i] = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void CScene::CancelStayVillager(int *flags) {
+
+    CScene *scene = this;
+    int     i = 0;
+    int     count = scene->villager_mngr.data_num;
+
+    if (0 < count) {
+        do {
+            if (flags[i] != 0) {
+                scene->villager_mngr.CancelStay(i);
+            }
+
+            i++;
+        } while (i < count);
+    }
+}
+
+void CScene::StayVillager(int chara_id) {
+    CScene *scene = this;
+    int     index = scene->villager_mngr.SearchDataIDatCharaID(chara_id);
+
+    if (index >= 0) {
+        scene->villager_mngr.Stay(index);
+    }
+}
+
+void CScene::CancelStayVillager(int chara_id) {
+
+    CScene        *scene = this;
+    int            index = scene->villager_mngr.SearchDataIDatCharaID(chara_id);
+    CVillagerData *villager = scene->villager_mngr.GetData(index);
+
+    if (index >= 0) {
+        scene->villager_mngr.CancelStay(index);
+    }
+
+    if (villager != nullptr && villager->stay == 0) {
+        CCharacter2 *chara = scene->GetCharacter(villager->chara_id);
+
+        if (chara != nullptr) {
+            chara->GetPosition(villager->pos);
+            chara->GetRotation(villager->rot);
+        }
+    }
+}
+
+void CScene::ExModeVillager(int chara_id) {
+    CScene *scene = this;
+    int     index = scene->villager_mngr.SearchDataIDatCharaID(chara_id);
+
+    if (index >= 0) {
+        scene->villager_mngr.ExMode(index);
+    }
+}
+
+void CScene::SetActiveVillager() {
+
+    CScene *scene = this;
+    int     no_map = {};
+    int     i = 0;
+    int     count = {};
+    no_map = scene->active_map == 0;
+    count = scene->villager_mngr.data_num;
+
+    for (; i < count; i++) {
+        CVillagerData *villager = scene->villager_mngr.GetData(i);
+
+        if (villager != nullptr) {
+            int unused = villager->vlgr_id < 0;
+
+            if (unused == 0) {
+                unused = (villager->place != nullptr) ^ 1;
+            }
+
+            if (!(unused & 0xFF)) {
+                if (no_map) {
+                    scene->SetActive(SCENE_DATA_CHARA, villager->chara_id);
+                } else {
+                    int chara_id = villager->chara_id;
+
+                    if (chara_id >= SCENE_SUB_VILLAGER_SLOT_TOP) {
+                        scene->SetActive(SCENE_DATA_CHARA, chara_id);
+                    } else {
+                        scene->ResetActive(SCENE_DATA_CHARA, chara_id);
+                    }
+                }
+            }
+        }
+    }
+}
+
+int CScene::InScreenChara(InScreenCharaInfo *info, float *range) {
+    sceVu0FVECTOR position;
+    sceVu0FVECTOR rotation;
+    sceVu0FVECTOR direction;
+    sceVu0FVECTOR aim;
+    sceVu0FMATRIX body_matrix;
+    sceVu0FMATRIX view_matrix;
+    mgVu0FBOX     box{};
+    sceVu0FVECTOR screen_max;
+    sceVu0FVECTOR screen_min;
+    int           slot = {};
+    int           nearest = -1;
+    float         nearest_dist = 0.0f;
+    int           nearest_in_center = 0;
+
+    for (slot = SCENE_VILLAGER_SLOT_TOP; slot < SCENE_TALK_SLOT_END; slot++) {
+        GetCharaNo(slot);
+        int in_center = 0;
+
+        if (IsActive(1, slot) == 0) {
+            continue;
+        }
+
+        CCharacter2 *chara = GetCharacter(slot);
+
+        if (chara == nullptr) {
+            continue;
+        }
+
+        chara->GetRotation(rotation);
+        float height = 2.0f * chara->GetBodyHeight();
+
+        if (height < 1.0f) {
+            height = 32.0f;
+        }
+
+        if (chara->GetEntryObjectPos(0, position) != 0) {
+            *reinterpret_cast<u_long128 *>(aim) = *reinterpret_cast<u_long128 *>(position);
+            position[1] += height / 4.0f;
+        } else {
+            chara->GetPosition(position);
+            *reinterpret_cast<u_long128 *>(aim) = *reinterpret_cast<u_long128 *>(position);
+            aim[1] += 0.4f * height;
+            position[1] += 0.7f * height;
+        }
+
+        mgGetDirFromCamera(direction, position);
+        float dist = mgDistVector(direction);
+
+        if (!(dist <= 300.0f)) {
+            continue;
+        }
+
+        sceVu0Normalize(direction, direction);
+        mgUnitMatrix(body_matrix);
+        mgUnitMatrix(view_matrix);
+        sceVu0RotMatrixY(body_matrix, body_matrix, rotation[1]);
+        *reinterpret_cast<u_long128 *>(body_matrix[3]) = *reinterpret_cast<u_long128 *>(position);
+        body_matrix[3][3] = 1.0f;
+        *reinterpret_cast<u_long128 *>(view_matrix[3]) = *reinterpret_cast<u_long128 *>(position);
+        view_matrix[3][3] = 1.0f;
+        sceVu0InnerProduct(direction, body_matrix[2]);
+        float half_width = 2.0f;
+        mgZeroVectorW(box.max);
+        mgZeroVectorW(box.min);
+        box.max[1] = 0.25f * height;
+        box.min[1] = -(0.25f * height);
+        box.max[0] = half_width;
+        box.min[0] = -half_width;
+        box.max[2] = half_width;
+        box.min[2] = -half_width;
+
+        if (mgInsideScreen(&box, view_matrix, screen_max, screen_min) == 0 || screen_max[0] < -50.0f ||
+            !(screen_min[0] <= 50.0f) || screen_max[1] < -50.0f || !(screen_min[1] <= 50.0f)) {
+            continue;
+        }
+
+        mgUnitMatrix(view_matrix);
+        *reinterpret_cast<u_long128 *>(view_matrix[3]) = *reinterpret_cast<u_long128 *>(aim);
+        view_matrix[3][3] = 1.0f;
+        box.max[1] = 0.1f * height;
+        box.min[1] = -(0.1f * height);
+        box.max[0] = half_width;
+        box.min[0] = -half_width;
+        box.max[2] = half_width;
+        box.min[2] = -half_width;
+
+        if (mgInsideScreen(&box, view_matrix, screen_max, screen_min) != 0 && !(screen_max[0] < -10.0f) &&
+            screen_min[0] <= 10.0f && !(screen_max[1] < -10.0f) && screen_min[1] <= 10.0f) {
+            in_center = 1;
+        }
+
+        if (nearest < 0 || !(nearest_dist <= dist)) {
+            nearest_in_center = in_center;
+            nearest_dist = dist;
+            nearest = slot;
+        }
+    }
+
+    info->chara_no = GetCharaNo(nearest);
+    info->in_center = nearest_in_center;
+    info->dist = nearest_dist - 10.0f;
+
+    if (nearest < 0) {
+        nearest = -1;
+    }
+
+    return nearest;
+}
+
+void CScene::LoadGameObject(int now_map_no, int tex_block, mgCMemory *memory) {
+    GAMEOBJ_INFO *entry = {};
+    int           skip_objects = {};
+    u32          *file_buffer = {};
+    CSaveData    *save = {};
+
+    const auto read_storage = GetReadBufferBytes();
+    file_buffer = reinterpret_cast<u32 *>(read_storage.data());
+    entry = GameObjInfo;
+    DeleteChara(SCENE_GAMEOBJ_SLOT_TG);
+    DeleteChara(SCENE_GAMEOBJ_SLOT_TG_BASE);
+    DeleteChara(SCENE_GAMEOBJ_SLOT_SAVEPOINT);
+    DeleteChara(SCENE_GAMEOBJ_SLOT_BOOK);
+    mgTexManager.DeleteBlock(tex_block);
+    save = save_data;
+    skip_objects = 0;
+
+    if ((save != nullptr) && (GetGameChapter(save->game_progress) == 8)) {
+        skip_objects = 1;
+    }
+
+    for (;;) {
+        if (entry->map_no < 0) {
+            break;
+        }
+
+        if (entry->map_no == now_map_no) {
+            switch (entry->type) {
+                case GAMEOBJ_TYPE_SAVEPOINT:
+                    if (LoadFile2("effect/savepoint.gltf", read_storage, nullptr, 0) != 0) {
+                        LoadChara(SCENE_GAMEOBJ_SLOT_SAVEPOINT, file_buffer, nullptr, memory, memory, memory,
+                                  tex_block, 1);
+                        SetActive(1, SCENE_GAMEOBJ_SLOT_SAVEPOINT);
+
+                        if (LoadFile2("effect/book.gltf", read_storage, nullptr, 0) != 0) {
+                            LoadChara(SCENE_GAMEOBJ_SLOT_BOOK, file_buffer, nullptr, memory, memory, memory,
+                                      tex_block, 1);
+                            SetActive(1, SCENE_GAMEOBJ_SLOT_BOOK);
+                        }
+                    }
+
+                    break;
+                case GAMEOBJ_TYPE_TG_RED:
+                    if ((skip_objects == 0) &&
+                        (LoadFile2("effect/tg_maru_red.gltf", read_storage, nullptr, 0) != 0)) {
+                        LoadChara(SCENE_GAMEOBJ_SLOT_TG, file_buffer, nullptr, memory, memory, memory,
+                                  tex_block, 1);
+                        SetActive(1, SCENE_GAMEOBJ_SLOT_TG);
+
+                        if (LoadFile2("effect/tg_sita_red.gltf", read_storage, nullptr, 0) != 0) {
+                            LoadChara(SCENE_GAMEOBJ_SLOT_TG_BASE, file_buffer, nullptr, memory, memory, memory,
+                                      tex_block, 1);
+                            SetActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE);
+                        }
+                    }
+
+                    break;
+                case GAMEOBJ_TYPE_TG_BLUE:
+                    if ((skip_objects == 0) &&
+                        (LoadFile2("effect/tg_maru_blue.gltf", read_storage, nullptr, 0) != 0)) {
+                        LoadChara(SCENE_GAMEOBJ_SLOT_TG, file_buffer, nullptr, memory, memory, memory,
+                                  tex_block, 1);
+                        SetActive(1, SCENE_GAMEOBJ_SLOT_TG);
+
+                        if (LoadFile2("effect/tg_sita_blue.gltf", read_storage, nullptr, 0) != 0) {
+                            LoadChara(SCENE_GAMEOBJ_SLOT_TG_BASE, file_buffer, nullptr, memory, memory, memory,
+                                      tex_block, 1);
+                            SetActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE);
+                        }
+                    }
+
+                    break;
+            }
+        }
+
+        entry++;
+    }
+}
+
+int CScene::GetGameObjectEvent(float *position, CSceneEventData *event) {
+    GAMEOBJ_INFO *entry = {};
+    int           now_map_no = {};
+    int           i = {};
+    float         point[4];
+
+    if (active_map != 0) {
+        return -1;
+    }
+
+    now_map_no = GetMainMapNo();
+    entry = GameObjInfo;
+
+    for (;;) {
+        if (entry->map_no < 0) {
+            break;
+        }
+
+        if (entry->map_no == now_map_no) {
+            for (i = 0; i < entry->place_num; i++) {
+                *reinterpret_cast<u_long128 *>(point) = *reinterpret_cast<u_long128 *>(entry->place[i].pos);
+                point[3] = 1.0f;
+
+                if (mgDistVector(point, position) < 20.0f) {
+                    *reinterpret_cast<u_long128 *>(event->position) = *reinterpret_cast<u_long128 *>(point);
+                    mgZeroVector(event->rotation);
+
+                    switch (entry->type) {
+                        case GAMEOBJ_TYPE_SAVEPOINT:
+                            if (IsActive(1, SCENE_GAMEOBJ_SLOT_SAVEPOINT) != 0 &&
+                                IsActive(1, SCENE_GAMEOBJ_SLOT_BOOK) != 0) {
+                                event->gameobj_no = i;
+                                return SCENE_GAMEOBJ_SLOT_SAVEPOINT;
+                            }
+
+                            break;
+                        case GAMEOBJ_TYPE_TG_RED:
+                        case GAMEOBJ_TYPE_TG_BLUE:
+                            if (IsActive(1, SCENE_GAMEOBJ_SLOT_TG) != 0 &&
+                                IsActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE) != 0) {
+                                return SCENE_GAMEOBJ_SLOT_TG;
+                            }
+
+                            break;
+                    }
+                }
+            }
+        }
+
+        entry++;
+    }
+
+    return -1;
+}
+
+void CScene::DrawGameObject(int now_map_no) {
+    GAMEOBJ_INFO *entry = {};
+    CCharacter2  *first = {};
+    CCharacter2  *second = {};
+    int           i = {};
+    float         first_point[4];
+    float         second_point[4];
+
+    if (active_map != 0) {
+        return;
+    }
+
+    entry = GameObjInfo;
+
+    for (;;) {
+        if (entry->map_no < 0) {
+            break;
+        }
+
+        if (entry->map_no == now_map_no) {
+            first = nullptr;
+            second = nullptr;
+
+            switch (entry->type) {
+                case GAMEOBJ_TYPE_SAVEPOINT:
+                    if (IsActive(1, SCENE_GAMEOBJ_SLOT_SAVEPOINT) != 0 && IsActive(1, SCENE_GAMEOBJ_SLOT_BOOK) != 0) {
+                        first = GetCharacter(SCENE_GAMEOBJ_SLOT_SAVEPOINT);
+                        second = GetCharacter(SCENE_GAMEOBJ_SLOT_BOOK);
+                    }
+
+                    break;
+                case GAMEOBJ_TYPE_TG_RED:
+                case GAMEOBJ_TYPE_TG_BLUE:
+                    if (IsActive(1, SCENE_GAMEOBJ_SLOT_TG) != 0 && IsActive(1, SCENE_GAMEOBJ_SLOT_TG_BASE) != 0) {
+                        first = GetCharacter(SCENE_GAMEOBJ_SLOT_TG);
+                        second = GetCharacter(SCENE_GAMEOBJ_SLOT_TG_BASE);
+                    }
+
+                    break;
+            }
+
+            for (i = 0; i < entry->place_num; i++) {
+                u_long128 point_copy = *reinterpret_cast<u_long128 *>(&entry->place[i]);
+                *reinterpret_cast<u_long128 *>(first_point) = point_copy;
+                first_point[3] = 1.0f;
+                *reinterpret_cast<u_long128 *>(second_point) = *reinterpret_cast<u_long128 *>(&entry->place[i]);
+                second_point[3] = 1.0f;
+
+                if (entry->type == GAMEOBJ_TYPE_TG_RED || entry->type == GAMEOBJ_TYPE_TG_BLUE) {
+                    first_point[1] += 60.0f;
+                }
+
+                if (second != nullptr) {
+                    second->SetPosition(second_point);
+                    second->SetRotation(0.0f, entry->place[i].rot_y, 0.0f);
+                    second->DrawDirect();
+                }
+
+                if (first != nullptr) {
+                    first->SetPosition(first_point);
+                    first->SetRotation(0.0f, entry->place[i].rot_y, 0.0f);
+                    first->DrawDirect();
+                }
+            }
+        }
+
+        entry++;
+    }
+}
+
+#include "common.h"
+
+#include <algorithm>
+#include <limits>
+
+#include "assets/data_registry.hpp"
+#include "platform/model_assets.hpp"
+#include "scenevillager.hpp"
+
+int GetChrFileSize(u32 *model, int /*unused*/) {
+    const auto path = DataReadBufferPath(model);
+    if (!path) {
+        return std::numeric_limits<int>::max();
+    }
+    std::string error;
+    const auto  estimate = model_assets::EstimateCharacterMemory(*path, {}, error);
+    if (!estimate) {
+        return std::numeric_limits<int>::max();
+    }
+    const auto bytes = (*estimate + 1023) / 1024 * 1024;
+    return static_cast<int>(std::min<std::size_t>(bytes, std::numeric_limits<int>::max()));
+}

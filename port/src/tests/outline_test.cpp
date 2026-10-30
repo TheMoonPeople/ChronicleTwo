@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "mglib_port.hpp"
-#include "outline_port.hpp"
+#include "render/outline_geometry.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 

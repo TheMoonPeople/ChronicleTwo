@@ -11,20 +11,20 @@ local function helper_7863d8b6(arg0: f32, arg1: any)
 	local var4: f32 = 0
 	var2 = 0
 	while var2 < arg1 do
-		arrived = monster.ChkMoveEnd() or arrived
-		var4 = monster.GetTargetDist() or var4
+		arrived = monster.is_move_finished() or arrived
+		var4 = monster.get_target_distance() or var4
 		if var4 < arg0 then
-			monster.ResetMove()
+			monster.stop_moving()
 			return 1
 		end
 		if arrived == 0 then
 			helper_0ba23e4e()
 		else
-			monster.ResetMove()
+			monster.stop_moving()
 			return 2
 		end
 		if arrived == 1 then
-			monster.ResetMove()
+			monster.stop_moving()
 			return 1
 		end
 		var2 = vm.i32(var2 + 1)

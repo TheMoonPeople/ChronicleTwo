@@ -16,7 +16,7 @@
 #include "menumain.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 #include "snd_mngr.hpp"
 #include "userdata.hpp"
 
@@ -556,9 +556,9 @@ void MenuMouseUpdate(CMenuKeyFunc &keys) {
     if (menu.mode == MENU_ASK_MODE_ROD_POINTS && menu.step == 0) {
         const Target hit = Hit(menu, pointer.pos, 0);
         if (hit.panel == ITEM_MENU_PANEL_FISHING_ROD_STATS && take.moved) {
-            // select_pos[0] shares keys.cursor, whose change KeyStepLocal already sounds.
+            // KeyStepLocal already sounds changes to the keyboard cursor.
             keys.cursor = hit.cursor;
-            keys.select_pos[0] = hit.cursor;
+            keys.cursor = hit.cursor;
             keys.key_input = true;
         }
         if (take.pressed & 2) {
@@ -631,7 +631,7 @@ void MenuMouseUpdate(CMenuKeyFunc &keys) {
     }
 }
 
-PORT_OVERRIDE void CMenuKeyFunc::SelDataInit() {
+void CMenuKeyFunc::SelDataInit() {
     select_key = 0;
     push_button = 0;
     save_cursor = cursor;

@@ -10,11 +10,11 @@ local function helper_5743cba3(arg0: f32, arg1: f32)
 	local var5: f32 = 0
 	local var6: f32 = 0
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var5 = out2 or var5
 	end
-	var2 = monster.GetTargetDist() or var2
-	var6 = monster.GetTargetAngle() or var6
+	var2 = monster.get_target_distance() or var2
+	var6 = monster.get_target_angle() or var6
 	if var2 < arg0 and var5 < vm.f32(var6 + helper_787df986(arg1)) and var5 > vm.f32(var6 + helper_787df986(-arg1)) then
 		return 1
 	end

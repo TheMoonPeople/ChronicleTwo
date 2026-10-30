@@ -11,7 +11,7 @@
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "menusys.hpp"
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 #include "stubs/inventmn.hpp"
 
 namespace menumouse {

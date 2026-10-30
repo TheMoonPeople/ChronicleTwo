@@ -1,12 +1,5 @@
 #pragma once
 
-struct INIT_LOOP_ARG;
-
-/**
- * Initializes movie viewing with the movies of the native movie list.
- */
-void PortInitializeMovieViewer(INIT_LOOP_ARG argument);
-
 /**
  * One movie of the native movie list.
  */

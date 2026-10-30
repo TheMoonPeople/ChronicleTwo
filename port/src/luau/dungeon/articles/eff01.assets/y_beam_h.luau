@@ -20,37 +20,37 @@ function script.on_start()
 	local work_vect2_x: f32 = 0
 	local work_vect2_y: f32 = 0
 	local work_vect2_z: f32 = 0
-	local var6: f32 = 0
+	local alpha: f32 = 0
 	local value: f32 = 0
 	local check_motion_end: s32 = 0
 	value = 0.0
-	effect.GetRand(6.2831855)
+	effect.get_random_number(6.2831855)
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		work_vect2_x = out1 or work_vect2_x
 		work_vect2_y = out2 or work_vect2_y
 		work_vect2_z = out3 or work_vect2_z
 	end
-	value = effect.GetValueFloat(0) or value
+	value = effect.get_script_value_float(0) or value
 	if value == 0.0 then
 		value = 1.0
 	end
-	var6 = 128.0
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetMotion("ヒット", -1, 6)
-	effect.ChrSetLightColor(work_vect2_x, work_vect2_y, work_vect2_z, var6, 1)
-	effect.ChrSetScale(value, value, value)
-	effect.ChrSetShow(1, 1, 0.1)
+	alpha = 128.0
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_motion("ヒット", -1, 6)
+	effect.set_effect_character_light_color(work_vect2_x, work_vect2_y, work_vect2_z, alpha, 1)
+	effect.set_effect_character_scale(value, value, value)
+	effect.set_effect_character_visible(1, 1, 0.1)
 	check_motion_end = 0
 	while check_motion_end == 0 do
 		vm.wait()
-		check_motion_end = effect.ChrChkMotEnd() or check_motion_end
+		check_motion_end = effect.is_effect_character_motion_finished() or check_motion_end
 	end
 end
 

@@ -4,7 +4,9 @@
 #include <array>
 #include <cmath>
 #include <format>
+#include <iterator>
 #include <ranges>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -92,61 +94,220 @@ Row Resolution() {
     return row;
 }
 
+/**
+ * Names a binding action for the settings pages.
+ */
+std::string ActionLabel(std::string_view action) {
+    static constexpr std::pair<std::string_view, const char *> names[] = {
+        {"cross",           "Cross"          },
+        {"circle",          "Circle"         },
+        {"square",          "Square"         },
+        {"triangle",        "Triangle"       },
+        {"up",              "D-pad Up"       },
+        {"down",            "D-pad Down"     },
+        {"left",            "D-pad Left"     },
+        {"right",           "D-pad Right"    },
+        {"start",           "Start"          },
+        {"select",          "Select"         },
+        {"l1",              "L1"             },
+        {"r1",              "R1"             },
+        {"l2",              "L2"             },
+        {"r2",              "R2"             },
+        {"l3",              "L3"             },
+        {"r3",              "R3"             },
+        {"lx-",             "Move left"      },
+        {"lx+",             "Move right"     },
+        {"ly-",             "Move forward"   },
+        {"ly+",             "Move back"      },
+        {"rx-",             "Look left"      },
+        {"rx+",             "Look right"     },
+        {"ry-",             "Look up"        },
+        {"ry+",             "Look down"      },
+        {"walk",            "Walk"           },
+        {"zoom_reset",      "Zoom reset"     },
+        {"fps_toggle",      "Toggle FPS"     },
+        {"debug_menu",      "Developer menu" },
+        {"mode_debug_menu", "Debug menu (R3)"},
+        {"gyro_hold",       "Gyro hold"      },
+        {"quick_loadout",   "Quick loadout"  },
+    };
+    for (auto [name, text] : names) {
+        if (action == name) {
+            return text;
+        }
+    }
+    return std::string(action);
+}
+
 std::vector<Row> Bindings() {
     std::vector<Row> rows;
     for (const auto &info : InputActions()) {
         if (info.whole_axis) {
             continue;
         }
-        // These host actions have no game-side consumer in this port.
+        // These host actions have no game-side consumer in this port, or none from a keyboard.
         if (info.action == "developer_menu" || info.action == "gyro_hold") {
             continue;
         }
-        std::string      action(info.action);
-        std::string      label = action;
-        static constexpr std::pair<std::string_view, const char *> names[] = {
-            {"cross",      "Cross"       },
-            {"circle",     "Circle"      },
-            {"square",     "Square"      },
-            {"triangle",   "Triangle"    },
-            {"up",         "D-pad Up"    },
-            {"down",       "D-pad Down"  },
-            {"left",       "D-pad Left"  },
-            {"right",      "D-pad Right" },
-            {"start",      "Start"       },
-            {"select",     "Select"      },
-            {"l1",         "L1"          },
-            {"r1",         "R1"          },
-            {"l2",         "L2"          },
-            {"r2",         "R2"          },
-            {"l3",         "L3"          },
-            {"r3",         "R3"          },
-            {"lx-",        "Move left"   },
-            {"lx+",        "Move right"  },
-            {"ly-",        "Move forward"},
-            {"ly+",        "Move back"   },
-            {"rx-",        "Look left"   },
-            {"rx+",        "Look right"  },
-            {"ry-",        "Look up"     },
-            {"ry+",        "Look down"   },
-            {"zoom_reset", "Zoom reset"  },
-            {"fps_toggle", "Toggle FPS"  },
-            {"debug_menu", "Debug menu"  },
-        };
-        for (auto [name, text] : names) {
-            if (action == name) {
-                label = text;
-            }
-        }
-        rows.push_back({.key = "input.bindings." + action, .label = label, .help = "Confirm, then press a key or mouse button.\nEscape cancels. Square restores this binding.", .value = [action](const Config &) { return InputBindingLabel(action); }, .step = {}, .action = action});
+        std::string action(info.action);
+        rows.push_back({.key = "input.bindings." + action, .label = ActionLabel(action), .help = "Confirm, then press a key or mouse button.\nEscape cancels. Square restores this binding.", .value = [action](const Config &) { return InputBindingLabel(action); }, .step = {}, .action = action});
     }
     return rows;
 }
 
-} // namespace
+/**
+ * Names a physical controller button for each supported layout family.
+ */
+struct PadButtonNames {
+    std::string_view button;      /**< Identifies the SDL controller button. */
+    const char      *playstation; /**< Names the button on a PlayStation controller. */
+    const char      *xbox;        /**< Names the button on an Xbox controller. */
+    const char      *nintendo;    /**< Names the button on a Nintendo controller. */
+};
 
-std::span<const Page> Pages() {
-    static const std::vector<Page> pages{
+// By SDL's names, which are the places of a pad with the Xbox layout: on a Nintendo pad the bottom button is B.
+// clang-format off
+constexpr PadButtonNames kPadButtonNames[] = {
+    {.button = "a", .playstation = "Cross", .xbox = "A", .nintendo = "B"},
+    {.button = "b", .playstation = "Circle", .xbox = "B", .nintendo = "A"},
+    {.button = "x", .playstation = "Square", .xbox = "X", .nintendo = "Y"},
+    {.button = "y", .playstation = "Triangle", .xbox = "Y", .nintendo = "X"},
+    {.button = "back", .playstation = "Share", .xbox = "View", .nintendo = "Minus"},
+    {.button = "guide", .playstation = "PS", .xbox = "Guide", .nintendo = "Home"},
+    {.button = "start", .playstation = "Options", .xbox = "Menu", .nintendo = "Plus"},
+    {.button = "leftstick", .playstation = "L3", .xbox = "LS", .nintendo = "LS"},
+    {.button = "rightstick", .playstation = "R3", .xbox = "RS", .nintendo = "RS"},
+    {.button = "leftshoulder", .playstation = "L1", .xbox = "LB", .nintendo = "L"},
+    {.button = "rightshoulder", .playstation = "R1", .xbox = "RB", .nintendo = "R"},
+    {.button = "lefttrigger", .playstation = "L2", .xbox = "LT", .nintendo = "ZL"},
+    {.button = "righttrigger", .playstation = "R2", .xbox = "RT", .nintendo = "ZR"},
+    {.button = "dpup", .playstation = "D-pad Up", .xbox = "D-pad Up", .nintendo = "D-pad Up"},
+    {.button = "dpdown", .playstation = "D-pad Down", .xbox = "D-pad Down", .nintendo = "D-pad Down"},
+    {.button = "dpleft", .playstation = "D-pad Left", .xbox = "D-pad Left", .nintendo = "D-pad Left"},
+    {.button = "dpright", .playstation = "D-pad Right", .xbox = "D-pad Right", .nintendo = "D-pad Right"},
+    {.button = "touchpad", .playstation = "Touchpad", .xbox = "Touchpad", .nintendo = "Touchpad"},
+    {.button = "misc1", .playstation = "Mute", .xbox = "Share", .nintendo = "Capture"},
+    {.button = "paddle1", .playstation = "Paddle 1", .xbox = "Paddle 1", .nintendo = "Paddle 1"},
+    {.button = "paddle2", .playstation = "Paddle 2", .xbox = "Paddle 2", .nintendo = "Paddle 2"},
+    {.button = "paddle3", .playstation = "Paddle 3", .xbox = "Paddle 3", .nintendo = "Paddle 3"},
+    {.button = "paddle4", .playstation = "Paddle 4", .xbox = "Paddle 4", .nintendo = "Paddle 4"},
+    {.button = "misc2", .playstation = "Misc 2", .xbox = "Misc 2", .nintendo = "Misc 2"},
+    {.button = "misc3", .playstation = "Misc 3", .xbox = "Misc 3", .nintendo = "Misc 3"},
+    {.button = "misc4", .playstation = "Misc 4", .xbox = "Misc 4", .nintendo = "Misc 4"},
+    {.button = "misc5", .playstation = "Misc 5", .xbox = "Misc 5", .nintendo = "Misc 5"},
+    {.button = "misc6", .playstation = "Misc 6", .xbox = "Misc 6", .nintendo = "Misc 6"},
+};
+// clang-format on
+
+/**
+ * Finds the display names of a physical controller button.
+ */
+const PadButtonNames *FindPadButton(std::string_view button) {
+    for (const auto &names : kPadButtonNames) {
+        if (names.button == button) {
+            return &names;
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * Builds settings rows for controller buttons and host actions.
+ */
+std::vector<Row> PadBindings() {
+    std::vector<Row> rows;
+    for (const auto &info : InputActions()) {
+        // The developer menu has no consumer in this port, and zoom reset belongs to the mouse wheel's zoom.
+        if (!info.pad || info.action == "developer_menu" || info.action == "zoom_reset") {
+            continue;
+        }
+        std::string action(info.action);
+        const auto  value = [action](const Config &config) {
+            std::string text;
+            for (const std::string &button : InputPadBindingNames(action)) {
+                text += (text.empty() ? "" : ", ") + PadButtonName(button, config);
+            }
+            return text.empty() ? std::string("None") : text;
+        };
+        rows.push_back({.key = "input.gamepad_bindings." + action, .label = ActionLabel(action), .help = "Confirm, then press a controller button. Escape or\nfive seconds cancels. Square restores this binding.", .value = value, .step = {}, .action = action, .pad = true});
+    }
+    return rows;
+}
+
+/**
+ * Reports whether an action owns a gamepad button rather than a shared host shortcut.
+ */
+bool PadButtonAction(std::string_view action) {
+    const auto actions = InputActions();
+    const auto known = std::ranges::find(actions, action, &InputActionInfo::action);
+    return known != actions.end() && known->pad && !known->host;
+}
+
+/**
+ * Returns an action's configured or active controller buttons.
+ */
+std::vector<std::string> PadNames(const Config &config, std::string_view action) {
+    const auto it = std::ranges::find(config.pad_bindings, action, &ConfigKeyBinding::action);
+    return it != config.pad_bindings.end() ? it->keys : InputPadBindingNames(action);
+}
+
+/**
+ * Stores an action's controller buttons in the pending configuration.
+ */
+void SetPadNames(Config &config, std::string_view action, std::vector<std::string> names) {
+    auto it = std::ranges::find(config.pad_bindings, action, &ConfigKeyBinding::action);
+    if (it == config.pad_bindings.end()) {
+        config.pad_bindings.push_back({.action = std::string(action), .keys = std::move(names)});
+    } else {
+        it->keys = std::move(names);
+    }
+}
+
+/**
+ * Moves conflicting pad-button bindings to the replaced buttons when a binding is reassigned.
+ */
+void TakeFromOthers(Config &config, std::string_view action, const std::vector<std::string> &taken,
+                    const std::vector<std::string> &previous) {
+    if (!PadButtonAction(action)) {
+        return;
+    }
+    const auto is_taken = [&](const std::string &name) { return std::ranges::find(taken, name) != taken.end(); };
+    for (const auto &info : InputActions()) {
+        if (info.action == action || !PadButtonAction(info.action)) {
+            continue;
+        }
+        auto names = PadNames(config, info.action);
+        if (std::erase_if(names, is_taken) == 0) {
+            continue;
+        }
+        if (names.empty()) {
+            std::ranges::copy_if(previous, std::back_inserter(names), [&](const std::string &name) { return !is_taken(name); });
+        }
+        SetPadNames(config, info.action, std::move(names));
+    }
+}
+
+// The rows kAppPage leaves out.
+bool PcOnly(std::string_view key) {
+    static constexpr std::string_view keys[] = {
+        "video.fullscreen",
+        "video.width",
+        "video.present_mode",
+        "audio.dualsense_speaker",
+        "audio.controller_volume",
+        "input.mouse_sensitivity",
+        "input.mouse_invert_y",
+        "input.mouse_capture",
+        "input.menu_pointer_speed",
+        "input.menu_pointer_acceleration",
+        "input.mouse_zoom",
+        "input.mouse_fixed_look",
+    };
+    return std::ranges::find(keys, key) != std::end(keys);
+}
+
+std::vector<Page> MakePages() {
+    std::vector<Page> pages{
         {.name = "Display",  .rows = {
                                 Choice<&Config::fullscreen>("video.fullscreen", "Window mode", "Applies immediately. Fullscreen uses the desktop.", {"Windowed", "Fullscreen"}),
                                 Resolution(),
@@ -180,6 +341,7 @@ std::span<const Page> Pages() {
                                  Number<&Config::haptics_strength>("input.haptics_strength", "Haptics strength", "DualSense actuator strength.", {0, .25, .5, .75, 1, 1.25, 1.5, 1.75, 2}, 100, "%"),
                                  Choice<&Config::glyphs_new>("input.glyphs", "Button symbols", "New redraws the game's button symbols from glyphs/.\nOriginal keeps the PlayStation art.", {"Original", "New"}),
                                  Choice<&Config::glyph_device>("input.glyph_device", "Glyph style", "Auto follows the last device used.\nKeyboard prompts follow your current bindings.", {"Auto", "PS3", "PS4", "PS5", "PS5 Color", "Xbox", "Switch", "Steam Deck", "Steam Controller", "Keyboard"}),
+                                 Choice<&Config::keyboard_walk>("input.keyboard_walk", "Keyboard movement", "Run: keys run and the Walk key walks.\nWalk: keys walk and the Walk key runs.", {"Run", "Walk"}),
                                  Choice<&Config::mouse_zoom>("input.mouse_zoom", "Mouse wheel zoom", "Wheel changes camera distance while walking.\nMenus use the wheel for selection instead.", {"Off", "On"}),
                                  Choice<&Config::mouse_fixed_look>("input.mouse_fixed_look", "Fixed camera mouse look", "Gently look around fixed-camera rooms.\nThe view returns when the mouse rests.", {"Off", "On"}),
                              }},
@@ -191,10 +353,26 @@ std::span<const Page> Pages() {
                              Choice<&Config::auto_use_event_item>("game.auto_use_event_item", "Auto-use event items", "An event that asks for one item you carry\nis handed it without the item picker.", {"Off", "On"}),
                              Choice<&Config::floor_info_monsters>("game.floor_info_monsters", "Floor monster list", "Triangle on a floor's info lists its monsters, drops and\ngate key carrier (spoilers). Off is the original game.", {"Off", "On"}),
                              Choice<&Config::more_monsters>("game.more_monsters", "More monsters", "Floors hold up to 60 monsters instead of 24, and all of\nthem in range show and act. Applies from the next floor.", {"Off", "On"}),
+                             Choice<&Config::transformation_stats>("game.transformation_stats", "Transformation stats", "Monster attack grows twice as fast per level.\nMonica's defence is used when it is higher.", {"Off", "On"}),
+                             Choice<&Config::transformation_exp>("game.transformation_exp", "Transformation EXP", "Monster badges gain twice the absorption\nwhile Monica is transformed.", {"Off", "On"}),
+                             Choice<&Config::shared_badge_exp>("game.shared_badge_exp", "Shared badge EXP", "A quarter of Monica's absorption also goes\nto every other monster badge.", {"Off", "On"}),
                              Choice<&Config::debug_mode>("game.debug_mode", "Debug mode", "Unlocks the developer menu and debug controls.\nThe boot unlock applies from the next start.", {"Off", "On"}),
                          }        },
-        {.name = "Bindings", .rows = Bindings()           },
+        {.name = "Keyboard", .rows = Bindings()           },
+        {.name = "Gamepad",  .rows = PadBindings()        },
     };
+    if (kAppPage) {
+        for (Page &page : pages) {
+            std::erase_if(page.rows, [](const Row &row) { return PcOnly(row.key); });
+        }
+    }
+    return pages;
+}
+
+} // namespace
+
+std::span<const Page> Pages() {
+    static const std::vector<Page> pages = MakePages();
     return pages;
 }
 
@@ -231,6 +409,75 @@ bool SetBinding(Config &config, std::string_view action, std::string_view key) {
 
 void ResetBinding(Config &config, std::string_view action) {
     std::erase_if(config.key_bindings, [&](const auto &b) { return b.action == action; });
+}
+
+bool SetPadBinding(Config &config, std::string_view action, std::string_view button) {
+    const auto actions = InputActions();
+    const auto known = std::ranges::find(actions, action, &InputActionInfo::action);
+    if (known == actions.end() || !known->pad || FindPadButton(button) == nullptr) {
+        return false;
+    }
+    std::vector<std::string> names{std::string(button)};
+    const auto               previous = PadNames(config, action);
+    if (previous == names) {
+        return false;
+    }
+    SetPadNames(config, action, names);
+    TakeFromOthers(config, action, names, previous);
+    return true;
+}
+
+void ResetPadBinding(Config &config, std::string_view action) {
+    const auto previous = PadNames(config, action);
+    std::erase_if(config.pad_bindings, [&](const auto &b) { return b.action == action; });
+    TakeFromOthers(config, action, InputPadBindingNames(action, true), previous);
+}
+
+std::string PadButtonName(std::string_view button, const Config &config) {
+    auto device = config.glyphs_new ? config.glyph_device : ConfigGlyphDevice::Ps3;
+    if (device == ConfigGlyphDevice::Auto || device == ConfigGlyphDevice::Keyboard) {
+        switch (InputGamepadGlyphFamily()) {
+            case InputGlyphFamily::Ps3:
+                device = ConfigGlyphDevice::Ps3;
+                break;
+            case InputGlyphFamily::Ps5:
+                device = ConfigGlyphDevice::Ps5;
+                break;
+            case InputGlyphFamily::Xbox:
+            case InputGlyphFamily::SteamDeck:
+            case InputGlyphFamily::SteamController:
+                device = ConfigGlyphDevice::Xbox;
+                break;
+            case InputGlyphFamily::Switch:
+                device = ConfigGlyphDevice::Switch;
+                break;
+            default:
+                device = ConfigGlyphDevice::Ps4;
+                break;
+        }
+    }
+    const PadButtonNames *names = FindPadButton(button);
+    if (names == nullptr) {
+        return std::string(button);
+    }
+    if (device == ConfigGlyphDevice::Xbox || device == ConfigGlyphDevice::SteamDeck ||
+        device == ConfigGlyphDevice::SteamController) {
+        return names->xbox;
+    }
+    if (device == ConfigGlyphDevice::Switch) {
+        return names->nintendo;
+    }
+    const bool ps3 = device == ConfigGlyphDevice::Ps3;
+    if (button == "back") {
+        if (ps3) {
+            return "Select";
+        }
+        return device == ConfigGlyphDevice::Ps5 || device == ConfigGlyphDevice::Ps5Color ? "Create" : "Share";
+    }
+    if (button == "start" && ps3) {
+        return "Start";
+    }
+    return names->playstation;
 }
 
 std::vector<DisplayModeSize> ResolutionList(std::span<const DisplayModeSize> modes, int width, int height) {
@@ -284,6 +531,11 @@ std::string ButtonName(std::string_view action, const Config &config) {
     if (device == ConfigGlyphDevice::Keyboard) {
         const std::string bindings = InputBindingLabel(action);
         return bindings.substr(0, bindings.find(", "));
+    }
+    // A pad button moved on the controller is named after the button it now sits on.
+    const std::string shown = InputPadGlyphAction(action);
+    if (!shown.empty()) {
+        action = shown;
     }
     const bool xbox = device == ConfigGlyphDevice::Xbox || device == ConfigGlyphDevice::SteamDeck || device == ConfigGlyphDevice::SteamController;
     const bool sw = device == ConfigGlyphDevice::Switch;

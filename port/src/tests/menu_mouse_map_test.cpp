@@ -8,7 +8,6 @@
 
 #include "dngfloor.hpp"
 #include "dngmenu.hpp"
-#include "dngmenu_port.hpp"
 #include "gamepad.hpp"
 #include "mainloop.hpp"
 #include "menu_mouse_floor.hpp"
@@ -22,6 +21,7 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "nd_meswin.hpp"
+#include "object/dun/map_presentation.hpp"
 #include "platform/clock.hpp"
 #include "platform/input.hpp"
 #include "save_slots.hpp"
@@ -32,7 +32,7 @@ namespace {
 // Retail constructs these menus in their own units; the adapters read only plain fields.
 template <class T>
 struct Blank {
-    alignas(T) std::byte storage[sizeof(T)] {};
+    alignas(T) std::byte storage[sizeof(T)]{};
 
     T *operator->() { return reinterpret_cast<T *>(storage); }
 
@@ -564,8 +564,8 @@ TEST_P(MenuMouseMapInput, FloorQuestionsAndOtherFloorScreensUseTheLanguageLayout
 // The file list as the floor map's Save Progress opens it, with File 12 selected at (30, 270)-(488, 346).
 struct FloorSave {
     decltype(SaveSlots) catalog = SaveSlots;
-    CSaveMenuClass   save;
-    CMenuPosDataForm form{};
+    CSaveMenuClass      save;
+    CMenuPosDataForm    form{};
 
     explicit FloorSave(CMenuKeyFunc &menu) {
         SaveSlots.saves.resize(20);

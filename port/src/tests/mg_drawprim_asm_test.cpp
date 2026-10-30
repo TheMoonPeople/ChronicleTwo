@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -8,9 +9,9 @@
 
 #include "gfx/gfx.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 
@@ -32,7 +33,7 @@ public:
         manager.render_info = &render_info;
         prim.Initialize(&memory, &vif_packet);
         // The PC builder never sets write, so Data must find it null and skip the retail copy.
-        prim.write = nullptr;
+        prim.write_buffer = {};
         mgPortSetPrimSink([this](gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices,
                                  const gfx::TextureBinding &texture, const gfx::DrawState &state) {
             batches.push_back({
@@ -82,7 +83,7 @@ private:
 TEST(MgDrawPrimAsm, Data0TruncatesEachLaneTowardZero) {
     mgCDrawPrim           prim;
     alignas(16) u_long128 buffer[2] = {};
-    prim.write = buffer;
+    prim.write_buffer = buffer;
 
     float data[4] = {1.5f, -2.75f, 100.9f, 0.0f};
     prim.Data0(data);
@@ -98,18 +99,18 @@ TEST(MgDrawPrimAsm, Data0TruncatesEachLaneTowardZero) {
 TEST(MgDrawPrimAsm, Data0AdvancesWriteByOneQuadword) {
     mgCDrawPrim           prim;
     alignas(16) u_long128 buffer[2] = {};
-    prim.write = buffer;
+    prim.write_buffer = buffer;
 
     float data[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     prim.Data0(data);
 
-    EXPECT_EQ(prim.write, buffer + 1);
+    EXPECT_EQ(prim.write_buffer.data(), buffer + 1);
 }
 
 TEST(MgDrawPrimAsm, Data0SaturatesPerSign) {
     mgCDrawPrim           prim;
     alignas(16) u_long128 buffer[1] = {};
-    prim.write = buffer;
+    prim.write_buffer = buffer;
 
     float data[4] = {3.0e10f, -3.0e10f, 2147483520.0f, 2147483648.0f};
     prim.Data0(data);
@@ -125,7 +126,7 @@ TEST(MgDrawPrimAsm, Data0SaturatesPerSign) {
 TEST(MgDrawPrimAsm, Data0ZeroAndNegativeZeroGiveZero) {
     mgCDrawPrim           prim;
     alignas(16) u_long128 buffer[1] = {};
-    prim.write = buffer;
+    prim.write_buffer = buffer;
 
     float data[4] = {0.0f, -0.0f, -0.0f, 0.0f};
     prim.Data0(data);
@@ -141,7 +142,7 @@ TEST(MgDrawPrimAsm, Data0ZeroAndNegativeZeroGiveZero) {
 TEST(MgDrawPrimAsm, Data4ScalesBy16BeforeTruncating) {
     mgCDrawPrim           prim;
     alignas(16) u_long128 buffer[1] = {};
-    prim.write = buffer;
+    prim.write_buffer = buffer;
 
     float data[4] = {1.5f, -2.75f, 0.0625f, 3.9f};
     prim.Data4(data);
@@ -157,7 +158,7 @@ TEST(MgDrawPrimAsm, Data4ScalesBy16BeforeTruncating) {
 TEST(MgDrawPrimAsm, Data4SaturatesPerSignAfterScaling) {
     mgCDrawPrim           prim;
     alignas(16) u_long128 buffer[1] = {};
-    prim.write = buffer;
+    prim.write_buffer = buffer;
 
     float data[4] = {134217728.0f, -134217728.0f, 0.0f, 0.0f};
     prim.Data4(data);
@@ -173,7 +174,7 @@ TEST(MgDrawPrimAsm, Data4SaturatesPerSignAfterScaling) {
 TEST(MgDrawPrimAsm, Data4ZeroAndNegativeZeroGiveZero) {
     mgCDrawPrim           prim;
     alignas(16) u_long128 buffer[1] = {};
-    prim.write = buffer;
+    prim.write_buffer = buffer;
 
     float data[4] = {-0.0f, 0.0f, -0.0f, 0.0f};
     prim.Data4(data);
@@ -329,11 +330,46 @@ TEST(MgDrawPrimAsm, ColorZeroAndNegativeZeroGiveZeroComponents) {
 
 TEST(MgDrawPrimAsm, Data0AndData4WithNullWriteDoNotCrash) {
     mgCDrawPrim prim;
-    prim.write = nullptr;
+    prim.write_buffer = {};
 
     float data[4] = {1.5f, -2.75f, 0.0625f, 3.9f};
     prim.Data0(data);
     prim.Data4(data);
 
-    EXPECT_EQ(prim.write, nullptr);
+    EXPECT_TRUE(prim.write_buffer.empty());
+}
+
+TEST(MgDrawPrimAsm, PacketWritesStopAtTheExplicitBufferExtent) {
+    mgCDrawPrim              prim;
+    std::array<u_long128, 3> storage{};
+    std::memset(storage.data(), 0xA5, sizeof(storage));
+    const auto sentinel = storage[1];
+    prim.write_buffer = std::span(storage).first(1);
+    float first[4]{1.0f, 2.0f, 3.0f, 4.0f};
+    prim.Data0(first);
+    ASSERT_TRUE(prim.write_buffer.empty());
+    const auto written = storage[0];
+    prim.Data0(first);
+    prim.Data4(first);
+    int lanes[4]{5, 6, 7, 8};
+    prim.Data(lanes);
+    EXPECT_EQ(storage[0], written);
+    EXPECT_EQ(storage[1], sentinel);
+    EXPECT_EQ(storage[2], sentinel);
+}
+
+TEST(MgDrawPrimAsm, DefaultBuildersHaveNoPacketOrFrameState) {
+    mgCDrawPrim prim;
+    EXPECT_TRUE(prim.write_buffer.empty());
+    EXPECT_EQ(prim.packet_start, nullptr);
+    EXPECT_EQ(prim.packet_top, nullptr);
+    EXPECT_EQ(prim.packed, 0);
+    prim.Data0(nullptr);
+    prim.Data4(nullptr);
+    prim.Data(nullptr);
+    mgCDrawManager manager;
+    EXPECT_EQ(manager.render_info, nullptr);
+    EXPECT_EQ(manager.packet_num, nullptr);
+    EXPECT_EQ(manager.group_num, 0);
+    EXPECT_EQ(manager.sort_max, -1);
 }

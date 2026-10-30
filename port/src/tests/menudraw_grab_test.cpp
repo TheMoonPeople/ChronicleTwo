@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -8,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "menudraw.hpp"
@@ -16,8 +17,8 @@
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "render/renderer.hpp"
 
 using namespace dc::test;
 

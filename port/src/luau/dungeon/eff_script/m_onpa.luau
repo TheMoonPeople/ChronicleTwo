@@ -25,39 +25,39 @@ function script.on_start()
 	local var12: s32 = 0
 	value = 0.0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		work_vect2_x = out1 or work_vect2_x
 		work_vect2_y = out2 or work_vect2_y
 		work_vect2_z = out3 or work_vect2_z
 	end
-	value_2 = effect.GetValue(0) or value_2
-	value = effect.GetValueFloat(1) or value
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetRot(work_vect2_x, work_vect2_y, work_vect2_z)
-	effect.ChrSetMotion("発射")
+	value_2 = effect.get_script_value(0) or value_2
+	value = effect.get_script_value_float(1) or value
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.rotate_effect_character_toward(work_vect2_x, work_vect2_y, work_vect2_z)
+	effect.set_effect_character_motion("発射")
 	var12 = 0
 	for var8 = 0, 29 do
 		if var8 == 8 then
-			effect.ColprimCreate("弱攻撃")
-			effect.ColprimSetDamage(value_2)
+			effect.create_collision_primitive("弱攻撃")
+			effect.set_collision_primitive_damage(value_2)
 			work_vect1_x = vm.f32(work_vect1_x + vm.f32(vm.sin(work_vect2_y) * 75.0))
 			work_vect1_z = vm.f32(work_vect1_z + vm.f32(vm.cos(work_vect2_y) * 75.0))
-			effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, value)
+			effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, value)
 		end
 		if var8 == 18 then
 			var12 = 1
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		vm.wait()
 	end
 	if var12 == 0 then
-		effect.ColprimDelete(-1)
+		effect.delete_collision_primitive(-1)
 	end
 end
 

@@ -1,10 +1,11 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
 #include <array>
 #include <cstddef>
 
 #include "audio/mixer.hpp"
-#include "common.h"
 #include "ezmidi.hpp"
 #include "sound.hpp"
 

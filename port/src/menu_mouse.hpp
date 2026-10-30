@@ -111,8 +111,8 @@ void MenuMouseNoteChoices(const void *owner, int message, std::span<const MenuMo
 // Claims this frame's clicks. A left click outside every row cannot confirm.
 int MenuMouseRows(std::span<const MenuMouseRect> rows, int selected, int wheel_step = 1);
 // Keep a click through a retail list's cursor-settling delay.
-void             MenuMouseDelayConfirm(const void *owner, int selected, int target, int ticks);
-void             MenuMouseDraw();
+void                            MenuMouseDelayConfirm(const void *owner, int selected, int target, int ticks);
+void                            MenuMouseDraw();
 inline constexpr gfx::InterpKey kMenuMouseHandKey = 0x4d454e5548414e44;
 bool                            MenuMousePointerVisible();
 MenuMouseSample                 MenuMouseDisplaySample();

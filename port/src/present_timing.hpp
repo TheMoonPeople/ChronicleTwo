@@ -15,7 +15,7 @@ public:
     };
 
     struct Decision {
-        Action            action;
+        Action            action{Action::Tick};
         Clock::time_point deadline;
     };
 

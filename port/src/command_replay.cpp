@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <deque>
 #include <limits>
+#include <span>
 #include <stdexcept>
 
 #include "log/log.hpp"
@@ -57,19 +58,35 @@ void Decode(const Json &argument, SPI_STACK &slot, std::string &storage) {
     slot.type = SPI_STACK_TYPE_INVALID;
     const auto type = argument.value("type", std::string{});
     if (type == "int") {
-        const auto value = argument.at("value").get<std::int64_t>();
-        if (value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max()) {
-            throw std::runtime_error("command integer out of range");
+        const auto &number = argument.at("value");
+        if (!number.is_number_integer()) {
+            throw std::runtime_error("command integer has a non-integer payload");
+        }
+        if (number.is_number_unsigned()) {
+            const auto value = number.get<std::uint64_t>();
+            if (value > static_cast<std::uint64_t>(std::numeric_limits<int>::max())) {
+                throw std::runtime_error("command integer out of range");
+            }
+            slot.value.integer = static_cast<int>(value);
+        } else {
+            const auto value = number.get<std::int64_t>();
+            if (value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max()) {
+                throw std::runtime_error("command integer out of range");
+            }
+            slot.value.integer = static_cast<int>(value);
         }
         slot.type = SPI_STACK_TYPE_INT;
-        slot.value.integer = static_cast<int>(value);
     } else if (type == "float") {
-        const auto value = argument.at("value").get<float>();
-        if (!std::isfinite(value)) {
-            throw std::runtime_error("non-finite command float");
+        const auto &number = argument.at("value");
+        if (!number.is_number()) {
+            throw std::runtime_error("command float has a non-numeric payload");
+        }
+        const double value = number.get<double>();
+        if (!std::isfinite(value) || value < -std::numeric_limits<float>::max() || value > std::numeric_limits<float>::max()) {
+            throw std::runtime_error("command float out of range");
         }
         slot.type = SPI_STACK_TYPE_FLOAT;
-        slot.value.real = value;
+        slot.value.real = static_cast<float>(value);
     } else if (type == "string") {
         storage = argument.contains("game_bytes") ? GameBytes(argument.at("game_bytes").get<std::string>()) : legacy_encoding::GameText(argument.at("value").get<std::string>());
         slot.type = SPI_STACK_TYPE_STRING;
@@ -83,13 +100,14 @@ void Decode(const Json &argument, SPI_STACK &slot, std::string &storage) {
  * Runs a command list; each command's arguments overwrite the slots it gives and the slots past them
  * keep the previous command's values, as the retail interpreter's stack does.
  */
-void Run(const Json &commands, SPI_TAG_PARAM *tags) {
+void Run(const Json &commands, std::span<const SPI_TAG_PARAM> tags) {
     int tag_count = 0;
-    while (tags[tag_count].name != nullptr && tags[tag_count].name[0] != '\0') {
+    while (static_cast<std::size_t>(tag_count) < tags.size() && tags[tag_count].name != nullptr && tags[tag_count].name[0] != '\0') {
         ++tag_count;
     }
     std::array<SPI_STACK, SPI_STACK_SIZE> stack{};
     std::deque<std::string>               strings(SPI_STACK_SIZE);
+    std::size_t                           live_count = 0;
     for (const auto &command : commands) {
         const auto name = command.at("command").get<std::string>();
         int        index = -1;
@@ -107,13 +125,19 @@ void Run(const Json &commands, SPI_TAG_PARAM *tags) {
         for (int slot = 0; slot < count; ++slot) {
             Decode(arguments[slot], stack[slot], strings[slot]);
         }
+        live_count = std::max(live_count, static_cast<std::size_t>(count));
         if (tags[index].function == nullptr) {
             continue;
         }
-        const int allowed = script_guards::TagArguments(tags[index].function, stack.data(), count, tags[index].name);
-        if (allowed >= 0) {
-            tags[index].function(stack.data(), allowed);
+        std::array<std::span<const char>, SPI_STACK_SIZE> text_sources{};
+        std::size_t                                       text_count = 0;
+        for (std::size_t slot = 0; slot < stack.size(); ++slot) {
+            if (stack[slot].type == SPI_STACK_TYPE_STRING && stack[slot].value.string == strings[slot].data()) {
+                text_sources[text_count++] = std::span(strings[slot].data(), strings[slot].size() + 1);
+            }
         }
+        dc2::script::InvokeTagFunction(tags[index].function,
+                                       dc2::script::TagArguments(std::span(stack).first(live_count), {}, {}, std::span(text_sources).first(text_count)), count);
     }
 }
 
@@ -128,7 +152,7 @@ bool IsCommandBuffer(const char *script, int size) {
     return first != end && *first == '{';
 }
 
-bool RunBuffer(const char *script, int size, SPI_TAG_PARAM *tags) {
+bool RunBuffer(const char *script, int size, std::span<const SPI_TAG_PARAM> tags) {
     try {
         const auto document = Json::parse(script, script + size);
         Run(document.at("commands"), tags);
@@ -150,7 +174,7 @@ std::vector<SPI_STACK> Arguments(const Json &arguments, std::vector<std::string>
 
 } // namespace command_replay
 
-void PortRunDynamicAnimeScript(SPI_TAG_PARAM *tags, char *script, int size) {
+void PortRunDynamicAnimeScript(std::span<const SPI_TAG_PARAM> tags, char *script, int size) {
     if (command_replay::IsCommandBuffer(script, size)) {
         command_replay::RunBuffer(script, size, tags);
         return;

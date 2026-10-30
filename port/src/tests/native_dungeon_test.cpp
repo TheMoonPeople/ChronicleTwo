@@ -1,26 +1,33 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include <array>
 #include <chrono>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "automap.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "dng_event.hpp"
 #include "dng_main.hpp"
 #include "dngfloor.hpp"
+#include "dngmenu.hpp"
 #include "gamedata.hpp"
 #include "mainloop.hpp"
+#include "map.hpp"
 #include "mg_memory.hpp"
 #include "monster.hpp"
 #include "platform/datapacks.hpp"
 #include "savedatadungeon.hpp"
+#include "scene.hpp"
+#include "scoped_global_object.hpp"
 
 namespace {
 using Json = nlohmann::json;
@@ -74,7 +81,7 @@ protected:
      */
     int Load(std::string name) {
         int size = 0;
-        EXPECT_TRUE(LoadFile2(name.data(), buffer.data(), &size, LOAD_FILE_READ)) << name;
+        EXPECT_TRUE(LoadFile2(name.data(), std::span(reinterpret_cast<u8 *>(buffer.data()), std::span(buffer).size_bytes()), &size, LOAD_FILE_READ)) << name;
         return size;
     }
 
@@ -96,10 +103,8 @@ TEST_F(NativeDungeon, RoomPresetsFillTheirTablesAndKeepTheGridSize) {
                             // A row of the wrong width is ignored, as RD ignores it.
                             {{"id", 4}, {"w", 1}, {"h", 1}, {"rate", 100}, {"fixed", 0}, {"table", {{{7, 7}, {8, 8}}, {{9, 5}}}}}})}
     });
-    auto      generator = std::make_unique<CAutoMapGen>();
-    const int size = Load("dungeon/cfg_file/d01f01.cfg.json");
-
-    generator->SetupRoomInfo(Script(), size, &memory);
+    auto generator = std::make_unique<CAutoMapGen>();
+    ASSERT_TRUE(generator->SetupRoomInfo("dungeon/cfg_file/d01f01.cfg.json"));
 
     EXPECT_FLOAT_EQ(generator->cell_w, 320.0f);
     EXPECT_FLOAT_EQ(generator->cell_d, 160.0f);
@@ -118,6 +123,14 @@ TEST_F(NativeDungeon, RoomPresetsFillTheirTablesAndKeepTheGridSize) {
     EXPECT_EQ(generator->room_info[1].table[1], 5);
     EXPECT_EQ(generator->room_info[2].id, -1);
     EXPECT_EQ(generator->room_info[2].table, nullptr);
+    EXPECT_EQ(memory.stGetUsed(), 0);
+    memory.stReset();
+    std::memset(memory.stack, 0xA5, static_cast<std::size_t>(memory.stack_size) * sizeof(u_long128));
+    EXPECT_EQ(first.table[0], 1);
+    EXPECT_EQ(first.table[7], 4);
+    generator->ClearRoomInfo();
+    EXPECT_EQ(generator->room_info, nullptr);
+    EXPECT_EQ(generator->room_info_num, 0);
 }
 
 TEST_F(NativeDungeon, TreasureTablesStayInsideTheirLimits) {
@@ -143,7 +156,7 @@ TEST_F(NativeDungeon, TreasureTablesStayInsideTheirLimits) {
     auto table = std::make_unique<TRESURE_BOX_FLOOR_INFO>();
     table->floor[1].group_num = -7;
 
-    CreatTresuarBoxInfo(table.get(), Script(), Load("dungeon/cfg_file/tbox_d01.cfg.json"));
+    ASSERT_TRUE(dc2::dungeon::LoadTreasureBoxInfo(*table, "dungeon/cfg_file/tbox_d01.cfg.json"));
 
     EXPECT_EQ(table->group_num, 2);
     EXPECT_EQ(table->rank_max, 0);
@@ -291,4 +304,184 @@ TEST_F(NativeDungeon, FloorTitleTextStillRunsThroughTheScript) {
     manager.AnalyzeFile(title, static_cast<int>(std::strlen(title)), &memory);
 
     EXPECT_STREQ(manager.glid_info[0].room.title, "Floor Four");
+}
+
+TEST(NativeDungeonMemory, ExhaustedTreeMenuDoesNotPublishPartialObjects) {
+    std::array<u_long128, 1> storage{};
+    mgCMemory                parent;
+    parent.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    std::array<int, 4> texture_blocks{};
+    DngTreeMapInit(&parent, texture_blocks.data(), 0, 0);
+    EXPECT_EQ(parent.stack_used, 0);
+    EXPECT_EQ(DngTreeMapKey(), 0);
+    DngTreeMapDraw();
+    DngTreeMapInit(nullptr, texture_blocks.data(), 0, 0);
+    EXPECT_EQ(DngTreeMapKey(), 0);
+}
+
+TEST_F(NativeDungeon, OwnedRoomTablesFillMissingCellsAndRejectRetiredOrForgedViews) {
+    Write("dungeon/cfg_file/owned.cfg.json", "dungeon_rooms", {
+                                                                  {"rooms", Json::array({{{"id", 3}, {"w", 2}, {"h", 2}, {"rate", 100}, {"fixed", 1}, {"table", {{{7, 5}, {8, 6}}}}}})}
+    });
+    auto generator = std::make_unique<CAutoMapGen>();
+    ASSERT_TRUE(generator->SetupRoomInfo("dungeon/cfg_file/owned.cfg.json"));
+    ASSERT_EQ(generator->room_info_num, 1);
+    const auto &room = generator->room_info[0];
+    ASSERT_NE(room.table, nullptr);
+    EXPECT_EQ(room.table[0], 7);
+    EXPECT_EQ(room.table[1], 5);
+    EXPECT_EQ(room.table[4], -1);
+    EXPECT_EQ(room.table[5], 0);
+    EXPECT_EQ(room.table[6], -1);
+    EXPECT_EQ(room.table[7], 0);
+    EXPECT_EQ(generator->CreatRoom(1, 1, 0, -1), 0);
+    generator->room_info_num = std::numeric_limits<int>::max();
+    EXPECT_EQ(generator->CreatRoom(1, 1, 0, 0), 0);
+    std::array<AUTOMAP_ROOM_INFO, 1> forged{};
+    generator->room_info = forged.data();
+    generator->room_info_num = 1;
+    EXPECT_EQ(generator->CreatRoom(1, 1, 0, 0), 0);
+    generator->ClearRoomInfo();
+    EXPECT_EQ(generator->CreatRoom(1, 1, 0, 0), 0);
+}
+
+TEST_F(NativeDungeon, TreasureTablesPublishOnlyInitializedItemsAndClearAbsentFloors) {
+    Write("dungeon/cfg_file/short_treasure.cfg.json", "treasure_boxes", {
+                                                                            {"groups",      Json::array({{{"group_id", 7}, {"item_num", 96}, {"items", {{{"item_no", 22}, {"rank", 5}, {"num", 3}}}}}})},
+                                                                            {"floor_start", 0                                                                                                          },
+                                                                            {"floors",      Json::array()                                                                                              }
+    });
+    auto table = std::make_unique<TRESURE_BOX_FLOOR_INFO>();
+    std::memset(table.get(), 0xA5, sizeof(*table));
+    ASSERT_TRUE(dc2::dungeon::LoadTreasureBoxInfo(*table, "dungeon/cfg_file/short_treasure.cfg.json"));
+    EXPECT_EQ(table->group_num, 1);
+    EXPECT_EQ(table->group[0].item_num, 1);
+    EXPECT_EQ(table->group[0].item[0].item_no, 22);
+    EXPECT_EQ(table->group[0].item[1].item_no, 0);
+    EXPECT_EQ(table->group[1].item_num, 0);
+    for (const auto &floor : table->floor) {
+        EXPECT_EQ(floor.group_num, 0);
+    }
+    EXPECT_FALSE(dc2::dungeon::LoadTreasureBoxInfo(*table, "dungeon/cfg_file/missing.cfg.json"));
+    EXPECT_EQ(table->group_num, 0);
+}
+
+TEST_F(NativeDungeon, DummyTreePaddingDoesNotReadBeyondItsScratchGrid) {
+    auto                                        map = std::make_unique<CMap>();
+    dc2::test::ScopedGlobalObject<DngMainScene> scene;
+    char                                        name[] = "dummy";
+    ASSERT_GE(scene->AssignMap(0, map.get(), name), 0);
+    auto  generator = std::make_unique<CAutoMapGen>();
+    auto *cells = dc2::memory::NewArray<CAutoMapParts>(memory, 1);
+    ASSERT_NE(cells, nullptr);
+    cells[0].Initialize();
+    generator->SetGridStorage(dc2::memory::ArenaBuffer::Bind(memory,
+                                                             std::span(reinterpret_cast<u8 *>(cells), sizeof(CAutoMapParts))));
+    generator->grid_w = 1;
+    generator->grid_h = 1;
+    generator->SetDummyTree();
+    EXPECT_EQ(cells[0].parts_no, -1);
+    generator->grid_w = 0;
+    generator->SetDummyTree();
+    EXPECT_EQ(cells[0].parts_no, -1);
+}
+
+TEST_F(NativeDungeon, GridConsumersRejectArenaRetirementAndAddressReuse) {
+    auto  generator = std::make_unique<CAutoMapGen>();
+    auto *cells = dc2::memory::NewArray<CAutoMapParts>(memory, 4);
+    ASSERT_NE(cells, nullptr);
+    for (auto &cell : std::span(cells, 4)) {
+        cell.Initialize();
+    }
+    generator->grid_w = 2;
+    generator->grid_h = 2;
+    generator->SetGridStorage(dc2::memory::ArenaBuffer::Bind(memory,
+                                                             std::span(reinterpret_cast<u8 *>(cells), 4 * sizeof(CAutoMapParts))));
+    CMiniMapSymbol symbol;
+    symbol.SetMapInfo({}, generator->GridStorage(), 2, 2, 320.0f, 320.0f);
+    ASSERT_EQ(generator->GridCells().size(), 4);
+    ASSERT_EQ(symbol.GridCells().size(), 4);
+    generator->MinimapAllVisible();
+    for (const auto &cell : std::span(cells, 4)) {
+        EXPECT_TRUE(cell.visible);
+    }
+    memory.stClearUsed();
+    std::memset(cells, 0xA5, 4 * sizeof(CAutoMapParts));
+    std::array<u8, 4 * sizeof(CAutoMapParts)> poison{};
+    poison.fill(0xA5);
+    EXPECT_TRUE(generator->GridCells().empty());
+    EXPECT_TRUE(symbol.GridCells().empty());
+    generator->MinimapAllVisible();
+    float point[4]{};
+    generator->MinimapVisTest(point);
+    generator->MinimapDoorOpen(point);
+    generator->UpdateNaviMap(point, 4);
+    generator->SetRoadLinkMark(0, 0, AUTOMAP_LINK_NEG_X);
+    EXPECT_EQ(generator->GetAttrStatus(point), 0);
+    EXPECT_EQ(generator->LinkConnectCheck(0, 0, 0, 0, 0), 0);
+    symbol.DrawSymbol(point, 0);
+    symbol.Draw(point);
+    EXPECT_EQ(std::memcmp(cells, poison.data(), poison.size()), 0);
+    auto *reused = dc2::memory::NewArray<CAutoMapParts>(memory, 4);
+    ASSERT_EQ(reused, cells);
+    EXPECT_TRUE(generator->GridCells().empty());
+    EXPECT_TRUE(symbol.GridCells().empty());
+    generator->SetGridStorage(dc2::memory::ArenaBuffer::Bind(memory,
+                                                             std::span(reinterpret_cast<u8 *>(reused), 4 * sizeof(CAutoMapParts))));
+    ASSERT_EQ(generator->GridCells().size(), 4);
+    generator->grid_w = 3;
+    EXPECT_TRUE(generator->GridCells().empty());
+    generator->MinimapAllVisible();
+    EXPECT_EQ(std::memcmp(cells, poison.data(), poison.size()), 0);
+}
+
+TEST_F(NativeDungeon, GridCoordinatesAndRoomLinksRejectOutOfRangeInputsBeforeWriting) {
+    auto  generator = std::make_unique<CAutoMapGen>();
+    auto *cells = dc2::memory::NewArray<CAutoMapParts>(memory, 4);
+    ASSERT_NE(cells, nullptr);
+    for (auto &cell : std::span(cells, 4)) {
+        cell.Initialize();
+        cell.attr = 0x45;
+        cell.navi = 3;
+    }
+    generator->grid_w = 2;
+    generator->grid_h = 2;
+    generator->cell_w = 320.0f;
+    generator->cell_d = 320.0f;
+    generator->minimap_enable = 1;
+    generator->navi_enable = 1;
+    generator->navi_valid = 1;
+    generator->navi_depth = 9;
+    generator->SetGridStorage(dc2::memory::ArenaBuffer::Bind(memory,
+                                                             std::span(reinterpret_cast<u8 *>(cells), 4 * sizeof(CAutoMapParts))));
+    const std::array invalid_values{std::numeric_limits<float>::quiet_NaN(),
+                                    std::numeric_limits<float>::infinity(), std::numeric_limits<float>::max(), 640.0f};
+    for (float value : invalid_values) {
+        float point[4]{value, 0.0f, value, 1.0f};
+        EXPECT_EQ(generator->GetAttrStatus(point), AUTOMAP_ATTR_HIDE);
+        EXPECT_EQ(generator->GetNaviDistance(point), -1.0f);
+        generator->MinimapVisTest(point);
+        generator->MinimapDoorOpen(point);
+        generator->UpdateNaviMap(point, 100);
+        EXPECT_EQ(generator->navi_depth, 9);
+    }
+    generator->SetRoadLinkMark(0, 0, AUTOMAP_LINK_POS_X);
+    generator->SetRoadLinkMark(0, 0, -1);
+    EXPECT_EQ(generator->LinkConnectCheck(-1, 0, 0, 0, 0), 0);
+    generator->RoomLink(-1, 0);
+    generator->RoomLink(0, std::numeric_limits<int>::max());
+    generator->room[0].x = generator->room[0].y = 0;
+    generator->room[0].w = generator->room[0].h = 1;
+    generator->room[1].x = generator->room[1].y = 1;
+    generator->room[1].w = generator->room[1].h = 1;
+    generator->RoomLink(0, 1);
+    for (const auto &cell : std::span(cells, 4)) {
+        EXPECT_FALSE(cell.visible);
+        EXPECT_EQ(cell.link, 0);
+        EXPECT_EQ(cell.road_link, 0);
+        EXPECT_EQ(cell.attr, 0x45);
+    }
+    float point[4]{0.0f, 0.0f, 0.0f, 1.0f};
+    EXPECT_EQ(generator->GetAttrStatus(point), 0x45);
+    EXPECT_FLOAT_EQ(generator->GetNaviDistance(point), 1920.0f);
 }

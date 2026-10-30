@@ -23,39 +23,39 @@ function script.on_start()
 	local var7: s32 = 0
 	local hit_num: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	value = effect.GetValue(0) or value
-	effect.BtlSePlay(76, work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetMotion("火柱", -1, 6)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	value = effect.get_script_value(0) or value
+	effect.play_battle_sound(76, work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_motion("火柱", -1, 6)
 	var6 = 0
 	var7 = 0
-	effect.ColprimCreate("ドラゴン火弾")
-	effect.ColprimSetDamage(value)
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 20.0)
+	effect.create_collision_primitive("ドラゴン火弾")
+	effect.set_collision_primitive_damage(value)
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 20.0)
 	while var7 < 40 do
 		if var6 == 0 then
-			hit_num = effect.ColprimGetHitcnt() or hit_num
+			hit_num = effect.get_collision_primitive_hit_count() or hit_num
 			if hit_num > 0 then
 				var6 = 1
-				effect.ColprimDelete(-1)
+				effect.delete_collision_primitive(-1)
 				break
 			end
 		end
 		if var7 == 13 then
 			var6 = 1
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		vm.wait()
 		var7 = var7 + 1
 	end
 	helper_8b333653()
 	if var6 == 0 then
-		effect.ColprimDelete(-1)
+		effect.delete_collision_primitive(-1)
 	end
 end
 

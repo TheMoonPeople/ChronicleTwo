@@ -43,61 +43,61 @@ function script.on_start()
 	local dir_y: f32 = 0
 	local dir_z: f32 = 0
 	var20 = 1
-	value = effect.GetValue(0) or value
-	user_id = effect.GetUserId() or user_id
+	value = effect.get_script_value(0) or value
+	user_id = effect.get_owner_character() or user_id
 	do
-		local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "dcol01")
+		local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "dcol01")
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.ScnGetChrRot_4(user_id)
+		local out1, out2, out3 = effect.get_scene_character_rotation_4(user_id)
 		rot_x = out1 or rot_x
 		rot_y = out2 or rot_y
 		rot_z = out3 or rot_z
 	end
 	do
-		local out1, out2, out3 = effect.GetDirVector(rot_x, rot_y, rot_z)
+		local out1, out2, out3 = effect.get_direction_vector(rot_x, rot_y, rot_z)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = effect.NormalVector(var9, var10, var11)
+		local out1, out2, out3 = effect.normalize_vector(var9, var10, var11)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, 8.0)
+		local out1, out2, out3 = effect.scale_vector(var9, var10, var11, 8.0)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	effect.ChrSetPos(var0, var1, var2)
-	effect.ChrSetRot(rot_x, rot_y, rot_z)
-	effect.ChrSetShow(1, 1)
-	effect.ColprimCreate("通常攻撃")
-	effect.ColprimSetDamage(value)
-	effect.ChrSetMotion("回転", -1, 0)
+	effect.set_effect_character_position(var0, var1, var2)
+	effect.rotate_effect_character_toward(rot_x, rot_y, rot_z)
+	effect.set_effect_character_visible(1, 1)
+	effect.create_collision_primitive("通常攻撃")
+	effect.set_collision_primitive_damage(value)
+	effect.set_effect_character_motion("回転", -1, 0)
 	var18 = var1
 	var22 = 0
 	while var22 < 60 do
 		do
-			local out1, out2, out3 = effect.GetDirVector(rot_x, rot_y, rot_z)
+			local out1, out2, out3 = effect.get_direction_vector(rot_x, rot_y, rot_z)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
 		do
-			local out1, out2, out3 = effect.NormalVector(var9, var10, var11)
+			local out1, out2, out3 = effect.normalize_vector(var9, var10, var11)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, 8.0 - vm.f32(vm.f32(0.02) * var22))
+			local out1, out2, out3 = effect.scale_vector(var9, var10, var11, 8.0 - vm.f32(vm.f32(0.02) * var22))
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
@@ -106,23 +106,23 @@ function script.on_start()
 			var10 = vm.f32(var10 - vm.f32(vm.f32(0.06) * var22))
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+			local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		var23 = effect.IntersectionPoint_8(4, var6, var7, var8, var0, var1, var2) or var23
+		var23 = effect.get_intersection_point_8(4, var6, var7, var8, var0, var1, var2) or var23
 		if var23 >= 0 then
 			var24 = 0
 			do
 				local out1, out2, out3, out4, out5, out6, out7 =
-					effect.IntersectionPoint_14(4, var6, var7, var8, var0, var1, var2)
+					effect.get_intersection_point_14(4, var6, var7, var8, var0, var1, var2)
 				var6 = out1 or var6
 				var7 = out2 or var7
 				var8 = out3 or var8
@@ -132,49 +132,49 @@ function script.on_start()
 				var23 = out7 or var23
 			end
 			do
-				local out1, out2, out3 = effect.GetDirVector(rot_x + vm.f32(1.5707964), 0.0, 0.0)
+				local out1, out2, out3 = effect.get_direction_vector(rot_x + vm.f32(1.5707964), 0.0, 0.0)
 				dir_x = out1 or dir_x
 				dir_y = out2 or dir_y
 				dir_z = out3 or dir_z
 			end
 			do
-				local out1, out2, out3 = effect.GetDirVector(0.0, rot_y + vm.f32(3.1415927), 0.0)
+				local out1, out2, out3 = effect.get_direction_vector(0.0, rot_y + vm.f32(3.1415927), 0.0)
 				var12 = out1 or var12
 				var13 = out2 or var13
 				var14 = out3 or var14
 			end
 			do
-				local out1, out2, out3 = effect.AddVector(var12, var13, var14, dir_x, dir_y, dir_z)
+				local out1, out2, out3 = effect.add_vectors(var12, var13, var14, dir_x, dir_y, dir_z)
 				var12 = out1 or var12
 				var13 = out2 or var13
 				var14 = out3 or var14
 			end
 			do
-				local out1, out2, out3 = effect.NormalVector(var12, var13, var14)
+				local out1, out2, out3 = effect.normalize_vector(var12, var13, var14)
 				var12 = out1 or var12
 				var13 = out2 or var13
 				var14 = out3 or var14
 			end
 			do
-				local out1, out2, out3 = effect.AddVector(var12, var13, var14, var15, var16, var17)
+				local out1, out2, out3 = effect.add_vectors(var12, var13, var14, var15, var16, var17)
 				var12 = out1 or var12
 				var13 = out2 or var13
 				var14 = out3 or var14
 			end
 			do
-				local out1, out2, out3 = effect.NormalVector(var12, var13, var14)
+				local out1, out2, out3 = effect.normalize_vector(var12, var13, var14)
 				var12 = out1 or var12
 				var13 = out2 or var13
 				var14 = out3 or var14
 			end
 			do
-				local out1, out2, out3 = effect.CopyVector(var12, var13, var14)
+				local out1, out2, out3 = effect.copy_vector(var12, var13, var14)
 				var9 = out1 or var9
 				var10 = out2 or var10
 				var11 = out3 or var11
 			end
 			do
-				local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, 4.5)
+				local out1, out2, out3 = effect.scale_vector(var9, var10, var11, 4.5)
 				var9 = out1 or var9
 				var10 = out2 or var10
 				var11 = out3 or var11
@@ -185,21 +185,21 @@ function script.on_start()
 				var22 = 0
 				while var22 < 20 do
 					do
-						local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+						local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 						var6 = out1 or var6
 						var7 = out2 or var7
 						var8 = out3 or var8
 					end
 					do
-						local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+						local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 						var0 = out1 or var0
 						var1 = out2 or var1
 						var2 = out3 or var2
 					end
-					effect.ColprimDelete(-1)
-					var23 = effect.IntersectionPoint_8(4, var6, var7, var8, var0, var1, var2) or var23
+					effect.delete_collision_primitive(-1)
+					var23 = effect.get_intersection_point_8(4, var6, var7, var8, var0, var1, var2) or var23
 					if var23 < 0 then
-						effect.ChrSetPos(var0, var1, var2)
+						effect.set_effect_character_position(var0, var1, var2)
 					else
 						var24 = var24 + 1
 						if var24 > 1 then
@@ -212,9 +212,9 @@ function script.on_start()
 				break
 			end
 		else
-			effect.ChrSetPos(var0, var1, var2)
-			effect.ColprimSetCoord(var0, var1, var2, 10.0)
-			var23 = effect.ColprimGetHitcnt() or var23
+			effect.set_effect_character_position(var0, var1, var2)
+			effect.set_collision_primitive_shape(var0, var1, var2, 10.0)
+			var23 = effect.get_collision_primitive_hit_count() or var23
 			if var23 > 0 then
 				var20 = 0
 				break
@@ -224,18 +224,18 @@ function script.on_start()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 	if var20 == 1 then
-		effect.ChrSetMotion("回転", -1, 1)
-		effect.ChrSetShow(0, 1, -7.0)
-		effect.ColprimDelete(-1)
+		effect.set_effect_character_motion("回転", -1, 1)
+		effect.set_effect_character_visible(0, 1, -7.0)
+		effect.delete_collision_primitive(-1)
 		var22 = 0
 		while var22 < 30 do
 			vm.wait()
 			var22 = var22 + 1
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

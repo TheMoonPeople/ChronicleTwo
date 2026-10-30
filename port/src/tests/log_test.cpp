@@ -17,13 +17,11 @@
 #include <vector>
 
 #include "kazarov/log.hpp"
+#include "log/game_output.hpp"
 #include "log/log.hpp"
 #include "log/log_internal.hpp"
 #include "log_capture.hpp"
 #include "platform/config.hpp"
-#include "ps2_printf.hpp"
-
-#undef printf
 
 namespace {
 
@@ -97,7 +95,7 @@ TEST_F(Log, SpecsNameALevelAndCategoryLevels) {
     ASSERT_TRUE(spec.has_value());
     const LogSpec parsed = spec.value_or(LogSpec{});
     EXPECT_EQ(parsed.level, LogLevel::Warning);
-    const std::vector<std::pair<LogCategory, LogLevel> > expected = {
+    const std::vector<std::pair<LogCategory, LogLevel>> expected = {
         {LogCategory::Gfx,   LogLevel::Trace},
         {LogCategory::Audio, LogLevel::Off  },
     };
@@ -173,6 +171,32 @@ TEST_F(Log, EveryThreadsLinesArriveByTheFlush) {
     EXPECT_EQ(std::set<std::string>(messages.begin(), messages.end()).size(), messages.size());
 }
 
+TEST_F(Log, EveryJoinedBatchPrecedesItsFlushMarker) {
+    constexpr int batch_count = 16;
+    constexpr int thread_count = 4;
+    constexpr int line_count = 32;
+    for (int batch = 0; batch < batch_count; ++batch) {
+        std::vector<std::thread> threads;
+        threads.reserve(thread_count);
+        for (int thread = 0; thread < thread_count; ++thread) {
+            threads.emplace_back([batch, thread] {
+                LogThreadReady();
+                for (int line = 0; line < line_count; ++line) {
+                    CT_LOG_INFO(Memory, "batch {} thread {} line {}", batch, thread, line);
+                }
+            });
+        }
+        for (auto &thread : threads) {
+            thread.join();
+        }
+        CT_LOG_INFO(Main, "joined batch {}", batch);
+        const auto lines = Lines();
+        ASSERT_EQ(lines.size(), static_cast<std::size_t>((batch + 1) * (thread_count * line_count + 1)));
+        EXPECT_EQ(lines.back().logger, "main");
+        EXPECT_EQ(lines.back().message, std::format("joined batch {}", batch));
+    }
+}
+
 TEST_F(Log, ConsoleShowsTheMessageAlone) {
     LogConfig config = TestConfig();
     config.categories = {
@@ -218,13 +242,13 @@ TEST_F(Log, Ps2PrintfJoinsPartialLines) {
     EXPECT_EQ(Messages("ps2"), (std::vector<std::string>{"abc", "de", "f"}));
 
     testing::internal::CaptureStdout();
-    EXPECT_EQ(CtPs2Printf("x=%d %s\n", 5, "y"), 6);
+    EXPECT_EQ(dc2::log::PrintGame("x=%d %s\n", 5, "y"), 6);
     std::fflush(stdout);
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "x=5 y\n");
     EXPECT_EQ(Messages("ps2").back(), "x=5 y");
 
     const std::string long_text(3000, 'z');
-    CtPs2Printf("%s\n", long_text.c_str());
+    dc2::log::PrintGame("%s\n", long_text.c_str());
     EXPECT_EQ(Messages("ps2").back(), long_text);
 }
 
@@ -342,7 +366,7 @@ TEST(LogConfigKeys, InvalidValuesKeepTheirDefaults) {
     EXPECT_FALSE(config.log.level.has_value());
     EXPECT_EQ(config.log.keep, kLogKeepDefault);
     EXPECT_TRUE(config.log.file);
-    const std::vector<std::pair<LogCategory, LogLevel> > expected = {
+    const std::vector<std::pair<LogCategory, LogLevel>> expected = {
         {LogCategory::Gfx, LogLevel::Debug}
     };
     EXPECT_EQ(config.log.categories, expected);

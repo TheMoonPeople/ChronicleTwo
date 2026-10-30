@@ -22,60 +22,60 @@ function script.on_start()
 	local var5: f32 = 0
 	local var6: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	effect.ChrSetPos(var0, var1, var2)
+	effect.set_effect_character_position(var0, var1, var2)
 	do
-		local out1, out2, out3 = effect.SubVector(var3, var4, var5, var0, var1, var2)
-		var3 = out1 or var3
-		var4 = out2 or var4
-		var5 = out3 or var5
-	end
-	do
-		local out1, out2, out3 = effect.NormalVector(var3, var4, var5)
+		local out1, out2, out3 = effect.subtract_vectors(var3, var4, var5, var0, var1, var2)
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var3, var4, var5, 0.2)
+		local out1, out2, out3 = effect.normalize_vector(var3, var4, var5)
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	effect.ChrSetMotion("ｴﾌｪｸﾄ_コンダ魔法1")
-	effect.ChrSetShow(1, 1, 0.1)
+	do
+		local out1, out2, out3 = effect.scale_vector(var3, var4, var5, 0.2)
+		var3 = out1 or var3
+		var4 = out2 or var4
+		var5 = out3 or var5
+	end
+	effect.set_effect_character_motion("ｴﾌｪｸﾄ_コンダ魔法1")
+	effect.set_effect_character_visible(1, 1, 0.1)
 	var6 = 0
 	while var6 < 15 do
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var3, var4, var5)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var3, var4, var5)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		effect.ChrSetPos(var0, var1, var2)
+		effect.set_effect_character_position(var0, var1, var2)
 		vm.wait()
 		var6 = var6 + 1
 	end
-	effect.ChrSetShow(0, 1, -0.1)
+	effect.set_effect_character_visible(0, 1, -0.1)
 	var6 = 0
 	while var6 < 15 do
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var3, var4, var5)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var3, var4, var5)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		effect.ChrSetPos(var0, var1, var2)
+		effect.set_effect_character_position(var0, var1, var2)
 		vm.wait()
 		var6 = var6 + 1
 	end

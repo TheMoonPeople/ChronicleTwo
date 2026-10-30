@@ -6,8 +6,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <map>
 #include <numbers>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -23,8 +25,10 @@
 #include "mg_texture.hpp"
 #include "mg_visual.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "platform/arena.hpp"
 #include "platform/model_assets.hpp"
+#include "render/renderer.hpp"
+#include "text/bounded.hpp"
 #include "userdata.hpp"
 
 namespace {
@@ -44,17 +48,17 @@ constexpr int   kCachedIcons = 128;
  * Owns icon textures independently of each gameplay mode's texture table.
  */
 struct IconTextures {
-    std::vector<u_long128> storage;           /**< Backing allocation for the manager tables. */
-    mgCMemory              memory;            /**< Aligned table allocation view. */
-    mgCTextureManager      manager;           /**< Independent model and icon texture ownership. */
-    mgCTexture            *scratch = nullptr; /**< Reusable model render destination. */
+    mgCMemory         memory;            /**< Aligned table allocation view. */
+    mgCTextureManager manager;           /**< Independent model and icon texture ownership. */
+    mgCTexture       *scratch = nullptr; /**< Reusable model render destination. */
 
     IconTextures() {
-        const auto bytes = (kIconBlock + 1) * sizeof(mgCTextureBlock) +
-                           kIconSlots * (sizeof(mgCTexture) + sizeof(mgTEXTURE_HASH) + sizeof(mgCTexture *) + sizeof(mgTEXTURE_HASH *)) + 1024;
-        storage.resize((bytes + 63) / 16 + 4);
-        const auto aligned = (reinterpret_cast<std::uintptr_t>(storage.data()) + 63) & ~std::uintptr_t{63};
-        memory.stSetBuffer(reinterpret_cast<u_long128 *>(aligned), static_cast<int>((storage.size() * sizeof(u_long128) - (aligned - reinterpret_cast<std::uintptr_t>(storage.data()))) / sizeof(u_long128)));
+        constexpr auto bytes = (kIconBlock + 1) * sizeof(mgCTextureBlock) +
+                               kIconSlots * (sizeof(mgCTexture) + sizeof(mgTEXTURE_HASH) + sizeof(mgCTexture *) + sizeof(mgTEXTURE_HASH *)) + 1024;
+        constexpr auto quadwords = (bytes + sizeof(u_long128) - 1) / sizeof(u_long128);
+        static_assert(quadwords <= static_cast<std::size_t>(std::numeric_limits<int>::max()));
+        memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&memory, quadwords * sizeof(u_long128))),
+                           static_cast<int>(quadwords));
         manager.SetTableBuffer(kIconSlots, kIconBlock + 1, &memory);
         manager.Initialize(0, -1);
         g_textures_ready = true;
@@ -110,38 +114,31 @@ bool IsFootwear(int item_type) {
 /**
  * Selects an item's native model path, excluding whole-character costumes and stand-ins.
  */
-bool ModelPath(int item_no, char *path, std::size_t size) {
+std::optional<std::string> ModelPath(int item_no) {
     CDataCommon *record = GameItemDataManage.GetCommonData(item_no);
     if (record == nullptr || record->file_name[0] == 0) {
-        return false;
+        return std::nullopt;
     }
     const int type = ConvertUsedItemType(record->type);
     // A hat or a hair accessory is a model of its own (the game hangs it on the character's head); clothes and shoes are
     // skins on the character and are drawn another way.
     if (type == USED_ITEM_TYPE_COSTUME && record->type != ITEM_DATA_MAX_HAT && record->type != ITEM_DATA_MONICA_ACCESSORY) {
         if (!IsSkinItem(record->type)) {
-            return false;
+            return std::nullopt;
         }
-        char *skin = GetItemFilePath(item_no, 0);
-        if (skin == nullptr || skin[0] == 0) {
-            return false;
-        }
-        std::snprintf(path, size, "%s", skin);
-        return true;
+        return ItemFilePath(item_no, 0);
     }
     // A weapon or a robo part has a model made for the item view; the rest are the one model.
-    char *variant = GetItemFilePath(item_no, 1);
-    if (variant != nullptr && variant[0] != 0 && (type == USED_ITEM_TYPE_WEAPON || type == USED_ITEM_TYPE_ROBO_PART)) {
-        std::snprintf(path, size, "%s", variant);
-        return true;
+    if (const auto variant = ItemFilePath(item_no, 1);
+        variant && !variant->empty() && (type == USED_ITEM_TYPE_WEAPON || type == USED_ITEM_TYPE_ROBO_PART)) {
+        return variant;
     }
-    char *plain = GetItemFilePath(item_no, 0);
-    if (plain == nullptr || plain[0] == 0) {
-        return false;
+    const auto plain = ItemFilePath(item_no, 0);
+    if (!plain || plain->empty()) {
+        return std::nullopt;
     }
-    std::snprintf(path, size, "%s", plain);
     // The treasure chest's model stands in for items that have none of their own.
-    return std::strstr(path, "d_box") == nullptr;
+    return plain->find("d_box") == std::string::npos ? plain : std::nullopt;
 }
 
 /**
@@ -166,9 +163,9 @@ void DrawnBox(mgCFrame *node, float lo[3], float hi[3], bool &any) {
             node->GetLWMatrix(matrix);
             // The stored bound is loose for some models (a robo arm's is far larger than the arm), so the model's own vertices
             // are used where it has them; the bound's corners are the fallback.
-            const auto         *mdt = dynamic_cast<const mgCVisualMDT *>(node->visual);
-            const bool          vertices = mdt != nullptr && mdt->vertex != nullptr && mdt->vertex_num > 0 && !g_box_from_bound;
-            const int           count = vertices ? mdt->vertex_num : 8;
+            const auto *mdt = dynamic_cast<const mgCVisualMDT *>(node->visual);
+            const bool  vertices = mdt != nullptr && mdt->vertex != nullptr && mdt->vertex_num > 0 && !g_box_from_bound;
+            const int   count = vertices ? mdt->vertex_num : 8;
             for (int n = 0; n < count; n++) {
                 float point[4];
                 if (vertices) {
@@ -207,51 +204,66 @@ void DrawnBox(mgCFrame *node, float lo[3], float hi[3], bool &any) {
  * loadout), whose outline is drawn thinner to match.
  */
 bool Render(int item_no, mgCTexture *icon, int icon_size = kIcon, gfx::TextureHandle into = gfx::kNullTexture) {
-    char path[0x80];
-    if (!ModelPath(item_no, path, sizeof path)) {
+    const auto model_path = ModelPath(item_no);
+    if (!model_path) {
         return false;
     }
+    std::string path = *model_path;
 
     CDataCommon *record = GameItemDataManage.GetCommonData(item_no);
     const bool   skinned = IsSkinItem(record->type);
-    char         skin_path[0x80] = {};
+    std::string  skin_path;
     if (skinned) {
-        std::snprintf(skin_path, sizeof(skin_path), "%s", path);
+        skin_path = path;
 
-        char       model_name[32] = {};
         const bool max = record->type == ITEM_DATA_MAX_CLOTHES || record->type == ITEM_DATA_MAX_SHOES;
-        GetMainCharaModelName(max ? USER_CHARA_MAX : USER_CHARA_MONICA, model_name, 0);
-        std::snprintf(path, sizeof(path), "mainchr/%s", model_name);
+        const auto model_name = MainCharaModelName(max ? USER_CHARA_MAX : USER_CHARA_MONICA, 0);
+        if (!model_name) {
+            return false;
+        }
+        path = "mainchr/" + *model_name;
     }
     std::string error;
     auto        estimated = model_assets::EstimateCharacterMemory(path, "info", error);
     if (!estimated && !skinned) {
-        const char *plain = GetItemFilePath(item_no, 0);
-        if (!plain || !*plain) {
+        const auto plain = ItemFilePath(item_no, 0);
+        if (!plain || plain->empty()) {
             return false;
         }
-        std::snprintf(path, sizeof(path), "%s", plain);
+        path = *plain;
         estimated = model_assets::EstimateCharacterMemory(path, "info", error);
     }
     if (!estimated) {
         return false;
     }
-    std::size_t bytes = *estimated + sizeof(CActionChara) + 65536;
-    if (skinned) {
-        const auto skin_estimate = model_assets::EstimateCharacterMemory(skin_path, "info", error);
-        if (!skin_estimate) {
+    constexpr std::size_t max_model_bytes = 256u * 1024u * 1024u;
+    static_assert(sizeof(CActionChara) <= max_model_bytes - 65536);
+    std::size_t bytes = sizeof(CActionChara) + 65536;
+    const auto  account = [&](std::size_t addition) {
+        if (addition > max_model_bytes - bytes) {
             return false;
         }
-        bytes += *skin_estimate;
-    }
-    if (bytes > 256u * 1024u * 1024u) {
+        bytes += addition;
+        return true;
+    };
+    if (!account(*estimated)) {
         return false;
     }
-    std::vector<u_long128> storage((bytes + 63) / 16 + 4);
-    const auto             aligned = (reinterpret_cast<std::uintptr_t>(storage.data()) + 63) & ~std::uintptr_t{63};
-    mgCMemory              stack;
-    stack.stSetBuffer(reinterpret_cast<u_long128 *>(aligned), static_cast<int>(bytes / 16));
-    auto *chara = new (stack.Alloc((sizeof(CActionChara) + 15) / 16 + 2)) CActionChara;
+    if (skinned) {
+        const auto skin_estimate = model_assets::EstimateCharacterMemory(skin_path, "info", error);
+        if (!skin_estimate || !account(*skin_estimate)) {
+            return false;
+        }
+    }
+    static char model_arena_key;
+    const auto  quadwords = (bytes + sizeof(u_long128) - 1) / sizeof(u_long128);
+    mgCMemory   stack;
+    stack.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_arena_key, quadwords * sizeof(u_long128))),
+                      static_cast<int>(quadwords));
+    auto *chara = dc2::memory::NewObject<CActionChara>(stack);
+    if (chara == nullptr) {
+        return false;
+    }
     chara->Initialize(nullptr);
 
     struct CharacterCleanup {
@@ -271,13 +283,13 @@ bool Render(int item_no, mgCTexture *icon, int icon_size = kIcon, gfx::TextureHa
     options.textures = &Textures().manager;
     options.texture_block = kModelBlock;
     options.outline = false;
-    std::strcpy(Textures().manager.name_suffix, "_menu");
+    dc2::text::Copy(Textures().manager.name_suffix, dc2::text::View("_menu"));
     if (!model_assets::LoadCharacter(*chara, path, "info", options, error)) {
         return false;
     }
     if (skinned) {
         Textures().manager.DeleteTexAnime(kModelBlock);
-        std::strcpy(Textures().manager.name_suffix, "_skin");
+        dc2::text::Copy(Textures().manager.name_suffix, dc2::text::View("_skin"));
         if (!model_assets::LoadSkin(*chara, skin_path, "info", "", options, error)) {
             return false;
         }

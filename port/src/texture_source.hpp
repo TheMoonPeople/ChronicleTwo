@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -24,3 +25,12 @@ std::optional<std::string> TextureSourceLookup(const void *buffer);
  * Transfers a resource identity when native code copies its buffer.
  */
 void TextureSourceCopy(const void *from, const void *to, std::size_t size);
+
+namespace dc2::assets {
+/**
+ *
+ * Registers a source until its identity-bearing ownership token is released.
+ *
+ */
+std::shared_ptr<const void> RegisterOwnedSource(const void *buffer, std::string source);
+} // namespace dc2::assets

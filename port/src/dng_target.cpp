@@ -5,11 +5,11 @@
 #include <unordered_map>
 
 #include "dng_hud.hpp"
-#include "dng_target_port.hpp"
 #include "maintex.hpp"
 #include "mglib.hpp"
 #include "monster.hpp"
 #include "nd_meswin.hpp"
+#include "object/dun/target_presentation.hpp"
 #include "prespr.hpp"
 #include "screen_overlay_anchor.hpp"
 
@@ -75,7 +75,7 @@ gfx::Interp2D mgPortTargetName(CLockOnModel *lock) {
     return state.target ? Tag(&gauges[&state.target->life_gage].label, state.generation) : gfx::Interp2D{};
 }
 
-PORT_OVERRIDE void CEnemyLifeGage::Initialize(int count) {
+void CEnemyLifeGage::Initialize(int count) {
     auto &state = gauges[this];
     state = {};
     state.life = state.content = ++next_generation;
@@ -86,7 +86,7 @@ PORT_OVERRIDE void CEnemyLifeGage::Initialize(int count) {
     scale = 0;
 }
 
-PORT_OVERRIDE void CEnemyLifeGage::ResetGekirin(int count) {
+void CEnemyLifeGage::ResetGekirin(int count) {
     // Refilled marks and reused monster storage start new presentation lifetimes.
     // HP changes do not restart marks that are already moving above the gauge.
     gauges[this].rage = ++next_generation;
@@ -96,7 +96,7 @@ PORT_OVERRIDE void CEnemyLifeGage::ResetGekirin(int count) {
     }
 }
 
-PORT_OVERRIDE void CEnemyLifeGage::SetView(int visible) {
+void CEnemyLifeGage::SetView(int visible) {
     if (visible != 0) {
         if (view == 0) {
             gauges[this].content = ++next_generation;
@@ -108,13 +108,13 @@ PORT_OVERRIDE void CEnemyLifeGage::SetView(int visible) {
     view = visible;
 }
 
-PORT_OVERRIDE void CLockOnModel::Initialize(CScene *new_scene) {
+void CLockOnModel::Initialize(CScene *new_scene) {
     mgPortHideTarget(this);
     scene = new_scene;
     name = nullptr;
 }
 
-PORT_OVERRIDE void CEnemyLifeGage::Draw(int hide_gekirin) {
+void CEnemyLifeGage::Draw(int hide_gekirin) {
     if (scale <= 0 || (max_hp == 0 && hp == 0)) {
         return;
     }
@@ -240,7 +240,7 @@ PORT_OVERRIDE void CEnemyLifeGage::Draw(int hide_gekirin) {
     }
 }
 
-PORT_OVERRIDE void CLockOnModel::DrawMess(int tex_block) {
+void CLockOnModel::DrawMess(int tex_block) {
     if (!name) {
         return;
     }

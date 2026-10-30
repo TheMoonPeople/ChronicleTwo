@@ -3,18 +3,18 @@
 #include <cstring>
 #include <string_view>
 
-#include "bounded_text.hpp"
 #include "eventsprite.hpp"
 #include "menucls1.hpp"
 #include "nd_meswin.hpp"
+#include "text/bounded.hpp"
 
 // Retail copies each inserted string into its 50-byte message name without a bound.
-PORT_OVERRIDE void CDC2Mes::SetMsgItemNo(char **strings, int count) {
+void CDC2Mes::SetMsgItemNo(char **strings, int count) {
     for (int index = 0; index < count && index < MES_ITEM_MAX; ++index) {
-        const std::string_view text = bounded_text::View(strings[index]);
+        const std::string_view text = dc2::text::View(strings[index]);
         if (std::string_view(name[index]) != text) {
             msg_change = true;
-            bounded_text::Copy(name[index], text);
+            dc2::text::Copy(name[index], text);
         }
 
         if (strings[index] == nullptr) {
@@ -27,11 +27,11 @@ PORT_OVERRIDE void CDC2Mes::SetMsgItemNo(char **strings, int count) {
 }
 
 // Event sprites take their image and texture names from event scripts.
-PORT_OVERRIDE void CEventSprite::SetName(char *name) {
-    bounded_text::Copy(this->name, bounded_text::View(name));
+void CEventSprite::SetName(char *name) {
+    dc2::text::Copy(this->name, dc2::text::View(name));
 }
 
-PORT_OVERRIDE void CEventSprite2::SetTexture(char *name, int slot) {
-    bounded_text::Copy(tex_name, bounded_text::View(name));
+void CEventSprite2::SetTexture(char *name, int slot) {
+    dc2::text::Copy(tex_name, dc2::text::View(name));
     tex_block = slot;
 }

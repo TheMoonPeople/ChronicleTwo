@@ -1,0 +1,12 @@
+# The Docker dependency bundles are shared by native and cross builds without network downloads at configure time.
+set(ct_deps "$ENV{CT_DEPS_ROOT}")
+if(NOT IS_DIRECTORY "${ct_deps}/sources")
+    message(FATAL_ERROR "CT_DEPS_ROOT must name a dependency bundle exported by tools/ci/Dockerfile")
+endif()
+file(GLOB ct_dependency_sources LIST_DIRECTORIES TRUE "${ct_deps}/sources/*")
+foreach(source IN LISTS ct_dependency_sources)
+    get_filename_component(name "${source}" NAME)
+    string(TOUPPER "${name}" name)
+    set(FETCHCONTENT_SOURCE_DIR_${name} "${source}" CACHE PATH "Docker dependency source" FORCE)
+endforeach()
+set(KZ_PORT_VENDOR_DIRS "${ct_deps}/vendor" CACHE STRING "Docker vendor headers" FORCE)

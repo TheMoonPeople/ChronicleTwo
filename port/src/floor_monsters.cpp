@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "dng_event.hpp"
-#include "dng_event_port.hpp"
 #include "dngmenu.hpp"
 #include "floor_monsters.hpp"
 #include "gamedata.hpp"
@@ -21,10 +20,11 @@
 #include "menumain.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "monster.hpp"
 #include "nd_meswin.hpp"
+#include "object/dun/floor_monster_ids.hpp"
 #include "platform/config.hpp"
+#include "render/renderer.hpp"
 #include "snd_mngr.hpp"
 #include "stubs/dngmenu.hpp"
 #include "sysmes.hpp"
@@ -195,7 +195,7 @@ void DrawHint(int x, int y) {
     std::array<int, 1> label = {ITEM_MENU_COMMAND_MSG_BASE + ITEM_MENU_COMMAND_OPEN_MONSTER_BOOK};
     CDC2Mes           &mes = *hint;
     mes.texture_block = MenuArg.mes_tex_block;
-    mes.SetMessData(GetSystemMesBuffer(), hint_table.data());
+    mes.SetMessData(GetSystemMesBuffer(), dc2::text::MessageTable::Parse(std::as_bytes(std::span(hint_table))));
     mes.SetAbsPos(-1);
     mes.cursor_on = false;
     mes.window_mode = MES_WIN_NONE;

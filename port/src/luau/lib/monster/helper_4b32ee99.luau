@@ -10,7 +10,7 @@ local helper_99918cd5 = require("@lib/monster/helper_99918cd5")
 --- Helper function.
 local function helper_4b32ee99()
 	local value: s32 = 0
-	value = monster.VPop(1) or value
+	value = monster.get_variable(1) or value
 	if value == 8 then
 		helper_695eddd8()
 	end
@@ -24,7 +24,7 @@ local function helper_4b32ee99()
 		helper_99918cd5()
 	end
 	if value == 7 then
-		monster.SetMos("立ち")
+		monster.set_motion("立ち")
 		helper_12864d2e()
 	end
 end

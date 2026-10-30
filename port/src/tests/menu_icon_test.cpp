@@ -8,13 +8,14 @@
 #include "gamedata.hpp"
 #include "gfx_fixture.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "menudraw.hpp"
 #include "menumain.hpp"
-#include "mg_drawprim_port.hpp"
-#include "mg_texture_port.hpp"
 #include "mglib.hpp"
+#include "platform/game_loop_state.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/texture_runtime.hpp"
 #include "savedata.hpp"
+#include "scoped_global_object.hpp"
 
 namespace {
 class MenuIconGpu : public testing::Test {
@@ -122,16 +123,16 @@ TEST_F(MenuIconGpu, ItemDrawSamplesSelectedAtlasCellsInCanonicalAndDisplayFrames
     char  name[] = "itemicon";
     auto *texture = Enter(name, 256, 1024, atlas_.data());
     menu_.item_icon_tex[0][1] = texture;
-    mgCMemory     memory;
-    sceVif1Packet packet{};
-    mgVif1Packet = &packet;
-    mgRENDER_INFO  info{};
-    mgCDrawManager manager;
-    mgCDrawPrim    prim;
+    mgCMemory                                   memory;
+    dc2::test::ScopedGlobalObject<mgVif1Packet> packet_owner;
+    auto                                       &packet = packet_owner.Get();
+    mgRENDER_INFO                               info{};
+    mgCDrawManager                              manager;
+    mgCDrawPrim                                 prim;
     manager.render_info = &info;
     prim.draw_manager = &manager;
     prim.Initialize(&memory, &packet);
-    prim.write = nullptr;
+    prim.write_buffer = {};
     prim.Coord(1);
     int draws = 0;
     mgPortSetPrimSink([&](gfx::Primitive kind, std::span<const gfx::Vertex2D> vertices,
@@ -190,16 +191,16 @@ TEST_F(MenuIconGpu, EffectUsesSelectedBakedRgbaAtlasAndRestoresNormally) {
     auto *variant = Enter(variant_name, 256, 1024, alternate.data());
     menu_.item_icon_tex[0][1] = base;
     menu_.item_icon_tex[2][1] = variant;
-    mgCMemory     memory;
-    sceVif1Packet packet{};
-    mgVif1Packet = &packet;
-    mgRENDER_INFO  info{};
-    mgCDrawManager manager;
+    mgCMemory                                   memory;
+    dc2::test::ScopedGlobalObject<mgVif1Packet> packet_owner;
+    auto                                       &packet = packet_owner.Get();
+    mgRENDER_INFO                               info{};
+    mgCDrawManager                              manager;
     manager.render_info = &info;
     mgCDrawPrim prim;
     prim.draw_manager = &manager;
     prim.Initialize(&memory, &packet);
-    prim.write = nullptr;
+    prim.write_buffer = {};
     prim.Coord(1);
     mgPortSetPrimSink([&](gfx::Primitive kind, std::span<const gfx::Vertex2D> vertices,
                           const gfx::TextureBinding &binding, const gfx::DrawState &state) {

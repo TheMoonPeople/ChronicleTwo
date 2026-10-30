@@ -2,16 +2,18 @@
 #include <nlohmann/json.hpp>
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
 
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
 #include "mainloop.hpp"
 #include "mg_memory.hpp"
 #include "npccfg.hpp"
 #include "platform/datapacks.hpp"
+#include "quest.hpp"
 #include "villagermngr.hpp"
 #include "vlgr_info.hpp"
 
@@ -182,6 +184,16 @@ TEST_F(NativeConfigLoaders, NpcRecordsAfterPaddingExceedTheOriginal32KiBBuffer) 
     EXPECT_STREQ(first->name, "First NPC");
     EXPECT_STREQ(first->model, "npc_first");
     EXPECT_STREQ(GetPartyCharaModelName(7, NPC_MODEL_PATH_INFO), "info");
+    EXPECT_STREQ(GetPartyCharaModelName(7, NPC_MODEL_PATH_CHARA), "chara/npc_first.gltf");
+    EXPECT_STREQ(GetPartyCharaModelName(7, NPC_MODEL_PATH_EVENT_TRAIN), "event/train/tnpc_first.gltf");
+    EXPECT_STREQ(GetPartyCharaModelName(7, NPC_MODEL_PATH_MENU), "menu/npc/tnpc_first.gltf");
+    EXPECT_EQ(GetPartyCharaMessage(7, -1, 0), 0);
+    EXPECT_EQ(GetPartyCharaMessage(7, 16, 0), 0);
+    auto      *mutable_first = GetPartyNPCData(7);
+    const auto original_first = *mutable_first;
+    std::memset(mutable_first->model, 'x', sizeof mutable_first->model);
+    EXPECT_EQ(GetPartyCharaModelName(7, NPC_MODEL_PATH_CHARA), nullptr);
+    *mutable_first = original_first;
     EXPECT_EQ(first->debug_flag, 1);
     EXPECT_STREQ(last->name, "Final NPC");
     EXPECT_STREQ(last->model, "npc_last");
@@ -440,4 +452,39 @@ TEST_F(NativeConfigLoaders, PlaceBlocksOutsideTheTableAreIgnored) {
     EXPECT_EQ(place->route->next->wait.motion_end, 0);
     EXPECT_EQ(place->route->next->wait.time, 3);
     EXPECT_EQ(place->route->next->wait.motion, VLGR_MOTION_NONE);
+}
+
+TEST_F(NativeConfigLoaders, QuestRecordsInitializeMissingCommentsAndUnusedCapacity) {
+    const auto        size = Write("quest.cfg.json", "quests", {
+                                                                   {"count",  3                                              },
+                                                                   {"quests", Json::array({{{"id", 7}, {"name", "request"}}})}
+    });
+    std::vector<char> input(static_cast<std::size_t>(size));
+    std::ifstream     source(directory / "data/quest.cfg.json", std::ios::binary);
+    source.read(input.data(), static_cast<std::streamsize>(input.size()));
+    ASSERT_TRUE(source);
+    DataReadRegisterAsset(input.data(), "quest.cfg.json", input.size());
+    const auto remaining = dc2::memory::RemainingBytes(memory);
+    std::memset(remaining.data(), 0xA5, remaining.size());
+    CQuestManager manager;
+    manager.Initialize();
+    manager.LoadCfg(&memory, input.data(), static_cast<int>(input.size()));
+    ASSERT_EQ(manager.num, 3);
+    ASSERT_NE(manager.info, nullptr);
+    const auto *entry = manager.GetQuestInfo(7);
+    ASSERT_NE(entry, nullptr);
+    EXPECT_STREQ(entry->name, "request");
+    EXPECT_EQ(entry->comment[0], char{});
+    for (const auto &reaction : entry->reaction) {
+        EXPECT_EQ(reaction[0], char{});
+    }
+    EXPECT_EQ(manager.info[1].id, -1);
+    EXPECT_EQ(manager.info[2].id, -1);
+    EXPECT_EQ(manager.info[1].name[0], char{});
+    EXPECT_EQ(manager.GetQuestInfo(0), nullptr);
+    auto *before = manager.info;
+    memory.stSetLocked(true);
+    manager.LoadCfg(&memory, input.data(), static_cast<int>(input.size()));
+    EXPECT_EQ(manager.info, before);
+    EXPECT_EQ(manager.num, 3);
 }

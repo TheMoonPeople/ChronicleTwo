@@ -13,6 +13,7 @@
 #include "platform/paths.hpp"
 #include "platform/settings.hpp"
 #include "platform_fixture.hpp"
+#include "scoped_global_object.hpp"
 
 namespace fs = std::filesystem;
 
@@ -99,6 +100,10 @@ TEST_F(PlatformConfig, FullFileRoundTrips) {
     full.key_bindings = {
         ConfigKeyBinding{.action = "cross", .keys = {"Space", "Z"}},
         ConfigKeyBinding{.action = "start", .keys = {"Return"}    }
+    };
+    full.pad_bindings = {
+        ConfigKeyBinding{.action = "cross",         .keys = {"b"}},
+        ConfigKeyBinding{.action = "quick_loadout", .keys = {}   }
     };
     full.mouse_sensitivity = 0.25f;
     full.stick_sensitivity = 1.5f;
@@ -467,8 +472,7 @@ TEST_F(PlatformConfig, ReadErrorsNeverReplaceOriginalOrPublishPartialBackup) {
             ConfigSetReadHook(nullptr);
             Write(original);
             ASSERT_TRUE(ConfigLoad());
-            FailingConfigBuffer buffer(bytes);
-            failing_config_buffer = &buffer;
+            dc2::test::ScopedGlobalObject<failing_config_buffer, FailingConfigBuffer> buffer_owner(bytes);
             ConfigSetReadHook(InjectConfigReadFailure);
             if (loading) {
                 EXPECT_FALSE(ConfigLoad());

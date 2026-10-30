@@ -7,13 +7,13 @@
 #include "gamedata.hpp"
 #include "item_icon3d.hpp"
 #include "menudraw.hpp"
-#include "menudraw_port.hpp"
 #include "menumain.hpp"
-#include "mg_texture_port.hpp"
 #include "mglib.hpp"
+#include "object/menu/menu_presentation.hpp"
+#include "render/texture_runtime.hpp"
 #include "userdata.hpp"
 
-PORT_OVERRIDE void CMenuPosDataManage::MallocPallet(mgCMemory * /*unused*/) {
+void CMenuPosDataManage::MallocPallet(mgCMemory * /*unused*/) {
     // Native atlases are RGBA, so the retail icon colour modes are built from their pixels rather
     // than from a PS2 CLUT.
     constexpr MgTextureColorMode modes[] = {MgTextureColorMode::IconHighlight,
@@ -28,12 +28,12 @@ PORT_OVERRIDE void CMenuPosDataManage::MallocPallet(mgCMemory * /*unused*/) {
     }
 }
 
-PORT_OVERRIDE void CMenuPosDataManage::SearchTransPalletNo() {
+void CMenuPosDataManage::SearchTransPalletNo() {
     // Transparency is carried by each RGBA pixel; there is no palette index to find.
     trans_pallet_no[0] = trans_pallet_no[1] = 0;
 }
 
-PORT_OVERRIDE mgCTexture *GetMenuItemIconTexInfo(int item_no, int mode) {
+mgCTexture *GetMenuItemIconTexInfo(int item_no, int mode) {
     PortIconSheet = -1;
     const CDataCommon *item = GameItemDataManage.GetCommonData(item_no);
     if (item == nullptr || MenuPosData == nullptr || item->icon_texture_no >= 2 || mode < 0 || mode >= 4) {
@@ -60,7 +60,7 @@ PORT_OVERRIDE mgCTexture *GetMenuItemIconTexInfo(int item_no, int mode) {
     return texture;
 }
 
-PORT_OVERRIDE int CopyActiveIconTexture(mgCTexture **textures, int chara_no, u_int * /*unused*/) {
+int CopyActiveIconTexture(mgCTexture **textures, int chara_no, u_int * /*unused*/) {
     CUserDataManager *user = GetUserDataMan();
     if (user == nullptr || textures == nullptr || chara_no < USER_CHARA_MAX) {
         return 0;

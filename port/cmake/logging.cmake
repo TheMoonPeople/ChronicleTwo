@@ -4,10 +4,20 @@ include(FetchContent)
 FetchContent_Declare(quill
     URL https://codeload.github.com/odygrd/quill/tar.gz/refs/tags/v13.1.0
     URL_HASH SHA256=a08b93bafc7e712b28eb47e4a1ed9b60fc01ac7fad3ce269f1f100560a506a85
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
     # An installed Quill of this version (the Flatpak's module, built offline) is used when one is found.
     FIND_PACKAGE_ARGS 13.1.0 EXACT CONFIG)
 FetchContent_MakeAvailable(quill)
+
+# Dependencies must not disable diagnostics in native consumers.
+if(TARGET quill)
+    get_target_property(CT_QUILL_OPTIONS quill INTERFACE_COMPILE_OPTIONS)
+    if(CT_QUILL_OPTIONS)
+        list(FILTER CT_QUILL_OPTIONS EXCLUDE REGEX "-Wno-")
+        set_property(TARGET quill PROPERTY INTERFACE_COMPILE_OPTIONS "${CT_QUILL_OPTIONS}")
+    endif()
+endif()
+
 
 # Statements below this level are compiled out; the runtime level (log.level) filters the rest.
 set(CT_LOG_COMPILE_LEVEL Trace CACHE STRING "Lowest log level compiled in: Trace, Debug, Info, Warning, Error or Critical")

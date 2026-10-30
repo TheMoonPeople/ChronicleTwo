@@ -5,10 +5,10 @@ local helper_442b9962 = require("@lib/monster/helper_442b9962")
 
 --- Helper function.
 local function helper_5d37e9f4()
-	monster.ResetMove()
+	monster.stop_moving()
 	helper_442b9962()
-	monster.ResetMotion()
-	monster.SetActStatus(0)
+	monster.reset_motion()
+	monster.set_action_status(0)
 end
 
 return helper_5d37e9f4

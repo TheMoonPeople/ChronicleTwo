@@ -1,15 +1,24 @@
 #include <SDL3/SDL.h>
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cstring>
+#include <memory>
 #include <utility>
 
 #include "gamepad.hpp"
 #include "mainloop.hpp"
+#include "menuaqua.hpp"
+#include "menucls1.hpp"
+#include "menucommon.hpp"
 #include "menumain.hpp"
 #include "menusys.hpp"
+#include "nameregi.hpp"
 #include "platform/clock.hpp"
 #include "platform/input.hpp"
 #include "platform/input_script.hpp"
+#include "scenesnd.hpp"
+#include "stubs/nameregi.hpp"
 
 namespace {
 
@@ -298,5 +307,205 @@ TEST_F(MenuInput, ScriptedMenuMotionLeavesRetailAxesDirectionsAndCameraNeutral) 
         EXPECT_EQ(GamePad__2.pad[0].button & (PAD_UP | PAD_DOWN | PAD_LEFT | PAD_RIGHT), 0);
         EXPECT_FLOAT_EQ(InputGetMouseLook().yaw, 0);
         EXPECT_FLOAT_EQ(InputGetMouseLook().pitch, 0);
+    }
+}
+
+namespace {
+
+/**
+ * Supplies the real name-entry menu with idle key controls and message windows.
+ */
+class NameEntryInput : public testing::Test {
+protected:
+    void SetUp() override {
+        InputResetBindings();
+        InputSetTextEntry(false);
+        LanguageCode = 1;
+        NameRegiMenuPtr = &menu;
+        NameRegistMax = 5;
+        MenuCommonInfo = &keys;
+        MenuDCMsg[6] = &help;
+        MenuDCMsg[7] = &confirmation;
+        help.buff = nullptr;
+        confirmation.buff = nullptr;
+        keys.key_enable = 0;
+        menu.mode = NAMEREGI_MODE_INPUT;
+        menu.key_arg_no = 0;
+        menu.command_pos = 2;
+        menu.select_mode = 2;
+        menu.message_open = 0;
+        menu.name_pos = 0;
+        std::memset(menu.name, 0, sizeof(menu.name));
+        GamePad__2.key_lock = 0;
+        GamePad__2.pad[0].button = 0;
+        GamePad__2.previous_pad[0].button = 0;
+        EXPECT_EQ(NameRegistKey(), 0);
+    }
+
+    void TearDown() override {
+        InputSetTextEntry(false);
+        InputResetBindings();
+        LanguageCode = language;
+        NameRegiMenuPtr = previous_menu;
+        NameRegistMax = maximum;
+        MenuCommonInfo = previous_keys;
+        MenuDCMsg[6] = previous_help;
+        MenuDCMsg[7] = previous_confirmation;
+        GamePad__2 = previous_pad;
+    }
+
+    /**
+     * Sends one physical key press through the host event handler.
+     */
+    static void TypeKey(SDL_Scancode scancode, SDL_Keymod modifiers = SDL_KMOD_NONE) {
+        SDL_Event event{};
+        event.type = SDL_EVENT_KEY_DOWN;
+        event.key.scancode = scancode;
+        event.key.mod = modifiers;
+        event.key.down = true;
+        InputHandleEvent(event);
+        event.type = SDL_EVENT_KEY_UP;
+        event.key.down = false;
+        InputHandleEvent(event);
+    }
+
+    int            language = LanguageCode;              /**< Previous game language. */
+    CNameRegiMenu *previous_menu = NameRegiMenuPtr;      /**< Previous name-entry menu. */
+    s16            maximum = NameRegistMax;              /**< Previous name-length limit. */
+    CMenuKeyFunc  *previous_keys = MenuCommonInfo;       /**< Previous shared menu controls. */
+    CDC2Mes       *previous_help = MenuDCMsg[6];         /**< Previous help window. */
+    CDC2Mes       *previous_confirmation = MenuDCMsg[7]; /**< Previous confirmation window. */
+    CGamePad       previous_pad = GamePad__2;            /**< Previous gamepad state. */
+    CNameRegiMenu  menu;                                 /**< Real name-entry menu receiving typed characters. */
+    CMenuKeyFunc   keys;                                 /**< Idle controls that avoid retail grid actions. */
+    CDC2Mes        help;                                 /**< Empty help window for native menu stepping. */
+    CDC2Mes        confirmation;                         /**< Empty confirmation window for native menu stepping. */
+};
+
+TEST_F(NameEntryInput, PhysicalTypingInsertsCharactersAndHonorsTheNameLimit) {
+    TypeKey(SDL_SCANCODE_A, SDL_KMOD_SHIFT);
+    TypeKey(SDL_SCANCODE_B);
+    TypeKey(SDL_SCANCODE_1);
+    EXPECT_EQ(NameRegistKey(), 0);
+    EXPECT_STREQ(menu.name, "Ab1");
+    EXPECT_EQ(menu.name_pos, 3);
+    TypeKey(SDL_SCANCODE_C);
+    TypeKey(SDL_SCANCODE_D);
+    TypeKey(SDL_SCANCODE_E);
+    EXPECT_EQ(NameRegistKey(), 0);
+    EXPECT_STREQ(menu.name, "Ab1ce");
+    EXPECT_EQ(menu.name_pos, 4);
+    EXPECT_TRUE(InputTakeText().empty());
+}
+
+TEST_F(NameEntryInput, BackspaceAndDeleteEditAtTheCaret) {
+    std::strcpy(menu.name, "ABCD");
+    menu.name_pos = 2;
+    TypeKey(SDL_SCANCODE_BACKSPACE);
+    NameRegistKey();
+    EXPECT_STREQ(menu.name, "ACD");
+    EXPECT_EQ(menu.name_pos, 1);
+    EXPECT_EQ(menu.button_flash[7], 8);
+    TypeKey(SDL_SCANCODE_DELETE);
+    NameRegistKey();
+    EXPECT_STREQ(menu.name, "AD");
+    EXPECT_EQ(menu.name_pos, 1);
+    EXPECT_EQ(menu.button_flash[8], 8);
+}
+
+TEST_F(NameEntryInput, TypingSuppressesPadBindingsAndReturnSelectsTheAcceptCommand) {
+    InputKeyboardMouse held;
+    held.keys = {SDL_SCANCODE_E, SDL_SCANCODE_BACKSPACE};
+    EXPECT_EQ(InputApplyKeyboardMouse({}, held).buttons & (kInputSquare | kInputSelect), 0);
+    held.keys = {SDL_SCANCODE_RETURN};
+    EXPECT_EQ(InputApplyKeyboardMouse({}, held).buttons & (kInputCross | kInputStart), kInputCross);
+    TypeKey(SDL_SCANCODE_RETURN);
+    NameRegistKey();
+    EXPECT_EQ(menu.key_arg_no, 0);
+    EXPECT_EQ(menu.command_pos, 11);
+}
+
+TEST_F(NameEntryInput, JapaneseAndAnOpenMessageBypassPhysicalTyping) {
+    LanguageCode = 0;
+    NameRegistKey();
+    TypeKey(SDL_SCANCODE_A);
+    NameRegistKey();
+    EXPECT_STREQ(menu.name, "");
+    InputKeyboardMouse held;
+    held.keys = {SDL_SCANCODE_E};
+    EXPECT_EQ(InputApplyKeyboardMouse({}, held).buttons & kInputSquare, kInputSquare);
+    LanguageCode = 1;
+    menu.message_open = 1;
+    NameRegistKey();
+    TypeKey(SDL_SCANCODE_A);
+    NameRegistKey();
+    EXPECT_STREQ(menu.name, "");
+}
+
+TEST_F(NameEntryInput, ForcedExitRetiresTheBorrowedControllerAndReleasesTextInput) {
+    dc2::menu::ResetNameRegistration();
+    EXPECT_EQ(NameRegiMenuPtr, nullptr);
+    menu.name[0] = 'x';
+    EXPECT_EQ(NameRegistKey(), 1);
+    EXPECT_EQ(menu.name[0], 'x');
+    NameRegistDraw();
+    InputKeyboardMouse held;
+    held.keys = {SDL_SCANCODE_E};
+    EXPECT_EQ(InputApplyKeyboardMouse({}, held).buttons & kInputSquare, kInputSquare);
+    dc2::menu::ResetNameRegistration();
+}
+
+TEST_F(NameEntryInput, CompletedCloseRetiresTheControllerBeforeItsBackingArenaReset) {
+    auto    scene = std::make_unique<CScene>();
+    CScene *previous_scene = MenuMainScene;
+    MenuMainScene = scene.get();
+    scene->fade.end = 1;
+    menu.mode = NAMEREGI_MODE_CLOSE;
+    EXPECT_EQ(NameRegistKey(), 1);
+    EXPECT_EQ(NameRegiMenuPtr, nullptr);
+    MenuMainScene = previous_scene;
+}
+
+TEST_F(NameEntryInput, SelectedGlyphRejectsInvalidModesAndCellsWithoutWriting) {
+    std::array<char, 2> glyph{'x', 'y'};
+    menu.select_mode = 2;
+    menu.select.pos = 0;
+    ASSERT_TRUE(menu.GetSelectedActiveFont(glyph));
+    EXPECT_EQ(glyph[0], 'A');
+    EXPECT_EQ(glyph[1], char{});
+    glyph = {'x', 'y'};
+    menu.select.pos = 32767;
+    EXPECT_FALSE(menu.GetSelectedActiveFont(glyph));
+    EXPECT_EQ(glyph, (std::array<char, 2>{'x', 'y'}));
+    menu.select_mode = -1;
+    EXPECT_FALSE(menu.GetSelectedActiveFont(glyph));
+    EXPECT_EQ(glyph, (std::array<char, 2>{'x', 'y'}));
+}
+
+} // namespace
+
+TEST(MenuQuestion, CommandsCopyTypedFieldsAndResetWithoutAliasing) {
+    CBaseMenuClass    menu;
+    MENU_ASKMODE_PARA request;
+    for (std::size_t i = 0; i < std::size(request.cmd_msg); ++i) {
+        request.cmd_msg[i] = static_cast<int>(i + 10);
+        request.cmd_color[i] = static_cast<u32>(i + 100);
+        request.cmd_shade[i] = static_cast<s16>(i + 200);
+        request.cmd_mark[i] = static_cast<s16>(i + 300);
+    }
+    menu.SetAskParam(&request);
+    menu.SetAskParam(&menu.ask_para);
+    for (std::size_t i = 0; i < std::size(request.cmd_msg); ++i) {
+        EXPECT_EQ(menu.ask_para.cmd_msg[i], request.cmd_msg[i]);
+        EXPECT_EQ(menu.ask_para.cmd_color[i], request.cmd_color[i]);
+        EXPECT_EQ(menu.ask_para.cmd_shade[i], request.cmd_shade[i]);
+        EXPECT_EQ(menu.ask_para.cmd_mark[i], request.cmd_mark[i]);
+    }
+    menu.SetAskParam(nullptr);
+    for (std::size_t i = 0; i < std::size(request.cmd_msg); ++i) {
+        EXPECT_EQ(menu.ask_para.cmd_msg[i], 0);
+        EXPECT_EQ(menu.ask_para.cmd_color[i], 0u);
+        EXPECT_EQ(menu.ask_para.cmd_shade[i], 0);
+        EXPECT_EQ(menu.ask_para.cmd_mark[i], 0);
     }
 }

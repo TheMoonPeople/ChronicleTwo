@@ -5,10 +5,10 @@
 local function helper_442b9962()
 	local var1: f32 = 0
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var1 = out2 or var1
 	end
-	monster.SetNextRot(var1, 0)
+	monster.turn_toward_angle(var1, 0)
 end
 
 return helper_442b9962

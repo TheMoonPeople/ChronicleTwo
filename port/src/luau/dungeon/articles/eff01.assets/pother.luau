@@ -26,53 +26,53 @@ function script.on_start()
 	local value_6: f32 = 0
 	local var12: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.SptSetTexname("base_eff2")
-	effect.SptAssignSprite_1(8)
-	effect.SptInitSprite(0, 8)
-	effect.SptSetAlphab(0, 1, 8)
-	effect.SptSetDrawFlag(0, 1, 8)
-	effect.SptSetPutSize(0, 14.0, 14.0, 8)
-	effect.SptSetUvSize(0, 1.0, 1.0, 62.0, 62.0, 8)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 0.0, 8)
+	effect.set_sprite_texture("base_eff2")
+	effect.allocate_sprites_1(8)
+	effect.reset_sprites(0, 8)
+	effect.set_sprite_blend_mode(0, 1, 8)
+	effect.set_sprite_visible(0, 1, 8)
+	effect.set_sprite_size(0, 14.0, 14.0, 8)
+	effect.set_sprite_texture_rect(0, 1.0, 1.0, 62.0, 62.0, 8)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 0.0, 8)
 	var3 = 0
 	while var3 < 8 do
-		value = effect.GetRand(18.0) or value
+		value = effect.get_random_number(18.0) or value
 		value = vm.f32(vm.f32(value - 9.0) + work_vect1_x)
-		value_2 = effect.GetRand(9.0) or value_2
+		value_2 = effect.get_random_number(9.0) or value_2
 		value_2 = vm.f32(value_2 + work_vect1_y)
-		value_3 = effect.GetRand(18.0) or value_3
+		value_3 = effect.get_random_number(18.0) or value_3
 		value_3 = vm.f32(vm.f32(value_3 - 9.0) + work_vect1_z)
-		effect.SptSetPos(var3, value, value_2, value_3)
-		effect.SptSetVeloPos(var3, 0.0, 0.2, 0.0)
-		effect.SptSetAccPos(var3, 0.0, -0.01, 0.0)
-		value_4 = effect.GetRand(6.2831855) or value_4
+		effect.set_sprite_position(var3, value, value_2, value_3)
+		effect.set_sprite_velocity(var3, 0.0, 0.2, 0.0)
+		effect.set_sprite_acceleration(var3, 0.0, -0.01, 0.0)
+		value_4 = effect.get_random_number(6.2831855) or value_4
 		value_4 = vm.f32(value_4 - vm.f32(3.1415927))
-		effect.SptSetRotz(var3, value_4)
-		value_5 = effect.GetRandInt(100) or value_5
+		effect.set_sprite_rotation(var3, value_4)
+		value_5 = effect.get_random_number_int(100) or value_5
 		if value_5 < 50 then
 			value_4 = vm.f32(0.06)
 		else
 			value_4 = vm.f32(-0.06)
 		end
-		effect.SptSetVeloRotz(var3, value_4)
-		effect.SptSetAccRotz(var3, -vm.f32(value_4 * vm.f32(0.02)))
-		value_6 = effect.GetRand(10.0) or value_6
+		effect.set_sprite_angular_velocity(var3, value_4)
+		effect.set_sprite_angular_acceleration(var3, -vm.f32(value_4 * vm.f32(0.02)))
+		value_6 = effect.get_random_number(10.0) or value_6
 		value_6 = vm.f32(value_6 + vm.f32(15.6))
-		effect.SptSetVeloCol(var3, 0.0, 0.0, 0.0, value_6)
-		value_6 = effect.GetRand(2.0) or value_6
+		effect.set_sprite_color_velocity(var3, 0.0, 0.0, 0.0, value_6)
+		value_6 = effect.get_random_number(2.0) or value_6
 		value_6 = vm.f32(value_6 + 2.0)
-		effect.SptSetAccCol(var3, 0.0, 0.0, 0.0, -value_6)
+		effect.set_sprite_color_acceleration(var3, 0.0, 0.0, 0.0, -value_6)
 		var3 = var3 + 1
 	end
 	var12 = 1.0
 	var3 = 0
 	while var3 < 30 do
-		effect.SptSetScale(0, var12, var12, 8)
+		effect.set_sprite_scale(0, var12, var12, 8)
 		var12 = vm.f32(var12 + vm.f32(0.06))
 		var3 = var3 + 1
 		vm.wait()

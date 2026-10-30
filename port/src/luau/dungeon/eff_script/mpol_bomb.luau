@@ -23,30 +23,30 @@ function script.on_start()
 	local var6: s32 = 0
 	var2 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	value = effect.GetValue(0) or value
-	effect.GetValue(1)
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetMotion("爆発", -1, 6)
-	effect.ColprimCreate("海賊爆弾")
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 20.0)
-	effect.ColprimSetDamage(value)
+	value = effect.get_script_value(0) or value
+	effect.get_script_value(1)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_motion("爆発", -1, 6)
+	effect.create_collision_primitive("海賊爆弾")
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 20.0)
+	effect.set_collision_primitive_damage(value)
 	var6 = 0
 	while var6 < 40 do
 		if var6 == 30 then
 			var2 = 1
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		var6 = var6 + 1
 		vm.wait()
 	end
 	helper_8b333653()
 	if var2 == 0 then
-		effect.ColprimDelete(-1)
+		effect.delete_collision_primitive(-1)
 	end
 end
 

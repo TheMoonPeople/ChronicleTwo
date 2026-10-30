@@ -10,7 +10,7 @@ constexpr size_t kChannels = 4;
 
 uint8_t Clamp8(int v) { return static_cast<uint8_t>(std::clamp(v, 0, 255)); }
 
-}  // namespace
+} // namespace
 
 void Yuv420ToRgba(const uint8_t *y, int y_stride, const uint8_t *cb, const uint8_t *cr, int c_stride,
                   int width, int height, uint8_t *rgba) {
@@ -18,7 +18,7 @@ void Yuv420ToRgba(const uint8_t *y, int y_stride, const uint8_t *cb, const uint8
         const uint8_t *y_row = y + static_cast<std::ptrdiff_t>(row) * y_stride;
         const uint8_t *cb_row = cb + static_cast<std::ptrdiff_t>(row / 2) * c_stride;
         const uint8_t *cr_row = cr + static_cast<std::ptrdiff_t>(row / 2) * c_stride;
-        uint8_t *out = rgba + static_cast<size_t>(row) * static_cast<size_t>(width) * kChannels;
+        uint8_t       *out = rgba + static_cast<size_t>(row) * static_cast<size_t>(width) * kChannels;
         for (int x = 0; x < width; x++, out += kChannels) {
             const int c = y_row[x] - 16;
             const int d = cb_row[x / 2] - 128;
@@ -31,4 +31,4 @@ void Yuv420ToRgba(const uint8_t *y, int y_stride, const uint8_t *cb, const uint8
     }
 }
 
-}  // namespace video
+} // namespace video

@@ -23,40 +23,40 @@ function script.on_start()
 	local value_3: s32 = 0
 	local var7: s32 = 0
 	value = 0.0
-	effect.SetValueInt(2, 0)
-	effect.ChrSetMotion("ループ")
-	user_id = effect.GetUserId() or user_id
+	effect.set_script_value_int(2, 0)
+	effect.set_effect_character_motion("ループ")
+	user_id = effect.get_owner_character() or user_id
 	while true do
 		if var7 > 15 then
-			effect.SetValueInt(2, 0)
+			effect.set_script_value_int(2, 0)
 		end
-		value_2 = effect.GetValue(0) or value_2
-		value = effect.GetValueFloat(1) or value
-		value_3 = effect.GetValue(2) or value_3
+		value_2 = effect.get_script_value(0) or value_2
+		value = effect.get_script_value_float(1) or value
+		value_3 = effect.get_script_value(2) or value_3
 		if value_2 ~= 0 then
-			effect.ChrSetShow(1, 0)
+			effect.set_effect_character_visible(1, 0)
 		else
-			effect.ChrSetShow(0, 0)
+			effect.set_effect_character_visible(0, 0)
 		end
 		if value_3 == 0 then
 			var7 = 0
 		end
 		if value_3 == 2 then
-			effect.ChrSetShow(0, 1, 3.0)
+			effect.set_effect_character_visible(0, 1, 3.0)
 			var7 = vm.i32(var7 + 1)
 		end
 		if value_3 == 1 then
-			effect.ChrSetShow(0, 1, -3.0)
+			effect.set_effect_character_visible(0, 1, -3.0)
 			var7 = vm.i32(var7 + 1)
 		end
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "tama")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
-		effect.ChrSetScale(value, value, value)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
+		effect.set_effect_character_scale(value, value, value)
 		vm.wait()
 	end
 end

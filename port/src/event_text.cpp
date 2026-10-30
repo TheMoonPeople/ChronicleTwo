@@ -1,11 +1,10 @@
 #include "common.h"
 
-#include "event_text.hpp"
-
 #include <format>
 #include <string>
 
 #include "event_func.hpp"
+#include "event_text.hpp"
 #include "gamedata.hpp"
 #include "nd_meswin.hpp"
 #include "stubs/event_func.hpp"
@@ -18,7 +17,7 @@ namespace {
  * Retail fishing-tournament external, which the native one delegates every other command to.
  *
  */
-int (*retail_fishing_tournament)(RS_STACKDATA *, int) = nullptr;
+dc2::script::RunFunction retail_fishing_tournament = nullptr;
 
 /**
  *
@@ -37,8 +36,8 @@ std::string RankLabel(int shown) {
  * Opens the tournament records window, or hands any other tournament command to retail.
  *
  */
-int FishingTournament(RS_STACKDATA *args, int argc) {
-    if (argc < 1 || rsGetStackInt(&args[0]) != EVENT_GET_FISHING_RECORDS) {
+int FishingTournament(dc2::script::RunArguments args, int argc) {
+    if (argc < 1 || dc2::script::RunInteger(args) != EVENT_GET_FISHING_RECORDS) {
         return retail_fishing_tournament != nullptr ? retail_fishing_tournament(args, argc) : 0;
     }
 
@@ -69,7 +68,7 @@ int FishingTournament(RS_STACKDATA *args, int argc) {
         }
     }
 
-    ClsMes *mes = argc >= 2 ? GetMes(rsGetStackInt(&args[1])) : nullptr;
+    ClsMes *mes = argc >= 2 ? GetMes(dc2::script::RunInteger(args + 1)) : nullptr;
     if (mes == nullptr) {
         return 0;
     }
@@ -81,7 +80,7 @@ int FishingTournament(RS_STACKDATA *args, int argc) {
 
 } // namespace
 
-void ReplaceEventTextExternals(std::span<int (*)(RS_STACKDATA *, int)> table) {
+void ReplaceEventTextExternals(std::span<dc2::script::RunFunction> table) {
     if (static_cast<std::size_t>(EVENT_EXT_GET_FISHINGTOURNAMENT_ETC) >= table.size()) {
         return;
     }

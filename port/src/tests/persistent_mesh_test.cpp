@@ -6,10 +6,10 @@
 
 #include "gfx_fixture.hpp"
 #include "mg_visual.hpp"
-#include "mg_visual_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "render/renderer.hpp"
+#include "render/visual_mesh.hpp"
 
 namespace {
 /**

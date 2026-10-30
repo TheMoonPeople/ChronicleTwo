@@ -13,6 +13,8 @@ import os
 import re
 from pathlib import Path
 
+from stb2luau import api
+
 IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 PROGRAM_NAME = re.compile(r"^[a-z_][a-z0-9_]*$")
 # The script table's setup field is run by run(-1), so no program may take its name.
@@ -49,6 +51,8 @@ def _bool(value: bool) -> str:
 def _param(param: dict) -> str:
     """Render one parameter as a Param initializer; a tagged parameter's type is the call's choice."""
     tagged = ", true" if param.get("tagged") else ""
+    if param.get("deferred"):
+        tagged = f", {_bool(param.get('tagged', False))}, true"
     return f"{{{DIRECTIONS[param['dir']]}, {TYPES[param['type']]}{tagged}}}"
 
 
@@ -87,24 +91,10 @@ def _named_programs(programs: dict | None, kind_name: str) -> list[dict]:
     return entries
 
 
-def fallback_modules(fallback: dict | None) -> list[str]:
-    """The module keys of the scripts fallback.json keeps on the interpreter, as transpile.py names modules."""
-    modules = []
-    for path in (fallback or {}).get("scripts", {}):
-        if path.endswith(".stb_"):
-            modules.append(path[: -len(".stb_")] + "_")
-        elif path.endswith(".stb"):
-            modules.append(path[: -len(".stb")])
-        else:
-            raise SystemExit(f"fallback entry {path!r} is not a script path")
-    return sorted(set(modules))
-
-
-def generate(catalog: dict, kinds: list[str], programs: dict | None = None, fallback: dict | None = None) -> str:
+def generate(catalog: dict, kinds: list[str], programs: dict | None = None) -> str:
     """Return the C++ source for the given kinds, in the order requested.
 
-    programs is the parsed programs.json; kinds it does not name get no program table. fallback is the parsed
-    fallback.json, whose scripts the runtime never loads as modules.
+    programs is the parsed programs.json; kinds it does not name get no program table.
     """
     _validate_kinds(catalog, kinds)
 
@@ -134,16 +124,18 @@ def generate(catalog: dict, kinds: list[str], programs: dict | None = None, fall
             assert IDENTIFIER.match(command["luau"]), command["luau"]
             no = command["no"]
             signature_rows: list[str] = []
-            for signature in sorted(command["signatures"], key=lambda s: s["argc"]):
+            signatures = sorted(command["signatures"], key=lambda s: s["argc"]) + api.value_forms(command)
+            for signature in signatures:
                 argc = signature["argc"]
                 if signature["params"]:
-                    array = f"{prefix}{no}Argc{argc}"
+                    array = f"{prefix}{no}Argc{api.suffix(signature).upper()}"
                     items = ", ".join(_param(p) for p in signature["params"])
                     lines.append(f"constexpr Param {array}[] = {{{items}}};")
                 else:
                     array = "{}"
                 rejected = _bool(signature.get("handler_rejects", False))
-                signature_rows.append(f"{{{argc}, {rejected}, {array}}}")
+                values = _bool(signature.get("values", False))
+                signature_rows.append(f"{{{argc}, {rejected}, {array}, {values}}}")
             lines.append(f"constexpr Signature {prefix}{no}[] = {{{', '.join(signature_rows)}}};")
             command_rows.append(f'    {{"{command["luau"]}", {no}, {prefix}{no}}},')
 
@@ -166,18 +158,9 @@ def generate(catalog: dict, kinds: list[str], programs: dict | None = None, fall
     lines.extend(kind_rows)
     lines.append("};")
     lines.append("")
-    modules = fallback_modules(fallback)
-    lines.append("constexpr std::string_view kFallback[] = {")
-    lines.extend(f'    "{module}",' for module in modules)
-    if not modules:
-        lines.append('    "",')
-    lines.append("};")
-    lines.append("")
     lines.append("} // namespace")
     lines.append("")
     lines.append("std::span<const Kind> Kinds() { return kKinds; }")
-    lines.append("")
-    lines.append("std::span<const std::string_view> FallbackModules() { return kFallback; }")
     lines.append("")
     lines.append("} // namespace luau_bindings")
     return "\n".join(lines) + "\n"
@@ -190,13 +173,11 @@ def main() -> None:
     parser.add_argument("output", type=Path, help="Path of the generated C++ source.")
     parser.add_argument("--kinds", required=True, help="Comma-separated kind names, in output order.")
     parser.add_argument("--programs", required=True, type=Path, help="Path to programs.json.")
-    parser.add_argument("--fallback", type=Path, help="Path to fallback.json.")
     args = parser.parse_args()
 
     catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
     programs = json.loads(args.programs.read_text(encoding="utf-8"))
-    fallback = json.loads(args.fallback.read_text(encoding="utf-8")) if args.fallback else None
-    text = generate(catalog, [name.strip() for name in args.kinds.split(",")], programs, fallback)
+    text = generate(catalog, [name.strip() for name in args.kinds.split(",")], programs)
 
     try:
         with args.output.open(encoding="utf-8", newline="") as handle:

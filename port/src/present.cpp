@@ -16,15 +16,15 @@
 #include "gfx/gfx.hpp"
 #include "log/log.hpp"
 #include "menu_mouse.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "platform/frame_timing.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
 #include "platform/overlay.hpp"
 #include "platform/window.hpp"
 #include "present_timing.hpp"
 #include "profile.hpp"
-#include "stubs/mglib.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 
@@ -451,7 +451,7 @@ void PresentTickRendered() {
 void PresentWaitFrame(int start, int frames) {
     wait_start = start;
     wait_frames = frames;
-    mgTimeWaitTicks(start, frames, BetweenTicks);
+    dc2::timing::WaitTicks(start, frames, BetweenTicks);
 }
 
 void PresentPublishTick(int start, int frames) {

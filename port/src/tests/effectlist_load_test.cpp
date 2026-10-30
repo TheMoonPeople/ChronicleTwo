@@ -7,9 +7,11 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <limits>
+#include <span>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "effectlist.hpp"
 #include "mg_memory.hpp"
 #include "mglib.hpp"
@@ -60,11 +62,11 @@ TEST(EffectListLoad, EntersDirectTextureDocumentsWithoutRetailImageMembers) {
     mgCMemory                              memory;
     memory.SetHeapMem(work.data(), work.size());
     memory.StartStackMode(MG_STACK_MODE_FIT, work.size());
-    alignas(16) std::array<u_long128, 128> pack{};
-    char                                   path[] = "effect/map.efp";
-    EXPECT_GT(LoadFile(path, pack.data(), nullptr), 0);
+    char path[] = "effect/map.efp";
+    auto directory = dc2::io::ReadResourceFile(path);
+    ASSERT_TRUE(directory);
     CEffectList list;
-    list.LoadEFPFile(path, reinterpret_cast<u_int *>(pack.data()), 0, &memory);
+    list.LoadEFPFile(directory, 0, &memory);
     EXPECT_EQ(list.effect_num, 0);
     char texture_name[] = "effect_native";
     char relocated_name[] = "effect_relocated";
@@ -73,6 +75,46 @@ TEST(EffectListLoad, EntersDirectTextureDocumentsWithoutRetailImageMembers) {
     EXPECT_NE(mgTexManager.GetTexture(relocated_name, 0), nullptr);
     EXPECT_EQ(mgTexManager.GetTexture(nested_name, 0), nullptr);
     mgTexManager.Initialize(0x1000, -1);
+    DataReadIndex(previous);
+    std::error_code error;
+    fs::remove_all(base, error);
+}
+
+TEST(EffectListLoad, RejectsEmitterScriptsWhoseParticlePoolExceedsTheArena) {
+    namespace fs = std::filesystem;
+    const auto base = fs::temp_directory_path() / ("effectlist_overflow_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    const auto previous = PathsDataRoot();
+    fs::create_directories(base / "data/effect/overflow.efp");
+    std::ofstream(base / "data/effect/overflow.efp/pack.json") << R"({"schema_version":1,"kind":"asset_directory"})";
+    nlohmann::json arguments = nlohmann::json::array();
+    arguments.push_back({
+        {"type",  "int"                          },
+        {"value", std::numeric_limits<int>::max()}
+    });
+    arguments.push_back({
+        {"type",  "int"},
+        {"value", 8    }
+    });
+    const nlohmann::json script = {
+        {"commands", nlohmann::json::array({{{"command", "BUFFER_SIZE"}, {"args", arguments}}})}
+    };
+    std::ofstream(base / "data/effect/overflow.efp/huge.em") << script.dump();
+    DataReadIndex(base / "data");
+
+    alignas(16) std::array<u_long128, 256> storage{};
+    mgCMemory                              memory;
+    memory.SetHeapMem(storage.data(), static_cast<int>(storage.size()));
+    ASSERT_NE(memory.StartStackMode(MG_STACK_MODE_FIT, static_cast<int>(storage.size())), nullptr);
+    char path[] = "effect/overflow.efp";
+    auto directory = dc2::io::ReadResourceFile(path);
+    ASSERT_TRUE(directory);
+    const int   before = memory.stack_used;
+    CEffectList list;
+    list.LoadEFPFile(directory, 0, &memory);
+    EXPECT_EQ(list.effect_num, 0);
+    EXPECT_EQ(list.managers, nullptr);
+    EXPECT_EQ(memory.stack_used, before);
+
     DataReadIndex(previous);
     std::error_code error;
     fs::remove_all(base, error);

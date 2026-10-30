@@ -46,21 +46,21 @@ void BeginScore(CPreSprite &prim) {
 }
 } // namespace
 
-PORT_OVERRIDE void CDamageScore::SetValue(float *position, int value) {
+void CDamageScore::SetValue(float *position, int value) {
     Emit(this);
     sceVu0CopyVector(pos, position);
     alpha = 0;
     phase = DAMAGE_SCORE_PHASE_APPEAR;
     active = true;
     sprite = false;
-    std::sprintf(text, "%d", value);
+    std::snprintf(text, sizeof(text), "%d", value);
     length = std::strlen(text);
     for (int i = 0; i < length; ++i) {
         bounce[i] = std::numbers::pi_v<float>;
     }
 }
 
-PORT_OVERRIDE void CDamageScore::SetSprite(float *position, int u, int v, int width, int height) {
+void CDamageScore::SetSprite(float *position, int u, int v, int width, int height) {
     Emit(this);
     sceVu0CopyVector(pos, position);
     alpha = 0;
@@ -74,7 +74,7 @@ PORT_OVERRIDE void CDamageScore::SetSprite(float *position, int u, int v, int wi
     sprite_v = v;
 }
 
-PORT_OVERRIDE void CDamageScore::Draw() {
+void CDamageScore::Draw() {
     if (!active) {
         return;
     }
@@ -114,7 +114,7 @@ PORT_OVERRIDE void CDamageScore::Draw() {
     prim.End();
 }
 
-PORT_OVERRIDE void CDamageScore2::SetValue(int slot, int amount, float rise) {
+void CDamageScore2::SetValue(int slot, int amount, float rise) {
     Emit(this);
     chara_no = slot;
     alpha = 0;
@@ -123,11 +123,11 @@ PORT_OVERRIDE void CDamageScore2::SetValue(int slot, int amount, float rise) {
     offset_y = 0;
     height = 2.0f * rise;
     progress = 0;
-    std::sprintf(text, "%d", value);
+    std::snprintf(text, sizeof(text), "%d", value);
     length = std::strlen(text);
 }
 
-PORT_OVERRIDE void CDamageScore2::Draw(CScene *scene) {
+void CDamageScore2::Draw(CScene *scene) {
     if (phase == DAMAGE_SCORE2_PHASE_NONE || length <= 0) {
         return;
     }

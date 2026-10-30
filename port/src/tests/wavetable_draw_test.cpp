@@ -7,9 +7,9 @@
 
 #include "gfx/gfx.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "render/primitive_submission.hpp"
 #include "wavetable.hpp"
 
 namespace {
@@ -44,10 +44,10 @@ public:
     std::vector<Batch> batches;
 
 private:
-    mgRENDER_INFO      render_info_{};
-    sceVif1Packet      vif_packet_{};
-    mgRENDER_INFO     *saved_render_info_;
-    sceVif1Packet     *saved_vif_packet_;
+    mgRENDER_INFO  render_info_{};
+    sceVif1Packet  vif_packet_{};
+    mgRENDER_INFO *saved_render_info_;
+    sceVif1Packet *saved_vif_packet_;
 };
 
 std::array<uint8_t, 4> Rgba(const gfx::Vertex2D &v) {
@@ -57,7 +57,7 @@ std::array<uint8_t, 4> Rgba(const gfx::Vertex2D &v) {
 } // namespace
 
 TEST(WaveTableDraw, CreateTextureDrawsOneStripPerRowThenTheDarkenSprite) {
-    Harness h;
+    Harness    h;
     mgCTexture texture;
     texture.bpp = 32;
     texture.width = 230;

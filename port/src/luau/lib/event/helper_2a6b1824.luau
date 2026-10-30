@@ -1,0 +1,46 @@
+--!strict
+-- Shared event helper used by 6 scripts, translated by tools/luau/stb2luau.
+
+local wait_camera = require("@lib/event/wait_camera")
+local wait_objects = require("@lib/event/wait_objects")
+
+--- Helper function.
+local function helper_2a6b1824(arg0: any)
+	event.set_camera_sequence_position(-337.21, 57.28, -2006.87)
+	event.set_camera_sequence_look_at(-278.59, 71.17, -1908.74)
+	event.set_character_active(1, 33)
+	event.set_object_sequence_position(1, -247.36, 36.72, -1936.73)
+	event.set_object_sequence_rotation(1, 0.0, 0.04, 0.0)
+	event.set_object_sequence_motion(1, "走り", 4)
+	event.set_character_active(1, 34)
+	event.set_object_sequence_position(2, -257.07, 36.72, -1857.99)
+	event.set_object_sequence_rotation(2, 0.0, -3.12, 0.0)
+	event.set_object_sequence_motion(2, "走り", 4)
+	event.set_character_active(1, 35)
+	event.set_object_sequence_position(3, -281.38, 36.72, -1863.87)
+	event.set_object_sequence_rotation(3, 0.0, 2.92, 0.0)
+	event.set_object_sequence_motion(3, "走り", 4)
+	event.move_object_sequence(1, -264.97, 36.87, -1753.54, 80)
+	event.rotate_object_sequence(1, 0.0, 0.04, 0.0, 150)
+	event.delay_object_sequence_motion_track(1, 95)
+	event.set_object_sequence_motion(1, "立ち", 4)
+	event.rotate_object_sequence(2, 0.0, 0.06, 0.0, 10)
+	event.delay_object_sequence_position_track(2, 10)
+	event.move_object_sequence(2, -221.09, 36.72, -1531.87, 80)
+	event.delay_object_sequence_motion_track(2, 95)
+	event.set_object_sequence_motion(2, "立ち", 4)
+	event.rotate_object_sequence(3, 0.0, 0.16, 0.0, 10)
+	event.delay_object_sequence_position_track(3, 10)
+	event.move_object_sequence(3, -272.59, 36.72, -1640.34, 80)
+	event.delay_object_sequence_motion_track(3, 95)
+	event.set_object_sequence_motion(3, "立ち", 4)
+	event.mark_camera_sequence_fade_track()
+	event.delay_camera_sequence_fade_track(45)
+	event.fade_out_camera_sequence(50, 0.0, 0.0, 0.0)
+	wait_objects(1)
+	wait_objects(2)
+	wait_objects(3)
+	wait_camera()
+end
+
+return helper_2a6b1824

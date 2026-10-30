@@ -7,19 +7,19 @@
 #include <string>
 #include <utility>
 
-#include "bounded_text.hpp"
 #include "gamedata.hpp"
 #include "mainloop.hpp"
 #include "menuaqua.hpp"
 #include "menucommon.hpp"
 #include "nd_meswin.hpp"
+#include "text/bounded.hpp"
 #include "userdata.hpp"
 
 // Retail appends the count conversion to each food's name and passes the result to sprintf as the
 // format, then copies the line into a 50-byte message name. It also reads the tenth food number, which
 // GetUseableEsaNo never writes. Lines are built as text, held to the name field, and the list stops at
 // the numbers actually written.
-PORT_OVERRIDE void CAquaMes::SetQuestionId(int id, int top, int num) {
+void CAquaMes::SetQuestionId(int id, int top, int num) {
     question_cursor = 0;
     question_num = num;
     question_mes->select_top = top;
@@ -55,7 +55,7 @@ PORT_OVERRIDE void CAquaMes::SetQuestionId(int id, int top, int num) {
                 line.append(static_cast<std::size_t>(std::max(pad, 0)), ' ');
                 line += std::format("x{:3}", have);
             }
-            bounded_text::Copy(question_mes->name[listed], line);
+            dc2::text::Copy(question_mes->name[listed], line);
         }
 
         question_num = listed;

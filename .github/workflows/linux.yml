@@ -1,0 +1,125 @@
+name: Linux
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      tests:
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.tests || false }}-linux
+  cancel-in-progress: true
+jobs:
+  build:
+    name: Tests (Linux)
+    if: inputs.tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+          fetch-depth: ${{ inputs.tests && '0' || '1' }}
+      - uses: docker/setup-buildx-action@v3
+      - name: Prepare the build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/ci/Dockerfile
+          target: linux
+          load: true
+          tags: chronicletwo-ci:build
+          cache-from: type=gha,scope=ci-linux
+          cache-to: type=gha,mode=max,scope=ci-linux,ignore-error=true
+      - uses: actions/cache@v5
+        with:
+          path: |
+            .kazarov/ccache/linux
+            .kazarov/cargo-target/linux
+            .kazarov/cargo-home
+          key: compile-linux-${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            compile-linux-${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock') }}-
+      - name: ${{ inputs.tests && 'Build and test' || 'Build and package' }}
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+          EVENT: ${{ github.event_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/work" \
+            -e PR_BASE -e BEFORE -e EVENT -e DEFAULT_BRANCH \
+            -e CARGO_HOME=/work/.kazarov/cargo-home \
+            chronicletwo-ci:build bash tools/ci/linux.sh ${{ inputs.tests && 'tests' || 'build' }}
+      - name: Restore cache ownership
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .kazarov port/build
+      - uses: actions/upload-artifact@v7
+        if: always() && inputs.tests
+        with:
+          name: tests-linux
+          path: |
+            port/build/pc/tests.xml
+            port/build/pc/Testing/Temporary/
+          if-no-files-found: warn
+
+  # docs/FLATPAK.md: the Linux build packaged in Flathub's freedesktop 26.08 image. The manifest uses the
+  # commit under test as a git source.
+  flatpak:
+    name: Build the Flatpak (Linux x86_64)
+    if: ${{ !inputs.tests }}
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
+      options: --privileged
+    env:
+      MANIFEST: port/flatpak/ci.yml
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Check that the vendored crates match Kazarov's Cargo.lock
+        run: |
+          # The workspace belongs to another user in the container, which git refuses until it is marked safe.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          python3 port/flatpak/cargo_sources.py
+          git diff --exit-code port/flatpak/cargo-sources.json
+
+      - name: Point the manifest at this commit
+        run: |
+          awk -v commit="$GITHUB_SHA" '
+            /# chronicletwo-source:/ {
+              print
+              print "      - type: git"
+              print "        path: ../.."
+              print "        commit: " commit
+              skip = 1
+              next
+            }
+            /# chronicletwo-source-end/ { skip = 0 }
+            !skip { print }
+          ' port/flatpak/org.themoonpeople.ChronicleTwo.yml > "$MANIFEST"
+          sed -n '/name: chronicletwo$/,$p' "$MANIFEST" | head -80
+
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: ${{ env.MANIFEST }}
+          bundle: chronicletwo.flatpak
+          artifact-name: chronicletwo-x86_64.flatpak
+          cache-key: flatpak-builder-${{ hashFiles('port/flatpak/org.themoonpeople.ChronicleTwo.yml', 'port/flatpak/cargo-sources.json') }}
+
+      # The packaged darkchronicle keeps its line tables (the manifest sets no-debuginfo), so it is its own
+      # symbol file for tools/crash/symbolize.py.
+      - name: Upload the Flatpak symbols
+        uses: actions/upload-artifact@v7
+        with:
+          name: chronicletwo-flatpak-x86_64-symbols-${{ github.sha }}
+          path: flatpak_app/files/bin/darkchronicle
+          if-no-files-found: error

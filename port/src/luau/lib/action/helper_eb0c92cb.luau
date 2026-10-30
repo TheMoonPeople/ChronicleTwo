@@ -9,19 +9,19 @@ local function helper_eb0c92cb()
 	local var0: s32 = 0
 	local prog: s32 = 0
 	local var3: f32 = 0
-	prog = action.ProgGet() or prog
+	prog = action.get_program_value() or prog
 	if prog == 200 then
-		action.SetMos("中距離攻撃", -1, 6)
-		action.ProgSet(prog + 1)
+		action.play_motion("中距離攻撃", -1, 6)
+		action.set_program_value(prog + 1)
 	end
 	if prog == 201 then
-		var3 = action.NowMosWait() or var3
+		var3 = action.get_motion_progress() or var3
 		if var3 > vm.f32(0.3) and var3 < vm.f32(0.4) then
-			action.SetBlowMove(6.0, 0.0, 12)
+			action.set_move_impulse(6.0, 0.0, 12)
 		end
-		var0 = action.GetMosStatus() or var0
+		var0 = action.get_motion_status() or var0
 		if var0 == 4 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 			helper_bac4ec65(6)
 		end
 		return

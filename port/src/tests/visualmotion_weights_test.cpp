@@ -5,7 +5,7 @@
 #include <cstring>
 
 #include "mg_drawprim.hpp"
-#include "mg_visual_port.hpp"
+#include "render/visual_mesh.hpp"
 #include "visualmotion.hpp"
 
 namespace {

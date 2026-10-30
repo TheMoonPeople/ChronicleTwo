@@ -3,8 +3,8 @@
 
 --- Helper function.
 local function helper_a551797e()
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
 end
 
 return helper_a551797e

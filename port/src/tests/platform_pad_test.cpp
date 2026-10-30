@@ -1,10 +1,13 @@
+#include <eekernel.h>
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <utility>
 
 #include "gamepad.hpp"
+#include "input/gamepad_state.hpp"
 #include "mainloop.hpp"
 #include "mglib.hpp"
 #include "platform/clock.hpp"
@@ -45,6 +48,10 @@ void WarmUp() {
     for (std::int64_t frame = 0; frame < kPressFrame; ++frame) {
         Tick(frame);
     }
+}
+
+void RotateControllerQueue() {
+    RotateThreadReadyQueue(GAMEPAD_THREAD_PRIORITY);
 }
 
 } // namespace
@@ -112,9 +119,48 @@ TEST(PlatformPad, VibrationThreadStepsWithoutDeadlock) {
     mgSetRotateThread(GAMEPAD_THREAD_PRIORITY);
     WaitVSync(mgGetVSyncCount(), 3);
     mgSetRotateThread(-1);
+    dc2::input::StopControllerThread();
 
     // Step accumulates up to the thread's last turn, which runs one tick before the final count.
     EXPECT_GT(GamePad__2.vibration_elapsed, 0);
     EXPECT_EQ(GamePad__2.vibration_elapsed, mgGetVSyncCount() - 1);
     InputScriptInstall({});
+}
+
+TEST(PlatformPad, ReplacingAndStoppingTheWorkerLeavesNoReadyControllerThread) {
+    KzThreadsSetMainPriority(GAMEPAD_THREAD_PRIORITY);
+    CreateGamePadThread(&GamePad__2);
+    CreateGamePadThread(&GamePad__2);
+    dc2::input::StopControllerThread();
+    dc2::input::StopControllerThread();
+
+    ClockSetUnbounded(true);
+    ClockAddPumpHook(RotateControllerQueue);
+    ClockPump();
+    ClockRemovePumpHook(RotateControllerQueue);
+}
+
+TEST(PlatformPad, NullControllerRetiresTheWorkerBeforeReleasingItsCapture) {
+    KzThreadsSetMainPriority(GAMEPAD_THREAD_PRIORITY);
+    CreateGamePadThread(&GamePad__2);
+    CreateGamePadThread(nullptr);
+
+    ClockSetUnbounded(true);
+    ClockAddPumpHook(RotateControllerQueue);
+    ClockPump();
+    ClockRemovePumpHook(RotateControllerQueue);
+}
+
+TEST(PlatformPad, CalibrationClampsMalformedSamplesBeforeArithmetic) {
+    CGamePad controller;
+    controller.pad[0].left_x = std::numeric_limits<int>::min();
+    controller.pad[0].left_y = std::numeric_limits<int>::max();
+    controller.pad[0].right_x = std::numeric_limits<int>::max();
+    controller.pad[0].right_y = std::numeric_limits<int>::min();
+    controller.pad[1].right_x = std::numeric_limits<int>::min();
+    EXPECT_EQ(controller.GetLX(), -128);
+    EXPECT_EQ(controller.GetLY(), 128);
+    EXPECT_EQ(controller.GetRX(), 128);
+    EXPECT_EQ(controller.GetRY(), -128);
+    EXPECT_EQ(controller.GetRX2(), -128);
 }

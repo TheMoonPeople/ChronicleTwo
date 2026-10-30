@@ -1,0 +1,45 @@
+--!strict
+-- Shared event helper used by 6 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local wait_camera = require("@lib/event/wait_camera")
+
+--- Helper function.
+local function helper_7dfaaca0()
+	vm.section(function()
+		event.initialize_event()
+		event.assign_memory_stack(5)
+		event.clear_memory_stack(5)
+		event.load_character(5, "event/e100/e109/e109_starbre.gltf", "info", 32)
+		event.attach_object_handle_to_character(0, 32)
+		event.clear_object_sequence(0)
+		event.set_object_sequence_object(0, 0)
+		event.enable_drama_skip()
+		event.set_character_active(0, 0)
+		event.set_character_active(1, 32)
+		event.set_camera_sequence_position(2206.38, 45.78, 2788.73)
+		event.set_camera_sequence_look_at(2151.7, 44.53, 2924.41)
+		event.set_object_sequence_position(0, 2105.62, 0.0, 2971.54)
+		event.set_object_sequence_rotation(0, 0.0, 0.0, 0.0)
+		event.move_camera_sequence_eased(2585.56, 45.78, 2117.44, 2529.48, 44.53, 2252.55, 200, 2, 0.2)
+		event.set_object_sequence_motion(0, "歩き", 4)
+		event.clear_object_sequence_path(0)
+		event.set_object_sequence_path_frames(0, 210)
+		event.add_object_sequence_path_point(0, 2105.62, 0.0, 2971.54)
+		event.add_object_sequence_path_point(0, 2089.82, 0.0, 3103.38)
+		event.add_object_sequence_path_point(0, 2075.37, 0.0, 3210.94)
+		event.add_object_sequence_path_point(0, 2068.3, 32.6, 3283.51)
+		event.add_object_sequence_path_point(0, 2053.56, 65.0, 3353.79)
+		event.start_object_sequence_path(0)
+		event.mark_camera_sequence_fade_track()
+		event.delay_camera_sequence_fade_track(170)
+		event.fade_out_camera_sequence(30)
+		wait_camera()
+	end)
+	event.cancel_drama_scene_skip()
+	event.delete_character(32)
+	event.set_character_active(1, 0)
+	event.fade_in_screen(30)
+end
+
+return helper_7dfaaca0

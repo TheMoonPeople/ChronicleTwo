@@ -46,7 +46,7 @@ class GenerateTest(unittest.TestCase):
         first = bindings.generate(catalog, ["action"])
         second = bindings.generate(catalog, ["action"])
         self.assertEqual(first, second)
-        self.assertIn('{"ProgSet", 1,', first)
+        self.assertIn('{"set_program_value", 1,', first)
         self.assertIn("constexpr Kind kKinds[]", first)
         self.assertEqual(
             first.count("constexpr Signature "),
@@ -55,7 +55,7 @@ class GenerateTest(unittest.TestCase):
 
     def test_synthetic_signatures_and_params(self):
         text = bindings.generate(synthetic_catalog(), ["test"])
-        self.assertIn("constexpr Signature kTest7[] = {{0, false, {}}, {2, true, kTest7Argc2}};", text)
+        self.assertIn("constexpr Signature kTest7[] = {{0, false, {}, false}, {2, true, kTest7Argc2, false}};", text)
         self.assertIn("constexpr Param kTest7Argc2[] = {{In, F32}, {Out, S32}};", text)
         self.assertIn('    {"Probe", 7, kTest7},', text)
         self.assertIn('    {"test", "test", 16, kTestCommands, {}},', text)
@@ -65,12 +65,6 @@ class GenerateTest(unittest.TestCase):
         catalog["kinds"]["test"]["commands"][0]["signatures"][0]["params"][0]["tagged"] = True
         text = bindings.generate(catalog, ["test"])
         self.assertIn("constexpr Param kTest7Argc2[] = {{In, F32, true}, {Out, S32}};", text)
-
-    def test_fallback_modules_are_listed(self):
-        fallback = {"scripts": {"dungeon/monster/p00_23a.stb": "why", "mainchr/c02.stb_": "why"}}
-        text = bindings.generate(synthetic_catalog(), ["test"], None, fallback)
-        self.assertIn('constexpr std::string_view kFallback[] = {\n    "dungeon/monster/p00_23a",\n    "mainchr/c02_",\n};', text)
-        self.assertIn("std::span<const std::string_view> FallbackModules() { return kFallback; }", text)
 
     def test_inout_param_direction(self):
         catalog = synthetic_catalog()

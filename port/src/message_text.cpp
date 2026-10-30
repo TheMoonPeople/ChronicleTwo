@@ -1,7 +1,12 @@
 #include "common.h"
 
+#include <charconv>
 #include <cstdint>
+#include <cstring>
+#include <limits>
 #include <map>
+#include <mutex>
+#include <set>
 #include <string_view>
 #include <tuple>
 #include <utility>
@@ -9,6 +14,16 @@
 
 #include "mainloop.hpp"
 #include "nd_meswin.hpp"
+
+namespace dc2::text {
+/**
+ * A parsed document whose immutable words belong to the message content cache.
+ */
+struct MessageDocument {
+    std::span<const u16>                words; /**< Complete validated file words in the cache's owned vector key. */
+    std::map<int, std::span<const u16>> lines; /**< Bounded terminated views indexed by message identifier. */
+};
+} // namespace dc2::text
 
 // The PAL disc's menu and system messages describe PS2 memory cards, their slots and the console.
 // The PC port keeps saves, the photo album and Extras data in folders, so the messages that
@@ -375,24 +390,75 @@ constexpr std::uint16_t kCodeNewline = 0xFF00;
 constexpr std::uint16_t kCodeEnd = 0xFF01;
 constexpr std::uint16_t kCodeSpace = 0xFF02;
 
-// The retail lookup, as ClsMes::GetTextLineDataTop does it.
-u16 *FindLine(short *table, int line_id) {
-    if (table == nullptr) {
+/**
+ * Owns parsed documents until module shutdown, deduplicating contents rather than source addresses.
+ */
+const dc2::text::MessageDocument *ParseTable(std::span<const std::byte> bytes) {
+    if (bytes.size() < 2 * sizeof(u16) || bytes.size() % sizeof(u16) != 0) {
         return nullptr;
     }
-    const int count = *table;
-    short    *entries = table + 1;
-    for (int i = 0; i < count; i++) {
-        if (std::cmp_equal(line_id, entries[i * 2 + 1])) {
-            return reinterpret_cast<u16 *>(entries + count + static_cast<u16>(entries[i * 2 + 2]));
-        }
+    std::vector<u16> words(bytes.size() / sizeof(u16));
+    std::memcpy(words.data(), bytes.data(), bytes.size());
+    if (words[0] > static_cast<u16>(std::numeric_limits<short>::max())) {
+        return nullptr;
     }
-    return nullptr;
+    const auto count = static_cast<std::size_t>(words[0]);
+    const auto header_words = 2 + count * 2;
+    if (header_words > words.size()) {
+        return nullptr;
+    }
+    std::map<int, std::pair<std::size_t, std::size_t>> lines;
+    for (std::size_t index = 0; index < count; ++index) {
+        const auto id = words[2 + index * 2];
+        if (id > static_cast<u16>(std::numeric_limits<short>::max())) {
+            continue;
+        }
+        const auto offset = 1 + count + words[3 + index * 2];
+        if (offset < header_words || offset > words.size()) {
+            return nullptr;
+        }
+        if (offset == words.size()) {
+            continue;
+        }
+        // Every control and glyph in this format occupies one complete 16-bit word.
+        const auto end = std::find(words.begin() + static_cast<std::ptrdiff_t>(offset), words.end(), kCodeEnd);
+        if (end == words.end()) {
+            return nullptr;
+        }
+        const auto  length = static_cast<std::size_t>(end - (words.begin() + static_cast<std::ptrdiff_t>(offset))) + 1;
+        std::size_t row_count = 1;
+        std::size_t page_count = 1;
+        for (auto word = words.begin() + static_cast<std::ptrdiff_t>(offset); word != end; ++word) {
+            if (*word == MES_CODE_NEWLINE || *word == MES_CODE_PAGE) {
+                ++row_count;
+            }
+            if (*word == MES_CODE_PAGE) {
+                ++page_count;
+            }
+        }
+        if (row_count > MES_LINE_MAX || page_count > MES_PAGE_MAX) {
+            return nullptr;
+        }
+        lines.try_emplace(id, offset, length);
+    }
+    static std::mutex                                             cache_mutex;
+    static std::map<std::vector<u16>, dc2::text::MessageDocument> documents;
+    const std::scoped_lock                                        lock(cache_mutex);
+    if (const auto found = documents.find(words); found != documents.end()) {
+        return &found->second;
+    }
+    dc2::text::MessageDocument candidate{.words = words, .lines = {}};
+    for (const auto &[id, extent] : lines) {
+        candidate.lines.emplace(id, candidate.words.subspan(extent.first, extent.second));
+    }
+    const auto [entry, inserted] = documents.try_emplace(std::move(words), std::move(candidate));
+    return &entry->second;
 }
 
-const KnownFile *Identify(const short *table) {
+const KnownFile *Identify(dc2::text::MessageTable table) {
+    const auto signature = table.Signature();
     for (const auto &known : kKnownFiles) {
-        if (static_cast<u16>(table[0]) == known.count && static_cast<u16>(table[1]) == known.word1) {
+        if (signature[0] == known.count && signature[1] == known.word1) {
             return &known;
         }
     }
@@ -414,20 +480,20 @@ void Append(std::vector<std::uint16_t> &out, char32_t ch) {
     }
 }
 
-std::vector<std::uint16_t> Encode(std::string_view text, const u16 *original) {
+std::vector<std::uint16_t> Encode(std::string_view text, std::span<const u16> original) {
     std::vector<std::uint16_t> out;
     for (std::size_t i = 0; i < text.size();) {
         if (text[i] == '{') {
             const auto close = text.find('}', i);
             const auto token = text.substr(i + 1, close - i - 1);
             if (token == "TAIL") {
-                const u16 *tail = nullptr;
-                for (const u16 *code = original; code && *code != kCodeEnd; ++code) {
+                auto tail = original.end();
+                for (auto code = original.begin(); code != original.end() && *code != kCodeEnd; ++code) {
                     if (*code == kCodeNewline) {
                         tail = code;
                     }
                 }
-                for (; tail && *tail != kCodeEnd; ++tail) {
+                for (; tail != original.end() && *tail != kCodeEnd; ++tail) {
                     out.push_back(*tail);
                 }
             } else {
@@ -454,42 +520,46 @@ std::vector<std::uint16_t> Encode(std::string_view text, const u16 *original) {
     return out;
 }
 
-u16 *Added(int line_id) {
-    static std::map<std::pair<int, int>, std::vector<std::uint16_t> > encoded;
-    const auto                                                        key = std::make_pair(LanguageCode, line_id);
+std::span<const u16> Added(int line_id) {
+    static std::mutex                                                cache_mutex;
+    const std::scoped_lock                                           lock(cache_mutex);
+    static std::map<std::pair<int, int>, std::vector<std::uint16_t>> encoded;
+    const auto                                                       key = std::make_pair(LanguageCode, line_id);
     if (auto found = encoded.find(key); found != encoded.end()) {
-        return reinterpret_cast<u16 *>(found->second.data());
+        return found->second;
     }
     for (const auto &addition : kAdditions) {
         if (addition.language == LanguageCode && addition.id == line_id) {
-            auto &codes = encoded[key] = Encode(addition.text, nullptr);
-            return reinterpret_cast<u16 *>(codes.data());
+            auto &codes = encoded[key] = Encode(addition.text, {});
+            return codes;
         }
     }
-    return nullptr;
+    return {};
 }
 
-u16 *Lookup(short *table, int line_id) {
-    u16 *original = FindLine(table, line_id);
+std::span<const u16> Lookup(dc2::text::MessageTable table, int line_id) {
+    const auto original = table.Line(line_id);
     if (table == nullptr) {
         return original;
     }
-    if (original == nullptr) {
+    if (original.empty()) {
         return Added(line_id);
     }
     const KnownFile *known = Identify(table);
     if (!known) {
         return original;
     }
-    static std::map<std::tuple<MesFile, int, int>, std::vector<std::uint16_t> > encoded;
-    const auto                                                                  key = std::make_tuple(known->file, known->language, line_id);
+    static std::mutex                                                                            cache_mutex;
+    const std::scoped_lock                                                                       lock(cache_mutex);
+    static std::map<std::tuple<MesFile, int, int, std::vector<u16>>, std::vector<std::uint16_t>> encoded;
+    const auto                                                                                   key = std::make_tuple(known->file, known->language, line_id, std::vector<u16>(original.begin(), original.end()));
     if (auto found = encoded.find(key); found != encoded.end()) {
-        return reinterpret_cast<u16 *>(found->second.data());
+        return found->second;
     }
     for (const auto &replacement : kReplacements) {
         if (replacement.file == known->file && replacement.language == known->language && replacement.id == line_id) {
             auto &codes = encoded[key] = Encode(replacement.text, original);
-            return reinterpret_cast<u16 *>(codes.data());
+            return codes;
         }
     }
     return original;
@@ -497,10 +567,82 @@ u16 *Lookup(short *table, int line_id) {
 
 } // namespace
 
-PORT_OVERRIDE u16 *ClsMes::GetTextLineDataTop(int line_id) {
+std::span<const u16> ClsMes::GetTextLineDataTop(int line_id) {
     return Lookup(buff, line_id);
 }
 
-PORT_OVERRIDE u16 *ClsMes::GetTextLineDataTop_system(int line_id) {
+std::span<const u16> ClsMes::GetTextLineDataTop_system(int line_id) {
     return Lookup(buff_system, line_id);
 }
+
+namespace dc2::text {
+MessageTable MessageTable::Parse(std::span<const std::byte> bytes) {
+    return MessageTable(ParseTable(bytes));
+}
+
+std::span<const u16> MessageTable::Line(int id) const {
+    if (document == nullptr) {
+        return {};
+    }
+    const auto found = document->lines.find(id);
+    return found == document->lines.end() ? std::span<const u16>{} : found->second;
+}
+
+std::array<u16, 2> MessageTable::Signature() const {
+    if (document == nullptr) {
+        return {};
+    }
+    return {document->words[0], document->words[1]};
+}
+} // namespace dc2::text
+
+namespace dc2::text {
+std::optional<std::string_view> FindEventMessage(std::span<const char> bytes, int id) {
+    if (bytes.empty()) {
+        return std::nullopt;
+    }
+    const std::string_view source(bytes.data(), bytes.size());
+    std::size_t            search = 0;
+    while (search < source.size()) {
+        const auto marker = source.find('@', search);
+        if (marker == std::string_view::npos) {
+            break;
+        }
+        search = marker + 1;
+        const auto header_end = source.find('\n', search);
+        const auto header_zero = source.find('\0', search);
+        if (header_end == std::string_view::npos || (header_zero != std::string_view::npos && header_zero < header_end)) {
+            continue;
+        }
+        auto number = search;
+        while (number < header_end && (source[number] == ' ' || source[number] == '\t' || source[number] == '\r')) {
+            ++number;
+        }
+        if (number < header_end && source[number] == '+') {
+            ++number;
+        }
+        int        parsed = 0;
+        const auto result = std::from_chars(source.data() + number, source.data() + header_end, parsed);
+        if (result.ec != std::errc{} || parsed != id) {
+            continue;
+        }
+        const auto first = header_end + 1;
+        auto       last = source.find('\0', first);
+        if (last == std::string_view::npos) {
+            last = source.size();
+        }
+        for (auto line = source.find('\n', first); line != std::string_view::npos && line < last; line = source.find('\n', line + 1)) {
+            if (line + 1 < source.size() && source[line + 1] == '@') {
+                last = line > first && source[line - 1] == '\r' ? line - 1 : line;
+                break;
+            }
+        }
+        static std::mutex            cache_mutex;
+        static std::set<std::string> bodies;
+        const std::scoped_lock       lock(cache_mutex);
+        const auto [entry, inserted] = bodies.emplace(source.substr(first, last - first));
+        return std::string_view(*entry);
+    }
+    return std::nullopt;
+}
+} // namespace dc2::text

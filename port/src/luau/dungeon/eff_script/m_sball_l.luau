@@ -35,8 +35,8 @@ function script.on_start()
 	local reversed: s32 = 0
 	local var19: s32 = 0
 	local value: s32 = 0
-	local var21: f32 = 0
-	local var22: f32 = 0
+	local scale: f32 = 0
+	local scale_2: f32 = 0
 	local var23: f32 = 0
 	local var25: s32 = 0
 	local var26: f32 = 0
@@ -50,115 +50,115 @@ function script.on_start()
 	local var34: f32 = 0
 	local var35: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	value = effect.GetValue(0) or value
+	value = effect.get_script_value(0) or value
 	do
-		local out1, out2, out3 = effect.GetDirVector(var3, var4, var5)
+		local out1, out2, out3 = effect.get_direction_vector(var3, var4, var5)
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
 	do
-		local out1, out2, out3 = effect.NormalVector(var6, var7, var8)
+		local out1, out2, out3 = effect.normalize_vector(var6, var7, var8)
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
 	do
-		local out1, out2, out3 = effect.CopyVector(var6, var7, var8)
+		local out1, out2, out3 = effect.copy_vector(var6, var7, var8)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, 8.0)
+		local out1, out2, out3 = effect.scale_vector(var9, var10, var11, 8.0)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	effect.ChrSetPos(var0, var1, var2)
-	effect.ChrSetRot(var3, var4, var5)
-	effect.ChrSetMotion("雷弾ループ")
-	effect.ChrSetScale(1.5, 1.5, 1.5)
-	effect.ChrSetShow(1, 1, 0.1)
+	effect.set_effect_character_position(var0, var1, var2)
+	effect.rotate_effect_character_toward(var3, var4, var5)
+	effect.set_effect_character_motion("雷弾ループ")
+	effect.set_effect_character_scale(1.5, 1.5, 1.5)
+	effect.set_effect_character_visible(1, 1, 0.1)
 	var19 = 0
 	while var19 < 10 do
 		vm.wait()
 		var19 = var19 + 1
 	end
-	effect.ColprimCreate("雷弾")
-	effect.ColprimSetDamage(value)
+	effect.create_collision_primitive("雷弾")
+	effect.set_collision_primitive_damage(value)
 	var19 = 0
 	while var19 < 60 do
-		var21 = vm.f32(vm.f32(1.5 * vm.cos(0.0)) * var19)
-		var22 = vm.f32(
+		scale = vm.f32(vm.f32(1.5 * vm.cos(0.0)) * var19)
+		scale_2 = vm.f32(
 			vm.f32(vm.f32(1.5 * vm.sin(0.0)) * var19) - vm.f32(vm.f32(vm.f32(vm.f32(0.025) * var19) * var19) / 2)
 		)
 		do
-			local out1, out2, out3 = effect.CopyVector(var6, var7, var8)
+			local out1, out2, out3 = effect.copy_vector(var6, var7, var8)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var9, var23, var11, var21)
+			local out1, out2, out3 = effect.scale_vector(var9, var23, var11, scale)
 			var9 = out1 or var9
 			var23 = out2 or var23
 			var11 = out3 or var11
 		end
 		var10 = 1.0
 		do
-			local out1, out2, out3 = effect.ScaleVector(var23, var10, vm.bits_float(var25) :: number, var22)
+			local out1, out2, out3 = effect.scale_vector(var23, var10, vm.bits_float(var25) :: number, scale_2)
 			var23 = out1 or var23
 			var10 = out2 or var10
 			var25 = vm.float_bits(out3) or var25
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+			local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 			vector_x = out1 or vector_x
 			vector_y = out2 or vector_y
 			vector_z = out3 or vector_z
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		effect.ChrSetPos(var0, var1, var2)
-		effect.ColprimSetCoord(var0, var1, var2, 8.400001)
+		effect.set_effect_character_position(var0, var1, var2)
+		effect.set_collision_primitive_shape(var0, var1, var2, 8.400001)
 		do
-			local out1, out2, out3, out4 = effect.ColprimGetRevcnt()
+			local out1, out2, out3, out4 = effect.get_collision_primitive_knockback()
 			reversed = out1 or reversed
 			revers_vec_x = out2 or revers_vec_x
 			revers_vec_y = out3 or revers_vec_y
 			revers_vec_z = out4 or revers_vec_z
 		end
 		if reversed > 0 then
-			effect.EsCreate_1("ガードエフェクトＡ")
-			effect.EsSetVect1(var0, var1, var2)
+			effect.create_effect_1("ガードエフェクトＡ")
+			effect.set_effect_first_work_vector(var0, var1, var2)
 			break
 		else
-			var25 = effect.ColprimGetHitcnt() or var25
+			var25 = effect.get_collision_primitive_hit_count() or var25
 			if var25 > 0 then
-				effect.EsCreate_1("雷弾Ｈ")
-				effect.EsSetVect1(var0, var1, var2)
-				effect.EsSetVect2(var3, var4, var5)
+				effect.create_effect_1("雷弾Ｈ")
+				effect.set_effect_first_work_vector(var0, var1, var2)
+				effect.set_effect_second_work_vector(var3, var4, var5)
 				break
 			else
 				do
 					local out1, out2, out3, out4 =
-						effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
+						effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
 					var26 = out1 or var26
 					var27 = out2 or var27
 					var28 = out3 or var28
@@ -166,32 +166,32 @@ function script.on_start()
 				end
 				if var25 >= 0 then
 					do
-						local out1, out2, out3 = effect.NormalVector(var9, var10, var11)
+						local out1, out2, out3 = effect.normalize_vector(var9, var10, var11)
 						var9 = out1 or var9
 						var10 = out2 or var10
 						var11 = out3 or var11
 					end
 					do
-						local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, 10.0)
+						local out1, out2, out3 = effect.scale_vector(var9, var10, var11, 10.0)
 						var9 = out1 or var9
 						var10 = out2 or var10
 						var11 = out3 or var11
 					end
 					do
-						local out1, out2, out3 = effect.CopyVector(var26, var27, var28)
+						local out1, out2, out3 = effect.copy_vector(var26, var27, var28)
 						var29 = out1 or var29
 						var30 = out2 or var30
 						var31 = out3 or var31
 					end
 					do
-						local out1, out2, out3 = effect.AddVector(var29, var30, var31, -var9, -var10, -var11)
+						local out1, out2, out3 = effect.add_vectors(var29, var30, var31, -var9, -var10, -var11)
 						var29 = out1 or var29
 						var30 = out2 or var30
 						var31 = out3 or var31
 					end
-					effect.EsCreate_1("雷弾Ｈ")
-					effect.EsSetVect1(var29, var30, var31)
-					effect.EsSetVect2(var3, var4, var5)
+					effect.create_effect_1("雷弾Ｈ")
+					effect.set_effect_first_work_vector(var29, var30, var31)
+					effect.set_effect_second_work_vector(var3, var4, var5)
 					break
 				else
 					vm.wait()
@@ -200,25 +200,25 @@ function script.on_start()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 	vm.wait()
 	if reversed > 0 then
-		effect.ColprimCreate("雷弾", 0)
-		effect.ColprimSetDamage(value)
+		effect.create_collision_primitive("雷弾", 0)
+		effect.set_collision_primitive_damage(value)
 		do
-			local out1, out2, out3 = effect.CopyVector(revers_vec_x, revers_vec_y, revers_vec_z)
+			local out1, out2, out3 = effect.copy_vector(revers_vec_x, revers_vec_y, revers_vec_z)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
 		do
-			local out1, out2, out3 = effect.NormalVector(var9, var10, var11)
+			local out1, out2, out3 = effect.normalize_vector(var9, var10, var11)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, 10.0)
+			local out1, out2, out3 = effect.scale_vector(var9, var10, var11, 10.0)
 			var9 = out1 or var9
 			var10 = out2 or var10
 			var11 = out3 or var11
@@ -226,49 +226,49 @@ function script.on_start()
 		var19 = 0
 		while var19 < 60 do
 			do
-				local out1, out2, out3 = effect.ChrGetPos()
+				local out1, out2, out3 = effect.get_effect_character_position()
 				var0 = out1 or var0
 				var1 = out2 or var1
 				var2 = out3 or var2
 			end
 			do
-				local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+				local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 				var0 = out1 or var0
 				var1 = out2 or var1
 				var2 = out3 or var2
 			end
 			do
-				local out1, out2, out3 = effect.ChrGetRefRot(var0, var1, var2)
+				local out1, out2, out3 = effect.get_effect_character_rotation_toward(var0, var1, var2)
 				var3 = out1 or var3
 				var4 = out2 or var4
 				var5 = out3 or var5
 			end
-			effect.ChrSetPos(var0, var1, var2)
-			effect.ChrSetRot(var3, var4, var5)
-			effect.ColprimSetCoord(var0, var1, var2, 6.0)
-			var32 = effect.ColprimGetHitcnt() or var32
+			effect.set_effect_character_position(var0, var1, var2)
+			effect.rotate_effect_character_toward(var3, var4, var5)
+			effect.set_collision_primitive_shape(var0, var1, var2, 6.0)
+			var32 = effect.get_collision_primitive_hit_count() or var32
 			if var32 > 0 then
-				effect.EsCreate_1("雷弾Ｈ")
-				effect.EsSetVect1(var0, var1, var2)
-				effect.EsSetVect2(var3, var4, var5)
+				effect.create_effect_1("雷弾Ｈ")
+				effect.set_effect_first_work_vector(var0, var1, var2)
+				effect.set_effect_second_work_vector(var3, var4, var5)
 				break
 			else
 				do
 					local out1, out2, out3, out4 =
-						effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
+						effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
 					var33 = out1 or var33
 					var34 = out2 or var34
 					var35 = out3 or var35
 					var32 = out4 or var32
 				end
 				if var32 >= 0 then
-					effect.EsCreate_1("雷弾Ｈ")
-					effect.EsSetVect1(var33, var34, var35)
-					effect.EsSetVect2(var3, var4, var5)
+					effect.create_effect_1("雷弾Ｈ")
+					effect.set_effect_first_work_vector(var33, var34, var35)
+					effect.set_effect_second_work_vector(var3, var4, var5)
 					break
 				else
 					do
-						local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+						local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 						vector_x = out1 or vector_x
 						vector_y = out2 or vector_y
 						vector_z = out3 or vector_z
@@ -278,7 +278,7 @@ function script.on_start()
 				end
 			end
 		end
-		effect.ColprimDelete(-1)
+		effect.delete_collision_primitive(-1)
 	end
 end
 

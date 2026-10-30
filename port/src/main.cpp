@@ -1,44 +1,56 @@
+#include <SDL3/SDL_platform.h>
+
 #include <charconv>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 #include <vector>
+#ifdef SDL_PLATFORM_IOS
+// main stays this file's own entry point (and the of the game's), so SDL must not rename it.
+#define SDL_MAIN_HANDLED
+#include <SDL3/SDL_main.h>
+#endif
 
+#include "assets/data_registry.hpp"
 #include "audio/soundtrack.hpp"
 #include "audio_init.hpp"
 #include "crash/crash.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "exitcodes.hpp"
 #include "gfx/gfx.hpp"
 #include "identity.hpp"
+#include "input/gamepad_state.hpp"
 #include "kazarov/data_version.hpp"
 #include "log/log.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/config.hpp"
 #include "platform/display.hpp"
 #include "platform/firstrun.hpp"
+#include "platform/frame_timing.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/input.hpp"
 #include "platform/input_script.hpp"
 #include "platform/input_startup.hpp"
+#include "render/renderer.hpp"
+#ifdef SDL_PLATFORM_IOS
+#include "ios/bridge.hpp"
+#endif
+#include "audio/sound_runtime.hpp"
 #include "platform/paths.hpp"
 #include "platform/settings.hpp"
 #include "platform/window.hpp"
 #include "present.hpp"
 #include "profile.hpp"
 #include "sce/threads.hpp"
-#include "sound_port.hpp"
 #include "test_hooks.hpp"
-
-int VSyncCallBack(int field);
 
 namespace {
 
@@ -183,7 +195,7 @@ Options ParseOptions(int argc, const char **argv) {
 }
 
 void ReportPipelineProgress(std::uint32_t done, std::uint32_t total) {
-    static std::uint32_t reported = 0;
+    static std::uint32_t    reported = 0;
     constexpr std::uint32_t kSteps = 4;
     if (total == 0) {
         return;
@@ -230,6 +242,42 @@ PresentSettings PresentSettingsFor(const Config &config, const Options &options)
         .fps_detail = config.fps_detail,
         .log_fps = options.log_fps,
     };
+}
+
+/** Whether the application owns an initialized window. */
+bool host_window_initialized{};
+/** Whether the application owns initialized input devices. */
+bool host_input_initialized{};
+/** Whether the application owns an initialized renderer. */
+bool host_renderer_initialized{};
+
+/**
+ * Releases the application's renderer while its dependent host services remain live.
+ */
+void ShutdownRenderer() {
+    if (std::exchange(host_renderer_initialized, false)) {
+        gfx::SetRenderIdleHook(nullptr, nullptr);
+        gfx::RendererShutdown();
+    }
+}
+
+/**
+ * Releases the application's input devices once.
+ */
+void ShutdownInput() {
+    dc2::input::StopControllerThread();
+    if (std::exchange(host_input_initialized, false)) {
+        InputShutdown();
+    }
+}
+
+/**
+ * Releases the application's window after its renderer and input devices.
+ */
+void ShutdownWindow() {
+    if (std::exchange(host_window_initialized, false)) {
+        WindowShutdown();
+    }
 }
 
 // A closed window ends the process here: the game has no stop request to ask its loop to return.
@@ -311,7 +359,7 @@ int Run(int argc, const char **argv) {
     g_options = ParseOptions(argc, argv);
     const Options &options = g_options;
     LogInit({.headless = options.headless, .level_override = options.log_level ? options.log_level : SettingsEnv("LOG")});
-    // Registered before AudioShutdown's, so it runs after it and writes the exit's last lines.
+    // The log remains available until every host service has stopped.
     std::atexit(LogShutdown);
     LogSessionHeader();
 
@@ -354,12 +402,13 @@ int Run(int argc, const char **argv) {
         CrashTestArm(*crash_test, CrashTestWhen::Early);
     }
     FirstRunRequireData(PathsDataRoot(), options.headless);
+#ifdef SDL_PLATFORM_IOS
+    // After the launcher, which the on-screen gamepad would cover.
+    IosTouchOverlayStart();
+#endif
     InitCDFile();
     if (!options.headless) {
         GameSetDataIcon();
-    }
-    if (!DataReadPrepareScriptTiming(options.headless)) {
-        return kExitScriptTiming;
     }
     const HostSettings &settings = SettingsGet();
     const bool          offscreen = options.offscreen || (options.headless && !gfx::HeadlessSurfaceAvailable());
@@ -368,11 +417,15 @@ int Run(int argc, const char **argv) {
     WindowConfig window = DisplayWindowConfig(settings);
     window.vulkan = !offscreen;
     WindowInit(window);
+    host_window_initialized = true;
+    std::atexit(ShutdownWindow);
     if (!options.headless) {
         CrashShowLastReportNotice();
     }
     // A scripted run takes no live input: no devices open, no window input events and no mouse capture.
     InputInitForRun(options.headless || !options.input.empty());
+    host_input_initialized = true;
+    std::atexit(ShutdownInput);
     InputScriptInstall(std::move(input_script));
 
     gfx::RendererConfig renderer;
@@ -387,6 +440,14 @@ int Run(int argc, const char **argv) {
     renderer.layout = Layout(ConfigGet());
     renderer.prog0_meshes = true;
     renderer.validation = renderer.validation || SettingsEnv("VULKAN_VALIDATION") != nullptr;
+    // DC2_RENDER_SCALE: pixels per PS2 line of the render targets, 0 for the window's height over 480.
+    if (const char *setting = SettingsEnv("RENDER_SCALE")) {
+        char       *end = nullptr;
+        const float scale = std::strtof(setting, &end);
+        if (end != setting && *end == '\0' && scale >= 0.0f && scale <= 8.0f) {
+            renderer.render_scale = scale;
+        }
+    }
     renderer.render_thread = RenderThread(ConfigGet().render_thread);
     if (const char *setting = SettingsEnv("RENDER_THREAD")) {
         if (auto mode = gfx::ParseRenderThreadMode(setting)) {
@@ -398,16 +459,17 @@ int Run(int argc, const char **argv) {
         renderer.render_thread = gfx::RenderThreadMode::Off;
     }
     gfx::RendererInit(WindowHandle(), renderer);
+    host_renderer_initialized = true;
+    std::atexit(ShutdownRenderer);
     PresentSetSettings(PresentSettingsFor(ConfigGet(), g_options));
     AudioInit(options.headless);
-    // --frames leaves through std::exit from mgEndFrame: the output must stop before the mixer's statics are destroyed
-    // under the audio thread.
+    // Frame-limited exits stop the mixer before its static storage is destroyed.
     std::atexit(AudioShutdown);
 
     ClockSetTickRate(kConfigTickRateDefault);
     ClockSetUnbounded(options.headless);
     ClockAddPumpHook(PumpHost);
-    ClockSetTickCallback(VSyncCallBack);
+    ClockSetTickCallback(dc2::timing::OnVerticalBlank);
     ConfigSetChangeHook(ApplyConfigChange);
 
     MainThreadPriority = 10;
@@ -424,11 +486,10 @@ int Run(int argc, const char **argv) {
 
     ClockRemovePumpHook(PumpHost);
     ConfigSetChangeHook(nullptr);
-    InputShutdown();
+    ShutdownInput();
     AudioShutdown();
-    gfx::SetRenderIdleHook(nullptr, nullptr);
-    gfx::RendererShutdown();
-    WindowShutdown();
+    ShutdownRenderer();
+    ShutdownWindow();
     CT_LOG_FILE_INFO("main: exit {}", static_cast<int>(kExitOk));
     LogShutdown();
     return kExitOk;
@@ -436,8 +497,44 @@ int Run(int argc, const char **argv) {
 
 } // namespace
 
-PORT_OVERRIDE int main(int argc, const char **argv) {
+#ifdef SDL_PLATFORM_IOS
+// UIKit owns the process: SDL_RunApp starts the application delegate, which calls back into Run once it is up.
+static int IosMain(int argc, char **argv) {
+    // iOS shows no console: stderr goes to Documents, where the Files app reaches it, from the first line on.
+    if (const char *home = std::getenv("HOME")) {
+        const std::string log = std::string(home) + "/Documents/stderr.log";
+        if (std::freopen(log.c_str(), "w", stderr) != nullptr) {
+            std::setvbuf(stderr, nullptr, _IONBF, 0);
+            std::fprintf(stderr, "darkchronicle: started\n");
+        }
+        // iOS has no way to start the game with environment variables, so chronicletwo/env.txt in Documents
+        // holds them, one KEY=VALUE a line: the DC2_ settings, or MoltenVK's MVK_CONFIG_ and Metal's MTL_ ones for
+        // diagnosing the renderer. Each is set before SDL and the renderer start.
+        std::ifstream env(std::string(home) + "/Documents/chronicletwo/env.txt");
+        for (std::string line; std::getline(env, line);) {
+            if (!line.empty() && line.back() == '\r') {
+                line.pop_back();
+            }
+            const std::size_t equals = line.find('=');
+            if (line.empty() || line.front() == '#' || equals == std::string::npos || equals == 0) {
+                continue;
+            }
+            const std::string key = line.substr(0, equals);
+            const std::string value = line.substr(equals + 1);
+            setenv(key.c_str(), value.c_str(), 1);
+            std::fprintf(stderr, "darkchronicle: env %s=%s\n", key.c_str(), value.c_str());
+        }
+    }
+    return Run(argc, const_cast<const char **>(argv));
+}
+#endif
+
+int main(int argc, const char **argv) {
+#ifdef SDL_PLATFORM_IOS
+    return SDL_RunApp(argc, const_cast<char **>(argv), IosMain, nullptr);
+#else
     return Run(argc, argv);
+#endif
 }
 
 #ifdef _WIN32

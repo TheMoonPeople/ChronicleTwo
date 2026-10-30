@@ -3,13 +3,12 @@
 #include <memory>
 
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "mglib.hpp"
 #include "platform/clock.hpp"
+#include "platform/frame_timing.hpp"
+#include "platform/game_loop_state.hpp"
 #include "play_time.hpp"
 #include "savedata.hpp"
-
-int VSyncCallBack(int field);
 
 namespace {
 class PlayClock : public testing::Test {
@@ -26,7 +25,7 @@ protected:
         PortPlayTimeCountFlag = true;
         ClockSetUnbounded(true);
         ClockReset();
-        ClockSetTickCallback(VSyncCallBack);
+        ClockSetTickCallback(dc2::timing::OnVerticalBlank);
         mgInitVSyncCallBack(PortPlayTimeVSyncCallback);
         PlayTimeReset();
         save->play_time = 0;
@@ -54,7 +53,7 @@ TEST_F(PlayClock, SixtyTicksCountOneMinuteInSavedPalUnits) {
     ClockSetTickRate(60);
     Ticks(3600);
     EXPECT_EQ(save->play_time, 3000);
-    EXPECT_EQ(ClockGetTickCallback(), VSyncCallBack);
+    EXPECT_EQ(ClockGetTickCallback(), dc2::timing::OnVerticalBlank);
 }
 
 TEST_F(PlayClock, SixSixtyTicksAddFiveSavedUnits) {

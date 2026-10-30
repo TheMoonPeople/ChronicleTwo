@@ -40,8 +40,9 @@ REPO = Path(__file__).resolve().parents[2]
 LOGICAL = (512, 480)
 PSNR_TARGET = 40.0
 PSNR_FAIL = 35.0
-# Slack between letterbox output and the Fill run at the frame's size; above it the two geometries differ.
-LETTERBOX_MAX_DIFF = 1
+# Sparse two-value rasterization differences are allowed; larger or widespread differences change the frame.
+LETTERBOX_MAX_DIFF = 2
+LETTERBOX_MAX_CHANGED_FRACTION = 0.0005
 RUN_TIMEOUT = 600
 REEXEC_MARK = "DC2_MATRIX_REEXEC"
 
@@ -75,6 +76,8 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     p.add_argument("--input", required=True, type=Path)
     p.add_argument("--frame", required=True, type=int)
     p.add_argument("--scene", default=None)
+    p.add_argument("--jump", default=None)
+    p.add_argument("--fast-load", action="store_true")
     p.add_argument("--data", type=Path, default=None)
     p.add_argument("--work", type=Path, default=None)
     p.add_argument("--jobs", type=int, default=4)
@@ -123,6 +126,13 @@ def resolve_data(arg: Path | None) -> Path | None:
     return None
 
 
+def has_data(data: Path) -> bool:
+    if data.is_dir() and any(data.iterdir()):
+        return True
+    archive = data.parent / "data.zip"
+    return archive.is_file() and archive.stat().st_size > 0
+
+
 @dataclasses.dataclass(frozen=True)
 class Mapping:
     scale_x: float
@@ -166,6 +176,21 @@ def psnr(a, b) -> float:
     return math.inf if mse == 0 else 10.0 * math.log10(255.0 ** 2 / mse)
 
 
+def letterbox_difference(a, b) -> tuple[int, int, int]:
+    diff = np.abs(a.astype(np.int16) - b.astype(np.int16))
+    changed = int(np.count_nonzero(diff.any(axis=2)))
+    max_abs = int(diff.max()) if diff.size else 0
+    allowed = max(1, int(a.shape[0] * a.shape[1] * LETTERBOX_MAX_CHANGED_FRACTION))
+    return changed, max_abs, allowed
+
+
+def nonblack_outside(image, rect: tuple[int, int, int, int]) -> int:
+    x, y, width, height = rect
+    outside = np.ones(image.shape[:2], dtype=bool)
+    outside[y:y + height, x:x + width] = False
+    return int(np.count_nonzero(image[outside].any(axis=1)))
+
+
 @dataclasses.dataclass
 class Run:
     w: int
@@ -173,6 +198,7 @@ class Run:
     aspect: str  # "auto" is Fill, "4:3" is letterbox
     dpt: bool
     dir: Path
+    launch_args: tuple[str, ...] = ()
     rc: int | None = None
     seconds: float = 0.0
 
@@ -221,17 +247,19 @@ def provenance(exe: Path, data: Path, script: Path, frames: int, run: Run) -> di
             "config_sha256": hashlib.sha256(launch_config(run)).hexdigest(),
             "data": str(data.resolve()), "frames": frames,
             "window": [run.w, run.h], "aspect": run.aspect, "dpt": run.dpt,
+            "launch_args": list(run.launch_args),
             "runtime_timing": {"region": "ntsc", "tick_hz": 60}}
 
 
 def run_game(exe: Path, data: Path, script: Path, frames: int, run: Run) -> None:
     save = run.dir / "save"
     save.mkdir(parents=True)
-    config = save / "config.json"
+    config = run.dir / "config.json"
     config.write_bytes(launch_config(run))
     identity = provenance(exe, data, script, frames, run)
     cmd = [str(exe), "--headless", "--data", str(data), "--save", str(save), "--input", str(script),
            "--window", f"{run.w}x{run.h}", "--frames", str(frames), "--screenshot", str(run.png)]
+    cmd.extend(run.launch_args)
     if run.dpt:
         cmd += ["--display-per-tick", "4"]
     env = os.environ.copy()
@@ -267,7 +295,7 @@ def locate_run(run: Run, work: Path, exe: Path, data: Path, script: Path, frames
             raise ValueError("invalid exit-status receipt")
         if result.get("provenance") != provenance(exe, data, script, frames, run):
             raise ValueError("binary, input or launch configuration differs")
-        if result.get("saved_config_sha256") != digest(run.dir / "save" / "config.json"):
+        if result.get("saved_config_sha256") != digest(run.dir / "config.json"):
             raise ValueError("saved configuration differs")
         seconds = result.get("seconds")
         if type(seconds) not in (float, int) or not math.isfinite(seconds) or seconds < 0:
@@ -333,9 +361,7 @@ def evaluate(runs: dict[tuple, Run], ref, sizes, lb, skip_dpt: bool, scene: str,
     lb_run = runs[(*lb, "4:3", False)]
     lb_arr = load(lb_run)
     lx, ly, fw, fh = frame_rect(*lb)
-    outside = np.ones(lb_arr.shape[:2], dtype=bool)
-    outside[ly:ly + fh, lx:lx + fw] = False
-    nonblack = int(np.count_nonzero(lb_arr[outside].any(axis=1)))
+    nonblack = nonblack_outside(lb_arr, (lx, ly, fw, fh))
     notes = [f"frame {(lx, ly, fw, fh)}"]
     if nonblack:
         fail(f"{scene} letterbox {lb[0]}x{lb[1]}: {nonblack} non-black pixels outside the frame")
@@ -349,15 +375,13 @@ def evaluate(runs: dict[tuple, Run], ref, sizes, lb, skip_dpt: bool, scene: str,
         fail(f"{scene} letterbox {lb[0]}x{lb[1]}: frame shape differs from Fill {fw}x{fh}")
         notes.append(f"FAIL: shape vs Fill {fw}x{fh}")
     else:
-        diff = np.abs(lb_crop.astype(np.int16) - fill_crop.astype(np.int16))
-        mx = int(diff.max()) if diff.size else 0
-        if mx == 0:
+        changed, mx, allowed = letterbox_difference(lb_crop, fill_crop)
+        if changed == 0:
             notes.append(f"frame vs Fill {fw}x{fh}: identical")
         else:
-            cnt = int(np.count_nonzero(diff.any(axis=2)))
-            notes.append(f"frame vs Fill {fw}x{fh}: not identical ({cnt} px, max abs {mx})")
-            if mx > LETTERBOX_MAX_DIFF:
-                fail(f"{scene} letterbox frame differs from Fill {fw}x{fh} by {mx} (max abs)")
+            notes.append(f"frame vs Fill {fw}x{fh}: {changed} px differ, max abs {mx}; limit {allowed} px / {LETTERBOX_MAX_DIFF}")
+            if mx > LETTERBOX_MAX_DIFF or changed > allowed:
+                fail(f"{scene} letterbox frame differs from Fill {fw}x{fh}: {changed} px (limit {allowed}), max abs {mx} (limit {LETTERBOX_MAX_DIFF})")
                 notes.append("FAIL")
     rows.append(row(f"{lb[0]}x{lb[1]}", "Letterbox 4:3", "-",
                     dpt_cell(lb_run, (*lb, "4:3", True), f"letterbox {lb[0]}x{lb[1]}"), notes))
@@ -409,7 +433,7 @@ def main(argv: list[str] | None = None) -> int:
     if data is None:
         return skip("no game data: set DC2_DATA or pass --data")
     data = data.resolve()
-    if not data.is_dir() or not any(data.iterdir()):
+    if not has_data(data):
         return skip(f"game data missing or empty: {data}")
     exe = args.exe.resolve()
     if not exe.is_file():
@@ -423,6 +447,9 @@ def main(argv: list[str] | None = None) -> int:
     work.mkdir(parents=True, exist_ok=True)
     ref, sizes, lb = args.reference, args.sizes, args.letterbox_size
     runs = plan_runs(work, ref, sizes, lb, args.skip_dpt)
+    launch_args = (("--jump", args.jump) if args.jump else ()) + (("--fast-load",) if args.fast_load else ())
+    for run in runs.values():
+        run.launch_args = launch_args
     rects = {f"{w}x{h} Fill": frame_rect(w, h) for w, h in [ref, *sizes]}
     rects[f"{lb[0]}x{lb[1]} letterbox"] = frame_rect(*lb)
 

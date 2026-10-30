@@ -1,6 +1,6 @@
 #pragma once
 
-// The logger's parts that log_test.cpp and ps2_printf.cpp reach beyond log.hpp.
+// The logger's parts that log_test.cpp and game_output.cpp reach beyond log.hpp.
 
 #include <filesystem>
 #include <optional>

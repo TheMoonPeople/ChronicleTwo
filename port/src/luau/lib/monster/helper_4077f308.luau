@@ -15,11 +15,11 @@ local function helper_4077f308(arg0: f32, arg1: f32)
 	var3 = 0
 	while true do
 		helper_461f64ff()
-		var2 = monster.NowMosWait() or var2
+		var2 = monster.get_motion_progress() or var2
 		if var2 < vm.f32(arg0 + arg1) and var2 > vm.f32(arg0 - arg1) then
 			break
 		else
-			var4 = monster.CheckMosEnd() or var4
+			var4 = monster.is_motion_finished() or var4
 			if var4 ~= 0 then
 				break
 			else

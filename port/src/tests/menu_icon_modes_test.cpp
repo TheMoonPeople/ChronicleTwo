@@ -4,25 +4,25 @@
 #include <cstring>
 #include <vector>
 
-#include "menudraw.hpp"
 #include "menuchr.hpp"
+#include "menudraw.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_memory.hpp"
-#include "mg_texture_port.hpp"
 #include "mglib.hpp"
+#include "render/texture_runtime.hpp"
 
 TEST(MenuIconModes, RgbaSheetsCreateIndependentModesWithoutPalettes) {
     std::vector<u_long128> arena(8192);
-    mgCMemory memory;
+    mgCMemory              memory;
     memory.stSetBuffer(arena.data(), static_cast<int>(arena.size()));
     mgTexManager.SetTableBuffer(16, 4, &memory);
     mgTexManager.Initialize(0x1000, -1);
     CMenuPosDataManage       menu{};
     std::array<u_long128, 1> pixels{};
-    const u8 rgba[] = {48, 96, 144, 255, 0, 0, 0, 0, 255, 255, 255, 128, 0, 0, 0, 255};
+    const u8                 rgba[] = {48, 96, 144, 255, 0, 0, 0, 0, 255, 255, 255, 128, 0, 0, 0, 255};
     std::memcpy(pixels.data(), rgba, sizeof rgba);
     u_long128 *images[MG_TEXTURE_LEVEL_MAX] = {pixels.data()};
-    char names[2][16] = {"wepicon", "itemicon"};
+    char       names[2][16] = {"wepicon", "itemicon"};
     for (int sheet = 0; sheet < 2; ++sheet) {
         menu.item_icon_tex[0][sheet] = mgTexManager.EnterTexture(0, names[sheet], images, 2, 2, 32, nullptr, 0, 0);
         ASSERT_NE(menu.item_icon_tex[0][sheet], nullptr);
@@ -66,7 +66,7 @@ TEST(MenuIconModes, RgbaSheetsCreateIndependentModesWithoutPalettes) {
     MenuCharaChangeBase_Tex = menu.item_icon_tex[0][0];
     char locked_name[] = "party_locked";
     MenuCharaChangeCLUT_Tex = MgTextureCreateColorVariant(MenuCharaChangeBase_Tex, locked_name,
-                                                        MgTextureColorMode::PartyLocked);
+                                                          MgTextureColorMode::PartyLocked);
     ASSERT_NE(MenuCharaChangeCLUT_Tex, nullptr);
     const auto *locked = reinterpret_cast<const u8 *>(MenuCharaChangeCLUT_Tex->image[0]);
     EXPECT_EQ(locked[0], 100);

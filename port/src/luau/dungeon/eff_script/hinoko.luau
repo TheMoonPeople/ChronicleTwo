@@ -29,26 +29,26 @@ function script.on_start()
 	local value_4: f32 = 0
 	local var14: s32 = 0
 	local var16: s32 = 0
-	var16 = effect.SptAssignSprite_2(8) or var16
+	var16 = effect.allocate_sprites_2(8) or var16
 	if var16 == 0 then
 		return
 	end
-	effect.SptSetTexname("hinoko")
-	effect.SptInitSprite(0, 8)
-	effect.SptSetAlphab(0, 2, 8)
-	effect.SptSetUvSize(0, 0.0, 0.0, 64.0, 64.0, 8)
-	effect.SptSetPutSize(0, 1.0, 1.0, 8)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 128.0, 8)
-	effect.SptSetDrawFlag(0, 1, 8)
-	effect.SptSetPos(0, 0.0, -10.0, 0.0, 8)
+	effect.set_sprite_texture("hinoko")
+	effect.reset_sprites(0, 8)
+	effect.set_sprite_blend_mode(0, 2, 8)
+	effect.set_sprite_texture_rect(0, 0.0, 0.0, 64.0, 64.0, 8)
+	effect.set_sprite_size(0, 1.0, 1.0, 8)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 128.0, 8)
+	effect.set_sprite_visible(0, 1, 8)
+	effect.set_sprite_position(0, 0.0, -10.0, 0.0, 8)
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		work_vect2_x = out1 or work_vect2_x
 		work_vect2_y = out2 or work_vect2_y
 		work_vect2_z = out3 or work_vect2_z
@@ -58,20 +58,20 @@ function script.on_start()
 		value = 1.0
 		value_2 = 1.0
 		value_3 = 1.0
-		value = effect.GetRand(360.0) or value
-		value_2 = effect.GetRand(15.0) or value_2
-		value_3 = effect.GetRand(8.0) or value_3
-		value_4 = effect.GetRand(400.0) or value_4
-		effect.GetRand(800.0)
+		value = effect.get_random_number(360.0) or value
+		value_2 = effect.get_random_number(15.0) or value_2
+		value_3 = effect.get_random_number(8.0) or value_3
+		value_4 = effect.get_random_number(400.0) or value_4
+		effect.get_random_number(800.0)
 		value = vm.f32(vm.f32(value / 180.0) * vm.f32(3.1415927))
 		value_4 = vm.f32(value_4 / 100.0)
 		value_4 = vm.f32(value_4 + 2.0)
 		var6 = vm.f32(vm.f32(vm.f32(var0 + work_vect2_x) / 2.0) + vm.f32(vm.sin(value) * value_2))
 		var7 = vm.f32(vm.f32(vm.f32(vm.f32(var1 + work_vect2_y) / 2.0) - value_3) + 4.0)
 		var8 = vm.f32(vm.f32(vm.f32(var2 + work_vect2_z) / 2.0) + vm.f32(vm.cos(value) * value_2))
-		effect.SptSetScale(var14, value_4, value_4)
-		effect.SptSetPos(var14, var6, var7, var8)
-		effect.SptSetVeloCol(var14, 0.0, 0.0, 0.0, -8.0)
+		effect.set_sprite_scale(var14, value_4, value_4)
+		effect.set_sprite_position(var14, var6, var7, var8)
+		effect.set_sprite_color_velocity(var14, 0.0, 0.0, 0.0, -8.0)
 		var14 = var14 + 1
 	end
 	var14 = 0
@@ -79,17 +79,17 @@ function script.on_start()
 		vm.wait()
 		for var15 = 0, 7 do
 			do
-				local out1, out2, out3 = effect.SptGetPos(var15)
+				local out1, out2, out3 = effect.get_sprite_position(var15)
 				var0 = out1 or var0
 				var1 = out2 or var1
 				var2 = out3 or var2
 			end
 			var1 = vm.f32(var1 - vm.f32(-0.8))
-			effect.SptSetPos(var15, var0, var1, var2)
+			effect.set_sprite_position(var15, var0, var1, var2)
 		end
 		var14 = var14 + 1
 	end
-	effect.SptSetDrawFlag(0, 0, 8)
+	effect.set_sprite_visible(0, 0, 8)
 end
 
 --- Ends an effect.

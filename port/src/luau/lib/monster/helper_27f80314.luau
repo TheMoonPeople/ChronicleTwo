@@ -6,10 +6,10 @@ local vm = require("@lib/vm")
 --- Helper function.
 local function helper_27f80314()
 	local piyori_mark: s32 = 0
-	monster.SetPiyoriMark()
-	piyori_mark = monster.CheckPiyori() or piyori_mark
+	monster.show_stun_stars()
+	piyori_mark = monster.get_stun_stars_time() or piyori_mark
 	while piyori_mark > 0 do
-		piyori_mark = monster.CheckPiyori() or piyori_mark
+		piyori_mark = monster.get_stun_stars_time() or piyori_mark
 		vm.wait()
 	end
 end

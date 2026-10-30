@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
+#include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <memory>
@@ -33,30 +35,33 @@ protected:
         Config config;
         config.more_monsters = GetParam();
         ASSERT_TRUE(ConfigChange(config));
+        ASSERT_TRUE(ConfigSave());
         ASSERT_TRUE(std::filesystem::exists(root / "config.json"));
         PortMonsterLatchLimits();
     }
 
     void TearDown() override {
-        ConfigChange(Config{});
+        ConfigChange(previous_config);
         PortMonsterLatchLimits();
+        PathsSetSaveRoot(previous_save_root);
         std::filesystem::remove_all(root);
     }
 
+    Config                previous_config = ConfigGet();
+    std::filesystem::path previous_save_root = PathsSaveRoot();
     std::filesystem::path root;
 };
 
 TEST_P(MonsterMemory, SingleMonsterLoadInitializesEveryHostArena) {
     // Exercise the scripted loader without loading a reference model (-1 is an empty kind).
-    auto                                          manager = std::make_unique<CMonsterMan>();
-    auto                                          monsters = std::make_unique<CActiveMonster[]>(MONSTER_ACTIVE_MAX);
-    std::unique_ptr<CScene, decltype(&std::free)> scene(
-        static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
+    auto                                                            manager = std::make_unique<CMonsterMan>();
+    std::array<std::shared_ptr<CActiveMonster>, MONSTER_ACTIVE_MAX> monsters;
+    std::unique_ptr<CScene>                                         scene = std::make_unique<CScene>();
     ASSERT_NE(scene, nullptr);
     scene->chara_num = DNG_CHARA_SLOT_MONSTER_END;
     for (int i = 0; i < MONSTER_ACTIVE_MAX; ++i) {
-        scene->chara[DNG_CHARA_SLOT_MONSTER + i].status = 1;
-        scene->chara[DNG_CHARA_SLOT_MONSTER + i].chara = &monsters[i];
+        monsters[i] = std::make_shared<CActiveMonster>();
+        ASSERT_EQ(scene->AssignChara(DNG_CHARA_SLOT_MONSTER + i, dc2::scene::CharacterResource::FromOwned(monsters[i])), DNG_CHARA_SLOT_MONSTER + i);
     }
 
     constexpr int          slot_quads = kMonsterScriptQuadwords + 4;
@@ -87,7 +92,7 @@ TEST_P(MonsterMemory, SingleMonsterLoadInitializesEveryHostArena) {
     EXPECT_EQ(PortMonsterActiveLimit(), GetParam() ? MONSTER_ACTIVE_MAX : 24);
     // Every slot binds its scene character; only the floor's slots get script memory.
     for (int i = 0; i < MONSTER_ACTIVE_MAX; ++i) {
-        EXPECT_EQ(manager->active[i], &monsters[i]) << i;
+        EXPECT_EQ(manager->active[i], monsters[i].get()) << i;
         if (i >= PortMonsterActiveLimit()) {
             EXPECT_EQ(manager->memory[i].stack_size, 0) << i;
         }
@@ -111,7 +116,7 @@ TEST_P(MonsterMemory, SingleMonsterLoadInitializesEveryHostArena) {
         ASSERT_EQ(slot.Alloc((128 * sizeof(RS_STACKDATA) + 15) / 16), slot.stack) << i;
         ASSERT_NE(slot.Alloc((512 * sizeof(RS_CALLDATA) + 15) / 16), nullptr) << i;
         EXPECT_EQ(slot.stack_used, kMonsterScriptQuadwords - 1) << i;
-        EXPECT_EQ(manager->active[i], &monsters[i]) << i;
+        EXPECT_EQ(manager->active[i], monsters[i].get()) << i;
     }
     EXPECT_EQ(memory.stack_used, parent_used);
 }
@@ -126,18 +131,26 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
 
     source->Initialize();
     auto copy_model = [&](int count, int &capacity) {
-        std::vector<mgCFrame>    frames(count);
-        std::vector<mgCFrame *>  table(count);
+        source->Initialize();
+        static char model_key;
+        mgCMemory   model_memory;
+        const auto  words = static_cast<int>((static_cast<std::size_t>(count) * (sizeof(mgCFrame) + sizeof(mgCFrame *)) + 15) / 16 + 8);
+        model_memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_key, static_cast<std::size_t>(words) * sizeof(u_long128))), words);
+        auto *frames = dc2::memory::NewArray<mgCFrame>(model_memory, static_cast<std::size_t>(count));
+        auto *table = dc2::memory::NewArray<mgCFrame *>(model_memory, static_cast<std::size_t>(count));
+        ASSERT_NE(frames, nullptr);
+        ASSERT_NE(table, nullptr);
         std::vector<std::string> names(count);
         for (int index = 0; index < count; ++index) {
             names[index] = "bone" + std::to_string(index);
             frames[index].SetName(names[index].data());
             table[index] = &frames[index];
         }
-        frames[1].SetParent(frames.data());
+        frames[1].SetParent(frames);
         frames[0].frame_num = count;
-        frames[0].frame_list = table.data();
-        source->CObjectFrame::frame = frames.data();
+        frames[0].frame_list = table;
+        source->CObjectFrame::frame = frames;
+        ASSERT_TRUE(dc2::character::CaptureModelResources(*source, model_memory));
         source->copy_size = 0;
         source->load_size = static_cast<int>((count * (sizeof(mgCFrame) + sizeof(mgCFrame *)) + 15) / 16 + 8);
 
@@ -146,7 +159,7 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
         ActiveMonster = saved_manager;
         mgCFrame *copy = destination->CObjectFrame::frame;
         ASSERT_NE(copy, nullptr);
-        ASSERT_NE(copy, frames.data());
+        ASSERT_NE(copy, frames);
         ASSERT_NE(copy->frame_list, nullptr);
         EXPECT_EQ(copy->frame_num, count);
         EXPECT_EQ(copy->frame_list[1]->parent, copy);
@@ -172,3 +185,35 @@ INSTANTIATE_TEST_SUITE_P(MoreMonsters, MonsterMemory, testing::Bool(),
                          [](const testing::TestParamInfo<bool> &info) { return info.param ? "On" : "Off"; });
 
 } // namespace
+
+TEST(MonsterConstruction, ReusedStorageStartsWithDefinedControllerAndInactiveMonsterFields) {
+    alignas(CActiveMonster) std::array<std::byte, sizeof(CActiveMonster)> monster_storage{};
+    std::ranges::fill(monster_storage, std::byte{0xA5});
+    auto *monster = std::construct_at(reinterpret_cast<CActiveMonster *>(monster_storage.data()));
+    EXPECT_EQ(monster->base_tbl, nullptr);
+    EXPECT_EQ(monster->tbl, nullptr);
+    EXPECT_EQ(monster->link_piece, nullptr);
+    EXPECT_EQ(monster->target_dist, 0.0f);
+    EXPECT_EQ(monster->camera_dist, 0.0f);
+    EXPECT_EQ(monster->last_hit_chara, 0);
+    EXPECT_EQ(monster->last_hit_source, 0);
+    EXPECT_EQ(monster->last_hit_attr, 0U);
+    for (int size : monster->reserv_img_size) {
+        EXPECT_EQ(size, 0);
+    }
+    std::destroy_at(monster);
+
+    alignas(CMonsterMan) std::array<std::byte, sizeof(CMonsterMan)> controller_storage{};
+    std::ranges::fill(controller_storage, std::byte{0xA5});
+    auto *controller = std::construct_at(reinterpret_cast<CMonsterMan *>(controller_storage.data()));
+    EXPECT_EQ(controller->scene, nullptr);
+    EXPECT_EQ(controller->effect_man, nullptr);
+    EXPECT_EQ(controller->boss_max_life, 0);
+    for (const auto *active : controller->active) {
+        EXPECT_EQ(active, nullptr);
+    }
+    for (auto &memory : controller->memory) {
+        EXPECT_EQ(memory.stGetTop(), nullptr);
+    }
+    std::destroy_at(controller);
+}

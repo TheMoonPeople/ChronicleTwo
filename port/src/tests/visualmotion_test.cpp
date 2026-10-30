@@ -10,8 +10,8 @@
 #include "mg_frame.hpp"
 #include "mg_math.hpp"
 #include "mg_visual.hpp"
-#include "mg_visual_port.hpp"
 #include "mglib.hpp"
+#include "render/visual_mesh.hpp"
 #include "visualmotion.hpp"
 
 namespace {

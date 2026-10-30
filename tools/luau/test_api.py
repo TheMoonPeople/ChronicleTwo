@@ -75,7 +75,7 @@ declare demo: {{
 \tPair: (text: string, values: {{number}}, flag: boolean) -> (f32?, any?),
 \tPair_1: (text: string, values: {{number}}, flag: boolean) -> (f32?, any?),
 \t{EXT_DOC}
-\tExt: (no: number, ...any) -> (),
+\tcall_command: (no: number, ...any) -> (),
 }}
 """
 
@@ -92,6 +92,12 @@ export type f32 = number
 declare cmath: {{
 \tsinf: (x: number) -> number,
 \tcosf: (x: number) -> number,
+}}
+-- Machine state the host owns: whether the running script is skipping, the skip end, and the item the use item menu wrote.
+declare vmhost: {{
+\tskipping: () -> boolean,
+\tskip_end: () -> boolean,
+\tused_item: () -> number?,
 }}
 """
 
@@ -129,10 +135,10 @@ class DeclarationTest(unittest.TestCase):
             }
         }
         text = api.declarations(catalog)["demo.d.luau"]
-        self.assertIn("\t--- Rand with its value as an integer.\n\tRandInt: (range: s32) -> s32?,\n", text)
-        self.assertIn("\tRandInt_2: (range: s32) -> s32?,\n", text)
-        self.assertIn("\tRandFloat: (range: f32) -> f32?,\n\tRandFloat_2: (range: f32) -> f32?,\n", text)
-        self.assertNotIn("RandInt_1", text)
+        self.assertIn("\t--- Rand with its value as an integer.\n\tRand_int: (range: s32) -> s32?,\n", text)
+        self.assertIn("\tRand_int_2: (range: s32) -> s32?,\n", text)
+        self.assertIn("\tRand_float: (range: f32) -> f32?,\n\tRand_float_2: (range: f32) -> f32?,\n", text)
+        self.assertNotIn("Rand_int_1", text)
 
     def test_write_creates_files_and_reports_stale_ones(self):
         with tempfile.TemporaryDirectory() as directory:

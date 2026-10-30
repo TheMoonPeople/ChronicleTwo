@@ -13,6 +13,7 @@
 #include "menuop.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_math.hpp"
+#include "mg_memory.hpp"
 #include "mglib.hpp"
 #include "save_slots.hpp"
 #include "sound.hpp"
@@ -124,13 +125,13 @@ void Position(CSaveMenuClass &menu) {
 }
 } // namespace
 
-PORT_OVERRIDE void CSaveMenuClass::SetDlInfoMsg(int /*unused*/, int /*unused*/) {
+void CSaveMenuClass::SetDlInfoMsg(int /*unused*/, int /*unused*/) {
     if (MenuMesForm[7]) {
         MenuMesForm[7]->draw_flag = false;
     }
 }
 
-PORT_OVERRIDE void CSaveMenuClass::EnvSetSave(int kind) {
+void CSaveMenuClass::EnvSetSave(int kind) {
     auto *manager = SaveSlotManager();
     SaveSlotNew = kind == SAVE_FILE_NEW;
     manager->file_no = select;
@@ -141,7 +142,7 @@ PORT_OVERRIDE void CSaveMenuClass::EnvSetSave(int kind) {
     SetMenuReturnMsgCtrl(false);
 }
 
-PORT_OVERRIDE int CSaveMenuClass::KeyStep() {
+int CSaveMenuClass::KeyStep() {
     active_menu = this;
     auto      *manager = SaveSlotManager();
     auto      *message = MenuDCMsg[2];
@@ -179,7 +180,7 @@ PORT_OVERRIDE int CSaveMenuClass::KeyStep() {
                 ResetMapInfo();
                 ReStartEnvSoundMenu();
                 MenuMainScene->StopBGM(0);
-                MenuMainScene->LoadBGM(bgm_status.load_no, SaveMenuStack.stGetTop());
+                MenuMainScene->LoadBGM(bgm_status.load_no, dc2::memory::RemainingBytes(SaveMenuStack));
                 MenuMainScene->SetActiveBgmStatus(&bgm_status);
                 MenuMainScene->StepSnd();
             }
@@ -361,7 +362,7 @@ PORT_OVERRIDE int CSaveMenuClass::KeyStep() {
     return 0;
 }
 
-PORT_OVERRIDE void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
+void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
     if (!active_menu || alpha <= 0) {
         return;
     }
@@ -405,8 +406,8 @@ PORT_OVERRIDE void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
         // Message drawing changes the shared clip. Restore it for each row,
         // including an unused-file row following a chapter message.
         SetMenuScissor({0, 162, mgScreenWidth - 1, 402});
-        auto &row_message = row_messages[row - first];
-        auto *messages = GetMenuMainMessageBuffer();
+        auto      &row_message = row_messages[row - first];
+        const auto messages = GetMenuMainMessageBuffer();
         row_message.SetMessData(messages, messages);
         row_message.MsgPreset(MENU_SCRIPT_MES_NO_WIN);
         const bool  is_new = SaveSlotIsNew(SaveSlots, row, menu.mode == SAVE_MENU_MODE_SAVE);
@@ -432,7 +433,8 @@ PORT_OVERRIDE void SaveFileListDraw(int &tex_block, float *pos, int alpha) {
             continue;
         }
         const auto        &info = slot->info;
-        unsigned long long minutes = std::min(info.play_time / (50 * 60), 999ULL * 60 + 59);
+        unsigned long long minutes =
+            std::min(static_cast<unsigned long long>(info.play_time / (50 * 60)), 999ULL * 60 + 59);
         // Retail draws the zero-padded clock separately from its localized row.
         char clock[32];
         std::snprintf(clock, sizeof(clock), "%3llu:%02llu", minutes / 60, minutes % 60);

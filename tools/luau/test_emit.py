@@ -1,5 +1,6 @@
 import struct
 import sys
+import copy
 import unittest
 from pathlib import Path
 
@@ -17,7 +18,7 @@ CATALOG = {
             "commands": [
                 {
                     "no": 0,
-                    "luau": "InitScript",
+                    "luau": "reset_script_entries",
                     "signatures": [
                         {"argc": 0, "params": []},
                         {"argc": 1, "params": [{"name": "out1", "dir": "out", "type": "s32"}]},
@@ -25,12 +26,12 @@ CATALOG = {
                 },
                 {
                     "no": 2,
-                    "luau": "ProgGet",
+                    "luau": "get_program_value",
                     "signatures": [{"argc": 1, "params": [{"name": "prog", "dir": "out", "type": "s32"}]}],
                 },
                 {
                     "no": 30,
-                    "luau": "SetPallet",
+                    "luau": "start_palette_flash",
                     "signatures": [
                         {
                             "argc": 2,
@@ -48,7 +49,7 @@ CATALOG = {
                 },
                 {
                     "no": 33,
-                    "luau": "CheckPause",
+                    "luau": "is_battle_paused",
                     "signatures": [
                         {"argc": 1, "params": [{"name": "out1", "dir": "out", "type": "s32"}]},
                         {
@@ -62,7 +63,7 @@ CATALOG = {
                 },
                 {
                     "no": 53,
-                    "luau": "GetPos",
+                    "luau": "get_position",
                     "signatures": [
                         {
                             "argc": 3,
@@ -76,7 +77,7 @@ CATALOG = {
                 },
                 {
                     "no": 60,
-                    "luau": "VPush",
+                    "luau": "set_variable",
                     "signatures": [
                         {
                             "argc": 2,
@@ -89,7 +90,7 @@ CATALOG = {
                 },
                 {
                     "no": 61,
-                    "luau": "VPop",
+                    "luau": "get_variable",
                     "signatures": [
                         {
                             "argc": 2,
@@ -368,8 +369,8 @@ class EmitTest(unittest.TestCase):
 
     def test_float_constant_formatting(self):
         body = [ir.Print((const(0.1, ir.FLOAT), const(2.0, ir.FLOAT), const(1e-05, ir.FLOAT)))]
-        self.assertIn("\tprint(0.1, 2.0, 1e-05)\n", emit_text(main_function(body)).text)
-        self.assertIn("\tprint(20.0)\n", emit_text(main_function([ir.Print((const(20.0, ir.FLOAT),))])).text)
+        self.assertIn("\tprint(vm.float(0.1), vm.float(2.0), vm.float(1e-05))\n", emit_text(main_function(body)).text)
+        self.assertIn("\tprint(vm.float(20.0))\n", emit_text(main_function([ir.Print((const(20.0, ir.FLOAT),))])).text)
 
     def test_float_arithmetic_and_constants_are_float32(self):
         tenth = struct.unpack("<f", struct.pack("<f", 0.1))[0]
@@ -383,7 +384,7 @@ class EmitTest(unittest.TestCase):
         self.assertIn("\tvar1 = vm.f32(var0 * vm.f32(0.1))\n", text)
         self.assertIn("\tvar0 = vm.sin(var1)\n", text)
         # A native call rounds its float arguments itself.
-        self.assertIn("\taction.VPushFloat(1, 0.1)\n", text)
+        self.assertIn("\taction.set_variable_float(1, 0.1)\n", text)
 
     def test_unread_temp_is_discarded_into_underscore(self):
         body = [ir.Assign(ir.Temp(0, ir.INT), const(2))]
@@ -421,7 +422,7 @@ class EmitTest(unittest.TestCase):
         body = [ir.ExtCall(2, (addr(3),)), ir.Print((var(3),))]
         result = emit_text(function(0x40, body, slots=ints(3), programs=[1])).text
         self.assertIn("\tlocal prog: s32 = 0\n", result)
-        self.assertIn("\tprog = action.ProgGet() or prog\n", result)
+        self.assertIn("\tprog = action.get_program_value() or prog\n", result)
         self.assertIn("\tprint(prog)\n", result)
 
     def test_multiple_outputs_use_do_block(self):
@@ -432,7 +433,7 @@ class EmitTest(unittest.TestCase):
         ]
         result = emit_text(function(0x40, body, slots=slots, programs=[1])).text
         self.assertIn(
-            "\tdo\n\t\tlocal out1, out2, out3 = action.GetPos()\n\t\tx = out1 or x\n"
+            "\tdo\n\t\tlocal out1, out2, out3 = action.get_position()\n\t\tx = out1 or x\n"
             "\t\ty = out2 or y\n\t\tz = out3 or z\n\tend\n",
             result,
         )
@@ -444,32 +445,32 @@ class EmitTest(unittest.TestCase):
         ]
         slots = {("local", 3): ir.FLOAT, ("local", 4): ir.FLOAT, ("local", 5): ir.FLOAT}
         result = emit_text(function(0x40, body, slots=slots, programs=[1])).text
-        self.assertIn("\t\tlocal _, out2, _ = action.GetPos()\n", result)
+        self.assertIn("\t\tlocal _, out2, _ = action.get_position()\n", result)
         self.assertIn("\t\ty = out2 or y\n", result)
         self.assertNotIn("x = out1", result)
 
     def test_unregistered_command_calls_ext(self):
         body = [ir.ExtCall(6, (const(1), var(3)))]
         result = emit_text(function(0x40, body, slots=ints(3), programs=[1]))
-        self.assertIn("\taction.Ext(6, 1, var3) -- retail: command 6 is not registered\n", result.text)
+        self.assertIn("\taction.call_command(6, 1, var3) -- retail: command 6 is not registered\n", result.text)
         self.assertIn("command 6 is not registered by action scripts", result.diagnostics)
 
     def test_ambiguous_arity_uses_suffixed_name(self):
         body = [ir.ExtCall(0, ()), ir.ExtCall(0, (addr(3),)), ir.Print((var(3),))]
         result = emit_text(function(0x40, body, slots=ints(3), programs=[1])).text
-        self.assertIn("\taction.InitScript_0()\n", result)
-        self.assertIn("\tvar3 = action.InitScript_1() or var3\n", result)
+        self.assertIn("\taction.reset_script_entries_0()\n", result)
+        self.assertIn("\tvar3 = action.reset_script_entries_1() or var3\n", result)
 
     def test_handler_rejects_comment(self):
         body = [ir.ExtCall(30, tuple(const(i) for i in range(5)))]
         result = emit_text(function(0x40, body, programs=[1])).text
-        self.assertIn("\taction.Ext(30, 0, 1, 2, 3, 4) -- retail: the handler rejects 5 arguments\n", result)
+        self.assertIn("\taction.call_command(30, 0, 1, 2, 3, 4) -- retail: the handler rejects 5 arguments\n", result)
 
-    def test_reference_where_the_handler_reads_a_value_is_refused(self):
-        # The PC interpreter would read the low bits of the variable's address, so the script stays on it.
+    def test_reference_where_the_handler_reads_a_value_passes_the_value(self):
+        # Retail reads the low bits of the variable's address, which vary from run to run; the variable's value is passed.
         body = [ir.ExtCall(30, (addr(3), const(b"x", ir.STR)))]
-        with self.assertRaisesRegex(EmitError, "reference the handler reads as a value"):
-            emit_text(function(0x40, body, slots=ints(3), programs=[1]))
+        result = emit_text(function(0x40, body, slots=ints(3), programs=[1])).text
+        self.assertIn("(var3, \"x\") -- retail: argument 1 passes a reference where the handler reads a value", result)
 
     def test_number_where_handler_reads_string_is_refused(self):
         body = [ir.ExtCall(30, (const(1), const(2)))]
@@ -481,12 +482,31 @@ class EmitTest(unittest.TestCase):
         with self.assertRaisesRegex(EmitError, "argument 1 is a string where the handler reads a number"):
             emit_text(function(0x40, body, programs=[1]))
 
+    def test_other_kind_handling(self):
+        def with_kind(handling):
+            catalog = copy.deepcopy(CATALOG)
+            command = next(c for c in catalog["kinds"]["action"]["commands"] if c["no"] == 30)
+            command["signatures"][0]["params"][1]["other_kind"] = handling
+            command["signatures"][0]["params"][0]["other_kind"] = handling
+            return catalog
+
+        def text(handling, *args):
+            return emit(module(function(0x40, [ir.ExtCall(30, args)], programs=[1])), with_kind(handling)).text
+
+        # A string-reading handler given 0 reads no string; any other number names none it finds.
+        self.assertIn("action.start_palette_flash(1, nil) -- retail: argument 2 is 0, which the handler reads as no string", text("address", const(1), const(0)))
+        self.assertIn('action.start_palette_flash(1, "") -- retail: argument 2 is -1, an address', text("address", const(1), const(-1)))
+        # A number-reading handler that only tests for zero sees a string's address as not zero.
+        self.assertIn("action.start_palette_flash(1, \"x\") -- retail: argument 1 is \"y\", whose address", text("nonzero", const(b"y", ir.STR), const(b"x", ir.STR)))
+        self.assertIn('action.start_palette_flash("y", "x")', text("accepted", const(b"y", ir.STR), const(b"x", ir.STR)))
+        self.assertIn('-- retail: action.start_palette_flash("y", "x") does nothing, since its handler ignores a string as argument 1', text("ignored", const(b"y", ir.STR), const(b"x", ir.STR)))
+
     def test_output_is_reinterpreted_as_the_script_reads_it(self):
-        # ProgGet writes an integer; the script reads its variable as a float, which reads the integer's bits.
+        # get_program_value writes an integer; the script reads its variable as a float, which reads the integer's bits.
         slots = {("local", 3): ir.FLOAT}
         call = ir.ExtCall(2, (addr(3, ir.FLOAT),), tags=(("ref", ("int",), ("float",)),))
         result = emit_text(function(0x40, [call, ir.Print((var(3, ir.FLOAT),))], slots=slots, programs=[1])).text
-        self.assertIn("\tprog = vm.bits_float(action.ProgGet()) or prog\n", result)
+        self.assertIn("\tprog = vm.bits_float(action.get_program_value()) or prog\n", result)
 
     def test_output_read_both_ways_is_refused(self):
         call = ir.ExtCall(2, (addr(3),), tags=(("ref", ("int",), ("float", "int")),))
@@ -494,14 +514,35 @@ class EmitTest(unittest.TestCase):
             emit_text(function(0x40, [call, ir.Print((var(3),))], slots=ints(3), programs=[1]))
 
     def test_tagged_output_follows_the_destination_tag(self):
-        # VPop on an integer-tagged variable read as a float: the variant follows the tag, the bits are reinterpreted.
+        # get_variable on an integer-tagged variable read as a float: the variant follows the tag, the bits are reinterpreted.
         slots = {("local", 3): ir.FLOAT}
         call = ir.ExtCall(61, (const(1), addr(3, ir.FLOAT)), tags=(("value", ("int",)), ("ref", ("int",), ("float",))))
         result = emit_text(function(0x40, [call, ir.Print((var(3, ir.FLOAT),))], slots=slots, programs=[1])).text
-        self.assertIn("\tvalue = vm.bits_float(action.VPop(1)) or value\n", result)
+        self.assertIn("\tvalue = vm.bits_float(action.get_variable(1)) or value\n", result)
+
+    def test_tag_that_varies_is_followed_by_a_flag(self):
+        # The variable is integer-tagged on the first pass and float-tagged after: a flag follows its tag, and a float
+        # load clears it.
+        slots = {("local", 3): ir.FLOAT}
         mixed = ir.ExtCall(61, (const(1), addr(3, ir.FLOAT)), tags=(("value", ("int",)), ("ref", ("float", "int"), ("float",))))
-        with self.assertRaisesRegex(EmitError, "may be float or int"):
-            emit_text(function(0x40, [mixed, ir.Print((var(3, ir.FLOAT),))], slots=slots, programs=[1]))
+        loop = ir.While(const(1), [mixed, ir.Print((var(3, ir.FLOAT),))])
+        fn = function(0x40, [loop], slots=slots, programs=[1])
+        fn.load_kinds = {("local", 3): frozenset({True})}
+        result = emit_text(fn).text
+        self.assertIn("\tlocal value_int = true\n", result)
+        self.assertIn(
+            "value = (if value_int then vm.bits_float(action.get_variable(1)) else action.get_variable_float(1)) or value\n", result
+        )
+        self.assertIn("\t\tvalue_int = false\n", result)
+
+    def test_tag_that_varies_in_a_condition_is_refused(self):
+        slots = {("local", 3): ir.FLOAT}
+        mixed = ir.ExtCall(61, (const(1), addr(3, ir.FLOAT)), tags=(("value", ("int",)), ("ref", ("float", "int"), ("float",))))
+        check = ir.If(ir.Compare("lt", var(3, ir.FLOAT), const(1.0, ir.FLOAT)), [], [])
+        fn = function(0x40, [ir.While(const(1), [mixed, check])], slots=slots, programs=[1])
+        fn.load_kinds = {("local", 3): frozenset({True})}
+        with self.assertRaisesRegex(EmitError, "a condition loads variable 3"):
+            emit_text(fn)
 
     def test_tagged_command_takes_the_variant_of_its_argument_type(self):
         slots = {("local", 3): ir.FLOAT, ("local", 4): ir.INT}
@@ -513,33 +554,33 @@ class EmitTest(unittest.TestCase):
             ir.Print((var(3, ir.FLOAT), var(4))),
         ]
         result = emit_text(function(0x40, body, slots=slots, programs=[1])).text
-        self.assertIn("\taction.VPushFloat(1, value)\n", result)
-        self.assertIn("\taction.VPush(2, value_2)\n", result)
-        self.assertIn("\tvalue = action.VPopFloat(1) or value\n", result)
-        self.assertIn("\tvalue_2 = action.VPop(2) or value_2\n", result)
+        self.assertIn("\taction.set_variable_float(1, value)\n", result)
+        self.assertIn("\taction.set_variable(2, value_2)\n", result)
+        self.assertIn("\tvalue = action.get_variable_float(1) or value\n", result)
+        self.assertIn("\tvalue_2 = action.get_variable(2) or value_2\n", result)
 
     def test_inout_reference_passes_the_value_and_assigns_the_result(self):
         catalog = {"kinds": {"action": {**CATALOG["kinds"]["action"], "commands": [{
-            "no": 7, "luau": "AngleLimit",
+            "no": 7, "luau": "wrap_angle",
             "signatures": [{"argc": 1, "params": [{"name": "angle", "dir": "inout", "type": "f32"}]}],
         }]}}}
         body = [ir.ExtCall(7, (addr(3, ir.FLOAT),)), ir.Print((var(3, ir.FLOAT),))]
         result = emit(module(function(0x40, body, slots={("local", 3): ir.FLOAT}, programs=[1])), catalog).text
-        self.assertIn("\tangle = action.AngleLimit(angle) or angle\n", result)
+        self.assertIn("\tangle = action.wrap_angle(angle) or angle\n", result)
         # An integer variable passes its bits as a float and reads back the bits of the float written into it.
         body = [ir.ExtCall(7, (addr(3),)), ir.Print((var(3),))]
         result = emit(module(function(0x40, body, slots=ints(3), programs=[1])), catalog).text
-        self.assertIn("\tangle = vm.float_bits(action.AngleLimit(vm.bits_float(angle) :: number)) or angle\n", result)
+        self.assertIn("\tangle = vm.float_bits(action.wrap_angle(vm.bits_float(angle) :: number)) or angle\n", result)
 
     def test_reference_as_tagged_stored_value_does_nothing(self):
         body = [ir.ExtCall(60, (const(1), addr(3)))]
         result = emit_text(function(0x40, body, programs=[1]))
         self.assertIn(
-            "\t-- retail: action.VPush(1, var3) does nothing, since its handler stores only an integer or a float\n",
+            "\t-- retail: action.set_variable(1, var3) does nothing, since its handler stores only an integer or a float\n",
             result.text,
         )
         self.assertNotIn("local var3", result.text)
-        self.assertIn("reference passed as the value VPush stores", result.diagnostics)
+        self.assertIn("reference passed as the value set_variable stores", result.diagnostics)
 
     def test_temp_is_declared_at_its_assignment(self):
         body = [ir.Assign(ir.Temp(0, ir.INT), const(2)), ir.Print((ir.Temp(0, ir.INT),))]
@@ -589,14 +630,14 @@ class EmitTest(unittest.TestCase):
         self.assertIn("\tlocal var1: { f32 } = table.create(3, 0)\n", result)
         self.assertIn("\tvar1[var0 + 1] = 2.5\n", result)
         self.assertIn("\tvar1[var0] = 1.5\n", result)
-        self.assertIn("\tprint(var1[3])\n", result)
-        self.assertNotIn("vm.", result)
+        self.assertIn("\tprint(vm.float(var1[3]))\n", result)
+        self.assertNotIn("vm.index", result)
 
     def test_output_into_an_array_element(self):
         body = [ir.ExtCall(2, (ir.Addr(ARRAY, ir.INT, var(0)),)), ir.Print((ir.Elem(ARRAY, const(0), ir.INT),))]
         slots = {**ints(0), ARRAY: ir.INT}
         text = emit_text(function(ANY_BLOCK, body, slots=slots, main=True, arrays={ARRAY: 2})).text
-        self.assertIn("\tvar1[var0 + 1] = action.ProgGet() or var1[var0 + 1]\n", text)
+        self.assertIn("\tvar1[var0 + 1] = action.get_program_value() or var1[var0 + 1]\n", text)
 
     def test_frame_table_checks_computed_indices(self):
         index = ir.Binary("add", ir.Elem(FRAME, const(0), ir.INT), const(1), ir.INT)
@@ -623,7 +664,7 @@ class EmitTest(unittest.TestCase):
         ]
         result = emit_text(main_function(body, slots={("local", 4): ir.FLOAT, ("local", 5): ir.FLOAT}))
         self.assertIn(
-            "\t\tlocal out1, out2, _ = action.GetPos() -- retail: output 3 points past the frame, at the operand stack, "
+            "\t\tlocal out1, out2, _ = action.get_position() -- retail: output 3 points past the frame, at the operand stack, "
             "so the value is lost\n",
             result.text,
         )
@@ -633,7 +674,7 @@ class EmitTest(unittest.TestCase):
         helper = function(0x30, [ir.ExtCall(2, (addr(0),)), ir.Return(var(0))], slots=ints(0))
         caller = main_function([ir.CallStmt(ir.Call(0x30, (), ir.INT))])
         text = emit_text(helper, caller).text
-        self.assertIn("local function helper_30()\n\taction.ProgGet()\nend\n", text)
+        self.assertIn("local function helper_30()\n\taction.get_program_value()\nend\n", text)
 
     def test_repeated_condition_stays_a_nested_if(self):
         cond = ir.Compare(opcodes.Compare.EQ, var(0), const(1))
@@ -770,7 +811,7 @@ class EmitTest(unittest.TestCase):
         self.assertIn('local vm = require("@lib/vm")', result.text)
         self.assertIn("local global0", result.text)
         self.assertIn("\tlocal prog: s32 = 0\n", result.text)
-        self.assertIn("\tprog = action.ProgGet() or prog\n", result.text)
+        self.assertIn("\tprog = action.get_program_value() or prog\n", result.text)
         self.assertIn("\tvar7 = helper_78(prog)\n", result.text)
         self.assertIn("\t\treturn -arg0\n", result.text)
         self.assertIn("function script.init()\n", result.text)

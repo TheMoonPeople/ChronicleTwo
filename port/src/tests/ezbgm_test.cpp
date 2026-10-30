@@ -15,11 +15,13 @@
 #include <vector>
 
 #include "audio/mixer.hpp"
+#include "audio/sound_runtime.hpp"
 #include "audio/stream.hpp"
 #include "audio/synth.hpp"
 #include "event.hpp"
 #include "event_func.hpp"
 #include "ezbgm.hpp"
+#include "native_script_program.hpp"
 #include "platform/audio.hpp"
 #include "platform/clock.hpp"
 #include "platform/datapacks.hpp"
@@ -29,14 +31,13 @@
 #include "runscript.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
-#include "sound_port.hpp"
 
 namespace fs = std::filesystem;
 
 namespace {
 
-constexpr int kChannel = 1;
-constexpr int kFrames = 4800;
+constexpr int          kChannel = 1;
+constexpr int          kFrames = 4800;
 constexpr std::int16_t kMono = 10000;
 constexpr std::int16_t kLeft = 12000;
 constexpr std::int16_t kRight = -3000;
@@ -98,6 +99,11 @@ public:
     ScratchDataRoot()
         : root(fs::temp_directory_path() / std::format("ezbgm-test-{}", dc::test::ProcessId())),
           previous(PathsDataRoot()), previous_packs(datapacks::Root()) {
+        audio::DefaultMixer().Reset();
+        audio::DefaultMixer().SetMasterGain(1.0f);
+        for (int core = 0; core < audio::kCores; ++core) {
+            audio::DefaultMixer().SetCoreVolume(core, 1.0f);
+        }
         std::error_code error;
         fs::remove_all(root, error);
         fs::create_directories(root / "data/sound");
@@ -107,6 +113,7 @@ public:
 
     ~ScratchDataRoot() {
         CSnd.StreamClose(kChannel);
+        audio::DefaultMixer().Reset();
         PathsSetDataRoot(previous);
         if (previous_packs.empty()) {
             datapacks::Clear();
@@ -428,14 +435,14 @@ TEST(EzBgm, EventVoiceDispatchOpensNumericAndNamedDirectClips) {
     args[1].type = RS_INT;
     args[1].val.i = 1;
     const auto source = EdEventInfo.stream_source;
-    EXPECT_EQ(script.ext_func_table[EVENT_EXT_STREAM_OPEN](args, 2), 1);
+    EXPECT_EQ(InvokeNativeExternal(script.ext_func_table[EVENT_EXT_STREAM_OPEN], std::span(args).first(2)), 1);
     EXPECT_TRUE(EzBgmChannel(kChannel).IsOpen());
     EXPECT_EQ(EdEventInfo.stream_source, EVENT_STREAM_VOICE_PACK);
     CSnd.StreamClose(kChannel);
     char clip[] = "0000001";
     args[1].type = RS_STR;
     args[1].val.s = clip;
-    EXPECT_EQ(script.ext_func_table[EVENT_EXT_STREAM_OPEN](args, 2), 1);
+    EXPECT_EQ(InvokeNativeExternal(script.ext_func_table[EVENT_EXT_STREAM_OPEN], std::span(args).first(2), {}, clip), 1);
     EXPECT_TRUE(EzBgmChannel(kChannel).IsOpen());
     EXPECT_EQ(EdEventInfo.stream_source, EVENT_STREAM_FILE);
     EdEventInfo.stream_source = source;

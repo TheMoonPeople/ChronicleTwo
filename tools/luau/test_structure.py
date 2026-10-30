@@ -400,6 +400,29 @@ class StructureTest(unittest.TestCase):
         with self.assertRaisesRegex(StructureError, "unstructured branch at 0x100"):
             structure(f)
 
+    def test_statements_after_break_are_pruned(self):
+        f = function(block(0, [ir.Assign(C0, const(1)), ir.Break(), ir.Break()], STOP))
+        self.assertEqual(structure(f), [ir.Assign(C0, const(1)), ir.Break()])
+
+    def test_statements_after_break_are_pruned_inside_if_in_while(self):
+        # while c0 do a; if c1 then break; b end; c end; d
+        f = function(
+            block(0, [], branch(C0, 1, 4)),
+            block(1, [mark(1)], branch(C1, 2, 3)),
+            block(2, [ir.Break(), mark(2)], jump(3)),
+            block(3, [mark(3)], jump(0)),
+            block(4, [mark(4)], STOP),
+        )
+        expected = [
+            ir.While(C0, [mark(1), ir.If(C1, [ir.Break()], []), mark(3)]),
+            mark(4),
+        ]
+        self.assertEqual(structure(f), expected)
+
+    def test_statements_after_return_are_pruned(self):
+        f = function(block(0, [ir.Return(const(1)), ir.Assign(C0, const(2))], STOP))
+        self.assertEqual(structure(f), [ir.Return(const(1))])
+
 
 if __name__ == "__main__":
     unittest.main()

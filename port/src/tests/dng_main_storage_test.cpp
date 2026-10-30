@@ -1,6 +1,7 @@
+#include "common.h"
+
 #include <gtest/gtest.h>
 
-#include "common.h"
 #include "mg_memory.hpp"
 
 // dng_main.hpp declares six stacks; the port's definition holds the seventh, retail's BuffTempData.

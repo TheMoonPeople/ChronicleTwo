@@ -5,16 +5,17 @@
 #include <string>
 
 #include "dng_main.hpp"
-#include "editctrl_port.hpp"
 #include "editloop.hpp"
 #include "gfx/displaylist.hpp"
-#include "mainloop_port.hpp"
 #include "menu_world.hpp"
 #include "menudraw.hpp"
-#include "menudraw_port.hpp"
 #include "menumain.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
+#include "object/menu/menu_presentation.hpp"
+#include "object/world/town_control.hpp"
+#include "platform/game_loop_state.hpp"
+#include "scoped_global_object.hpp"
 
 namespace {
 
@@ -90,11 +91,10 @@ TEST(MenuWorld, SpreadPointerReachesLeftPanelPartsUpToTheSplit) {
 }
 
 TEST(MenuWorld, ItemsEntryDissolvesThePlayerAndReturnsThroughTheOrb) {
-    const int     saved_loop_mode = PortTownLoopMode;
-    CMenuKeyFunc *saved_keys = MenuCommonInfo;
-    CMenuKeyFunc  keys;
+    const int                                     saved_loop_mode = PortTownLoopMode;
+    dc2::test::ScopedGlobalObject<MenuCommonInfo> keys_owner;
+    auto                                         &keys = keys_owner.Get();
     PortTownLoopMode = EDIT_LOOP_WALK_MENU;
-    MenuCommonInfo = &keys;
     keys.now_mode = MENU_MODE_ITEM;
 
     MENU_INIT_ARG arg{};
@@ -152,7 +152,6 @@ TEST(MenuWorld, ItemsEntryDissolvesThePlayerAndReturnsThroughTheOrb) {
     EXPECT_EQ(menuworld::PlayerDissolveAlpha(), 128);
 
     menuworld::MenuClosed();
-    MenuCommonInfo = saved_keys;
     PortTownLoopMode = saved_loop_mode;
 }
 
@@ -364,7 +363,7 @@ TEST(MenuWorld, PlayerlessReplayDropsPlayerEffectsShadowsAndTheLastRedMarker) {
 }
 
 TEST(MenuWorld, PlayerlessReplayDropsOutlineCompositesWithoutOutlineDraws) {
-    constexpr gfx::InterpKey player = 1;
+    constexpr gfx::InterpKey     player = 1;
     constexpr gfx::TextureHandle outline = 7;
 
     gfx::DisplayList source;

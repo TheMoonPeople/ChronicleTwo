@@ -22,25 +22,25 @@ function script.on_start()
 	local var4: s32 = 0
 	local hit_num: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	value = effect.GetValue(0) or value
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetMotion("七色蝶の火柱", -1, 6)
-	effect.ColprimCreate("吹っ飛び中")
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 20.0)
-	effect.ColprimSetDamage(value)
+	value = effect.get_script_value(0) or value
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_motion("七色蝶の火柱", -1, 6)
+	effect.create_collision_primitive("吹っ飛び中")
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 20.0)
+	effect.set_collision_primitive_damage(value)
 	hit_num = 0
 	var4 = 0
 	while var4 < 24 do
 		if hit_num <= 0 then
-			hit_num = effect.ColprimGetHitcnt() or hit_num
+			hit_num = effect.get_collision_primitive_hit_count() or hit_num
 			if hit_num > 0 or var4 == 20 then
 				hit_num = 1
-				effect.ColprimDelete(-1)
+				effect.delete_collision_primitive(-1)
 			end
 		end
 		var4 = var4 + 1

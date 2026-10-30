@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "editdata.hpp"
 #include "gamedata.hpp"
 #include "mainloop.hpp"
@@ -113,14 +113,14 @@ constexpr std::array kSetupKinds{
  * One typed game setup action.
  */
 struct GameSetupStep {
-    SetupAction                      action;     /**< Action performed. */
-    native_config::RawValue          map;        /**< Map, by name or number, of a map action. */
-    int                              first = 0;  /**< First integer operand. */
-    int                              second = 0; /**< Second integer operand. */
-    std::optional<int>               optional;   /**< Optional operand: the parts mode or the ridepod core. */
-    std::vector<int>                 values;     /**< Integer list of a list action. */
-    std::vector<std::array<int, 2> > counted;    /**< Item and count pairs. */
-    std::optional<std::string>       name;       /**< CP932 option name, or none when it was not text. */
+    SetupAction                     action;     /**< Action performed. */
+    native_config::RawValue         map;        /**< Map, by name or number, of a map action. */
+    int                             first = 0;  /**< First integer operand. */
+    int                             second = 0; /**< Second integer operand. */
+    std::optional<int>              optional;   /**< Optional operand: the parts mode or the ridepod core. */
+    std::vector<int>                values;     /**< Integer list of a list action. */
+    std::vector<std::array<int, 2>> counted;    /**< Item and count pairs. */
+    std::optional<std::string>      name;       /**< CP932 option name, or none when it was not text. */
 };
 
 /**
@@ -130,7 +130,7 @@ std::vector<GameSetupStep> ParseGameSetup(const native_config::Json &document) {
     using namespace native_config;
     std::vector<GameSetupStep> steps;
     for (const auto &entry : Array(document, "actions")) {
-        const auto name = Text(entry, "action");
+        const auto        name = Text(entry, "action");
         const auto *const kind = std::ranges::find_if(kSetupKinds, [&](const SetupKind &item) { return name == item.name; });
         if (kind == kSetupKinds.end()) {
             throw std::runtime_error("unknown game setup action " + name);
@@ -375,7 +375,7 @@ void Perform(const GameSetupStep &step) {
  * Reads a game setup document and performs its actions in order.
  */
 void RunGameSetup(const char *game_name) {
-    if (const auto steps = native_config::ReadGame<std::vector<GameSetupStep> >(game_name, "game_setup", ParseGameSetup)) {
+    if (const auto steps = native_config::ReadGame<std::vector<GameSetupStep>>(game_name, "game_setup", ParseGameSetup)) {
         for (const auto &step : *steps) {
             Perform(step);
         }
@@ -386,7 +386,7 @@ void RunGameSetup(const char *game_name) {
 
 // The retail signature takes a mutable path.
 // NOLINTNEXTLINE(readability-non-const-parameter)
-PORT_OVERRIDE void LoadGameConfig(char *path) {
+void LoadGameConfig(char *path) {
     if (path == nullptr) {
         SetCurrentDir(nullptr);
     }

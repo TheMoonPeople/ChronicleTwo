@@ -10,7 +10,7 @@
 #include "menucommon.hpp"
 #include "menumain.hpp"
 #include "menusys.hpp"
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 #include "stubs/menuchr.hpp"
 
 namespace {
@@ -89,7 +89,7 @@ void MenuMouseMonster(CMenuMosSelect &box, CMenuKeyFunc &keys) {
     }
 }
 
-PORT_OVERRIDE int MenuMonsterBoxKey() {
+int MenuMonsterBoxKey() {
     // The box's keys are read only inside its own key step.
     box_keys = MenuMosSelectPtr;
     const int result = MenuMosSelectPtr->KeyStep();

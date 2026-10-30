@@ -1,0 +1,121 @@
+{
+ "$comment": "Spanish corrections of PAL scripts that ship Italian or incomplete text: each replaces the string that the PUSH_CONST at a file offset pushes, once its retail text is found there. tools/luau/stb2luau/transpile.py applies them before translating.",
+ "scripts": {
+  "map/s/s17/s17_5.stb": [
+   {
+    "push": "0xCDC4",
+    "retail": "Si ferma con il pulsante (O).",
+    "text": "Se para con el bot[UNI00f3]n (O)."
+   },
+   {
+    "push": "0x18A04",
+    "retail": "Prepara il Ramo maneggevole.",
+    "text": "Equipa el Bast[UNI00f3]n Multiusos."
+   },
+   {
+    "push": "0x1AB0C",
+    "retail": "Questa [UNI00e8] l'ultima volta che potrai\navvicinare la Sphera.",
+    "text": "Esta es la [UNI00fa]ltima vez que\npodr[UNI00e1]s mover la Esfera hacia ti."
+   },
+   {
+    "push": "0x1ABFC",
+    "retail": "Avvicinare la Sphera?",
+    "text": "[UNI00bf]Acercar la Esfera?"
+   },
+   {
+    "push": "0x2DB10",
+    "retail": "Vedi se trovi un Ramo\nmaneggevole. Cos[UNI00ec], potr[UNI00f2]\nmostrarti come colpire la Sphera.",
+    "text": "Mira a ver si hay un palo por ah[UNI00ed]\ncerca. Despu[UNI00e9]s te ense[UNI00f1]ar[UNI00e9]\na golpear la Esfera."
+   },
+   {
+    "push": "0x311D8",
+    "retail": "S[UNI00ec]\nNo",
+    "text": "S[UNI00ed]\nNo"
+   },
+   {
+    "push": "0x32560",
+    "retail": "Come?\nVuoi rinunciare?",
+    "text": "[UNI00bf]C[UNI00f3]mo?\n[UNI00bf]Te rindes?"
+   },
+   {
+    "push": "0x32620",
+    "retail": "S[UNI00ec]\nNo",
+    "text": "S[UNI00ed]\nNo"
+   },
+   {
+    "push": "0x32818",
+    "retail": "Si.\nBuona fortuna, Max!",
+    "text": "S[UNI00ed].\n[UNI00a1]Buena suerte, Max!"
+   },
+   {
+    "push": "0x33004",
+    "retail": "Oh, che peccato!\nVuoi riprovare?",
+    "text": "[UNI00a1]Oh, qu[UNI00e9] pena!\n[UNI00bf]Quieres volver a intentarlo?"
+   },
+   {
+    "push": "0x331CC",
+    "retail": "S[UNI00ec]\nNo",
+    "text": "S[UNI00ed]\nNo"
+   },
+   {
+    "push": "0x334FC",
+    "retail": "Sei un disastro, Max!\nLascia fare a me!",
+    "text": "[UNI00a1]Eres un desastre, Max!\n[UNI00a1]D[UNI00e9]jame a m[UNI00ed]!"
+   },
+   {
+    "push": "0x44190",
+    "retail": "\"Tiro\"\n1) Mira con la levetta analogica sx\n2) Premi (O) per oscillare la mazza\n3) Premi ancora (O) per la potenza\n4) Premi (O) di nuovo per il tiro",
+    "text": "\"Lanzamiento\"\n1) Apunta con el joystick izquierdo\n2) Pulsa (O) para empezar el golpe\n3) Pulsa (O) de nuevo para la potencia\n4) Pulsa (O) otra vez para golpear"
+   },
+   {
+    "push": "0x44220",
+    "retail": "\"Zona d'Impatto\"\nLa barra rossa sotto l'indicatore\ndi potenza. Centrando la met[UNI00e0] della\nbarra, si ottiene un colpo forte.",
+    "text": "\"Zona de Impacto\"\nEs la barra roja bajo el indicador de\npotencia. Golpea en el centro de la\nZona de Impacto para un golpe fuerte."
+   },
+   {
+    "push": "0x442B0",
+    "retail": "Se colpisci da un punto esterno\nalla Zona d'Impatto, la Sphera\nvoler[UNI00e0] nella direzione sbagliata.",
+    "text": "Si golpeas fuera de la Zona de Impacto,\nla Esfera saldr[UNI00e1] volando en la\ndirecci[UNI00f3]n equivocada."
+   },
+   {
+    "push": "0x44340",
+    "retail": "\"Cambiamento Punto d'Impatto\"\nPer cambiare il punto d'impatto\ndella Sphera, punta la levetta\nanalogica sx in una direzione.<page>Modificando cos[UNI00ec] quanto segue:",
+    "text": "\"Cambiar el punto de impacto\"\nSi mantienes el joystick izquierdo en\nuna direcci[UNI00f3]n al golpear, cambiar[UNI00e1]s\nla parte de la Esfera que golpeas.<page>Esto produce los efectos siguientes:"
+   },
+   {
+    "push": "0x443D0",
+    "retail": "Su: Topspin per palla veloce.\nGi[UNI00f9]: Backspin per frenare palla.\nSx: Slice e deviazione a destra.\nDx: Hook e deviazione a sinistra.",
+    "text": "Arriba: liftado, rueda con facilidad.\nAbajo: cortado, frena con facilidad.\nIzq.: golpe que curva a la derecha.\nDcha.: golpe que curva a la izquierda."
+   },
+   {
+    "push": "0x44460",
+    "retail": "Se la Sphera finisce in un punto\nirraggiungibile, premi (#)per\navvicinare a te la Sphera.",
+    "text": "Si la Esfera cae en un lugar al que\nno puedes llegar, pulsa (#) para\nacercar la Esfera hacia ti."
+   },
+   {
+    "push": "0x444F0",
+    "retail": "[(!)]Spheda [UNI00e8] stato aggiunto alla sezione\n   Guida del Menu principale.",
+    "text": "[(!)]Esfeda se ha a[UNI00f1]adido a la secci[UNI00f3]n\n   Ayuda del men[UNI00fa] Principal."
+   }
+  ],
+  "map/f/f04/f04_5.stb": [
+   {
+    "push": "0x2CD20",
+    "retail": "Selecciona Destino de la Puerta de salto\nPuerta de salto Norte\nPuerta de salto Este -- Oeste\nEnfrente de la Puerta de salto\nPuente de Paznos",
+    "text": "Selecciona Destino de la Puerta de salto\nPuerta de salto Norte\nPuerta de salto Este\nPuerta de salto Oeste\nEnfrente de la Puerta del tiempo\nPuente de Paznos"
+   },
+   {
+    "push": "0x2CD98",
+    "retail": "Selecciona Destino de la Puerta de salto\nPuerta de salto Norte\nPuerta de salto Este -- Oeste\nEnfrente de la Puerta de salto\n",
+    "text": "Selecciona Destino de la Puerta de salto\nPuerta de salto Norte\nPuerta de salto Este\nPuerta de salto Oeste\nEnfrente de la Puerta del tiempo"
+   }
+  ],
+  "map/s/s30/s30_5.stb": [
+   {
+    "push": "0x2FC94",
+    "retail": "Selecciona Destino de la Puerta de salto\nPuerta de salto Norte\nPuerta de salto Este -- Oeste\nEnfrente de la Puerta de salto\n",
+    "text": "Selecciona Destino de la Puerta de salto\nPuerta de salto Norte\nPuerta de salto Este\nPuerta de salto Oeste\nEnfrente de la Puerta del tiempo"
+   }
+  ]
+ }
+}

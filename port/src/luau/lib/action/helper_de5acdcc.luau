@@ -11,46 +11,46 @@ local function helper_de5acdcc()
 	local prog: s32 = 0
 	local acumu_pad: s32 = 0
 	local var5: f32 = 0
-	prog = action.ProgGet() or prog
+	prog = action.get_program_value() or prog
 	if prog == 1200 then
-		action.SetMos("ためループ")
-		acumu_pad = action.GetAcumuPad() or acumu_pad
+		action.play_motion("ためループ")
+		acumu_pad = action.get_charge_steps() or acumu_pad
 		if acumu_pad == 20 then
-			action.SetPallet(220, 255, 255, 1, 12)
+			action.start_palette_flash(220, 255, 255, 1, 12)
 		end
 		if acumu_pad > 20 then
-			action.ProgSet(prog + 1)
+			action.set_program_value(prog + 1)
 		end
 		if acumu_pad == 0 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 			helper_bac4ec65(2)
 		end
-		action.RunTameMove()
+		action.run_charge_movement()
 		return
 	end
 	if prog == 1201 then
-		var0 = action.GetBtn_2(56) or var0
+		var0 = action.get_button_state_2(56) or var0
 		if var0 == 0 then
-			action.SetMuteki(30)
-			action.SetMos("ため攻撃", -1, 6)
-			action.EsmCreate_1("モニカ溜め攻撃")
-			action.ProgSet(prog + 1)
+			action.set_invulnerable_time(30)
+			action.play_motion("ため攻撃", -1, 6)
+			action.create_effect_1("モニカ溜め攻撃")
+			action.set_program_value(prog + 1)
 		else
-			action.RunTameMove()
+			action.run_charge_movement()
 		end
 		return
 	end
 	if prog == 1202 then
-		var1 = action.GetMosStatus() or var1
-		var5 = action.NowMosWait() or var5
+		var1 = action.get_motion_status() or var1
+		var5 = action.get_motion_progress() or var5
 		if var5 >= vm.f32(0.12) and var5 < vm.f32(0.626) then
-			action.SetBlowMove(0.6, 0.0, 1)
+			action.set_move_impulse(0.6, 0.0, 1)
 		end
 		if var5 >= vm.f32(0.626) and var5 < vm.f32(0.67) then
-			action.CameraQuake(6.0, 20)
+			action.shake_camera(6.0, 20)
 		end
 		if var1 == 4 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 			helper_bac4ec65(2)
 		end
 		return

@@ -5,7 +5,7 @@ local helper_0ba23e4e = require("@lib/monster/helper_0ba23e4e")
 
 --- Helper function.
 local function helper_a0d4bba7()
-	monster.SetDeadOff()
+	monster.spawn_death_effects()
 	while true do
 		helper_0ba23e4e()
 	end

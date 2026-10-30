@@ -11,12 +11,12 @@ local function helper_5af194a0(arg0: f32, arg1: f32, arg2: f32, arg3: f32)
 	local var11: f32 = 0
 	local var12: f32 = 0
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var8 = out2 or var8
 	end
-	var10 = monster.GetTargetDist() or var10
-	var11 = monster.GetTargetAngle() or var11
-	var12 = monster.GetTargetSpeed() or var12
+	var10 = monster.get_target_distance() or var10
+	var11 = monster.get_target_angle() or var11
+	var12 = monster.get_target_speed() or var12
 	arg1 = helper_787df986(arg1)
 	if
 		var10 < arg0 and var8 < vm.f32(var11 + arg1) and var8 > vm.f32(var11 - arg1)

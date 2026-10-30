@@ -8,21 +8,21 @@ local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
 local function helper_cc6c712f()
 	local result: s32 = 0
 	local var1: f32 = 0
-	action.SetMos("よけのみ(バク宙）", -1, 6)
-	action.SetMuteki(20)
+	action.play_motion("よけのみ(バク宙）", -1, 6)
+	action.set_invulnerable_time(20)
 	while true do
 		vm.wait()
-		var1 = action.NowMosWait() or var1
+		var1 = action.get_motion_progress() or var1
 		if var1 > vm.f32(0.18) and var1 < vm.f32(0.8) then
-			action.SetBlowMove(4.0, 0.0, 1, 180)
+			action.set_move_impulse(4.0, 0.0, 1, 180)
 		end
-		result = vm.float_bits(action.CheckMosEnd()) or result
+		result = vm.float_bits(action.is_motion_finished()) or result
 		if result ~= 0 then
 			break
 		end
 	end
 	helper_bac4ec65(6)
-	action.ProgSet(0)
+	action.set_program_value(0)
 end
 
 return helper_cc6c712f

@@ -60,21 +60,40 @@ while ($null -eq $deps) {
     }
 }
 
-# acquire.ps1 verifies its archives. It runs only when one of the toolchain's files is missing.
+# Docker verifies and exports the native toolchain when a required file is missing.
+$dependency_inputs = @("$checkout/tools/ci/Dockerfile", "$checkout/port/CMakeLists.txt",
+    "$checkout/port/src/tests/CMakeLists.txt", "$checkout/tools/kazarov/tools/ffmpeg/kz-ffmpeg") +
+    @(Get-ChildItem -LiteralPath "$checkout/port/cmake", "$checkout/tools/kazarov/cmake" -Filter '*.cmake' -File |
+        Sort-Object FullName | Select-Object -ExpandProperty FullName)
+$dependency_id = (Get-FileHash -LiteralPath $dependency_inputs -Algorithm SHA256).Hash -join ':'
+$dependency_stamp = Join-Path $root 'deps/.chronicletwo-deps'
+$dependencies_current = (Test-Path -LiteralPath $dependency_stamp) -and
+    (Get-Content -LiteralPath $dependency_stamp -Raw).Trim() -eq $dependency_id
 $markers = @(
     'deps/llvm/llvm-mingw-20260922-ucrt-x86_64/bin/clang++.exe',
     'deps/ninja/ninja.exe',
     'deps/glslang/bin/glslang.exe',
     'deps/sdl/SDL3-3.4.18/x86_64-w64-mingw32/lib/cmake/SDL3',
-    'deps/ffmpeg/ffmpeg-n9.0.2-27-g7e93014c5b-win64-lgpl-shared-9.0/bin/avcodec-63.dll',
+    'deps/ffmpeg/bin/avcodec-63.dll',
     'deps/vulkan/Vulkan-Headers-vulkan-sdk-1.4.363.0/include',
     'deps/vulkan-runtime/VulkanRT-X64-1.4.363.0-Components/x64/vulkan-1.dll',
-    'deps/rust/1.99.0-gnullvm/bin/cxxbridge.exe'
+    'deps/rust/1.99.0-gnullvm/bin/cxxbridge.exe',
+    'deps/sources/corrosion/CMakeLists.txt',
+    'deps/cmake/cmake-4.4.5-windows-x86_64/bin/cmake.exe',
+    'deps/python/python.exe',
+    'deps/ccache/ccache-4.14.2-windows-x86_64/ccache.exe'
 )
-if (@($markers | Where-Object { -not (Test-Path -LiteralPath (Join-Path $root $_)) }).Count -gt 0) {
-    Write-Stage 'acquiring missing toolchain dependencies'
-    & "$PSScriptRoot/acquire.ps1" -Root $root
+if (-not $dependencies_current -or @($markers | Where-Object { -not (Test-Path -LiteralPath (Join-Path $root $_)) }).Count -gt 0) {
+    Write-Stage 'exporting the Docker dependency bundle'
+    & docker buildx build --target windows-bundle --output "type=local,dest=$root" -f "$checkout/tools/ci/Dockerfile" $checkout
     if ($LASTEXITCODE) { $deps.Dispose(); exit $LASTEXITCODE }
+    $archive = Join-Path $root 'deps.tar.gz'
+    if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne (Get-Content (Join-Path $root 'deps.sha256')).Trim()) {
+        throw 'Dependency bundle checksum mismatch'
+    }
+    & tar -xzf $archive -C $root
+    if ($LASTEXITCODE) { $deps.Dispose(); exit $LASTEXITCODE }
+    Set-Content -LiteralPath $dependency_stamp -Value $dependency_id
 }
 $deps.Dispose()
 Write-Stage 'dependencies ready; checking CMake configuration'
@@ -88,7 +107,7 @@ function Read-CacheValue([string]$File, [string]$Key) {
 }
 $source = $checkout.Replace('\', '/')
 $buildPath = $build.Replace('\', '/')
-$ffmpegDir = "$($root.Replace('\', '/'))/deps/ffmpeg/ffmpeg-n9.0.2-27-g7e93014c5b-win64-lgpl-shared-9.0"
+$ffmpegDir = "$($root.Replace('\', '/'))/deps/ffmpeg"
 $cache = Join-Path $build 'CMakeCache.txt'
 $cachedSource = Read-CacheValue $cache 'CMAKE_HOME_DIRECTORY'
 $cachedBuild = Read-CacheValue $cache 'CMAKE_CACHEFILE_DIR'

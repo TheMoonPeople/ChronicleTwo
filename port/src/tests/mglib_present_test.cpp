@@ -20,44 +20,46 @@
 #include <vector>
 
 #include "actionchara.hpp"
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "dng_effect.hpp"
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
 #include "dng_object.hpp"
-#include "dng_pickup_port.hpp"
-#include "editctrl_port.hpp"
 #include "effectlist.hpp"
 #include "gfx/displaylist.hpp"
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "maintex.hpp"
 #include "map.hpp"
 #include "menu_mouse.hpp"
-#include "menuchr_port.hpp"
 #include "menudraw.hpp"
 #include "mg_camera.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
-#include "mg_texture_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "monster.hpp"
 #include "nd_meswin.hpp"
+#include "object/character/quick_change_presentation.hpp"
+#include "object/dun/pickup_presentation.hpp"
+#include "object/world/town_control.hpp"
+#include "platform/arena.hpp"
 #include "platform/clock.hpp"
 #include "platform/firstrun.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/input.hpp"
 #include "platform/model_assets.hpp"
 #include "platform/mouse.hpp"
 #include "platform/paths.hpp"
 #include "platform/window.hpp"
 #include "present.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
+#include "render/texture_runtime.hpp"
 #include "scenesnd.hpp"
+#include "scoped_global_object.hpp"
 #include "userdata.hpp"
 
 // Register macros must follow the host and test headers.
@@ -1203,14 +1205,20 @@ TEST(TargetPresentation, BracketsInterpolateAndTargetSwitchCuts) {
     memory.stSetBuffer(backing, 512);
     mgSetDataBuffer(&memory, &memory, 0);
     DamagePrimSink sink;
-    auto           scene = std::unique_ptr<CScene, decltype(&std::free)>(static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
-    auto           user = std::unique_ptr<CUserDataManager, decltype(&std::free)>(static_cast<CUserDataManager *>(std::calloc(1, sizeof(CUserDataManager))), &std::free);
-    auto          *saved_user = DngUserData;
-    DngUserData = user.get();
+    auto           scene = std::make_unique<CScene>();
+    auto           user = dc2::test::BindGlobalOwner<DngUserData>(std::make_unique<CUserDataManager>());
     user->active_chr_no = USER_CHARA_MAX;
-    CActionChara   player;
-    CActiveMonster target;
-    mgCFrame       frame;
+    auto           player_owner = std::make_shared<CActionChara>();
+    auto           target_owner = std::make_shared<CActiveMonster>();
+    auto          &player = *player_owner;
+    auto          &target = *target_owner;
+    static char    model_key;
+    constexpr auto model_words = dc2::memory::ArrayQuadwords<mgCFrame>(1).value() + 8;
+    mgCMemory      model_memory;
+    model_memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_key, model_words * sizeof(u_long128))), model_words);
+    auto *frame_storage = dc2::memory::NewObject<mgCFrame>(model_memory);
+    ASSERT_NE(frame_storage, nullptr);
+    auto &frame = *frame_storage;
     frame.SetPosition(0, 0, 1);
     target.CObjectFrame::frame = &frame;
     target.entry_object[0].frame = &frame;
@@ -1227,8 +1235,9 @@ TEST(TargetPresentation, BracketsInterpolateAndTargetSwitchCuts) {
     for (int i = 0; i < 3; ++i) {
         scene->chara[i].status = 1;
     }
-    scene->chara[0].chara = &player;
-    scene->chara[1].chara = scene->chara[2].chara = &target;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(target, model_memory));
+    scene->chara[0].character = dc2::scene::CharacterResource::FromOwned(player_owner);
+    scene->chara[1].character = scene->chara[2].character = dc2::scene::CharacterResource::FromOwned(target_owner);
     player.target_no = 1;
     player.lock_on = 1;
     CLockOnModel lock;
@@ -1278,7 +1287,6 @@ TEST(TargetPresentation, BracketsInterpolateAndTargetSwitchCuts) {
     ExpectNewestAtEveryAlpha();
     target.CObjectFrame::frame = nullptr;
     target.entry_object[0].frame = nullptr;
-    DngUserData = saved_user;
 }
 
 namespace {
@@ -1472,14 +1480,20 @@ TEST(TargetPresentation, NameInterpolatesAndTargetSwitchCuts) {
             mgPortDraw2D(p, v, {}, state);
         }
     });
-    auto  scene = std::unique_ptr<CScene, decltype(&std::free)>(static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
-    auto  user = std::unique_ptr<CUserDataManager, decltype(&std::free)>(static_cast<CUserDataManager *>(std::calloc(1, sizeof(CUserDataManager))), &std::free);
-    auto *saved_user = DngUserData;
-    DngUserData = user.get();
+    auto scene = std::make_unique<CScene>();
+    auto user = dc2::test::BindGlobalOwner<DngUserData>(std::make_unique<CUserDataManager>());
     user->active_chr_no = USER_CHARA_MAX;
-    CActionChara   player;
-    CActiveMonster target;
-    mgCFrame       frame;
+    auto           player_owner = std::make_shared<CActionChara>();
+    auto           target_owner = std::make_shared<CActiveMonster>();
+    auto          &player = *player_owner;
+    auto          &target = *target_owner;
+    static char    model_key;
+    constexpr auto model_words = dc2::memory::ArrayQuadwords<mgCFrame>(1).value() + 8;
+    mgCMemory      model_memory;
+    model_memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_key, model_words * sizeof(u_long128))), model_words);
+    auto *frame_storage = dc2::memory::NewObject<mgCFrame>(model_memory);
+    ASSERT_NE(frame_storage, nullptr);
+    auto &frame = *frame_storage;
     frame.SetPosition(0, 0, 1);
     target.CObjectFrame::frame = &frame;
     target.entry_object[0].frame = &frame;
@@ -1496,8 +1510,9 @@ TEST(TargetPresentation, NameInterpolatesAndTargetSwitchCuts) {
     for (int i = 0; i < 3; ++i) {
         scene->chara[i].status = 1;
     }
-    scene->chara[0].chara = &player;
-    scene->chara[1].chara = scene->chara[2].chara = &target;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(target, model_memory));
+    scene->chara[0].character = dc2::scene::CharacterResource::FromOwned(player_owner);
+    scene->chara[1].character = scene->chara[2].character = dc2::scene::CharacterResource::FromOwned(target_owner);
     player.target_no = 1;
     player.lock_on = 1;
     CLockOnModel lock;
@@ -1555,7 +1570,6 @@ TEST(TargetPresentation, NameInterpolatesAndTargetSwitchCuts) {
     ExpectNewestAtEveryAlpha();
     target.CObjectFrame::frame = nullptr;
     target.entry_object[0].frame = nullptr;
-    DngUserData = saved_user;
     mgPortSetPrimSink({});
 }
 
@@ -1832,14 +1846,22 @@ TEST(DamagePresentation, Score2InterpolatesAndReusedSlotsStayNewest) {
     memory.stSetBuffer(backing, 512);
     mgSetDataBuffer(&memory, &memory, 0);
     DamagePrimSink sink;
-    auto           scene = std::unique_ptr<CScene, decltype(&std::free)>(static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free);
-    CCharacter2    character;
-    mgCFrame       frame;
+    auto           scene = std::make_unique<CScene>();
+    auto           character_owner = std::make_shared<CCharacter2>();
+    auto          &character = *character_owner;
+    static char    model_key;
+    constexpr auto model_words = dc2::memory::ArrayQuadwords<mgCFrame>(1).value() + 8;
+    mgCMemory      model_memory;
+    model_memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_key, model_words * sizeof(u_long128))), model_words);
+    auto *frame_storage = dc2::memory::NewObject<mgCFrame>(model_memory);
+    ASSERT_NE(frame_storage, nullptr);
+    auto &frame = *frame_storage;
     frame.SetPosition(0, 0, 1);
     character.CObjectFrame::frame = &frame;
     scene->chara_num = 1;
     scene->chara[0].status = 1;
-    scene->chara[0].chara = &character;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(character, model_memory));
+    scene->chara[0].character = dc2::scene::CharacterResource::FromOwned(character_owner);
     CDamageScore2 damage{};
     damage.SetValue(0, 123, 0);
     std::vector<gfx::Vertex2D> before;
@@ -2246,12 +2268,13 @@ TEST(MglibPresent, RetailTownEyeMovementPairsAndRendersIntermediateCamera) {
     PortEditEyeHeading = PortEditEyeTilt = 0;
     GamePad__2.pad[0].left_x = GamePad__2.pad[0].left_y = 128;
     CScene         scene;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     CPadControl    pad{};
     camera.FollowOff();
     camera.ControlOff();
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.player_chara = scene.active_camera = scene.event_run = 0;
     const std::vector<gfx::Vertex3D> vertices = {
@@ -2321,13 +2344,14 @@ TEST(MglibPresent, RetailForcedFollowMovementPairsAndRendersIntermediateCamera) 
     PortEditEyeHeading = PortEditEyeTilt = 0;
     GamePad__2.pad[0].left_x = GamePad__2.pad[0].left_y = 128;
     CScene         scene;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     CPadControl    pad{};
     CMap           map;
     scene.AssignMap(0, &map, const_cast<char *>("s07"));
     scene.active_map = 0;
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
     scene.player_chara = scene.active_camera = scene.event_run = 0;
     const std::vector<gfx::Vertex3D> vertices = {

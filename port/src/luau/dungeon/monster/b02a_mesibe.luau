@@ -9,7 +9,7 @@ local helper_f683d690 = require("@lib/monster/helper_f683d690")
 
 --- Helper function.
 local function helper_2d6c()
-	monster.SetMos("待機", -1, 4)
+	monster.set_motion("待機", -1, 4)
 	while true do
 		helper_1ef0d4b2()
 		vm.wait()
@@ -21,51 +21,51 @@ end
 local function helper_2460()
 	local value: s32 = 0
 	local value_2: s32 = 0
-	value = monster.VPop(17) or value
+	value = monster.get_variable(17) or value
 	if value ~= 7 then
 		return
 	end
-	monster.EsmCreate_1("ラフレシア花粉")
-	value_2 = monster.VPop(8) or value_2
+	monster.create_effect_1("ラフレシア花粉")
+	value_2 = monster.get_variable(8) or value_2
 	if value_2 == 0 then
-		monster.VPush(8, 16)
+		monster.set_variable(8, 16)
 	end
 end
 
 --- Helper function.
 local function helper_2670()
 	local value: s32 = 0
-	monster.SetMos("もちあがる", -1, 2)
-	monster.MySePlay(3)
+	monster.set_motion("もちあがる", -1, 2)
+	monster.play_sound(3)
 	helper_56d63eae()
-	monster.MySePlay(2)
-	value = monster.VPop(17) or value
+	monster.play_sound(2)
+	value = monster.get_variable(17) or value
 	value = vm.i32(value + 1)
-	monster.VPush(17, value)
+	monster.set_variable(17, value)
 	if value == 6 then
-		monster.VPush(17, 7)
+		monster.set_variable(17, 7)
 	end
-	monster.SetMos("ゆれる", -1, 4)
+	monster.set_motion("ゆれる", -1, 4)
 	helper_2460()
 	while true do
 		vm.wait()
-		value = monster.VPop(17) or value
+		value = monster.get_variable(17) or value
 		if value == 0 then
 			break
 		elseif value == 7 then
-			value = monster.VPop(8) or value
+			value = monster.get_variable(8) or value
 			if value == 0 then
-				monster.VPush(17, 0)
+				monster.set_variable(17, 0)
 				break
 			end
 		end
 	end
 	helper_f683d690()
-	monster.MySeStop(2)
-	monster.SetMos("たれる", -1, 6)
-	monster.MySePlay(4)
+	monster.stop_sound(2)
+	monster.set_motion("たれる", -1, 6)
+	monster.play_sound(4)
 	helper_56d63eae()
-	monster.SetMonsterLife(1.0)
+	monster.set_life(1.0)
 end
 
 local script = {}
@@ -75,17 +75,17 @@ function script.setup() end
 
 --- Sets the monster up when it is placed.
 function script.init()
-	monster.SetAttrib(8, 1)
-	monster.SetAttrib(1, 1)
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
-	monster.SetActStatus(0)
-	monster.SetClipDist(9999.9)
-	monster.SetAttrib(4, 1)
-	monster.LoadEffectScript("ラフレシア花粉")
-	monster.LoadEffectScript("ラフレシア花粉サブ")
-	monster.SetObj(0, "shokushu")
-	monster.SetBody(0, 12.0)
+	monster.set_monster_attributes(8, 1)
+	monster.set_monster_attributes(1, 1)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
+	monster.set_action_status(0)
+	monster.set_clip_distance(9999.9)
+	monster.set_monster_attributes(4, 1)
+	monster.load_effect_script("ラフレシア花粉")
+	monster.load_effect_script("ラフレシア花粉サブ")
+	monster.register_entry_object(0, "shokushu")
+	monster.set_body(0, 12.0)
 end
 
 --- Runs the monster's normal behaviour.
@@ -97,21 +97,21 @@ end
 
 --- Reacts to a hit that staggers it.
 function script.on_damage()
-	monster.SetMos("もちあがる", -1, 2)
-	monster.MySePlay(3)
+	monster.set_motion("もちあがる", -1, 2)
+	monster.play_sound(3)
 	helper_56d63eae()
-	monster.SetMos("たれる", -1, 6)
-	monster.MySePlay(4)
+	monster.set_motion("たれる", -1, 6)
+	monster.play_sound(4)
 	helper_56d63eae()
 end
 
 --- Reacts to a hit that knocks it over.
 function script.on_knockdown()
-	monster.SetMos("もちあがる", -1, 2)
-	monster.MySePlay(3)
+	monster.set_motion("もちあがる", -1, 2)
+	monster.play_sound(3)
 	helper_56d63eae()
-	monster.SetMos("たれる", -1, 6)
-	monster.MySePlay(4)
+	monster.set_motion("たれる", -1, 6)
+	monster.play_sound(4)
 	helper_56d63eae()
 end
 
@@ -141,11 +141,11 @@ end
 function script.on_land()
 	local height: f32 = 0
 	while true do
-		height = monster.GetHigh() or height
+		height = monster.get_height_above_ground() or height
 		if height < vm.f32(0.1) then
 			helper_c3e8ae39(3)
-			monster.SetShrowEnd()
-			monster.ResetMove()
+			monster.end_throw()
+			monster.stop_moving()
 			helper_c3e8ae39(30)
 			return 1
 		end

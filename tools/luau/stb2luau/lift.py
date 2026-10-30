@@ -135,9 +135,31 @@ def _check_aliases(args: tuple[ir.Expr, ...], offset: int) -> None:
         seen.append(arg)
 
 
+def _load_key(place: ir.Slot | ir.Elem) -> ir.Slot:
+    """The variable a load or store names: a frame slot at a constant index is its own local."""
+    if isinstance(place, ir.Elem):
+        if place.array == FRAME and isinstance(place.index, ir.Const):
+            return ("local", place.index.value)
+        return place.array
+    return place
+
+
 def _check_mixed_stores(lifter: _Lifter) -> None:
-    """Refuses an integer constant stored into a variable the script loads both as an integer and as a float."""
-    mixed = {key for key, kinds in lifter.load_kinds.items() if len(kinds) == 2}
+    """Refuses an integer constant stored into a variable the script loads both as an integer and as a float.
+
+    In a frame table, a computed index from a base reaches the locals from that base up.
+    """
+
+    def kinds(key: ir.Slot) -> set[bool]:
+        found = set(lifter.load_kinds.get(key, ()))
+        if lifter.frame and key[0] == "local":
+            for base, reached in lifter.frame_loads.items():
+                if key[1] >= base:
+                    found |= reached
+        return found
+
+    keys = set(lifter.load_kinds) | {("local", n) for n in range(lifter.function.local)}
+    mixed = {key for key in keys if len(kinds(key)) == 2}
     mixed |= {("global", n) for n in lifter.mixed_globals}
     for block in lifter.blocks.values():
         for statement in block.statements:
@@ -146,9 +168,19 @@ def _check_mixed_stores(lifter: _Lifter) -> None:
             value, target = statement.value, statement.target
             if not (isinstance(value, ir.Const) and value.type == INT and value.value != 0):
                 continue
-            key = target.array if isinstance(target, ir.Elem) else target
+            key = _load_key(target)
             if key in mixed:
                 raise LiftError(_MIXED.format(what=f"{key[0]} {key[1]}", offset=statement.offset))
+
+
+def _reads_slot(function: Function, slot: int) -> bool:
+    """Whether a function names a local slot in any load or address, directly or through a computed index."""
+    return any(
+        instruction.op in (Op.LOAD, Op.LOAD_ADDR)
+        and instruction.a2 not in GLOBAL_MODES
+        and (instruction.a1 == slot or (instruction.a2 in INDEXED_MODES and instruction.a1 <= slot))
+        for instruction in function.instructions
+    )
 
 
 def _int_reads(function: Function) -> frozenset[int]:
@@ -199,17 +231,25 @@ def references(program: Program) -> dict[int, tuple[int, ...]]:
 
 
 def lift(
-    program: Program, function: Function, analysis: Analysis, refs: dict[int, tuple[int, ...]] | None = None
+    program: Program,
+    function: Function,
+    analysis: Analysis,
+    refs: dict[int, tuple[int, ...]] | None = None,
+    frame: bool = False,
 ) -> ir.LiftedFunction:
     """Lift one decoded script function into blocks of statements with typed expression trees.
 
-    refs gives each function's reference parameters, as references() finds them; it is computed when omitted.
+    refs gives each function's reference parameters, as references() finds them; it is computed when omitted. frame
+    keeps every local of a function that indexes an array in one table, as the frame is on the PS2.
     """
     if refs is None:
         refs = references(program)
     lifter = _Lifter(program, function, analysis, refs)
     lifter.run()
-    if lifter.dynamic:
+    if lifter.dynamic and frame:
+        lifter = _Lifter(program, function, analysis, refs, frame=True)
+        lifter.run()
+    elif lifter.dynamic:
         lifter = _Lifter(program, function, analysis, refs, regions=_regions(function, lifter.dynamic))
         lifter.run()
         if not _indices_in_bounds(lifter):
@@ -227,6 +267,7 @@ def lift(
         refs=refs.get(function.block, ()),
         arrays=lifter.arrays(),
         folded=frozenset(lifter.folded),
+        load_kinds={slot: frozenset(kinds) for slot, kinds in lifter.load_kinds.items()},
     )
 
 
@@ -298,6 +339,8 @@ class _Lifter:
         self.folded: set[int] = set()
         # For each variable, or array table, whether the function loads it as a float and whether as an integer.
         self.load_kinds: dict[ir.Slot, set[bool]] = defaultdict(set)
+        # In a frame table, the kinds of the loads at a computed index, by the base the index counts from.
+        self.frame_loads: dict[int, set[bool]] = defaultdict(set)
         self.mixed_globals = mixed_globals(program)
 
     def arrays(self) -> dict[ir.Slot, int]:
@@ -486,9 +529,16 @@ class _Lifter:
         elif op == Op.WAIT:
             self._emit(ir.Wait(offset), offset)
         elif op == Op.SKIP_END:
-            raise LiftError("skip end unsupported")
+            self._emit(ir.SkipEnd(offset), offset)
         elif op == Op.RET:
-            self._emit(ir.Return(self._pop(offset), offset), offset)
+            value = self._pop(offset)
+            if self.stack and self.function.block >= ir.SYNTHETIC_BASE:
+                # Values that skipped jumps left on the stack are dropped, but their calls still run.
+                for junk in self.stack:
+                    if ir.has_call(junk):
+                        self._emit(ir.Assign(self._temp(junk.type), junk, offset), offset)
+                self.stack.clear()
+            self._emit(ir.Return(value, offset), offset)
             self._exit(ir.Stop(), offset)
         elif op == Op.END:
             self._emit(ir.End(offset), offset)
@@ -548,10 +598,13 @@ class _Lifter:
                         f"the callee loads as a float, at {offset:#x}"
                     )
             elif isinstance(arg, ir.Addr):
-                raise LiftError(
-                    f"reference passed for parameter {position} of {callee.block:#x}, which the callee does not "
-                    f"dereference, at {offset:#x}"
-                )
+                if _reads_slot(callee, position):
+                    raise LiftError(
+                        f"reference passed for parameter {position} of {callee.block:#x}, which the callee reads as a "
+                        f"value, at {offset:#x}"
+                    )
+                # A parameter the callee never touches ignores the address it is given.
+                args = args[:position] + (ir.Const(0, INT),) + args[position + 1 :]
         _check_aliases(args, offset)
         mixed_params = _mixed_slots(callee.instructions, "local")
         for position, arg in enumerate(args):
@@ -645,6 +698,8 @@ class _Lifter:
                     index = temp
                 if self.frame:
                     place = ir.Elem(FRAME, ir.add_const(index, base), vtype)
+                    if instruction.op == Op.LOAD:
+                        self.frame_loads[base].add(float_access)
                 elif self.regions is None:
                     self.dynamic.add(base)
                     place = ir.Elem(("array", base), index, vtype)
@@ -658,7 +713,7 @@ class _Lifter:
             vtype = self._slot_type(slot, float_access)
             place = self._place(slot, vtype)
         if instruction.op == Op.LOAD:
-            self.load_kinds[place.array if isinstance(place, ir.Elem) else place].add(float_access)
+            self.load_kinds[_load_key(place)].add(float_access)
         if isinstance(place, ir.Elem):
             previous = self.slot_types.get(place.array)
             self.slot_types[place.array] = vtype if previous is None else _static(join(previous, vtype))

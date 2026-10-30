@@ -2,6 +2,7 @@
 
 #include "identity.hpp"
 #include "log/log.hpp"
+#include "platform/clock.hpp"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -14,9 +15,26 @@
 namespace {
 
 class LogFlushListener final : public testing::EmptyTestEventListener {
-    void OnTestStart(const testing::TestInfo &) override { LogFlush(); }
+    double            previous_tick_rate = 60.0;
+    bool              previous_unbounded = false;
+    ClockTickCallback previous_callback = nullptr;
+    ClockIdleHook     previous_idle = nullptr;
 
-    void OnTestEnd(const testing::TestInfo &) override { LogFlush(); }
+    void OnTestStart(const testing::TestInfo &) override {
+        previous_tick_rate = ClockTickRate();
+        previous_unbounded = ClockUnbounded();
+        previous_callback = ClockGetTickCallback();
+        previous_idle = ClockGetIdleHook();
+        LogFlush();
+    }
+
+    void OnTestEnd(const testing::TestInfo &) override {
+        ClockSetTickCallback(previous_callback);
+        ClockSetIdleHook(previous_idle);
+        ClockSetTickRate(previous_tick_rate);
+        ClockSetUnbounded(previous_unbounded);
+        LogFlush();
+    }
 };
 
 } // namespace

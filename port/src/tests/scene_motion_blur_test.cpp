@@ -7,6 +7,7 @@
 #include "event_func.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
+#include "native_script_program.hpp"
 #include "runscript.hpp"
 #include "scenesnd.hpp"
 
@@ -32,14 +33,13 @@ struct BlurProgram {
 };
 } // namespace
 
-TEST(SceneMotionBlur, AliasUsesTheFadeFieldWithoutChangingTheCaptureTexture) {
+TEST(SceneMotionBlur, MotionBlurUsesTheConstructedFadeWithoutChangingTheCaptureTexture) {
     CScene     scene;
     mgCTexture capture{};
     scene.fade.cross_texture = &capture;
-    scene.motion_blur = 100;
+    scene.fade.blur_alpha = 100;
     EXPECT_EQ(scene.fade.blur_alpha, 100);
     EXPECT_EQ(scene.fade.cross_texture, &capture);
-    EXPECT_EQ(static_cast<void *>(&scene.motion_blur), static_cast<void *>(&scene.fade.blur_alpha));
 }
 
 TEST(SceneMotionBlur, EventExternalPreservesItsExistingCrossfadeTexture) {
@@ -50,10 +50,10 @@ TEST(SceneMotionBlur, EventExternalPreservesItsExistingCrossfadeTexture) {
     mgCMemory             memory;
     memory.stSetBuffer(storage, 1024);
     BlurProgram program;
-    SetEventScript(reinterpret_cast<char *>(&program), nullptr, &memory);
+    SetEventScript(ProgramBytes(program), &memory);
     EXPECT_EQ(RunEvent(100, &scene), 0);
     EXPECT_EQ(scene.fade.blur_alpha, 100);
     EXPECT_EQ(scene.fade.cross_texture, &capture);
-    SetEventScript(nullptr, nullptr, nullptr);
+    SetEventScript({}, nullptr);
     EventScene = nullptr;
 }

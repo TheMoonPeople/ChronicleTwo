@@ -11,8 +11,8 @@ namespace {
 
 using namespace dc::vu1;
 
-constexpr float kInf = std::numeric_limits<float>::infinity();
-constexpr float kNaN = std::numeric_limits<float>::quiet_NaN();
+constexpr float   kInf = std::numeric_limits<float>::infinity();
+constexpr float   kNaN = std::numeric_limits<float>::quiet_NaN();
 constexpr int32_t kI32Max = std::numeric_limits<int32_t>::max();
 constexpr int32_t kI32Min = std::numeric_limits<int32_t>::min();
 
@@ -27,7 +27,7 @@ void ExpectRel(float got, float want, float rel) {
     EXPECT_LE(std::fabs(got - want), rel * std::fabs(want)) << got << " vs " << want;
 }
 
-}  // namespace
+} // namespace
 
 TEST(Vu1Math, MulByIdentityReturnsVector) {
     ExpectVec(Mul(Identity(), Vec4{.x = 1.5f, .y = -2.0f, .z = 3.0f, .w = 4.0f}), Vec4{.x = 1.5f, .y = -2.0f, .z = 3.0f, .w = 4.0f});
@@ -119,7 +119,7 @@ TEST(Vu1Math, Prog0FogAtFarIsFarValue) {
 }
 
 TEST(Vu1Math, Prog0FogMidDepthAndFtoi4) {
-    const Fog f = MakeFog(10.0f, 1000.0f, 0.0f, 255.0f);
+    const Fog   f = MakeFog(10.0f, 1000.0f, 0.0f, 255.0f);
     const float v = FogValue(f, 1.0f / 100.0f);
     ExpectRel(v, 23.182f, 1e-3f);
     EXPECT_EQ(Ftoi4(v), 370);

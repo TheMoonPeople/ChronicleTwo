@@ -8,9 +8,9 @@ local helper_4403befa = require("@lib/monster/helper_4403befa")
 local function helper_905c94a1()
 	helper_317bfc18(1)
 	helper_4403befa()
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
-	monster.SetActStatus(0)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
+	monster.set_action_status(0)
 end
 
 return helper_905c94a1

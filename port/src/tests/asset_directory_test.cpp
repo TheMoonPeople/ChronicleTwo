@@ -6,8 +6,9 @@
 #include <fstream>
 
 #include "asset_directory.hpp"
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
 #include "platform/datapacks.hpp"
+#include "platform/paths.hpp"
 #include "texture_source.hpp"
 
 namespace {
@@ -18,10 +19,14 @@ using Json = nlohmann::json;
  */
 class AssetDirectory : public testing::Test {
 protected:
+    std::filesystem::path previous_root = PathsDataRoot();
+    std::string           previous_directory;
     std::filesystem::path root;     /**< Temporary fixture root. */
     std::string           metadata; /**< Actual bounded bytes of the root pack.json. */
 
     void SetUp() override {
+        previous_directory = GetCurrentDir();
+        SetCurrentDir(nullptr);
         root = std::filesystem::temp_directory_path() / ("chronicle_directory_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
         std::filesystem::create_directories(root / "data/bundle/child");
         const Json marker = {
@@ -55,14 +60,15 @@ protected:
                                                       {"kind",           "shop_lists"}
         });
         std::ofstream(root / "data/bundle/raw.bin", std::ios::binary) << "abc";
-        datapacks::Load(root / "data");
+        DataReadIndex(root / "data");
         DataReadRegisterAsset(metadata.data(), "bundle/pack.json", metadata.size());
     }
 
     void TearDown() override {
         TextureSourceForget(metadata.data());
         DataReadRegisterBuffer(metadata.data(), 0);
-        datapacks::Clear();
+        DataReadIndex(previous_root);
+        SetCurrentDir(previous_directory.data());
         std::filesystem::remove_all(root);
     }
 
@@ -227,7 +233,7 @@ TEST_F(AssetDirectory, RejectsInvalidRelocatedTextureMembership) {
         };
         Write("bundle/pack.json", marker);
         metadata = marker.dump();
-        datapacks::Load(root / "data");
+        DataReadIndex(root / "data");
         DataReadRegisterAsset(metadata.data(), "bundle/pack.json", metadata.size());
         EXPECT_FALSE(AssetDirectoryPath(metadata.data()));
     }
@@ -268,4 +274,22 @@ TEST_F(AssetDirectory, ResolvesGameplayMapAndSkyLogicalTextureNames) {
     ASSERT_NE(sky_texture, nullptr);
     EXPECT_EQ(DataReadBufferPath(map_texture), std::optional<std::string>{"textures/map/a/a01/a01ia.json"});
     EXPECT_EQ(DataReadBufferPath(sky_texture), std::optional<std::string>{"textures/map/d/d04/b01/sky0.json"});
+}
+
+TEST_F(AssetDirectory, OwningMembersKeepActualContentsAcrossRepeatedReadsAndDirectoryRelease) {
+    auto directory = dc2::io::ReadResourceFile("bundle");
+    ASSERT_TRUE(directory);
+    auto members = dc2::assets::ReadDirectoryMembers(directory, "bin");
+    ASSERT_EQ(members.size(), 1u);
+    EXPECT_EQ(members[0].name, "raw.bin");
+    EXPECT_EQ(members[0].read.Source(), "bundle/raw.bin");
+    ASSERT_EQ(members[0].read.Size(), 3);
+    std::ofstream(root / "data/bundle/raw.bin", std::ios::binary) << "xyz";
+    auto replacement = dc2::assets::ReadDirectoryMember(directory, "RAW.BIN");
+    ASSERT_TRUE(replacement);
+    EXPECT_EQ(std::string(reinterpret_cast<const char *>(replacement.Bytes().data()), replacement.Bytes().size()), "xyz");
+    directory = {};
+    StartReadBG();
+    EXPECT_EQ(std::string(reinterpret_cast<const char *>(members[0].read.Bytes().data()), members[0].read.Bytes().size()), "abc");
+    EXPECT_EQ(members[0].read.Source(), "bundle/raw.bin");
 }

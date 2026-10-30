@@ -12,12 +12,12 @@ float ReciprocalW(float w) {
 }
 
 // FogValue is on the GS scale (255 = no fog); the host carries it as a unit interval.
-float FogUnit(const Fog& f, float q) {
+float FogUnit(const Fog &f, float q) {
     return std::clamp(FogValue(f, q) / 255.0f, 0.0f, 1.0f);
 }
 
 // Strict on x, y and the 1/Pw window: a sprite that touches a bound is rejected whole.
-bool Passes(const Sprite3dParams& p, float min_x, float min_y, float max_x, float max_y, float q) {
+bool Passes(const Sprite3dParams &p, float min_x, float min_y, float max_x, float max_y, float q) {
     return min_x > p.guard_min.x && min_y > p.guard_min.y && max_x < p.guard_max.x &&
            max_y < p.guard_max.y && q > 1.0f / p.guard_max.w && q < 1.0f / p.guard_min.w;
 }
@@ -26,10 +26,10 @@ Sprite3dVertexF Vertex(Vec4 corner, float u, float v, float fog) {
     return {.x = corner.x, .y = corner.y, .z = corner.z, .u = u, .v = v, .fog = fog};
 }
 
-}  // namespace
+} // namespace
 
-Sprite3dQuadF Sprite3dExpandNative(const Sprite3dParams& p, const Sprite3dRecord& r, int mode) {
-    const Vec4 pclip = Mul(p.ls, r.pos);
+Sprite3dQuadF Sprite3dExpandNative(const Sprite3dParams &p, const Sprite3dRecord &r, int mode) {
+    const Vec4  pclip = Mul(p.ls, r.pos);
     const float q = ReciprocalW(pclip.w);
     const Vec4  c{.x = pclip.x * q, .y = pclip.y * q, .z = pclip.z * q, .w = q};
     const float fog = FogUnit(p.fog, q);
@@ -73,11 +73,16 @@ Sprite3dQuadF Sprite3dExpandNative(const Sprite3dParams& p, const Sprite3dRecord
     out.drawn = Passes(p, min_x, min_y, max_x, max_y, q);
     out.count = 4;
 
-    const float uvs[4][2] = {{r.uv0.x, r.uv0.y}, {r.uv1.x, r.uv0.y}, {r.uv0.x, r.uv1.y}, {r.uv1.x, r.uv1.y}};
+    const float uvs[4][2] = {
+        {r.uv0.x, r.uv0.y},
+        {r.uv1.x, r.uv0.y},
+        {r.uv0.x, r.uv1.y},
+        {r.uv1.x, r.uv1.y}
+    };
     for (int i = 0; i < 4; ++i) {
         out.v[i] = Vertex(corner[i], uvs[i][0], uvs[i][1], fog);
     }
     return out;
 }
 
-}  // namespace dc::vu1
+} // namespace dc::vu1

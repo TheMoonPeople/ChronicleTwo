@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdio>
+#include <cstring>
 #include <print>
 #include <string>
 #include <vector>
@@ -46,6 +47,7 @@
 #include "movieviewlp.hpp"
 #include "nameregi.hpp"
 #include "outline.hpp"
+#include "platform/arena.hpp"
 #include "quest.hpp"
 #include "runscript.hpp"
 #include "swordeffect.hpp"
@@ -191,7 +193,7 @@ const Site kCastSites[] = {
     {.where = "menudraw.cpp:5776 char x 5",                     .host_bytes = sizeof(char) * 5,                  .quadwords = 1    }, // "icon" plus terminator
     {.where = "mg_drawprim.cpp:751 mgSORT_PACKET x 1",          .host_bytes = sizeof(mgSORT_PACKET) * 1,         .quadwords = 1    },
     {.where = "mg_shadow.cpp:186 mgFACE_GROUP x 1",             .host_bytes = sizeof(mgFACE_GROUP) * 1,          .quadwords = 0x12 },
-    {.where = "mg_visual.cpp:472 mgCFace x 1",                  .host_bytes = sizeof(mgCFace) * 1,               .quadwords = 3    },
+    {.where = "mg_visual.cpp mgCFace x 1",                      .host_bytes = sizeof(mgCFace) * 1,               .quadwords = 2    },
     {.where = "nameregi.cpp:761 NAMEREGI_KANJI_NODE x 1",       .host_bytes = sizeof(NAMEREGI_KANJI_NODE) * 1,   .quadwords = 1    },
     {.where = "nameregi.cpp:764 NAMEREGI_KANJI_NODE x 1",       .host_bytes = sizeof(NAMEREGI_KANJI_NODE) * 1,   .quadwords = 1    },
     {.where = "runscript_opcodes.cpp:4678 RS_STACKDATA x 0x80", .host_bytes = sizeof(RS_STACKDATA) * 0x80,       .quadwords = 0x40 },
@@ -211,7 +213,7 @@ TEST(CtArenaPlacement, RetailRunsAgainstHostSizes) {
         }
     }
 
-    // The placement operator grows these runs while they are the arena's last (mg_memory.cpp).
+    // These current native types exceed the corresponding retail quadword reservations.
     const std::vector<std::string> kOutgrowing = {
         "automap.cpp:821 AUTOMAP_ROOM_INFO[AUTOMAP_ROOM_INFO_MAX]",
         "character.cpp:3792 CSWordAfterEffect[1]",
@@ -221,6 +223,8 @@ TEST(CtArenaPlacement, RetailRunsAgainstHostSizes) {
         "editeff.cpp:554 CMapParts[1]",
         "editexception.cpp:390 mgC3DSprite[1]",
         "editexception.cpp:696 CGeyserEffect[4]",
+        "editmenu.cpp:1222 CDC2Mes[1]",
+        "editmenu.cpp:2099 CDC2Mes[1]",
         "editmenu.cpp:5763 CRemovalMenu[1]",
         "editmode.cpp:676 CCharacter2[1]",
         "editmode.cpp:695 CCharacter2[1]",
@@ -249,13 +253,14 @@ TEST(CtArenaPlacement, RetailRunsAgainstHostSizes) {
         "menuchr.cpp:7828 CActionChara[1]",
         "menuchr.cpp:7876 CMosBookMenu[1]",
         "menudraw.cpp:6359 CActionChara[1]",
+        "menuop.cpp:3128 CDC2Mes[1]",
         "menushop.cpp:1868 CShopMenu[1]",
         "menusys.cpp:6954 CActionChara[1]",
         "menusys.cpp:6964 CActionChara[1]",
         "menusys.cpp:6978 CRepairManager[1]",
+        "menusys.cpp:11797 CDC2Mes[1]",
         "mg_tanime.cpp:1081 mgCTextureAnime[1]",
         "monster.cpp:1109 CSWordAfterEffect[1]",
-        "movieviewlp.cpp:203 CMovie[1]",
         "movieviewlp.cpp:205 MOVIE_LIST_ENTRY[64]",
         "sceneload.cpp:187 CCharacter2[1]",
         "sceneload.cpp:242 CCharacter2[1]",
@@ -263,6 +268,8 @@ TEST(CtArenaPlacement, RetailRunsAgainstHostSizes) {
         "sceneload.cpp:401 CMapSky[1]",
         "title.cpp:661 TITLE_INFO[1]",
         "title.cpp:686 CMemoryCardManager[1]",
+        "title.cpp:2644 CDC2Mes[1]",
+        "title.cpp:2645 CDC2Mes[1]",
     };
     EXPECT_EQ(outgrowing, kOutgrowing);
 }
@@ -289,4 +296,31 @@ TEST(CtArenaPlacement, CastRunsAgainstHostSizes) {
         "runscript_opcodes.cpp:4679 RS_CALLDATA x 0x200",
     };
     EXPECT_EQ(outgrowing, kCastOutgrowing);
+}
+
+TEST(CtArenaPlacement, VillagerPlacesConstructDefaultsAndRejectExhaustedStorage) {
+    constexpr auto quadwords = (sizeof(CVillagerPlaceInfo) + sizeof(u_long128) - 1) / sizeof(u_long128);
+    mgCMemory      memory;
+    auto          *storage = reinterpret_cast<u_long128 *>(ArenaBlock(&memory, (quadwords + 1) * sizeof(u_long128)));
+    memory.stSetBuffer(storage, static_cast<int>(quadwords + 1));
+    std::memset(storage, 0xA5, (quadwords + 1) * sizeof(u_long128));
+    const auto *place = dc2::memory::NewObject<CVillagerPlaceInfo>(memory);
+    ASSERT_NE(place, nullptr);
+    EXPECT_EQ(place->map_no, -1);
+    EXPECT_EQ(place->route, nullptr);
+    EXPECT_EQ(place->motion, 0);
+    EXPECT_EQ(place->move_motion, 0);
+    EXPECT_EQ(place->move_speed, 0.0f);
+    EXPECT_EQ(place->no_shadow, 0);
+    EXPECT_EQ(place->unk_38, 0);
+    EXPECT_EQ(place->unk_3c, 0);
+    for (const auto value : place->pos) {
+        EXPECT_EQ(value, 0.0f);
+    }
+    for (const auto value : place->talk_offset) {
+        EXPECT_EQ(value, 0.0f);
+    }
+    const auto used = memory.stGetUsed();
+    EXPECT_EQ(dc2::memory::NewObject<CVillagerPlaceInfo>(memory), nullptr);
+    EXPECT_EQ(memory.stGetUsed(), used);
 }

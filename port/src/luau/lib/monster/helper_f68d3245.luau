@@ -9,10 +9,10 @@ local function helper_f68d3245(arg0: f32, arg1: f32)
 	local var3: f32 = 0
 	local var5: f32 = 0
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var3 = out2 or var3
 	end
-	var5 = monster.GetTargetAngle() or var5
+	var5 = monster.get_target_angle() or var5
 	if helper_8971d3b6(vm.f32(var5 + arg0), var3, vm.f32(arg1 / 2.0)) == 0 then
 		return 1
 	end

@@ -12,17 +12,17 @@ local function helper_11b4()
 	local var1: s32 = 0
 	local prog: s32 = 0
 	local var4: f32 = 0
-	prog = action.ProgGet() or prog
+	prog = action.get_program_value() or prog
 	if prog == 200 then
-		action.SetMos("避け攻撃", -1, 6)
+		action.play_motion("避け攻撃", -1, 6)
 		vm.wait()
-		var4 = action.NowMosWait() or var4
+		var4 = action.get_motion_progress() or var4
 		if var4 >= vm.f32(0.01) and var4 <= vm.f32(0.3) then
-			action.SetBlowMove(2.0, 0.0, 2)
+			action.set_move_impulse(2.0, 0.0, 2)
 		end
-		var1 = action.GetMosStatus() or var1
+		var1 = action.get_motion_status() or var1
 		if var1 == 4 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 		end
 		return
 	end
@@ -35,16 +35,16 @@ function script.setup() end
 
 --- Sets the character up when its script is initialised.
 function script.init()
-	action.SetObj(0, "dcol00")
-	action.SetObj(1, "ef00")
-	action.SetObj(2, "bcol00")
-	action.SetObj(3, "bcol01")
-	action.SetObj(4, "keri_R")
-	action.SetObj(5, "nage")
-	action.SetDmg2("dcol00", "", "モンスター攻撃", 2.5, 1.0, "攻撃１", 0.1, 0.9)
-	action.SetDmg2("dcol01", "", "モンス攻撃B", 2.5, 1.0, "避け攻撃", 0.3, 0.43)
-	action.SetBody(2, 5.0)
-	action.SetBody(3, 4.0)
+	action.add_object_frame(0, "dcol00")
+	action.add_object_frame(1, "ef00")
+	action.add_object_frame(2, "bcol00")
+	action.add_object_frame(3, "bcol01")
+	action.add_object_frame(4, "keri_R")
+	action.add_object_frame(5, "nage")
+	action.add_motion_damage("dcol00", "", "モンスター攻撃", 2.5, 1.0, "攻撃１", 0.1, 0.9)
+	action.add_motion_damage("dcol01", "", "モンス攻撃B", 2.5, 1.0, "避け攻撃", 0.3, 0.43)
+	action.add_body_collision(2, 5.0)
+	action.add_body_collision(3, 4.0)
 end
 
 --- Runs the character's normal behaviour.
@@ -52,29 +52,29 @@ function script.loop()
 	local prog: s32 = 0
 	local var3: s32 = 0
 	local var4: s32 = 0
-	action.ProgSet(0)
+	action.set_program_value(0)
 	while true do
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog >= 100 and prog < 199 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_1eb83da1()
 		end
 		if prog >= 200 and prog < 299 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_11b4()
 		end
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog == 0 then
-			action.RunMainMove()
-			var3 = action.GetBtn_2(50) or var3
-			var4 = action.GetBtn_2(51) or var4
+			action.run_movement()
+			var3 = action.get_button_state_2(50) or var3
+			var4 = action.get_button_state_2(51) or var4
 			if var3 ~= 0 then
 				prog = 100
 			end
 			if var4 ~= 0 then
 				prog = 200
 			end
-			action.ProgSet(prog)
+			action.set_program_value(prog)
 		end
 		vm.wait()
 	end

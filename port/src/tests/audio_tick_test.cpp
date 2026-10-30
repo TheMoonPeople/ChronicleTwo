@@ -8,13 +8,13 @@
 
 #include "audio/mixer.hpp"
 #include "audio/pcm.hpp"
+#include "audio/sound_runtime.hpp"
 #include "audio/stream.hpp"
 #include "audio_init.hpp"
 #include "ezbgm.hpp"
 #include "platform/audio.hpp"
 #include "platform/clock.hpp"
 #include "platform_fixture.hpp"
-#include "sound_port.hpp"
 
 namespace {
 class AudioTick : public testing::Test {

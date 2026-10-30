@@ -3,7 +3,7 @@
 
 --- Helper function.
 local function helper_d742309a()
-	monster.ResetMotion()
+	monster.reset_motion()
 end
 
 return helper_d742309a

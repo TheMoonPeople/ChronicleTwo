@@ -14,13 +14,13 @@ local function helper_01663a12(arg0: f32, arg1: f32, arg2: f32, arg3: s32, arg4:
 	local var15: f32 = 0
 	var15 = 300.0
 	do
-		local out1, out2, out3 = monster.GetPos_3()
+		local out1, out2, out3 = monster.get_position_3()
 		pos_x = out1 or pos_x
 		pos_y = out2 or pos_y
 		pos_z = out3 or pos_z
 	end
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var12 = out2 or var12
 	end
 	if arg3 ~= 0 then

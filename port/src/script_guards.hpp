@@ -17,21 +17,14 @@ namespace script_guards {
  * External function a run script calls.
  *
  */
-using RunScriptFunction = int (*)(RS_STACKDATA *, int);
+using RunScriptFunction = dc2::script::RunFunction;
 
 /**
  *
  * Whether a run-script external may be called with its arguments; a refused call is reported once per handler.
  *
  */
-bool AllowExternal(RunScriptFunction function, RS_STACKDATA *args, int argc, int index);
-
-/**
- *
- * Gives the argument count a configuration tag's handler may see, or -1 when the call is refused.
- *
- */
-int TagArguments(SPI_TAG_FUNCTION function, SPI_STACK *args, int argc, const char *name);
+bool AllowExternal(RunScriptFunction function, dc2::script::RunArguments args, int argc, int index);
 
 /**
  *

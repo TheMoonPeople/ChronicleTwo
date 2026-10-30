@@ -1,6 +1,5 @@
-#include <gtest/gtest.h>
-
 #include <eekernel.h>
+#include <gtest/gtest.h>
 
 #include <string>
 
@@ -160,9 +159,9 @@ TEST(EeKernelThreads, WaitSemaBlocksUntilAnotherThreadSignals) {
     const int sema = CreateSema(&sp);
     ASSERT_GT(sema, 0);
 
-    int          sema_id = sema;
-    ThreadParam  wp = Param(OnceAfterWait, kPriority);
-    const int    waiter = CreateThread(&wp);
+    int         sema_id = sema;
+    ThreadParam wp = Param(OnceAfterWait, kPriority);
+    const int   waiter = CreateThread(&wp);
     ASSERT_EQ(StartThread(waiter, &sema_id), waiter);
 
     g_log += 'm';

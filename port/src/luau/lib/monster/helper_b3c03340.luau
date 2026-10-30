@@ -9,7 +9,7 @@ local helper_de1504df = require("@lib/monster/helper_de1504df")
 local helper_f5727415 = require("@lib/monster/helper_f5727415")
 
 --- Helper function.
-local function helper_b3c03340(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4: s32)
+local function helper_b3c03340(scale: f32, arg1: f32, arg2: f32, arg3: f32, arg4: s32)
 	local var5: f32 = 0
 	local var6: f32 = 0
 	local var7: f32 = 0
@@ -24,17 +24,17 @@ local function helper_b3c03340(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4:
 	local var18: f32 = 0
 	local var21: f32 = 0
 	local var23: s32 = 0
-	var18 = monster.GetTargetDist() or var18
+	var18 = monster.get_target_distance() or var18
 	helper_f5727415(arg1)
 	helper_442b9962()
 	do
-		local out1, out2, out3 = monster.GetTargetPos()
+		local out1, out2, out3 = monster.get_target_position()
 		var5 = out1 or var5
 		var6 = out2 or var6
 		var7 = out3 or var7
 	end
 	do
-		local out1, out2, out3 = monster.GetPos_3()
+		local out1, out2, out3 = monster.get_position_3()
 		var8 = out1 or var8
 		var9 = out2 or var9
 		var9 = out3 or var9
@@ -42,61 +42,61 @@ local function helper_b3c03340(arg0: f32, arg1: f32, arg2: f32, arg3: f32, arg4:
 	var17 = helper_57b569a8(var17)
 	var6 = vm.f32(var17 + arg3)
 	do
-		local out1, out2, out3 = monster.CopyVector(var5, var6, var7)
+		local out1, out2, out3 = monster.copy_vector(var5, var6, var7)
 		var14 = out1 or var14
 		var15 = out2 or var15
 		var16 = out3 or var16
 	end
 	do
-		local out1, out2, out3 = monster.GetPos_3()
+		local out1, out2, out3 = monster.get_position_3()
 		var8 = out1 or var8
 		var9 = out2 or var9
 		var10 = out3 or var10
 	end
 	do
-		local out1, out2, out3 = monster.SubVector(var14, var15, var16, var8, var9, var10)
+		local out1, out2, out3 = monster.subtract_vectors(var14, var15, var16, var8, var9, var10)
 		var14 = out1 or var14
 		var15 = out2 or var15
 		var16 = out3 or var16
 	end
 	do
-		local out1, out2, out3 = monster.NormalVector(var14, var15, var16)
+		local out1, out2, out3 = monster.normalize_vector(var14, var15, var16)
 		var14 = out1 or var14
 		var15 = out2 or var15
 		var16 = out3 or var16
 	end
 	do
-		local out1, out2, out3 = monster.ScaleVector(var14, var15, var16, arg0)
+		local out1, out2, out3 = monster.scale_vector(var14, var15, var16, scale)
 		var14 = out1 or var14
 		var15 = out2 or var15
 		var16 = out3 or var16
 	end
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var12 = out2 or var12
 	end
 	for var22 = 0, arg4 - 1 do
 		do
-			local out1, out2, out3 = monster.AddVector(var8, var9, var10, var14, var15, var16)
+			local out1, out2, out3 = monster.add_vectors(var8, var9, var10, var14, var15, var16)
 			var8 = out1 or var8
 			var9 = out2 or var9
 			var10 = out3 or var10
 		end
-		var21 = monster.GetHigh2(var8, var9, var10) or var21
+		var21 = monster.get_height_above_ground_at(var8, var9, var10) or var21
 		if var21 >= 30.0 or var21 <= 0.0 then
 			var9 = vm.f32(var9 - var15)
 			var15 = 0.0
 		end
-		var18 = monster.GetDistVector2(var8, var9, var10, var5, var6, var7) or var18
-		if var18 < vm.f32(arg0 + arg2) then
+		var18 = monster.get_distance_between(var8, var9, var10, var5, var6, var7) or var18
+		if var18 < vm.f32(scale + arg2) then
 			return
 		end
-		var23 = helper_de1504df(var8, var9, var10, arg0, var12)
+		var23 = helper_de1504df(var8, var9, var10, scale, var12)
 		if var23 ~= 0 then
 			print("hit------------------\n")
 			return
 		end
-		monster.SetPos(var8, var9, var10)
+		monster.set_position(var8, var9, var10)
 		helper_461f64ff()
 	end
 end

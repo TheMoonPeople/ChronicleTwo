@@ -11,12 +11,12 @@ local function helper_db88()
 	local no_damage_cnt: s32 = 0
 	local timer: s32 = 0
 	local value: s32 = 0
-	no_damage_cnt = monster.GetNoDamageCnt() or no_damage_cnt
-	timer = monster.GetTimer() or timer
-	value = monster.VPop(6) or value
+	no_damage_cnt = monster.get_no_damage_hit_count() or no_damage_cnt
+	timer = monster.get_dungeon_timer() or timer
+	value = monster.get_variable(6) or value
 	if value == 0 and no_damage_cnt >= 1 and timer >= 900 then
-		monster.VPush(6, 1)
-		monster.RunEventScript(501)
+		monster.set_variable(6, 1)
+		monster.request_event_script(501)
 	end
 end
 
@@ -27,42 +27,42 @@ function script.setup() end
 
 --- Sets the monster up when it is placed.
 function script.init()
-	monster.SetObj(0, "bcol00")
-	monster.SetObj(1, "bcol01")
-	monster.SetObj(2, "bcol02")
-	monster.SetObj(3, "bcol03")
-	monster.SetObj(4, "bcol04")
-	monster.SetObj(5, "bcol05")
-	monster.SetObj(6, "dcol00")
-	monster.SetObj(7, "dcol01")
-	monster.SetObj(8, "dcol02")
-	monster.SetDmg2("通常攻撃", 8.0, "攻撃１", 0.217, 0.256, 0)
-	monster.SetDmg2("吹っ飛び攻撃", 8.0, "攻撃１", 0.486, 0.524, 0)
-	monster.SetBody(0, 15.0)
-	monster.SetBody(1, 5.0)
-	monster.SetBody(2, 5.0)
-	monster.SetBody(3, 9.0)
-	monster.SetBody(4, 5.0)
-	monster.SetBody(5, 5.0)
-	monster.VPush(0, 0)
-	monster.VPush(1, 0)
-	monster.VPush(2, 2)
-	monster.VPush(3, 7)
-	monster.VPush(4, -1)
-	monster.VPush(5, 20)
-	monster.VPush(6, 0)
-	monster.LoadEffectScript("ヴァンガード衝撃波")
-	monster.SetClipDist(120.0)
-	monster.SetMos("立ち", -1, 4)
-	monster.SetScoop("攻撃２", 0.245, 0.531, 1013)
+	monster.register_entry_object(0, "bcol00")
+	monster.register_entry_object(1, "bcol01")
+	monster.register_entry_object(2, "bcol02")
+	monster.register_entry_object(3, "bcol03")
+	monster.register_entry_object(4, "bcol04")
+	monster.register_entry_object(5, "bcol05")
+	monster.register_entry_object(6, "dcol00")
+	monster.register_entry_object(7, "dcol01")
+	monster.register_entry_object(8, "dcol02")
+	monster.register_damage_hit("通常攻撃", 8.0, "攻撃１", 0.217, 0.256, 0)
+	monster.register_damage_hit("吹っ飛び攻撃", 8.0, "攻撃１", 0.486, 0.524, 0)
+	monster.set_body(0, 15.0)
+	monster.set_body(1, 5.0)
+	monster.set_body(2, 5.0)
+	monster.set_body(3, 9.0)
+	monster.set_body(4, 5.0)
+	monster.set_body(5, 5.0)
+	monster.set_variable(0, 0)
+	monster.set_variable(1, 0)
+	monster.set_variable(2, 2)
+	monster.set_variable(3, 7)
+	monster.set_variable(4, -1)
+	monster.set_variable(5, 20)
+	monster.set_variable(6, 0)
+	monster.load_effect_script("ヴァンガード衝撃波")
+	monster.set_clip_distance(120.0)
+	monster.set_motion("立ち", -1, 4)
+	monster.set_photo_opportunity("攻撃２", 0.245, 0.531, 1013)
 end
 
 --- Runs the monster's normal behaviour.
 function script.loop()
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
-	monster.SetActStatus(0)
-	monster.SetMos("立ち")
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
+	monster.set_action_status(0)
+	monster.set_motion("立ち")
 	while true do
 		helper_db88()
 		helper_7c50ce86()

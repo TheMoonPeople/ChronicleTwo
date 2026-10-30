@@ -28,11 +28,11 @@ std::vector<uint8_t> Convert(const std::vector<uint8_t> &y, int y_stride, const 
     return rgba;
 }
 
-}  // namespace
+} // namespace
 
 TEST(VideoYuv, HandComputedPixel) {
     const std::vector<uint8_t> rgba = Convert({81, 81, 81, 81}, 2, {90}, {240}, 1, 2, 2);
-    const std::vector<Rgba> px = Pixels(rgba);
+    const std::vector<Rgba>    px = Pixels(rgba);
     ASSERT_EQ(px.size(), 4u);
     for (const Rgba &p : px) {
         EXPECT_EQ(p, (Rgba{255, 0, 0, 255}));
@@ -56,7 +56,7 @@ TEST(VideoYuv, BlackAndWhiteLimitedRange) {
 
 TEST(VideoYuv, ChromaIsNearestPerTwoByTwoBlock) {
     const std::vector<uint8_t> y(8, 81);
-    const std::vector<Rgba> px = Pixels(Convert(y, 4, {90, 128}, {240, 128}, 2, 4, 2));
+    const std::vector<Rgba>    px = Pixels(Convert(y, 4, {90, 128}, {240, 128}, 2, 4, 2));
     ASSERT_EQ(px.size(), 8u);
     for (size_t row = 0; row < 2; row++) {
         EXPECT_EQ(px[row * 4 + 0], (Rgba{255, 0, 0, 255}));

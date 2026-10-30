@@ -12,3 +12,9 @@ declare cmath: {
 	sinf: (x: number) -> number,
 	cosf: (x: number) -> number,
 }
+-- Machine state the host owns: whether the running script is skipping, the skip end, and the item the use item menu wrote.
+declare vmhost: {
+	skipping: () -> boolean,
+	skip_end: () -> boolean,
+	used_item: () -> number?,
+}

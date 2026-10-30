@@ -11,12 +11,13 @@
 #include <filesystem>
 #include <fstream>
 #include <ranges>
+#include <span>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "gfx/gfx.hpp"
 #include "kazarov/data_version.hpp"
 #include "platform/archive_mount.hpp"
@@ -334,12 +335,11 @@ TEST_F(DataArchive, DataReadLoadsFromDataZipWithoutDirectories) {
     std::vector<std::uint8_t> buffer(8192, 0xAA);
     int                       size = 0;
     char                      name[] = "chara/hero.bin";
-    ASSERT_EQ(LoadFile2(name, buffer.data(), &size, LOAD_FILE_READ), 1);
+    ASSERT_EQ(LoadFile2(name, std::span(buffer), &size, LOAD_FILE_READ), 1);
     ASSERT_EQ(size, 5000);
     const auto expected = Bytes(5000, 2);
     EXPECT_TRUE(std::equal(expected.begin(), expected.end(), buffer.begin()));
     EXPECT_TRUE(std::all_of(buffer.begin() + 5000, buffer.begin() + 6144, [](std::uint8_t value) { return value == 0; }));
-    EXPECT_EQ(DataReadScriptKeys().size(), 0u);
     EXPECT_FALSE(DataReadFind("missing.bin"));
     const auto settings = DataReadFind("menu/cfg7/wepdat.cfg.json");
     if (!settings) {
@@ -350,7 +350,7 @@ TEST_F(DataArchive, DataReadLoadsFromDataZipWithoutDirectories) {
     EXPECT_FALSE(vfs::HostPath(*settings));
     EXPECT_EQ(Read(*settings), (std::vector<std::uint8_t>(gameplay.begin(), gameplay.end())));
     char gameplay_name[] = "menu/cfg7/wepdat.cfg.json";
-    ASSERT_EQ(LoadFile2(gameplay_name, buffer.data(), &size, LOAD_FILE_READ), 1);
+    ASSERT_EQ(LoadFile2(gameplay_name, std::span(buffer), &size, LOAD_FILE_READ), 1);
     EXPECT_EQ(size, gameplay.size());
     EXPECT_EQ(std::memcmp(buffer.data(), gameplay.data(), gameplay.size()), 0);
     EXPECT_EQ(DataReadBufferPath(buffer.data()), gameplay_name);
@@ -373,7 +373,7 @@ TEST_F(DataArchive, ImageOutsideAnyPackIsFoundBelowTexturesFromItsRetailDirector
     std::vector<std::uint8_t> buffer(4096, 0xAA);
     int                       size = 0;
     char                      name[] = "E110TELOP01_1.json";
-    ASSERT_EQ(LoadFile2(name, buffer.data(), &size, LOAD_FILE_READ), 1);
+    ASSERT_EQ(LoadFile2(name, std::span(buffer), &size, LOAD_FILE_READ), 1);
     EXPECT_EQ(size, document.size());
     EXPECT_EQ(DataReadAssetPath(name), "textures/event/e100/e110/e110telop01_1.json");
     char text[] = "e110.txt";

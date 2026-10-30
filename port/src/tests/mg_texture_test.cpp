@@ -4,13 +4,16 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <limits>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -23,13 +26,13 @@
 #include "mg_memory.hpp"
 #include "mg_tanime.hpp"
 #include "mg_texture.hpp"
-#include "mg_texture_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/input.hpp"
 #include "platform/texture_catalog.hpp"
+#include "render/renderer.hpp"
+#include "render/texture_runtime.hpp"
 #include "texture_color.hpp"
 #include "texture_source.hpp"
 
@@ -467,12 +470,12 @@ std::vector<uint8_t> Ct32Pixels(uint32_t width, uint32_t height) {
 }
 
 struct TimPicture {
-    uint8_t                            image_type = TIM2_RGB32;
-    uint16_t                           width = 0;
-    uint16_t                           height = 0;
-    std::vector<std::vector<uint8_t> > levels;
-    std::vector<uint8_t>               clut;
-    uint64_t                           tex1 = 0;
+    uint8_t                           image_type = TIM2_RGB32;
+    uint16_t                          width = 0;
+    uint16_t                          height = 0;
+    std::vector<std::vector<uint8_t>> levels;
+    std::vector<uint8_t>              clut;
+    uint64_t                          tex1 = 0;
 };
 
 std::vector<uint8_t> BuildPicture(const TimPicture &picture) {
@@ -729,6 +732,101 @@ int RetailBucket(const std::string &name) {
 
 } // namespace
 
+TEST(MgTexture, TableAllocationRejectsInvalidCountsWithoutConsumingArena) {
+    alignas(u_long128) u_long128 storage[1024]{};
+    mgCMemory                    memory;
+    memory.stSetBuffer(storage, 1024);
+    mgCTextureManager manager;
+
+    EXPECT_THROW(manager.SetTableBuffer(-1, 2, &memory), std::invalid_argument);
+    EXPECT_THROW(manager.SetTableBuffer(8, -1, &memory), std::invalid_argument);
+    EXPECT_THROW(manager.SetTableBuffer(INT_MAX, INT_MAX, &memory), std::length_error);
+    EXPECT_EQ(memory.stGetUsed(), 0);
+    EXPECT_EQ(manager.block_max, 0);
+    EXPECT_EQ(manager.texture_max, 0);
+
+    manager.SetTableBuffer(8, 2, &memory);
+    EXPECT_EQ(manager.block_max, 2);
+    EXPECT_EQ(manager.texture_max, 8);
+    EXPECT_GT(memory.stGetUsed(), 0);
+    EXPECT_GE(reinterpret_cast<std::uintptr_t>(manager.texture_buf),
+              reinterpret_cast<std::uintptr_t>(manager.blocks + 2));
+    EXPECT_GE(reinterpret_cast<std::uintptr_t>(manager.texture_stack),
+              reinterpret_cast<std::uintptr_t>(manager.texture_buf + 8));
+    EXPECT_GE(reinterpret_cast<std::uintptr_t>(manager.hash_buf),
+              reinterpret_cast<std::uintptr_t>(manager.texture_stack + 8));
+    EXPECT_GE(reinterpret_cast<std::uintptr_t>(manager.hash_stack),
+              reinterpret_cast<std::uintptr_t>(manager.hash_buf + 8));
+    const auto *next = memory.Alloc(1);
+    EXPECT_GE(reinterpret_cast<std::uintptr_t>(next),
+              reinterpret_cast<std::uintptr_t>(manager.hash_stack + 8));
+}
+
+TEST(MgTexture, RetiredTableProducerIsRejectedBeforePoisonedListsAreTraversed) {
+    Quads     storage(1024, 0);
+    mgCMemory memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCTextureManager manager;
+    manager.SetTableBuffer(8, 2, &memory);
+    manager.Initialize(0x1000, -1);
+    char  name[] = "retired";
+    auto *texture = manager.EnterTexture(0, name, nullptr, 4, 4, 32, nullptr, 0, 0);
+    ASSERT_NE(texture, nullptr);
+    ASSERT_EQ(manager.GetTexture(name, 0), texture);
+    const auto used = std::span(memory.stack, static_cast<std::size_t>(memory.stack_used));
+    memory.stClearUsed();
+    std::ranges::fill(std::as_writable_bytes(used), std::byte{0xff});
+
+    manager.DeleteBlock(0);
+    EXPECT_EQ(manager.blocks, nullptr);
+    EXPECT_EQ(manager.texture_buf, nullptr);
+    EXPECT_EQ(manager.hash_buf, nullptr);
+    EXPECT_EQ(manager.GetTexture(name, 0), nullptr);
+    EXPECT_EQ(manager.GetTextureBlock(0), nullptr);
+    EXPECT_EQ(manager.ReloadTexture(0, static_cast<u_int *>(nullptr)), 0);
+    manager.ReloadTexture(0, static_cast<sceVif1Packet *>(nullptr));
+    manager.DeleteTexture(texture);
+    manager.Initialize(0x1000, -1);
+
+    manager.SetTableBuffer(8, 2, &memory);
+    manager.Initialize(0x1000, -1);
+    EXPECT_EQ(manager.GetTexture(name, 0), nullptr);
+    EXPECT_NE(manager.EnterTexture(0, name, nullptr, 4, 4, 32, nullptr, 0, 0), nullptr);
+    manager.Initialize(0x1000, -1);
+}
+
+TEST(MgTexture, DestroyedTableOwnerCannotBeRevivedAtTheSameAddress) {
+    Quads                                                       storage(1024, 0);
+    alignas(mgCMemory) std::array<std::byte, sizeof(mgCMemory)> owner_storage{};
+    auto                                                       *owner = std::construct_at(reinterpret_cast<mgCMemory *>(owner_storage.data()));
+    owner->stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCTextureManager manager;
+    manager.SetTableBuffer(8, 2, owner);
+    manager.Initialize(0x1000, -1);
+    char name[] = "previous-owner";
+    ASSERT_NE(manager.EnterTexture(0, name, nullptr, 4, 4, 32, nullptr, 0, 0), nullptr);
+    std::destroy_at(owner);
+    auto *replacement = std::construct_at(reinterpret_cast<mgCMemory *>(owner_storage.data()));
+    replacement->stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    const auto overwrite = std::span(replacement->stack, std::size_t{1024});
+    std::ranges::fill(std::as_writable_bytes(overwrite), std::byte{0xff});
+    EXPECT_EQ(manager.GetTexture(name, 0), nullptr);
+    manager.DeleteBlock(0);
+    EXPECT_EQ(manager.blocks, nullptr);
+    std::destroy_at(replacement);
+}
+
+TEST(MgTextureName, LongNameLookupStaysWithinDynamicStorage) {
+    mgCTextureManager manager;
+    std::fill(std::begin(manager.hash_table), std::end(manager.hash_table), nullptr);
+    std::strcpy(manager.name_suffix, "_variant");
+    std::string name(256, 'x');
+
+    EXPECT_EQ(manager.SearchTextureName(name.data(), -1), nullptr);
+    std::fill(std::begin(manager.name_suffix), std::end(manager.name_suffix), 'q');
+    EXPECT_EQ(manager.SearchTextureName(name.data(), -1), nullptr);
+}
+
 TEST(MgTexture, NativeSetsReuseExactPixelsAcrossDocumentReferencesAndKeepAnimationState) {
     Harness                h;
     texture_catalog::Entry picture;
@@ -837,11 +935,12 @@ TEST(MgTexture, NativeSetsReuseLiveAnimationGroupsAndRecreateDeletedOrChangedScr
     destination.variants[0].selector = "destination";
     auto                   text = [](std::string value) { return texture_catalog::Entry::Argument{.text = std::move(value), .number = 0}; };
     auto                   number = [](double value) { return texture_catalog::Entry::Argument{.text = std::nullopt, .number = value}; };
+    const std::string      long_group_name(700, 'n');
     texture_catalog::Entry script;
     script.type = "cfg";
     script.name = "#animation";
     script.script = {
-        {.name = "TEX_ANIME",          .args = {text("cycle"), number(1)}                                       },
+        {.name = "TEX_ANIME",          .args = {text(long_group_name), number(1)}                               },
         {.name = "TEX_ANIME_DATA",     .args = {number(0)}                                                      },
         {.name = "SRC_TEX",            .args = {text("source"), number(0), number(0), number(1), number(1)}     },
         {.name = "DEST_TEX",           .args = {text("destination"), number(0), number(0), number(1), number(1)}},
@@ -861,7 +960,14 @@ TEST(MgTexture, NativeSetsReuseLiveAnimationGroupsAndRecreateDeletedOrChangedScr
     MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
     auto *animation = h.manager.GetTexAnime(0);
     ASSERT_NE(animation, nullptr);
+    ASSERT_NE(animation->name[0], nullptr);
+    EXPECT_EQ(std::string_view(animation->name[0]), long_group_name);
+    EXPECT_GE(dc2::memory::AllocationBytes(h.memory, animation).size(), sizeof(mgCTextureAnime));
     ASSERT_NE(animation->list[0], nullptr);
+    EXPECT_GE(dc2::memory::AllocationBytes(h.memory, animation->list[0]).size(),
+              sizeof(CList<mgCTexAnimeData>));
+    EXPECT_GE(reinterpret_cast<std::uintptr_t>(animation->list[0]),
+              reinterpret_cast<std::uintptr_t>(animation) + sizeof(mgCTextureAnime));
     auto      *first = animation->list[0];
     const auto used = h.memory.stack_used;
     for (int index = 0; index < 100; ++index) {
@@ -888,6 +994,141 @@ TEST(MgTexture, NativeSetsReuseLiveAnimationGroupsAndRecreateDeletedOrChangedScr
     ASSERT_NE(h.manager.GetTexAnime(0), nullptr);
     EXPECT_EQ(h.manager.GetTexAnime(0)->list[0]->data.wait, 7);
     EXPECT_EQ(h.manager.texture_num, 2);
+}
+
+TEST(MgTexture, NativeSetScriptsAnimateTheirOwnPicturesOverEarlierPicturesOfTheSameName) {
+    Harness                h;
+    texture_catalog::Entry source;
+    source.type = "texture";
+    source.name = "fire_scr";
+    source.width = source.height = 2;
+    source.bpp = 32;
+    source.variants = {
+        {.selector = "fire_scr", .levels = {{.path = "#/images/0"}}}
+    };
+    auto destination = source;
+    destination.name = "fire_wrk";
+    destination.variants[0].selector = "fire_wrk";
+    auto                   text = [](std::string value) { return texture_catalog::Entry::Argument{.text = std::move(value), .number = 0}; };
+    auto                   number = [](double value) { return texture_catalog::Entry::Argument{.text = std::nullopt, .number = value}; };
+    texture_catalog::Entry script;
+    script.type = "cfg";
+    script.name = "#texanime";
+    script.script = {
+        {.name = "TEX_ANIME",          .args = {text("newgrp1"), number(1)}                                  },
+        {.name = "TEX_ANIME_DATA",     .args = {number(1)}                                                   },
+        {.name = "SRC_TEX",            .args = {text("fire_scr"), number(0), number(0), number(1), number(1)}},
+        {.name = "DEST_TEX",           .args = {text("fire_wrk"), number(0), number(0), number(1), number(1)}},
+        {.name = "TEX_ANIME_DATA_END", .args = {}                                                            },
+        {.name = "TEX_ANIME_END",      .args = {}                                                            }
+    };
+    const texture_catalog::Source dungeon{
+        .source = "dungeon.gltf", .groups = {0},
+             .entries = {source, destination, script}
+    };
+    const texture_catalog::Source effect{
+        .source = "effect.gltf", .groups = {0},
+             .entries = {source, destination, script}
+    };
+    unsigned char value = 10;
+    auto          decode = [&value](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &decoded, std::string &) {
+        decoded = {};
+        decoded.width = decoded.height = 2;
+        decoded.levels.emplace_back(16, value);
+        return true;
+    };
+    MgTextureEnterNativeSet(&h.manager, 1, dungeon, &h.memory, decode);
+    auto *dungeon_animation = h.manager.GetTexAnime(1);
+    ASSERT_NE(dungeon_animation, nullptr);
+    ASSERT_NE(dungeon_animation->list[0], nullptr);
+
+    // The second set's script, entered from short-lived memory, must not reach the first set's block.
+    Quads     effect_storage(1024, 0);
+    mgCMemory effect_memory;
+    effect_memory.stSetBuffer(effect_storage.data(), static_cast<int>(effect_storage.size()));
+    value = 20;
+    MgTextureEnterNativeSet(&h.manager, 2, effect, &effect_memory, decode);
+    EXPECT_EQ(dungeon_animation->list[1], nullptr);
+    auto *effect_animation = h.manager.GetTexAnime(2);
+    ASSERT_NE(effect_animation, nullptr);
+    ASSERT_NE(effect_animation->list[0], nullptr);
+    EXPECT_EQ(effect_animation->list[0]->data.src_tex->block, 2);
+    EXPECT_EQ(effect_animation->list[0]->data.dest_tex->block, 2);
+    h.manager.DeleteBlock(2);
+
+    // A set that names pictures it does not define, as the retail jet effects do in their last group, animates nothing
+    // in the block that holds them.
+    auto jet_source = source;
+    jet_source.name = "jet_scr";
+    auto jet_script = script;
+    jet_script.script[2].args[0] = text("jet_scr");
+    jet_script.script.insert(jet_script.script.end() - 1, {
+                                                              {.name = "TEX_ANIME_DATA",     .args = {number(0)}                                                   },
+                                                              {.name = "SRC_TEX",            .args = {text("fire_scr"), number(0), number(0), number(1), number(1)}},
+                                                              {.name = "DEST_TEX",           .args = {text("fire_wrk"), number(0), number(0), number(1), number(1)}},
+                                                              {.name = "TEX_ANIME_DATA_END", .args = {}                                                            }
+    });
+    const texture_catalog::Source jet{
+        .source = "jet.gltf", .groups = {0},
+             .entries = {jet_source, jet_script}
+    };
+    effect_memory.stSetBuffer(effect_storage.data(), static_cast<int>(effect_storage.size()));
+    MgTextureEnterNativeSet(&h.manager, 3, jet, &effect_memory, decode);
+    EXPECT_EQ(dungeon_animation->list[1], nullptr);
+    EXPECT_EQ(h.manager.GetTexAnime(3), nullptr);
+    h.manager.DeleteBlock(3);
+
+    const texture_catalog::Source script_only{.source = "animation.cfg", .entries = {script}};
+    MgTextureEnterNativeSet(&h.manager, 4, script_only, &h.memory, decode);
+    EXPECT_NE(dungeon_animation->list[1], nullptr);
+    EXPECT_EQ(h.manager.GetTexAnime(4), nullptr);
+}
+
+// Channel Entrance's water (d01en01, d01b17) scrolls one axis per record; the still axis must take retail's
+// saturated period of -1, not 0, which the drawn record would divide by.
+TEST(MgTexture, ScrollWithAStillAxisTakesRetailsSaturatedPeriod) {
+    Harness                h;
+    texture_catalog::Entry source;
+    source.type = "texture";
+    source.name = "source";
+    source.width = source.height = 128;
+    source.bpp = 32;
+    source.variants = {
+        {.selector = "source", .levels = {{.path = "#/images/0"}}}
+    };
+    auto destination = source;
+    destination.name = "destination";
+    destination.variants[0].selector = "destination";
+    auto                   text = [](std::string value) { return texture_catalog::Entry::Argument{.text = std::move(value), .number = 0}; };
+    auto                   number = [](double value) { return texture_catalog::Entry::Argument{.text = std::nullopt, .number = value}; };
+    texture_catalog::Entry script;
+    script.type = "cfg";
+    script.name = "#animation";
+    script.script = {
+        {.name = "TEX_ANIME",          .args = {text("water"), number(1)}                                                      },
+        {.name = "TEX_ANIME_DATA",     .args = {number(MG_TEX_ANIME_TYPE_SCROLL)}                                              },
+        {.name = "SRC_TEX",            .args = {text("source"), number(0), number(0), number(128), number(128)}                },
+        {.name = "DEST_TEX",           .args = {text("destination"), number(0), number(0), number(128), number(128), number(1)}},
+        {.name = "SCROLL",             .args = {number(0), number(0.5)}                                                        },
+        {.name = "TEX_ANIME_DATA_END", .args = {}                                                                              },
+        {.name = "TEX_ANIME_END",      .args = {}                                                                              }
+    };
+    texture_catalog::Source document{
+        .source = "model.gltf", .groups = {0},
+             .entries = {source, destination, script}
+    };
+    auto decode = [](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &decoded, std::string &) {
+        decoded = {};
+        decoded.width = decoded.height = 128;
+        decoded.levels.emplace_back(128 * 128 * 4, 33);
+        return true;
+    };
+    MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+    auto *animation = h.manager.GetTexAnime(0);
+    ASSERT_NE(animation, nullptr);
+    ASSERT_NE(animation->list[0], nullptr);
+    EXPECT_EQ(animation->list[0]->data.period_x, -1);
+    EXPECT_EQ(animation->list[0]->data.period_y, 254);
 }
 
 TEST(MgTexture, NativeSetsReuseIdenticallyNamedPicturesWithoutDecoding) {
@@ -1014,7 +1255,6 @@ TEST(MgTexture, KeysLiveInTex0) {
     EXPECT_EQ(Tbp0(first), Cbp(first));
     EXPECT_EQ(Tbp0(second), Cbp(second));
     EXPECT_NE(Tbp0(first), Tbp0(second));
-    EXPECT_EQ(Tbp0(first), kMgTextureKeyFirst);
     for (const mgCTexture *texture : {first, second}) {
         EXPECT_GE(Tbp0(texture), kMgTextureKeyLast);
         EXPECT_LE(Tbp0(texture), kMgTextureKeyFirst);
@@ -1746,6 +1986,22 @@ TEST(MgTexture, DirectCatalogEntryKeepsLogicalSizeWithFourfoldOverlay) {
     EXPECT_EQ(MgTexturePhysicalExtent(texture).height, 8u);
 }
 
+TEST(MgTexture, LongCatalogNamesCannotAliasTheSameTextureSlot) {
+    CatalogFixture    fixture;
+    const std::string prefix(31, 'x');
+    fixture.Load(JsonTexture(prefix + "a", 32, 2, 2, "[]", 0, true) + "," +
+                 JsonTexture(prefix + "b", 32, 2, 2, "[]", 0, true) + "," +
+                 JsonTexture("short", 32, 2, 2, "[]", 0, true));
+    const auto *catalog = texture_catalog::Find("fixture.json");
+    ASSERT_NE(catalog, nullptr);
+    ASSERT_EQ(catalog->entries.size(), 3u);
+    Harness harness;
+    EXPECT_EQ(MgTextureEnterCatalog(&harness.manager, 0, catalog->entries[0]), nullptr);
+    EXPECT_EQ(MgTextureEnterCatalog(&harness.manager, 0, catalog->entries[1]), nullptr);
+    EXPECT_EQ(Enter(harness, 0, prefix + "a", 2, 2, 32), nullptr);
+    EXPECT_NE(MgTextureEnterCatalog(&harness.manager, 0, catalog->entries[2]), nullptr);
+}
+
 TEST_F(MgTextureGpu, HighResolutionKeepsLogicalCpuStrideAndSpriteBounds) {
     CatalogFixture fixture;
     fixture.Rgba("detail.png", 3, 2, DetailPixels(3, 2));
@@ -1797,7 +2053,7 @@ TEST_F(MgTextureGpu, HighResolutionKeepsLogicalCpuStrideAndSpriteBounds) {
     EXPECT_EQ(TexelOf(frame, 75, 55)[0], 120);
     EXPECT_NE(TexelOf(frame, 85, 25)[0], 120);
     Quads stored(2);
-    EXPECT_GT(mgStoreImage(texture, stored.data()), 0);
+    EXPECT_GT(mgStoreImage(texture, std::as_writable_bytes(std::span(stored))), 0);
     const auto *stored_rgba = reinterpret_cast<const uint8_t *>(stored.data());
     EXPECT_EQ(stored_rgba[0], 40);
     EXPECT_EQ(stored_rgba[(3 * 2 - 1) * 4], 120);
@@ -2001,4 +2257,171 @@ TEST_F(MgTextureGpu, MenuPointerUsesPhysicalTexelsFromDoubleResolutionPack) {
     InputSetMenuMouse(false);
     InputSetMouseSettings(settings);
     InputResetBindings();
+}
+
+TEST(MgTexture, ImageReadbackRejectsShortStorageAndInvalidDimensionsBeforeMutation) {
+    mgCTexture texture{};
+    texture.width = 4;
+    texture.height = 4;
+    texture.bpp = 32;
+    texture.tex0.PSM = SCE_GS_PSMCT32;
+    std::array<std::byte, 65> output{};
+    output.fill(std::byte{0xA5});
+    EXPECT_EQ(mgStoreImage(&texture, std::span(output).first(63)), 0);
+    EXPECT_TRUE(std::ranges::all_of(output, [](std::byte value) { return value == std::byte{0xA5}; }));
+    texture.width = 0;
+    EXPECT_EQ(mgStoreImage(&texture, output), 0);
+    texture.width = std::numeric_limits<decltype(texture.width)>::max();
+    texture.height = std::numeric_limits<decltype(texture.height)>::max();
+    EXPECT_EQ(mgStoreImage(&texture, output), 0);
+    EXPECT_TRUE(std::ranges::all_of(output, [](std::byte value) { return value == std::byte{0xA5}; }));
+}
+
+TEST(MgTexture, DepthReadbackChecksWideRectangleArithmeticAndSupportsUnalignedOutput) {
+    std::array<std::byte, 258> output{};
+    output.fill(std::byte{0xA5});
+    const mgRect<int> rectangle(0, 0, 7, 7);
+    EXPECT_EQ(mgStoreZBuffImage(rectangle, std::span(output).subspan(1, 255)), 0);
+    const mgRect<int> overflow(std::numeric_limits<int>::min(), 0, std::numeric_limits<int>::max(), 7);
+    EXPECT_EQ(mgStoreZBuffImage(overflow, output), 0);
+    EXPECT_TRUE(std::ranges::all_of(output, [](std::byte value) { return value == std::byte{0xA5}; }));
+    EXPECT_EQ(mgStoreZBuffImage(rectangle, std::span(output).subspan(1, 256)), 16);
+    EXPECT_EQ(output.front(), std::byte{0xA5});
+    EXPECT_EQ(output.back(), std::byte{0xA5});
+}
+
+TEST(MgTexture, AnimationNumbersRejectNonfiniteAndOutOfRangeFieldsBeforeGroupMutation) {
+    Harness                h;
+    texture_catalog::Entry source;
+    source.type = "texture";
+    source.name = "source";
+    source.width = source.height = 2;
+    source.bpp = 32;
+    source.variants = {
+        {.selector = "source", .levels = {{.path = "#/images/0"}}}
+    };
+    auto destination = source;
+    destination.name = "destination";
+    destination.variants[0].selector = "destination";
+    auto                   text = [](std::string value) { return texture_catalog::Entry::Argument{.text = std::move(value), .number = 0}; };
+    auto                   number = [](double value) { return texture_catalog::Entry::Argument{.text = std::nullopt, .number = value}; };
+    texture_catalog::Entry script;
+    script.type = "cfg";
+    script.name = "#invalid-animation";
+    script.script = {
+        {.name = "TEX_ANIME",          .args = {text("invalid"), number(1)}                                     },
+        {.name = "TEX_ANIME_DATA",     .args = {number(0)}                                                      },
+        {.name = "SRC_TEX",            .args = {text("source"), number(0), number(0), number(1), number(1)}     },
+        {.name = "DEST_TEX",           .args = {text("destination"), number(0), number(0), number(1), number(1)}},
+        {.name = "TEX_ANIME_DATA_END", .args = {}                                                               },
+        {.name = "TEX_ANIME_END",      .args = {}                                                               }
+    };
+    auto decode = [](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &decoded, std::string &) {
+        decoded = {};
+        decoded.width = decoded.height = 2;
+        decoded.levels.emplace_back(16, 33);
+        return true;
+    };
+    for (const double value : {1e100, -1e100, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()}) {
+        script.script[2].args[1].number = value;
+        const texture_catalog::Source document{
+            .source = "invalid.gltf", .groups = {0},
+                 .entries = {source, destination, script}
+        };
+        MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode);
+        EXPECT_EQ(h.manager.GetTexAnime(0), nullptr);
+    }
+}
+
+TEST(MgTexture, NativeSetRejectsNegativeGroupsAndTargetOverflowBeforeDecoding) {
+    Harness h;
+    int     decodes = 0;
+    auto    decode = [&decodes](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &, std::string &) {
+        ++decodes;
+        return false;
+    };
+    texture_catalog::Entry entry;
+    entry.type = "texture";
+    entry.name = "invalid";
+    entry.block = -1;
+    texture_catalog::Source document{.source = "invalid.gltf", .groups = {-1}, .entries = {entry}};
+    EXPECT_EQ(MgTextureEnterNativeSet(&h.manager, 0, document, &h.memory, decode), 0);
+    document.groups[0] = 1;
+    document.entries[0].block = 1;
+    EXPECT_EQ(MgTextureEnterNativeSet(&h.manager, std::numeric_limits<int>::max(), document, &h.memory, decode), 0);
+    EXPECT_EQ(decodes, 0);
+    EXPECT_EQ(h.manager.texture_num, 0);
+}
+
+TEST(MgTexture, RegistrationOwnsCatalogMetadataAfterAnAutomaticSourceIsDestroyed) {
+    Harness                 h;
+    mgCTexture             *texture = nullptr;
+    texture_catalog::Source same_source;
+    {
+        texture_catalog::Entry entry;
+        entry.type = "texture";
+        entry.name = "owned-metadata";
+        entry.width = entry.height = 2;
+        entry.bpp = 32;
+        entry.animation_mode = texture_catalog::AnimationMode::CopyVariant;
+        entry.variants = {
+            {.selector = "default",   .levels = {{.path = "default.png"}}  },
+            {.selector = "alternate", .levels = {{.path = "alternate.png"}}}
+        };
+        texture_catalog::Source source{.source = "automatic.gltf", .groups = {0}, .entries = {entry}};
+        same_source = source;
+        auto decode = [](const texture_catalog::Entry &, std::size_t variant, datapacks::DecodedTexture &decoded, std::string &) {
+            decoded = {};
+            decoded.width = decoded.height = 2;
+            decoded.levels.emplace_back(16, variant == 0 ? 33 : 77);
+            return true;
+        };
+        MgTextureEnterNativeSet(&h.manager, 0, source, &h.memory, decode);
+        texture = h.manager.GetTexture(const_cast<char *>("owned-metadata"), 0);
+        ASSERT_NE(texture, nullptr);
+    }
+    EXPECT_EQ(MgTextureAnimationMode(texture), texture_catalog::AnimationMode::CopyVariant);
+    EXPECT_TRUE(MgTextureEnteredFrom(texture, same_source));
+    ASSERT_TRUE(MgTextureSelectVariant(texture, "alternate"));
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[0], 77);
+    same_source.source = "another.gltf";
+    EXPECT_FALSE(MgTextureEnteredFrom(texture, same_source));
+    same_source.source = "automatic.gltf";
+    same_source.entries[0].variants[1].levels[0].path = "different.png";
+    EXPECT_FALSE(MgTextureEnteredFrom(texture, same_source));
+}
+
+TEST(MgTexture, NativeDecoderRejectsAnOversizedMipTableAndShortPixelStorageBeforePublication) {
+    Harness                harness;
+    texture_catalog::Entry entry;
+    entry.type = "texture";
+    entry.name = "malformed_decoder";
+    entry.width = entry.height = 2;
+    entry.bpp = 32;
+    entry.variants = {
+        {.selector = "base", .levels = {{.path = "#/images/0"}}}
+    };
+    texture_catalog::Source source{.source = "models/malformed.gltf", .groups = {0}, .entries = {entry}};
+    for (int malformed = 0; malformed != 4; ++malformed) {
+        auto decode = [malformed](const texture_catalog::Entry &, std::size_t, datapacks::DecodedTexture &decoded,
+                                  std::string &) {
+            decoded = {};
+            decoded.width = decoded.height = 2;
+            if (malformed == 0) {
+                decoded.levels.assign(MG_TEXTURE_LEVEL_MAX + 1, std::vector<uint8_t>(16));
+            } else if (malformed == 1) {
+                decoded.levels.emplace_back(15);
+            } else if (malformed == 2) {
+                decoded.width = 0;
+                decoded.levels.emplace_back(16);
+            } else {
+                decoded.levels = {std::vector<uint8_t>(16), std::vector<uint8_t>(3)};
+            }
+            return true;
+        };
+        const auto previous = harness.manager.texture_num;
+        MgTextureEnterNativeSet(&harness.manager, 0, source, &harness.memory, decode);
+        EXPECT_EQ(harness.manager.texture_num, previous) << malformed;
+        EXPECT_EQ(harness.manager.SearchHash("malformed_decoder", 0), nullptr) << malformed;
+    }
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/arena_usage.hpp"
+
 // Expose the retail town ownership state without changing its logic or layout.
 extern int LoopMode asm("EditLoop_Mode");
 extern int ControlMode asm("EditLoop_Control");
@@ -11,6 +13,3 @@ extern int ActiveCharaNo asm("EditLoop_ActiveCharaNo");
 class mgCFrame;
 extern mgCFrame *RedBicMark asm("EditLoop_RedBicMark");
 extern mgCFrame *BlueBicMark asm("EditLoop_BlueBicMark");
-
-void PortRetailUpdateTrBoxFlag(int map_no) asm("EditLoop_UpdateTrBoxFlag");
-int  PortRetailEditDraw() asm("EditLoop_EditDraw");

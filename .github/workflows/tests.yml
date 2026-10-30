@@ -1,0 +1,88 @@
+name: Tests
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  linux:
+    uses: ./.github/workflows/linux.yml
+    with:
+      tests: true
+  windows:
+    uses: ./.github/workflows/windows.yml
+    with:
+      tests: true
+  macos:
+    uses: ./.github/workflows/macos.yml
+    with:
+      tests: true
+  ios-dependencies:
+    uses: ./.github/workflows/dependencies.yml
+    with:
+      platform: apple
+      artifact: apple-dependencies-ios-tests
+  ios:
+    name: Tests (iOS simulator)
+    needs: ios-dependencies
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: actions/download-artifact@v7
+        with:
+          name: apple-dependencies-ios-tests
+          path: .kazarov/bundle
+      - name: Unpack verified dependencies
+        run: |
+          test "$(shasum -a 256 .kazarov/bundle/deps.tar.gz | cut -d' ' -f1)" = "$(cat .kazarov/bundle/deps.sha256)"
+          tar xzf .kazarov/bundle/deps.tar.gz -C .kazarov
+          echo "CT_DEPS_ROOT=$GITHUB_WORKSPACE/.kazarov/deps" >> "$GITHUB_ENV"
+      - name: Boot an available iPhone simulator
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          devices = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
+          phones = [device for runtime, group in devices["devices"].items() if ".iOS-" in runtime
+                    for device in group if device["name"].startswith("iPhone") and device["isAvailable"]]
+          if not phones:
+              raise SystemExit("The runner has no available iOS simulator runtime")
+          phone = phones[0]
+          if phone["state"] != "Booted":
+              subprocess.run(["xcrun", "simctl", "boot", phone["udid"]], check=True)
+          subprocess.run(["xcrun", "simctl", "bootstatus", phone["udid"], "-b"], check=True)
+          with open(os.environ["GITHUB_ENV"], "a") as output:
+              output.write("SIMULATOR_UDID=" + phone["udid"] + "\n")
+          PY
+      - name: Build the iOS compatibility tests
+        run: |
+          brew install cmake ninja
+          cmake -S port/src/tests/ios -B port/build/ios-tests -G Ninja \
+            -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_DEPLOYMENT_TARGET=16.3 \
+            -DCMAKE_BUILD_TYPE=Release \
+            "-DCMAKE_CROSSCOMPILING_EMULATOR=xcrun;simctl;spawn;$SIMULATOR_UDID"
+          cmake --build port/build/ios-tests --parallel "$(sysctl -n hw.ncpu)"
+      - name: Run tests on iOS
+        run: ctest --test-dir port/build/ios-tests --output-on-failure --no-tests=error --output-junit tests.xml -j2
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tests-ios
+          path: |
+            port/build/ios-tests/tests.xml
+            port/build/ios-tests/Testing/Temporary/
+          if-no-files-found: warn
+      - name: Shut down the simulator
+        if: always() && env.SIMULATOR_UDID != ''
+        run: xcrun simctl shutdown "$SIMULATOR_UDID"

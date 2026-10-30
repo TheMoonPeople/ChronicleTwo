@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mglib_port.hpp"
+#include "render/renderer.hpp"
 
 // Camera cuts are signalled by the camera owner, never inferred from screen
 // distance: a continuous mouse turn can move an anchor across the whole view.

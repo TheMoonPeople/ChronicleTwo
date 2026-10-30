@@ -1,14 +1,19 @@
 #include "common.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <numbers>
+#include <vector>
 
 #include "camera_mouse.hpp"
+#include "camera_zoom.hpp"
 #include "cameracontrol.hpp"
 #include "dng_main.hpp"
+#include "gameutil.hpp"
 #include "map.hpp"
 #include "mapparts.hpp"
+#include "render/renderer.hpp"
 #include "scenesnd.hpp"
 
 namespace {
@@ -118,24 +123,6 @@ bool ClearCapsule(Vec from, Vec to, double envelope, CCPoly *polys, int count) {
     return true;
 }
 
-// A capsule around the middle look ray encloses the whole arc interval and all
-// interpolated current/pending eyes and targets. Subdivision reduces this bound,
-// instead of sampling rays that can miss a thin wall between endpoints.
-bool ClearArc(const CCameraControl &camera, float begin, float end, CCPoly *polys, int count) {
-    const float middle = -(begin + end) * 0.5f;
-    const Vec   ref = Read(camera.ref);
-    const Vec   next_ref = Read(camera.next_ref);
-    const Vec   eye = Orbit(Read(camera.pos), ref, middle);
-    const Vec   next_eye = Orbit(Read(camera.next_pos), next_ref, middle);
-    const float radius = std::max(Length(Read(camera.pos) - ref), Length(Read(camera.next_pos) - next_ref));
-    const float arc = 2 * radius * std::sin(std::fabs(end - begin) * 0.25f);
-    const float envelope = 4.0f + std::max(Length(next_eye - eye) * 0.5f + arc, Length(next_ref - ref) * 0.5f);
-    if (!std::isfinite(envelope)) {
-        return false;
-    }
-    return ClearCapsule((ref + next_ref) * 0.5f, (eye + next_eye) * 0.5f, envelope, polys, count);
-}
-
 bool ClearRise(const CCameraControl &camera, float begin, float end, CCPoly *polys, int count) {
     const Vec   ref = Read(camera.ref);
     const Vec   next_ref = Read(camera.next_ref);
@@ -170,6 +157,151 @@ void CorrectGroundAndWalls(CCameraControl &camera, CCPoly *polys, int count) {
     Write(camera.pos, Read(current.next_pos));
     camera.CheckGround(polys, count);
     camera.CheckCollision(polys, count);
+}
+
+/**
+ * Whether a wall crosses the segment between two points.
+ */
+bool Blocked(CCPoly *polys, int count, const float *from, const float *to) {
+    float a[4] = {from[0], from[1], from[2], 1};
+    float b[4] = {to[0], to[1], to[2], 1};
+    float hit[4];
+    return count > 0 && CheckHit(polys, count, a, b, hit, 1, 0) >= 0;
+}
+
+/**
+ * The point retail's wall correction checks from when it has an explicit one.
+ */
+std::array<float, 4> CheckTarget(const CCameraControl &camera) {
+    return {camera.check_ref[0], camera.check_ref[1] + camera.follow_offset[1], camera.check_ref[2], 1};
+}
+
+/**
+ * The largest fraction in [0, 1], to 1/4096, that a test accepts when it
+ * accepts 0 and refuses 1.
+ */
+template <typename Test>
+double LastAccepted(Test accepts) {
+    double accepted = 0;
+    double refused = 1;
+    for (int i = 0; i < 12; ++i) {
+        const double middle = (accepted + refused) * 0.5;
+        (accepts(middle) ? accepted : refused) = middle;
+    }
+    return accepted;
+}
+
+/**
+ * Collects walls that obstructed neither camera target before the turn.
+ */
+std::vector<CCPoly> NewWalls(const CCameraControl &camera, CCPoly *polys, int count) {
+    std::vector<CCPoly> walls;
+    walls.reserve(static_cast<std::size_t>(count));
+    for (int i = 0; i < count; ++i) {
+        if (!Blocked(&polys[i], 1, camera.ref, camera.pos) &&
+            !(camera.check_ref_on && Blocked(&polys[i], 1, CheckTarget(camera).data(), camera.pos))) {
+            walls.push_back(polys[i]);
+        }
+    }
+    return walls;
+}
+
+/**
+ * Whether an eye sees its look-at point past the walls and, when retail's wall
+ * correction keeps an explicit collision target in view, that target too.
+ */
+bool InSight(const CCameraControl &camera, const float *ref, const float *eye, std::vector<CCPoly> &walls) {
+    const int count = static_cast<int>(walls.size());
+    return !Blocked(walls.data(), count, ref, eye) &&
+           !(camera.check_ref_on && Blocked(walls.data(), count, CheckTarget(camera).data(), eye));
+}
+
+/**
+ * Predicts the camera pose after one logic step without changing the original.
+ */
+CCameraControl Stepped(const CCameraControl &camera) {
+    CCameraControl stepped = camera;
+    stepped.mgCCamera::Step(1);
+    return stepped;
+}
+
+// The shortest view a placement here may leave, well clear of a camera with no
+// usable direction.
+constexpr double shortest_view = 10;
+
+// Where a fallback view's search starts, a little beyond shortest_view so that
+// the view still measures at least that once its eye is stored as floats and
+// stepped.
+constexpr double fallback_start = shortest_view + 0.01;
+
+// The headings tried for that view in each half turn.
+constexpr int heading_steps = 8;
+
+/**
+ * Places a usable stepped view clear of newly obstructing walls, rejecting turns with no sampled placement.
+ */
+bool KeepInSight(CCameraControl &camera, std::vector<CCPoly> &walls) {
+    const int count = static_cast<int>(walls.size());
+    // A placement made here must also leave a view of usable length.
+    const auto usable = [&](Vec drawn_eye, Vec pending_eye) {
+        CCameraControl trial = camera;
+        Write(trial.pos, drawn_eye);
+        Write(trial.next_pos, pending_eye);
+        const CCameraControl stepped = Stepped(trial);
+        return Length(Read(stepped.pos) - Read(stepped.ref)) >= shortest_view &&
+               InSight(camera, stepped.ref, stepped.pos, walls);
+    };
+    const Vec pending = Read(camera.next_pos);
+    if (const CCameraControl stepped = Stepped(camera); InSight(camera, stepped.ref, stepped.pos, walls)) {
+        return true;
+    }
+    if (Blocked(walls.data(), count, camera.ref, camera.pos) &&
+        !Blocked(walls.data(), count, camera.ref, camera.next_pos)) {
+        const Vec drawn = Read(camera.pos);
+        const Vec eased = pending + (drawn - pending) * LastAccepted([&](double t) {
+                                        float point[3];
+                                        Write(point, pending + (drawn - pending) * t);
+                                        return !Blocked(walls.data(), count, camera.ref, point);
+                                    });
+        if (usable(eased, pending)) {
+            Write(camera.pos, eased);
+            return true;
+        }
+    }
+    const Vec  look_at = Read(camera.ref);
+    const Vec  drawn = Read(camera.pos);
+    const auto toward = [&](double t) { return look_at + (drawn - look_at) * t; };
+    if (usable(toward(0), pending)) {
+        Write(camera.pos, toward(LastAccepted([&](double t) { return usable(toward(t), pending); })));
+        return true;
+    }
+    const CCameraControl stepped = Stepped(camera);
+    const Vec            from = Read(stepped.ref);
+    const double         length = std::max(Length(Read(stepped.pos) - from), fallback_start);
+    // Nearest first: the stepped view itself, then views turned from it in
+    // steps of an eighth of a half turn either way, round to the view behind.
+    for (int k = 0; k < 2 * heading_steps; ++k) {
+        const int    steps = (k % 2 ? 1 : -1) * ((k + 1) / 2);
+        const float  angle = std::numbers::pi_v<float> * static_cast<float>(steps) / heading_steps;
+        const Vec    aim = Orbit(Read(stepped.pos), from, angle);
+        const double aim_length = Length(aim - from);
+        if (!(aim_length > 0)) {
+            continue;
+        }
+        const Vec  direction = (aim - from) * (1 / aim_length);
+        const auto at = [&](double s) { return from + direction * (fallback_start + (length - fallback_start) * s); };
+        if (!usable(at(0), at(0))) {
+            continue;
+        }
+        const double reach = LastAccepted([&](double s) { return usable(at(s), at(s)); });
+        // Five units nearer where there is room, as retail's correction leaves.
+        const double room = reach - (5 / std::max(length - fallback_start, 5.0));
+        const Vec    eye = at(room > 0 && usable(at(room), at(room)) ? room : reach);
+        Write(camera.pos, eye);
+        Write(camera.next_pos, eye);
+        return true;
+    }
+    return false;
 }
 
 void CopyPose(CCameraControl &camera, const CCameraControl &candidate) {
@@ -286,53 +418,41 @@ float MouseCameraYaw(CCameraControl &camera, float yaw, CCPoly *polys, int count
         !Finite(Read(camera.next_pos)) || !Finite(Read(camera.next_ref))) {
         return 0;
     }
-    // Repeated revolutions traverse the same corridor. Prove at most one complete
-    // turn, then use the requested final phase only when that whole turn is clear.
+    // Rotate both eyes immediately and contract the pending view at walls.
+    CCameraControl  candidate = camera;
     constexpr float turn = 2 * std::numbers::pi_v<float>;
-    const float     requested = yaw;
-    yaw = std::copysign(std::min(std::fabs(yaw), turn), yaw);
-    if (!ClearArc(camera, 0, 0, polys, count)) {
-        return 0;
-    }
-    float accepted = 0;
-    float step = yaw;
-    // A fixed validation budget rejects only the unproved suffix. No queued yaw.
-    for (int work = 0; work < 256 && std::fabs(yaw - accepted) > 0.00001f; ++work) {
-        const float target = accepted + step;
-        if (ClearArc(camera, accepted, target, polys, count)) {
-            accepted = target;
-            step = yaw - accepted;
-        } else {
-            step *= 0.5f;
-            if (std::fabs(step) < 0.00001f) {
-                break;
-            }
-        }
-    }
-    // Keep a small angular margin at a clipped boundary. A capsule enclosing a
-    // reverse interval needs finite clearance to prove movement away from it,
-    // and floating-point rounding must not strand an eye exactly on the bound.
-    if (std::fabs(yaw - accepted) > 0.00001f) {
-        accepted = std::copysign(std::max(0.0f, std::fabs(accepted) - 0.001f), accepted);
-    }
-    if (accepted == 0) {
-        return 0;
-    }
-    if (accepted == yaw) {
-        accepted = requested;
-    }
-    CCameraControl candidate = camera;
-    const float    phase = std::remainder(accepted, turn);
+    const float     phase = std::remainder(yaw, turn);
     Write(candidate.pos, Orbit(Read(camera.pos), Read(camera.ref), -phase));
     Write(candidate.next_pos, Orbit(Read(camera.next_pos), Read(camera.next_ref), -phase));
-    CorrectGroundAndWalls(candidate, polys, count);
-    if (!ClearArc(candidate, 0, 0, polys, count)) {
+    if (!candidate.GetActiveParam()->no_check) {
+        candidate.CheckGround(polys, count);
+        candidate.CheckCollision(polys, count);
+    }
+    if (!Finite(Read(candidate.pos)) || !Finite(Read(candidate.next_pos))) {
         return 0;
+    }
+    std::vector<CCPoly> walls = NewWalls(camera, polys, count);
+    if (!KeepInSight(candidate, walls)) {
+        return 0;
+    }
+    // Display frames blend the view straight to its next pose. Cut that where
+    // the eye passes a wall, or a new wall crosses a sightline between: the
+    // look-at point's or the explicit collision target's.
+    const CCameraControl rendered = Stepped(candidate);
+    const int            new_count = static_cast<int>(walls.size());
+    bool                 cut = Blocked(polys, count, camera.pos, rendered.pos) ||
+                               CameraViewSweeps(walls.data(), new_count, camera.ref, camera.pos, rendered.ref, rendered.pos);
+    if (camera.check_ref_on) {
+        const auto target = CheckTarget(camera);
+        cut = cut || CameraViewSweeps(walls.data(), new_count, target.data(), camera.pos, target.data(), rendered.pos);
+    }
+    if (cut) {
+        mgPortCutCameraInterpolation();
     }
     // Collision contraction can alter the endpoint's heading. Measure the actual
     // result rather than leaving a stale orientation for character movement.
     CopyPose(camera, candidate);
-    return accepted;
+    return yaw;
 }
 
 float MouseCameraPitch(CCameraControl &camera, float pitch, CCPoly *polys, int count, float height_scale) {

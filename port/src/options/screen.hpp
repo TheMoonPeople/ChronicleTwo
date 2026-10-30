@@ -13,9 +13,16 @@ constexpr int kRowStep = 24;
 constexpr int kLeft = 82;
 constexpr int kRight = 434;
 constexpr int kValueX = 288;
-constexpr int kPages = 5;
-constexpr int kBindingsPage = kPages - 1;
+constexpr int kPages = 6;
+// The keyboard's and the controller's bindings, two sets apart.
+constexpr int kBindingsPage = kPages - 2;
+constexpr int kPadBindingsPage = kPages - 1;
 constexpr int kTabStep = (kRight - kLeft) / kPages;
+
+/**
+ * Reports whether a page edits keyboard or controller bindings.
+ */
+constexpr bool BindingPage(int page) { return page == kBindingsPage || page == kPadBindingsPage; }
 
 struct State {
     bool                    open = false;
@@ -75,6 +82,10 @@ Point PointerPosition();
 bool  Pointing();
 // Handles PC options input and forwards retail Options cancel to the pad edge.
 bool Run();
+/**
+ * Reports whether binding capture or release of a newly bound input is pending.
+ */
+bool Capturing();
 Hit  HitTest(const State &state, float x, float y);
 // Shows a tab, wrapping at either end; a change of tab plays the retail cursor sound and returns true.
 bool SelectPage(State &state, int page);

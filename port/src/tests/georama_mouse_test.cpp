@@ -3,7 +3,7 @@
 #include <limits>
 
 #include "cameracontrol.hpp"
-#include "editmode_port.hpp"
+#include "object/world/georama_camera.hpp"
 
 namespace {
 CCameraControl Camera(float angle) {

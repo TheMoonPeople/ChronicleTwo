@@ -7,15 +7,15 @@ local helper_bac4ec65 = require("@lib/action/helper_bac4ec65")
 local function helper_47e6f5ef()
 	local var0: s32 = 0
 	local prog: s32 = 0
-	prog = action.ProgGet() or prog
+	prog = action.get_program_value() or prog
 	if prog == 300 then
-		action.SetMos("ダウン･蹴り", -1, 6)
-		action.ProgSet(prog + 1)
+		action.play_motion("ダウン･蹴り", -1, 6)
+		action.set_program_value(prog + 1)
 	end
 	if prog == 301 then
-		var0 = action.GetMosStatus() or var0
+		var0 = action.get_motion_status() or var0
 		if var0 == 4 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 			helper_bac4ec65(3)
 		end
 		return

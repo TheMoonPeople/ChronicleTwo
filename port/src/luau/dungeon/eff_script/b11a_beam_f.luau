@@ -21,18 +21,18 @@ function script.on_start()
 	local user_id: s32 = 0
 	local var5: s32 = 0
 	value = 0.0
-	value = effect.GetValueFloat(0) or value
-	effect.ChrSetScale(value, value, value)
-	effect.ChrSetMotion("攻撃２入り", 6)
-	user_id = effect.GetUserId() or user_id
+	value = effect.get_script_value_float(0) or value
+	effect.set_effect_character_scale(value, value, value)
+	effect.set_effect_character_motion("攻撃２入り", 6)
+	user_id = effect.get_owner_character() or user_id
 	while var5 < 73 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "tama")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "tama")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
 		vm.wait()
 		var5 = var5 + 1
 	end

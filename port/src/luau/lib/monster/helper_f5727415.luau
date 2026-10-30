@@ -11,7 +11,7 @@ local helper_c8e37519 = require("@lib/monster/helper_c8e37519")
 local function helper_f5727415(arg0: f32)
 	local var5: f32 = 0
 	helper_82cb5588(helper_787df986(arg0))
-	var5 = monster.GetTargetAngle() or var5
+	var5 = monster.get_target_angle() or var5
 	local _ = helper_c8e37519(helper_28452e16(var5), arg0, 360.0)
 	helper_442b9962()
 end

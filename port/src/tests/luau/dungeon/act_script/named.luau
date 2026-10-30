@@ -7,18 +7,18 @@ function script.setup()
 end
 
 function script.init()
-    action.ProgSet(100)
+    action.set_program_value(100)
 end
 
 function script.loop()
-    action.ProgSet(200)
+    action.set_program_value(200)
     vm.wait()
-    action.ProgSet(201)
+    action.set_program_value(201)
 end
 
 -- Program 100 is named init, so this numeric key must never run.
 script[100] = function()
-    action.ProgSet(-1)
+    action.set_program_value(-1)
 end
 
 return script

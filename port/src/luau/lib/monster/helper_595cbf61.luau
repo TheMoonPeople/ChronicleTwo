@@ -8,24 +8,27 @@ local helper_787df986 = require("@lib/monster/helper_787df986")
 local helper_b823bc2c = require("@lib/monster/helper_b823bc2c")
 
 --- Helper function.
-local function helper_595cbf61(arg0: f32, arg1: f32)
-	arg0 = helper_787df986(arg0)
-	if arg0 > vm.f32(3.1415927) then
-		arg0 = vm.f32(arg0 - vm.f32(6.2831855))
+local function helper_595cbf61(next_rot: f32, rot_speed: f32)
+	next_rot = helper_787df986(next_rot)
+	if next_rot > vm.f32(3.1415927) then
+		next_rot = vm.f32(next_rot - vm.f32(6.2831855))
 	end
-	if arg0 <= vm.f32(-3.1415927) then
-		arg0 = vm.f32(arg0 + vm.f32(6.2831855))
+	if next_rot <= vm.f32(-3.1415927) then
+		next_rot = vm.f32(next_rot + vm.f32(6.2831855))
 	end
-	arg1 = helper_787df986(arg1)
-	if arg1 > vm.f32(3.1415927) then
-		arg1 = vm.f32(arg1 - vm.f32(6.2831855))
+	rot_speed = helper_787df986(rot_speed)
+	if rot_speed > vm.f32(3.1415927) then
+		rot_speed = vm.f32(rot_speed - vm.f32(6.2831855))
 	end
-	if arg1 <= vm.f32(-3.1415927) then
-		arg1 = vm.f32(arg1 + vm.f32(6.2831855))
+	if rot_speed <= vm.f32(-3.1415927) then
+		rot_speed = vm.f32(rot_speed + vm.f32(6.2831855))
 	end
-	monster.SetNextRot(arg0, arg1)
-	local _ =
-		helper_b823bc2c(helper_28452e16(arg0), helper_28452e16(arg1), vm.f32(vm.fdiv(360.0, helper_28452e16(arg1))))
+	monster.turn_toward_angle(next_rot, rot_speed)
+	local _ = helper_b823bc2c(
+		helper_28452e16(next_rot),
+		helper_28452e16(rot_speed),
+		vm.f32(vm.fdiv(360.0, helper_28452e16(rot_speed)))
+	)
 	helper_442b9962()
 end
 

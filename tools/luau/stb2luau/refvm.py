@@ -269,11 +269,15 @@ class Machine:
             elif op == Op.STORE:
                 value = self._pop()
                 target = self._pop()
-                if target.tag != Tag.PTR:
+                if target.tag == Tag.INT and target.value == 0:
+                    # Retail writes through the address 0, outside the script's memory.
+                    pass
+                elif target.tag != Tag.PTR:
                     raise VMError("store through a non-pointer")
-                if self._past_frame(target.value):
-                    self.outside_frame("store past the frame", target.value)
-                self._write(target.value, value)
+                else:
+                    if self._past_frame(target.value):
+                        self.outside_frame("store past the frame", target.value)
+                    self._write(target.value, value)
                 self._push(value)
             elif op == Op.JMP:
                 if not self.skip_wait:

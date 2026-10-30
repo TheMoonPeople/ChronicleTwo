@@ -16,7 +16,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "bounded_text.hpp"
 #include "editmap.hpp"
 #include "gamedata.hpp"
 #include "menusystemdata.hpp"
@@ -24,6 +23,7 @@
 #include "quest.hpp"
 #include "savedatadungeon.hpp"
 #include "stubs/editmap.hpp"
+#include "text/bounded.hpp"
 #include "userdata.hpp"
 
 namespace {
@@ -642,7 +642,7 @@ void HeaderFields(Io &io, SAVEDATA_FORMAT &value) {
  * terminator, and valid CP932.
  */
 std::optional<std::string> CleanText(std::span<const char> field) {
-    const auto text = bounded_text::View(field.data(), field.size());
+    const auto text = dc2::text::View(field.data(), field.size());
     if (text.size() == field.size() || !std::all_of(field.begin() + static_cast<std::ptrdiff_t>(text.size()), field.end(), [](char c) { return c == '\0'; })) {
         return std::nullopt;
     }
@@ -758,7 +758,7 @@ public:
         std::memset(value, 0, N);
         if (text.is_string()) {
             try {
-                bounded_text::Copy(value, legacy_encoding::GameText(text.get_ref<const std::string &>()));
+                dc2::text::Copy(value, legacy_encoding::GameText(text.get_ref<const std::string &>()));
             } catch (const std::exception &) {
                 Fail(SaveJsonError::BadValue);
             }

@@ -26,47 +26,47 @@ function script.on_start()
 	local var9: f32 = 0
 	local var10: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetScale(var3, var4, var5)
-	var9 = effect.GetRand(6.2831855) or var9
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_scale(var3, var4, var5)
+	var9 = effect.get_random_number(6.2831855) or var9
 	var9 = vm.f32(var9 - vm.f32(3.1415927))
-	var9 = effect.AngleLimit(var9) or var9
-	effect.ChrSetRot(0.0, var9, 0.0)
+	var9 = effect.wrap_angle(var9) or var9
+	effect.rotate_effect_character_toward(0.0, var9, 0.0)
 	do
-		local out1, out2, out3 = effect.CopyVector(0.06, 0.06, 0.06)
+		local out1, out2, out3 = effect.copy_vector(0.06, 0.06, 0.06)
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
-	effect.ChrSetShow(1, 1, 0.04)
+	effect.set_effect_character_visible(1, 1, 0.04)
 	var10 = 0
 	while var10 < 55 do
-		effect.ChrSetScale(var3, var4, var5)
+		effect.set_effect_character_scale(var3, var4, var5)
 		do
-			local out1, out2, out3 = effect.AddVector(var3, var4, var5, var6, var7, var8)
+			local out1, out2, out3 = effect.add_vectors(var3, var4, var5, var6, var7, var8)
 			var3 = out1 or var3
 			var4 = out2 or var4
 			var5 = out3 or var5
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var6, var7, var8, 0.96)
+			local out1, out2, out3 = effect.scale_vector(var6, var7, var8, 0.96)
 			var6 = out1 or var6
 			var7 = out2 or var7
 			var8 = out3 or var8
 		end
 		if var10 == 30 then
-			effect.ChrSetShow(0, 1, 0.04)
+			effect.set_effect_character_visible(0, 1, 0.04)
 		end
 		var10 = var10 + 1
 		vm.wait()

@@ -10,8 +10,8 @@
 
 #include "mglib.hpp"
 #include "platform/clock.hpp"
+#include "platform/frame_timing.hpp"
 #include "sce/threads.hpp"
-#include "stubs/mglib.hpp"
 
 void WaitVSync(int start, int frames);
 
@@ -43,7 +43,7 @@ void VSyncSpinLoop(void * /*unused*/) {
 void UnboundedVSyncClock() {
     ClockSetUnbounded(true);
     ClockReset();
-    ClockSetTickCallback(VSyncCallBack);
+    ClockSetTickCallback(dc2::timing::OnVerticalBlank);
 }
 
 } // namespace
@@ -120,21 +120,21 @@ TEST(MglibTime, FrameFieldsMeasuresWallClockInFields) {
         GTEST_SKIP() << "timing is not checked on CI";
     }
 
-    mgTimeFrameBegin();
+    dc2::timing::BeginFrame();
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    EXPECT_GE(mgTimeFrameFields(), 4.5f);
-    EXPECT_LT(mgTimeFrameFields(), 15.0f);
+    EXPECT_GE(dc2::timing::FrameFields(), 4.5f);
+    EXPECT_LT(dc2::timing::FrameFields(), 15.0f);
 }
 
 TEST(MglibTime, FrameFieldsIsNonNegativeRightAfterBegin) {
     ClockSetUnbounded(false);
     ClockSetTickRate(100.0);
 
-    mgTimeFrameBegin();
+    dc2::timing::BeginFrame();
 
-    EXPECT_GE(mgTimeFrameFields(), 0.0f);
-    EXPECT_LT(mgTimeFrameFields(), 1.0f);
+    EXPECT_GE(dc2::timing::FrameFields(), 0.0f);
+    EXPECT_LT(dc2::timing::FrameFields(), 1.0f);
 }
 
 TEST(MglibTime, UnboundedFrameFieldsCountLogicTicksAtEveryRate) {
@@ -143,18 +143,18 @@ TEST(MglibTime, UnboundedFrameFieldsCountLogicTicksAtEveryRate) {
         ClockSetTickRate(rate);
         UnboundedVSyncClock();
         mgInitVSyncCallBack(nullptr);
-        mgTimeFrameBegin();
-        EXPECT_FLOAT_EQ(mgTimeFrameFields(), 0.0f);
+        dc2::timing::BeginFrame();
+        EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 0.0f);
         ClockPump();
-        EXPECT_FLOAT_EQ(mgTimeFrameFields(), 1.0f);
+        EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 1.0f);
         ClockPump();
-        EXPECT_FLOAT_EQ(mgTimeFrameFields(), 2.0f);
-        mgTimeFrameBegin();
-        EXPECT_FLOAT_EQ(mgTimeFrameFields(), 0.0f);
+        EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 2.0f);
+        dc2::timing::BeginFrame();
+        EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 0.0f);
         for (int tick = 0; tick < 7; ++tick) {
             ClockPump();
         }
-        EXPECT_FLOAT_EQ(mgTimeFrameFields(), 7.0f);
+        EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 7.0f);
     }
 }
 
@@ -162,12 +162,12 @@ TEST(MglibTime, UnboundedFrameFieldsIgnoreHostDelay) {
     ClockSetTickRate(60);
     UnboundedVSyncClock();
     mgInitVSyncCallBack(nullptr);
-    mgTimeFrameBegin();
+    dc2::timing::BeginFrame();
     std::this_thread::sleep_for(std::chrono::milliseconds(25));
-    EXPECT_FLOAT_EQ(mgTimeFrameFields(), 0.0f);
+    EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 0.0f);
     ClockPump();
     std::this_thread::sleep_for(std::chrono::milliseconds(25));
-    EXPECT_FLOAT_EQ(mgTimeFrameFields(), 1.0f);
+    EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 1.0f);
 }
 
 TEST(MglibTime, UnboundedFrameFieldsReanchorWhenClockResets) {
@@ -176,11 +176,11 @@ TEST(MglibTime, UnboundedFrameFieldsReanchorWhenClockResets) {
     for (int tick = 0; tick < 5; ++tick) {
         ClockPump();
     }
-    mgTimeFrameBegin();
+    dc2::timing::BeginFrame();
     ClockPump();
-    EXPECT_FLOAT_EQ(mgTimeFrameFields(), 1.0f);
+    EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 1.0f);
     ClockReset();
-    EXPECT_FLOAT_EQ(mgTimeFrameFields(), 0.0f);
+    EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 0.0f);
     ClockPump();
-    EXPECT_FLOAT_EQ(mgTimeFrameFields(), 1.0f);
+    EXPECT_FLOAT_EQ(dc2::timing::FrameFields(), 1.0f);
 }

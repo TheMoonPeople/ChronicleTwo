@@ -17,20 +17,20 @@ inline constexpr uint32_t kPrimSprite = 0x5E;
 inline constexpr uint32_t kPrimStrip = 0x5C;
 
 struct Vertex {
-    Vec4 screen;   // x, y, z, F (fog without the ADC bias)
-    uint16_t x, y; // low 16 bits of Ftoi4(x), Ftoi4(y)
-    uint32_t z;    // 24-bit Z field
-    uint8_t f;     // fog byte, bits 11..4 of the w word
-    uint16_t w;    // bits 11..4 = F, bit 15 = ADC, bits 3..0 = fraction
-    bool adc;
-    int32_t u, v;  // Ftoi4 of the UV
+    Vec4     screen; // x, y, z, F (fog without the ADC bias)
+    uint16_t x, y;   // low 16 bits of Ftoi4(x), Ftoi4(y)
+    uint32_t z;      // 24-bit Z field
+    uint8_t  f;      // fog byte, bits 11..4 of the w word
+    uint16_t w;      // bits 11..4 = F, bit 15 = ADC, bits 3..0 = fraction
+    bool     adc;
+    int32_t  u, v; // Ftoi4 of the UV
 };
 
 struct Quad {
-    int vertex_count;  // 2 (mode 0: min, max) or 4 (strip v0..v3)
-    Vertex v[4];
-    int32_t rgba[4];   // low 8 bits of each colour component
-    bool drawn;
+    int     vertex_count; // 2 (mode 0: min, max) or 4 (strip v0..v3)
+    Vertex  v[4];
+    int32_t rgba[4]; // low 8 bits of each colour component
+    bool    drawn;
 };
 
 inline float ReciprocalW(float w) {
@@ -46,7 +46,7 @@ inline int32_t ColourByte(float x) {
 // Z is trunc(16 z) >> 4: the GS Z field is the integer part of the projected depth.
 inline Vertex Pack(Vec4 screen, int32_t u, int32_t v, bool adc) {
     constexpr float kAdcBias = 2048.0f;
-    Vertex out{};
+    Vertex          out{};
     out.screen = screen;
     out.x = static_cast<uint16_t>(Ftoi4(screen.x) & 0xFFFF);
     out.y = static_cast<uint16_t>(Ftoi4(screen.y) & 0xFFFF);
@@ -60,7 +60,7 @@ inline Vertex Pack(Vec4 screen, int32_t u, int32_t v, bool adc) {
 }
 
 // Strict inequalities on x, y and the 1/Pw window; NaN fails every test.
-inline bool Passes(const Sprite3dParams& p, float min_x, float min_y, float max_x, float max_y, float q) {
+inline bool Passes(const Sprite3dParams &p, float min_x, float min_y, float max_x, float max_y, float q) {
     return min_x > p.guard_min.x && min_y > p.guard_min.y && max_x < p.guard_max.x &&
            max_y < p.guard_max.y && q > 1.0f / p.guard_max.w && q < 1.0f / p.guard_min.w;
 }
@@ -69,8 +69,8 @@ inline uint32_t Tag(int count) {
     return 0x8000u | static_cast<uint32_t>(count);
 }
 
-inline Quad Expand(const Sprite3dParams& p, const Sprite3dRecord& r, int mode) {
-    const Vec4 pclip = Mul(p.ls, r.pos);
+inline Quad Expand(const Sprite3dParams &p, const Sprite3dRecord &r, int mode) {
+    const Vec4  pclip = Mul(p.ls, r.pos);
     const float q = ReciprocalW(pclip.w);
     const Vec4  c{.x = pclip.x * q, .y = pclip.y * q, .z = pclip.z * q, .w = q};
 
@@ -121,8 +121,13 @@ inline Quad Expand(const Sprite3dParams& p, const Sprite3dRecord& r, int mode) {
     out.drawn = Passes(p, min_x, min_y, max_x, max_y, q);
 
     // v0 and v1 are ADC-tagged unconditionally; v2 and v3 only on reject.
-    const bool reject = !out.drawn;
-    const int32_t uvs[4][2] = {{u0x, u0y}, {u1x, u0y}, {u0x, u1y}, {u1x, u1y}};
+    const bool    reject = !out.drawn;
+    const int32_t uvs[4][2] = {
+        {u0x, u0y},
+        {u1x, u0y},
+        {u0x, u1y},
+        {u1x, u1y}
+    };
     const bool adc[4] = {true, true, reject, reject};
 
     out.vertex_count = 4;
@@ -132,4 +137,4 @@ inline Quad Expand(const Sprite3dParams& p, const Sprite3dRecord& r, int mode) {
     return out;
 }
 
-}  // namespace dc::vu1::sprite3d_oracle
+} // namespace dc::vu1::sprite3d_oracle

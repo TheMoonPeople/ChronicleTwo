@@ -22,47 +22,47 @@ function script.on_start()
 	local value: s32 = 0
 	local var7: s32 = 0
 	local hit_num: s32 = 0
-	user_id = effect.GetUserId() or user_id
+	user_id = effect.get_owner_character() or user_id
 	do
-		local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "eff1")
+		local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "eff1")
 		pos_x = out1 or pos_x
 		pos_y = out2 or pos_y
 		pos_z = out3 or pos_z
 	end
-	effect.ChrSetPos(pos_x, pos_y, pos_z)
-	value = effect.GetValue(0) or value
-	effect.ChrSetScale(0.65, 0.65, 0.65)
-	effect.ChrSetMotion("火柱", -1, 6)
-	effect.GetUserId()
+	effect.set_effect_character_position(pos_x, pos_y, pos_z)
+	value = effect.get_script_value(0) or value
+	effect.set_effect_character_scale(0.65, 0.65, 0.65)
+	effect.set_effect_character_motion("火柱", -1, 6)
+	effect.get_owner_character()
 	var7 = 0
-	effect.ColprimCreate("吹っ飛び攻撃")
-	effect.ColprimSetDamage(value)
-	effect.ColprimSetCoord(pos_x, pos_y, pos_z, 25.0)
+	effect.create_collision_primitive("吹っ飛び攻撃")
+	effect.set_collision_primitive_damage(value)
+	effect.set_collision_primitive_shape(pos_x, pos_y, pos_z, 25.0)
 	while var7 < 56 do
-		hit_num = effect.ColprimGetHitcnt() or hit_num
+		hit_num = effect.get_collision_primitive_hit_count() or hit_num
 		if hit_num > 0 then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 			break
 		end
 		if var7 == 48 then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		vm.wait()
 		var7 = var7 + 1
 	end
 	while var7 < 56 do
-		get_now_frame_wait = effect.ChrGetMotWait() or get_now_frame_wait
+		get_now_frame_wait = effect.get_effect_character_motion_progress() or get_now_frame_wait
 		if get_now_frame_wait > vm.f32(0.966) then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 			return
 		end
 		if var7 == 48 then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		vm.wait()
 		var7 = var7 + 1
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

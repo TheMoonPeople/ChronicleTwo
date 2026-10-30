@@ -4,7 +4,7 @@
 --- Helper function.
 local function helper_a25c5b2e()
 	local value: s32 = 0
-	value = monster.VPop2(5) or value
+	value = monster.get_secondary_variable(5) or value
 	return value
 end
 

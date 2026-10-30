@@ -12,14 +12,14 @@ local helper_9da84b8b = require("@lib/action/helper_9da84b8b")
 local function helper_d98()
 	local var1: s32 = 0
 	local prog: s32 = 0
-	prog = action.ProgGet() or prog
+	prog = action.get_program_value() or prog
 	if prog == 100 then
-		action.SetMos("攻撃１", -1, 6)
+		action.play_motion("攻撃１", -1, 6)
 		vm.wait()
-		var1 = action.GetMosStatus() or var1
-		action.SetBlowMove(1.5, 0.0, 8)
+		var1 = action.get_motion_status() or var1
+		action.set_move_impulse(1.5, 0.0, 8)
 		if var1 == 4 then
-			action.ProgSet(0)
+			action.set_program_value(0)
 		end
 		return
 	end
@@ -34,28 +34,28 @@ local function helper_fa8()
 	local rot_y: f32 = 0
 	local rot_z: f32 = 0
 	local var12: s32 = 0
-	action.ProgGet()
-	action.SetMos("攻撃２", -1, 6)
+	action.get_program_value()
+	action.play_motion("攻撃２", -1, 6)
 	helper_9559fe61(vm.f32(0.69), vm.f32(0.72))
-	var12 = action.GetAttkPoint(0) or var12
+	var12 = action.get_weapon_attack(0) or var12
 	do
-		local out1, out2, out3 = action.GetObjectPos("dcol1")
+		local out1, out2, out3 = action.get_object_position("dcol1")
 		var5 = out1 or var5
 		var6 = out2 or var6
 		var7 = out3 or var7
 	end
 	do
-		local out1, out2, out3 = action.GetRot()
+		local out1, out2, out3 = action.get_rotation()
 		rot_x = out1 or rot_x
 		rot_y = out2 or rot_y
 		rot_z = out3 or rot_z
 	end
-	action.EsmCreate_1("ねばねばＬ２")
-	action.EsmSetVect1(-1, var5, var6, var7)
-	action.EsmSetVect2(-1, rot_x, rot_y, rot_z)
-	action.EsmSetValue(-1, 0, var12)
+	action.create_effect_1("ねばねばＬ２")
+	action.set_effect_first_vector(-1, var5, var6, var7)
+	action.set_effect_second_vector(-1, rot_x, rot_y, rot_z)
+	action.set_effect_value(-1, 0, var12)
 	helper_9da84b8b()
-	action.ProgSet(0)
+	action.set_program_value(0)
 end
 
 local script = {}
@@ -65,7 +65,7 @@ function script.setup() end
 
 --- Sets the character up when its script is initialised.
 function script.init()
-	action.SetDmg2("dcol0", "", "モンスター攻撃", 2.5, 1.0, "攻撃１", 0.1, 0.8)
+	action.add_motion_damage("dcol0", "", "モンスター攻撃", 2.5, 1.0, "攻撃１", 0.1, 0.8)
 end
 
 --- Runs the character's normal behaviour.
@@ -73,29 +73,29 @@ function script.loop()
 	local prog: s32 = 0
 	local var3: s32 = 0
 	local var4: s32 = 0
-	action.ProgSet(0)
+	action.set_program_value(0)
 	while true do
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog >= 100 and prog < 199 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_d98()
 		end
 		if prog >= 200 and prog < 299 then
-			action.SetTrgAngle(40.0, 5.0)
+			action.turn_toward_target(40.0, 5.0)
 			helper_fa8()
 		end
-		prog = action.ProgGet() or prog
+		prog = action.get_program_value() or prog
 		if prog == 0 then
-			action.RunMainMove()
-			var3 = action.GetBtn_2(50) or var3
-			var4 = action.GetBtn_2(51) or var4
+			action.run_movement()
+			var3 = action.get_button_state_2(50) or var3
+			var4 = action.get_button_state_2(51) or var4
 			if var3 ~= 0 then
 				prog = 100
 			end
 			if var4 ~= 0 then
 				prog = 200
 			end
-			action.ProgSet(prog)
+			action.set_program_value(prog)
 		end
 		vm.wait()
 	end

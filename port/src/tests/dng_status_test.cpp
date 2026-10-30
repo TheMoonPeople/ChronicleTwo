@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <cstdlib>
 #include <memory>
 #include <span>
 #include <vector>
@@ -12,9 +11,9 @@
 #include "gfx/gfx.hpp"
 #include "maintex.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
 #include "scenesnd.hpp"
 #include "userdata.hpp"
 
@@ -87,25 +86,23 @@ public:
     DNG_BATTLE_AREA       area{};
 
 private:
-    mgRENDER_INFO                                *saved_info = mgDrawManager.render_info;
-    sceVif1Packet                                *saved_packet = mgVif1Packet;
-    CScene                                       *saved_scene = DngMainScene;
-    CUserDataManager                             *saved_user = DngUserData;
-    DNG_BATTLE_AREA                              *saved_area = BattleAreaScene;
-    mgCTexture                                   *saved_texture = TEX_SystenFrame;
-    CBattleCharaInfo                              saved_battle = *GetBattleCharaInfo();
-    int                                           saved_width = mgScreenWidth, saved_height = mgScreenHeight;
-    int                                           saved_offx = mgScreenOffx, saved_offy = mgScreenOffy;
-    std::unique_ptr<CScene, decltype(&std::free)> scene{
-        static_cast<CScene *>(std::calloc(1, sizeof(CScene))), &std::free};
-    std::unique_ptr<CUserDataManager, decltype(&std::free)> user{
-        static_cast<CUserDataManager *>(std::calloc(1, sizeof(CUserDataManager))), &std::free};
-    mgRENDER_INFO render_info{};
-    sceVif1Packet packet{};
-    mgCTexture    texture;
-    COMMON_GAGE   hp{};
-    CGameDataUsed equip[2]{};
-    CGameDataUsed items[3]{};
+    mgRENDER_INFO                    *saved_info = mgDrawManager.render_info;
+    sceVif1Packet                    *saved_packet = mgVif1Packet;
+    CScene                           *saved_scene = DngMainScene;
+    CUserDataManager                 *saved_user = DngUserData;
+    DNG_BATTLE_AREA                  *saved_area = BattleAreaScene;
+    mgCTexture                       *saved_texture = TEX_SystenFrame;
+    CBattleCharaInfo                  saved_battle = *GetBattleCharaInfo();
+    int                               saved_width = mgScreenWidth, saved_height = mgScreenHeight;
+    int                               saved_offx = mgScreenOffx, saved_offy = mgScreenOffy;
+    std::unique_ptr<CScene>           scene = std::make_unique<CScene>();
+    std::unique_ptr<CUserDataManager> user = std::make_unique<CUserDataManager>();
+    mgRENDER_INFO                     render_info{};
+    sceVif1Packet                     packet{};
+    mgCTexture                        texture;
+    COMMON_GAGE                       hp{};
+    CGameDataUsed                     equip[2]{};
+    CGameDataUsed                     items[3]{};
 };
 
 int AnchorX(const HudBatch &batch) {

@@ -6,12 +6,13 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "gfx/gfx.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/texture_catalog.hpp"
@@ -85,7 +86,7 @@ TEST_F(TextureDocumentFixture, ReadsDistinctNativeJsonDocumentsBeneathArchiveDir
         std::array<u_long128, 128> buffer{};
         std::string                path(relative);
         int                        size = -1;
-        ASSERT_EQ(LoadFile2(path.data(), buffer.data(), &size, LOAD_FILE_READ), 1);
+        ASSERT_EQ(LoadFile2(path.data(), std::span(reinterpret_cast<u8 *>(buffer.data()), std::span(buffer).size_bytes()), &size, LOAD_FILE_READ), 1);
         EXPECT_EQ(size, expected.size());
         EXPECT_EQ(std::memcmp(buffer.data(), expected.data(), expected.size()), 0);
         EXPECT_EQ(DataReadBufferSize(buffer.data()), expected.size());

@@ -18,7 +18,7 @@ local function helper_e91cba05()
 		var5 = helper_e00d263f(var5)
 		if helper_a25c5b2e() == 0 and var4 > var5 then
 			print("dmg=", var4, "------------------\n")
-			monster.VPush2(5, 1)
+			monster.set_secondary_variable(5, 1)
 		end
 	end
 end

@@ -40,7 +40,7 @@ std::optional<SceneText> OptionalText(const Json &object, const char *key) {
 /**
  * Reads a {"distance", "fade"} far clip.
  */
-std::optional<std::pair<float, int> > FarClip(const Json &object, const char *key) {
+std::optional<std::pair<float, int>> FarClip(const Json &object, const char *key) {
     if (!object.contains(key)) {
         return std::nullopt;
     }
@@ -51,7 +51,7 @@ std::optional<std::pair<float, int> > FarClip(const Json &object, const char *ke
 /**
  * Reads a {"position", "rotation", "scale"} transform as nine floats.
  */
-std::optional<std::array<float, 9> > Transform(const Json &object, const char *key) {
+std::optional<std::array<float, 9>> Transform(const Json &object, const char *key) {
     if (!object.contains(key)) {
         return std::nullopt;
     }

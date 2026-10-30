@@ -21,50 +21,50 @@ function script.on_start()
 	local var4: s32 = 0
 	local hit_num: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	value = effect.GetValue(0) or value
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetMotion("爆発", -1, 6)
-	effect.BtlSePlay(11, work_vect1_x, work_vect1_y, work_vect1_z)
+	value = effect.get_script_value(0) or value
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_motion("爆発", -1, 6)
+	effect.play_battle_sound(11, work_vect1_x, work_vect1_y, work_vect1_z)
 	hit_num = 0
 	var4 = 0
 	if value == 1 then
-		effect.ColprimCreate("爆発")
-		effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 24.0)
-		effect.ColprimSetDamage(100)
+		effect.create_collision_primitive("爆発")
+		effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 24.0)
+		effect.set_collision_primitive_damage(100)
 	end
 	if value == 2 then
-		effect.ColprimCreate("爆発")
-		effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 33.6)
-		effect.ColprimSetDamage(400)
-		effect.ChrSetScale(1.4, 1.4, 1.4)
+		effect.create_collision_primitive("爆発")
+		effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 33.6)
+		effect.set_collision_primitive_damage(400)
+		effect.set_effect_character_scale(1.4, 1.4, 1.4)
 	end
 	if value == 3 then
-		effect.ColprimCreate("爆発")
-		effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 43.199997)
-		effect.ColprimSetDamage(800)
-		effect.ChrSetScale(1.8, 1.8, 1.8)
+		effect.create_collision_primitive("爆発")
+		effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 43.199997)
+		effect.set_collision_primitive_damage(800)
+		effect.set_effect_character_scale(1.8, 1.8, 1.8)
 	end
 	if value == 4 then
-		effect.ColprimCreate("爆発")
-		effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 18.0)
-		effect.ColprimSetDamage(40)
+		effect.create_collision_primitive("爆発")
+		effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 18.0)
+		effect.set_collision_primitive_damage(40)
 	end
 	if value == 5 then
-		effect.ColprimCreate("宝箱爆発")
-		effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 33.6)
-		effect.ChrSetScale(1.8, 1.8, 1.8)
+		effect.create_collision_primitive("宝箱爆発")
+		effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 33.6)
+		effect.set_effect_character_scale(1.8, 1.8, 1.8)
 	end
 	while var4 < 114 do
 		if value ~= 0 and hit_num <= 0 then
-			hit_num = effect.ColprimGetHitcnt() or hit_num
+			hit_num = effect.get_collision_primitive_hit_count() or hit_num
 			if hit_num > 0 or var4 == 30 then
 				hit_num = 1
-				effect.ColprimDelete(-1)
+				effect.delete_collision_primitive(-1)
 			end
 		end
 		var4 = var4 + 1

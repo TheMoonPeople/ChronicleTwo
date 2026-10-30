@@ -25,39 +25,39 @@ std::string VoiceClipPath(std::string_view clip) {
 }
 } // namespace
 
-PORT_OVERRIDE int CommandStreamOpenFromFPL(int stream, char * /*unused*/, char *clip) {
+int CommandStreamOpenFromFPL(int stream, char * /*unused*/, char *clip) {
     return CommandStreamOpen(stream, clip);
 }
 
-PORT_OVERRIDE int CommandStreamOpen(int stream, char *clip) {
+int CommandStreamOpen(int stream, char *clip) {
     auto path = VoiceClipPath(clip);
     CSnd.StreamOpenFast(stream, path.data());
     return true;
 }
 
-PORT_OVERRIDE int CommandStreamOpen2(int /*unused*/, char * /*unused*/) {
+int CommandStreamOpen2(int /*unused*/, char * /*unused*/) {
     return true;
 }
 
-PORT_OVERRIDE int _STREAM_OPEN(RS_STACKDATA *arguments, int count) {
-    if (!arguments) {
-        return false;
-    }
+int _STREAM_OPEN(dc2::script::RunArguments arguments, int count) {
     if (count == 2) {
-        const auto &clip = arguments[1];
-        if (clip.type == RS_INT) {
+        const auto clip = arguments + 1;
+        if (clip.At().type == RS_INT) {
             EdEventInfo.stream_source = EVENT_STREAM_VOICE_PACK;
             char name[32];
-            std::snprintf(name, sizeof(name), "%07d", clip.val.i);
+            std::snprintf(name, sizeof(name), "%07d", dc2::script::RunInteger(clip));
             return CommandStreamOpen(EVENT_STREAM_CHANNEL, name);
         }
-        if (clip.type == RS_STR && clip.val.s) {
+        if (clip.At().type == RS_STR) {
+            char *name = dc2::script::RunCString(clip);
             EdEventInfo.stream_source = EVENT_STREAM_FILE;
-            return CommandStreamOpen(EVENT_STREAM_CHANNEL, clip.val.s);
+            return CommandStreamOpen(EVENT_STREAM_CHANNEL, name);
         }
-    } else if (count == 3 && arguments[1].type == RS_STR && arguments[2].type == RS_STR && arguments[2].val.s) {
+    } else if (count == 3) {
+        char *pack = dc2::script::RunCString(arguments + 1);
+        char *clip = dc2::script::RunCString(arguments + 2);
         EdEventInfo.stream_source = EVENT_STREAM_VOICE_PACK;
-        return CommandStreamOpenFromFPL(EVENT_STREAM_CHANNEL, arguments[1].val.s, arguments[2].val.s);
+        return CommandStreamOpenFromFPL(EVENT_STREAM_CHANNEL, pack, clip);
     }
     return false;
 }

@@ -1,5 +1,5 @@
 // Ahead of common.h: libgraph.h defines A, B, C and D as macros that would expand SdwPath's enumerators.
-#include "vu1/sdw_geom.hpp"
+#include "common.h"
 
 #include <gtest/gtest.h>
 
@@ -10,16 +10,16 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_shadow.hpp"
-#include "mg_shadow_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
 #include "platform/window.hpp"
+#include "render/renderer.hpp"
+#include "render/shadow_mesh.hpp"
+#include "vu1/sdw_geom.hpp"
 
 // Register macros must follow the host and test headers.
 // clang-format off
@@ -84,8 +84,8 @@ void ExpectOutward(const std::vector<SdwPrismTriangle> &tris, const std::vector<
         const Vec4 &a = tris[i].v[0];
         const Vec4 &b = tris[i].v[1];
         const Vec4 &c = tris[i].v[2];
-        const Vec4 normal = Cross3(b - a, c - a);
-        const Vec4 centroid = (a + b + c) * (1.0f / 3.0f);
+        const Vec4  normal = Cross3(b - a, c - a);
+        const Vec4  centroid = (a + b + c) * (1.0f / 3.0f);
         EXPECT_GT(Dot3(normal, centroid - centre), 0.0f) << "triangle " << i;
     }
 }
@@ -112,8 +112,8 @@ TEST(MgShadowPrism, DropAboveIsOutwardWound) {
 }
 
 TEST(MgShadowPrism, ReversedTriangleStaysOutwardWound) {
-    const Vec4 top[3] = {kTop[2], kTop[1], kTop[0]};
-    const Vec4 drop[3] = {kDropBelow[2], kDropBelow[1], kDropBelow[0]};
+    const Vec4                    top[3] = {kTop[2], kTop[1], kTop[0]};
+    const Vec4                    drop[3] = {kDropBelow[2], kDropBelow[1], kDropBelow[0]};
     std::vector<SdwPrismTriangle> tris;
     SdwPrism(top, drop, tris);
     ExpectOutward(tris, {kTop[0], kTop[1], kTop[2], kDropBelow[0], kDropBelow[1], kDropBelow[2]});
@@ -134,7 +134,6 @@ TEST(MgShadowPrism, DegenerateInputsAppendNothing) {
     EXPECT_TRUE(tris.empty());
 }
 
-
 namespace {
 
 // Units: centre and half are multiples of the footprint, where a caster of half 1 projects to 100
@@ -148,9 +147,9 @@ struct Caster {
 
 struct Pixels {
     std::vector<uint8_t> rgba;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    gfx::LogicalMapping mapping{};
+    uint32_t             width = 0;
+    uint32_t             height = 0;
+    gfx::LogicalMapping  mapping{};
 
     [[nodiscard]] const uint8_t *At(float x, float y) const {
         const auto px = static_cast<size_t>(x * mapping.scale_x + mapping.offset_x);
@@ -165,10 +164,12 @@ Pixels RenderGroundUnder(const std::vector<Caster> &casters) {
     const float kFar = 1000.0f;
     mgSetRenderInfo(kEyeDistance, kNear, kFar);
 
-    float view[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
-                        {0.0f, 1.0f, 0.0f, 0.0f},
-                        {0.0f, 0.0f, 1.0f, 0.0f},
-                        {0.0f, 0.0f, 0.0f, 1.0f}};
+    float view[4][4] = {
+        {1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 1.0f}
+    };
     float origin[3] = {0.0f, 0.0f, 0.0f};
     mgSetViewMatrix(view, origin);
 
@@ -182,10 +183,12 @@ Pixels RenderGroundUnder(const std::vector<Caster> &casters) {
     const float ground_half = 4.0f * 512.0f * plane_z / eye_distance;
 
     const uint8_t grey[4] = {128, 128, 128, 255};
-    const float ground_xy[4][2] = {{-ground_half, -ground_half},
-                                   {ground_half, -ground_half},
-                                   {ground_half, ground_half},
-                                   {-ground_half, ground_half}};
+    const float   ground_xy[4][2] = {
+        {-ground_half, -ground_half},
+        {ground_half,  -ground_half},
+        {ground_half,  ground_half },
+        {-ground_half, ground_half }
+    };
     std::vector<gfx::Vertex3D> ground_vertices;
     for (const auto &xy : ground_xy) {
         gfx::Vertex3D vertex{};
@@ -227,19 +230,21 @@ Pixels RenderGroundUnder(const std::vector<Caster> &casters) {
     float plane_normal[3] = {0.0f, 0.0f, -1.0f};
     mgSetDropShadowMatrix(light, plane_pos, plane_normal);
 
-    float identity[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
-                            {0.0f, 1.0f, 0.0f, 0.0f},
-                            {0.0f, 0.0f, 1.0f, 0.0f},
-                            {0.0f, 0.0f, 0.0f, 1.0f}};
+    float identity[4][4] = {
+        {1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 1.0f}
+    };
     for (const Caster &c : casters) {
-        const float centre = c.centre * footprint_half;
-        const float half = c.half * footprint_half;
-        const float z = c.top * plane_z;
+        const float   centre = c.centre * footprint_half;
+        const float   half = c.half * footprint_half;
+        const float   z = c.top * plane_z;
         sceVu0FVECTOR caster[4] = {
             {centre - half, -half, z, 1.0f},
             {centre + half, -half, z, 1.0f},
-            {centre + half, half, z, 1.0f},
-            {centre - half, half, z, 1.0f},
+            {centre + half, half,  z, 1.0f},
+            {centre - half, half,  z, 1.0f},
         };
         int caster_indices[6] = {0, 1, 2, 0, 2, 3};
 
@@ -352,8 +357,8 @@ mgPortProjection TestProjection() {
 // A unit right triangle in the plane z = depth, dropped by `offset`.
 std::vector<SdwPrismTriangle> PrismFor(float depth, const Vec4 &offset, const Vec4 &bias_dir = {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f},
                                        float x_scale = 1.0f) {
-    const Vec4 top[3] = {P(0, 0, depth), P(x_scale, 0, depth), P(0, 1, depth)};
-    const Vec4 drop[3] = {top[0] + offset, top[1] + offset, top[2] + offset};
+    const Vec4                    top[3] = {P(0, 0, depth), P(x_scale, 0, depth), P(0, 1, depth)};
+    const Vec4                    drop[3] = {top[0] + offset, top[1] + offset, top[2] + offset};
     std::vector<SdwPrismTriangle> tris;
     AppendShadowPrism(top, drop, bias_dir, TestProjection(), tris);
     return tris;
@@ -384,8 +389,8 @@ TEST(MgShadowReject, CornerBeyondXGuardBandIsRejected) {
 
 TEST(MgShadowReject, CornerBeyondYGuardBandIsRejected) {
     // 4000 * 512 / 100 is far past the 2048 half-range.
-    const Vec4 top[3] = {P(0, 0, 100), P(1, 0, 100), P(0, 4000, 100)};
-    const Vec4 drop[3] = {P(0, 0, 50), P(1, 0, 50), P(0, 4000, 50)};
+    const Vec4                    top[3] = {P(0, 0, 100), P(1, 0, 100), P(0, 4000, 100)};
+    const Vec4                    drop[3] = {P(0, 0, 50), P(1, 0, 50), P(0, 4000, 50)};
     std::vector<SdwPrismTriangle> tris;
     AppendShadowPrism(top, drop, {.x = 0.0f, .y = 1.0f, .z = 0.0f, .w = 0.0f}, TestProjection(), tris);
     EXPECT_TRUE(tris.empty());
@@ -398,4 +403,88 @@ TEST(MgShadowReject, GrazingTriangleIsRejected) {
 
 TEST(MgShadowReject, NaNCornerIsRejected) {
     EXPECT_TRUE(PrismFor(100.0f, P(0, 0, std::numeric_limits<float>::quiet_NaN())).empty());
+}
+
+namespace {
+
+struct ShadowMeshFixture {
+    sceVu0FVECTOR points[6] = {
+        {-1, -1, 100, 1},
+        {1,  -1, 100, 1},
+        {1,  1,  100, 1},
+        {-1, 1,  100, 1},
+        {-1, -1, 100, 1},
+        {1,  1,  100, 1}
+    };
+    std::vector<int>           corners = {0, 1, 2, 0, 2, 3};
+    mgCFace                    face{};
+    mgFACE_GROUP               group{};
+    mgCShadowMDT               visual;
+    mgRENDER_INFO              info{};
+    sceVu0FMATRIX              model{};
+    std::vector<gfx::Vertex3D> vertices;
+    std::vector<uint32_t>      indices;
+
+    ShadowMeshFixture() {
+        sceVu0UnitMatrix(model);
+        sceVu0UnitMatrix(info.view);
+        sceVu0UnitMatrix(info.shadow);
+        info.shadow[2][2] = 0;
+        info.shadow[3][2] = 50;
+        info.shadow_light_dir[2] = -1;
+        group.face = &face;
+        visual.vertex = points;
+        visual.vertex_num = 6;
+        visual.face_group = &group;
+    }
+
+    void Build() {
+        face.index = corners.data();
+        face.vertex_num = static_cast<short>(corners.size() / 3);
+        mgShadowPortBuildMesh(visual, model, info, TestProjection(), vertices, indices);
+    }
+};
+
+} // namespace
+
+TEST(MgShadowMesh, WeldsSharedEdgesAndKeepsSixVerticesPerPrism) {
+    ShadowMeshFixture mesh;
+    mesh.Build();
+    EXPECT_EQ(mesh.vertices.size(), 12u);
+    EXPECT_EQ(mesh.indices.size(), 36u);
+    mesh.corners = {0, 1, 2, 4, 5, 3};
+    mesh.Build();
+    EXPECT_EQ(mesh.indices.size(), 36u);
+    const auto capacity = mesh.vertices.capacity();
+    mesh.Build();
+    EXPECT_EQ(mesh.vertices.capacity(), capacity);
+    EXPECT_EQ(mesh.indices.size(), 36u);
+}
+
+TEST(MgShadowMesh, KeepsOverlapsAndAmbiguousEdgesAndRefreshesReusedGeometry) {
+    ShadowMeshFixture mesh;
+    mesh.corners = {0, 1, 2, 0, 1, 2};
+    mesh.Build();
+    EXPECT_EQ(mesh.indices.size(), 48u);
+    mesh.corners = {0, 1, 2, 0, 2, 3, 0, 2, 3};
+    mesh.Build();
+    EXPECT_EQ(mesh.indices.size(), 72u);
+    mesh.corners = {0, 1, 2, 4, 5, 3};
+    mesh.points[4][0] = -2;
+    mesh.Build();
+    EXPECT_EQ(mesh.indices.size(), 48u);
+}
+
+TEST(MgShadowMesh, RetainsTheSideBesideAClippedTriangle) {
+    ShadowMeshFixture mesh;
+    mesh.points[3][2] = 1;
+    mesh.Build();
+    EXPECT_EQ(mesh.vertices.size(), 6u);
+    EXPECT_EQ(mesh.indices.size(), 24u);
+    for (auto &point : mesh.points) {
+        point[2] = 1;
+    }
+    mesh.Build();
+    EXPECT_TRUE(mesh.vertices.empty());
+    EXPECT_TRUE(mesh.indices.empty());
 }

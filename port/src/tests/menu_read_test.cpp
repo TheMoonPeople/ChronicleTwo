@@ -6,13 +6,24 @@
 #include <string>
 #include <vector>
 
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
 #include "mainloop.hpp"
 #include "menucommon.hpp"
 #include "mg_memory.hpp"
 #include "platform/paths.hpp"
 
 TEST(MenuRead, ReadsEveryHostPointerAndAlignsEachFile) {
+    /**
+     * Restores the language selected before menu data is read.
+     */
+    struct LanguageState {
+        int previous_language = LanguageCode; /**< Language belonging to the enclosing test scope. */
+
+        /**
+         * Returns language selection to its enclosing scope.
+         */
+        ~LanguageState() { LanguageCode = previous_language; }
+    } language_state;
     namespace fs = std::filesystem;
     const auto root = fs::temp_directory_path() /
                       ("menu_read_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -22,7 +33,7 @@ TEST(MenuRead, ReadsEveryHostPointerAndAlignsEachFile) {
     std::ofstream(root / "menu" / "1" / "first.bin", std::ios::binary) << first;
     std::ofstream(root / "menu" / "1" / "second.bin", std::ios::binary) << second;
     DataReadIndex(root);
-    LanguageCode = 1;
+    LanguageCode = LANG_ENGLISH;
     std::vector<u_long128> storage(512);
     mgCMemory              memory;
     memory.stSetBuffer(storage.data(), storage.size());

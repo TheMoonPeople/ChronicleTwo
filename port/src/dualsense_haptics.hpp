@@ -10,6 +10,7 @@ class Mixer;
 // the two voice-coil actuators on the rear pair. controller_speaker.cpp opens it with four channels
 // when it can and asks HapticsRender for the rear pair. While haptics play, the HID rumble must stay
 // off: SDL turns the pad's audio haptics off for as long as it drives the emulated rumble motors.
+// iOS has no such endpoint; ios/Haptics.swift plays the same signal through Core Haptics.
 
 // Whether the game's vibration plays on the actuators now: haptics are on and the pad's audio
 // endpoint has the actuator channels. Also opens that endpoint while haptics are on.

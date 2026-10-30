@@ -14,9 +14,9 @@ function script.init() end
 
 --- Runs the effect from the frame it is created.
 function script.on_start()
-	effect.GetWorkVect1()
-	effect.GetWorkVect2()
-	effect.ChrSetMotion("機銃着弾", -1, 6)
+	effect.get_first_work_vector()
+	effect.get_second_work_vector()
+	effect.set_effect_character_motion("機銃着弾", -1, 6)
 	for var6 = 0, 23 do
 		vm.wait()
 	end

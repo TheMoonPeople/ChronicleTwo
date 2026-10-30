@@ -38,44 +38,44 @@ function script.on_start()
 	value = 0.0
 	var19 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
 	do
-		local out1, out2, out3 = effect.GetDirVector(var3, var4, var5)
+		local out1, out2, out3 = effect.get_direction_vector(var3, var4, var5)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	value_2 = effect.GetValue(0) or value_2
-	value = effect.GetValueFloat(1) or value
-	effect.GetValue(2)
+	value_2 = effect.get_script_value(0) or value_2
+	value = effect.get_script_value_float(1) or value
+	effect.get_script_value(2)
 	do
-		local out1, out2, out3 = effect.NormalVector(var9, var10, var11)
+		local out1, out2, out3 = effect.normalize_vector(var9, var10, var11)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	var10 = vm.f32(-0.6)
 	do
-		local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, value)
+		local out1, out2, out3 = effect.scale_vector(var9, var10, var11, value)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	effect.ChrSetMotion("ティグリフ羽弾（ループ）", 4)
-	effect.ColprimCreate("中攻撃")
-	effect.ColprimSetDamage(value_2)
+	effect.set_effect_character_motion("ティグリフ羽弾（ループ）", 4)
+	effect.create_collision_primitive("中攻撃")
+	effect.set_collision_primitive_damage(value_2)
 	do
-		local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+		local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 		vector_x = out1 or vector_x
 		vector_y = out2 or vector_y
 		vector_z = out3 or vector_z
@@ -83,42 +83,42 @@ function script.on_start()
 	var16 = 0
 	while var16 < 90 do
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
 		do
-			local out1, out2, out3 = effect.ChrGetRefRot(var0, var1, var2)
+			local out1, out2, out3 = effect.get_effect_character_rotation_toward(var0, var1, var2)
 			var3 = out1 or var3
 			var4 = out2 or var4
 			var5 = out3 or var5
 		end
-		effect.ChrSetPos(var0, var1, var2)
-		effect.ChrSetRot(var3, var4, var5)
-		effect.ColprimSetCoord(var0, var1, var2, 8.0)
-		var20 = effect.ColprimGetHitcnt() or var20
+		effect.set_effect_character_position(var0, var1, var2)
+		effect.rotate_effect_character_toward(var3, var4, var5)
+		effect.set_collision_primitive_shape(var0, var1, var2, 8.0)
+		var20 = effect.get_collision_primitive_hit_count() or var20
 		if var20 > 0 then
 			var19 = 0
 			break
 		else
 			do
 				local out1, out2, out3, out4 =
-					effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
+					effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
 				var21 = out1 or var21
 				var22 = out2 or var22
 				var23 = out3 or var23
 				var20 = out4 or var20
 			end
 			if var20 >= 0 then
-				effect.EsCreate_1("ティグ羽根Ｈ")
-				effect.EsSetVect1(var21, var22, var23)
+				effect.create_effect_1("ティグ羽根Ｈ")
+				effect.set_effect_first_work_vector(var21, var22, var23)
 				var19 = 1
-				effect.ChrSetPos(var21, var22, var23)
+				effect.set_effect_character_position(var21, var22, var23)
 				break
 			else
 				do
-					local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+					local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 					vector_x = out1 or vector_x
 					vector_y = out2 or vector_y
 					vector_z = out3 or vector_z
@@ -128,9 +128,9 @@ function script.on_start()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 	if var19 ~= 0 then
-		effect.ChrSetShow(0, 1, -0.9)
+		effect.set_effect_character_visible(0, 1, -0.9)
 		var16 = 0
 		while var16 < 30 do
 			vm.wait()

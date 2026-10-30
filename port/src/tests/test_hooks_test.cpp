@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <cstdlib>
 #include <vector>
 
 #include "debug_fixture.hpp"
 #include "gamepad.hpp"
 #include "nowload.hpp"
-#include "nowload_port.hpp"
+#include "object/menu/loading_screen.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "platform/paths.hpp"
@@ -103,6 +104,9 @@ TEST_F(GamePadSingleDebug, ModifiedStartCapturesWhileOrdinaryStartResumes) {
 TEST_F(GamePadSingleDebug, DeveloperMenuChordUsesHostInputPastTheGameLockAndOnlyOnAnEdge) {
     InputPadState input;
     input.connected = true;
+    input.buttons = 0;
+    InputSetOverride(0, &input);
+    EXPECT_FALSE(GameDeveloperMenuRequested(LOOP_EDIT));
     input.buttons = kInputStart | kInputSelect;
     InputSetOverride(0, &input);
     GamePad__2.key_lock = 1;
@@ -177,14 +181,19 @@ TEST(TestHooks, OrdinaryDefaultsDisableDebugRoutingAndDeveloperChord) {
 }
 
 TEST(TestHooks, JumpExplicitlyEnablesDebugWithOrdinaryDefaults) {
-    EXPECT_FALSE(Config{}.debug_mode);
-    EXPECT_FALSE(GameDebugEnabled());
-    ASSERT_TRUE(GameSetJump("title"));
-    EXPECT_TRUE(GameDebugEnabled());
-    CGamePad pad{};
-    pad.previous_pad[0].button = PAD_L2;
-    pad.pad[0].button = PAD_L2 | PAD_SELECT;
-    EXPECT_TRUE(GameDebugPauseRequested(pad));
+    ASSERT_EXIT(
+        {
+            EXPECT_FALSE(Config{}.debug_mode);
+            EXPECT_FALSE(GameDebugEnabled());
+            ASSERT_TRUE(GameSetJump("title"));
+            EXPECT_TRUE(GameDebugEnabled());
+            CGamePad pad{};
+            pad.previous_pad[0].button = PAD_L2;
+            pad.pad[0].button = PAD_L2 | PAD_SELECT;
+            EXPECT_TRUE(GameDebugPauseRequested(pad));
+            std::_Exit(testing::Test::HasFailure() ? 1 : 0);
+        },
+        testing::ExitedWithCode(0), "");
 }
 
 TEST_F(GamePadSingleDebug, ExplicitPauseChordEntersAndResumesWithoutLeakingModifiers) {

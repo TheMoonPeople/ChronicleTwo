@@ -39,8 +39,8 @@ TEST(CharacterExt, DeleteExtMotionClearsImageSlotsAndIgnoresStrideArithmetic) {
     for (int j = 1; j < CHARA_IMAGE_MAX; j++) {
         unsigned char *slot = object + kImagesOffset + 4 * j;
         for (std::size_t b = 0; b < sizeof(void *); b++) {
-            unsigned char       *byte = slot + b;
-            const auto           address = reinterpret_cast<std::uintptr_t>(byte);
+            unsigned char *byte = slot + b;
+            const auto     address = reinterpret_cast<std::uintptr_t>(byte);
             EXPECT_TRUE(address < images_begin || address >= images_end);
             *byte = kPoison;
             decoys.push_back(byte);

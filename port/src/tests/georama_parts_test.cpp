@@ -13,8 +13,10 @@
 
 #include "collision.hpp"
 #include "editdata.hpp"
+#include "editinfo.hpp"
 #include "editmap.hpp"
 #include "editparts.hpp"
+#include "mg_memory.hpp"
 #include "save_json.hpp"
 #include "stubs/editmap.hpp"
 
@@ -27,11 +29,11 @@ namespace {
  */
 class Town {
 public:
-    std::unique_ptr<CEditMap>          map = std::make_unique<CEditMap>();
-    std::unique_ptr<CList<CMapParts> > model = std::make_unique<CList<CMapParts> >();
-    std::vector<CEditPartsInfo>        infos;
-    std::vector<std::string>           names;
-    std::vector<ePlaceData>            fixed;
+    std::unique_ptr<CEditMap>         map = std::make_unique<CEditMap>();
+    std::unique_ptr<CList<CMapParts>> model = std::make_unique<CList<CMapParts>>();
+    std::vector<CEditPartsInfo>       infos;
+    std::vector<std::string>          names;
+    std::vector<ePlaceData>           fixed;
 
     explicit Town(int heap_size = 0xA000) {
         infos.reserve(16);
@@ -348,7 +350,7 @@ TEST(GeoramaParts, PaintedFencesMatchRetailRecursion) {
     fence.area3_box.max[0] = 5.0f;
     fence.area3_box.min[0] = -5.0f;
     // Two chains joined end to end, a stray fence, and a chain far away.
-    const std::vector<std::pair<float, float> > spots = {
+    const std::vector<std::pair<float, float>> spots = {
         {0,    0 },
         {10,   0 },
         {20,   0 },
@@ -446,4 +448,19 @@ TEST(GeoramaParts, SavedTownsOfThousandsOfPartsLoadBack) {
     town.map->SaveData(again.get());
     ASSERT_NE(PortFindTownLayout(*again), nullptr);
     EXPECT_EQ(PortFindTownLayout(*again)->parts.size(), count);
+}
+
+TEST(GeoramaPartsStorage, OversizedScriptTableDoesNotConstructOutsideTheArena) {
+    std::vector<u_long128> storage(16);
+    mgCMemory              memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CEditInfoMngr manager;
+    std::string   script = "EDIT_PARTS_NUM 2147483647; EDIT_PARTS \"ignored\";";
+    manager.LoadEditInfo(script.data(), static_cast<int>(script.size()), &memory);
+    EXPECT_EQ(manager.parts_info_num, 0);
+    EXPECT_EQ(manager.parts_info, nullptr);
+    EXPECT_EQ(memory.stack_used, 0);
+    for (const auto word : storage) {
+        EXPECT_EQ(word, static_cast<u_long128>(0));
+    }
 }

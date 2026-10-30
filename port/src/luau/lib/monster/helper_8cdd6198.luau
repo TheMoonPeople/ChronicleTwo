@@ -8,9 +8,9 @@ local helper_787df986 = require("@lib/monster/helper_787df986")
 local function helper_8cdd6198(arg0: f32)
 	local var2: f32 = 0
 	local var4: f32 = 0
-	var4 = monster.GetTargetAngle() or var4
+	var4 = monster.get_target_angle() or var4
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var2 = out2 or var2
 	end
 	if var2 < vm.f32(var4 + helper_787df986(arg0)) and var2 > vm.f32(var4 + helper_787df986(-arg0)) then

@@ -91,7 +91,7 @@ public:
 
     bool ReadInto(std::size_t index, void *buffer, std::size_t size) const override {
         CT_PROFILE_ZONE("Read archive entry");
-        if (index >= entries_.size() || entries_[index].size != size) {
+        if (index >= entries_.size() || entries_[index].size != size || (buffer == nullptr && size != 0)) {
             return false;
         }
         if (size == 0) {
@@ -161,7 +161,7 @@ private:
      */
     void BuildListing() const {
         CT_PROFILE_ZONE("List archive directories");
-        std::unordered_map<std::string, std::unordered_map<std::string, vfs::Member> > members;
+        std::unordered_map<std::string, std::unordered_map<std::string, vfs::Member>> members;
         for (const auto &entry : entries_) {
             std::size_t start = 0;
             while (true) {
@@ -185,15 +185,15 @@ private:
         }
     }
 
-    fs::path                                                           file_;         /**< Archive file. */
-    std::string                                                        label_;        /**< Archive filename shown in diagnostics. */
-    std::optional<rust::Box<kazarov::Archive> >                        archive_;      /**< Open archive. */
-    std::vector<Entry>                                                 entries_;      /**< Entries in central-directory order. */
-    std::unordered_map<std::string, std::size_t>                       index_;        /**< Folded names mapped to entries. */
-    mutable std::mutex                                                 prefix_mutex_; /**< Guards prefix_file_. */
-    mutable std::ifstream                                              prefix_file_;  /**< Archive handle for ReadPrefix. */
-    mutable std::once_flag                                             listing_once_; /**< Builds the directory listing on first use. */
-    mutable std::unordered_map<std::string, std::vector<vfs::Member> > listing_;      /**< Direct members per folded directory. */
+    fs::path                                                          file_;         /**< Archive file. */
+    std::string                                                       label_;        /**< Archive filename shown in diagnostics. */
+    std::optional<rust::Box<kazarov::Archive>>                        archive_;      /**< Open archive. */
+    std::vector<Entry>                                                entries_;      /**< Entries in central-directory order. */
+    std::unordered_map<std::string, std::size_t>                      index_;        /**< Folded names mapped to entries. */
+    mutable std::mutex                                                prefix_mutex_; /**< Guards prefix_file_. */
+    mutable std::ifstream                                             prefix_file_;  /**< Archive handle for ReadPrefix. */
+    mutable std::once_flag                                            listing_once_; /**< Builds the directory listing on first use. */
+    mutable std::unordered_map<std::string, std::vector<vfs::Member>> listing_;      /**< Direct members per folded directory. */
 };
 
 } // namespace

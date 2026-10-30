@@ -9,12 +9,12 @@ local global3: s32 = 0
 --- Helper function.
 local function helper_24b4()
 	local boss: s32 = 0
-	boss = monster.GetBossFlag() or boss
+	boss = monster.is_boss() or boss
 	if boss == 0 then
-		monster.GetPos_3()
-		monster.SetClipDist(35.0)
+		monster.get_position_3()
+		monster.set_clip_distance(35.0)
 	else
-		monster.SetClipDist(999999.0)
+		monster.set_clip_distance(999999.0)
 	end
 end
 
@@ -23,14 +23,14 @@ local function helper_eb2c()
 	local rot_y: f32 = 0
 	local var4: f32 = 0
 	do
-		local _, out2, _ = monster.GetRot()
+		local _, out2, _ = monster.get_rotation()
 		var4 = out2 or var4
 	end
 	do
-		local _, out2, _ = monster.GetRot(0)
+		local _, out2, _ = monster.get_rotation(0)
 		rot_y = out2 or rot_y
 	end
-	var4 = monster.GetTargetAngle() or var4
+	var4 = monster.get_target_angle() or var4
 	var4 = vm.f32(var4 - rot_y)
 	if var4 > vm.f32(3.1415927) then
 		var4 = vm.f32(var4 - vm.f32(6.2831855))
@@ -40,17 +40,17 @@ local function helper_eb2c()
 	end
 	if global3 == 25 then
 		if var4 < 0.0 then
-			monster.SetNextRot(1.5707964, 0.049087387)
+			monster.turn_toward_angle(1.5707964, 0.049087387)
 			return
 		end
 	end
 	if global3 == 26 then
 		if var4 > 0.0 then
-			monster.SetNextRot(-1.5707964, 0.049087387)
+			monster.turn_toward_angle(-1.5707964, 0.049087387)
 			return
 		end
 	end
-	monster.SetNextRot(var4, 0.09817477)
+	monster.turn_toward_angle(var4, 0.09817477)
 end
 
 --- Runs the monster's death.
@@ -63,29 +63,29 @@ local function on_death()
 	local var5: f32 = 0
 	local chara_type: s32 = 0
 	local value: s32 = 0
-	monster.SetDeadStart()
-	chara_type = monster.GetUserid() or chara_type
+	monster.start_death()
+	chara_type = monster.get_character_number() or chara_type
 	do
-		local out1, out2, out3 = monster.GetPos_3()
+		local out1, out2, out3 = monster.get_position_3()
 		pos_x = out1 or pos_x
 		pos_y = out2 or pos_y
 		pos_z = out3 or pos_z
 	end
 	do
-		local out1, out2, out3 = monster.GetRot()
+		local out1, out2, out3 = monster.get_rotation()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	monster.EsmCreate_1("軍艦ダメージ")
-	monster.EsmSetVect1(-1, pos_x, pos_y, pos_z)
-	monster.EsmSetVect2(-1, var3, var4, var5)
-	monster.EsmCreate_1("Ｍ汎用煙")
-	monster.EsmSetUserId(-1, chara_type)
-	monster.SetAttrib(1, 1)
-	monster.SetAttrib(32, 1)
-	value = monster.VPop(67) or value
-	monster.SetActiveMonsLifei(value, -900)
+	monster.create_effect_1("軍艦ダメージ")
+	monster.set_effect_first_vector(-1, pos_x, pos_y, pos_z)
+	monster.set_effect_second_vector(-1, var3, var4, var5)
+	monster.create_effect_1("Ｍ汎用煙")
+	monster.set_effect_owner(-1, chara_type)
+	monster.set_monster_attributes(1, 1)
+	monster.set_monster_attributes(32, 1)
+	value = monster.get_variable(67) or value
+	monster.add_monster_life(value, -900)
 	while true do
 		vm.wait()
 	end
@@ -97,17 +97,17 @@ local function helper_1dd8()
 	local var1: s32 = 0
 	local var2: s32 = 0
 	local life: s32 = 0
-	value = monster.VPop(4) or value
-	var1 = monster.GetActiveMonsLifei(-1) or var1
-	monster.VPush(4, var1)
+	value = monster.get_variable(4) or value
+	var1 = monster.get_monster_life(-1) or var1
+	monster.set_variable(4, var1)
 	var2 = vm.i32(value - var1)
-	var1 = monster.VPop(64) or var1
+	var1 = monster.get_variable(64) or var1
 	var1 = vm.i32(var1 - var2)
-	monster.VPush(64, var1)
+	monster.set_variable(64, var1)
 	if var1 <= 6000 then
-		monster.VPop(66)
+		monster.get_variable(66)
 	end
-	life = monster.GetActiveMonsLifei(-1) or life
+	life = monster.get_monster_life(-1) or life
 	if life <= 0 then
 		print("dead---------------\n")
 		on_death()
@@ -133,29 +133,29 @@ local function helper_f0b0()
 	local var8: s32 = 0
 	local value_2: s32 = 0
 	do
-		local out1, out2, out3 = monster.GetMapobjPos("shot")
+		local out1, out2, out3 = monster.get_linked_piece_frame_position("shot")
 		pos_x = out1 or pos_x
 		pos_y = out2 or pos_y
 		pos_z = out3 or pos_z
 	end
 	do
-		local out1, out2, out3 = monster.GetTargetPos()
+		local out1, out2, out3 = monster.get_target_position()
 		var3 = out1 or var3
 		var4 = out2 or var4
 		var5 = out3 or var5
 	end
-	value = monster.VPop(67) or value
-	monster.MonsSePlay(value, 6)
-	monster.MonsSePlay(value, 8)
-	monster.EsmCreate_1("マズルフラッシュ")
-	monster.EsmSetVect1(-1, pos_x, pos_y, pos_z)
-	attack = monster.GetBaseAttack_1() or attack
-	monster.EsmCreate_1("砲弾")
-	monster.EsmSetVect1(-1, pos_x, pos_y, pos_z)
-	monster.EsmSetVect2(-1, var3, var4, var5)
-	monster.EsmSetValue(-1, 0, attack)
-	monster.EsmSetValue(-1, 1, value)
-	value_2 = monster.VPop(8) or value_2
+	value = monster.get_variable(67) or value
+	monster.play_monster_sound(value, 6)
+	monster.play_monster_sound(value, 8)
+	monster.create_effect_1("マズルフラッシュ")
+	monster.set_effect_first_vector(-1, pos_x, pos_y, pos_z)
+	attack = monster.get_attack_power_1() or attack
+	monster.create_effect_1("砲弾")
+	monster.set_effect_first_vector(-1, pos_x, pos_y, pos_z)
+	monster.set_effect_second_vector(-1, var3, var4, var5)
+	monster.set_effect_value(-1, 0, attack)
+	monster.set_effect_value(-1, 1, value)
+	value_2 = monster.get_variable(8) or value_2
 	if value_2 ~= 1 then
 		var8 = 60
 	else
@@ -187,24 +187,24 @@ function script.setup() end
 function script.init()
 	local life: s32 = 0
 	local value: s32 = 0
-	monster.SetAttrib(4, 1)
+	monster.set_monster_attributes(4, 1)
 	global3 = 0
-	global3 = monster.GetUserid() or global3
+	global3 = monster.get_character_number() or global3
 	if global3 == 25 then
-		monster.LinkObjectToPiece("p01_battleship", "tbig-m0")
+		monster.ride_map_piece("p01_battleship", "tbig-m0")
 	end
 	if global3 == 26 then
-		monster.LinkObjectToPiece("p01_battleship", "tbig-m1")
+		monster.ride_map_piece("p01_battleship", "tbig-m1")
 	end
-	monster.SetPos(0, 0, 0)
-	monster.SetRot(0, 0, 0)
-	value = monster.VPop(64) or value
-	life = monster.GetActiveMonsLifei(-1) or life
-	monster.VPush(4, life)
-	monster.VPush(64, vm.i32(value + life))
-	monster.VPush(65, vm.i32(value + life))
+	monster.set_position(0, 0, 0)
+	monster.set_rotation(0, 0, 0)
+	value = monster.get_variable(64) or value
+	life = monster.get_monster_life(-1) or life
+	monster.set_variable(4, life)
+	monster.set_variable(64, vm.i32(value + life))
+	monster.set_variable(65, vm.i32(value + life))
 	helper_24b4()
-	monster.SetClipDist(999999.0)
+	monster.set_clip_distance(999999.0)
 end
 
 --- Runs the monster's normal behaviour.
@@ -214,16 +214,16 @@ function script.loop()
 	local argc: s32 = 0
 	local var3: f32 = 0
 	local argc_2: s32 = 0
-	monster.SetIntFlag(1, 0)
-	monster.SetIntFlag(2, 0)
-	monster.SetActStatus(0)
-	monster.SetRot(-0.3926991, 0.0, 0.0)
+	monster.set_mask_flags(1, 0)
+	monster.set_mask_flags(2, 0)
+	monster.set_action_status(0)
+	monster.set_rotation(-0.3926991, 0.0, 0.0)
 	while true do
 		helper_eb2c()
 		if global3 == 25 then
 			var1 = helper_8700c9e2()
 			if var1 < vm.f32(-0.98) then
-				argc = monster.GetRnd(100) or argc
+				argc = monster.get_random(100) or argc
 				if argc < 30 then
 					helper_f0b0()
 				end
@@ -232,13 +232,13 @@ function script.loop()
 		if global3 == 26 then
 			var3 = helper_8700c9e2()
 			if var3 < vm.f32(-0.98) then
-				argc_2 = monster.GetRnd(100) or argc_2
+				argc_2 = monster.get_random(100) or argc_2
 				if argc_2 < 30 then
 					helper_f0b0()
 				end
 			end
 		end
-		value = monster.VPop(8) or value
+		value = monster.get_variable(8) or value
 		if value ~= 1 then
 			helper_224c(5)
 		end

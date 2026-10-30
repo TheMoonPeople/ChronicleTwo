@@ -2,12 +2,12 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 
 #include "vu1/sprite3d_geom.hpp"
-#include "vu1_sprite3d_oracle.hpp"
 #include "vu1_oracle/vu1_pack.hpp"
+#include "vu1_sprite3d_oracle.hpp"
 
 namespace {
 
@@ -39,7 +39,7 @@ Sprite3dRecord CommonRecord() {
     return r;
 }
 
-void ExpectScreen(const oracle::Vertex& v, float x, float y, float z, float f) {
+void ExpectScreen(const oracle::Vertex &v, float x, float y, float z, float f) {
     EXPECT_FLOAT_EQ(v.screen.x, x);
     EXPECT_FLOAT_EQ(v.screen.y, y);
     EXPECT_FLOAT_EQ(v.screen.z, z);
@@ -48,9 +48,9 @@ void ExpectScreen(const oracle::Vertex& v, float x, float y, float z, float f) {
 
 // The native path must make the same drawn decision and, after the GS quantisation, land within
 // one LSB of the oracle on every component. Non-finite output is a failure in itself.
-void ExpectNativeAgreesWithOracle(const Sprite3dParams& p, const Sprite3dRecord& r, int mode) {
+void ExpectNativeAgreesWithOracle(const Sprite3dParams &p, const Sprite3dRecord &r, int mode) {
     const Sprite3dQuadF n = Sprite3dExpandNative(p, r, mode);
-    const oracle::Quad o = oracle::Expand(p, r, mode);
+    const oracle::Quad  o = oracle::Expand(p, r, mode);
 
     EXPECT_EQ(n.drawn, o.drawn);
     EXPECT_EQ(n.count, o.vertex_count);
@@ -62,8 +62,8 @@ void ExpectNativeAgreesWithOracle(const Sprite3dParams& p, const Sprite3dRecord&
     }
 
     for (int i = 0; i < o.vertex_count; ++i) {
-        const Sprite3dVertexF& nv = n.v[i];
-        const oracle::Vertex& ov = o.v[i];
+        const Sprite3dVertexF &nv = n.v[i];
+        const oracle::Vertex  &ov = o.v[i];
 
         EXPECT_TRUE(std::isfinite(nv.x) && std::isfinite(nv.y) && std::isfinite(nv.z)) << "vertex " << i;
         EXPECT_TRUE(std::isfinite(nv.u) && std::isfinite(nv.v) && std::isfinite(nv.fog)) << "vertex " << i;
@@ -82,7 +82,7 @@ void ExpectNativeAgreesWithOracle(const Sprite3dParams& p, const Sprite3dRecord&
     }
 }
 
-}  // namespace
+} // namespace
 
 // Section 10 case 1: Pw = 4, Q = 0.25, c = (2048, 2048, 10), F = 1.0.
 TEST(Vu1Sprite3dGeom, Case1NonRotatedSpriteAtCentre) {
@@ -128,7 +128,7 @@ TEST(Vu1Sprite3dGeom, Case1NonRotatedSpriteAtCentre) {
 // v0 and v1 carry ADC unconditionally; v2 and v3 are drawn without it.
 TEST(Vu1Sprite3dGeom, Case2RotatedStripWithAdcPattern) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.size = Vec4{.x = 8, .y = 6, .z = 1, .w = 0};
 
     const oracle::Quad q = oracle::Expand(p, r, 1);
@@ -215,7 +215,7 @@ TEST(Vu1Sprite3dGeom, FarValueSubVectorSetsFogByte) {
 // Pw = 1.1: F0 = 0.5 + 8/1.1 = 7.77, min with near_value 1.0 gives 1.0, so F = 1.0 (w word 0x0010).
 TEST(Vu1Sprite3dGeom, UpperBoundFogClampedAtNearValue) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.pos = Vec4{.x = 0, .y = 0, .z = 0, .w = 0.275f};
 
     const oracle::Quad q = oracle::Expand(p, r, 0);
@@ -230,7 +230,7 @@ TEST(Vu1Sprite3dGeom, UpperBoundFogClampedAtNearValue) {
 // because the test is strict. pos.x = -4093 gives c.x = 1.5 and half.x = 0.5.
 TEST(Vu1Sprite3dGeom, CullMinXExactlyOneIsRejected) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.pos = Vec4{.x = -4093, .y = 0, .z = 0, .w = 1};
     r.size = Vec4{.x = 2, .y = 6, .z = 0, .w = 0};
 
@@ -245,7 +245,7 @@ TEST(Vu1Sprite3dGeom, CullMinXExactlyOneIsRejected) {
 // max.x = 4096, one past 4095. min.x = 104 passes, so only the upper bound fails.
 TEST(Vu1Sprite3dGeom, CullMaxXOnePastBoundIsRejected) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.pos = Vec4{.x = 104, .y = 0, .z = 0, .w = 1};
     r.size = Vec4{.x = 7984, .y = 6, .z = 0, .w = 0};
 
@@ -261,8 +261,8 @@ TEST(Vu1Sprite3dGeom, CullMaxXOnePastBoundIsRejected) {
 // Pw = 300 and Pw = 0.5 lie outside.
 TEST(Vu1Sprite3dGeom, CullWindowIsStrictOnBothSides) {
     const Sprite3dParams p = CommonParams();
-    const float pos_w[] = {50.0f, 75.0f, 0.25f, 0.125f};
-    const float pw[] = {200.0f, 300.0f, 1.0f, 0.5f};
+    const float          pos_w[] = {50.0f, 75.0f, 0.25f, 0.125f};
+    const float          pw[] = {200.0f, 300.0f, 1.0f, 0.5f};
     for (int i = 0; i < 4; ++i) {
         Sprite3dRecord r = CommonRecord();
         r.pos = Vec4{.x = 0, .y = 0, .z = 0, .w = pos_w[i]};
@@ -280,7 +280,7 @@ TEST(Vu1Sprite3dGeom, CullWindowIsStrictOnBothSides) {
 // window test fails. With pos = 0 and size = 0 every coordinate stays exact.
 TEST(Vu1Sprite3dGeom, ZeroPwIsRejectedWithoutNan) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.pos = Vec4{.x = 0, .y = 0, .z = 0, .w = 0};
     r.size = Vec4{.x = 0, .y = 0, .z = 0, .w = 0};
 
@@ -298,7 +298,7 @@ TEST(Vu1Sprite3dGeom, ZeroPwIsRejectedWithoutNan) {
 // same x extent as the min.x case, so the corner at x = 1 exactly is rejected.
 TEST(Vu1Sprite3dGeom, RejectedRotatedSpriteSetsAdcOnAllVertices) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.pos = Vec4{.x = -4093, .y = 0, .z = 0, .w = 1};
     r.size = Vec4{.x = 2, .y = 6, .z = 0, .w = 1};
 
@@ -316,7 +316,7 @@ TEST(Vu1Sprite3dGeom, RejectedRotatedSpriteSetsAdcOnAllVertices) {
 // same strip as mode 1.
 TEST(Vu1Sprite3dGeom, ModesOtherThanZeroUseTheStripPath) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.size = Vec4{.x = 8, .y = 6, .z = 1, .w = 0};
 
     const oracle::Quad q1 = oracle::Expand(p, r, 1);
@@ -345,7 +345,7 @@ TEST(Vu1Sprite3dGeom, ModesOtherThanZeroUseTheStripPath) {
 // unclamped and leaves the host saturation to the caller.
 TEST(Vu1Sprite3dGeom, ColourSaturatesTo16BitsBeforeLowByte) {
     const Sprite3dParams p = CommonParams();
-    Sprite3dRecord r = CommonRecord();
+    Sprite3dRecord       r = CommonRecord();
     r.colour = Vec4{.x = 300, .y = 40000, .z = -1, .w = 255};
 
     const oracle::Quad q = oracle::Expand(p, r, 0);

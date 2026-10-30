@@ -1,0 +1,15 @@
+**
+!port/
+!port/CMakeLists.txt
+!port/cmake/
+!port/cmake/**
+!port/src/
+!port/src/tests/
+!port/src/tests/CMakeLists.txt
+!tools/
+!tools/kazarov/
+!tools/kazarov/cmake/
+!tools/kazarov/cmake/**
+!tools/kazarov/tools/
+!tools/kazarov/tools/ffmpeg/
+!tools/kazarov/tools/ffmpeg/kz-ffmpeg

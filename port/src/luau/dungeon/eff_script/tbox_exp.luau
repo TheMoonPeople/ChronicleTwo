@@ -18,17 +18,17 @@ function script.on_start()
 	local work_vect1_y: f32 = 0
 	local work_vect1_z: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	effect.ChrSetMotion("爆発", -1, 6)
-	effect.ColprimCreate("宝箱爆発")
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 120.0)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	effect.set_effect_character_motion("爆発", -1, 6)
+	effect.create_collision_primitive("宝箱爆発")
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 120.0)
 	helper_8b333653()
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

@@ -19,14 +19,18 @@ protected:
         Config config;
         config.debug_mode = true;
         ASSERT_TRUE(ConfigChange(config));
+        ASSERT_TRUE(ConfigSave());
         ASSERT_TRUE(std::filesystem::exists(root / "config.json"));
     }
 
     void TearDown() override {
-        ConfigChange(Config{});
+        ConfigChange(previous_config);
+        PathsSetSaveRoot(previous_save_root);
         std::filesystem::remove_all(root);
     }
 
+    Config                previous_config = ConfigGet();
+    std::filesystem::path previous_save_root = PathsSaveRoot();
     std::filesystem::path root;
 };
 } // namespace dc::test

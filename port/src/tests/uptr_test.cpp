@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
+#include <kazarov/types.hpp>
 
 #include <cstddef>
+#include <cstdint>
 #include <type_traits>
 
 #include "menucommon.hpp"
@@ -8,6 +10,16 @@
 #include "platform/memory.hpp"
 
 namespace {
+
+static_assert(std::is_same_v<uptr, kz::uptr>);
+static_assert(std::is_same_v<sptr, kz::sptr>);
+static_assert(std::is_same_v<std::size_t, kz::size_t>);
+static_assert(sizeof(uptr) == sizeof(void *));
+static_assert(sizeof(sptr) == sizeof(void *));
+static_assert(sizeof(u8) == 1 && sizeof(u16) == 2 && sizeof(u32) == 4 && sizeof(u64) == 8);
+static_assert(sizeof(s8) == 1 && sizeof(s16) == 2 && sizeof(s32) == 4 && sizeof(s64) == 8);
+static_assert(std::is_same_v<s8, std::int8_t>);
+static_assert(sizeof(u_long128) == 16);
 
 constexpr std::size_t kBytes = 64 * 1024;
 
@@ -43,8 +55,8 @@ TEST(Uptr, AddressAbove4GiBRoundTripsThroughOffset) {
         GTEST_SKIP() << "the arena has no block above 4 GiB";
     }
 
-    const uptr     offset = 0x1234;
-    auto          *moved = reinterpret_cast<unsigned char *>(reinterpret_cast<uptr>(base) + offset);
+    const uptr offset = 0x1234;
+    auto      *moved = reinterpret_cast<unsigned char *>(reinterpret_cast<uptr>(base) + offset);
 
     EXPECT_EQ(moved, base + offset);
     EXPECT_EQ(reinterpret_cast<uptr>(moved) >> 32, reinterpret_cast<uptr>(base) >> 32);

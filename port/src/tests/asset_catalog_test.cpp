@@ -5,9 +5,11 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <span>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
+#include "memory/tracked_copy.hpp"
 #include "platform/datapacks.hpp"
 
 namespace {
@@ -57,13 +59,26 @@ TEST_F(NativeAssetsTest, LoadsActualJsonAndPreservesItsByteBoundsAcrossCopies) {
     alignas(16) std::array<unsigned char, 2048> copy{};
     char                                        path[] = "menu/positions.json";
     int                                         size = 0;
-    ASSERT_TRUE(LoadFile(path, source.data(), &size));
+    ASSERT_TRUE(LoadFile(path, std::span(source), &size));
     EXPECT_EQ(size, sizeof(json) - 1);
     EXPECT_EQ(std::memcmp(source.data(), json, sizeof(json) - 1), 0);
     EXPECT_EQ(DataReadBufferPath(source.data()), "menu/positions.json");
     EXPECT_EQ(DataReadBufferSize(source.data()), sizeof(json) - 1);
-    std::memcpy(copy.data(), source.data(), source.size());
-    DataReadCopyBuffer(source.data(), copy.data(), source.size());
+    EXPECT_EQ(dc2::memory::CopyTrackedBytes(copy.data(), source.data(), source.size()), copy.data());
     EXPECT_EQ(DataReadBufferSize(copy.data()), sizeof(json) - 1);
+    EXPECT_EQ(TextureSourceLookup(copy.data()), TextureSourceLookup(source.data()));
     EXPECT_FALSE(DataReadFind("menu/positions.cfg"));
+}
+
+TEST_F(NativeAssetsTest, TrackedCopyDropsStaleMetadataWhenSourceIsUntracked) {
+    std::array<unsigned char, 8> source{1, 2, 3, 4, 5, 6, 7, 8};
+    std::array<unsigned char, 8> destination{};
+    TextureSourceForget(source.data());
+    DataReadRegisterBuffer(source.data(), 0);
+    TextureSourceRegister(destination.data(), "old/resource.bin", destination.size());
+
+    EXPECT_EQ(dc2::memory::CopyTrackedBytes(destination.data(), source.data(), source.size()), destination.data());
+    EXPECT_EQ(destination, source);
+    EXPECT_FALSE(TextureSourceLookup(destination.data()));
+    EXPECT_EQ(DataReadBufferSize(destination.data()), 0U);
 }

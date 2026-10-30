@@ -1,0 +1,53 @@
+name: Dependency bundle
+on:
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        required: true
+      artifact:
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - name: Identify the dependency inputs
+        id: inputs
+        shell: bash
+        run: echo "kazarov=$(git rev-parse HEAD:tools/kazarov)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v5
+        id: bundle
+        with:
+          path: .kazarov/bundle
+          key: deps-v1-${{ inputs.platform }}-${{ steps.inputs.outputs.kazarov }}-${{ hashFiles('tools/ci/Dockerfile*', 'port/CMakeLists.txt', 'port/cmake/*.cmake', 'port/src/tests/CMakeLists.txt') }}
+      - uses: docker/setup-buildx-action@v3
+        if: steps.bundle.outputs.cache-hit != 'true'
+      - name: Build the verified dependency bundle
+        if: steps.bundle.outputs.cache-hit != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: tools/ci/Dockerfile
+          target: ${{ inputs.platform }}-bundle
+          outputs: type=local,dest=.kazarov/export
+          cache-from: type=gha,scope=deps-${{ inputs.platform }}
+          cache-to: type=gha,mode=max,scope=deps-${{ inputs.platform }},ignore-error=true
+      - name: Collect the dependency bundle
+        if: steps.bundle.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .kazarov/bundle
+          mv .kazarov/export/deps.tar.gz .kazarov/export/deps.sha256 .kazarov/bundle/
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact }}
+          path: .kazarov/bundle/*
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error

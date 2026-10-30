@@ -4,7 +4,6 @@
 #include <string>
 #include <string_view>
 
-#include "bounded_text.hpp"
 #include "font.hpp"
 #include "inventmn.hpp"
 #include "menucommon.hpp"
@@ -12,6 +11,7 @@
 #include "menumain.hpp"
 #include "mglib.hpp"
 #include "stubs/inventmn.hpp"
+#include "text/bounded.hpp"
 
 namespace {
 
@@ -29,19 +29,19 @@ constexpr std::size_t kTitleCapacity = 0x80;
  */
 std::string_view MemoPrefix(short neta_id) {
     if (neta_id < INVENT_NETA_ID_SCOOP) {
-        return bounded_text::View(gaiji_table_4737[0]);
+        return dc2::text::View(gaiji_table_4737[0]);
     }
     if (neta_id < INVENT_NETA_ID_SCOOP_END) {
-        return bounded_text::View(gaiji_table_4737[1]);
+        return dc2::text::View(gaiji_table_4737[1]);
     }
-    return bounded_text::View(gaiji_table_4737[2]);
+    return dc2::text::View(gaiji_table_4737[2]);
 }
 
 } // namespace
 
 // Retail builds the icon and idea name in 33 bytes, which Spanish idea names overran. The result keeps
 // the whole name up to the photo title's 128 bytes.
-PORT_OVERRIDE char *GetPhotoNameCheck(USER_PICTURE_INFO *info) {
+char *GetPhotoNameCheck(USER_PICTURE_INFO *info) {
     static std::array<char, kTitleCapacity> title;
     const char                             *name = GetPhotoName(info);
     if (name == nullptr) {
@@ -50,16 +50,16 @@ PORT_OVERRIDE char *GetPhotoNameCheck(USER_PICTURE_INFO *info) {
 
     std::string text;
     if (info->neta_id > 0) {
-        text = bounded_text::View(addstringtable_1722[info->neta_id >= INVENT_NETA_ID_SCOOP ? 1 : 0]);
+        text = dc2::text::View(addstringtable_1722[info->neta_id >= INVENT_NETA_ID_SCOOP ? 1 : 0]);
     }
     text += name;
-    bounded_text::Copy(title, text);
+    dc2::text::Copy(title, text);
     return title.data();
 }
 
 // Retail formats each memo row into 32 bytes, which the icon and a Spanish idea name overran; rows are
 // formatted to the font's 128-byte limit instead.
-PORT_OVERRIDE void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
+void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
     if (Tex_Hatsumei == nullptr || origin[0] < -200.0f) {
         return;
     }
@@ -124,7 +124,7 @@ PORT_OVERRIDE void MenuInventNetaMemoDraw(float *origin, int &loaded_tex) {
         if (NetaMemoStr[i] != nullptr) {
             std::string row{MemoPrefix(NetaMemoID[i])};
             row += NetaMemoStr[i];
-            bounded_text::Copy(text, row);
+            dc2::text::Copy(text, row);
             menu_font.SetStr(text.data());
         } else {
             menu_font.SetStr(GetHatena());

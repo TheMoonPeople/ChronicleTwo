@@ -27,53 +27,53 @@ function script.on_start()
 	local value: s32 = 0
 	local var26: s32 = 0
 	local value_2: s32 = 0
-	var21 = effect.SptAssignSprite_2(210) or var21
+	var21 = effect.allocate_sprites_2(210) or var21
 	if var21 == 0 then
 		return
 	end
-	effect.SptSetTexname("hinoko")
-	effect.SptInitSprite(0, 210)
-	effect.SptSetAlphab(0, 2, 210)
-	effect.SptSetUvSize(0, 64.0, 0.0, 64.0, 64.0, 210)
-	effect.SptSetPutSize(0, 1.0, 1.0, 210)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 128.0, 210)
-	effect.SptSetDrawFlag(0, 1, 210)
-	effect.SptSetPos(0, 0.0, 0.0, 0.0, 210)
-	effect.SptSetAccPos(0, 0.0, -0.3, 0.0, 210)
-	user_id = effect.GetUserId() or user_id
+	effect.set_sprite_texture("hinoko")
+	effect.reset_sprites(0, 210)
+	effect.set_sprite_blend_mode(0, 2, 210)
+	effect.set_sprite_texture_rect(0, 64.0, 0.0, 64.0, 64.0, 210)
+	effect.set_sprite_size(0, 1.0, 1.0, 210)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 128.0, 210)
+	effect.set_sprite_visible(0, 1, 210)
+	effect.set_sprite_position(0, 0.0, 0.0, 0.0, 210)
+	effect.set_sprite_acceleration(0, 0.0, -0.3, 0.0, 210)
+	user_id = effect.get_owner_character() or user_id
 	var24 = 0
 	while true do
 		for var19 = 0, 209 do
 			do
-				local _, _, _, out4 = effect.SptGetColor(var19)
+				local _, _, _, out4 = effect.get_sprite_color(var19)
 				color_w = out4 or color_w
 			end
 			if color_w <= 0.0 then
-				effect.SptSetDrawFlag(var19, 0)
+				effect.set_sprite_visible(var19, 0)
 			end
-			var26 = effect.SptGetDrawFlag(var19) or var26
+			var26 = effect.is_sprite_visible(var19) or var26
 			if var26 ~= 0 then
 				do
-					local _, out2, _ = effect.SptGetPos(var19)
+					local _, out2, _ = effect.get_sprite_position(var19)
 					pos_y_2 = out2 or pos_y_2
 				end
 				if pos_y_2 < 2.0 then
-					var26 = effect.GetValue(1) or var26
+					var26 = effect.get_script_value(1) or var26
 					if var26 == 0 then
 						pos_y_2 = vm.f32(pos_y_2 * vm.f32(-0.8))
-						effect.SptSetVeloPos(var19, 0.0, pos_y_2, 0.0)
-						effect.SptSetAccPos(var19, 0.0, -0.3, 0.0)
+						effect.set_sprite_velocity(var19, 0.0, pos_y_2, 0.0)
+						effect.set_sprite_acceleration(var19, 0.0, -0.3, 0.0)
 					end
 				end
 			end
 		end
-		value = effect.GetValue(2) or value
+		value = effect.get_script_value(2) or value
 		if value ~= 1 then
 			for var22 = 0, 3 do
-				value_2 = effect.GetRandInt(100) or value_2
+				value_2 = effect.get_random_number_int(100) or value_2
 				if value_2 < 33 then
 					do
-						local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "eff0_03")
+						local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "eff0_03")
 						pos_x = out1 or pos_x
 						pos_y = out2 or pos_y
 						pos_z = out3 or pos_z
@@ -82,7 +82,7 @@ function script.on_start()
 				end
 				if value_2 < 66 and value_2 >= 33 then
 					do
-						local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "eff0_01")
+						local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "eff0_01")
 						pos_x = out1 or pos_x
 						pos_y = out2 or pos_y
 						pos_z = out3 or pos_z
@@ -91,7 +91,7 @@ function script.on_start()
 				end
 				if value_2 < 100 and value_2 > 66 then
 					do
-						local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "eff0_02")
+						local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "eff0_02")
 						pos_x = out1 or pos_x
 						pos_y = out2 or pos_y
 						pos_z = out3 or pos_z

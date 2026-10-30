@@ -81,7 +81,7 @@ This inventory was made by stream `uptr` and completed by stream `records`. `scr
 | sceMcIconSys | 0x3C4 | `ps2/include/sce/libmc.h:90` | memcard.cpp:CMemoryCardManager::SetIconData (writer only) | none (no pointers) | assert | - |
 | sceMcStDateTime | 0x8 | `ps2/include/sce/libmc.h:106` | convviewlp.cpp:SaveDataConvertLoop (member of sceMcTblGetDir) | none (no pointers) | assert | - |
 | sceMcTblGetDir | 0x40 | `ps2/include/sce/libmc.h:123` | convviewlp.cpp:SaveDataConvertLoop (sceMcGetDir fills dir_entries, memcpy at line 360) | none (no pointers) | assert | - |
-| SND_REV_INFO | 0x8 | `ps2/include/scenesnd.hpp:254` | scenesnd.cpp:CScene::LoadSndRevInfo (memcpy of rev.bin buffer) | none (no pointers) | assert | - |
+| SND_REV_INFO | 0x8 | `ps2/include/scenesnd.hpp:255` | scenesnd.cpp:CScene::LoadSndRevInfo (memcpy of rev.bin buffer) | none (no pointers) | assert | - |
 | CHARA_DATA | 0x38C | `ps2/include/userdata.hpp:252` | memcard.cpp:CMemoryCardManager::LoadFromMc (CSaveData memcpy, memcard.cpp:1333) | none (no pointers) | assert | - |
 | ROBO_DATA | 0x220 | `ps2/include/userdata.hpp:307` | memcard.cpp:CMemoryCardManager::LoadFromMc (CSaveData memcpy, memcard.cpp:1333) | none (no pointers) | assert | - |
 | MOS_CHANGE_PARAM | 0xBC | `ps2/include/userdata.hpp:398` | memcard.cpp:CMemoryCardManager::LoadFromMc (CSaveData memcpy, memcard.cpp:1333) | none (no pointers) | assert | - |
@@ -99,7 +99,7 @@ This inventory was made by stream `uptr` and completed by stream `records`. `scr
 | CUserDataManager | 0x457A0 | `ps2/include/userdata.hpp:2180` | memcard.cpp:CMemoryCardManager::LoadFromMc; inventmn.cpp:CInventUserData::ResetAddress | host image: the PC writes and reads its own card files in host layout; `USER_PICTURE_INFO::image` is a pointer into `photo_work`, rebound by `CInventUserData::ResetAddress` before use; memcard.cpp sizes everything by sizeof | host image | - |
 | CDC2AlbumData | 0x64CB0 | `ps2/include/inventmn.hpp:556` | memcard.cpp album save/load | host image: the PC writes and reads its own card files in host layout; `USER_PICTURE_INFO::image` is a pointer into `photo_work`, rebound by `CInventUserData::ResetAddress` before use; memcard.cpp sizes everything by sizeof | host image | - |
 | SAVE_CONVERT_WORK | 0x659C0 | `ps2/include/convviewlp.hpp:83` | convviewlp.cpp:SaveDataConvertLoop | host image: the PC writes and reads its own card files in host layout; `USER_PICTURE_INFO::image` is a pointer into `photo_work`, rebound by `CInventUserData::ResetAddress` before use; memcard.cpp sizes everything by sizeof | host image | - |
-| INVENT_CREATED_ITEM_OLD | 0xC | `ps2/src/inventmn.cpp:1185` | memcard.cpp:CMemoryCardManager::LoadFromMc; inventmn.cpp:TranslateInventUserData | none (no pointers) | assert | - |
+| INVENT_CREATED_ITEM_OLD | 0xC | `ps2/src/inventmn.cpp:1186` | memcard.cpp:CMemoryCardManager::LoadFromMc; inventmn.cpp:TranslateInventUserData | none (no pointers) | assert | - |
 
 ## Notes per format
 

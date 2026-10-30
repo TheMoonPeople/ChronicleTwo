@@ -6,11 +6,11 @@ local vm = require("@lib/vm")
 --- Helper function.
 local function helper_95828c6f()
 	local gekirin: s32 = 0
-	gekirin = vm.float_bits(monster.GetGekirin()) or gekirin
+	gekirin = vm.float_bits(monster.get_rage_hits_left()) or gekirin
 	if gekirin > 0 then
-		monster.SetModelLightSwitch(0)
+		monster.set_model_lighting(0)
 	else
-		monster.SetModelLightSwitch(1)
+		monster.set_model_lighting(1)
 	end
 end
 

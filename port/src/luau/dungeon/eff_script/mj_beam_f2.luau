@@ -24,25 +24,25 @@ function script.on_start()
 	local user_id: s32 = 0
 	local var8: s32 = 0
 	value = 0.0
-	value = effect.GetValueFloat(0) or value
-	effect.ChrSetScale(value, value, value)
-	effect.ChrSetMotion("攻撃２入り", 6)
-	user_id = effect.GetUserId() or user_id
+	value = effect.get_script_value_float(0) or value
+	effect.set_effect_character_scale(value, value, value)
+	effect.set_effect_character_motion("攻撃２入り", 6)
+	user_id = effect.get_owner_character() or user_id
 	do
-		local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "dcol2")
+		local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "dcol2")
 		var3 = out1 or var3
 		yaw = out2 or yaw
 		var5 = out3 or var5
 	end
-	effect.ChrSetRot(var3, yaw, var5)
+	effect.rotate_effect_character_toward(var3, yaw, var5)
 	while var8 < 73 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "dcol2")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "dcol2")
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
 		vm.wait()
 		var8 = var8 + 1
 	end

@@ -1,0 +1,62 @@
+--!strict
+-- Shared event helper used by 513 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local helper_57c93eff = require("@lib/event/helper_57c93eff")
+
+--- Helper function.
+local function helper_5ac4b36d(arg0: s32)
+	local var1: s32 = 0
+	local var2: s32 = 0
+	local argc: s32 = 0
+	local argc_2: s32 = 0
+	local var5: s32 = 0
+	local var6: s32 = 0
+	local var7: s32 = 0
+	local loud: s32 = 0
+	var1 = event.get_save_data_value(5) or var1
+	event.trigger_mouth_texture_animation(1)
+	event.trigger_mouth_motion(0)
+	var2 = 0
+	var6 = 0
+	argc_2 = event.get_voice_stream_state(1) or argc_2
+	loud = 0
+	while true do
+		argc_2 = argc
+		argc = event.get_voice_stream_state(1) or argc
+		if argc_2 ~= 0 and argc == 0 then
+			event.trigger_mouth_motion(2)
+			var2 = 2
+			if var1 ~= 0 then
+				break
+			end
+		end
+		var7 = loud
+		loud = event.is_voice_stream_audible(1) or loud
+		if var7 == 0 and loud == 1 then
+			event.trigger_mouth_texture_animation(1)
+		end
+		if var7 == 1 and loud == 0 then
+			event.trigger_mouth_texture_animation(0)
+		end
+		local t0: s32
+		t0, var2 = helper_57c93eff(arg0, var2)
+		var5 = t0
+		if var5 ~= 0 then
+			var6 = vm.i32(var6 + 1)
+			break
+		else
+			vm.wait(1)
+			var6 = vm.i32(var6 + 1)
+		end
+	end
+	if var2 == 0 then
+		event.trigger_mouth_motion(2)
+	end
+	event.reset_mouth_motions()
+	event.trigger_mouth_texture_animation(0)
+	event.reset_mouth_texture_animations()
+	event.stop_voice_stream(1)
+end
+
+return helper_5ac4b36d

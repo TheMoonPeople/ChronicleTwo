@@ -13,11 +13,11 @@
 #include "menu_mouse_item.hpp"
 #include "menudraw.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
 #include "platform/window.hpp"
+#include "render/renderer.hpp"
 
 namespace {
 bool            enabled = false, closing = false;

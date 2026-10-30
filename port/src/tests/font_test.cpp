@@ -5,6 +5,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <tuple>
 #include <vector>
 
@@ -12,14 +13,14 @@
 #include <SDL3/SDL.h>
 
 #include "font.hpp"
-#include "font_port.hpp"
 #include "gfx_fixture.hpp"
 #include "mainloop.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mglib.hpp"
 #include "nd_meswin.hpp"
 #include "platform/config.hpp"
 #include "platform/paths.hpp"
+#include "render/primitive_submission.hpp"
+#include "text/glyph_mapping.hpp"
 
 namespace {
 
@@ -91,6 +92,22 @@ TEST(FontPort, MapsOnlyVerifiedAsciiTableEntries) {
     EXPECT_EQ(FontPortCharacter(LANG_ENGLISH, 0, table), 0u);
 }
 
+TEST(FontPort, LookupTerminatesForEmptySingleEntryAndInvalidTables) {
+    FontState state;
+    auto     *header = reinterpret_cast<FONT_TBL_BIN *>(GetYoyakuTblTop() - offsetof(FONT_TBL_BIN, yoyaku_tbl));
+    char      first[] = "  ";
+    char      missing[] = "! ";
+    header->yoyaku_num = 0;
+    EXPECT_EQ(GetFontNo(first), -1);
+    header->yoyaku_num = 1;
+    EXPECT_EQ(GetFontNo(first), 0);
+    EXPECT_EQ(GetFontNo(missing), -1);
+    header->yoyaku_num = std::numeric_limits<u16>::max();
+    EXPECT_EQ(GetYoyakuTblNum(), 0);
+    EXPECT_EQ(GetFontNo(first), -1);
+    EXPECT_EQ(GetFontNo(nullptr), -1);
+}
+
 TEST(FontPortGpu, SharpDrawingKeepsRetailLayoutAndLineBreaks) {
     const char *file = SettingsEnv("TEST_FONT");
     if (!file || !std::filesystem::is_regular_file(PathsFromUtf8(file))) {
@@ -116,10 +133,10 @@ TEST(FontPortGpu, SharpDrawingKeepsRetailLayoutAndLineBreaks) {
         std::ofstream(root / "config.json") << R"({"video":{"text_font":")" << choice << "\"}}";
         EXPECT_TRUE(ConfigLoad());
     };
-    dc::test::GfxFixture                     gfx(1440, 1080, 1.0f, dc::test::GfxOptions{.offscreen = true});
-    FontState                                state;
-    std::vector<gfx::TextureHandle>          textures;
-    std::vector<std::vector<gfx::Vertex2D> > geometry;
+    dc::test::GfxFixture                    gfx(1440, 1080, 1.0f, dc::test::GfxOptions{.offscreen = true});
+    FontState                               state;
+    std::vector<gfx::TextureHandle>         textures;
+    std::vector<std::vector<gfx::Vertex2D>> geometry;
     mgPortSetPrimSink([&](gfx::Primitive, std::span<const gfx::Vertex2D> vertices, const gfx::TextureBinding &texture,
                           const gfx::DrawState &) {
         textures.push_back(texture.texture);
@@ -166,7 +183,7 @@ TEST(FontPortGpu, SharpDrawingKeepsRetailLayoutAndLineBreaks) {
     // A tokenized page also keeps its explicit page/line/space/position controls and icon cells.
     std::array<u16, 16> message = {1, 0, 7, 3, 0, 0xf700 | 30, 33, 0xff02, 55, 0xfd06,
                                    0xff00, 0xf900 | 5, 34, 0xff03, 35, 0xff01};
-    mes.SetBuff(reinterpret_cast<short *>(message.data()));
+    mes.SetBuff(dc2::text::MessageTable::Parse(std::as_bytes(std::span(message))));
     select("original");
     ASSERT_EQ(mes.MakeMesWinTbl(7), 1);
     const auto tokenized = Entries(mes);

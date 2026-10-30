@@ -53,4 +53,4 @@ TEST(DbgFont, TrailingShiftJisLeadByteStopsWithoutReadingPastTerminator) {
     EXPECT_EQ(font.loaded_texture_id, -1);
 }
 
-}  // namespace
+} // namespace

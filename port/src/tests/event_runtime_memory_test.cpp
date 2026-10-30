@@ -5,6 +5,7 @@
 
 #include "event.hpp"
 #include "mg_memory.hpp"
+#include "native_script_program.hpp"
 #include "platform/arena.hpp"
 #include "runscript.hpp"
 #include "stubs/event.hpp"
@@ -36,11 +37,11 @@ TEST(EventRuntimeMemory, ScriptBytesCanUseTheRetailBufferBudget) {
     char        *bytes = reinterpret_cast<char *>(memory.Alloc(19333));
     EventProgram program;
     std::memcpy(bytes, &program, sizeof(program));
-    SetEventScript(bytes, nullptr, &memory);
+    SetEventScript(std::span<u8>(reinterpret_cast<u8 *>(bytes), sizeof program), &memory);
     EXPECT_NE(EventScript.prog, nullptr);
     EXPECT_EQ(RunEvent(100, nullptr), 0);
     EXPECT_EQ(memory.stack_used, 19333);
-    SetEventScript(nullptr, nullptr, nullptr);
+    SetEventScript({}, nullptr);
     EXPECT_EQ(RunEvent(100, nullptr), -1);
 }
 
@@ -51,10 +52,10 @@ TEST(EventRuntimeMemory, ReplacingAProgramRetainsTheInterpreterStackCapacity) {
     alignas(64) u_long128 storage[1024]{};
     mgCMemory             memory;
     memory.stSetBuffer(storage, 1024);
-    SetEventScript(reinterpret_cast<char *>(&first), nullptr, &memory);
+    SetEventScript(ProgramBytes(first), &memory);
     EXPECT_EQ(RunEvent(100, nullptr), 0);
-    SetEventScript(reinterpret_cast<char *>(&second), nullptr, &memory);
+    SetEventScript(ProgramBytes(second), &memory);
     EXPECT_EQ(RunEvent(101, nullptr), 0);
     EXPECT_EQ(RunEvent(100, nullptr), -1);
-    SetEventScript(nullptr, nullptr, nullptr);
+    SetEventScript({}, nullptr);
 }

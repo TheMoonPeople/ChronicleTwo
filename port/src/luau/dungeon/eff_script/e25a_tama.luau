@@ -31,37 +31,37 @@ function script.on_start()
 	local value_2: s32 = 0
 	local var15: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
-	value_2 = effect.GetValue(0) or value_2
-	value = effect.GetValueFloat(1) or value
-	effect.ChrSetPos(var0, var1, var2)
-	effect.ChrSetShow(1, 1, 0.1)
+	value_2 = effect.get_script_value(0) or value_2
+	value = effect.get_script_value_float(1) or value
+	effect.set_effect_character_position(var0, var1, var2)
+	effect.set_effect_character_visible(1, 1, 0.1)
 	do
-		local out1, out2, out3 = effect.NormalVector(var6, var7, var8)
+		local out1, out2, out3 = effect.normalize_vector(var6, var7, var8)
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var6, var7, var8, value)
+		local out1, out2, out3 = effect.scale_vector(var6, var7, var8, value)
 		var6 = out1 or var6
 		var7 = out2 or var7
 		var8 = out3 or var8
 	end
-	effect.ColprimCreate("弱攻撃")
-	effect.ColprimSetDamage(value_2)
+	effect.create_collision_primitive("弱攻撃")
+	effect.set_collision_primitive_damage(value_2)
 	do
-		local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+		local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 		vector_x = out1 or vector_x
 		vector_y = out2 or vector_y
 		vector_z = out3 or vector_z
@@ -69,33 +69,33 @@ function script.on_start()
 	var13 = 0
 	while var13 < 90 do
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var6, var7, var8)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var6, var7, var8)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
 		do
-			local out1, out2, out3 = effect.ChrGetRefRot(var0, var1, var2)
+			local out1, out2, out3 = effect.get_effect_character_rotation_toward(var0, var1, var2)
 			pitch = out1 or pitch
 			yaw = out2 or yaw
 			var5 = out3 or var5
 		end
-		effect.ChrSetPos(var0, var1, var2)
-		effect.ChrSetRot(pitch, yaw, var5)
-		effect.ColprimSetCoord(var0, var1, var2, 5.0)
-		var15 = effect.ColprimGetHitcnt() or var15
+		effect.set_effect_character_position(var0, var1, var2)
+		effect.rotate_effect_character_toward(pitch, yaw, var5)
+		effect.set_collision_primitive_shape(var0, var1, var2, 5.0)
+		var15 = effect.get_collision_primitive_hit_count() or var15
 		if var15 > 0 then
 			break
 		else
 			do
-				local _, _, _, out4 = effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
+				local _, _, _, out4 = effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
 				var15 = out4 or var15
 			end
 			if var15 >= 0 then
 				break
 			else
 				do
-					local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+					local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 					vector_x = out1 or vector_x
 					vector_y = out2 or vector_y
 					vector_z = out3 or vector_z
@@ -105,7 +105,7 @@ function script.on_start()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

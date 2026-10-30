@@ -1,0 +1,58 @@
+--!strict
+-- Shared event helper used by 5 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
+local helper_669c752b = require("@lib/event/helper_669c752b")
+local helper_96e2a628 = require("@lib/event/helper_96e2a628")
+local wait_frames = require("@lib/event/wait_frames")
+
+--- Helper function.
+local function helper_976e3050()
+	local var0: s32 = 0
+	vm.section(function()
+		event.set_save_flag(205, 1)
+		event.initialize_event()
+		event.load_map_sounds(2206)
+		var0 = event.load_sound_effect_file_2(2206) or var0
+		helper_96e2a628()
+		event.stop_music(0)
+		event.fade_in_screen(30)
+		event.set_character_active(1, 32)
+		event.set_character_active(1, 33)
+		event.set_character_active(1, 34)
+		event.set_camera_sequence_position(26.2, 66.14, -50.83)
+		event.set_camera_sequence_look_at(13.28, 59.7, -9.45)
+		event.set_object_sequence_position(0, 24.27, 36.08, -15.66)
+		event.set_object_sequence_rotation(0, 0.0, -3.12, 0.0)
+		event.set_object_sequence_position(1, -25.76, 36.08, 14.84)
+		event.set_object_sequence_rotation(1, 0.0, 1.6, 0.0)
+		event.set_object_sequence_position(2, -5.4, 36.08, 70.48)
+		event.set_object_sequence_rotation(2, 0.0, -2.64, 0.0)
+		event.set_object_sequence_motion(0, "だめじゃ", 4)
+		event.set_object_sequence_motion(1, "気絶", 4)
+		event.set_object_sequence_motion(2, "錯乱", 4)
+		event.set_object_sequence_texture_animation(0, 0)
+		event.set_object_sequence_texture_animation(0, 1, "おこり顔")
+		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
+		event.set_object_sequence_texture_animation(2, 0)
+		event.set_object_sequence_texture_animation(2, 1, "目パチ")
+		event.play_sound_effect(var0, 0)
+		event.shake_camera_sequence(0.0, 0.5, 0.1, -1)
+		event.set_mouth_texture_animations(0, "大口パク")
+		helper_4116e6bb(2050010)
+		event.reset_mouth_texture_animations()
+		event.set_mouth_texture_animations(0, "口パク")
+		helper_4116e6bb(2050020)
+		event.reset_mouth_texture_animations()
+		event.fade_out_screen(30)
+		wait_frames(30)
+	end)
+	event.cancel_drama_scene_skip()
+	event.stop_sound_effect(var0, 0)
+	event.clear_camera_sequence()
+	helper_669c752b()
+	event.fade_in_screen(30)
+end
+
+return helper_976e3050

@@ -3,9 +3,9 @@
 # game's state is global.
 include(FetchContent)
 FetchContent_Declare(googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.18.0
-    GIT_SHALLOW TRUE
+    URL https://codeload.github.com/google/googletest/tar.gz/refs/tags/v1.18.0
+    URL_HASH SHA256=6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5
+    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
     FIND_PACKAGE_ARGS NAMES GTest)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
@@ -14,7 +14,10 @@ include(GoogleTest)
 
 add_test(NAME PalettePaths.Check
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/check_palette_paths.py
-        ${CMAKE_BINARY_DIR}/ps2_src ${CMAKE_SOURCE_DIR}/port/src)
+        ${CMAKE_SOURCE_DIR}/port/src)
+add_test(NAME NativeArchitecture.Check
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/native_architecture.py
+        --root ${CMAKE_SOURCE_DIR} --build ${CMAKE_BINARY_DIR})
 
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 add_executable(darkchronicle_tests ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${TEST_SOURCES})
@@ -29,7 +32,7 @@ add_custom_command(OUTPUT ${LOCAL_LAYOUT_PROBES}
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/local_layout_probes.py
         ${CMAKE_SOURCE_DIR} ${LOCAL_LAYOUT_PROBES}
     DEPENDS ${CMAKE_SOURCE_DIR}/scripts/port/local_layout_probes.py
-        ${CMAKE_SOURCE_DIR}/ps2/src/character.cpp ${CMAKE_SOURCE_DIR}/ps2/src/menusys.cpp
+        ${CMAKE_SOURCE_DIR}/port/src/object/menu/menusys.cpp
     VERBATIM)
 target_sources(darkchronicle_tests PRIVATE ${LOCAL_LAYOUT_PROBES})
 target_include_directories(darkchronicle_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
@@ -93,13 +96,15 @@ set(CT_GPU_TESTS
     MgDrawPrimRender.*
     MenuDrawGrab.*
     GfxMisc.*
+    */GfxColorWriteMask.*
+    GfxCachedTarget.*
     GfxTim2.UploadRgbaAndIndexed
     GfxValidation.DeliberateMisuseIsCaught)
 list(JOIN CT_GPU_SLOW_TESTS ":" CT_GPU_SLOW_FILTER)
 list(JOIN CT_GPU_TESTS ":" CT_GPU_FILTER)
 list(JOIN CT_CPU_TESTS ":" CT_CPU_FILTER)
 set(CT_CONFIG_PARITY_FILTER "NativeConfigParity.*")
-set(CT_CORPUS_FILTER "NativeSubtitles.MatchesEveryOfflineSubtitleChapter:MovieGlue.L5LogoPlaysOnTheClockWithItsSoundtrack")
+set(CT_CORPUS_FILTER "NativeSubtitles.MatchesEveryOfflineSubtitleChapter:MovieGlue.L5LogoPlaysOnTheClockWithItsSoundtrack:SoundRealData.PublishedBanksAndSequencesLoad")
 set(CT_CORPUS_TIMEOUT 120)
 if(CT_TEST_TIMEOUT GREATER CT_CORPUS_TIMEOUT)
     set(CT_CORPUS_TIMEOUT ${CT_TEST_TIMEOUT})

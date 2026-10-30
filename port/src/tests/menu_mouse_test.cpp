@@ -12,14 +12,15 @@
 #include "menuop.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "nd_meswin.hpp"
 #include "options/screen.hpp"
 #include "platform/clock.hpp"
 #include "platform/input.hpp"
 #include "platform/mouse.hpp"
 #include "platform/settings.hpp"
+#include "render/renderer.hpp"
 #include "save_slots.hpp"
+#include "stubs/menuop.hpp"
 
 extern CSaveMenuClass *MouseSave asm("MenuMouse_Save");
 
@@ -305,8 +306,8 @@ TEST_F(MenuMouseInput, ListClickCannotCarryIntoAnotherPageOrSurviveCancel) {
 
 TEST_F(MenuMouseInput, DrawnDialogueLinesUseTheirActualPositionsAndFirstSelectableLine) {
     ClsMes message;
-    short  text[] = {0};
-    message.buff = text;
+    short  text[] = {0, 0};
+    message.buff = dc2::text::MessageTable::Parse(std::as_bytes(std::span(text)));
     message.fade = 1;
     message.alpha = 128;
     message.font_h = 30;
@@ -327,8 +328,8 @@ TEST_F(MenuMouseInput, DrawnDialogueLinesUseTheirActualPositionsAndFirstSelectab
 
 TEST_F(MenuMouseInput, DrawnYesNoChoicesUseTheirOwnPositions) {
     ClsMes message;
-    short  text[] = {0};
-    message.buff = text;
+    short  text[] = {0, 0};
+    message.buff = dc2::text::MessageTable::Parse(std::as_bytes(std::span(text)));
     message.fade = 1;
     message.alpha = 128;
     message.font_h = 30;
@@ -633,6 +634,22 @@ TEST(MenuMouse, WheelScrollsWholeRowsAndKeepsTheCursorUnderThePointerOrInView) {
 }
 
 namespace {
+/**
+ * Keeps a synthetic options list's row extent independent of previously opened game menus.
+ */
+class OptionRows {
+public:
+    explicit OptionRows(float count) : previous(config_option_num_i) { config_option_num_i = count; }
+
+    ~OptionRows() { config_option_num_i = previous; }
+
+    OptionRows(const OptionRows &) = delete;
+    OptionRows &operator=(const OptionRows &) = delete;
+
+private:
+    float previous; /**< Active game-menu row extent restored after the fixture. */
+};
+
 void Place(MENUFORMPARTS_TYPE &part, const char *name, float x, float y, float w, float h) {
     part.name = const_cast<char *>(name);
     part.x = x;
@@ -644,6 +661,7 @@ void Place(MENUFORMPARTS_TYPE &part, const char *name, float x, float y, float w
 } // namespace
 
 TEST_F(MenuMouseInput, RetailOptionsHoverMovesRowAndButtonAndTheWheelScrolls) {
+    OptionRows rows(16.0f);
     MenuMouseEnable(true);
     CMenuOption        menu;
     CMenuPosDataForm   form{};

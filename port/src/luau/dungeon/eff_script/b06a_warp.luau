@@ -18,26 +18,26 @@ function script.on_start()
 	local var1: f32 = 0
 	local var2: f32 = 0
 	local user_id: s32 = 0
-	user_id = effect.GetUserId() or user_id
+	user_id = effect.get_owner_character() or user_id
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
-	effect.ChrSetPos(var0, var1, var2)
-	effect.ChrSetMotion("ワープ")
+	effect.set_effect_character_position(var0, var1, var2)
+	effect.set_effect_character_motion("ワープ")
 	for var6 = 0, 35 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrPos(user_id)
+			local out1, out2, out3 = effect.get_scene_character_position(user_id)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		effect.ChrSetPos(var0, var1 + 8.0, var2)
+		effect.set_effect_character_position(var0, var1 + 8.0, var2)
 		vm.wait()
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

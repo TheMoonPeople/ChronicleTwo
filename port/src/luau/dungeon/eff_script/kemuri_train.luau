@@ -6,7 +6,7 @@ local helper_777ac8df = require("@lib/effect/helper_777ac8df")
 local helper_8fa274d5 = require("@lib/effect/helper_8fa274d5")
 
 --- Helper function.
-local function helper_9a8(arg0: s32, arg1: f32, arg2: f32, arg3: f32, arg4: f32, arg5: f32)
+local function helper_9a8(arg0: s32, arg1: f32, arg2: f32, arg3: f32, arg4: f32, range: f32)
 	local var6: f32 = 0
 	local var7: f32 = 0
 	local var8: f32 = 0
@@ -18,10 +18,10 @@ local function helper_9a8(arg0: s32, arg1: f32, arg2: f32, arg3: f32, arg4: f32,
 	local value_2: f32 = 0
 	local value_3: f32 = 0
 	local value_4: f32 = 0
-	value = effect.GetRand(arg5) or value
-	value_2 = effect.GetRand(360.0) or value_2
-	value_3 = effect.GetRand(0.01) or value_3
-	value_4 = effect.GetRand(1.0) or value_4
+	value = effect.get_random_number(range) or value
+	value_2 = effect.get_random_number(360.0) or value_2
+	value_3 = effect.get_random_number(0.01) or value_3
+	value_4 = effect.get_random_number(1.0) or value_4
 	value_4 = vm.f32(value_4 + 2.0)
 	value_2 = vm.f32(vm.f32(value_2 / 180.0) * vm.f32(3.1415927))
 	var17 = vm.sin(arg4)
@@ -31,12 +31,12 @@ local function helper_9a8(arg0: s32, arg1: f32, arg2: f32, arg3: f32, arg4: f32,
 	var12 = vm.f32(vm.f32(0.4) * var17)
 	var13 = value_4
 	var14 = vm.f32(vm.f32(0.4) * var17)
-	effect.SptSetDrawFlag(arg0, 1)
-	effect.SptSetPos(arg0, var6, var7, var8)
-	effect.SptSetColor(arg0, 128.0, 128.0, 128.0, 0.0)
-	effect.SptSetVeloPos(arg0, var12, var13, var14)
-	effect.SptSetVeloCol(arg0, 0.0, 0.0, 0.0, 2.0)
-	effect.SptSetVeloRotz(arg0, value_3)
+	effect.set_sprite_visible(arg0, 1)
+	effect.set_sprite_position(arg0, var6, var7, var8)
+	effect.set_sprite_color(arg0, 128.0, 128.0, 128.0, 0.0)
+	effect.set_sprite_velocity(arg0, var12, var13, var14)
+	effect.set_sprite_color_velocity(arg0, 0.0, 0.0, 0.0, 2.0)
+	effect.set_sprite_angular_velocity(arg0, value_3)
 end
 
 local script = {}
@@ -61,62 +61,62 @@ function script.on_start()
 	local value: s32 = 0
 	local value_2: s32 = 0
 	value_2 = 1
-	effect.SetValueInt(1, 1)
-	value = effect.GetValue(0) or value
-	var18 = effect.SptAssignSprite_2(181) or var18
+	effect.set_script_value_int(1, 1)
+	value = effect.get_script_value(0) or value
+	var18 = effect.allocate_sprites_2(181) or var18
 	if var18 == 0 then
 		return
 	end
-	effect.SptSetTexname("kemuri_train")
-	effect.SptInitSprite(0, 180)
-	effect.SptSetAlphab(0, 1, 180)
-	effect.SptSetUvSize(0, 0.0, 0.0, 64.0, 64.0, 180)
-	effect.SptSetPutSize(0, 64.0, 64.0, 180)
-	effect.SptSetDrawFlag(0, 0, 180)
-	effect.SptSetPos(0, 0.0, 0.0, 0.0, 180)
-	effect.SptInitSprite(180, 1)
-	effect.SptSetAlphab(180, 1, 1)
-	effect.SptSetUvSize(180, 0.0, 0.0, 64.0, 64.0, 1)
-	effect.SptSetPutSize(180, 194.0, 194.0, 1)
-	effect.SptSetDrawFlag(180, 0, 1)
-	effect.SptSetPos(180, 0.0, 0.0, 0.0, 1)
+	effect.set_sprite_texture("kemuri_train")
+	effect.reset_sprites(0, 180)
+	effect.set_sprite_blend_mode(0, 1, 180)
+	effect.set_sprite_texture_rect(0, 0.0, 0.0, 64.0, 64.0, 180)
+	effect.set_sprite_size(0, 64.0, 64.0, 180)
+	effect.set_sprite_visible(0, 0, 180)
+	effect.set_sprite_position(0, 0.0, 0.0, 0.0, 180)
+	effect.reset_sprites(180, 1)
+	effect.set_sprite_blend_mode(180, 1, 1)
+	effect.set_sprite_texture_rect(180, 0.0, 0.0, 64.0, 64.0, 1)
+	effect.set_sprite_size(180, 194.0, 194.0, 1)
+	effect.set_sprite_visible(180, 0, 1)
+	effect.set_sprite_position(180, 0.0, 0.0, 0.0, 1)
 	var19 = 0
 	var16 = 0
 	var17 = 180
 	while true do
 		for var14 = 0, 180 do
 			do
-				local _, _, _, out4 = effect.SptGetColor(var14)
+				local _, _, _, out4 = effect.get_sprite_color(var14)
 				color_w = out4 or color_w
 			end
 			if var14 < 180 then
 				if color_w > 96.0 then
-					effect.SptSetColor(var14, 96.0, 96.0, 96.0, 96.0)
-					effect.SptSetVeloCol(var14, 0.0, 0.0, 0.0, -0.4)
+					effect.set_sprite_color(var14, 96.0, 96.0, 96.0, 96.0)
+					effect.set_sprite_color_velocity(var14, 0.0, 0.0, 0.0, -0.4)
 				end
 				if color_w <= 0.0 then
-					effect.SptSetDrawFlag(var14, 0)
+					effect.set_sprite_visible(var14, 0)
 				end
 			else
 				if color_w > 64.0 then
-					effect.SptSetColor(var14, 64.0, 64.0, 64.0, 64.0)
-					effect.SptSetVeloCol(var14, 0.0, 0.0, 0.0, -0.4)
+					effect.set_sprite_color(var14, 64.0, 64.0, 64.0, 64.0)
+					effect.set_sprite_color_velocity(var14, 0.0, 0.0, 0.0, -0.4)
 				end
 				if color_w <= 0.0 then
-					effect.SptSetDrawFlag(var14, 0)
+					effect.set_sprite_visible(var14, 0)
 				end
 			end
 		end
-		value_2 = effect.GetValue(1) or value_2
+		value_2 = effect.get_script_value(1) or value_2
 		if value_2 ~= 0 then
 			do
-				local out1, out2, out3 = effect.GetEohPos(value)
+				local out1, out2, out3 = effect.get_event_object_position(value)
 				var0 = out1 or var0
 				var1 = out2 or var1
 				var2 = out3 or var2
 			end
 			do
-				local out1, out2, out3 = effect.AddVector(var0, var1, var2, 0.0, 189.914, 30.725)
+				local out1, out2, out3 = effect.add_vectors(var0, var1, var2, 0.0, 189.914, 30.725)
 				var0 = out1 or var0
 				var1 = out2 or var1
 				var2 = out3 or var2
@@ -141,7 +141,7 @@ function script.on_start()
 		var19 = vm.i32(var19 + 1)
 		vm.wait()
 	end
-	effect.SptSetDrawFlag(0, 0, 181)
+	effect.set_sprite_visible(0, 0, 181)
 end
 
 --- Ends an effect.

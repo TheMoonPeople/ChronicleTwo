@@ -23,14 +23,14 @@ struct Rect {
     int h = 0;
 };
 
-using Cells = std::map<std::string, Rect, std::less<> >;
+using Cells = std::map<std::string, Rect, std::less<>>;
 
 // Where the retail art keeps its PS2 symbols, in texels of the logical texture. Every language's
 // gaiji sheet (meswin/<language>/gaiji.img, the message font's symbols) shares one layout; the skip
 // prompt (img/<language>/skip.img) keeps its triangle in one place. glyphs.json's "targets" adds or
 // moves cells without a rebuild.
-const std::map<std::string, Cells, std::less<> > &BuiltinTargets() {
-    static const std::map<std::string, Cells, std::less<> > targets = {
+const std::map<std::string, Cells, std::less<>> &BuiltinTargets() {
+    static const std::map<std::string, Cells, std::less<>> targets = {
         {"gaiji",
          {
              {"select_label", {.x = 2, .y = 2, .w = 52, .h = 17}},
@@ -59,8 +59,8 @@ const std::map<std::string, Cells, std::less<> > &BuiltinTargets() {
 }
 
 struct State {
-    bool                                       indexed = false;
-    std::map<std::string, Cells, std::less<> > targets;
+    bool                                      indexed = false;
+    std::map<std::string, Cells, std::less<>> targets;
 };
 
 State &Get() {
@@ -257,6 +257,13 @@ std::string ButtonGlyphsStyle() {
         for (const char *action : kActions) {
             style += "|" + InputPrimaryBindingName(action);
         }
+    } else if (!style.empty()) {
+        // A pad button moved on the controller shows the symbol of the button it now sits on.
+        for (const char *action : kActions) {
+            if (const auto shown = InputPadGlyphAction(action); shown != action) {
+                style += std::string("|") + action + "=" + shown;
+            }
+        }
     }
     return style;
 }
@@ -302,6 +309,12 @@ void ButtonGlyphsApply(std::string_view texture_name, int logical_width, int log
                 if (!key.empty()) {
                     found = glyphs::FindNamedPixels(name.c_str(), key.c_str(), image);
                 }
+            }
+        } else if (const char *action = Action(glyph); action != nullptr && glyph == action) {
+            // The button cells only: a label (START, SELECT) keeps its word.
+            const auto shown = InputPadGlyphAction(action);
+            if (!shown.empty() && shown != action) {
+                found = glyphs::FindNamedPixels(name.c_str(), shown.c_str(), image);
             }
         }
         if (!found) {

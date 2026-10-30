@@ -36,36 +36,36 @@ function script.on_start()
 	value_2 = 0
 	value = 0.0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	value_2 = effect.GetValue(0) or value_2
-	value = effect.GetValueFloat(1) or value
-	effect.GetValue(2)
+	value_2 = effect.get_script_value(0) or value_2
+	value = effect.get_script_value_float(1) or value
+	effect.get_script_value(2)
 	do
-		local out1, out2, out3 = effect.NormalVector(var9, var10, var11)
+		local out1, out2, out3 = effect.normalize_vector(var9, var10, var11)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var9, var10, var11, value)
+		local out1, out2, out3 = effect.scale_vector(var9, var10, var11, value)
 		var9 = out1 or var9
 		var10 = out2 or var10
 		var11 = out3 or var11
 	end
-	effect.ChrSetMotion("火炎弾ループ", -1, 4)
-	effect.ChrSetScale(1.2, 1.2, 1.2)
+	effect.set_effect_character_motion("火炎弾ループ", -1, 4)
+	effect.set_effect_character_scale(1.2, 1.2, 1.2)
 	do
-		local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+		local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 		vector_x = out1 or vector_x
 		vector_y = out2 or vector_y
 		vector_z = out3 or vector_z
@@ -73,49 +73,49 @@ function script.on_start()
 	var16 = 0
 	while var16 < 90 do
 		if var16 == 4 then
-			effect.ColprimCreate("ドラゴン火弾")
-			effect.ColprimSetDamage(value_2)
+			effect.create_collision_primitive("ドラゴン火弾")
+			effect.set_collision_primitive_damage(value_2)
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var9, var10, var11)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var9, var10, var11)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
 		do
-			local out1, out2, out3 = effect.ChrGetRefRot(var0, var1, var2)
+			local out1, out2, out3 = effect.get_effect_character_rotation_toward(var0, var1, var2)
 			pitch = out1 or pitch
 			yaw = out2 or yaw
 			var5 = out3 or var5
 		end
-		effect.ChrSetPos(var0, var1, var2)
-		effect.ChrSetRot(pitch, yaw, var5)
+		effect.set_effect_character_position(var0, var1, var2)
+		effect.rotate_effect_character_toward(pitch, yaw, var5)
 		if var16 > 4 then
-			effect.ColprimSetCoord(var0, var1, var2, 12.0)
+			effect.set_collision_primitive_shape(var0, var1, var2, 12.0)
 		end
-		var19 = effect.ColprimGetHitcnt() or var19
+		var19 = effect.get_collision_primitive_hit_count() or var19
 		if var19 > 0 then
-			effect.EsCreate_1("ドラゴン火弾Ｈ")
-			effect.EsSetVect1(var0, var1, var2)
-			effect.EsSetValue(0, value_2)
+			effect.create_effect_1("ドラゴン火弾Ｈ")
+			effect.set_effect_first_work_vector(var0, var1, var2)
+			effect.set_effect_value(0, value_2)
 			break
 		else
 			do
 				local out1, out2, out3, out4 =
-					effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
+					effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var0, var1, var2)
 				var20 = out1 or var20
 				var21 = out2 or var21
 				var22 = out3 or var22
 				var19 = out4 or var19
 			end
 			if var19 >= 0 then
-				effect.EsCreate_1("ドラゴン火弾Ｈ")
-				effect.EsSetVect1(var20, var21, var22)
-				effect.EsSetValue(0, value_2)
+				effect.create_effect_1("ドラゴン火弾Ｈ")
+				effect.set_effect_first_work_vector(var20, var21, var22)
+				effect.set_effect_value(0, value_2)
 				break
 			else
 				do
-					local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+					local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 					vector_x = out1 or vector_x
 					vector_y = out2 or vector_y
 					vector_z = out3 or vector_z
@@ -125,7 +125,7 @@ function script.on_start()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

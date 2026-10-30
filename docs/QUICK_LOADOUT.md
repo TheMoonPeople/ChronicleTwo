@@ -3,6 +3,11 @@
 In a dungeon, Down on the directional pad opens the QUICK LOADOUT panel under the status board's active items, and
 Down again closes it.
 
+The key is the `quick_loadout` binding, which PC SETTINGS rebinds on both binding pages: Down on the keyboard
+(Keyboard page, `input.bindings`) and the D-pad's Down on a controller (Gamepad page, `input.gamepad_bindings`) by
+default. The button also keeps pressing what it presses in the game, so pick one the dungeon leaves free. An input
+script drives the panel through the keyboard binding; its pad state alone does not open it.
+
 The panel has four slots, one for each face button:
 
 | Character   | Square, Triangle | Cross, Circle  |

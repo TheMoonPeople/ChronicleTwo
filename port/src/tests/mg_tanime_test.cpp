@@ -11,10 +11,10 @@
 #include "mg_memory.hpp"
 #include "mg_tanime.hpp"
 #include "mg_texture.hpp"
-#include "mg_texture_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
 #include "platform/clock.hpp"
+#include "render/renderer.hpp"
+#include "render/texture_runtime.hpp"
 
 namespace {
 
@@ -268,4 +268,33 @@ TEST_F(MgTanimeGpu, TrueColourRecordDrawsIntoRegisteredTexture) {
             }
         }
     }
+}
+
+TEST(MgTextureAnime, InitializeClearsEveryRectangleAndWaveDimension) {
+    mgCTexAnimeData data;
+    data.src_x = 1;
+    data.src_y = 2;
+    data.src_w = 3;
+    data.src_h = 4;
+    data.dest_x = 5;
+    data.dest_y = 6;
+    data.dest_w = 7;
+    data.dest_h = 8;
+    data.period_x = 9;
+    data.period_y = 10;
+    data.amplitude_x = 11;
+    data.amplitude_y = 12;
+    data.Initialize();
+    EXPECT_EQ(data.src_x, 0);
+    EXPECT_EQ(data.src_y, 0);
+    EXPECT_EQ(data.src_w, 0);
+    EXPECT_EQ(data.src_h, 0);
+    EXPECT_EQ(data.dest_x, 0);
+    EXPECT_EQ(data.dest_y, 0);
+    EXPECT_EQ(data.dest_w, 0);
+    EXPECT_EQ(data.dest_h, 0);
+    EXPECT_EQ(data.period_x, 0);
+    EXPECT_EQ(data.period_y, 0);
+    EXPECT_EQ(data.amplitude_x, 0);
+    EXPECT_EQ(data.amplitude_y, 0);
 }

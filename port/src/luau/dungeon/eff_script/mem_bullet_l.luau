@@ -32,92 +32,92 @@ function script.on_start()
 	local var20: f32 = 0
 	local var21: f32 = 0
 	local var22: f32 = 0
-	effect.GetUserId()
+	effect.get_owner_character()
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var2 = out1 or var2
 		var3 = out2 or var3
 		var4 = out3 or var4
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		var8 = out1 or var8
 		var9 = out2 or var9
 		var10 = out3 or var10
 	end
-	value = effect.GetValue(0) or value
+	value = effect.get_script_value(0) or value
 	do
-		local out1, out2, out3 = effect.ScaleVector(var8, var9, var10, 5.0)
+		local out1, out2, out3 = effect.scale_vector(var8, var9, var10, 5.0)
 		var8 = out1 or var8
 		var9 = out2 or var9
 		var10 = out3 or var10
 	end
-	effect.ChrSetMotion("ループ", -1, 6)
+	effect.set_effect_character_motion("ループ", -1, 6)
 	var15 = 0
 	while var15 < 150 do
 		do
-			local out1, out2, out3 = effect.CopyVector(var2, var3, var4)
+			local out1, out2, out3 = effect.copy_vector(var2, var3, var4)
 			vector_x = out1 or vector_x
 			vector_y = out2 or vector_y
 			vector_z = out3 or vector_z
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var2, var3, var4, var8, var9, var10)
+			local out1, out2, out3 = effect.add_vectors(var2, var3, var4, var8, var9, var10)
 			var2 = out1 or var2
 			var3 = out2 or var3
 			var4 = out3 or var4
 		end
 		if var15 == 10 then
-			effect.ColprimCreate("鼻マシンガン")
-			effect.ColprimSetDamage(value)
-			effect.EsSetVect1(var2, var3, var4)
+			effect.create_collision_primitive("鼻マシンガン")
+			effect.set_collision_primitive_damage(value)
+			effect.set_effect_first_work_vector(var2, var3, var4)
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(var8, var9, var10)
+			local out1, out2, out3 = effect.copy_vector(var8, var9, var10)
 			var16 = out1 or var16
 			var17 = out2 or var17
 			var18 = out3 or var18
 		end
 		do
-			local out1, out2, out3 = effect.NormalVector(var16, var17, var18)
+			local out1, out2, out3 = effect.normalize_vector(var16, var17, var18)
 			var16 = out1 or var16
 			var17 = out2 or var17
 			var18 = out3 or var18
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(-var8, -var9, -var10)
+			local out1, out2, out3 = effect.copy_vector(-var8, -var9, -var10)
 			var16 = out1 or var16
 			var17 = out2 or var17
 			var18 = out3 or var18
 		end
 		do
-			local out1, out2, out3 = effect.NormalVector(var16, var17, var18)
+			local out1, out2, out3 = effect.normalize_vector(var16, var17, var18)
 			var16 = out1 or var16
 			var17 = out2 or var17
 			var18 = out3 or var18
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var16, var17, var18, 0.5)
+			local out1, out2, out3 = effect.scale_vector(var16, var17, var18, 0.5)
 			var16 = out1 or var16
 			var17 = out2 or var17
 			var18 = out3 or var18
 		end
 		if var15 >= 10 then
-			effect.ColprimSetCoord(var2, var3, var4, 4.0)
+			effect.set_collision_primitive_shape(var2, var3, var4, 4.0)
 		end
-		effect.ChrSetPos(var2, var3, var4)
+		effect.set_effect_character_position(var2, var3, var4)
 		if var15 >= 10 then
-			var19 = effect.ColprimGetHitcnt() or var19
+			var19 = effect.get_collision_primitive_hit_count() or var19
 			if var19 > 0 then
 				print("hit chr------------------------\n")
-				effect.EsCreate_1("鼻弾Ｈ")
-				effect.EsSetVect1(vector_x, vector_y, vector_z)
+				effect.create_effect_1("鼻弾Ｈ")
+				effect.set_effect_first_work_vector(vector_x, vector_y, vector_z)
 				break
 			end
 		end
 		do
 			local out1, out2, out3, out4 =
-				effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var2, var3, var4)
+				effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var2, var3, var4)
 			var20 = out1 or var20
 			var21 = out2 or var21
 			var22 = out3 or var22
@@ -125,15 +125,15 @@ function script.on_start()
 		end
 		if var19 >= 0 then
 			print("hit bg---------------------------\n")
-			effect.EsCreate_1("鼻弾Ｈ")
-			effect.EsSetVect1(var20, var21, var22)
+			effect.create_effect_1("鼻弾Ｈ")
+			effect.set_effect_first_work_vector(var20, var21, var22)
 			break
 		else
 			var15 = var15 + 1
 			vm.wait()
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

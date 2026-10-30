@@ -9,7 +9,8 @@
 #include <memory>
 #include <vector>
 
-#include "dataread_port.hpp"
+#include "assets/data_registry.hpp"
+#include "dataread.hpp"
 #include "luau_runtime.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/vfs.hpp"
@@ -31,7 +32,7 @@ struct File {
 /**
  * Retains native file storage while game consumers reference directory members.
  */
-std::map<std::string, std::unique_ptr<File> > files;
+std::map<std::string, std::unique_ptr<File>> files;
 
 /**
  * Produces a case-insensitive key for actual filesystem names.
@@ -132,14 +133,13 @@ File *Store(const std::string &key, const fs::path &relative, std::string_view b
 }
 
 /**
- * Reads a selected asset, recording its logical lookup path and byte extent. A script member with a Luau module reads
- * as the handle naming it.
+ * Reads a selected asset, recording its logical lookup path and byte extent. A script member reads as the handle
+ * naming its Luau module, and is missing without one.
  */
 File *Read(fs::path relative, std::string_view kind = {}) {
     if (Key(relative.extension().generic_string()) == ".stb") {
-        if (const auto module = luau_runtime::ModuleForScript(vfs::FoldKey(relative.generic_string()))) {
-            return Store("luau:" + Key(relative.generic_string()), relative, luau_runtime::MakeHandle(*module));
-        }
+        const auto module = luau_runtime::ModuleForScript(vfs::FoldKey(relative.generic_string()));
+        return module ? Store("luau:" + Key(relative.generic_string()), relative, luau_runtime::MakeHandle(*module)) : nullptr;
     }
     auto candidates = Key(relative.extension().generic_string()) == ".json" ? datapacks::GameplayCandidates(relative) : datapacks::Candidates(relative);
     if (candidates.empty()) {
@@ -189,15 +189,12 @@ struct Member {
 /**
  * Merges texture membership, gameplay documents and native files in deterministic name order.
  */
-std::vector<Member> Members(const std::string &directory) {
+std::vector<Member> Members(const std::string &directory, const Json &data) {
     std::map<std::string, Member> members;
-    if (auto *marker = Read(fs::path(directory) / "pack.json", kAssetDirectory)) {
-        const auto data = Parse(*marker, marker->size);
-        if (data.contains("texture_members")) {
-            for (const auto &member : data["texture_members"]) {
-                auto name = member["name"].get<std::string>();
-                members.emplace(Key(name), Member{.path = fs::path(member["path"].get<std::string>()), .name = name});
-            }
+    if (data.contains("texture_members")) {
+        for (const auto &member : data["texture_members"]) {
+            auto name = member["name"].get<std::string>();
+            members.emplace(Key(name), Member{.path = fs::path(member["path"].get<std::string>()), .name = name});
         }
     }
     for (const auto &path : datapacks::DirectoryMembers(directory)) {
@@ -222,6 +219,11 @@ std::vector<Member> Members(const std::string &directory) {
     return result;
 }
 
+std::vector<Member> Members(const std::string &directory) {
+    auto *marker = Read(fs::path(directory) / "pack.json", kAssetDirectory);
+    return marker ? Members(directory, Parse(*marker, marker->size)) : std::vector<Member>{};
+}
+
 /**
  * Selects a native typed JSON document or an actual file extension.
  */
@@ -240,6 +242,30 @@ bool Kind(const fs::path &path, std::string_view kind, File *&file) {
     const auto data = Parse(*file, file->size);
     return Valid(data, kind) && data["schema_version"].is_number_integer();
 }
+
+std::optional<fs::path> ResolveMemberPath(const fs::path &parent, std::string_view name, std::span<const Member> members) {
+    if (name.contains(char{})) {
+        return std::nullopt;
+    }
+    std::string normalized(name);
+    std::ranges::replace(normalized, '\\', '/');
+    const fs::path member(normalized);
+    if (!Relative(member)) {
+        return std::nullopt;
+    }
+    auto path = parent / member;
+    if (!member.has_parent_path()) {
+        const auto requested = Key(member.generic_string());
+        for (const auto &candidate : members) {
+            if (Key(candidate.name) == requested) {
+                path = candidate.path;
+                break;
+            }
+        }
+    }
+    return path;
+}
+
 } // namespace
 
 std::optional<std::string> AssetDirectoryPath(const void *directory) {
@@ -277,23 +303,11 @@ u_int *AssetDirectoryRead(const void *directory, const char *name, int *out_size
     if (!parent || !name) {
         return nullptr;
     }
-    std::string normalized(name);
-    std::ranges::replace(normalized, '\\', '/');
-    const fs::path member(normalized);
-    if (!Relative(member)) {
+    const auto path = ResolveMemberPath(fs::path(*parent), name, Members(*parent));
+    if (!path) {
         return nullptr;
     }
-    auto path = fs::path(*parent) / member;
-    if (!member.has_parent_path()) {
-        const auto requested = Key(member.generic_string());
-        for (const auto &candidate : Members(*parent)) {
-            if (Key(candidate.name) == requested) {
-                path = candidate.path;
-                break;
-            }
-        }
-    }
-    auto *file = Read(path);
+    auto *file = Read(*path);
     if (!file) {
         return nullptr;
     }
@@ -372,4 +386,64 @@ int AssetDirectoryReadExtension(const void *directory, const char *kind, u_int *
 int AssetDirectoryCount(const void *directory) {
     const auto parent = AssetDirectoryPath(directory);
     return parent ? static_cast<int>(Members(*parent).size()) : 0;
+}
+
+std::optional<std::string> dc2::assets::DirectoryPath(const io::FileRead &directory) {
+    if (!directory || directory.Source().empty()) {
+        return std::nullopt;
+    }
+    const fs::path source(directory.Source());
+    const auto     bytes = directory.Bytes();
+    if (Key(source.filename().generic_string()) != "pack.json" || bytes.empty() ||
+        !Valid(Json::parse(bytes.begin(), bytes.end(), nullptr, false), kAssetDirectory)) {
+        return std::nullopt;
+    }
+    const auto parent = source.parent_path();
+    return Relative(parent) ? std::optional<std::string>(parent.generic_string()) : std::nullopt;
+}
+
+std::optional<std::string> dc2::assets::ResolveDirectoryMember(const io::FileRead &directory, std::string_view name) {
+    const auto directory_path = DirectoryPath(directory);
+    if (!directory_path || name.contains(char{})) {
+        return std::nullopt;
+    }
+    const auto bytes = directory.Bytes();
+    const auto metadata = Json::parse(bytes.begin(), bytes.end(), nullptr, false);
+    const auto path = ResolveMemberPath(fs::path(*directory_path), name, Members(*directory_path, metadata));
+    return path ? std::optional<std::string>(path->generic_string()) : std::nullopt;
+}
+
+dc2::io::FileRead dc2::assets::ReadDirectoryMember(const io::FileRead &directory, std::string_view name) {
+    const auto path = ResolveDirectoryMember(directory, name);
+    return path ? io::ReadResourceFile(*path) : io::FileRead{};
+}
+
+std::vector<dc2::assets::DirectoryMember> dc2::assets::ReadDirectoryMembers(const io::FileRead &directory, std::string_view kind) {
+    const auto parent = DirectoryPath(directory);
+    if (!parent) {
+        return {};
+    }
+    const auto                   bytes = directory.Bytes();
+    const auto                   metadata = Json::parse(bytes.begin(), bytes.end(), nullptr, false);
+    const auto                   selected = Key(std::string(kind));
+    std::vector<DirectoryMember> result;
+    for (const auto &member : Members(*parent, metadata)) {
+        const auto extension = Key(member.path.extension().generic_string());
+        if (!selected.empty() && selected != "texture" && selected != "commands" && extension != "." + selected) {
+            continue;
+        }
+        auto read = io::ReadResourceFile(member.path.generic_string());
+        if (!read) {
+            continue;
+        }
+        if (selected == "texture" || selected == "commands") {
+            const auto contents = read.Bytes();
+            const auto document = Json::parse(contents.begin(), contents.end(), nullptr, false);
+            if (extension != ".json" || !Valid(document, selected) || !document["schema_version"].is_number_integer()) {
+                continue;
+            }
+        }
+        result.push_back({member.name, std::move(read)});
+    }
+    return result;
 }

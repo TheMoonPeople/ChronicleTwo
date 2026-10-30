@@ -5,7 +5,7 @@ local helper_317bfc18 = require("@lib/monster/helper_317bfc18")
 
 --- Helper function.
 local function helper_2db2fc96()
-	monster.ResetMotion()
+	monster.reset_motion()
 	helper_317bfc18(0)
 end
 

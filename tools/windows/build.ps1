@@ -5,7 +5,8 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/common.ps1"
 $root = Resolve-WindowsRoot $Root
 $build = Resolve-WindowsBuild $root $BuildDirectory
-$cmake = Find-WindowsTool cmake 'C:/Program Files/CMake/bin/cmake.exe'
+$cmake = Join-Path $root 'deps/cmake/cmake-4.4.5-windows-x86_64/bin/cmake.exe'
+if (!(Test-Path -LiteralPath $cmake)) { $cmake = Find-WindowsTool cmake 'C:/Program Files/CMake/bin/cmake.exe' }
 $rust = "$root/deps/rust/1.99.0-gnullvm/bin"
 $llvm = "$root/deps/llvm/llvm-mingw-20260922-ucrt-x86_64/bin"
 $env:CARGO_HOME = "$root/deps/rust/cargo-home"

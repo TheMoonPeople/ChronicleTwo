@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "dataread.hpp"
+
 class mgCMemory;
 
 namespace menu_character {
@@ -23,4 +25,6 @@ void PortPrepareMenuCharacterArena(mgCMemory &memory, const void *model, const c
 /**
  * Finds the queued item texture by its native path during a character change.
  */
-unsigned char *PortMainCharaItemReadBuffer();
+namespace dc2::menu {
+io::FileRead MainCharacterItemRead();
+}

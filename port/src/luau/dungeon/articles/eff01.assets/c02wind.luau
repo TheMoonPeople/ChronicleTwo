@@ -34,37 +34,37 @@ function script.on_start()
 	local var21: f32 = 0
 	local var22: f32 = 0
 	local value_2: f32 = 0
-	local var24: f32 = 0
-	local var25: f32 = 0
-	local var26: f32 = 0
+	local vector_x_2: f32 = 0
+	local vector_y_2: f32 = 0
+	local vector_z_2: f32 = 0
 	local var27: s32 = 0
 	local var28: f32 = 0
 	local var29: f32 = 0
 	local var30: f32 = 0
-	local vector_x_2: f32 = 0
-	local vector_y_2: f32 = 0
-	local vector_z_2: f32 = 0
+	local vector_x_3: f32 = 0
+	local vector_y_3: f32 = 0
+	local vector_z_3: f32 = 0
 	local var34: s32 = 0
 	local var35: s32 = 0
 	local var36: s32 = 0
-	local var37: f32 = 0
+	local scale: f32 = 0
 	local var38: f32 = 0
 	local var39: f32 = 0
 	local var41: s32 = 0
-	user_id = effect.GetUserId() or user_id
-	target_id = effect.GetTargetId() or target_id
+	user_id = effect.get_owner_character() or user_id
+	target_id = effect.get_target_character() or target_id
 	value = 0.0
-	value = effect.GetValueFloat(0) or value
+	value = effect.get_script_value_float(0) or value
 	angle = 0.0
 	do
-		local out1, out2, out3 = effect.ScnGetChrPos(user_id)
+		local out1, out2, out3 = effect.get_scene_character_position(user_id)
 		pos_x = out1 or pos_x
 		pos_y = out2 or pos_y
 		pos_z = out3 or pos_z
 	end
-	var4 = effect.ScnGetChrRot_2(user_id) or var4
+	var4 = effect.get_scene_character_rotation_2(user_id) or var4
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var11 = out1 or var11
 		var12 = out2 or var12
 		var13 = out3 or var13
@@ -75,143 +75,143 @@ function script.on_start()
 		pos_z_2 = vm.f32(vm.f32(vm.cos(var4) * 400.0) + pos_z)
 	else
 		do
-			local out1, out2, out3 = effect.ScnGetChrEntobjPos(target_id, 0)
+			local out1, out2, out3 = effect.get_scene_character_entry_object_position(target_id, 0)
 			pos_x_2 = out1 or pos_x_2
 			pos_y_2 = out2 or pos_y_2
 			pos_z_2 = out3 or pos_z_2
 		end
 	end
-	value_2 = effect.GetRand(2.0943952) or value_2
+	value_2 = effect.get_random_number(2.0943952) or value_2
 	value_2 = vm.f32(value_2 - vm.f32(1.0471976))
 	var4 = vm.f32(var4 + value_2)
-	var4 = effect.AngleLimit(var4) or var4
-	var24 = vm.f32(vm.f32(vm.sin(var4) * 30.0) + pos_x)
-	var25 = vm.f32(40.0 + pos_y)
-	var26 = vm.f32(vm.f32(vm.cos(var4) * 30.0) + pos_z)
-	var4 = effect.ScnGetChrRot_2(user_id) or var4
-	var27 = effect.SptAssignSprite_2(20) or var27
+	var4 = effect.wrap_angle(var4) or var4
+	vector_x_2 = vm.f32(vm.f32(vm.sin(var4) * 30.0) + pos_x)
+	vector_y_2 = vm.f32(40.0 + pos_y)
+	vector_z_2 = vm.f32(vm.f32(vm.cos(var4) * 30.0) + pos_z)
+	var4 = effect.get_scene_character_rotation_2(user_id) or var4
+	var27 = effect.allocate_sprites_2(20) or var27
 	if var27 == 0 then
 		return
 	end
-	effect.SptSetTexname("c02wind")
-	effect.SptInitSprite(0, 20)
-	effect.SptSetAlphab(0, 2, 20)
-	effect.SptSetDrawFlag(0, 1, 20)
-	effect.SptSetPutSize(0, 20.0, 20.0, 20)
-	effect.SptSetUvSize(0, 0.0, 0.0, 64.0, 64.0, 20)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 0.0, 20)
+	effect.set_sprite_texture("c02wind")
+	effect.reset_sprites(0, 20)
+	effect.set_sprite_blend_mode(0, 2, 20)
+	effect.set_sprite_visible(0, 1, 20)
+	effect.set_sprite_size(0, 20.0, 20.0, 20)
+	effect.set_sprite_texture_rect(0, 0.0, 0.0, 64.0, 64.0, 20)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 0.0, 20)
 	var35 = 0
 	var34 = 0
 	while var34 < 10 do
 		do
-			local out1, out2, out3 = effect.CopyVector(var24, var25, var26)
+			local out1, out2, out3 = effect.copy_vector(vector_x_2, vector_y_2, vector_z_2)
 			var20 = out1 or var20
 			var21 = out2 or var21
 			var22 = out3 or var22
 		end
 		do
-			local out1, out2, out3 = effect.SubVector(var20, var21, var22, var11, var12, var13)
+			local out1, out2, out3 = effect.subtract_vectors(var20, var21, var22, var11, var12, var13)
 			var20 = out1 or var20
 			var21 = out2 or var21
 			var22 = out3 or var22
 		end
 		do
-			local out1, out2, out3 = effect.DivVector(var20, var21, var22, 3.0)
+			local out1, out2, out3 = effect.divide_vector(var20, var21, var22, 3.0)
 			var20 = out1 or var20
 			var21 = out2 or var21
 			var22 = out3 or var22
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(var11, var12, var13)
+			local out1, out2, out3 = effect.copy_vector(var11, var12, var13)
 			vector_x = out1 or vector_x
 			vector_y = out2 or vector_y
 			vector_z = out3 or vector_z
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var11, var12, var13, var20, var21, var22)
+			local out1, out2, out3 = effect.add_vectors(var11, var12, var13, var20, var21, var22)
 			var11 = out1 or var11
 			var12 = out2 or var12
 			var13 = out3 or var13
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(var11, var12, var13)
-			vector_x_2 = out1 or vector_x_2
-			vector_y_2 = out2 or vector_y_2
-			vector_z_2 = out3 or vector_z_2
+			local out1, out2, out3 = effect.copy_vector(var11, var12, var13)
+			vector_x_3 = out1 or vector_x_3
+			vector_y_3 = out2 or vector_y_3
+			vector_z_3 = out3 or vector_z_3
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(vector_x, vector_y, vector_z)
+			local out1, out2, out3 = effect.copy_vector(vector_x, vector_y, vector_z)
 			var28 = out1 or var28
 			var29 = out2 or var29
 			var30 = out3 or var30
 		end
 		do
-			local out1, out2, out3 = effect.SubVector(var28, var29, var30, var11, var12, var13)
+			local out1, out2, out3 = effect.subtract_vectors(var28, var29, var30, var11, var12, var13)
 			var28 = out1 or var28
 			var29 = out2 or var29
 			var30 = out3 or var30
 		end
 		do
-			local out1, out2, out3 = effect.DivVector(var28, var29, var30, 2)
+			local out1, out2, out3 = effect.divide_vector(var28, var29, var30, 2)
 			var28 = out1 or var28
 			var29 = out2 or var29
 			var30 = out3 or var30
 		end
-		effect.SptVanSetPos(var35, vector_x_2, vector_y_2, vector_z_2, var28, var29, var30, 0.0, 0.0, 0.0, 2)
-		effect.SptVanSetCol(var35, 128.0, 128.0, 128.0, 128.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 2)
-		effect.SptColorConv(var35, 128.0, 128.0, 128.0, 0.0, 6.0, 2)
-		effect.SptVanSetScl(var35, 1.0 + vm.f32(1.0 * value), 1.0 + vm.f32(1.0 * value), 0.0, -0.04, 0.0, 0.0, 2)
-		effect.SptScaleConv(
+		effect.spread_sprite_positions(var35, vector_x_3, vector_y_3, vector_z_3, var28, var29, var30, 0.0, 0.0, 0.0, 2)
+		effect.spread_sprite_colors(var35, 128.0, 128.0, 128.0, 128.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 2)
+		effect.ease_sprite_color(var35, 128.0, 128.0, 128.0, 0.0, 6.0, 2)
+		effect.spread_sprite_scales(var35, 1.0 + vm.f32(1.0 * value), 1.0 + vm.f32(1.0 * value), 0.0, -0.04, 0.0, 0.0, 2)
+		effect.ease_sprite_scale(
 			var35,
 			vm.f32(0.2) + vm.f32(vm.f32(0.2) * value),
 			vm.f32(0.2) + vm.f32(vm.f32(0.2) * value),
 			4.0,
 			2
 		)
-		effect.SptVanSetRot(var35, angle, -0.6, 0.0, 2)
+		effect.spread_sprite_rotations(var35, angle, -0.6, 0.0, 2)
 		angle = vm.f32(angle + vm.f32(1.2))
-		angle = effect.AngleLimit(angle) or angle
+		angle = effect.wrap_angle(angle) or angle
 		var35 = var35 + 2
 		if var35 >= 20 then
 			var35 = 0
 		end
-		effect.ColprimSetCoord(var11, var12, var13, 10.0)
-		var36 = effect.ColprimGetHitcnt() or var36
+		effect.set_collision_primitive_shape(var11, var12, var13, 10.0)
+		var36 = effect.get_collision_primitive_hit_count() or var36
 		if var36 > 0 then
-			effect.EsCreate_1("モニカ魔法－風ヒット")
-			effect.EsSetVect1(vector_x, vector_y, vector_z)
-			effect.EsSetValueFloat(0, value)
+			effect.create_effect_1("モニカ魔法－風ヒット")
+			effect.set_effect_first_work_vector(vector_x, vector_y, vector_z)
+			effect.set_effect_value_float(0, value)
 			break
 		else
 			var34 = var34 + 1
 			vm.wait()
 		end
 	end
-	var37 = 1.0
-	var4 = effect.GetRefRot_7(var11, var12, var13, pos_x_2, pos_y_2, pos_z_2) or var4
+	scale = 1.0
+	var4 = effect.get_rotation_toward_7(var11, var12, var13, pos_x_2, pos_y_2, pos_z_2) or var4
 	do
-		local out1, out2, out3 = effect.GetRefRot_9(var11, var12, var13, pos_x_2, pos_y_2, pos_z_2)
+		local out1, out2, out3 = effect.get_rotation_toward_9(var11, var12, var13, pos_x_2, pos_y_2, pos_z_2)
 		var14 = out1 or var14
 		var15 = out2 or var15
 		var16 = out3 or var16
 	end
-	var14 = effect.GetRand(0.5235988) or var14
+	var14 = effect.get_random_number(0.5235988) or var14
 	var14 = vm.f32(var14 + vm.f32(0.2617994))
 	var16 = 0.0
 	do
-		local out1, out2, out3 = effect.GetDirVector(var14, var15, var16)
+		local out1, out2, out3 = effect.get_direction_vector(var14, var15, var16)
 		var20 = out1 or var20
 		var21 = out2 or var21
 		var22 = out3 or var22
 	end
 	do
-		local out1, out2, out3 = effect.NormalVector(var20, var21, var22)
+		local out1, out2, out3 = effect.normalize_vector(var20, var21, var22)
 		var20 = out1 or var20
 		var21 = out2 or var21
 		var22 = out3 or var22
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var20, var21, var22, var37)
+		local out1, out2, out3 = effect.scale_vector(var20, var21, var22, scale)
 		var20 = out1 or var20
 		var21 = out2 or var21
 		var22 = out3 or var22
@@ -220,117 +220,117 @@ function script.on_start()
 	var34 = 0
 	while var34 < 60 do
 		do
-			local out1, out2, out3 = effect.CopyVector(var11, var12, var13)
+			local out1, out2, out3 = effect.copy_vector(var11, var12, var13)
 			vector_x = out1 or vector_x
 			vector_y = out2 or vector_y
 			vector_z = out3 or vector_z
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var11, var12, var13, var20, var21, var22)
+			local out1, out2, out3 = effect.add_vectors(var11, var12, var13, var20, var21, var22)
 			var11 = out1 or var11
 			var12 = out2 or var12
 			var13 = out3 or var13
 		end
 		if target_id >= 0 then
 			do
-				local out1, out2, out3 = effect.ScnGetChrEntobjPos(target_id, 0)
+				local out1, out2, out3 = effect.get_scene_character_entry_object_position(target_id, 0)
 				pos_x_2 = out1 or pos_x_2
 				pos_y_2 = out2 or pos_y_2
 				pos_z_2 = out3 or pos_z_2
 			end
 		end
 		do
-			local out1, out2, _ = effect.GetRefRot_9(var11, var12, var13, pos_x_2, pos_y_2, pos_z_2)
+			local out1, out2, _ = effect.get_rotation_toward_9(var11, var12, var13, pos_x_2, pos_y_2, pos_z_2)
 			var38 = out1 or var38
 			var39 = out2 or var39
 		end
-		var41 = effect.AngleCmp(var15, var39, 1.6) or var41
+		var41 = effect.compare_angles(var15, var39, 1.6) or var41
 		if var41 == 0 then
 			var38 = vm.f32(var38 - var14)
-			var38 = effect.AngleLimit(var38) or var38
+			var38 = effect.wrap_angle(var38) or var38
 			var38 = vm.f32(var38 / 6.0)
 			var14 = vm.f32(var14 + var38)
-			var14 = effect.AngleLimit(var14) or var14
+			var14 = effect.wrap_angle(var14) or var14
 			var39 = vm.f32(var39 - var15)
-			var39 = effect.AngleLimit(var39) or var39
+			var39 = effect.wrap_angle(var39) or var39
 			var39 = vm.f32(var39 / 6.0)
 			var15 = vm.f32(var15 + var39)
-			var15 = effect.AngleLimit(var15) or var15
+			var15 = effect.wrap_angle(var15) or var15
 		end
 		do
-			local out1, out2, out3 = effect.GetDirVector(var14, var15, var16)
+			local out1, out2, out3 = effect.get_direction_vector(var14, var15, var16)
 			var20 = out1 or var20
 			var21 = out2 or var21
 			var22 = out3 or var22
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var20, var21, var22, var37)
+			local out1, out2, out3 = effect.scale_vector(var20, var21, var22, scale)
 			var20 = out1 or var20
 			var21 = out2 or var21
 			var22 = out3 or var22
 		end
-		var37 = vm.f32(var37 * 2.0)
-		if var37 > 16.0 then
-			var37 = 16.0
+		scale = vm.f32(scale * 2.0)
+		if scale > 16.0 then
+			scale = 16.0
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(var11, var12, var13)
-			vector_x_2 = out1 or vector_x_2
-			vector_y_2 = out2 or vector_y_2
-			vector_z_2 = out3 or vector_z_2
+			local out1, out2, out3 = effect.copy_vector(var11, var12, var13)
+			vector_x_3 = out1 or vector_x_3
+			vector_y_3 = out2 or vector_y_3
+			vector_z_3 = out3 or vector_z_3
 		end
 		do
-			local out1, out2, out3 = effect.CopyVector(vector_x, vector_y, vector_z)
+			local out1, out2, out3 = effect.copy_vector(vector_x, vector_y, vector_z)
 			var28 = out1 or var28
 			var29 = out2 or var29
 			var30 = out3 or var30
 		end
 		do
-			local out1, out2, out3 = effect.SubVector(var28, var29, var30, var11, var12, var13)
+			local out1, out2, out3 = effect.subtract_vectors(var28, var29, var30, var11, var12, var13)
 			var28 = out1 or var28
 			var29 = out2 or var29
 			var30 = out3 or var30
 		end
 		do
-			local out1, out2, out3 = effect.DivVector(var28, var29, var30, 2)
+			local out1, out2, out3 = effect.divide_vector(var28, var29, var30, 2)
 			var28 = out1 or var28
 			var29 = out2 or var29
 			var30 = out3 or var30
 		end
-		effect.SptVanSetPos(var35, vector_x_2, vector_y_2, vector_z_2, var28, var29, var30, 0.0, 0.0, 0.0, 2)
-		effect.SptVanSetCol(var35, 128.0, 128.0, 128.0, 128.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 2)
-		effect.SptColorConv(var35, 128.0, 128.0, 128.0, 0.0, 6.0, 2)
-		effect.SptVanSetScl(var35, 1.0 + vm.f32(1.0 * value), 1.0 + vm.f32(1.0 * value), 0.0, -0.04, 0.0, 0.0, 2)
-		effect.SptScaleConv(
+		effect.spread_sprite_positions(var35, vector_x_3, vector_y_3, vector_z_3, var28, var29, var30, 0.0, 0.0, 0.0, 2)
+		effect.spread_sprite_colors(var35, 128.0, 128.0, 128.0, 128.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 2)
+		effect.ease_sprite_color(var35, 128.0, 128.0, 128.0, 0.0, 6.0, 2)
+		effect.spread_sprite_scales(var35, 1.0 + vm.f32(1.0 * value), 1.0 + vm.f32(1.0 * value), 0.0, -0.04, 0.0, 0.0, 2)
+		effect.ease_sprite_scale(
 			var35,
 			vm.f32(0.2) + vm.f32(vm.f32(0.2) * value),
 			vm.f32(0.2) + vm.f32(vm.f32(0.2) * value),
 			4.0,
 			2
 		)
-		effect.SptVanSetRot(var35, angle, -0.6, 0.0, 2)
+		effect.spread_sprite_rotations(var35, angle, -0.6, 0.0, 2)
 		angle = vm.f32(angle + vm.f32(1.2))
-		angle = effect.AngleLimit(angle) or angle
+		angle = effect.wrap_angle(angle) or angle
 		var35 = var35 + 2
 		if var35 >= 20 then
 			var35 = 0
 		end
 		do
-			local _, _, _, out4 = effect.IntersectionPoint_11(4, vector_x, vector_y, vector_z, var11, var12, var13)
+			local _, _, _, out4 = effect.get_intersection_point_11(4, vector_x, vector_y, vector_z, var11, var12, var13)
 			var36 = out4 or var36
 		end
 		if var36 >= 0 then
-			effect.EsCreate_1("モニカ魔法－風ヒット")
-			effect.EsSetVect1(vector_x, vector_y, vector_z)
-			effect.EsSetValueFloat(0, value)
+			effect.create_effect_1("モニカ魔法－風ヒット")
+			effect.set_effect_first_work_vector(vector_x, vector_y, vector_z)
+			effect.set_effect_value_float(0, value)
 			break
 		else
-			effect.ColprimSetCoord(var11, var12, var13, 10.0)
-			var36 = effect.ColprimGetHitcnt() or var36
+			effect.set_collision_primitive_shape(var11, var12, var13, 10.0)
+			var36 = effect.get_collision_primitive_hit_count() or var36
 			if var36 > 0 then
-				effect.EsCreate_1("モニカ魔法－風ヒット")
-				effect.EsSetVect1(vector_x, vector_y, vector_z)
-				effect.EsSetValueFloat(0, value)
+				effect.create_effect_1("モニカ魔法－風ヒット")
+				effect.set_effect_first_work_vector(vector_x, vector_y, vector_z)
+				effect.set_effect_value_float(0, value)
 				break
 			else
 				var34 = var34 + 1
@@ -338,7 +338,7 @@ function script.on_start()
 			end
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 	var34 = 0
 	while var34 < 30 do
 		var34 = var34 + 1

@@ -3,9 +3,12 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <climits>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -13,16 +16,17 @@
 #include "gfx/gfx.hpp"
 #include "gfx_fixture.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mg_frame.hpp"
 #include "mg_shadow.hpp"
 #include "mg_texture.hpp"
 #include "mg_visual.hpp"
-#include "mg_visual_port.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "platform/arena.hpp"
 #include "platform/clock.hpp"
 #include "platform/window.hpp"
+#include "render/primitive_submission.hpp"
+#include "render/renderer.hpp"
+#include "render/visual_mesh.hpp"
 
 using namespace dc::test;
 
@@ -31,7 +35,7 @@ namespace {
 using Vec3 = std::array<float, 3>;
 
 struct FaceSpec {
-    u_int             type;
+    u_int            type;
     std::vector<int> corners;
 };
 
@@ -53,6 +57,10 @@ public:
 
     MDT_HEADER *header() {
         return reinterpret_cast<MDT_HEADER *>(words_.data());
+    }
+
+    std::span<std::byte> bytes() {
+        return {reinterpret_cast<std::byte *>(words_.data()), words_.size() * sizeof(u_long128)};
     }
 
 private:
@@ -180,7 +188,11 @@ constexpr u_int kUntextured = MG_FACE_NO_TEXTURE;
 
 ModelSpec CentreTriangle(bool reversed, std::array<float, 4> diffuse = {1.0f, 1.0f, 1.0f, 1.0f}) {
     ModelSpec model;
-    model.vertices = {{-50.0f, -50.0f, 100.0f}, {150.0f, -50.0f, 100.0f}, {-50.0f, 150.0f, 100.0f}};
+    model.vertices = {
+        {-50.0f, -50.0f, 100.0f},
+        {150.0f, -50.0f, 100.0f},
+        {-50.0f, 150.0f, 100.0f}
+    };
     model.diffuse = diffuse;
     model.faces.push_back({
         .type = kPrimTriangle | kUntextured, .corners = reversed ? std::vector<int>{0, 2, 1}
@@ -191,7 +203,12 @@ ModelSpec CentreTriangle(bool reversed, std::array<float, 4> diffuse = {1.0f, 1.
 
 void SetCamera() {
     mgSetRenderInfo(400.0f, 10.0f, 10000.0f);
-    float identity[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    float identity[4][4] = {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
     float eye[4] = {0, 0, 0, 0};
     mgSetViewMatrix(identity, eye);
 }
@@ -251,9 +268,150 @@ uint64_t KeyOf(const void *object) {
 
 } // namespace
 
+TEST(MgVisual, RejectsTruncatedAndOverstatedFaceSectionsBeforeAllocating) {
+    MdtFile      file(CentreTriangle(false));
+    MemoryPool   pool;
+    mgCVisualMDT visual;
+    const int    original_faces_size = file.header()->faces_size;
+
+    auto truncated = file.bytes().first(static_cast<std::size_t>(file.header()->faces_ofs) +
+                                        sizeof(MDT_FACES) + offsetof(FACES_ID, index) - 1);
+    EXPECT_EQ(visual.DataAssignMDT(truncated, &pool.memory(), nullptr), 0);
+    EXPECT_EQ(pool.memory().stGetUsed(), 0);
+
+    file.header()->faces_size = static_cast<int>(file.bytes().size());
+    EXPECT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 0);
+    EXPECT_EQ(pool.memory().stGetUsed(), 0);
+    file.header()->faces_size = original_faces_size;
+
+    auto *face = reinterpret_cast<FACES_ID *>(file.bytes().data() + file.header()->faces_ofs +
+                                              sizeof(MDT_FACES));
+    face->vertex_num = static_cast<u_int>(SHRT_MAX);
+    EXPECT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 0);
+    EXPECT_EQ(pool.memory().stGetUsed(), 0);
+
+    face->vertex_num = 3;
+    face->index[0] = file.header()->vertex_num;
+    EXPECT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 0);
+    EXPECT_EQ(pool.memory().stGetUsed(), 0);
+}
+
+TEST(MgVisual, RejectsUnterminatedMaterialAndSmallArenaBeforeMutation) {
+    MdtFile file(CentreTriangle(false));
+    auto   *material = reinterpret_cast<MDT_MATERIAL_ *>(file.bytes().data() +
+                                                         file.header()->material_ofs);
+    std::memset(material->texture, 'x', sizeof material->texture);
+    MemoryPool   pool;
+    mgCVisualMDT invalid;
+    EXPECT_EQ(invalid.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 0);
+    EXPECT_EQ(pool.memory().stGetUsed(), 0);
+
+    material->texture[0] = '\0';
+    ++file.header()->material_ofs;
+    EXPECT_EQ(invalid.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 0);
+    EXPECT_EQ(pool.memory().stGetUsed(), 0);
+    --file.header()->material_ofs;
+
+    alignas(u_long128) u_long128 storage[16]{};
+    mgCMemory                    small;
+    small.stSetBuffer(storage, 1);
+    mgCVisualMDT owned;
+    EXPECT_EQ(owned.DataAssignMDT(file.bytes(), &small, nullptr), 0);
+    EXPECT_EQ(small.stGetUsed(), 0);
+    mgCVisualFixMDT borrowed;
+    EXPECT_EQ(borrowed.DataAssignMDT(file.bytes(), &small, nullptr), 0);
+    EXPECT_EQ(small.stGetUsed(), 0);
+}
+
+TEST(MgVisual, ShadowFaceIndicesStayWithinTheModel) {
+    ModelSpec model = CentreTriangle(false);
+    model.faces[0].corners = {0, 1, 2, 0, 1, 2};
+    MdtFile file(model);
+    auto   *face = reinterpret_cast<FACES_ID *>(file.bytes().data() + file.header()->faces_ofs +
+                                                sizeof(MDT_FACES));
+    face->vertex_num = 3;
+    file.header()->faces_size = sizeof(MDT_FACES) + offsetof(FACES_ID, index) + 9 * sizeof(int);
+    const int indices[9] = {0, 0, 0, 1, 0, 0, 2, 0, 0};
+    std::memcpy(face->index, indices, sizeof indices);
+
+    alignas(u_long128) u_long128 small_storage[16]{};
+    mgCMemory                    small;
+    small.stSetBuffer(small_storage, 1);
+    mgCShadowMDT short_arena;
+    EXPECT_EQ(short_arena.DataAssignMDT(file.bytes(), &small, nullptr), 0);
+    EXPECT_EQ(small.stGetUsed(), 0);
+
+    MemoryPool   pool;
+    mgCShadowMDT shadow;
+    ASSERT_EQ(shadow.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
+    ASSERT_NE(shadow.face_group, nullptr);
+    ASSERT_NE(shadow.face_group->face, nullptr);
+    EXPECT_EQ(shadow.face_group->face->vertex_num, 1);
+
+    MemoryPool   invalid_pool;
+    mgCShadowMDT invalid_shadow;
+    face->index[6] = file.header()->vertex_num;
+    EXPECT_EQ(invalid_shadow.DataAssignMDT(file.bytes(), &invalid_pool.memory(), nullptr), 0);
+    EXPECT_EQ(invalid_pool.memory().stGetUsed(), 0);
+}
+
+TEST(MgVisual, CopiedMaterialsFitBeforeTheNextArenaAllocation) {
+    MemoryPool      pool;
+    mgMaterial      materials[2]{};
+    mgCVisualFixMDT source;
+    source.material = materials;
+    source.material_num = 2;
+    materials[1].diffuse[0] = 0.75f;
+
+    auto *copy = static_cast<mgCVisualFixMDT *>(source.Copy(&pool.memory()));
+    ASSERT_NE(copy, nullptr);
+    ASSERT_NE(copy->material, materials);
+    EXPECT_FLOAT_EQ(copy->material[1].diffuse[0], 0.75f);
+    const auto *after = reinterpret_cast<const std::byte *>(pool.memory().Alloc(1));
+    ASSERT_NE(after, nullptr);
+    EXPECT_GE(after, reinterpret_cast<const std::byte *>(copy->material + 2));
+
+    const int used = pool.memory().stGetUsed();
+    source.material_num = INT_MAX;
+    EXPECT_EQ(source.Copy(&pool.memory()), nullptr);
+    EXPECT_EQ(pool.memory().stGetUsed(), used);
+}
+
+TEST(MgVisual, FixedFaceIndicesBelongToModelArena) {
+    VisualRenderer  renderer(640, 480);
+    MemoryPool      model;
+    MdtFile         file(CentreTriangle(false));
+    mgCVisualFixMDT visual;
+
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &model.memory(), nullptr), 1);
+    ASSERT_NE(visual.face_group, nullptr);
+    const mgCFace *face = visual.face_group->face;
+    ASSERT_NE(face, nullptr);
+    ASSERT_NE(face->index, nullptr);
+    ASSERT_EQ(face->index_num, 6);
+
+    const uptr index_address = reinterpret_cast<uptr>(face->index);
+    const uptr arena_begin = reinterpret_cast<uptr>(model.memory().stack);
+    const uptr arena_end = arena_begin + static_cast<uptr>(model.memory().stack_used) * sizeof(u_long128);
+    EXPECT_GE(index_address, arena_begin);
+    EXPECT_LE(index_address + static_cast<uptr>(face->index_num) * sizeof(int), arena_end);
+
+    const int expected_indices[] = {0, 0, 1, 1, 2, 2};
+    for (int i = 0; i < face->index_num; ++i) {
+        EXPECT_EQ(face->index[i], expected_indices[i]);
+    }
+    EXPECT_NE(mgVisualPortFaceMesh(face), nullptr);
+}
+
 TEST(MgVisual, FaceMeshListAndStrip) {
     ModelSpec model;
-    model.vertices = {{0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {3, 0, 0}, {4, 0, 0}};
+    model.vertices = {
+        {0, 0, 0},
+        {1, 0, 0},
+        {2, 0, 0},
+        {3, 0, 0},
+        {4, 0, 0}
+    };
     model.faces.push_back({
         .type = kPrimTriangle | kUntextured, .corners = {0, 1, 2}
     });
@@ -261,10 +419,10 @@ TEST(MgVisual, FaceMeshListAndStrip) {
         .type = kPrimStrip | kUntextured, .corners = {0, 1, 2, 3, 4}
     });
 
-    MdtFile file(model);
-    MemoryPool pool;
+    MdtFile      file(model);
+    MemoryPool   pool;
     mgCVisualMDT visual;
-    ASSERT_EQ(visual.DataAssignMDT(file.header(), &pool.memory(), nullptr), 1);
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
 
     std::vector<mgCFace *> faces;
     for (mgFACE_GROUP *group = visual.face_group; group != nullptr; group = group->next) {
@@ -297,10 +455,10 @@ TEST(MgVisual, LightingOffVector) {
     mgSetBackGround(0.0f, 0.0f, 0.0f, 128.0f);
     SetCamera();
 
-    MdtFile file(CentreTriangle(false, {0.5f, 0.5f, 0.5f, 1.0f}));
-    MemoryPool pool;
+    MdtFile      file(CentreTriangle(false, {0.5f, 0.5f, 0.5f, 1.0f}));
+    MemoryPool   pool;
     mgCVisualMDT visual;
-    ASSERT_EQ(visual.DataAssignMDT(file.header(), &pool.memory(), nullptr), 1);
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
 
     mgCFrameAttr attr;
     attr.no_light = 1;
@@ -322,10 +480,10 @@ TEST(MgVisual, OneLightVector) {
     mgSetLight(0, direction, light_colour);
     mgSetAmbient(ambient);
 
-    MdtFile file(CentreTriangle(false));
-    MemoryPool pool;
+    MdtFile      file(CentreTriangle(false));
+    MemoryPool   pool;
     mgCVisualMDT visual;
-    ASSERT_EQ(visual.DataAssignMDT(file.header(), &pool.memory(), nullptr), 1);
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
 
     mgCFrameAttr attr;
     SetColour(attr, {128.0f, 128.0f, 128.0f, 128.0f});
@@ -348,16 +506,16 @@ TEST(MgVisual, DrawManagerPathMatchesDirect) {
     textures.Initialize(0x1000, -1);
 
     std::vector<u_long128> pixels(64, 0);
-    u_long128 *levels[MG_TEXTURE_LEVEL_MAX] = {pixels.data(), nullptr, nullptr, nullptr};
-    char       name[] = "vis_tex";
+    u_long128             *levels[MG_TEXTURE_LEVEL_MAX] = {pixels.data(), nullptr, nullptr, nullptr};
+    char                   name[] = "vis_tex";
     ASSERT_NE(textures.EnterTexture(0, name, levels, 16, 16, 32, nullptr, 0, 0), nullptr);
 
     ModelSpec model = CentreTriangle(false, {0.5f, 0.5f, 0.5f, 1.0f});
     model.texture = "vis_tex";
-    MdtFile file(model);
-    MemoryPool pool;
+    MdtFile      file(model);
+    MemoryPool   pool;
     mgCVisualMDT visual;
-    ASSERT_EQ(visual.DataAssignMDT(file.header(), &pool.memory(), nullptr), 1);
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
 
     mgCFrameAttr attr;
     attr.no_light = 1;
@@ -370,7 +528,7 @@ TEST(MgVisual, DrawManagerPathMatchesDirect) {
     MemoryPool buffers;
     mgSetDataBuffer(&data_a.memory(), &data_b.memory(), 0);
 
-    int draw_order[2] = {0, -1};
+    int   draw_order[2] = {0, -1};
     float matrix[4][4];
     Identity(matrix);
     PrepareObject(attr);
@@ -394,11 +552,11 @@ TEST(MgVisual, FacingFlagCullsBackFaces) {
     SetCamera();
 
     const std::array<uint8_t, 3> background = {64, 128, 192};
-    const auto draw = [&](bool reversed, int program_option) {
-        MdtFile file(CentreTriangle(reversed));
-        MemoryPool pool;
+    const auto                   draw = [&](bool reversed, int program_option) {
+        MdtFile      file(CentreTriangle(reversed));
+        MemoryPool   pool;
         mgCVisualMDT visual;
-        EXPECT_EQ(visual.DataAssignMDT(file.header(), &pool.memory(), nullptr), 1);
+        EXPECT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
 
         mgCFrameAttr attr;
         attr.no_light = 1;
@@ -426,10 +584,10 @@ TEST(MgVisual, RecordedDrawIsKeyedByFrame) {
     VisualRenderer renderer(64, 48);
     SetCamera();
 
-    MdtFile file(CentreTriangle(false));
-    MemoryPool pool;
+    MdtFile      file(CentreTriangle(false));
+    MemoryPool   pool;
     mgCVisualMDT visual;
-    ASSERT_EQ(visual.DataAssignMDT(file.header(), &pool.memory(), nullptr), 1);
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
 
     mgCFrameAttr attr;
     attr.no_light = 1;
@@ -457,19 +615,23 @@ namespace {
 // A visual whose box sits at logical x = -40, outside the 4:3 screen and inside the 16:9 one.
 size_t DrawBoxRecords() {
     ModelSpec model;
-    model.vertices = {{-76.0f, -2.0f, 98.0f}, {-72.0f, -2.0f, 98.0f}, {-72.0f, 2.0f, 98.0f}};
+    model.vertices = {
+        {-76.0f, -2.0f, 98.0f},
+        {-72.0f, -2.0f, 98.0f},
+        {-72.0f, 2.0f,  98.0f}
+    };
     model.faces.push_back({
         .type = kPrimTriangle | kUntextured, .corners = {0, 1, 2}
     });
 
-    MdtFile file(model);
-    MemoryPool pool;
+    MdtFile      file(model);
+    MemoryPool   pool;
     mgCVisualMDT visual;
-    EXPECT_EQ(visual.DataAssignMDT(file.header(), &pool.memory(), nullptr), 1);
+    EXPECT_EQ(visual.DataAssignMDT(file.bytes(), &pool.memory(), nullptr), 1);
 
     mgCFrame::BoundInfo bound = {};
-    const float          lo[3] = {-76.0f, -2.0f, 98.0f};
-    const float          hi[3] = {-72.0f, 2.0f, 102.0f};
+    const float         lo[3] = {-76.0f, -2.0f, 98.0f};
+    const float         hi[3] = {-72.0f, 2.0f, 102.0f};
     for (int corner = 0; corner < 8; corner++) {
         for (int axis = 0; axis < 3; axis++) {
             bound.corner[corner][axis] = (corner >> axis) & 1 ? hi[axis] : lo[axis];
@@ -529,7 +691,7 @@ TEST(MgVisual, ReusedCommonPacketDoesNotReplayPreviousDraw) {
     MdtFile      file(CentreTriangle(false));
     MemoryPool   model;
     mgCVisualMDT visual;
-    ASSERT_EQ(visual.DataAssignMDT(file.header(), &model.memory(), nullptr), 1);
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &model.memory(), nullptr), 1);
 
     MemoryPool data_a;
     MemoryPool data_b;
@@ -573,7 +735,7 @@ TEST(MgVisual, QueuedFixFaceSurvivesFaceAddressReuse) {
     MdtFile         next_file(CentreTriangle(false, {0.0f, 1.0f, 0.0f, 1.0f}));
     MemoryPool      model;
     mgCVisualFixMDT first;
-    ASSERT_EQ(first.DataAssignMDT(first_file.header(), &model.memory(), nullptr), 1);
+    ASSERT_EQ(first.DataAssignMDT(first_file.bytes(), &model.memory(), nullptr), 1);
     const mgCFace      *face = first.face_group->face;
     const mgFACE_GROUP *group = first.face_group;
     const auto         *geometry = mgVisualPortGroupMesh(group, nullptr);
@@ -599,7 +761,7 @@ TEST(MgVisual, QueuedFixFaceSurvivesFaceAddressReuse) {
 
     model.memory().stReset();
     mgCVisualFixMDT next;
-    ASSERT_EQ(next.DataAssignMDT(next_file.header(), &model.memory(), nullptr), 1);
+    ASSERT_EQ(next.DataAssignMDT(next_file.bytes(), &model.memory(), nullptr), 1);
     ASSERT_EQ(next.face_group, group);
     ASSERT_EQ(next.face_group->face, face);
     // The reused address holds identical geometry, so the batch and its GPU mesh carry over.
@@ -624,7 +786,7 @@ TEST(MgVisual, ShadowModelAfterLitVisualDrawsNoMesh) {
     MdtFile      lit_file(CentreTriangle(false));
     MemoryPool   pool;
     mgCVisualMDT lit;
-    ASSERT_EQ(lit.DataAssignMDT(lit_file.header(), &pool.memory(), nullptr), 1);
+    ASSERT_EQ(lit.DataAssignMDT(lit_file.bytes(), &pool.memory(), nullptr), 1);
 
     float positions[3][4] = {
         {-50, -50, 100, 1},
@@ -640,7 +802,7 @@ TEST(MgVisual, ShadowModelAfterLitVisualDrawsNoMesh) {
     face.index = indices;
     mgFACE_GROUP group{};
     group.face = &face;
-    mgMaterial material{};
+    mgMaterial   material{};
     mgCShadowMDT shadow;
     shadow.vertex = positions;
     shadow.vertex_num = 3;
@@ -678,7 +840,7 @@ TEST(MgVisual, BeginPacketDropsPreviousFixFaceDraw) {
     MdtFile         file(CentreTriangle(false));
     MemoryPool      model;
     mgCVisualFixMDT visual;
-    ASSERT_EQ(visual.DataAssignMDT(file.header(), &model.memory(), nullptr), 1);
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &model.memory(), nullptr), 1);
 
     MemoryPool data_a;
     MemoryPool data_b;
@@ -790,3 +952,113 @@ void CheckMaterialWrap(bool queued) {
 TEST(MgVisual, DirectMaterialUsesItsOwnTextureWrap) { CheckMaterialWrap(false); }
 
 TEST(MgVisual, QueuedMaterialRetainsItsOwnTextureWrap) { CheckMaterialWrap(true); }
+
+TEST(MgVisual, DirectFaceCreationRejectsIncompleteArenaBeforeAnyAllocation) {
+    std::array<u_long128, 128> backing{};
+    mgCMemory                  parent;
+    parent.stSetBuffer(backing.data(), static_cast<int>(backing.size()));
+    constexpr int face_quads = static_cast<int>((sizeof(mgCFace) + sizeof(u_long128) - 1) / sizeof(u_long128));
+    mgCMemory     faces;
+    faces.stSetBuffer(parent.stAlloc(face_quads + 1), face_quads + 1);
+    mgCMemory indices;
+    indices.stSetBuffer(parent.stAlloc(16), 16);
+    alignas(FACES_ID) std::array<u_int, 12> record{
+        MG_FACE_NO_NORMAL | MG_FACE_NO_TEXTURE, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    const auto  *source = reinterpret_cast<const FACES_ID *>(record.data());
+    mgCVisualMDT visual;
+    mgCShadowMDT shadow;
+    mgCFace      previous;
+    for (mgCVisualMDT *target : {&visual, static_cast<mgCVisualMDT *>(&shadow)}) {
+        target->Initialize();
+        mgCFace *result = &previous;
+        EXPECT_EQ(target->CreateFace(source, std::as_bytes(std::span(record)), &faces, &indices, &result), nullptr);
+        EXPECT_EQ(result, &previous);
+        EXPECT_EQ(target->face_group, nullptr);
+        EXPECT_EQ(faces.stGetUsed(), 0);
+        EXPECT_EQ(indices.stGetUsed(), 0);
+    }
+}
+
+TEST(MgVisual, ShortAndLockedPacketArenasDoNotCallTheOverflowingAllocator) {
+    VisualRenderer renderer(640, 480);
+    SetCamera();
+    MemoryPool texture_table;
+    mgTexManager.SetTableBuffer(16, 8, &texture_table.memory());
+    mgTexManager.Initialize(0x1000, -1);
+    MdtFile         file(CentreTriangle(false));
+    MemoryPool      model;
+    mgCVisualFixMDT visual;
+    ASSERT_EQ(visual.DataAssignMDT(file.bytes(), &model.memory(), nullptr), 1);
+    MemoryPool data_a;
+    MemoryPool data_b;
+    MemoryPool buffers;
+    mgSetDataBuffer(&data_a.memory(), &data_b.memory(), 0);
+    mgCFrameAttr attr;
+    attr.no_light = 1;
+    float matrix[4][4];
+    Identity(matrix);
+    PrepareObject(attr);
+    int order[2] = {0, -1};
+    mgBeginFrame(nullptr);
+    mgBeginDraw(&buffers.memory(), order, nullptr);
+    auto       *previous = mgDrawManager.data_memory;
+    static char packet_key;
+    auto       *storage = reinterpret_cast<u_long128 *>(ArenaBlock(&packet_key, 3 * sizeof(u_long128)));
+    mgCMemory   owner;
+    owner.stSetBuffer(storage, 3);
+    for (int capacity : {1, 2, 3}) {
+        mgCMemory small;
+        ASSERT_TRUE(small.stShareBuffer(owner, std::span(storage, static_cast<std::size_t>(capacity))));
+        small.stSetLocked(capacity == 3);
+        mgDrawManager.data_memory = &small;
+        EXPECT_EQ(visual.Draw(nullptr, matrix, nullptr), 0);
+        mgDrawManager.data_memory = previous;
+        EXPECT_EQ(small.stGetUsed(), capacity == 2 ? 1 : 0);
+    }
+    mgDrawManager.data_memory = nullptr;
+    EXPECT_EQ(visual.Draw(nullptr, matrix, nullptr), 0);
+    mgDrawManager.data_memory = previous;
+    mgEndFrame(nullptr);
+}
+
+TEST(MgVisualInitialization, PoisonedBaseAndMdtConstructionAndResetInitializeEveryNamedField) {
+    const auto check_base = [](const mgCVisual &visual, int base, int offset) {
+        EXPECT_EQ(visual.unk_00, 0);
+        EXPECT_EQ(visual.draw_env, nullptr);
+        EXPECT_EQ(visual.texture_manager, nullptr);
+        EXPECT_EQ(visual.prmode, 0u);
+        EXPECT_EQ(visual.vu1_base, base);
+        EXPECT_EQ(visual.vu1_offset, offset);
+        EXPECT_EQ(visual.unk_18, 0);
+    };
+    alignas(mgCVisual) std::array<std::byte, sizeof(mgCVisual)> base_storage{};
+    base_storage.fill(std::byte{0xA5});
+    auto *base = std::construct_at(reinterpret_cast<mgCVisual *>(base_storage.data()));
+    check_base(*base, 0, 0);
+    base->prmode = 0xA5;
+    base->unk_18 = 5;
+    base->Initialize();
+    check_base(*base, 0, 0);
+    std::destroy_at(base);
+
+    alignas(mgCVisualMDT) std::array<std::byte, sizeof(mgCVisualMDT)> mdt_storage{};
+    mdt_storage.fill(std::byte{0xA5});
+    auto *mdt = std::construct_at(reinterpret_cast<mgCVisualMDT *>(mdt_storage.data()));
+    check_base(*mdt, 60, 180);
+    EXPECT_EQ(mdt->vertex_num, 0);
+    EXPECT_EQ(mdt->normal_num, 0);
+    EXPECT_EQ(mdt->colour_num, 0);
+    EXPECT_EQ(mdt->uv_num, 0);
+    EXPECT_EQ(mdt->material_num, 0);
+    EXPECT_EQ(mdt->vertex, nullptr);
+    EXPECT_EQ(mdt->normal, nullptr);
+    EXPECT_EQ(mdt->colour, nullptr);
+    EXPECT_EQ(mdt->uv, nullptr);
+    EXPECT_EQ(mdt->material, nullptr);
+    EXPECT_EQ(mdt->face_group, nullptr);
+    mdt->prmode = 0xA5;
+    mdt->unk_18 = 5;
+    mdt->Initialize();
+    check_base(*mdt, 60, 180);
+    std::destroy_at(mdt);
+}

@@ -10,7 +10,6 @@
 #include "actionchara.hpp"
 #include "cameracontrol.hpp"
 #include "dng_main.hpp"
-#include "editctrl_port.hpp"
 #include "editloop.hpp"
 #include "effscript.hpp"
 #include "gfx/displaylist.hpp"
@@ -21,8 +20,9 @@
 #include "menumain.hpp"
 #include "menusys.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "object/world/town_control.hpp"
 #include "outline.hpp"
+#include "render/renderer.hpp"
 #include "scenevillager.hpp"
 #include "stubs/editloop.hpp"
 #include "stubs/menumain.hpp"
@@ -33,25 +33,25 @@ namespace {
 
 using Vector = std::array<float, 4>;
 
-constexpr float   kFrameAspect = 4.0f / 3.0f;               /**< Aspect the renderer shows the logical frame at. */
-constexpr float   kLayoutAspect = 16.0f / 9.0f;             /**< Widest aspect the Item page spreads its panels across. */
-constexpr float   kFramingScreenX = 131.0f;                 /**< Logical x, from the layout's left edge, the player stands at. */
-constexpr float   kRoboScale = 0.6f;                        /**< Scale the Ridepod is shown at, to fit between the panels. */
-constexpr float   kMonsterScale = 0.8f;                     /**< Scale Monica's monster form is shown at. */
-constexpr float   kFrameHeight = 480.0f;                    /**< Logical height the screen positions below are given in. */
-constexpr float   kHeadScreenY = 128.0f;                    /**< Logical y the head is drawn at, below the quick-select rings. */
-constexpr float   kFeetScreenY = 343.0f;                    /**< Logical y the feet are drawn at, a few pixels above the "Maximilian" name at every size. */
-constexpr float   kModelHeightPerBodyHeight = 1.664f;       /**< Height of Max's mesh in body_height units. */
-constexpr float   kOffLayout = -1000000.0f;                 /**< A retail x no panel of the Item page reaches. */
-constexpr float   kDefaultPanelSplit = 240.0f;              /**< Logical x the panels split at when the bag board gives none. */
-constexpr float   kPanelFlipWidth = 40.0f;                  /**< Width of the band where panels change sides, ending at the split. */
-constexpr float   kMainFrameTravel = 269.0f;                /**< Distance the main frame's left edge moves as the orb opens or closes. */
-constexpr float   kHeldPointerOffset = 30.0f;               /**< Logical x past the split where the pointer rests while an item is held. */
-constexpr uint8_t kFullPictureAlpha = 128;                  /**< Opacity of a full picture, out of 128. */
-constexpr int     kMaxPartChain = 64;                       /**< Character parts walked before a chain is cut short. */
-constexpr int     kCharacterFadeTicks = 16;                 /**< Frames the menu character takes to fade in. */
-constexpr int     kCharacterDrawCounter = 15;               /**< Counter from which the menu draws a poly form's character. */
-constexpr gfx::InterpKey kBackdropKey = 0x4954454D42474E44; /**< Interpolation key of the Item page's backdrop draws. */
+constexpr float          kFrameAspect = 4.0f / 3.0f;         /**< Aspect the renderer shows the logical frame at. */
+constexpr float          kLayoutAspect = 16.0f / 9.0f;       /**< Widest aspect the Item page spreads its panels across. */
+constexpr float          kFramingScreenX = 131.0f;           /**< Logical x, from the layout's left edge, the player stands at. */
+constexpr float          kRoboScale = 0.6f;                  /**< Scale the Ridepod is shown at, to fit between the panels. */
+constexpr float          kMonsterScale = 0.8f;               /**< Scale Monica's monster form is shown at. */
+constexpr float          kFrameHeight = 480.0f;              /**< Logical height the screen positions below are given in. */
+constexpr float          kHeadScreenY = 128.0f;              /**< Logical y the head is drawn at, below the quick-select rings. */
+constexpr float          kFeetScreenY = 343.0f;              /**< Logical y the feet are drawn at, a few pixels above the "Maximilian" name at every size. */
+constexpr float          kModelHeightPerBodyHeight = 1.664f; /**< Height of Max's mesh in body_height units. */
+constexpr float          kOffLayout = -1000000.0f;           /**< A retail x no panel of the Item page reaches. */
+constexpr float          kDefaultPanelSplit = 240.0f;        /**< Logical x the panels split at when the bag board gives none. */
+constexpr float          kPanelFlipWidth = 40.0f;            /**< Width of the band where panels change sides, ending at the split. */
+constexpr float          kMainFrameTravel = 269.0f;          /**< Distance the main frame's left edge moves as the orb opens or closes. */
+constexpr float          kHeldPointerOffset = 30.0f;         /**< Logical x past the split where the pointer rests while an item is held. */
+constexpr uint8_t        kFullPictureAlpha = 128;            /**< Opacity of a full picture, out of 128. */
+constexpr int            kMaxPartChain = 64;                 /**< Character parts walked before a chain is cut short. */
+constexpr int            kCharacterFadeTicks = 16;           /**< Frames the menu character takes to fade in. */
+constexpr int            kCharacterDrawCounter = 15;         /**< Counter from which the menu draws a poly form's character. */
+constexpr gfx::InterpKey kBackdropKey = 0x4954454D42474E44;  /**< Interpolation key of the Item page's backdrop draws. */
 
 /**
  * Steps from the menu request to the open menu.
@@ -165,7 +165,7 @@ void ViewThroughMenuCamera() {
         }
     }
     mgSetProjection(projection);
-    mgSetViewMatrix(view, pos.data());
+    mgSetViewMatrix(view, pos);
 }
 
 // Sets the opacity of each part of a character. The character's draw takes its own alpha, which fades the outline

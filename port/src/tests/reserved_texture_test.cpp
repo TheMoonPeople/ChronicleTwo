@@ -10,21 +10,24 @@
 #include <string>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "mg_frame.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mg_visual.hpp"
 #include "mglib.hpp"
 #include "monster.hpp"
+#include "native_script_program.hpp"
 #include "platform/datapacks.hpp"
 #include "platform/model_assets.hpp"
 #include "runscript.hpp"
 #include "runscript_opcodes.hpp"
 
-int _LOAD_RESERV_IMG(RS_STACKDATA *, int);
-int _TRANS_RESERV_IMG(RS_STACKDATA *, int);
+int _LOAD_RESERV_IMG(dc2::script::RunArguments, int);
+int _TRANS_RESERV_IMG(dc2::script::RunArguments, int);
+int _SET_INDEXOBJ_SIZE(dc2::script::RunArguments, int);
+int _GET_INDEXOBJ_SIZE(dc2::script::RunArguments, int);
 
 namespace {
 /**
@@ -48,6 +51,19 @@ protected:
         std::ofstream(root / "data/reserved.json") << document.dump(2);
     }
 
+    /**
+     * Supplies fixture characters with a model from their explicit allocation producer.
+     */
+    bool BindModel(CCharacter2 &character) {
+        character.Initialize();
+        auto *frame = dc2::memory::NewObject<mgCFrame>(memory);
+        if (frame == nullptr) {
+            return false;
+        }
+        character.CObjectFrame::frame = frame;
+        return dc2::character::CaptureModelResources(character, memory);
+    }
+
     void SetUp() override {
         std::filesystem::create_directories(root / "data");
         Write(4);
@@ -56,7 +72,7 @@ protected:
         memory.StartStackMode(MG_STACK_MODE_FIT, static_cast<int>(storage.size()));
         mgTexManager.SetTableBuffer(64, 64, &memory);
         mgTexManager.Initialize(0x1000, -1);
-        monster.Initialize();
+        ASSERT_TRUE(BindModel(monster));
         monster.texture_block = 20;
         previous_monster = nowMonster;
         nowMonster = &monster;
@@ -86,7 +102,7 @@ TEST_F(NativeReservedTexture, OpcodesRetainParsedResourcesAfterDocumentChanges) 
     char path[] = "/reserved.json";
     arguments[1].type = RS_STR;
     arguments[1].val.s = path;
-    ASSERT_EQ(_LOAD_RESERV_IMG(arguments, 2), 1);
+    ASSERT_EQ(InvokeNativeExternal(_LOAD_RESERV_IMG, std::span(arguments).first(2), {}, path), 1);
     ASSERT_NE(monster.reserv_img[1], nullptr);
     EXPECT_EQ(monster.reserv_img_size[1], 0);
     EXPECT_EQ(monster.images[0], nullptr);
@@ -94,7 +110,7 @@ TEST_F(NativeReservedTexture, OpcodesRetainParsedResourcesAfterDocumentChanges) 
     texture_catalog::Clear();
     std::string error;
     ASSERT_TRUE(texture_catalog::Load(root / "data", error)) << error;
-    ASSERT_EQ(_TRANS_RESERV_IMG(arguments, 1), 1);
+    ASSERT_EQ(InvokeNativeExternal(_TRANS_RESERV_IMG, std::span(arguments).first(1)), 1);
     char  name[] = "reserved";
     auto *texture = mgTexManager.GetTexture(name, 20);
     ASSERT_NE(texture, nullptr);
@@ -102,7 +118,7 @@ TEST_F(NativeReservedTexture, OpcodesRetainParsedResourcesAfterDocumentChanges) 
     EXPECT_EQ(monster.images[0], nullptr);
     monster.DeleteImage();
     EXPECT_EQ(mgTexManager.GetTexture(name, 20), nullptr);
-    ASSERT_EQ(_TRANS_RESERV_IMG(arguments, 1), 1);
+    ASSERT_EQ(InvokeNativeExternal(_TRANS_RESERV_IMG, std::span(arguments).first(1)), 1);
     ASSERT_NE(mgTexManager.GetTexture(name, 20), nullptr);
     EXPECT_EQ(mgTexManager.GetTexture(name, 20)->width, 4);
 }
@@ -128,15 +144,15 @@ TEST_F(NativeReservedTexture, InvalidOperandsAndDocumentsPreserveTheReservedSlot
     RS_STACKDATA argument{};
     argument.type = RS_INT;
     argument.val.i = 2;
-    EXPECT_EQ(_TRANS_RESERV_IMG(&argument, 1), 0);
-    EXPECT_EQ(_TRANS_RESERV_IMG(&argument, 0), 0);
-    EXPECT_EQ(_LOAD_RESERV_IMG(&argument, 1), 0);
+    EXPECT_EQ(InvokeNativeExternal(_TRANS_RESERV_IMG, std::span(&argument, 1).first(1)), 0);
+    EXPECT_EQ(InvokeNativeExternal(_TRANS_RESERV_IMG, std::span(&argument, 1).first(0)), 0);
+    EXPECT_EQ(InvokeNativeExternal(_LOAD_RESERV_IMG, std::span(&argument, 1).first(1)), 0);
     EXPECT_TRUE(model_assets::ApplyReservedMonsterTexture(monster, 0, error)) << error;
 }
 
 TEST_F(NativeReservedTexture, CopiedCharactersRetainSuffixedMaterialBindingsAndOtherImageSlots) {
     CCharacter2 base;
-    base.Initialize();
+    ASSERT_TRUE(BindModel(base));
     base.texture_block = 20;
     std::strcpy(mgTexManager.name_suffix, "_m");
     std::string error;
@@ -149,19 +165,19 @@ TEST_F(NativeReservedTexture, CopiedCharactersRetainSuffixedMaterialBindingsAndO
     auto *extension = mgTexManager.GetTexture(name, 21);
     ASSERT_NE(original, nullptr);
     ASSERT_NE(extension, nullptr);
-    mgMaterial material{};
-    material.texture = original;
-    mgCVisualMDT visual;
-    visual.material = &material;
-    visual.material_num = 1;
-    mgCFrame frame;
-    frame.visual = &visual;
-    monster.CObjectFrame::frame = &frame;
+    auto *material = dc2::memory::NewObject<mgMaterial>(memory);
+    auto *visual = dc2::memory::NewObject<mgCVisualMDT>(memory);
+    ASSERT_NE(material, nullptr);
+    ASSERT_NE(visual, nullptr);
+    material->texture = original;
+    visual->material = material;
+    visual->material_num = 1;
+    monster.CObjectFrame::frame->visual = visual;
     ASSERT_TRUE(model_assets::ReplaceCharacterTextureDocument(monster, "reserved.json", error)) << error;
     EXPECT_STREQ(mgTexManager.name_suffix, "");
-    EXPECT_EQ(material.texture, mgTexManager.GetTexture(name, 20));
-    ASSERT_NE(material.texture, nullptr);
-    EXPECT_STREQ(material.texture->name, "reserved_m");
+    EXPECT_EQ(material->texture, mgTexManager.GetTexture(name, 20));
+    ASSERT_NE(material->texture, nullptr);
+    EXPECT_STREQ(material->texture->name, "reserved_m");
     EXPECT_EQ(mgTexManager.GetTexture(name, 21), extension);
     monster.DeleteImage();
     EXPECT_EQ(mgTexManager.GetTexture(name, 20), nullptr);
@@ -171,4 +187,36 @@ TEST_F(NativeReservedTexture, CopiedCharactersRetainSuffixedMaterialBindingsAndO
     base.DeleteExtMotion();
     EXPECT_EQ(mgTexManager.GetTexture(name, 21), nullptr);
     monster.CObjectFrame::frame = nullptr;
+}
+
+TEST_F(NativeReservedTexture, MonsterEntryObjectSizeUsesValidatedTypedSlots) {
+    RS_STACKDATA value{};
+    value.type = RS_FLOAT;
+    value.val.f = 12.5f;
+    RS_STACKDATA arguments[2]{};
+    arguments[0].type = RS_INT;
+    arguments[1] = value;
+
+    for (int index : {-2, CHARA_ENTRY_OBJECT_MAX}) {
+        arguments[0].val.i = index;
+        EXPECT_EQ(InvokeNativeExternal(_SET_INDEXOBJ_SIZE, std::span(arguments).first(2)), 0);
+        EXPECT_EQ(InvokeNativeExternal(_GET_INDEXOBJ_SIZE, std::span(arguments).first(2)), 0);
+    }
+
+    arguments[0].val.i = CHARA_ENTRY_OBJECT_MAX - 1;
+    EXPECT_EQ(InvokeNativeExternal(_SET_INDEXOBJ_SIZE, std::span(arguments).first(2)), 1);
+    EXPECT_FLOAT_EQ(monster.entry_object[CHARA_ENTRY_OBJECT_MAX - 1].size, 12.5f);
+
+    RS_STACKDATA output{};
+    output.type = RS_FLOAT;
+    arguments[1].type = RS_PTR;
+    arguments[1].val.p = &output;
+    EXPECT_EQ(InvokeNativeExternal(_GET_INDEXOBJ_SIZE, std::span(arguments).first(2), std::span(&output, 1)), 1);
+    EXPECT_FLOAT_EQ(output.val.f, 12.5f);
+
+    arguments[0].val.i = -1;
+    EXPECT_EQ(InvokeNativeExternal(_SET_INDEXOBJ_SIZE, std::span(arguments).first(2)), 0);
+    arguments[1] = value;
+    EXPECT_EQ(InvokeNativeExternal(_SET_INDEXOBJ_SIZE, std::span(arguments).first(2)), 1);
+    EXPECT_FLOAT_EQ(monster.entry_object[0].size, 12.5f);
 }

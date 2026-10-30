@@ -8,13 +8,13 @@ return {
     end,
     [100] = function()
         counter += 1
-        action.ProgSet(counter)
+        action.set_program_value(counter)
     end,
     [200] = function()
-        action.ProgSet(1)
+        action.set_program_value(1)
         vm.wait()
-        action.ProgSet(2)
+        action.set_program_value(2)
         vm.wait()
-        action.ProgSet(3)
+        action.set_program_value(3)
     end,
 }

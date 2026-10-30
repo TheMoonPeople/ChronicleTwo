@@ -26,82 +26,82 @@ function script.on_start()
 	value = 0
 	user_id = 0
 	value_2 = 0
-	user_id = effect.GetUserId() or user_id
-	value = effect.GetValue(0) or value
-	value_2 = effect.GetValue(1) or value_2
-	effect.ChrSetShow(1, 1)
+	user_id = effect.get_owner_character() or user_id
+	value = effect.get_script_value(0) or value
+	value_2 = effect.get_script_value(1) or value_2
+	effect.set_effect_character_visible(1, 1)
 	print("id=", user_id, "--------\n")
-	effect.ChrSetMotion("MPジェット", -1, 4)
+	effect.set_effect_character_motion("MPジェット", -1, 4)
 	while true do
 		if value_2 ~= 0 then
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "jet_r")
+				local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "jet_r")
 				pos_x = out1 or pos_x
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "jet_r")
+				local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "jet_r")
 				var3 = out1 or var3
 				yaw = out2 or yaw
 				var5 = out3 or var5
 			end
 		else
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "jet_l")
+				local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "jet_l")
 				pos_x = out1 or pos_x
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "jet_l")
+				local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "jet_l")
 				var3 = out1 or var3
 				yaw = out2 or yaw
 				var5 = out3 or var5
 			end
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
-		effect.ChrSetRot(var3, yaw, var5)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
+		effect.rotate_effect_character_toward(var3, yaw, var5)
 		vm.wait()
-		value = effect.GetValue(0) or value
+		value = effect.get_script_value(0) or value
 		if value ~= 0 then
 			break
 		end
 	end
-	effect.ChrSetShow(0, 1, -3.0)
+	effect.set_effect_character_visible(0, 1, -3.0)
 	for var9 = 0, 29 do
 		if value_2 ~= 0 then
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "jet_r")
+				local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "jet_r")
 				pos_x = out1 or pos_x
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "jet_r")
+				local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "jet_r")
 				var3 = out1 or var3
 				yaw = out2 or yaw
 				var5 = out3 or var5
 			end
 		else
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "jet_l")
+				local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "jet_l")
 				pos_x = out1 or pos_x
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
 			do
-				local out1, out2, out3 = effect.ScnGetChrFrmRot(user_id, "jet_l")
+				local out1, out2, out3 = effect.get_scene_character_frame_rotation(user_id, "jet_l")
 				var3 = out1 or var3
 				yaw = out2 or yaw
 				var5 = out3 or var5
 			end
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
-		effect.ChrSetRot(var3, yaw, var5)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
+		effect.rotate_effect_character_toward(var3, yaw, var5)
 		vm.wait()
 	end
-	effect.ChrSetShow(0, 0)
+	effect.set_effect_character_visible(0, 0)
 end
 
 --- Ends an effect.

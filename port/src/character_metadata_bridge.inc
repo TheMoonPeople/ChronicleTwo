@@ -1,40 +1,128 @@
 #include "character_metadata_bridge.hpp"
 
-void PortCharacterMetadataBegin(CCharacter2 *character, mgCMemory *model, mgCMemory *motion,
-                                mgCMemory *images, int block, CCharacter2 *parent, bool outline,
-                                const char *skin_name) {
+namespace {
+/**
+ *
+ * Gives one character parse an empty set of scratch builders and resource selections.
+ *
+ */
+void InitializeMetadata(CCharacter2 *character, mgCMemory *model, int block, CCharacter2 *parent, bool outline) {
     nowChr = character;
     base_stack = now_stack = model;
-    ext_stack = motion ? motion : model;
-    img_stack = images ? images : model;
     set_imgblock = block;
     parent_chr = parent;
     outline_flag = outline;
-    pack_file = nullptr;
-    eff_pack_ptr = nullptr;
-    eff_pack_size = 0;
-    now_seq_ptr = nullptr;
+    sequence_entries.reset();
     now_seqhd_ptr = nullptr;
-    now_key_ptr = nullptr;
+    key_entries.reset();
     now_se_header = nullptr;
-    alloc_vertex_num = alloc_shadow_vertex_num = 0;
+    sound_entries_remaining = 0;
+    alloc_vertex_num = 0;
     now_cloth_id = now_motion_id = 0;
     outline_start = false;
     outline_start_tex = nullptr;
-    root_skin_frame = skin_frame = nullptr;
-    skin_name_ptr = const_cast<char *>(skin_name);
-    load_img_ptr = nullptr;
-    load_img_size = 0;
-    for (int index = 0; index < CHARA_IMAGE_MAX; ++index) {
-        img_ptr[index] = nullptr;
-    }
+    std::ranges::fill(std::as_writable_bytes(std::span(alloc_vertex)), std::byte{});
+    metadata_visual_types.fill({});
 }
 
-bool PortCharacterMetadataApply(const char *command, SPI_STACK *arguments, int count, bool skin) {
-    if (skin) {
+} // namespace
+
+namespace dc2::character {
+/**
+ *
+ * Preserves all mutable metadata scratch storage while an inner parse owns the globals.
+ *
+ */
+struct MetadataScope::State {
+    std::string                         skin_name;                                                    /**< Stable owned input text for the active skin parse. */
+    bool                                has_skin_name;                                                /**< Whether this context supplied a skin selector. */
+    State                              *previous_active = MetadataScope::active;                      /**< Enclosing lexical metadata owner. */
+    decltype(::nowChr)                  previous_character = ::nowChr;                                /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::base_stack)              previous_base_stack = ::base_stack;                           /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::set_imgblock)            previous_set_imgblock = ::set_imgblock;                       /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::now_stack)               previous_now_stack = ::now_stack;                             /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::now_seqhd_ptr)           previous_now_seqhd_ptr = ::now_seqhd_ptr;                     /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::alloc_vertex_num)        previous_alloc_vertex_num = ::alloc_vertex_num;               /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::outline_flag)            previous_outline_flag = ::outline_flag;                       /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::parent_chr)              previous_parent_chr = ::parent_chr;                           /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::outline_start)           previous_outline_start = ::outline_start;                     /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::outline_start_tex)       previous_outline_start_tex = ::outline_start_tex;             /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::now_cloth_id)            previous_now_cloth_id = ::now_cloth_id;                       /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::now_motion_id)           previous_now_motion_id = ::now_motion_id;                     /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::now_se_header)           previous_now_se_header = ::now_se_header;                     /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::sound_entries_remaining) previous_sound_entries_remaining = ::sound_entries_remaining; /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::sequence_entries)        previous_sequences = std::move(::sequence_entries);           /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::key_entries)             previous_keys = std::move(::key_entries);                     /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::alloc_vertex)            previous_vertices{};                                          /**< Enclosing metadata value restored when this parse finishes. */
+    decltype(::metadata_visual_types)   previous_visual_types = ::metadata_visual_types;              /**< Enclosing metadata value restored when this parse finishes. */
+
+    /**
+     *
+     * Saves the enclosing builders after copying the new skin selector.
+     *
+     */
+    explicit State(std::string_view value) : skin_name(value), has_skin_name(value.data() != nullptr) {
+        std::memcpy(previous_vertices, ::alloc_vertex, sizeof(previous_vertices));
+    }
+
+    /**
+     *
+     * Restores every enclosing pointer, counter, name table and owned builder.
+     *
+     */
+    ~State() {
+        MetadataScope::active = previous_active;
+        ::nowChr = previous_character;
+        ::base_stack = previous_base_stack;
+        ::set_imgblock = previous_set_imgblock;
+        ::now_stack = previous_now_stack;
+        ::now_seqhd_ptr = previous_now_seqhd_ptr;
+        ::alloc_vertex_num = previous_alloc_vertex_num;
+        ::outline_flag = previous_outline_flag;
+        ::parent_chr = previous_parent_chr;
+        ::outline_start = previous_outline_start;
+        ::outline_start_tex = previous_outline_start_tex;
+        ::now_cloth_id = previous_now_cloth_id;
+        ::now_motion_id = previous_now_motion_id;
+        ::now_se_header = previous_now_se_header;
+        ::sound_entries_remaining = previous_sound_entries_remaining;
+        ::sequence_entries = std::move(previous_sequences);
+        ::key_entries = std::move(previous_keys);
+        std::memcpy(::alloc_vertex, previous_vertices, sizeof(previous_vertices));
+        ::metadata_visual_types = previous_visual_types;
+    }
+};
+
+MetadataScope::MetadataScope(CCharacter2 *character, mgCMemory *model, int block, CCharacter2 *parent, bool outline,
+                             std::string_view skin_name)
+    : state(std::make_unique<State>(skin_name)) {
+    active = state.get();
+    InitializeMetadata(character, model, block, parent, outline);
+}
+
+MetadataScope::State *MetadataScope::active = nullptr;
+
+MetadataScope::~MetadataScope() = default;
+
+std::optional<std::string_view> MetadataScope::ActiveSkinName() {
+    if (active == nullptr || !active->has_skin_name) {
+        return std::nullopt;
+    }
+    return active->skin_name;
+}
+} // namespace dc2::character
+
+bool PortCharacterMetadataApply(const char *command, dc2::script::TagArguments arguments, int count, bool skin) {
+    if (skin || nowChr == nullptr || command == nullptr) {
         return false;
     }
-    const SPI_TAG_PARAM native_tags[] = {
+
+    struct MetadataTag {
+        const char *name;
+        int (*function)(dc2::script::TagArguments, int);
+    };
+
+    const MetadataTag native_tags[] = {
         {"V2",              _V2             },
         {"NAME",            _NAME           },
         {"BODY_SIZE",       _BODY_SIZE      },
@@ -68,7 +156,7 @@ bool PortCharacterMetadataApply(const char *command, SPI_STACK *arguments, int c
     for (auto *entry = native_tags; entry->name && *entry->name; ++entry) {
         if (std::strcmp(command, entry->name) == 0) {
             if (entry->function) {
-                entry->function(arguments, count);
+                dc2::script::InvokeTagFunction(entry->function, arguments, count);
             }
             return true;
         }
@@ -77,12 +165,17 @@ bool PortCharacterMetadataApply(const char *command, SPI_STACK *arguments, int c
 }
 
 void PortCharacterMetadataMotionSlot(int slot) {
-    now_motion_id = slot;
+    if (nowChr != nullptr && slot >= 0 && slot < CHARA_MOTION_SET_MAX) {
+        now_motion_id = slot;
+    }
 }
 
 mgCreateVisualType *PortCharacterMetadataVisualTypes(bool skin) {
-    static mgCreateVisualType types[64];
-    int                       count = 0;
+    if (nowChr == nullptr) {
+        return nullptr;
+    }
+    auto &types = metadata_visual_types;
+    int   count = 0;
     if (skin) {
         for (int index = 0; index < nowChr->deform_frame_num; ++index) {
             if (!nowChr->deform_frame[index]) {
@@ -99,10 +192,13 @@ mgCreateVisualType *PortCharacterMetadataVisualTypes(bool skin) {
     }
     types[count].name = nullptr;
     types[count].type = MG_VISUAL_CREATE_END;
-    return types;
+    return types.data();
 }
 
 void PortCharacterMetadataModel(mgCFrame *model) {
+    if (nowChr == nullptr) {
+        return;
+    }
     nowChr->CObjectFrame::frame = model;
     nowChr->deform_frame_num = 0;
     for (int index = 0; model && index < alloc_vertex_num; ++index) {
@@ -113,7 +209,7 @@ void PortCharacterMetadataModel(mgCFrame *model) {
 }
 
 int PortCharacterMetadataNextCloth() {
-    if (now_cloth_id >= nowChr->dynamic_anime_num) {
+    if (nowChr == nullptr || now_cloth_id >= nowChr->dynamic_anime_num) {
         return -1;
     }
     return now_cloth_id++;

@@ -5,21 +5,26 @@
 
 #include <array>
 #include <chrono>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <span>
+#include <string>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "charasetup.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "gfx/gfx.hpp"
 #include "menu_character_assets.hpp"
 #include "menuaqua.hpp"
 #include "menumain.hpp"
+#include "mg_memory.hpp"
 #include "mglib.hpp"
 #include "platform/paths.hpp"
+#include "scoped_global_object.hpp"
 #include "userdata.hpp"
 
 namespace {
@@ -27,55 +32,79 @@ namespace {
  * Restores menu globals after exercising independent native workspace and texture-directory lifetimes.
  */
 struct MenuGlobals {
-    CMenuPosDataManage *positions = MenuPosData;            /**< Previous menu layout manager. */
-    CMenuKeyFunc       *common = MenuCommonInfo;            /**< Previous common menu state. */
-    u_int              *pack = MenuArg.pack;                /**< Previous actual menu directory marker. */
-    mgCMemory           workspace = MenuMainTextureReadBuf; /**< Previous menu work arena. */
+    CMenuPosDataManage *positions = MenuPosData; /**< Previous menu layout manager. */
+    CMenuKeyFunc       *common = MenuCommonInfo; /**< Previous common menu state. */
+    u_int              *pack = MenuArg.pack;     /**< Previous actual menu directory marker. */
+    u_long128          *workspace_stack = MenuMainTextureReadBuf.stack;
+    int                 workspace_size = MenuMainTextureReadBuf.stack_size;
+    int                 workspace_used = MenuMainTextureReadBuf.stack_used;
+    int                 workspace_lock = MenuMainTextureReadBuf.lock;
 
     ~MenuGlobals() {
         MenuPosData = positions;
         MenuCommonInfo = common;
         MenuArg.pack = pack;
-        MenuMainTextureReadBuf = workspace;
+        MenuMainTextureReadBuf.stSetLocked(false);
+        MenuMainTextureReadBuf.stSetBuffer(workspace_stack, workspace_size);
+        if (workspace_used > 0 && MenuMainTextureReadBuf.Alloc(workspace_used) == nullptr) {
+            std::abort();
+        }
+        MenuMainTextureReadBuf.stSetLocked(workspace_lock != 0);
     }
 };
 } // namespace
 
+TEST(MenuWorkspace, BaseMenuConstructionPreservesVirtualDispatchAndEmptyState) {
+    CBaseMenuClass menu;
+    const auto     dispatch = [](CBaseMenuClass *base) { return base->IsCreateObject(0, 0); };
+
+    EXPECT_EQ(dispatch(&menu), 1);
+    EXPECT_EQ(menu.mode, MENU_ASK_MODE_OPEN);
+    EXPECT_EQ(menu.swap_info.flag, 0);
+    EXPECT_EQ(menu.swap_info.type, 0);
+    EXPECT_EQ(menu.swap_info.no, 0);
+    EXPECT_EQ(menu.swap_info.chara, 0);
+    EXPECT_EQ(menu.cmd_arg_pos, -1);
+    EXPECT_EQ(menu.make_item_no, 0);
+    EXPECT_EQ(menu.make_num, 0);
+    EXPECT_EQ(menu.make_space_no, 0);
+    EXPECT_EQ(menu.make_cursor, 0);
+    EXPECT_EQ(menu.make_num_max, 0);
+    for (const int block : menu.tex_block) {
+        EXPECT_EQ(block, -1);
+    }
+}
+
+TEST(MenuWorkspace, ModelAssetPathsPreserveLongNamesAndExtensions) {
+    const std::string long_name(160, 'a');
+    EXPECT_EQ(dc2::character::ModelAssetPath("chara", long_name, false), "chara/" + long_name);
+    EXPECT_EQ(dc2::character::ModelAssetPath("mainchr", "c01_base.gltf", false), "mainchr/c01_base.gltf");
+    EXPECT_EQ(dc2::character::ModelAssetPath("dungeon/robo", long_name, true), "dungeon/robo/" + long_name + ".gltf");
+    EXPECT_EQ(dc2::character::ModelAssetPath("dungeon/robo", "rider.gltf", false), "dungeon/robo/rider.gltf");
+}
+
 TEST(MenuWorkspace, CharacterSoundPathsUseConvertedAssetsAndHandleMissingRidepodArm) {
     auto user = std::make_unique<CUserDataManager>();
-    char path[0x60]{};
     user->chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_SUB].item_no = 0x16;
-    GetCharacterSnd(user.get(), USER_CHARA_MAX, path);
-    EXPECT_STREQ(path, "snd2/chara/CH_000.sound.json");
+    EXPECT_EQ(dc2::character::SoundAssetPath(user.get(), USER_CHARA_MAX), "snd2/chara/CH_000.sound.json");
     user->chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_SUB].item_no = 0x28;
-    GetCharacterSnd(user.get(), USER_CHARA_MAX, path);
-    EXPECT_STREQ(path, "snd2/chara/CH_018.sound.json");
+    EXPECT_EQ(dc2::character::SoundAssetPath(user.get(), USER_CHARA_MAX), "snd2/chara/CH_018.sound.json");
     user->chara_data[USER_CHARA_MAX].equip[CHARA_EQUIP_SUB].item_no = -1;
-    GetCharacterSnd(user.get(), USER_CHARA_MAX, path);
-    EXPECT_STREQ(path, "snd2/chara/CH_000.sound.json");
-    GetCharacterSnd(user.get(), USER_CHARA_MONICA, path);
-    EXPECT_STREQ(path, "snd2/chara/CH_020.sound.json");
+    EXPECT_EQ(dc2::character::SoundAssetPath(user.get(), USER_CHARA_MAX), "snd2/chara/CH_000.sound.json");
+    EXPECT_EQ(dc2::character::SoundAssetPath(user.get(), USER_CHARA_MONICA), "snd2/chara/CH_020.sound.json");
 
     user->robo_data.parts[ROBO_PART_ARM].item_no = -1;
-    std::strcpy(path, "stale");
-    GetCharacterSnd(user.get(), USER_CHARA_ROBO, path);
-    EXPECT_STREQ(path, "");
-    std::strcpy(path, "stale");
-    GetCharacterSnd(user.get(), USER_CHARA_MONSTER, path);
-    EXPECT_STREQ(path, "");
-    std::strcpy(path, "stale");
-    GetCharacterSnd(nullptr, USER_CHARA_MAX, path);
-    EXPECT_STREQ(path, "");
-    GetCharacterSnd(user.get(), USER_CHARA_MAX, nullptr);
+    EXPECT_TRUE(dc2::character::SoundAssetPath(user.get(), USER_CHARA_ROBO).empty());
+    EXPECT_TRUE(dc2::character::SoundAssetPath(user.get(), USER_CHARA_MONSTER).empty());
+    EXPECT_TRUE(dc2::character::SoundAssetPath(nullptr, USER_CHARA_MAX).empty());
 }
 
 TEST(MenuWorkspace, CharacterChangeFindsItemTextureWithOrWithoutSoundRead) {
-    const auto root = std::filesystem::temp_directory_path() /
-                      ("menu_item_read_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
-    const auto previous_root = PathsDataRoot();
-    char       previous_directory[0x6C]{};
-    GetCurrentDir(previous_directory);
-    const auto data = root / "data";
+    const auto  root = std::filesystem::temp_directory_path() /
+                       ("menu_item_read_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    const auto  previous_root = PathsDataRoot();
+    std::string previous_directory = GetCurrentDir();
+    const auto  data = root / "data";
     std::filesystem::create_directories(data / "snd2/chara");
     std::filesystem::create_directories(data / "textures/img");
     std::ofstream(data / "snd2/chara/CH_000.sound.json") << "sound";
@@ -88,18 +117,28 @@ TEST(MenuWorkspace, CharacterChangeFindsItemTextureWithOrWithoutSoundRead) {
     char                                   sound_path[] = "snd2/chara/CH_000.sound.json";
     char                                   item_path[] = "textures/img/allitem.json";
     InitReadBG();
-    ASSERT_TRUE(LoadFileBG(sound_path, sound.data(), nullptr));
-    ASSERT_TRUE(LoadFileBG(item_path, item.data(), nullptr));
-    EXPECT_EQ(PortMainCharaItemReadBuffer(), reinterpret_cast<unsigned char *>(item.data()));
+    ASSERT_TRUE(LoadFileBG(sound_path, std::span(reinterpret_cast<u8 *>(sound.data()), std::span(sound).size_bytes()), nullptr));
+    ASSERT_TRUE(LoadFileBG(item_path, std::span(reinterpret_cast<u8 *>(item.data()), std::span(item).size_bytes()), nullptr));
+    {
+        const auto read = dc2::menu::MainCharacterItemRead();
+        ASSERT_TRUE(read);
+        EXPECT_EQ(read.Size(), 7);
+        EXPECT_EQ(std::memcmp(read.Bytes().data(), item.data(), 7), 0);
+    }
 
     InitReadBG();
     char missing_sound[] = "snd2/chara/missing.sound.json";
-    EXPECT_FALSE(LoadFileBG(missing_sound, sound.data(), nullptr));
-    ASSERT_TRUE(LoadFileBG(item_path, item.data(), nullptr));
-    EXPECT_EQ(PortMainCharaItemReadBuffer(), reinterpret_cast<unsigned char *>(item.data()));
+    EXPECT_FALSE(LoadFileBG(missing_sound, std::span(reinterpret_cast<u8 *>(sound.data()), std::span(sound).size_bytes()), nullptr));
+    ASSERT_TRUE(LoadFileBG(item_path, std::span(reinterpret_cast<u8 *>(item.data()), std::span(item).size_bytes()), nullptr));
+    {
+        const auto read = dc2::menu::MainCharacterItemRead();
+        ASSERT_TRUE(read);
+        EXPECT_EQ(read.Size(), 7);
+        EXPECT_EQ(std::memcmp(read.Bytes().data(), item.data(), 7), 0);
+    }
 
     InitReadBG();
-    SetCurrentDir(previous_directory);
+    SetCurrentDir(previous_directory.data());
     DataReadIndex(previous_root);
     std::filesystem::remove_all(root);
 }
@@ -122,7 +161,7 @@ TEST(MenuWorkspace, DirectoryMarkerDoesNotLimitAquariumStorageOrTextureReentry) 
     alignas(16) std::array<u_long128, 128> marker{};
     char                                   path[] = "menu/native.pac";
     int                                    marker_size = 0;
-    ASSERT_TRUE(LoadFile2(path, marker.data(), &marker_size, LOAD_FILE_READ));
+    ASSERT_TRUE(LoadFile2(path, std::span(reinterpret_cast<u8 *>(marker.data()), std::span(marker).size_bytes()), &marker_size, LOAD_FILE_READ));
     ASSERT_LT(marker_size, static_cast<int>(sizeof(marker)));
     const auto             original_marker = marker;
     std::vector<u_long128> texture_storage(4096);
@@ -133,13 +172,13 @@ TEST(MenuWorkspace, DirectoryMarkerDoesNotLimitAquariumStorageOrTextureReentry) 
     palettes.stSetBuffer(palette_storage.data(), static_cast<int>(palette_storage.size()));
     mgTexManager.SetTableBuffer(64, 8, &textures);
     mgTexManager.Initialize(0x1000, -1);
-    MenuGlobals        restore;
-    CMenuPosDataManage positions{};
+    MenuGlobals                                restore;
+    dc2::test::ScopedGlobalObject<MenuPosData> positions_owner;
+    auto                                      &positions = positions_owner.Get();
     positions.Initialize();
-    CMenuKeyFunc common{};
+    dc2::test::ScopedGlobalObject<MenuCommonInfo> common_owner;
+    auto                                         &common = common_owner.Get();
     common.tex_block[1] = 1;
-    MenuPosData = &positions;
-    MenuCommonInfo = &common;
     MenuArg.pack = reinterpret_cast<u_int *>(marker.data());
     MenuCommonBaseDataEnter(&palettes, MenuArg.pack, marker_size, 1);
     char texture_name[] = "menuwork2";

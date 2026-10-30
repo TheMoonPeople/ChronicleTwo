@@ -37,100 +37,100 @@ function script.on_start()
 	local var21: f32 = 0
 	local var23: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		var0 = out1 or var0
 		var1 = out2 or var1
 		var2 = out3 or var2
 	end
 	do
-		local out1, out2, out3 = effect.GetWorkVect2()
+		local out1, out2, out3 = effect.get_second_work_vector()
 		work_vect2_x = out1 or work_vect2_x
 		var4 = out2 or var4
 		work_vect2_z = out3 or work_vect2_z
 	end
-	value = effect.GetValue(0) or value
-	target_id = effect.GetTargetId() or target_id
-	user_id = effect.GetUserId() or user_id
+	value = effect.get_script_value(0) or value
+	target_id = effect.get_target_character() or target_id
+	user_id = effect.get_owner_character() or user_id
 	var12 = 0
 	while var12 < 10 do
 		var12 = var12 + 1
 		vm.wait()
 	end
-	effect.ChrSetMotion("ループ", -1, 4)
-	effect.ChrSetShow(1, 1, 0.04)
+	effect.set_effect_character_motion("ループ", -1, 4)
+	effect.set_effect_character_visible(1, 1, 0.04)
 	var12 = 0
 	while var12 < 24 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrFrmPos(user_id, "magic")
+			local out1, out2, out3 = effect.get_scene_character_frame_position(user_id, "magic")
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		effect.ChrSetPos(var0, var1, var2)
+		effect.set_effect_character_position(var0, var1, var2)
 		var12 = var12 + 1
 		vm.wait()
 	end
-	effect.ChrSetShow(0)
-	effect.ColprimCreate("吹っ飛び弱")
-	effect.ColprimSetDamage(value)
+	effect.set_effect_character_visible(0)
+	effect.create_collision_primitive("吹っ飛び弱")
+	effect.set_collision_primitive_damage(value)
 	var12 = 0
 	while true do
 		do
-			local out1, out2, out3 = effect.CopyVector(var0, var1, var2)
+			local out1, out2, out3 = effect.copy_vector(var0, var1, var2)
 			vector_x = out1 or vector_x
 			vector_y = out2 or vector_y
 			vector_z = out3 or vector_z
 		end
 		do
-			local out1, out2, out3 = effect.GetDirVector(work_vect2_x, var4, work_vect2_z)
+			local out1, out2, out3 = effect.get_direction_vector(work_vect2_x, var4, work_vect2_z)
 			var13 = out1 or var13
 			var14 = out2 or var14
 			var15 = out3 or var15
 		end
 		do
-			local out1, out2, out3 = effect.ScaleVector(var13, var14, var15, 16.0)
+			local out1, out2, out3 = effect.scale_vector(var13, var14, var15, 16.0)
 			var13 = out1 or var13
 			var14 = out2 or var14
 			var15 = out3 or var15
 		end
 		do
-			local out1, out2, out3 = effect.AddVector(var0, var1, var2, var13, var14, var15)
+			local out1, out2, out3 = effect.add_vectors(var0, var1, var2, var13, var14, var15)
 			var0 = out1 or var0
 			var1 = out2 or var1
 			var2 = out3 or var2
 		end
-		var16 = effect.IntersectionPoint_8(0, vector_x, vector_y + 1.0, vector_z, var0, var1 + 1.0, var2) or var16
+		var16 = effect.get_intersection_point_8(0, vector_x, vector_y + 1.0, vector_z, var0, var1 + 1.0, var2) or var16
 		if var16 >= 0 then
 			break
 		else
 			do
-				local out1, out2, out3 = effect.ScnGetChrPos(target_id)
+				local out1, out2, out3 = effect.get_scene_character_position(target_id)
 				pos_x = out1 or pos_x
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
 			do
-				local _, out2, _ = effect.GetRefRot_9(var0, var1, var2, pos_x, pos_y, pos_z)
+				local _, out2, _ = effect.get_rotation_toward_9(var0, var1, var2, pos_x, pos_y, pos_z)
 				var21 = out2 or var21
 			end
-			var23 = effect.AngleCmp(var4, var21, 1.2) or var23
+			var23 = effect.compare_angles(var4, var21, 1.2) or var23
 			if var23 == 0 then
 				var21 = vm.f32(var21 - var4)
-				var21 = effect.AngleLimit(var21) or var21
+				var21 = effect.wrap_angle(var21) or var21
 				var21 = vm.f32(var21 / 6.0)
 				var4 = vm.f32(var4 + var21)
-				var4 = effect.AngleLimit(var4) or var4
+				var4 = effect.wrap_angle(var4) or var4
 			end
 			if vm.imod(var12, 2) == 0 then
-				effect.EsCreate_1("ギル魔法サブ２")
-				effect.EsSetVect1(var0, 2.5, var2)
+				effect.create_effect_1("ギル魔法サブ２")
+				effect.set_effect_first_work_vector(var0, 2.5, var2)
 			end
-			effect.ColprimSetCoord(var0, var1, var2, 10.0)
+			effect.set_collision_primitive_shape(var0, var1, var2, 10.0)
 			var12 = vm.i32(var12 + 1)
 			vm.wait()
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

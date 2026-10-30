@@ -75,7 +75,7 @@ def entries(path, text):
 
 def collect(root):
     result = []
-    for directory in (root / "ps2/src", root / "port/src"):
+    for directory in (root / "port/src",):
         for path in sorted(directory.rglob("*")):
             if path.suffix not in {".c", ".cpp", ".h", ".hpp", ".inc"}:
                 continue

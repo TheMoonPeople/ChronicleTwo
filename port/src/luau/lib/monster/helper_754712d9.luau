@@ -6,12 +6,12 @@ local helper_442b9962 = require("@lib/monster/helper_442b9962")
 local helper_787df986 = require("@lib/monster/helper_787df986")
 
 --- Helper function.
-local function helper_754712d9(arg0: f32, arg1: s32)
+local function helper_754712d9(rot_speed: f32, arg1: s32)
 	local var2: f32 = 0
-	local _ = helper_787df986(arg0)
+	local _ = helper_787df986(rot_speed)
 	for var4 = 0, arg1 - 1 do
-		var2 = monster.GetTargetAngle() or var2
-		monster.SetNextRot(var2, arg0)
+		var2 = monster.get_target_angle() or var2
+		monster.turn_toward_angle(var2, rot_speed)
 		helper_0ba23e4e()
 	end
 	helper_442b9962()

@@ -5,8 +5,8 @@
 
 #include "gfx/gfx.hpp"
 #include "mg_drawprim.hpp"
-#include "mg_drawprim_port.hpp"
 #include "mglib.hpp"
+#include "render/primitive_submission.hpp"
 
 void DivSpriteScreen(mgCDrawPrim &prim);
 void DivSpriteScreen(mgCDrawPrim &prim, int left, int right, int jagged_left);
@@ -26,7 +26,7 @@ public:
         prim.draw_manager = &manager;
         manager.render_info = &render_info;
         prim.Initialize(&memory, &vif_packet);
-        prim.write = nullptr;
+        prim.write_buffer = {};
         mgPortSetPrimSink([this](gfx::Primitive primitive, std::span<const gfx::Vertex2D> vertices,
                                  const gfx::TextureBinding &, const gfx::DrawState &) {
             batches.push_back({

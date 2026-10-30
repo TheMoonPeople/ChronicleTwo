@@ -7,13 +7,13 @@ local helper_b9fff8e1 = require("@lib/monster/helper_b9fff8e1")
 
 --- Helper function.
 local function helper_7c8e4fcc()
-	monster.SetIntFlag(1, 1)
-	monster.SetIntFlag(2, 1)
-	monster.ResetMotion()
+	monster.set_mask_flags(1, 1)
+	monster.set_mask_flags(2, 1)
+	monster.reset_motion()
 	helper_442b9962()
 	helper_b9fff8e1()
 	helper_317bfc18(0)
-	monster.SetActStatus(1)
+	monster.set_action_status(1)
 end
 
 return helper_7c8e4fcc

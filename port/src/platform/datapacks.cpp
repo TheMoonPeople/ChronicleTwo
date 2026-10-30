@@ -46,7 +46,7 @@ std::shared_ptr<const vfs::Mount> base;
 /** Enabled packs in increasing priority order. */
 std::vector<Pack> packs;
 /** Folded relative names mapped to every pack file replacing them, highest priority first. */
-std::unordered_map<std::string, std::vector<vfs::Ref> > overrides;
+std::unordered_map<std::string, std::vector<vfs::Ref>> overrides;
 /** Largest accepted physical texture extent on either axis. */
 constexpr uint32_t kMaxDimension = 16384;
 /** Maximum RGBA storage occupied by one decoded mip chain. */
@@ -81,7 +81,7 @@ std::size_t decode_cache_bytes = 0;
 /** Guards the path memos and the stamp memo. */
 std::mutex memo_mutex;
 /** Candidates results per relative path for the current pack configuration. */
-std::unordered_map<std::string, std::vector<vfs::Ref> > candidates_memo;
+std::unordered_map<std::string, std::vector<vfs::Ref>> candidates_memo;
 /** Host file stamps per display name while a StampScope is alive. */
 std::unordered_map<std::string, std::string> stamp_memo;
 /** Number of live StampScope objects. */
@@ -91,8 +91,8 @@ unsigned stamp_scopes = 0;
  * Accumulates named load counters and logs them at exit.
  */
 struct TraceCounters {
-    std::mutex                                         mutex;  /**< Guards totals. */
-    std::map<std::string, std::uint64_t, std::less<> > totals; /**< Counter totals sorted by name. */
+    std::mutex                                        mutex;  /**< Guards totals. */
+    std::map<std::string, std::uint64_t, std::less<>> totals; /**< Counter totals sorted by name. */
 
     ~TraceCounters() {
         const std::scoped_lock lock(mutex);
@@ -300,7 +300,7 @@ bool DecodePng(std::span<const uint8_t> bytes, uint32_t &width, uint32_t &height
         error = "expected a PNG image";
         return false;
     }
-    const auto header = bytes.first<33>();
+    const auto                             header = bytes.first<33>();
     constexpr std::array<unsigned char, 8> signature{137, 80, 78, 71, 13, 10, 26, 10};
     if (!std::equal(signature.begin(), signature.end(), header.begin()) ||
         header[8] || header[9] || header[10] || header[11] != 13 ||
@@ -485,7 +485,7 @@ void Load(std::shared_ptr<const vfs::Mount> base_mount, const std::filesystem::p
             configured.push_back(std::move(*pack));
         }
         // One merged index resolves load_order once: each name maps to its replacements, highest priority first.
-        std::unordered_map<std::string, std::vector<vfs::Ref> > merged;
+        std::unordered_map<std::string, std::vector<vfs::Ref>> merged;
         for (auto &pack : std::views::reverse(configured)) {
             const auto count = pack.mount->Count();
             for (std::size_t index = 0; index < count; ++index) {
@@ -604,7 +604,7 @@ std::vector<std::filesystem::path> DirectoryMembers(const std::filesystem::path 
     for (const auto &pack : packs) {
         collect(pack.mount, true);
     }
-    std::vector<std::pair<std::string, std::filesystem::path> > sorted;
+    std::vector<std::pair<std::string, std::filesystem::path>> sorted;
     sorted.reserve(members.size());
     for (const auto &[key, path] : members) {
         sorted.emplace_back(vfs::FoldKey(path), std::filesystem::path(std::u8string(path.begin(), path.end())));

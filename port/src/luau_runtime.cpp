@@ -3,6 +3,10 @@
 #include "luacodegen.h"
 #include "lualib.h"
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -15,8 +19,10 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <system_error>
@@ -25,24 +31,47 @@
 #include <utility>
 #include <vector>
 
+#include "log/game_output.hpp"
 #include "log/log.hpp"
 #include "luau_bindings.hpp"
+#include "luau_bytecode.hpp"
 #include "luau_runtime.hpp"
 #include "platform/legacy_encoding.hpp"
 #include "platform/paths.hpp"
-#include "platform/settings.hpp"
 #include "platform/vfs.hpp"
-#include "ps2_printf.hpp"
 
 namespace {
 
 constexpr std::string_view kHandleMagic = "LUAU";
-constexpr std::size_t kHandleLengthOffset = kHandleMagic.size();
-constexpr std::size_t kHandleTextOffset = kHandleLengthOffset + sizeof(std::uint32_t);
-constexpr std::size_t kHandleAlignment = 16;
-constexpr std::int32_t kUnwritten = 0x7FC0DEAD;
-constexpr std::int64_t kDefaultBudget = 10000000;
-constexpr std::size_t kMaxArguments = 32;
+constexpr std::size_t      kHandleLengthOffset = kHandleMagic.size();
+constexpr std::size_t      kHandleTextOffset = kHandleLengthOffset + sizeof(std::uint32_t);
+constexpr std::size_t      kHandleAlignment = 16;
+constexpr std::int32_t     kUnwritten = 0x7FC0DEAD;
+constexpr std::int64_t     kDefaultBudget = 10000000;
+constexpr std::size_t      kMaxArguments = 32;
+
+// The slot a deferred output's handler keeps: the use item menu writes the chosen item there when it exits, after the
+// call has returned, and vmhost.used_item reads it.
+RS_STACKDATA deferred_output{RS_INT, {.i = kUnwritten}};
+// Counts deferred calls and forgotten callers, so a menu that exits after its slot was replaced writes nothing.
+std::uint64_t     deferred_generation = 0;
+const CRunScript *deferred_owner = nullptr;
+
+/**
+ *
+ * Gives the use item menu a writer for the deferred slot of the call that opened it.
+ *
+ */
+dc2::script::DeferredIntegerWriter CaptureDeferredOutput(void *, RS_STACKDATA &value) {
+    if (&value != &deferred_output) {
+        return {};
+    }
+    return [generation = deferred_generation](int result) {
+        if (generation == deferred_generation) {
+            deferred_output.val.i = result;
+        }
+    };
+}
 
 /**
  *
@@ -55,7 +84,7 @@ struct ScriptPrefix {
     bool             nested = false; /**< Whether only modules in a directory below the prefix match, as pack members do. */
 };
 
-constexpr std::array<ScriptPrefix, 7> kScriptPrefixes = {
+constexpr std::array<ScriptPrefix, 10> kScriptPrefixes = {
     {
      {.prefix = "mainchr/", .kind = "action"},
      {.prefix = "dungeon/act_script/", .kind = "action"},
@@ -64,8 +93,24 @@ constexpr std::array<ScriptPrefix, 7> kScriptPrefixes = {
      {.prefix = "dungeon/sphida/", .kind = "effect"},
      {.prefix = "event/tbox/", .kind = "effect", .nested = true},
      {.prefix = "dungeon/monster/", .kind = "monster"},
+     // Event scripts follow the effect pack members under event/tbox/, which the nested rule claims first.
+        {.prefix = "map/", .kind = "event"},
+     {.prefix = "dungeon/sys_script/", .kind = "event"},
+     {.prefix = "event/", .kind = "event"},
      }
 };
+
+/**
+ *
+ * Reports whether a module is an event argument script: a file under event/ whose name holds "_arg", as in e209_arg_1.
+ *
+ */
+bool IsEventArgumentModule(std::string_view module) {
+    if (!module.starts_with("event/")) {
+        return false;
+    }
+    return module.substr(module.rfind('/') + 1).contains("_arg");
+}
 
 /**
  *
@@ -73,6 +118,12 @@ constexpr std::array<ScriptPrefix, 7> kScriptPrefixes = {
  *
  */
 const luau_bindings::Kind *KindForModule(std::string_view module) {
+    const std::string_view argument_kind = "event_arg";
+    if (IsEventArgumentModule(module)) {
+        const auto kinds = luau_bindings::Kinds();
+        const auto found = std::ranges::find(kinds, argument_kind, &luau_bindings::Kind::name);
+        return found == kinds.end() ? nullptr : &*found;
+    }
     const auto *const prefix = std::ranges::find_if(kScriptPrefixes, [module](const ScriptPrefix &script_prefix) {
         return module.starts_with(script_prefix.prefix) && (!script_prefix.nested || module.substr(script_prefix.prefix.size()).contains('/'));
     });
@@ -87,20 +138,20 @@ const luau_bindings::Kind *KindForModule(std::string_view module) {
     return nullptr;
 }
 
-lua_State                                                *state = nullptr;
-bool                                                      codegen = false;
-std::optional<std::filesystem::path>                      root_override;
-std::unordered_map<std::string, std::filesystem::path>    modules;
-bool                                                      modules_indexed = false;
-int                                                       module_cache_ref = LUA_NOREF;
-int                                                       required_ref = LUA_NOREF;
-std::int64_t                                              budget = kDefaultBudget;
-std::int64_t                                              remaining = kDefaultBudget;
-CRunScript                                               *current = nullptr;
-std::unordered_map<std::string, std::unique_ptr<char[]> > interned;
-std::unordered_set<std::string>                           ambiguous_commands;
-std::unordered_set<std::string>                           missing_programs;
-bool                                                      conversion_warned = false;
+lua_State                                             *state = nullptr;
+bool                                                   codegen = false;
+std::optional<std::filesystem::path>                   root_override;
+std::unordered_map<std::string, std::filesystem::path> modules;
+bool                                                   modules_indexed = false;
+int                                                    module_cache_ref = LUA_NOREF;
+int                                                    required_ref = LUA_NOREF;
+std::int64_t                                           budget = kDefaultBudget;
+std::int64_t                                           remaining = kDefaultBudget;
+CRunScript                                            *current = nullptr;
+
+std::unordered_set<std::string> ambiguous_commands;
+std::unordered_set<std::string> missing_programs;
+bool                            conversion_warned = false;
 
 /**
  *
@@ -171,7 +222,7 @@ int Print(lua_State *lua) {
                 break;
         }
     }
-    CtPs2Printf("%s", text.c_str());
+    dc2::log::PrintGame("%s", text.c_str());
     return 0;
 }
 
@@ -181,14 +232,16 @@ int Print(lua_State *lua) {
  *
  */
 struct Instance {
-    std::string                module;                 /**< Folded key of the module the instance runs. */
-    const void                *program = nullptr;      /**< Program data the instance was loaded for. */
-    const luau_bindings::Kind *kind = nullptr;         /**< Kind whose program names the instance's handlers use, if any. */
-    int                        env_ref = LUA_NOREF;    /**< Registry ref to the sandboxed thread holding the instance's globals. */
-    int                        script_ref = LUA_NOREF; /**< Registry ref to the script table the module returned. */
-    int                        thread_ref = LUA_NOREF; /**< Registry ref to the coroutine of the running program. */
-    int                        running_no = 0;         /**< Program number the coroutine of the running program was started for. */
-    bool                       broken = false;         /**< Whether the module failed to load and has no handlers. */
+    std::optional<dc2::memory::ArenaBuffer> storage_anchor;         /**< Exact arena allocation that keeps this instance live. */
+    std::optional<dc2::memory::ArenaBuffer> controller_anchor;      /**< Exact arena controller allocation, when the controller shares the stack owner. */
+    std::string                             module;                 /**< Folded key of the module the instance runs. */
+    const void                             *program = nullptr;      /**< Program data the instance was loaded for. */
+    const luau_bindings::Kind              *kind = nullptr;         /**< Kind whose program names the instance's handlers use, if any. */
+    int                                     env_ref = LUA_NOREF;    /**< Registry ref to the sandboxed thread holding the instance's globals. */
+    int                                     script_ref = LUA_NOREF; /**< Registry ref to the script table the module returned. */
+    int                                     thread_ref = LUA_NOREF; /**< Registry ref to the coroutine of the running program. */
+    int                                     running_no = 0;         /**< Program number the coroutine of the running program was started for. */
+    bool                                    broken = false;         /**< Whether the module failed to load and has no handlers. */
 
     ~Instance() {
         ReleaseRef(env_ref);
@@ -197,19 +250,18 @@ struct Instance {
     }
 };
 
-std::unordered_map<const CRunScript *, std::shared_ptr<Instance> > instances;
-
 /**
  *
- * Reports whether Luau runs script kinds, unless DC2_SCRIPT_VM selects the interpreter; read once.
+ * Owns loaded modules without depending on translation-unit constructor order.
  *
  */
-bool ScriptVmEnabled() {
-    static const bool enabled = [] {
-        const char *value = SettingsEnv("SCRIPT_VM");
-        return value == nullptr || std::string_view(value) != "interpreter";
-    }();
-    return enabled;
+std::unordered_map<const CRunScript *, std::shared_ptr<Instance>> &Instances() {
+    static std::unordered_map<const CRunScript *, std::shared_ptr<Instance>> values;
+    std::erase_if(values, [](const auto &entry) {
+        return (entry.second->storage_anchor && entry.second->storage_anchor->Bytes().empty()) ||
+               (entry.second->controller_anchor && entry.second->controller_anchor->Bytes().empty());
+    });
+    return values;
 }
 
 /**
@@ -326,29 +378,19 @@ struct CurrentGuard {
 
 /**
  *
- * Converts UTF-8 text to a stable CP932 copy that handlers may keep a pointer to.
+ * Converts one native call's UTF-8 argument to its owned CP932 bytes.
  *
  */
-char *Intern(std::string_view utf8) {
-    const std::string key(utf8);
-    if (const auto found = interned.find(key); found != interned.end()) {
-        return found->second.get();
-    }
-    std::string cp932;
+std::string NativeText(std::string_view utf8) {
     try {
-        cp932 = legacy_encoding::GameText(utf8);
+        return legacy_encoding::GameText(utf8);
     } catch (const std::exception &error) {
         if (!conversion_warned) {
             conversion_warned = true;
             CT_LOG_WARN(Script, "luau: text is not representable in CP932, passing its UTF-8 bytes: {}", error.what());
         }
-        cp932 = key;
+        return std::string(utf8);
     }
-    auto buffer = std::make_unique<char[]>(cp932.size() + 1);
-    std::memcpy(buffer.get(), cp932.data(), cp932.size());
-    char *text = buffer.get();
-    interned.emplace(key, std::move(buffer));
-    return text;
 }
 
 /**
@@ -422,7 +464,9 @@ std::string CommandLabel(const luau_bindings::Command &command) {
  * Converts the Luau value at an argument index into a native stack slot of the parameter's type.
  *
  */
-void MarshalValue(lua_State *lua, int arg, luau_bindings::Type type, RS_STACKDATA &slot, const luau_bindings::Command *command) {
+void MarshalValue(lua_State *lua, int arg, luau_bindings::Type type, RS_STACKDATA &slot,
+                  const luau_bindings::Command    *command,
+                  std::span<std::span<const char>> text_sources, std::span<std::string> text_storage, std::size_t &text_count) {
     switch (lua_type(lua, arg)) {
         case LUA_TNUMBER: {
             const double value = lua_tonumberx(lua, arg, nullptr);
@@ -437,7 +481,10 @@ void MarshalValue(lua_State *lua, int arg, luau_bindings::Type type, RS_STACKDAT
             std::size_t length = 0;
             const char *text = lua_tolstring(lua, arg, &length);
             slot.type = RS_STR;
-            slot.val.s = Intern(std::string_view(text, length));
+            auto &owned_text = text_storage[text_count];
+            owned_text = NativeText(std::string_view(text, length));
+            slot.val.s = owned_text.data();
+            text_sources[text_count++] = std::span(owned_text.data(), owned_text.size() + 1);
             return;
         }
         case LUA_TBOOLEAN:
@@ -445,6 +492,12 @@ void MarshalValue(lua_State *lua, int arg, luau_bindings::Type type, RS_STACKDAT
             return;
         case LUA_TNIL:
         case LUA_TNONE:
+            if (type == luau_bindings::Type::String) {
+                // No string, as retail reads the address 0.
+                slot.type = RS_STR;
+                slot.val.s = nullptr;
+                return;
+            }
             SetInteger(slot, 0.0);
             return;
         default: {
@@ -544,9 +597,9 @@ enum class Variant : unsigned char {
 std::string_view VariantSuffix(Variant variant) {
     switch (variant) {
         case Variant::Int:
-            return "Int";
+            return "_int";
         case Variant::Float:
-            return "Float";
+            return "_float";
         default:
             return "";
     }
@@ -584,10 +637,14 @@ int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_
         const std::string message = std::format("{} takes more than {} arguments", CommandLabel(command), kMaxArguments);
         luaL_error(lua, "%s", message.c_str());
     }
-    std::array<RS_STACKDATA, kMaxArguments + 1>    slots{};
-    std::array<RS_STACKDATA, kMaxArguments>        outputs{};
-    std::array<luau_bindings::Type, kMaxArguments> output_types{};
-    std::size_t                                    output_count = 0;
+    std::array<RS_STACKDATA, kMaxArguments + 1>      slots{};
+    std::array<RS_STACKDATA, kMaxArguments>          outputs{};
+    std::array<luau_bindings::Type, kMaxArguments>   output_types{};
+    std::array<std::span<const char>, kMaxArguments> text_sources{};
+    std::array<std::string, kMaxArguments>           text_storage;
+    std::size_t                                      text_count = 0;
+    std::size_t                                      output_count = 0;
+    bool                                             deferred = false;
     slots[0].type = RS_INT;
     slots[0].val.i = command.no;
 
@@ -597,14 +654,22 @@ int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_
         const luau_bindings::Type   type = ParamType(param, variant);
         RS_STACKDATA               &slot = slots[index + 1];
         if (param.direction == luau_bindings::Direction::In) {
-            MarshalValue(lua, next_arg++, type, slot, &command);
+            MarshalValue(lua, next_arg++, type, slot, &command, text_sources, text_storage, text_count);
+            continue;
+        }
+        if (param.deferred) {
+            deferred = true;
+            deferred_output.type = RS_INT;
+            deferred_output.val.i = kUnwritten;
+            slot.type = RS_PTR;
+            slot.val.p = &deferred_output;
             continue;
         }
         // The output's tag is the variable's, which a tagged handler reads to choose what it writes. An in-out output
         // holds the variable's value, which the handler reads through the reference.
         RS_STACKDATA &output = outputs[output_count];
         if (param.direction == luau_bindings::Direction::InOut) {
-            MarshalValue(lua, next_arg++, type, output, &command);
+            MarshalValue(lua, next_arg++, type, output, &command, text_sources, text_storage, text_count);
         } else {
             output.type = type == luau_bindings::Type::F32 ? RS_FLOAT : RS_INT;
             output.val.i = kUnwritten;
@@ -615,7 +680,29 @@ int CallTyped(lua_State *lua, const luau_bindings::Command &command, const luau_
         slot.val.p = &output;
     }
 
-    ActiveScript(lua)->ext(slots.data(), static_cast<int>(param_count + 1));
+    CRunScript *script = ActiveScript(lua);
+    if (script->skip_wait != 0) {
+        // Skip mode drops the call, so every output stays as the script left it.
+        for (std::size_t index = 0; index < output_count; ++index) {
+            lua_pushnil(lua);
+        }
+        return static_cast<int>(output_count);
+    }
+    std::span<RS_STACKDATA>             writable = std::span(outputs).first(output_count);
+    dc2::script::DeferredIntegerFactory factory = nullptr;
+    if (deferred) {
+        // The handler keeps the deferred slot, so it is the call's only writable output.
+        if (output_count != 0) {
+            const std::string message = std::format("{} mixes a deferred output with other outputs", CommandLabel(command));
+            luaL_error(lua, "%s", message.c_str());
+        }
+        ++deferred_generation;
+        deferred_owner = script;
+        writable = std::span(&deferred_output, 1);
+        factory = CaptureDeferredOutput;
+    }
+    script->ext(std::span(slots).first(param_count + 1), std::span(text_sources).first(text_count), writable, factory,
+                nullptr);
 
     for (std::size_t index = 0; index < output_count; ++index) {
         PushOutput(lua, outputs[index], output_types[index]);
@@ -634,13 +721,21 @@ int CallGeneric(lua_State *lua, int no, int first, const luau_bindings::Command 
         const std::string message = std::format("native command called with more than {} arguments", kMaxArguments);
         luaL_error(lua, "%s", message.c_str());
     }
-    std::array<RS_STACKDATA, kMaxArguments + 1> slots{};
+    std::array<RS_STACKDATA, kMaxArguments + 1>      slots{};
+    std::array<std::span<const char>, kMaxArguments> text_sources{};
+    std::array<std::string, kMaxArguments>           text_storage;
+    std::size_t                                      text_count = 0;
     slots[0].type = RS_INT;
     slots[0].val.i = no;
     for (int offset = 0; offset < count; ++offset) {
-        MarshalValue(lua, first + offset, luau_bindings::Type::Unknown, slots[static_cast<std::size_t>(offset) + 1], command);
+        MarshalValue(lua, first + offset, luau_bindings::Type::Unknown,
+                     slots[static_cast<std::size_t>(offset) + 1], command, text_sources, text_storage, text_count);
     }
-    ActiveScript(lua)->ext(slots.data(), count + 1);
+    CRunScript *script = ActiveScript(lua);
+    if (script->skip_wait == 0) {
+        script->ext(std::span(slots).first(static_cast<std::size_t>(count + 1)),
+                    std::span(text_sources).first(text_count));
+    }
     return 0;
 }
 
@@ -676,12 +771,24 @@ int CallCommand(lua_State *lua) {
     const luau_bindings::Signature *chosen = nullptr;
     std::size_t                     matches = 0;
     for (const luau_bindings::Signature &signature : command.signatures) {
-        if (CountParams(signature, luau_bindings::Direction::In) != count || (variant != Variant::Catalogued && !HasTagged(signature))) {
+        if (signature.values || CountParams(signature, luau_bindings::Direction::In) != count ||
+            (variant != Variant::Catalogued && !HasTagged(signature))) {
             continue;
         }
         ++matches;
         if (chosen == nullptr || CountParams(signature, luau_bindings::Direction::Out) > CountParams(*chosen, luau_bindings::Direction::Out)) {
             chosen = &signature;
+        }
+    }
+    // A value form answers only an input count that no catalogued signature takes, and only when it alone takes it.
+    if (chosen == nullptr && variant == Variant::Catalogued) {
+        const auto forms = std::ranges::count_if(command.signatures, [&](const luau_bindings::Signature &signature) {
+            return signature.values && CountParams(signature, luau_bindings::Direction::In) == count;
+        });
+        if (forms == 1) {
+            chosen = &*std::ranges::find_if(command.signatures, [&](const luau_bindings::Signature &signature) {
+                return signature.values && CountParams(signature, luau_bindings::Direction::In) == count;
+            });
         }
     }
     if (chosen == nullptr) {
@@ -702,8 +809,37 @@ int CallCommand(lua_State *lua) {
  *
  */
 int CallExt(lua_State *lua) {
-    const int no = static_cast<int>(luaL_checknumber(lua, 1));
+    const double number = luaL_checknumber(lua, 1);
+    if (!std::isfinite(number) || number < std::numeric_limits<int>::min() || number > std::numeric_limits<int>::max() || std::trunc(number) != number) {
+        luaL_error(lua, "native command number is outside its integer range");
+    }
+    const int no = static_cast<int>(number);
     return CallGeneric(lua, no, 2, nullptr);
+}
+
+/**
+ *
+ * The .luauc files that may hold a module's precompiled bytecode: the one beside its source, then, when the scripts
+ * load from a directory beside the data (a copy made by hand), the one the build put beside the executable. Either
+ * serves only while it was compiled from the same source.
+ *
+ */
+std::vector<std::filesystem::path> PrecompiledFiles(const std::filesystem::path &file) {
+    std::filesystem::path beside = file;
+    beside += "c";
+    std::vector<std::filesystem::path>         files{beside};
+    const std::optional<std::filesystem::path> root = ScriptsRoot();
+    const std::filesystem::path                executable = PathsExecutable();
+    if (root && !executable.empty()) {
+        const std::filesystem::path bundled_root = executable.parent_path() / "scripts";
+        const std::filesystem::path relative = file.lexically_relative(*root);
+        if (bundled_root != *root && !relative.empty() && *relative.begin() != "..") {
+            std::filesystem::path bundled = bundled_root / relative;
+            bundled += "c";
+            files.push_back(std::move(bundled));
+        }
+    }
+    return files;
 }
 
 /**
@@ -728,29 +864,51 @@ bool PushModuleFunction(lua_State *lua, const std::filesystem::path &file, std::
     }
     const std::string source((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
 
-    lua_CompileOptions options{};
-    options.optimizationLevel = 1;
-    options.debugLevel = 1;
-    std::size_t                                   bytecode_size = 0;
-    char                                         *bytecode = luau_compile(source.data(), source.size(), &options, &bytecode_size);
-    const std::unique_ptr<char, void (*)(void *)> bytecode_owner(bytecode, std::free);
-    if (bytecode == nullptr) {
-        CT_LOG_ERROR(Script, "luau: {}: cannot compile {}", label, PathsDisplay(file));
-        return false;
+    // A build with CT_LUAU_PRECOMPILE ships the bytecode beside the source; it serves while it matches the source.
+    std::string                     precompiled;
+    std::optional<std::string_view> precompiled_bytecode;
+    for (const std::filesystem::path &precompiled_file : PrecompiledFiles(file)) {
+        std::ifstream precompiled_input(precompiled_file, std::ios::binary);
+        if (!precompiled_input) {
+            continue;
+        }
+        precompiled.assign(std::istreambuf_iterator<char>(precompiled_input), std::istreambuf_iterator<char>());
+        precompiled_bytecode = luau_bytecode::Bytecode(precompiled, source);
+        if (precompiled_bytecode) {
+            break;
+        }
+        CT_LOG_INFO(Script, "luau: {} was compiled from another source", PathsDisplay(precompiled_file));
     }
 
     const std::string chunk_name = "@" + PathsDisplay(file);
-    if (luau_load(lua, chunk_name.c_str(), bytecode, bytecode_size, 0) != 0) {
-        const char       *raw = lua_tostring(lua, -1);
-        const std::string message = raw != nullptr ? raw : "unknown error";
-        CT_LOG_ERROR(Script, "luau: {}: {}", label, message);
-        lua_pop(lua, 1);
-        return false;
+    bool              loaded_precompiled = false;
+    if (precompiled_bytecode) {
+        loaded_precompiled = luau_load(lua, chunk_name.c_str(), precompiled_bytecode->data(), precompiled_bytecode->size(), 0) == 0;
+        if (!loaded_precompiled) {
+            lua_pop(lua, 1);
+            CT_LOG_INFO(Script, "luau: rebuilding incompatible bytecode for {}", PathsDisplay(file));
+        }
+    }
+    if (!loaded_precompiled) {
+        auto                                          options = luau_bytecode::RuntimeOptions();
+        std::size_t                                   bytecode_size = 0;
+        const std::unique_ptr<char, void (*)(void *)> bytecode(
+            luau_compile(source.data(), source.size(), &options, &bytecode_size), std::free);
+        if (!bytecode) {
+            CT_LOG_ERROR(Script, "luau: {}: cannot compile {}", label, PathsDisplay(file));
+            return false;
+        }
+        if (luau_load(lua, chunk_name.c_str(), bytecode.get(), bytecode_size, 0) != 0) {
+            const char *raw = lua_tostring(lua, -1);
+            CT_LOG_ERROR(Script, "luau: {}: {}", label, raw != nullptr ? raw : "unknown error");
+            lua_pop(lua, 1);
+            return false;
+        }
     }
     if (codegen) {
         luau_codegen_compile(lua, -1);
     }
-    CT_LOG_INFO(Script, "luau: compiled {}", PathsDisplay(file));
+    CT_LOG_INFO(Script, "luau: {} {}", loaded_precompiled ? "loaded precompiled" : "compiled", PathsDisplay(file));
 
     lua_getref(lua, module_cache_ref);
     lua_pushvalue(lua, -2);
@@ -765,7 +923,7 @@ bool PushModuleFunction(lua_State *lua, const std::filesystem::path &file, std::
  *
  */
 int Require(lua_State *lua) {
-    const std::string name = luaL_checkstring(lua, 1);
+    const std::string          name = luaL_checkstring(lua, 1);
     constexpr std::string_view lib_prefix = "@lib/";
     if (!std::string_view(name).starts_with(lib_prefix)) {
         luaL_error(lua, "unsupported require path");
@@ -805,10 +963,10 @@ int Require(lua_State *lua) {
 void RegisterCommand(lua_State *lua, const luau_bindings::Command &command, Variant variant) {
     const std::string name = std::format("{}{}", command.name, VariantSuffix(variant));
     for (const luau_bindings::Signature &signature : command.signatures) {
-        if (variant != Variant::Catalogued && !HasTagged(signature)) {
+        if (variant != Variant::Catalogued && (signature.values || !HasTagged(signature))) {
             continue;
         }
-        const std::string field = std::format("{}_{}", name, signature.argc);
+        const std::string field = std::format("{}_{}{}", name, signature.argc, signature.values ? "v" : "");
         lua_pushlightuserdata(lua, Userdata(&command));
         lua_pushlightuserdata(lua, Userdata(&signature));
         lua_pushinteger(lua, static_cast<int>(variant));
@@ -823,7 +981,7 @@ void RegisterCommand(lua_State *lua, const luau_bindings::Command &command, Vari
 
 /**
  *
- * Creates one read-only global table per native namespace, holding each command, the Int and Float variants of commands with tagged parameters, and the generic Ext entry.
+ * Creates one read-only global table per native namespace, holding each command, the _int and _float variants of commands with tagged parameters, and the generic call_command entry.
  *
  */
 void RegisterNamespaces(lua_State *lua) {
@@ -836,8 +994,8 @@ void RegisterNamespaces(lua_State *lua) {
                 RegisterCommand(lua, command, Variant::Float);
             }
         }
-        lua_pushcclosure(lua, CallExt, "Ext", 0);
-        lua_setfield(lua, -2, "Ext");
+        lua_pushcclosure(lua, CallExt, "call_command", 0);
+        lua_setfield(lua, -2, "call_command");
         lua_setreadonly(lua, -1, 1);
         const std::string space(kind.space);
         lua_setfield(lua, LUA_GLOBALSINDEX, space.c_str());
@@ -862,6 +1020,63 @@ int Sinf(lua_State *lua) {
 int Cosf(lua_State *lua) {
     lua_pushnumber(lua, static_cast<double>(std::cos(static_cast<float>(luaL_checknumber(lua, 1)))));
     return 1;
+}
+
+/**
+ *
+ * vmhost.skipping: whether the running script is in skip mode, running through its waits to the next skip end.
+ *
+ */
+int VmHostSkipping(lua_State *lua) {
+    lua_pushboolean(lua, ActiveScript(lua)->skip_wait != 0 ? 1 : 0);
+    return 1;
+}
+
+/**
+ *
+ * vmhost.skip_end: counts a skip end; when the script was skipping it leaves skip mode and returns true, telling the module to suspend.
+ *
+ */
+int VmHostSkipEnd(lua_State *lua) {
+    CRunScript *script = ActiveScript(lua);
+    ++script->skip_end_count;
+    const bool was_skipping = script->skip_wait != 0;
+    script->skip_wait = 0;
+    lua_pushboolean(lua, was_skipping ? 1 : 0);
+    return 1;
+}
+
+/**
+ *
+ * vmhost.used_item: the item the use item menu wrote when it exited, once, or nil when it wrote none.
+ *
+ */
+int VmHostUsedItem(lua_State *lua) {
+    if (deferred_output.val.i == kUnwritten) {
+        lua_pushnil(lua);
+    } else {
+        lua_pushinteger(lua, deferred_output.val.i);
+        deferred_output.val.i = kUnwritten;
+    }
+    return 1;
+}
+
+/**
+ *
+ * Creates the global vmhost table: the machine state the vm library reads and writes for skip mode, and the item the use
+ * item menu wrote.
+ *
+ */
+void RegisterVmHost(lua_State *lua) {
+    lua_createtable(lua, 0, 3);
+    lua_pushcfunction(lua, VmHostSkipping, "skipping");
+    lua_setfield(lua, -2, "skipping");
+    lua_pushcfunction(lua, VmHostSkipEnd, "skip_end");
+    lua_setfield(lua, -2, "skip_end");
+    lua_pushcfunction(lua, VmHostUsedItem, "used_item");
+    lua_setfield(lua, -2, "used_item");
+    lua_setreadonly(lua, -1, 1);
+    lua_setglobal(lua, "vmhost");
 }
 
 /**
@@ -901,6 +1116,7 @@ lua_State *EnsureState() {
     lua_setglobal(state, "require");
     RegisterNamespaces(state);
     RegisterCmath(state);
+    RegisterVmHost(state);
 
     lua_createtable(state, 0, 0);
     module_cache_ref = lua_ref(state, -1);
@@ -910,7 +1126,13 @@ lua_State *EnsureState() {
     lua_pop(state, 1);
 
     luaL_sandbox(state);
+    // iOS lets an app make no executable memory without a JIT entitlement a sideloaded app does not get, so the
+    // scripts stay interpreted there.
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+    codegen = false;
+#else
     codegen = luau_codegen_supported() != 0;
+#endif
     if (codegen) {
         luau_codegen_create(state);
     }
@@ -924,9 +1146,10 @@ lua_State *EnsureState() {
  *
  */
 std::shared_ptr<Instance> OwnedInstance(const CRunScript *script) {
-    if (script == nullptr || script->prog == nullptr) {
+    if (script == nullptr) {
         return nullptr;
     }
+    auto      &instances = Instances();
     const auto found = instances.find(script);
     if (found == instances.end() || found->second->program != static_cast<const void *>(script->prog)) {
         return nullptr;
@@ -999,6 +1222,10 @@ void Step(CRunScript *script, Instance &instance, lua_State *co, int nargs) {
     script->end = 1;
     if (status == LUA_OK) {
         script->result = lua_type(co, 1) == LUA_TNUMBER ? ClampToInt(lua_tonumberx(co, 1, nullptr)) : 0;
+    } else if (script->skip_wait != 0 && lua_type(co, -1) != LUA_TSTRING) {
+        // A skip sentinel (a non-string error value raised by a wait in skip mode) that no section caught: retail would run on
+        // linearly to the end of the program without calling anything, so the program ends quietly.
+        CT_LOG_TRACE(Script, "luau: {}: skip reached the end of {}", ScriptLabel(instance.module), HandlerLabel(instance, instance.running_no));
     } else {
         const char       *raw = lua_tostring(co, -1);
         const std::string message = raw != nullptr ? raw : "unknown error";
@@ -1045,6 +1272,174 @@ void StartInstance(CRunScript *script, Instance &instance, const std::filesystem
     lua_settop(thread, 0);
 }
 
+/**
+ *
+ * Returns the length of a table that is a dense array of values keyed 1 through n, or nullopt when it has any other key.
+ *
+ */
+std::optional<std::size_t> DenseArrayLength(lua_State *lua, int index) {
+    const int         absolute_index = index < 0 ? lua_gettop(lua) + index + 1 : index;
+    const std::size_t length = lua_objlen(lua, absolute_index);
+    std::size_t       key_count = 0;
+    lua_pushnil(lua);
+    while (lua_next(lua, absolute_index) != 0) {
+        int          is_integer = 0;
+        const int    key = lua_tointegerx(lua, -2, &is_integer);
+        const double number = lua_tonumberx(lua, -2, nullptr);
+        if (lua_type(lua, -2) != LUA_TNUMBER || is_integer == 0 || number != static_cast<double>(key) || key < 1 ||
+            std::cmp_greater(key, length)) {
+            lua_pop(lua, 2);
+            return std::nullopt;
+        }
+        ++key_count;
+        lua_pop(lua, 1);
+    }
+    if (key_count != length) {
+        return std::nullopt;
+    }
+    return length;
+}
+
+/**
+ *
+ * Reads the number at a stack index as a 32-bit integer, or nullopt when it is not an integral number in range.
+ *
+ */
+std::optional<std::int32_t> IntegerAt(lua_State *lua, int index) {
+    int          is_number = 0;
+    const double number = lua_tonumberx(lua, index, &is_number);
+    if (is_number == 0 || std::trunc(number) != number || number < -2147483648.0 || number > 2147483647.0) {
+        return std::nullopt;
+    }
+    return static_cast<std::int32_t>(number);
+}
+
+/**
+ *
+ * The value types an argument-data entry may declare.
+ *
+ */
+enum class EventArgType {
+    Int,
+    Float,
+    String,
+    Unknown,
+};
+
+/**
+ *
+ * Reads the declared type name at a stack index, or Unknown when it is not one of the argument value types.
+ *
+ */
+EventArgType EventArgTypeAt(lua_State *lua, int index) {
+    if (lua_type(lua, index) != LUA_TSTRING) {
+        return EventArgType::Unknown;
+    }
+    std::size_t            length = 0;
+    const char            *text = lua_tolstring(lua, index, &length);
+    const std::string_view name(text, length);
+    if (name == "int") {
+        return EventArgType::Int;
+    }
+    if (name == "float") {
+        return EventArgType::Float;
+    }
+    if (name == "string") {
+        return EventArgType::String;
+    }
+    return EventArgType::Unknown;
+}
+
+/**
+ *
+ * Reads the typed values of an entry's args table, which sits at an absolute stack index, or nullopt when one is malformed.
+ *
+ */
+std::optional<std::vector<luau_runtime::EventArgValue>> ParseEventArgValues(lua_State *lua, int table) {
+    const std::optional<std::size_t> count = DenseArrayLength(lua, table);
+    if (!count) {
+        return std::nullopt;
+    }
+    std::vector<luau_runtime::EventArgValue> values;
+    values.reserve(*count);
+    for (std::size_t index = 1; index <= *count; ++index) {
+        lua_rawgeti(lua, table, static_cast<int>(index));
+        if (lua_type(lua, -1) != LUA_TTABLE) {
+            return std::nullopt;
+        }
+        lua_getfield(lua, -1, "type");
+        const EventArgType type = EventArgTypeAt(lua, -1);
+        lua_pop(lua, 1);
+        lua_getfield(lua, -1, "value");
+        switch (type) {
+            case EventArgType::Int: {
+                const std::optional<std::int32_t> value = IntegerAt(lua, -1);
+                if (!value) {
+                    return std::nullopt;
+                }
+                values.emplace_back(*value);
+                break;
+            }
+            case EventArgType::Float: {
+                int          is_number = 0;
+                const double value = lua_tonumberx(lua, -1, &is_number);
+                if (is_number == 0) {
+                    return std::nullopt;
+                }
+                values.emplace_back(static_cast<float>(value));
+                break;
+            }
+            case EventArgType::String: {
+                if (lua_type(lua, -1) != LUA_TSTRING) {
+                    return std::nullopt;
+                }
+                std::size_t length = 0;
+                const char *text = lua_tolstring(lua, -1, &length);
+                values.emplace_back(std::string(text, length));
+                break;
+            }
+            case EventArgType::Unknown:
+                return std::nullopt;
+        }
+        lua_pop(lua, 2);
+    }
+    return values;
+}
+
+/**
+ *
+ * Reads the ordered commands of an argument-data array, which sits at an absolute stack index, or nullopt when one is malformed.
+ *
+ */
+std::optional<std::vector<luau_runtime::EventArgAction>> ParseEventArgActions(lua_State *lua, int table) {
+    const std::optional<std::size_t> count = DenseArrayLength(lua, table);
+    if (!count) {
+        return std::nullopt;
+    }
+    std::vector<luau_runtime::EventArgAction> actions;
+    actions.reserve(*count);
+    for (std::size_t index = 1; index <= *count; ++index) {
+        lua_rawgeti(lua, table, static_cast<int>(index));
+        if (lua_type(lua, -1) != LUA_TTABLE) {
+            return std::nullopt;
+        }
+        lua_getfield(lua, -1, "command");
+        const std::optional<std::int32_t> command = IntegerAt(lua, -1);
+        lua_pop(lua, 1);
+        lua_getfield(lua, -1, "args");
+        if (!command || lua_type(lua, -1) != LUA_TTABLE) {
+            return std::nullopt;
+        }
+        std::optional<std::vector<luau_runtime::EventArgValue>> args = ParseEventArgValues(lua, lua_gettop(lua));
+        if (!args) {
+            return std::nullopt;
+        }
+        lua_pop(lua, 2);
+        actions.push_back(luau_runtime::EventArgAction{*command, std::move(*args)});
+    }
+    return actions;
+}
+
 } // namespace
 
 namespace luau_runtime {
@@ -1060,29 +1455,25 @@ std::string MakeHandle(std::string_view module) {
     return handle;
 }
 
-std::optional<std::string> HandleModule(const void *program) {
-    if (program == nullptr) {
-        return std::nullopt;
-    }
-    const auto *bytes = static_cast<const char *>(program);
-    if (std::memcmp(bytes, kHandleMagic.data(), kHandleMagic.size()) != 0) {
+std::optional<std::string> HandleModule(std::span<const char> program) {
+    if (program.size() < kHandleTextOffset + 1 ||
+        std::memcmp(program.data(), kHandleMagic.data(), kHandleMagic.size()) != 0) {
         return std::nullopt;
     }
     std::uint32_t length = 0;
-    std::memcpy(&length, bytes + kHandleLengthOffset, sizeof length);
-    return std::string(bytes + kHandleTextOffset, length);
+    std::memcpy(&length, program.data() + kHandleLengthOffset, sizeof length);
+    if (length >= program.size() - kHandleTextOffset || program[kHandleTextOffset + length] != '\0') {
+        return std::nullopt;
+    }
+    return std::string(program.data() + kHandleTextOffset, length);
 }
 
 std::optional<std::string> ModuleForScript(std::string_view key) {
-    if (!ScriptVmEnabled() || !key.ends_with(".stb")) {
+    if (!key.ends_with(".stb")) {
         return std::nullopt;
     }
     std::string module(key.substr(0, key.size() - std::string_view(".stb").size()));
     if (KindForModule(module) == nullptr) {
-        return std::nullopt;
-    }
-    // A script on the fallback list runs on the interpreter even when an old copy of its module is still present.
-    if (std::ranges::find(luau_bindings::FallbackModules(), std::string_view(module)) != luau_bindings::FallbackModules().end()) {
         return std::nullopt;
     }
     EnsureIndex();
@@ -1092,13 +1483,62 @@ std::optional<std::string> ModuleForScript(std::string_view key) {
     return module;
 }
 
+std::optional<std::vector<EventArgAction>> ReadEventArgData(std::string_view module) {
+    if (EnsureState() == nullptr) {
+        return std::nullopt;
+    }
+    EnsureIndex();
+    const auto found = modules.find(std::string(module));
+    if (found == modules.end()) {
+        CT_LOG_ERROR(Script, "luau: {}: module not found", ScriptLabel(module));
+        return std::nullopt;
+    }
+
+    // The data module runs on a throwaway sandboxed thread, released when the read ends.
+    lua_State *thread = lua_newthread(state);
+
+    struct ThreadReference {
+        int ref;
+
+        ~ThreadReference() {
+            ReleaseRef(ref);
+        }
+    } thread_reference{lua_ref(state, -1)};
+
+    luaL_sandboxthread(thread);
+    lua_pop(state, 1);
+
+    if (!PushModuleFunction(thread, found->second, ScriptLabel(module))) {
+        return std::nullopt;
+    }
+    lua_clonefunction(thread, -1);
+    lua_pushvalue(thread, LUA_GLOBALSINDEX);
+    lua_setfenv(thread, -2);
+    remaining = budget;
+    if (lua_pcall(thread, 0, 1, 0) != LUA_OK) {
+        const char       *raw = lua_tostring(thread, -1);
+        const std::string message = raw != nullptr ? raw : "unknown error";
+        CT_LOG_ERROR(Script, "luau: {}: {}", ScriptLabel(module), message);
+        return std::nullopt;
+    }
+    if (lua_type(thread, -1) != LUA_TTABLE) {
+        CT_LOG_ERROR(Script, "luau: {}: argument data must return an array", ScriptLabel(module));
+        return std::nullopt;
+    }
+    std::optional<std::vector<EventArgAction>> actions = ParseEventArgActions(thread, lua_gettop(thread));
+    if (!actions) {
+        CT_LOG_ERROR(Script, "luau: {}: malformed argument data, expected {{command, args}} entries of typed values", ScriptLabel(module));
+    }
+    return actions;
+}
+
 void Load(CRunScript *script, std::string_view module) {
-    instances.erase(script);
+    Instances().erase(script);
     auto instance = std::make_shared<Instance>();
     instance->module = std::string(module);
     instance->program = script->prog;
     instance->kind = KindForModule(instance->module);
-    instances[script] = instance;
+    Instances()[script] = instance;
 
     if (EnsureState() == nullptr) {
         instance->broken = true;
@@ -1112,7 +1552,8 @@ void Load(CRunScript *script, std::string_view module) {
             StartInstance(script, *instance, found->second);
         }
     }
-    script->end = 0;
+    // As retail's load, this keeps the end and skip flags: a script that loads another and ends, leaving no program to
+    // start, ends the event.
     script->pc = nullptr;
 }
 
@@ -1120,8 +1561,23 @@ bool Owns(const CRunScript *script) {
     return OwnedInstance(script) != nullptr;
 }
 
+void BindStorage(CRunScript *script, dc2::memory::ArenaBuffer anchor,
+                 std::optional<dc2::memory::ArenaBuffer> controller) {
+    auto      &instances = Instances();
+    const auto found = instances.find(script);
+    if (found != instances.end()) {
+        found->second->storage_anchor = anchor;
+        found->second->controller_anchor = controller;
+    }
+}
+
 void Forget(CRunScript *script) {
-    instances.erase(script);
+    if (script == deferred_owner) {
+        ++deferred_generation;
+        deferred_output.val.i = kUnwritten;
+        deferred_owner = nullptr;
+    }
+    Instances().erase(script);
 }
 
 int Run(CRunScript *script, int no) {
@@ -1149,6 +1605,8 @@ int Run(CRunScript *script, int no) {
 
     script->end = 0;
     script->result = 0;
+    script->skip_wait = 0;
+    script->skip_end_count = 0;
     Step(script, *instance, co, 0);
     return script->end != 0 ? 0 : 1;
 }
@@ -1165,6 +1623,11 @@ void Resume(CRunScript *script) {
         return;
     }
     Step(script, *instance, co, 0);
+}
+
+void Skip(CRunScript *script) {
+    script->skip_wait = 1;
+    Resume(script);
 }
 
 bool HasProgram(const CRunScript *script, int no) {
@@ -1193,7 +1656,7 @@ void SetInterruptBudget(std::int64_t interrupts) {
 }
 
 void Shutdown() {
-    instances.clear();
+    Instances().clear();
     if (state != nullptr) {
         lua_close(state);
     }

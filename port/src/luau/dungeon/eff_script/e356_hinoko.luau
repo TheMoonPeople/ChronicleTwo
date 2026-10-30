@@ -26,53 +26,53 @@ function script.on_start()
 	local value: s32 = 0
 	local var26: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	var21 = effect.SptAssignSprite_2(210) or var21
+	var21 = effect.allocate_sprites_2(210) or var21
 	if var21 == 0 then
 		return
 	end
-	effect.SptSetTexname("hinoko")
-	effect.SptInitSprite(0, 210)
-	effect.SptSetAlphab(0, 2, 210)
-	effect.SptSetUvSize(0, 64.0, 0.0, 64.0, 64.0, 210)
-	effect.SptSetPutSize(0, 1.0, 1.0, 210)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 128.0, 210)
-	effect.SptSetDrawFlag(0, 0, 210)
-	effect.SptSetPos(0, 0.0, 0.0, 0.0, 210)
-	effect.SptSetAccPos(0, 0.0, -0.3, 0.0, 210)
-	effect.GetUserId()
+	effect.set_sprite_texture("hinoko")
+	effect.reset_sprites(0, 210)
+	effect.set_sprite_blend_mode(0, 2, 210)
+	effect.set_sprite_texture_rect(0, 64.0, 0.0, 64.0, 64.0, 210)
+	effect.set_sprite_size(0, 1.0, 1.0, 210)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 128.0, 210)
+	effect.set_sprite_visible(0, 0, 210)
+	effect.set_sprite_position(0, 0.0, 0.0, 0.0, 210)
+	effect.set_sprite_acceleration(0, 0.0, -0.3, 0.0, 210)
+	effect.get_owner_character()
 	var24 = 0
 	while true do
 		for var19 = 0, 209 do
 			do
-				local _, _, _, out4 = effect.SptGetColor(var19)
+				local _, _, _, out4 = effect.get_sprite_color(var19)
 				color_w = out4 or color_w
 			end
 			if color_w <= 0.0 then
-				effect.SptSetDrawFlag(var19, 0)
+				effect.set_sprite_visible(var19, 0)
 			end
-			var26 = effect.SptGetDrawFlag(var19) or var26
+			var26 = effect.is_sprite_visible(var19) or var26
 			if var26 ~= 0 then
 				do
-					local _, out2, _ = effect.SptGetPos(var19)
+					local _, out2, _ = effect.get_sprite_position(var19)
 					pos_y = out2 or pos_y
 				end
 				if pos_y < 2.0 then
-					var26 = effect.GetValue(1) or var26
+					var26 = effect.get_script_value(1) or var26
 					var26 = 0
 					if var26 == 0 then
 						pos_y = vm.f32(pos_y * vm.f32(-0.8))
-						effect.SptSetVeloPos(var19, 0.0, pos_y, 0.0)
-						effect.SptSetAccPos(var19, 0.0, -0.3, 0.0)
+						effect.set_sprite_velocity(var19, 0.0, pos_y, 0.0)
+						effect.set_sprite_acceleration(var19, 0.0, -0.3, 0.0)
 					end
 				end
 			end
 		end
-		value = effect.GetValue(2) or value
+		value = effect.get_script_value(2) or value
 		if value ~= 1 then
 			for var22 = 0, 1 do
 				var18 = 20.0

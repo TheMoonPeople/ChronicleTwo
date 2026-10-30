@@ -7,14 +7,16 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <string>
 #include <vector>
 
+#include "assets/data_registry.hpp"
 #include "command_replay.hpp"
 #include "dataread.hpp"
-#include "dataread_port.hpp"
 #include "log_capture.hpp"
 #include "platform/datapacks.hpp"
 #include "scriptinterpreter.hpp"
@@ -80,13 +82,13 @@ protected:
 };
 
 /** Callback arguments observed by the command-replay test. */
-std::vector<std::array<int, 3> > replayed;
+std::vector<std::array<int, 3>> replayed;
 
 /**
  * Records three integer slots, including inherited ones.
  */
-int CaptureInts(SPI_STACK *stack, int /*unused*/) {
-    replayed.push_back({spiGetStackInt(stack), spiGetStackInt(stack + 1), spiGetStackInt(stack + 2)});
+int CaptureInts(dc2::script::TagArguments stack, int /*unused*/) {
+    replayed.push_back({dc2::script::TagInteger(stack), dc2::script::TagInteger(stack + 1), dc2::script::TagInteger(stack + 2)});
     return 0;
 }
 } // namespace
@@ -169,4 +171,17 @@ TEST_F(NativeConfigReader, CharacterCommandListsKeepRetailSlotInheritance) {
     ASSERT_EQ(replayed.size(), 2u);
     EXPECT_EQ(replayed[1], (std::array<int, 3>{4, 2, 3}));
     EXPECT_FALSE(command_replay::IsCommandBuffer("ROW 1;", 6));
+}
+
+TEST(NativeConfigNumbers, FloatsValidateTheirFiniteRepresentableRangeBeforeNarrowing) {
+    const double maximum = static_cast<double>(std::numeric_limits<float>::max());
+    EXPECT_EQ(native_config::Float(Json(maximum)), std::numeric_limits<float>::max());
+    EXPECT_EQ(native_config::Float(Json(-maximum)), std::numeric_limits<float>::lowest());
+    EXPECT_EQ(native_config::Float(Json(1.5)), 1.5f);
+    for (double number : std::array<double, 6>{
+             std::nextafter(maximum, std::numeric_limits<double>::infinity()),
+             std::nextafter(-maximum, -std::numeric_limits<double>::infinity()),
+             1e100, -1e100, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()}) {
+        EXPECT_THROW(native_config::Float(Json(number)), std::runtime_error);
+    }
 }

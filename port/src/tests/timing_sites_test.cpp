@@ -8,14 +8,16 @@
 #include "event_func.hpp"
 #include "gamedata.hpp"
 #include "mainloop.hpp"
-#include "mainloop_port.hpp"
 #include "menuaqua.hpp"
 #include "menucls1.hpp"
+#include "native_script_program.hpp"
+#include "platform/game_loop_state.hpp"
 #include "runscript.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "sceneseq.hpp"
 #include "stubs/event.hpp"
+#include "stubs/gamedata.hpp"
 
 namespace {
 RS_STACKDATA Integer(int value) {
@@ -37,20 +39,19 @@ protected:
     std::unique_ptr<CSaveData> save = std::make_unique<CSaveData>();
     CSaveData                 *previous_save = PortActiveSaveData;
     CScene                    *previous_event_scene = EventScene;
-    RS_PROG_HEADER             program{};
-    alignas(64) u_long128 storage[512] {};
+    NativeScriptProgram        program;
+    alignas(64) u_long128 storage[512]{};
     mgCMemory memory;
 
     void SetUp() override {
         PortActiveSaveData = save.get();
         EventScene = GetMainScene();
-        std::memcpy(program.magic, "SB2", 3);
         memory.stSetBuffer(storage, 512);
-        SetEventScript(reinterpret_cast<char *>(&program), nullptr, &memory);
+        SetEventScript(program.Bytes(), &memory);
     }
 
     void TearDown() override {
-        SetEventScript(nullptr, nullptr, nullptr);
+        SetEventScript({}, nullptr);
         EventScene = previous_event_scene;
         PortActiveSaveData = previous_save;
     }
@@ -89,15 +90,18 @@ TEST_F(GameplayTimingSites, CameraDelayAndFadeCommandsConvertFrames) {
 
 TEST_F(GameplayTimingSites, EventFadeInConvertsFramesAndClampsZero) {
     auto frames = Integer(60);
-    ASSERT_EQ(EventScript.ext_func_table[EVENT_EXT_SET_FADE_IN](&frames, 1), 1);
+    ASSERT_EQ(InvokeNativeExternal(EventScript.ext_func_table[EVENT_EXT_SET_FADE_IN], std::span(&frames, 1)), 1);
     EXPECT_FLOAT_EQ(EventScene->fade.speed, 128.0f / 60);
     frames = Integer(0);
-    ASSERT_EQ(EventScript.ext_func_table[EVENT_EXT_SET_FADE_IN](&frames, 1), 1);
+    ASSERT_EQ(InvokeNativeExternal(EventScript.ext_func_table[EVENT_EXT_SET_FADE_IN], std::span(&frames, 1)), 1);
     EXPECT_FLOAT_EQ(EventScene->fade.speed, 128.0f);
 }
 
 TEST_F(GameplayTimingSites, ItemPowerStatusUsesNtscDuration) {
+    const CGameData previous_data = GameItemDataManage;
+    const auto      previous_index = local_itemdatano_converttable[1];
     GameItemDataManage.Initialize();
+    local_itemdatano_converttable[1] = 0;
     CDataCommon *common = GetCommonItemData(1);
     ASSERT_NE(common, nullptr);
     const CDataCommon previous_common = *common;
@@ -106,7 +110,7 @@ TEST_F(GameplayTimingSites, ItemPowerStatusUsesNtscDuration) {
     effect.target_flags = 6;
     effect.action_flags = 0;
     auto *const previous_items = GameItemDataManage.item_data;
-    const auto previous_count = GameItemDataManage.item_num;
+    const auto  previous_count = GameItemDataManage.item_num;
     common->type = ITEM_DATA_RECOVERY;
     common->list_no = 0;
     GameItemDataManage.item_data = &effect;
@@ -128,6 +132,8 @@ TEST_F(GameplayTimingSites, ItemPowerStatusUsesNtscDuration) {
     *common = previous_common;
     GameItemDataManage.item_data = previous_items;
     GameItemDataManage.item_num = previous_count;
+    local_itemdatano_converttable[1] = previous_index;
+    GameItemDataManage = previous_data;
 }
 
 TEST_F(GameplayTimingSites, AquariumMessageUsesNtscDuration) {
@@ -146,12 +152,12 @@ TEST_F(GameplayTimingSites, AquariumMessageUsesNtscDuration) {
 TEST_F(GameplayTimingSites, StopwatchAndItemTimeCheckConvertSavedDelta) {
     save->play_time = 1;
     auto start = Integer(EVENT_STOPWATCH_START);
-    ASSERT_EQ(EventScript.ext_func_table[EVENT_EXT_STOPWATCH](&start, 1), 1);
+    ASSERT_EQ(InvokeNativeExternal(EventScript.ext_func_table[EVENT_EXT_STOPWATCH], std::span(&start, 1)), 1);
     save->play_time = 51;
     RS_STACKDATA output[] = {Integer(-1), Integer(-1), Integer(-1), Integer(-1)};
     RS_STACKDATA stop[] = {Integer(EVENT_STOPWATCH_STOP), Reference(output[0]), Reference(output[1]),
                            Reference(output[2]), Reference(output[3])};
-    ASSERT_EQ(EventScript.ext_func_table[EVENT_EXT_STOPWATCH](stop, 5), 1);
+    ASSERT_EQ(InvokeNativeExternal(EventScript.ext_func_table[EVENT_EXT_STOPWATCH], std::span(stop).first(5), output), 1);
     EXPECT_EQ(output[0].val.i, 0);
     EXPECT_EQ(output[1].val.i, 1);
     EXPECT_EQ(output[2].val.i, 0);

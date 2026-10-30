@@ -25,48 +25,48 @@ function script.on_start()
 	value_2 = 0
 	value = 0.0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	value_3 = effect.GetValue(0) or value_3
-	value = effect.GetValueFloat(1) or value
-	value_2 = effect.GetValue(2) or value_2
-	effect.ChrSetScale(value, value, value)
-	effect.ChrSetMotion("攻撃２ループ", 0)
-	effect.ColprimCreate("魔人ビーム")
-	effect.ColprimSetDamage(value_3)
+	value_3 = effect.get_script_value(0) or value_3
+	value = effect.get_script_value_float(1) or value
+	value_2 = effect.get_script_value(2) or value_2
+	effect.set_effect_character_scale(value, value, value)
+	effect.set_effect_character_motion("攻撃２ループ", 0)
+	effect.create_collision_primitive("魔人ビーム")
+	effect.set_collision_primitive_damage(value_3)
 	while true do
-		value = effect.GetValueFloat(1) or value
-		effect.ChrSetScale(value, value, value)
+		value = effect.get_script_value_float(1) or value
+		effect.set_effect_character_scale(value, value, value)
 		do
-			local out1, out2, out3 = effect.GetWorkVect1()
+			local out1, out2, out3 = effect.get_first_work_vector()
 			work_vect1_x = out1 or work_vect1_x
 			work_vect1_y = out2 or work_vect1_y
 			work_vect1_z = out3 or work_vect1_z
 		end
-		effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-		effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 45.0)
-		value_2 = effect.GetValue(2) or value_2
+		effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+		effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 45.0)
+		value_2 = effect.get_script_value(2) or value_2
 		if value_2 ~= 0 then
 			break
 		else
 			vm.wait()
 		end
 	end
-	effect.ColprimDelete(-1)
-	effect.ChrSetMotion("攻撃２戻り", 6)
+	effect.delete_collision_primitive(-1)
+	effect.set_effect_character_motion("攻撃２戻り", 6)
 	while true do
 		vm.wait()
 		do
-			local out1, out2, out3 = effect.GetWorkVect1()
+			local out1, out2, out3 = effect.get_first_work_vector()
 			work_vect1_x = out1 or work_vect1_x
 			work_vect1_y = out2 or work_vect1_y
 			work_vect1_z = out3 or work_vect1_z
 		end
-		effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-		check_motion_end = effect.ChrChkMotEnd() or check_motion_end
+		effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+		check_motion_end = effect.is_effect_character_motion_finished() or check_motion_end
 		if check_motion_end ~= 0 then
 			break
 		end

@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -12,30 +15,41 @@
 
 #include "character.hpp"
 #include "effscript.hpp"
-#include "effscript_port.hpp"
 #include "gfx/displaylist.hpp"
 #include "gfx/gfx.hpp"
 #include "mg_memory.hpp"
 #include "mg_sprite.hpp"
-#include "mg_sprite_port.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
-#include "mglib_port.hpp"
+#include "native_script_program.hpp"
 #include "platform/arena.hpp"
+#include "render/renderer.hpp"
+#include "render/sprite_batch.hpp"
 #include "scenesnd.hpp"
+#include "scoped_global_object.hpp"
+#include "script/effect_script_runtime.hpp"
 
 /**
  * Assigns sprite storage to the running effect.
  */
-int _SPT_ASSIGN_SPRITE(RS_STACKDATA *stack, int argument_count);
+int _SPT_ASSIGN_SPRITE(dc2::script::RunArguments stack, int argument_count);
 /**
  * Resets the selected sprite slots of the running effect.
  */
-int _SPT_INIT_SPRITE(RS_STACKDATA *stack, int argument_count);
+int _SPT_INIT_SPRITE(dc2::script::RunArguments stack, int argument_count);
 /**
  * Releases the running effect's sprite storage.
  */
-int _SPT_DELETE_SPRITE(RS_STACKDATA *stack, int argument_count);
+int _SPT_DELETE_SPRITE(dc2::script::RunArguments arguments, int argument_count);
+
+/**
+ * Updates colors of a bounded effect sprite range.
+ */
+int _SPT_SET_COLOR(dc2::script::RunArguments stack, int argument_count);
+/**
+ * Updates successive colors using color velocity and acceleration.
+ */
+int _SPT_VAN_SET_COL(dc2::script::RunArguments stack, int argument_count);
 
 namespace {
 
@@ -176,14 +190,14 @@ protected:
     void SetUp() override {
         storage = reinterpret_cast<u_long128 *>(ArenaBlock(this, 8192 * sizeof(u_long128)));
         memory.SetHeapMem(storage, 8192);
-        std::memcpy(program.magic, "SB2", 3);
         heal.base_no = BaseNo("n_heal");
         other.base_no = BaseNo("gun_flash");
         ASSERT_GE(heal.base_no, 0);
         ASSERT_GE(other.base_no, 0);
         for (EFF_SPT_BASE *base : {&heal, &other}) {
             base->texb = 0;
-            base->script = reinterpret_cast<char *>(&program);
+            base->script = reinterpret_cast<char *>(program.Bytes().data());
+            base->script_size = program.Bytes().size();
         }
         manager.base[0] = &heal;
         manager.base[1] = &other;
@@ -228,7 +242,7 @@ protected:
     void GiveSprites(_EFF_SCRIPT *effect) {
         PortSetRunningEffect(&manager, effect);
         RS_STACKDATA count = Int(4);
-        ASSERT_EQ(_SPT_ASSIGN_SPRITE(&count, 1), 1);
+        ASSERT_EQ(_SPT_ASSIGN_SPRITE(dc2::script::RunArguments(std::span(&count, 1)), 1), 1);
         for (int i = 0; i < 4; ++i) {
             _ES_SPRITE &sprite = effect->sprite[i];
             sprite = {};
@@ -292,18 +306,19 @@ protected:
         return gfx::detail::InterpolateSprite(before, scene, identity, after, scene, identity, identity, 0.5f, result);
     }
 
-    ScreenOffsetScope  screen_offset{0x800, 0x800}; /**< Screen offset scope shared by sprite draws. */
-    std::vector<Event> events;                      /**< Ordered model and billboard draws. */
-    u_long128         *storage = nullptr;           /**< Arena backing the effect manager's work memory. */
-    mgCMemory          memory;                      /**< Primary effect work memory. */
-    mgCMemory          other_memory;                /**< Independent work memory for a peer manager. */
-    RS_PROG_HEADER     program{};                   /**< Empty script program used by test effects. */
-    EFF_SPT_BASE       heal{};                      /**< Recovery effect base configured for interpolation. */
-    EFF_SPT_BASE       other{};                     /**< Ordinary effect base retaining retail batches. */
-    CEffectScriptMan   manager;                     /**< Effect manager exercised by the fixture. */
-    mgRENDER_INFO      render_info{};               /**< Camera state used for projection. */
-    mgCDrawManager     draw_manager;                /**< Draw manager exposing the fixture camera. */
-    mgCTexture         texture;                     /**< Texture supplied to captured sprite draws. */
+    ScreenOffsetScope   screen_offset{0x800, 0x800}; /**< Screen offset scope shared by sprite draws. */
+    std::vector<Event>  events;                      /**< Ordered model and billboard draws. */
+    u_long128          *storage = nullptr;           /**< Arena backing the effect manager's work memory. */
+    mgCMemory           memory;                      /**< Primary effect work memory. */
+    mgCMemory           other_memory;                /**< Independent work memory for a peer manager. */
+    NativeScriptProgram program;                     /**< Complete script program used by test effects. */
+    EFF_SPT_BASE        heal{};                      /**< Recovery effect base configured for interpolation. */
+    EFF_SPT_BASE        other{};                     /**< Ordinary effect base retaining retail batches. */
+    CEffectScriptMan    manager;                     /**< Effect manager exercised by the fixture. */
+    mgRENDER_INFO       render_info{};               /**< Camera state used for projection. */
+    LoggedModel         draw_models[2]{};            /**< Models whose lifetime includes effect-manager cleanup. */
+    mgCDrawManager      draw_manager;                /**< Draw manager exposing the fixture camera. */
+    mgCTexture          texture;                     /**< Texture supplied to captured sprite draws. */
 };
 
 } // namespace
@@ -350,7 +365,7 @@ TEST_F(EffectSprites, ASlotResetAndShownAgainInPlaceKeepsItsNewestCorners) {
     // hidden in a recorded frame. Slot 2 just drifts.
     PortSetRunningEffect(&manager, effect);
     RS_STACKDATA slot = Int(0);
-    ASSERT_EQ(_SPT_INIT_SPRITE(&slot, 1), 1);
+    ASSERT_EQ(_SPT_INIT_SPRITE(dc2::script::RunArguments(std::span(&slot, 1)), 1), 1);
     PortSetRunningEffect(nullptr, nullptr);
     _ES_SPRITE &reset = effect->sprite[0];
     EXPECT_EQ(reset.draw_flag, 0); // Retail's reset ran.
@@ -391,7 +406,7 @@ TEST_F(EffectSprites, SpritesReassignedWhereTheLastStoodAreNewParticles) {
     const uint64_t    incarnation = PortEffectSpriteTag(effect, 0).generation;
 
     PortSetRunningEffect(&manager, effect);
-    ASSERT_EQ(_SPT_DELETE_SPRITE(nullptr, 0), 1);
+    ASSERT_EQ(InvokeNativeExternal(dc2::script::AdaptRunArguments<_SPT_DELETE_SPRITE>, {}), 1);
     PortSetRunningEffect(nullptr, nullptr);
     GiveSprites(effect);
     ASSERT_EQ(effect->sprite, first); // The work memory gave the same address back.
@@ -449,29 +464,32 @@ TEST_F(EffectSprites, AnEffectStartedWhereTheLastStoodIsANewEmissionAndClearsLea
     EXPECT_EQ(PortRecoveryEffectCount(), 0u);
 }
 
-TEST_F(EffectSprites, AResetAtANaNIndexRenewsTheSlotRetailResets) {
+TEST_F(EffectSprites, RejectsNaNResetIndexWithoutChangingParticleIdentity) {
     _EFF_SCRIPT *effect = Start(heal);
     ASSERT_NE(effect, nullptr);
     GiveSprites(effect);
-    uint64_t before[4];
+    uint64_t                            before[4];
+    std::array<int, 4>                  draw_flags{};
+    std::array<std::array<float, 4>, 4> positions{};
     for (int i = 0; i < 4; ++i) {
         before[i] = PortEffectSpriteTag(effect, i).generation;
+        draw_flags[i] = effect->sprite[i].draw_flag;
+        std::copy_n(effect->sprite[i].pos, 4, positions[i].begin());
     }
 
-    // Retail reads the index through fptosi, which takes NaN to 0, so slot 0 is the one reset.
     PortSetRunningEffect(&manager, effect);
     RS_STACKDATA index{};
     index.type = RS_FLOAT;
     index.val.f = std::numeric_limits<float>::quiet_NaN();
-    EXPECT_EQ(_SPT_INIT_SPRITE(&index, 1), 1);
+    EXPECT_EQ(InvokeNativeExternal(dc2::script::AdaptRunArguments<_SPT_INIT_SPRITE>, std::span(&index, 1)), 0);
     PortSetRunningEffect(nullptr, nullptr);
 
-    EXPECT_EQ(effect->sprite[0].draw_flag, 0);
-    EXPECT_EQ(effect->sprite[0].pos[0], 0.0f);
-    EXPECT_EQ(effect->sprite[2].draw_flag, 1);
-    EXPECT_NE(PortEffectSpriteTag(effect, 0).generation, before[0]);
-    for (int i = 1; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(effect->sprite[i].draw_flag, draw_flags[i]);
         EXPECT_EQ(PortEffectSpriteTag(effect, i).generation, before[i]);
+        for (int component = 0; component < 4; ++component) {
+            EXPECT_FLOAT_EQ(effect->sprite[i].pos[component], positions[i][component]);
+        }
     }
 }
 
@@ -490,7 +508,7 @@ TEST_F(EffectSprites, ARefusedSecondAssignmentChangesNothing) {
     // Retail refuses to assign sprites to an effect that has them, and leaves the result slot alone.
     PortSetRunningEffect(&manager, effect);
     RS_STACKDATA arguments[2] = {Int(8), Int(77)};
-    EXPECT_EQ(_SPT_ASSIGN_SPRITE(arguments, 2), 0);
+    EXPECT_EQ(_SPT_ASSIGN_SPRITE(dc2::script::RunArguments(arguments), 2), 0);
     PortSetRunningEffect(nullptr, nullptr);
 
     EXPECT_EQ(arguments[1].val.i, 77);
@@ -559,21 +577,21 @@ TEST_F(EffectSprites, AnEffectStartedWhereARetiredOneStoodReplacesItsEntry) {
         retired.insert(PortEffectSpriteTag(effect, i).generation);
     }
 
-    // The arena is retired without a clear, and its memory serves a manager built elsewhere. The dead entry stays until
-    // an effect takes its address: a recovery effect numbers its sprites afresh, any other effect drops the entry.
+    // A new heap lifetime retires the old incarnation metadata before any address is reused.
     memory.SetHeapMem(storage, 8192);
     CEffectScriptMan successor;
     successor.base[0] = &heal;
     successor.base[1] = &other;
     successor.base_num = 2;
     successor.SetWorkBuffer(&memory);
-    EXPECT_EQ(PortRecoveryEffectCount(), 1u);
+    EXPECT_EQ(PortRecoveryEffectCount(), 0u);
+    EXPECT_EQ(PortEffectSpriteTag(effect, 0).key, 0U);
 
     _EFF_SCRIPT *again = successor.CreateEffSpt(heal.base_no, 0, 1);
     ASSERT_EQ(again, effect);
     PortSetRunningEffect(&successor, again);
     RS_STACKDATA count = Int(4);
-    ASSERT_EQ(_SPT_ASSIGN_SPRITE(&count, 1), 1);
+    ASSERT_EQ(_SPT_ASSIGN_SPRITE(dc2::script::RunArguments(std::span(&count, 1)), 1), 1);
     PortSetRunningEffect(nullptr, nullptr);
     EXPECT_EQ(PortRecoveryEffectCount(), 1u);
     for (int i = 0; i < 4; ++i) {
@@ -586,7 +604,7 @@ TEST_F(EffectSprites, AnEffectStartedWhereARetiredOneStoodReplacesItsEntry) {
     manager.base[0] = &other;
     manager.base_num = 1;
     manager.SetWorkBuffer(&memory);
-    EXPECT_EQ(PortRecoveryEffectCount(), 1u);
+    EXPECT_EQ(PortRecoveryEffectCount(), 0u);
     ASSERT_EQ(manager.CreateEffSpt(other.base_no, 0, 1), again);
     EXPECT_EQ(PortRecoveryEffectCount(), 0u);
 }
@@ -632,12 +650,9 @@ TEST_F(EffectSprites, ManagerDrawsEveryModelThenEverySpriteBatch) {
     char                   name[] = "n_heal";
     ASSERT_NE(mgTexManager.EnterTexture(0, name, images, 2, 2, 32, nullptr, 0, 0), nullptr);
 
-    auto        scene = std::make_unique<CScene>();
-    CScene     *previous_scene = now_scene;
-    auto       *previous_render_info = mgDrawManager.render_info;
-    LoggedModel models[2];
-    now_scene = scene.get();
-    mgDrawManager.render_info = &render_info;
+    auto                                                     scene = dc2::test::BindGlobalOwner<now_scene>(std::make_unique<CScene>());
+    dc2::test::ScopedGlobalObject<mgDrawManager.render_info> render_owner(render_info);
+    auto                                                    &models = draw_models;
 
     // The recovery effect starts first, so it is drawn first; each has a model to show the passes' order.
     _EFF_SCRIPT *recovery = Start(heal);
@@ -657,8 +672,6 @@ TEST_F(EffectSprites, ManagerDrawsEveryModelThenEverySpriteBatch) {
 
     events.clear();
     manager.Draw();
-    now_scene = previous_scene;
-    mgDrawManager.render_info = previous_render_info;
 
     // Both models, at the effect's origin, then the recovery effect's sprites one by one, then the other's two
     // retail batches.
@@ -688,4 +701,35 @@ TEST_F(EffectSprites, ManagerDrawsEveryModelThenEverySpriteBatch) {
     EXPECT_TRUE(events[2].state == events[5].state);
     EXPECT_FALSE(events[5].state == events[6].state);
     EXPECT_EQ(gfx::CurrentInterp2D().key, 0u);
+}
+
+TEST_F(EffectSprites, InvalidSpriteRangesLeaveEverySpriteUnchanged) {
+    _EFF_SCRIPT *effect = Start(heal);
+    ASSERT_NE(effect, nullptr);
+    GiveSprites(effect);
+    const auto                   bytes = std::as_bytes(std::span(effect->sprite, static_cast<std::size_t>(effect->sprite_num)));
+    const std::vector<std::byte> before(bytes.begin(), bytes.end());
+    PortSetRunningEffect(&manager, effect);
+    for (const int count : {-1, std::numeric_limits<int>::max(), effect->sprite_num + 1}) {
+        RS_STACKDATA arguments[] = {Int(0), Int(1), Int(2), Int(3), Int(4), Int(count)};
+        EXPECT_EQ(_SPT_SET_COLOR(dc2::script::RunArguments(arguments), 6), 0);
+        EXPECT_TRUE(std::equal(bytes.begin(), bytes.end(), before.begin()));
+    }
+    RS_STACKDATA short_arguments[] = {Int(0), Int(1)};
+    EXPECT_THROW(_SPT_SET_COLOR(dc2::script::RunArguments(short_arguments), 2), dc2::script::ArgumentError);
+    EXPECT_TRUE(std::equal(bytes.begin(), bytes.end(), before.begin()));
+    PortSetRunningEffect(nullptr, nullptr);
+}
+
+TEST_F(EffectSprites, SuccessiveColorAcceptsThirteenMandatoryArgumentsWithoutReadingACount) {
+    _EFF_SCRIPT *effect = Start(heal);
+    ASSERT_NE(effect, nullptr);
+    GiveSprites(effect);
+    PortSetRunningEffect(&manager, effect);
+    RS_STACKDATA arguments[] = {Int(0), Int(11), Int(22), Int(33), Int(44),
+                                Int(0), Int(0), Int(0), Int(0), Int(0), Int(0), Int(0), Int(0)};
+    EXPECT_EQ(_SPT_VAN_SET_COL(dc2::script::RunArguments(arguments), 13), 1);
+    EXPECT_FLOAT_EQ(effect->sprite[0].color[0], 11.0f);
+    EXPECT_FLOAT_EQ(effect->sprite[0].color[3], 44.0f);
+    PortSetRunningEffect(nullptr, nullptr);
 }

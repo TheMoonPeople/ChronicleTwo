@@ -30,8 +30,12 @@ struct Action {
 
 /**
  * Registers the actions of a motion set under its channel anchor.
+ *
+ * The storage is the arena memory holding the set's channels and anchor; the set stops resolving once any
+ * of it is handed out again. The anchor is also stamped, so a set whose anchor is overwritten without going
+ * through an arena stops resolving too.
  */
-void Register(const Mot_List *anchor, std::vector<Action> actions);
+void Register(Mot_List *anchor, std::vector<Action> actions, std::span<const std::byte> storage);
 
 /**
  * Forgets a motion set whose channel anchor is released or replaced.
@@ -39,8 +43,17 @@ void Register(const Mot_List *anchor, std::vector<Action> actions);
 void Forget(const Mot_List *anchor);
 
 /**
- * Forgets the action last posed on a frame tree whose storage is new, so a tree rebuilt at a released
- * tree's address does not blend from that tree's motion set.
+ * Forgets every motion set whose storage overlaps memory about to be written again.
+ *
+ * The game releases motion memory by resetting or rewinding an arena, or by freeing a heap block, without
+ * telling the registry. The arena reports each range it hands out again or writes a header or an imported
+ * buffer over, and the main-thread file loads report their whole sector-padded destination, which they
+ * write before the caller reserves it.
+ */
+void ForgetStorage(const void *begin, const void *end);
+
+/**
+ * Forgets the pose recorded on a frame tree whose root is initialized or whose address is reused.
  */
 void ForgetPose(const mgCFrame *root);
 

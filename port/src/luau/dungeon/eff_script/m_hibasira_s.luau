@@ -22,50 +22,50 @@ function script.on_start()
 	local var6: s32 = 0
 	local hit_num: s32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
-	effect.ChrSetPos(work_vect1_x, work_vect1_y, work_vect1_z)
-	value = effect.GetValue(0) or value
-	effect.ChrSetMotion("雷柱", -1, 6)
+	effect.set_effect_character_position(work_vect1_x, work_vect1_y, work_vect1_z)
+	value = effect.get_script_value(0) or value
+	effect.set_effect_character_motion("雷柱", -1, 6)
 	var6 = 0
-	effect.ColprimCreate("吹っ飛び攻撃")
-	effect.ColprimSetDamage(value)
-	effect.ColprimSetCoord(work_vect1_x, work_vect1_y, work_vect1_z, 25.0)
+	effect.create_collision_primitive("吹っ飛び攻撃")
+	effect.set_collision_primitive_damage(value)
+	effect.set_collision_primitive_shape(work_vect1_x, work_vect1_y, work_vect1_z, 25.0)
 	while var6 < 56 do
-		get_now_frame_wait = effect.ChrGetMotWait() or get_now_frame_wait
+		get_now_frame_wait = effect.get_effect_character_motion_progress() or get_now_frame_wait
 		if get_now_frame_wait > vm.f32(0.966) then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 			return
 		end
-		hit_num = effect.ColprimGetHitcnt() or hit_num
+		hit_num = effect.get_collision_primitive_hit_count() or hit_num
 		if hit_num > 0 then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 			break
 		else
 			if var6 == 48 then
-				effect.ColprimDelete(-1)
+				effect.delete_collision_primitive(-1)
 			end
 			vm.wait()
 			var6 = var6 + 1
 		end
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 	while var6 < 56 do
-		get_now_frame_wait = effect.ChrGetMotWait() or get_now_frame_wait
+		get_now_frame_wait = effect.get_effect_character_motion_progress() or get_now_frame_wait
 		if get_now_frame_wait > vm.f32(0.966) then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 			return
 		end
 		if var6 == 48 then
-			effect.ColprimDelete(-1)
+			effect.delete_collision_primitive(-1)
 		end
 		vm.wait()
 		var6 = var6 + 1
 	end
-	effect.ColprimDelete(-1)
+	effect.delete_collision_primitive(-1)
 end
 
 --- Ends an effect.

@@ -2,6 +2,7 @@
 
 #include <quill/Backend.h>
 #include <quill/Frontend.h>
+#include <quill/UserClockSource.h>
 #include <quill/sinks/Sink.h>
 
 #include <algorithm>
@@ -25,6 +26,12 @@
 #endif
 #ifndef _WIN32
 #include <pthread.h>
+#endif
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE
+#include <sys/qos.h>
+#endif
 #endif
 
 #include "kazarov/log.hpp"
@@ -179,8 +186,14 @@ protected:
                    std::string_view thread_id, std::string_view thread_name, const std::string & /*process_id*/,
                    std::string_view logger_name, quill::LogLevel log_level,
                    std::string_view /*log_level_description*/, std::string_view /*log_level_short_code*/,
-                   const std::vector<std::pair<std::string, std::string> > * /*named_args*/,
+                   const std::vector<std::pair<std::string, std::string>> * /*named_args*/,
                    std::string_view log_message, std::string_view /*log_statement*/) final {
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+        // Sinks run on the ct-log thread, which writes in the background: on iOS it takes the utility class the first
+        // time, so the scheduler prefers the efficiency cores for it over the game's and the renderer's cores.
+        static thread_local const bool background = [] { return pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0) == 0; }();
+        (void) background;
+#endif
         Take({.timestamp_ns = log_timestamp,
               .level = PortLevel(log_level),
               .thread = Named(thread_name) ? thread_name : thread_id,
@@ -448,12 +461,39 @@ void InstallForkHandlers() {
 }
 #endif
 
+/**
+ * Gives queued records and flush barriers one strictly increasing session clock across threads.
+ */
+class SessionLogClock final : public quill::UserClockSource {
+    const std::chrono::steady_clock::time_point steady_origin = std::chrono::steady_clock::now(); /**< Monotonic session origin. */
+    const std::chrono::system_clock::time_point wall_origin = std::chrono::system_clock::now();   /**< Wall-clock origin for readable timestamps. */
+    mutable std::atomic<std::uint64_t>          last_timestamp{0};                                /**< Latest timestamp assigned to a record or barrier. */
+
+public:
+    /**
+     * Orders records even when clock ticks coincide or the wall clock changes during the session.
+     */
+    std::uint64_t now() const override {
+        const auto elapsed = std::chrono::steady_clock::now() - steady_origin;
+        const auto timestamp = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(wall_origin.time_since_epoch() + elapsed).count());
+        auto       previous = last_timestamp.load(std::memory_order_relaxed);
+        for (;;) {
+            const auto next = std::max(timestamp, previous + 1);
+            if (last_timestamp.compare_exchange_weak(previous, next, std::memory_order_relaxed)) {
+                return next;
+            }
+        }
+    }
+};
+
 void Start() {
     quill::Backend::start(PortBackendOptions());
 #ifndef _WIN32
     InstallForkHandlers();
 #endif
 
+    // Quill retains its clock pointer through backend restarts and static destruction.
+    static auto *const                   clock = new SessionLogClock;
     const quill::PatternFormatterOptions pattern{"%(message)"};
     auto                                 console = quill::Frontend::create_or_get_sink<ConsoleSink>("ct-console");
     auto                                 file = quill::Frontend::create_or_get_sink<FileSink>("ct-file");
@@ -461,20 +501,20 @@ void Start() {
     static const auto *const             kept_file = new std::shared_ptr<quill::Sink>(file);
     g_file_sink = static_cast<FileSink *>(kept_file->get());
     for (std::size_t i = 0; i <= kCategoryCount; ++i) {
-        std::vector<std::shared_ptr<quill::Sink> > sinks;
-        // The game's printf reaches stdout directly (ps2_printf.cpp); the session logger is the file's alone.
+        std::vector<std::shared_ptr<quill::Sink>> sinks;
+        // The game's printf reaches stdout directly (game_output.cpp); the session logger is the file's alone.
         if (i < kCategoryCount && static_cast<LogCategory>(i) != LogCategory::Ps2) {
             sinks.push_back(console);
         }
         sinks.push_back(file);
         sinks.push_back(capture);
         const std::string name(i < kCategoryCount ? kCategoryNames[i] : kSessionLoggerName);
-        quill::Logger    *logger = quill::Frontend::create_or_get_logger(name, std::move(sinks), pattern);
+        quill::Logger    *logger = quill::Frontend::create_or_get_logger(name, std::move(sinks), pattern, quill::ClockSourceType::User, clock);
         log_detail::g_loggers[i].store(logger, std::memory_order_release);
     }
     log_detail::g_loggers[log_detail::kSessionLogger].load()->set_log_level(quill::LogLevel::Info);
     g_flush_logger = quill::Frontend::create_or_get_logger(
-        std::string(kFlushLoggerName), quill::Frontend::create_or_get_sink<FlushMarkerSink>("ct-flush"), pattern);
+        std::string(kFlushLoggerName), quill::Frontend::create_or_get_sink<FlushMarkerSink>("ct-flush"), pattern, quill::ClockSourceType::User, clock);
 
     const std::scoped_lock lock(g_state_mutex);
     ApplyLevelsLocked();
@@ -651,7 +691,7 @@ bool LogSpecValid(std::string_view spec) {
 }
 
 LogLevel LogEffectiveLevel(LogCategory category) {
-    const auto find = [category](const std::vector<std::pair<LogCategory, LogLevel> > &levels) {
+    const auto find = [category](const std::vector<std::pair<LogCategory, LogLevel>> &levels) {
         const auto it = std::ranges::find_if(levels, [category](const auto &entry) { return entry.first == category; });
         return it == levels.end() ? std::nullopt : std::optional(it->second);
     };

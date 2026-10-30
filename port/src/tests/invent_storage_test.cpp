@@ -46,3 +46,11 @@ TEST(InventStorage, LoadingAnotherManagerPreservesExistingRecipePointers) {
     EXPECT_EQ(material->num, 5);
     EXPECT_EQ(second.table->item_id, 43);
 }
+
+TEST(InventStorage, MalformedCountsAndUnrepresentableMaterialAmountsAreRefused) {
+    CInventDataManage manager;
+    for (std::string script : {"DATATABLESET -1;", "DATASET 42,1,2,3,210,5,0,1.0,2.0,3.0,4.0;",
+                               "DATATABLESET 1; DATASET 42,1,2,3,210,256,0,1.0,2.0,3.0,4.0;"}) {
+        EXPECT_FALSE(manager.LoadAnalyzeInventFile(script.data(), static_cast<int>(script.size())));
+    }
+}

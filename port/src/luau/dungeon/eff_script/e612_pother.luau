@@ -27,55 +27,55 @@ function script.on_start()
 	local value_5: s32 = 0
 	local value_6: f32 = 0
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, _ = effect.GetWorkVect2()
+		local out1, out2, _ = effect.get_second_work_vector()
 		work_vect2_x = out1 or work_vect2_x
 		work_vect2_y = out2 or work_vect2_y
 	end
-	effect.SptSetTexname("e612_tutikemuri")
-	effect.SptAssignSprite_1(8)
-	effect.SptInitSprite(0, 8)
-	effect.SptSetAlphab(0, 1, 8)
-	effect.SptSetDrawFlag(0, 1, 8)
-	effect.SptSetPutSize(0, 10.24, 8.32, 8)
-	effect.SptSetUvSize(0, 1.0, 1.0, 62.0, 62.0, 8)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 0.0, 8)
-	effect.SptSetScale(0, work_vect2_x, work_vect2_y, 8)
-	effect.SptSetVeloScl(0, vm.f32(0.06) * work_vect2_x, vm.f32(0.06) * work_vect2_y, 8)
+	effect.set_sprite_texture("e612_tutikemuri")
+	effect.allocate_sprites_1(8)
+	effect.reset_sprites(0, 8)
+	effect.set_sprite_blend_mode(0, 1, 8)
+	effect.set_sprite_visible(0, 1, 8)
+	effect.set_sprite_size(0, 10.24, 8.32, 8)
+	effect.set_sprite_texture_rect(0, 1.0, 1.0, 62.0, 62.0, 8)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 0.0, 8)
+	effect.set_sprite_scale(0, work_vect2_x, work_vect2_y, 8)
+	effect.set_sprite_scale_velocity(0, vm.f32(0.06) * work_vect2_x, vm.f32(0.06) * work_vect2_y, 8)
 	var6 = 0
 	while var6 < 8 do
-		value = effect.GetRand(12.0 * work_vect2_x) or value
+		value = effect.get_random_number(12.0 * work_vect2_x) or value
 		value = vm.f32(vm.f32(value - vm.f32(vm.f32(12.0 * work_vect2_x) / 2.0)) + work_vect1_x)
-		value_2 = effect.GetRand(vm.f32(12.0 * work_vect2_y) / 4.0) or value_2
+		value_2 = effect.get_random_number(vm.f32(12.0 * work_vect2_y) / 4.0) or value_2
 		value_2 = vm.f32(value_2 + work_vect1_y)
-		value_3 = effect.GetRand(12.0 * work_vect2_x) or value_3
+		value_3 = effect.get_random_number(12.0 * work_vect2_x) or value_3
 		value_3 = vm.f32(vm.f32(value_3 - vm.f32(vm.f32(12.0 * work_vect2_x) / 2.0)) + work_vect1_z)
-		effect.SptSetPos(var6, value, value_2, value_3)
-		effect.SptSetVeloPos(var6, 0.0, vm.f32(0.2) * work_vect2_y, 0.0)
-		effect.SptSetAccPos(var6, 0.0, vm.f32(-0.01) * work_vect2_y, 0.0)
-		value_4 = effect.GetRand(6.2831855) or value_4
+		effect.set_sprite_position(var6, value, value_2, value_3)
+		effect.set_sprite_velocity(var6, 0.0, vm.f32(0.2) * work_vect2_y, 0.0)
+		effect.set_sprite_acceleration(var6, 0.0, vm.f32(-0.01) * work_vect2_y, 0.0)
+		value_4 = effect.get_random_number(6.2831855) or value_4
 		value_4 = vm.f32(value_4 - vm.f32(3.1415927))
-		effect.SptSetRotz(var6, value_4)
+		effect.set_sprite_rotation(var6, value_4)
 		value_5 = 0
-		value_5 = effect.GetRandInt(100) or value_5
+		value_5 = effect.get_random_number_int(100) or value_5
 		if vm.imod(value_5, 2) == 0 then
 			value_4 = vm.f32(0.06)
 		else
 			value_4 = vm.f32(-0.06)
 		end
-		effect.SptSetVeloRotz(var6, value_4)
-		effect.SptSetAccRotz(var6, -vm.f32(value_4 * vm.f32(0.02)))
-		value_6 = effect.GetRand(4.0) or value_6
+		effect.set_sprite_angular_velocity(var6, value_4)
+		effect.set_sprite_angular_acceleration(var6, -vm.f32(value_4 * vm.f32(0.02)))
+		value_6 = effect.get_random_number(4.0) or value_6
 		value_6 = vm.f32(value_6 + 20.0)
-		effect.SptSetVeloCol(var6, 0.0, 0.0, 0.0, value_6)
-		value_6 = effect.GetRand(2.0) or value_6
+		effect.set_sprite_color_velocity(var6, 0.0, 0.0, 0.0, value_6)
+		value_6 = effect.get_random_number(2.0) or value_6
 		value_6 = vm.f32(value_6 + 1.5)
-		effect.SptSetAccCol(var6, 0.0, 0.0, 0.0, -value_6)
+		effect.set_sprite_color_acceleration(var6, 0.0, 0.0, 0.0, -value_6)
 		var6 = var6 + 1
 	end
 	var6 = 0

@@ -3,8 +3,8 @@
 
 --- Helper function.
 local function helper_1aaed117()
-	monster.SetCameraMode(0)
-	monster.ResetCameraCtrlParam()
+	monster.set_camera_mode(0)
+	monster.reset_camera_limits()
 end
 
 return helper_1aaed117

@@ -33,46 +33,46 @@ function script.on_start()
 	local value_2: f32 = 0
 	local value_3: f32 = 0
 	local color_w: f32 = 0
-	user_id = effect.GetUserId() or user_id
+	user_id = effect.get_owner_character() or user_id
 	do
-		local out1, out2, out3 = effect.GetWorkVect1()
+		local out1, out2, out3 = effect.get_first_work_vector()
 		work_vect1_x = out1 or work_vect1_x
 		work_vect1_y = out2 or work_vect1_y
 		work_vect1_z = out3 or work_vect1_z
 	end
 	do
-		local out1, out2, out3 = effect.ScnGetChrRot_4(user_id)
+		local out1, out2, out3 = effect.get_scene_character_rotation_4(user_id)
 		rot_x = out1 or rot_x
 		rot_y = out2 or rot_y
 		rot_z = out3 or rot_z
 	end
 	do
-		local out1, out2, out3 = effect.GetDirVector(rot_x, rot_y, rot_z)
+		local out1, out2, out3 = effect.get_direction_vector(rot_x, rot_y, rot_z)
 		var17 = out1 or var17
 		var18 = out2 or var18
 		var19 = out3 or var19
 	end
 	do
-		local out1, out2, out3 = effect.NormalVector(var17, var18, var19)
+		local out1, out2, out3 = effect.normalize_vector(var17, var18, var19)
 		var17 = out1 or var17
 		var18 = out2 or var18
 		var19 = out3 or var19
 	end
 	do
-		local out1, out2, out3 = effect.ScaleVector(var17, var18, var19, 25.0)
+		local out1, out2, out3 = effect.scale_vector(var17, var18, var19, 25.0)
 		var17 = out1 or var17
 		var18 = out2 or var18
 		var19 = out3 or var19
 	end
-	effect.SptSetTexname("smoke_tore")
-	effect.SptAssignSprite_1(10)
-	effect.SptInitSprite(0, 10)
-	effect.SptSetAlphab(0, 2, 10)
-	effect.SptSetDrawFlag(0, 0, 10)
-	effect.SptSetPutSize(0, 32.0, 32.0, 10)
-	effect.SptSetUvSize(0, 0.0, 0.0, 128.0, 128.0, 10)
-	effect.SptSetColor(0, 128.0, 128.0, 128.0, 0.0, 10)
-	effect.SptSetDrawFlag(0, 1, 10)
+	effect.set_sprite_texture("smoke_tore")
+	effect.allocate_sprites_1(10)
+	effect.reset_sprites(0, 10)
+	effect.set_sprite_blend_mode(0, 2, 10)
+	effect.set_sprite_visible(0, 0, 10)
+	effect.set_sprite_size(0, 32.0, 32.0, 10)
+	effect.set_sprite_texture_rect(0, 0.0, 0.0, 128.0, 128.0, 10)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 0.0, 10)
+	effect.set_sprite_visible(0, 1, 10)
 	var12 = 0
 	while var12 < 10 do
 		var0[var12 + 1] = 56.0
@@ -82,10 +82,10 @@ function script.on_start()
 	var10 = 0
 	while var12 < 90 do
 		if var12 > 4 * var10 and var10 < 10 then
-			value = effect.GetRand(25.0) or value
-			value_2 = effect.GetRand(360.0) or value_2
-			value_3 = effect.GetRand(10.0) or value_3
-			effect.SptSetDrawFlag(var10, 1)
+			value = effect.get_random_number(25.0) or value
+			value_2 = effect.get_random_number(360.0) or value_2
+			value_3 = effect.get_random_number(10.0) or value_3
+			effect.set_sprite_visible(var10, 1)
 			value_3 = vm.f32(value_3 + 5.0)
 			var23 = vm.f32(
 				vm.f32(work_vect1_x + var17)
@@ -96,18 +96,18 @@ function script.on_start()
 				vm.f32(work_vect1_z + var19)
 					+ vm.f32(value_3 * vm.cos(vm.f32(vm.f32(value_2 / 180.0) * vm.f32(3.1415927))))
 			)
-			effect.SptSetPos(var10, var23, value + 10.0, var25)
+			effect.set_sprite_position(var10, var23, value + 10.0, var25)
 			var10 = var10 + 1
 		end
 		for var11 = 0, var10 - 1 do
 			do
-				local _, _, _, out4 = effect.SptGetColor(var11)
+				local _, _, _, out4 = effect.get_sprite_color(var11)
 				color_w = out4 or color_w
 			end
 			if color_w < var0[var11 + 1] then
-				effect.SptAddColor(var11, 128.0, 128.0, 128.0, 7.5)
+				effect.offset_sprite_color(var11, 128.0, 128.0, 128.0, 7.5)
 			else
-				effect.SptAddColor(var11, 128.0, 128.0, 128.0, -3.5)
+				effect.offset_sprite_color(var11, 128.0, 128.0, 128.0, -3.5)
 				var0[var11 + 1] = -1.0
 			end
 		end

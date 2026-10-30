@@ -10,6 +10,9 @@ from stb import opcodes
 INT, FLOAT, STR, BOOL, ANY = "int", "float", "str", "bool", "any"
 
 Slot = tuple[str, int]
+# Functions that skip mode synthesizes (section streams and twins) have blocks from here up; their operand stack may
+# end with values that skipped jumps left behind.
+SYNTHETIC_BASE = 1 << 29
 # The table that holds a whole frame when a computed index may leave its array.
 FRAME: Slot = ("frame", 0)
 
@@ -120,7 +123,15 @@ class Call:
     offset: int = dataclasses.field(default=-1, compare=False)
 
 
-Expr = Const | Var | Addr | Elem | Temp | Unary | Binary | Compare | Logical | Call
+@dataclasses.dataclass(frozen=True)
+class Received:
+    """The index-th value that the call skip mode was suspended in handed back: its result first, then its references."""
+
+    index: int
+    type: str
+
+
+Expr = Const | Var | Addr | Elem | Temp | Unary | Binary | Compare | Logical | Call | Received
 
 
 @dataclasses.dataclass(frozen=True)
@@ -168,6 +179,13 @@ class Wait:
 
 
 @dataclasses.dataclass(frozen=True)
+class SkipEnd:
+    """The end of a region that skip mode runs through; an event script reaches it by a jump-free fall-through."""
+
+    offset: int = -1
+
+
+@dataclasses.dataclass(frozen=True)
 class Return:
     """Returns a value from the function."""
 
@@ -182,7 +200,65 @@ class End:
     offset: int = -1
 
 
-Statement = Assign | ExtCall | CallStmt | Print | Wait | Return | End
+@dataclasses.dataclass
+class Skip:
+    """What skip mode does from the resume points of a section: the stores and prints that remain, in chunks.
+
+    A chunk holds the statements that follow one resume point, and runs when the script is skipped from that point or
+    an earlier one. A prologue runs only when skipped from its own resume point, a call, and stores what the call
+    handed back. A resume point numbered up to escape leaves the function by a return before the end of the section,
+    so skipping from it changes nothing here.
+    """
+
+    chunks: list[tuple[int, list]]
+    escape: int = 0
+    prologues: dict[int, list] = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass
+class Section:
+    """The code of a function between two skip ends, which skip mode runs through.
+
+    skip is None when skipping from any resume point of the section runs on to its end without any store or print.
+    """
+
+    body: list
+    skip: Skip | None = None
+
+
+@dataclasses.dataclass
+class TailRun:
+    """What a guarded function does when skipped from the resume points up to last, which end in the same return."""
+
+    last: int
+    chunks: list[tuple[int, list]]
+    value: "Expr | None"
+    prologues: dict[int, list] = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass
+class Tail:
+    """The function a guarded function runs when skip mode unwinds through it, one entry per returning run."""
+
+    runs: list[TailRun]
+
+
+@dataclasses.dataclass
+class Entry:
+    """The start of a run that skip mode can enter: a script that is skipping when it gets here stops at this point."""
+
+    ordinal: int
+    offset: int = -1
+
+
+@dataclasses.dataclass
+class Carry:
+    """What a skip function hands back when the call it made was resumed normally: the rest of the code, run as usual."""
+
+    body: list
+
+
+Statement = Assign | ExtCall | CallStmt | Print | Wait | SkipEnd | Return | End | Section | Entry | Carry
 
 
 @dataclasses.dataclass
@@ -275,6 +351,8 @@ class LiftedFunction:
     refs: tuple[int, ...] = ()
     arrays: dict[Slot, int] = dataclasses.field(default_factory=dict)
     folded: frozenset[int] = frozenset()
+    # Per variable, whether its loads read it as a float (True), by its tag (False) or both.
+    load_kinds: dict[Slot, frozenset[bool]] = dataclasses.field(default_factory=dict)
 
 
 def walk(expr: Expr) -> Iterator[Expr]:

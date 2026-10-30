@@ -23,27 +23,27 @@ function script.on_start()
 	local user_id: s32 = 0
 	value = 0.0
 	value_2 = 0
-	user_id = effect.GetUserId() or user_id
-	effect.GetValue(0)
-	value_2 = effect.GetValue(1) or value_2
-	value = effect.GetValueFloat(2) or value
-	effect.ChrSetPos(pos_x, pos_y, pos_z)
-	effect.ChrSetScale(value, value, value)
-	effect.ChrSetMotion("攻撃2loop")
-	effect.ChrSetShow(1, 1, 0.1)
+	user_id = effect.get_owner_character() or user_id
+	effect.get_script_value(0)
+	value_2 = effect.get_script_value(1) or value_2
+	value = effect.get_script_value_float(2) or value
+	effect.set_effect_character_position(pos_x, pos_y, pos_z)
+	effect.set_effect_character_scale(value, value, value)
+	effect.set_effect_character_motion("攻撃2loop")
+	effect.set_effect_character_visible(1, 1, 0.1)
 	var7 = 0
 	while var7 < value_2 do
 		do
-			local out1, out2, out3 = effect.ScnGetChrPos(user_id)
+			local out1, out2, out3 = effect.get_scene_character_position(user_id)
 			pos_x = out1 or pos_x
 			pos_y = out2 or pos_y
 			pos_z = out3 or pos_z
 		end
-		effect.ChrSetPos(pos_x, pos_y, pos_z)
+		effect.set_effect_character_position(pos_x, pos_y, pos_z)
 		vm.wait()
 		var7 = var7 + 1
 	end
-	effect.ChrSetShow(0, 1, -0.1)
+	effect.set_effect_character_visible(0, 1, -0.1)
 	var7 = 0
 	while var7 < 15 do
 		vm.wait()

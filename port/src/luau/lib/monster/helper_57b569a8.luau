@@ -7,9 +7,9 @@ local vm = require("@lib/vm")
 local function helper_57b569a8(arg0: f32)
 	local pos_y: f32 = 0
 	local height: f32 = 0
-	height = monster.GetHigh() or height
+	height = monster.get_height_above_ground() or height
 	do
-		local _, out2, _ = monster.GetPos_3()
+		local _, out2, _ = monster.get_position_3()
 		pos_y = out2 or pos_y
 	end
 	arg0 = vm.f32(pos_y - height)

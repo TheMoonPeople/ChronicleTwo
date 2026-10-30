@@ -7,7 +7,7 @@ local vm = require("@lib/vm")
 local function helper_8b333653()
 	local check_motion_end: s32 = 0
 	while true do
-		check_motion_end = effect.ChrChkMotEnd() or check_motion_end
+		check_motion_end = effect.is_effect_character_motion_finished() or check_motion_end
 		if check_motion_end ~= 0 then
 			break
 		else
