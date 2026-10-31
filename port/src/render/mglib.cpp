@@ -8,12 +8,14 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <functional>
 #include <limits>
 #include <map>
 #include <optional>
@@ -50,7 +52,9 @@
 #include "render/primitive_submission.hpp"
 #include "render/renderer.hpp"
 #include "render/texture_runtime.hpp"
+#include "render/visual_mesh.hpp"
 #include "scenesnd.hpp"
+#include "test_hooks.hpp"
 
 mgRENDER_INFO     mgRenderInfo;
 mgCTextureManager mgTexManager;
@@ -867,6 +871,8 @@ gfx::DisplayListRef     last_list;
 gfx::DisplayListRef     previous_list;
 int                     frame_count = 0;
 int                     exit_frames = 0;
+// When the game thread's current tick began: the end of its wait for the previous tick.
+std::chrono::steady_clock::time_point tick_start = std::chrono::steady_clock::now();
 std::filesystem::path   screenshot_path;
 mgPortScreenshotOptions screenshot_options;
 int                     store_count = 0;
@@ -2232,13 +2238,17 @@ void mgBeginPacket(mgCDrawManager *manager) {
 }
 
 void mgEndFrame(mgCDrawManager *manager) {
-    bool queued[4] = {};
+    const auto update_end = std::chrono::steady_clock::now();
+    bool       queued[4] = {};
+    // The tick's canonical render and publication, when the render thread takes them after the lease.
+    std::function<void()> queued_render;
 
     {
         // The tick's device work runs under the lease; an Async render thread draws no display frame until it ends.
         gfx::RenderLease lease;
         bool             tick_rendered = false;
         bool             canonical_endpoint_allowed = true;
+        mgVisualPortFlushUploads();
 
         for (int slot = 0; slot < 4; ++slot) {
             MG_PICKZ &pick = mgPickZBuff[slot];
@@ -2267,8 +2277,13 @@ void mgEndFrame(mgCDrawManager *manager) {
             }
             gfx::DisplayListRef list = gfx::EndRecording();
             recording = false;
+            // An async render thread renders the canonical list while this thread starts its next tick. A pause
+            // picture, letterbox clear, colour capture or exit screenshot needs the render before the tick ends.
+            const bool queue_render = list && gfx::ActiveRenderThreadMode() == gfx::RenderThreadMode::Async && !clear_bars &&
+                                      color_marks.empty() && !menuworld::PauseFrameWanted() &&
+                                      (exit_frames <= 0 || frame_count + 1 != exit_frames);
 
-            if (list) {
+            if (list && !queue_render) {
                 CT_PROFILE_ZONE("Canonical scene render");
                 dc2::presentation::BeforeCanonical();
                 const bool pause_frame = menuworld::RenderPauseFrame(*list);
@@ -2280,6 +2295,16 @@ void mgEndFrame(mgCDrawManager *manager) {
 
             previous_list = std::move(last_list);
             last_list = std::move(list);
+            if (queue_render) {
+                queued_render = [render = last_list, publish = PresentPrepareTick(old_vcount, mgFrameRate, true)] {
+                    CT_PROFILE_ZONE("Canonical scene render");
+                    dc2::presentation::BeforeCanonical();
+                    gfx::RenderList(*render, 1.0f, gfx::RenderOptions{.canonical = true});
+                    if (publish) {
+                        publish();
+                    }
+                };
+            }
             // The display image keeps its own bars, and no display frame need run before letterboxing.
             if (clear_bars && last_list) {
                 CT_PROFILE_ZONE("Letterbox display render");
@@ -2306,9 +2331,12 @@ void mgEndFrame(mgCDrawManager *manager) {
             mgPickZBuff[slot].z = depth ? static_cast<int>(mgPortGsDepth(*depth)) : -1;
         }
 
-        if (tick_rendered) {
+        if (tick_rendered && !queued_render) {
             PresentPublishTick(old_vcount, mgFrameRate, canonical_endpoint_allowed);
         }
+    }
+    if (queued_render) {
+        gfx::RunOnRenderThreadAsync(std::move(queued_render));
     }
 
     depth_next = kFirstAllocatedDepthSlot;
@@ -2346,7 +2374,13 @@ void mgEndFrame(mgCDrawManager *manager) {
         std::exit(status);
     }
 
+    if (GamePerfEnabled()) {
+        const auto busy_end = std::chrono::steady_clock::now();
+        GamePerfTickTimes(std::chrono::duration<double, std::milli>(update_end - tick_start).count(),
+                          std::chrono::duration<double, std::milli>(busy_end - tick_start).count());
+    }
     PresentWaitFrame(old_vcount, mgFrameRate);
+    tick_start = std::chrono::steady_clock::now();
     old_vcount = mgGetVSyncCount();
     PresentTickEnd();
     mgNowFrameRate = dc2::timing::FrameFields();

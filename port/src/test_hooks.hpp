@@ -43,5 +43,12 @@ bool GameDeveloperMenuRequested(int mode);
 bool GameDebugPauseRequested(CGamePad &pad);
 bool GameDebugPauseResumeRequested(CGamePad &pad);
 
+// Scene measurement: once the mode is under player control and warmed up, log one window a second, then exit.
+void GameSetPerfSeconds(int seconds);
+bool GamePerfEnabled();
+// The game thread's work for one tick: its update and recording, then everything before its wait for the next tick.
+void GamePerfTickTimes(double update_ms, double busy_ms);
+void GamePerfStep(int mode);
+
 void                         GameSetSeed(std::optional<std::uint32_t> seed);
 std::optional<std::uint32_t> GameSeed();

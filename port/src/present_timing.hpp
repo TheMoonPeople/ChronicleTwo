@@ -23,9 +23,11 @@ public:
         if (now >= next_tick) {
             return {.action = Action::Tick, .deadline = next_tick};
         }
+        period_ = Clock::duration::zero();
         if (std::isfinite(max_fps) && max_fps > 0.0) {
             const auto period = std::chrono::duration_cast<Clock::duration>(
                 std::chrono::duration<double>(1.0 / std::max(1.0, max_fps)));
+            period_ = period;
             const auto due = last_start_ > Clock::time_point::max() - period
                                  ? Clock::time_point::max()
                                  : last_start_ + period;
@@ -44,14 +46,20 @@ public:
         if (!render()) {
             return false;
         }
-        // Keep no debt for missed display slots: the next deadline is one period
-        // after this presentation's actual start, regardless of rendering cost.
-        last_start_ = start;
+        // A presentation that starts within half a period of its slot keeps the slot, so wake-up lateness never
+        // accumulates into a skipped tick; a later one keeps no debt for the slots it missed.
+        const auto slot = last_start_ + period_;
+        last_start_ = period_ > Clock::duration::zero() && last_start_ <= Clock::time_point::max() - period_ && start >= slot &&
+                              start - slot < period_ / 2
+                          ? slot
+                          : start;
         return true;
     }
 
 private:
     Clock::time_point last_start_;
+    // The display period the last Next allowed, or zero when uncapped.
+    mutable Clock::duration period_{};
 };
 
 inline float PresentFrameAlpha(double elapsed_fields, double fractional_field, int frame_fields) {
@@ -84,6 +92,11 @@ public:
      * Starts a newly published two-field frame.
      */
     void Begin() { phase = Phase::Intermediate; }
+
+    /**
+     * Whether the current publication has shown both of its images, or was retired.
+     */
+    [[nodiscard]] bool Finished() const { return phase == Phase::Done; }
 
     /**
      * Retires an obsolete frame without accumulating presentation debt.

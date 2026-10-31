@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -155,6 +156,61 @@ GenerationRegistry &Generations() {
 
 /**
  *
+ * Changes, under the registry mutex, before any change that can end an arena's storage or generation.
+ *
+ */
+std::atomic<std::uint64_t> liveness_epoch{1};
+
+void EndLivenessLocked() {
+    liveness_epoch.fetch_add(1, std::memory_order_acq_rel);
+}
+
+/**
+ *
+ * One arena's liveness and generation, valid while neither the registry nor the root mappings have changed.
+ *
+ */
+struct LivenessCacheEntry {
+    const mgCMemory *memory = nullptr;       /**< Arena the entry describes. */
+    std::uint64_t    epoch = 0;              /**< liveness_epoch when it was read. */
+    std::uint64_t    mapping_epoch = 0;      /**< kz::arena::Epoch() when it was read. */
+    bool             live = false;           /**< Whether its storage was live. */
+    bool             has_generation = false; /**< Whether `generation` was read. */
+    std::uint64_t    generation = 0;         /**< Its generation. */
+};
+
+/**
+ *
+ * The epochs a liveness result read under the registry mutex is valid for.
+ *
+ */
+struct LivenessEpochs {
+    std::uint64_t epoch;         /**< liveness_epoch. */
+    std::uint64_t mapping_epoch; /**< kz::arena::Epoch(). */
+};
+
+LivenessEpochs CurrentLivenessEpochs() {
+    return {.epoch = liveness_epoch.load(std::memory_order_acquire), .mapping_epoch = kz::arena::Epoch()};
+}
+
+LivenessCacheEntry &LivenessCacheSlot(const mgCMemory &memory) {
+    thread_local std::array<LivenessCacheEntry, 64> cache;
+    return cache[(reinterpret_cast<std::uintptr_t>(&memory) >> 4) % cache.size()];
+}
+
+bool LivenessCacheCurrent(const LivenessCacheEntry &entry) {
+    const LivenessEpochs epochs = CurrentLivenessEpochs();
+    return entry.epoch == epochs.epoch && entry.mapping_epoch == epochs.mapping_epoch;
+}
+
+void LivenessCacheStore(LivenessCacheEntry &entry, const mgCMemory &memory, const LivenessEpochs &epochs) {
+    if (entry.memory != &memory || entry.epoch != epochs.epoch || entry.mapping_epoch != epochs.mapping_epoch) {
+        entry = {.memory = &memory, .epoch = epochs.epoch, .mapping_epoch = epochs.mapping_epoch};
+    }
+}
+
+/**
+ *
  * Checks a binding's complete parent chain without dereferencing any arena owner.
  *
  */
@@ -274,13 +330,41 @@ bool ResourceLiveLocked(const GenerationRegistry &registry, const AuxiliaryResou
 
 /**
  *
- * Releases auxiliary resources whose allocation or ancestor has retired.
+ * Collects an arena and every arena bound inside it, directly or through further bindings.
  *
  */
-void PruneResourcesLocked(GenerationRegistry &registry) {
+std::vector<const mgCMemory *> BoundArenasLocked(const GenerationRegistry &registry, const mgCMemory *changed) {
+    std::vector<const mgCMemory *> arenas{changed};
+    const auto                     contains = [&arenas](const mgCMemory *memory) { return std::ranges::find(arenas, memory) != arenas.end(); };
+    for (bool grew = true; grew;) {
+        grew = false;
+        for (const auto &[owner, state] : registry.values) {
+            if (state.binding && state.binding->parent != nullptr && contains(state.binding->parent) && !contains(owner)) {
+                arenas.push_back(owner);
+                grew = true;
+            }
+        }
+    }
+    return arenas;
+}
+
+/**
+ *
+ * Releases auxiliary resources whose allocation or ancestor retired with a change to one arena.
+ *
+ */
+void PruneResourcesLocked(GenerationRegistry &registry, const mgCMemory &changed) {
+    // A resource's liveness reads only its owner, backing and producer arenas and their binding chains, so
+    // only resources naming an arena bound within the changed one can have retired.
+    const auto arenas = BoundArenasLocked(registry, &changed);
+    const auto affected = [&arenas](const mgCMemory *memory) { return std::ranges::find(arenas, memory) != arenas.end(); };
     for (auto &[owner, state] : registry.values) {
         static_cast<void>(owner);
-        std::erase_if(state.texts, [&registry](const AuxiliaryResource &text) { return !ResourceLiveLocked(registry, text); });
+        std::erase_if(state.texts, [&](const AuxiliaryResource &text) {
+            const bool named = affected(text.owner) || affected(text.backing) ||
+                               std::ranges::any_of(text.dependencies, [&](const AuxiliaryDependency &dependency) { return affected(dependency.owner); });
+            return named && !ResourceLiveLocked(registry, text);
+        });
     }
 }
 
@@ -289,7 +373,7 @@ void PruneResourcesLocked(GenerationRegistry &registry) {
 ArenaLifetime ArenaLifetime::Capture(const mgCMemory &memory) {
     ArenaLifetime                     result;
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     if (!StorageLiveLocked(registry, &memory)) {
         return result;
     }
@@ -314,7 +398,7 @@ ArenaLifetime ArenaLifetime::Capture(const mgCMemory &memory) {
 
 bool ArenaLifetime::IsLive() const {
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     const auto                        entry = registry.values.find(owner);
     if (entry == registry.values.end() || entry->second.generation != generation || !StorageLiveLocked(registry, owner)) {
         return false;
@@ -325,7 +409,7 @@ bool ArenaLifetime::IsLive() const {
 
 bool ArenaLifetime::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind kind) const {
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     const auto                        entry = registry.values.find(owner);
     if (entry == registry.values.end() || entry->second.generation != generation ||
         !StorageLiveLocked(registry, owner)) {
@@ -340,15 +424,32 @@ bool ArenaLifetime::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind k
 }
 
 std::uint64_t ArenaGeneration(const mgCMemory &memory) {
+    LivenessCacheEntry &cached = LivenessCacheSlot(memory);
+    if (cached.memory == &memory && cached.has_generation && LivenessCacheCurrent(cached)) {
+        return cached.generation;
+    }
     auto                 &registry = Generations();
     const std::lock_guard lock(registry.mutex);
-    return registry.values.try_emplace(&memory).first->second.generation;
+    const LivenessEpochs  epochs = CurrentLivenessEpochs();
+    const std::uint64_t   generation = registry.values.try_emplace(&memory).first->second.generation;
+    LivenessCacheStore(cached, memory, epochs);
+    cached.has_generation = true;
+    cached.generation = generation;
+    return generation;
 }
 
 bool ArenaStorageLive(const mgCMemory &memory) {
+    LivenessCacheEntry &cached = LivenessCacheSlot(memory);
+    if (cached.memory == &memory && cached.live && LivenessCacheCurrent(cached)) {
+        return true;
+    }
     auto                 &registry = Generations();
     const std::lock_guard lock(registry.mutex);
-    return StorageLiveLocked(registry, &memory);
+    const LivenessEpochs  epochs = CurrentLivenessEpochs();
+    const bool            live = StorageLiveLocked(registry, &memory);
+    LivenessCacheStore(cached, memory, epochs);
+    cached.live = live;
+    return live;
 }
 
 namespace {
@@ -361,7 +462,9 @@ namespace {
 void ForgetArenaBinding(const mgCMemory &memory) {
     auto                 &registry = Generations();
     const std::lock_guard lock(registry.mutex);
+    EndLivenessLocked();
     registry.values[&memory].binding.reset();
+    PruneResourcesLocked(registry, memory);
 }
 
 /**
@@ -550,7 +653,9 @@ std::optional<ArenaBinding> ShareProof(const mgCMemory &source, std::span<u_long
 void InstallArenaBinding(const mgCMemory &memory, ArenaBinding binding) {
     auto                 &registry = Generations();
     const std::lock_guard lock(registry.mutex);
+    EndLivenessLocked();
     registry.values[&memory].binding = binding;
+    PruneResourcesLocked(registry, memory);
 }
 
 } // namespace
@@ -558,13 +663,14 @@ void InstallArenaBinding(const mgCMemory &memory, ArenaBinding binding) {
 void InvalidateArenaGeneration(const mgCMemory &memory) {
     auto                 &registry = Generations();
     const std::lock_guard lock(registry.mutex);
+    EndLivenessLocked();
     if (const auto it = registry.values.find(&memory); it != registry.values.end()) {
         if (it->second.generation == std::numeric_limits<std::uint64_t>::max()) {
             std::abort();
         }
         ++it->second.generation;
         it->second.leases.clear();
-        PruneResourcesLocked(registry);
+        PruneResourcesLocked(registry, memory);
     }
 }
 
@@ -593,13 +699,14 @@ void RecordArenaAllocation(const mgCMemory &memory, const void *start, std::size
 void RetireArenaRange(const mgCMemory &memory, const void *start, std::size_t bytes) {
     auto                 &registry = Generations();
     const std::lock_guard lock(registry.mutex);
+    EndLivenessLocked();
     auto                 &leases = registry.values[&memory].leases;
     const auto            begin = reinterpret_cast<std::uintptr_t>(start);
     std::erase_if(leases, [begin, bytes](const AllocationLease &lease) {
         return lease.start == begin ||
                (lease.start > begin ? lease.start - begin < bytes : begin - lease.start < lease.bytes);
     });
-    PruneResourcesLocked(registry);
+    PruneResourcesLocked(registry, memory);
 }
 
 /**
@@ -610,6 +717,7 @@ void RetireArenaRange(const mgCMemory &memory, const void *start, std::size_t by
 void ResizeHeapBlock(const mgCMemory &memory, const void *start, std::size_t bytes) {
     auto                 &registry = Generations();
     const std::lock_guard lock(registry.mutex);
+    EndLivenessLocked();
     auto                 &leases = registry.values[&memory].leases;
     const auto            address = reinterpret_cast<std::uintptr_t>(start);
     std::size_t           old_bytes = 0;
@@ -624,7 +732,7 @@ void ResizeHeapBlock(const mgCMemory &memory, const void *start, std::size_t byt
         return lease.kind != LeaseKind::HeapBlock && lease.start >= address && lease.start - address < old_bytes &&
                (lease.start - address > bytes || lease.bytes > bytes - static_cast<std::size_t>(lease.start - address));
     });
-    PruneResourcesLocked(registry);
+    PruneResourcesLocked(registry, memory);
 }
 
 } // namespace
@@ -707,7 +815,7 @@ ArenaResource ArenaResource::StoreErased(const ArenaBuffer &anchor, std::shared_
         return {};
     }
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     AuxiliaryResource                 candidate{anchor.owner, anchor.backing_owner, anchor.owner_generation, anchor.backing_generation, anchor.allocation, reinterpret_cast<std::uintptr_t>(anchor.storage.data()), anchor.storage.size(), 0, {}, std::move(value), type, {}};
     for (const auto &dependency : dependencies) {
         candidate.dependencies.push_back({dependency.owner, dependency.generation, dependency.heap_block});
@@ -729,7 +837,7 @@ ArenaResource ArenaResource::StoreErased(const ArenaBuffer &anchor, std::shared_
 
 std::shared_ptr<const void> ArenaResource::AcquireErased(const void *type) const {
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     const auto                        state = registry.values.find(owner);
     if (state == registry.values.end()) {
         return {};
@@ -747,7 +855,7 @@ std::shared_ptr<const void> ArenaResource::AcquireErased(const void *type) const
 
 bool ArenaResource::IsLive() const {
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     const auto                        state = registry.values.find(owner);
     if (state == registry.values.end()) {
         return false;
@@ -758,7 +866,7 @@ bool ArenaResource::IsLive() const {
 
 bool ArenaResource::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind kind) const {
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     const auto                        state = registry.values.find(owner);
     if (state == registry.values.end()) {
         return false;
@@ -890,7 +998,7 @@ bool ArenaBuffer::WouldRetireOnReset(const mgCMemory &memory, ArenaResetKind kin
         return false;
     }
     auto                             &registry = Generations();
-    const std::lock_guard<std::mutex> lock(registry.mutex);
+    const std::lock_guard             lock(registry.mutex);
     const auto                        logical = registry.values.find(owner);
     const auto                        source = registry.values.find(backing_owner);
     if (logical == registry.values.end() || source == registry.values.end() ||

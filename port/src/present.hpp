@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
+#include "gfx/gfx.hpp"
 #include "platform/settings.hpp"
 
 struct PresentSettings {
@@ -22,6 +24,8 @@ struct PresentStats {
     std::uint64_t display_frames = 0;
     std::uint64_t presented = 0;
     std::uint64_t canonical_presents = 0;
+    std::uint64_t unfinished_pairs = 0; /**< Authored frames a newer tick replaced before both images were shown. */
+    std::uint64_t replay_ticks = 0;     /**< Ticks presented by replay rather than as an authored pair. */
     std::uint32_t last_draws = 0;
 };
 
@@ -35,6 +39,9 @@ void                   PresentWaitFrame(int start, int frames);
 // Async only: hands the tick just rendered to the render thread, whose frame began at tick `start` and lasts `frames`.
 // Called by the game thread holding a render lease.
 void        PresentPublishTick(int start, int frames, bool canonical_endpoint_allowed = true);
+// Async only: PresentPublishTick's game-thread part. The returned publication runs on the device thread once the tick's
+// canonical render has run; it is empty without a render thread.
+std::function<void()> PresentPrepareTick(int start, int frames, bool canonical_endpoint_allowed);
 void        PresentTickEnd();
 std::string PresentFpsText();
 // Frame-exit screenshot renders, outside a frame. They present, which is what ReadbackFrame reads.

@@ -1,27 +1,36 @@
 #include "test_hooks.hpp"
 
 #include <algorithm>
+#include <array>
 #include <charconv>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "actionchara.hpp"
 #include "dng_main.hpp"
+#include "editloop.hpp"
 #include "event.hpp"
 #include "event_func.hpp"
+#include "exitcodes.hpp"
 #include "gamedata.hpp"
 #include "log/log.hpp"
 #include "main.hpp"
 #include "mapselect.hpp"
 #include "options/screen.hpp"
 #include "platform/config.hpp"
+#include "platform/game_loop_state.hpp"
 #include "platform/input.hpp"
 #include "platform/vfs.hpp"
+#include "present.hpp"
+#include "profile.hpp"
 #include "savedata.hpp"
 #include "title.hpp"
 #include "userdata.hpp"
@@ -35,6 +44,95 @@ bool                         fast_load = false;
 bool                         skip_events = false;
 bool                         invincible = false;
 std::optional<std::uint32_t> seed;
+
+using PerfClock = std::chrono::steady_clock;
+
+// Sums of one-second measurement windows.
+struct PerfSpan {
+    int    ticks = 0;
+    double update_ms = 0.0;
+    double update_max_ms = 0.0;
+    double busy_ms = 0.0;
+    double busy_max_ms = 0.0;
+};
+
+struct PerfRun {
+    int                                  seconds = 0;
+    std::optional<PerfClock::time_point> ready;
+    std::optional<PerfClock::time_point> window_start;
+    PerfClock::time_point                started;
+    int                                  windows = 0;
+    PerfSpan                             window;
+    PerfSpan                             total;
+    PresentStats                         window_present;
+    PresentStats                         start_present;
+};
+
+PerfRun perf;
+
+// Control returns after loading and the arrival scene; time before then is not part of the scene.
+constexpr std::chrono::seconds kPerfWarmup{1};
+
+bool PerfReady(int mode) {
+    switch (mode) {
+        case LOOP_MENU:
+            return false;
+        case LOOP_EDIT:
+            return PortTownFieldControl() || IsEditMode() != 0;
+        case LOOP_DUNGEON:
+            return PortDungeonFieldControl();
+        default:
+            return true;
+    }
+}
+
+void PerfAdd(PerfSpan &span, double update_ms, double busy_ms) {
+    ++span.ticks;
+    span.update_ms += update_ms;
+    span.update_max_ms = std::max(span.update_max_ms, update_ms);
+    span.busy_ms += busy_ms;
+    span.busy_max_ms = std::max(span.busy_max_ms, busy_ms);
+}
+
+void PerfLog(const char *label, int mode, double seconds, const PerfSpan &span, const PresentStats &from) {
+    const PresentStats now = PresentGetStats();
+    const double       ticks = std::max(1, span.ticks);
+    CT_LOG_INFO(Main, "perf {} {:.3f}s loop {} ticks {} presented {} canonical {} unfinished {} replay {} fps {:.2f} update {:.2f}/{:.2f} busy {:.2f}/{:.2f} draws {}",
+                label, seconds, mode, span.ticks, now.presented - from.presented,
+                now.canonical_presents - from.canonical_presents, now.unfinished_pairs - from.unfinished_pairs,
+                now.replay_ticks - from.replay_ticks,
+                static_cast<double>(now.presented - from.presented) / seconds, span.update_ms / ticks, span.update_max_ms,
+                span.busy_ms / ticks, span.busy_max_ms, now.last_draws);
+}
+
+// Lists the zones that took the most game-thread time over the run, per game tick.
+// Each zone's game-thread time at the last tick, and its largest single-tick time.
+std::array<std::uint64_t, 512> zone_last{};
+std::array<std::uint64_t, 512> zone_max{};
+
+void PerfLogZones(int ticks) {
+#ifndef CT_ENABLE_TRACY
+    const int                               count = std::min(gfx::profile::site_count.load(), gfx::profile::kMaxSites);
+    std::vector<const gfx::profile::Site *> order;
+    for (int index = 0; index < count; ++index) {
+        order.push_back(&gfx::profile::sites[static_cast<std::size_t>(index)]);
+    }
+    std::ranges::sort(order, std::greater{}, [](const gfx::profile::Site *site) { return site->game_ns.load(); });
+    const double per_tick = 1.0e6 * std::max(1, ticks);
+    for (const gfx::profile::Site *site : order) {
+        if (site->game_count == 0 && site->other_count == 0) {
+            continue;
+        }
+        CT_LOG_INFO(Main, "perf zone {:8.3f} ms/tick max {:7.3f} {:8.1f} calls/tick | other {:8.3f} ms/tick | {}",
+                    static_cast<double>(site->game_ns.load()) / per_tick,
+                    static_cast<double>(zone_max[static_cast<std::size_t>(site - gfx::profile::sites.data())]) / 1.0e6,
+                    static_cast<double>(site->game_count.load()) / std::max(1, ticks),
+                    static_cast<double>(site->other_ns.load()) / per_tick, site->name);
+    }
+#else
+    static_cast<void>(ticks);
+#endif
+}
 
 // The dungeon script event that loads the selected floor without opening the floor list.
 constexpr int kDungeonFloorLoadEvent = 1010;
@@ -204,6 +302,81 @@ bool GameInvincible() { return invincible; }
 void GameSetSeed(std::optional<std::uint32_t> value) { seed = value; }
 
 std::optional<std::uint32_t> GameSeed() { return seed; }
+
+void GameSetPerfSeconds(int seconds) { perf.seconds = seconds; }
+
+bool GamePerfEnabled() { return perf.seconds > 0; }
+
+void GamePerfTickTimes(double update_ms, double busy_ms) {
+#ifndef CT_ENABLE_TRACY
+    if (gfx::profile::sampling) {
+        const int count = std::min(gfx::profile::site_count.load(), gfx::profile::kMaxSites);
+        for (int index = 0; index < count; ++index) {
+            const std::uint64_t now_ns = gfx::profile::sites[static_cast<std::size_t>(index)].game_ns.load();
+            zone_max[static_cast<std::size_t>(index)] = std::max(zone_max[static_cast<std::size_t>(index)], now_ns - zone_last[static_cast<std::size_t>(index)]);
+            zone_last[static_cast<std::size_t>(index)] = now_ns;
+        }
+    }
+#endif
+    if (perf.window_start) {
+        PerfAdd(perf.window, update_ms, busy_ms);
+        PerfAdd(perf.total, update_ms, busy_ms);
+    }
+}
+
+void GamePerfStep(int mode) {
+    if (perf.seconds <= 0) {
+        return;
+    }
+#ifndef CT_ENABLE_TRACY
+    gfx::profile::game_thread = true;
+#endif
+    const auto now = PerfClock::now();
+    if (!perf.ready) {
+        if (PerfReady(mode)) {
+            perf.ready = now;
+            CT_LOG_INFO(Main, "perf ready: loop {}", mode);
+        }
+        return;
+    }
+    if (!perf.window_start) {
+        if (now - *perf.ready >= kPerfWarmup) {
+            perf.window_start = perf.started = now;
+            perf.window_present = perf.start_present = PresentGetStats();
+#ifndef CT_ENABLE_TRACY
+            const char *zones = std::getenv("DC2_PERF_ZONES");
+            gfx::profile::sampling = zones != nullptr && std::string_view(zones) == "1";
+#endif
+            CT_LOG_INFO(Main, "perf start: loop {} seconds {} thread {}", mode, perf.seconds,
+                        std::hash<std::thread::id>{}(std::this_thread::get_id()));
+            if (mode == LOOP_DUNGEON && ActiveMonster != nullptr && TreasureBoxMan != nullptr) {
+                int monsters = 0;
+                for (int i = 0; i < MONSTER_ACTIVE_MAX; i++) {
+                    CActiveMonster *monster = ActiveMonster->GetActiveMonster(i);
+                    monsters += monster != nullptr && monster->IsDraw(1) != 0 ? 1 : 0;
+                }
+                const auto chests = std::ranges::count_if(TreasureBoxMan->box, [](const CTreasureBox &box) { return box.state != TREASURE_BOX_STATE_NONE; });
+                CT_LOG_INFO(Main, "perf floor: monsters {} chests {}", monsters, chests);
+            }
+        }
+        return;
+    }
+    const double seconds = std::chrono::duration<double>(now - *perf.window_start).count();
+    if (seconds < 1.0) {
+        return;
+    }
+    PerfLog("window", mode, seconds, perf.window, perf.window_present);
+    perf.window = {};
+    perf.window_present = PresentGetStats();
+    perf.window_start = now;
+    if (++perf.windows < perf.seconds) {
+        return;
+    }
+    PerfLog("total", mode, std::chrono::duration<double>(now - perf.started).count(), perf.total, perf.start_present);
+    PerfLogZones(perf.total.ticks);
+    LogFlush();
+    std::exit(kExitOk);
+}
 
 void GameDebugFrame(int mode) {
     if (mode != LOOP_DUNGEON) {

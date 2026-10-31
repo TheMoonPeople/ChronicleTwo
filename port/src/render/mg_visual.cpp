@@ -5,6 +5,7 @@
 #include <climits>
 #include <cstdint>
 #include <cstring>
+#include <deque>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -12,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "log/log.hpp"
 #include "mg_dataset.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
@@ -844,13 +846,21 @@ std::unordered_map<const mgCFace *, FaceEntry> &FaceTable() {
     return table;
 }
 
+// Changes whenever a face table entry is added, forgotten, or given new geometry or residency, so a group
+// batch validated at the current revision is still current without visiting its faces.
+std::uint64_t face_revision = 1;
+
 struct GroupEntry {
     std::shared_ptr<mgVisualGroupMesh> mesh;
     // The face meshes the batch was built from, in draw order. A refreshed face is a new mesh, so a
     // mismatch means the batch is stale; holding them also keeps their addresses from being reused.
     std::vector<std::shared_ptr<const mgVisualFaceMesh>> sources;
-    bool                                                 persistent = false;
-    int                                                  last_frame = 0;
+    // The faces visited for the batch; a draw that skips the visit still keeps them in the face table.
+    std::vector<const mgCFace *> faces;
+    const mgFACE_GROUP          *end = nullptr; /**< The group after the batch's last. */
+    std::uint64_t                revision = 0;  /**< face_revision when the sources were last checked. */
+    bool                         persistent = false;
+    int                          last_frame = 0;
 };
 
 std::unordered_map<const mgFACE_GROUP *, GroupEntry> &GroupTable() {
@@ -870,19 +880,19 @@ void ReleaseMesh(mgVisualGroupMesh &mesh) {
     }
 }
 
+// Batches waiting for the tick's render lease to upload.
+std::vector<std::weak_ptr<mgVisualGroupMesh>> &PendingUploads() {
+    static std::vector<std::weak_ptr<mgVisualGroupMesh>> pending;
+    return pending;
+}
+
 // The CPU copy supports reupload after eviction and immediate draws when no mesh slot is free.
 void UploadIfReady(GroupEntry &entry) {
-    mgVisualGroupMesh &mesh = *entry.mesh;
+    const mgVisualGroupMesh &mesh = *entry.mesh;
     if (!entry.persistent || mesh.mesh != gfx::kNullMesh || mesh.indices.empty() || !mgPortRendererReady()) {
         return;
     }
-
-    mesh.mesh = gfx::CreateMesh(mesh.vertices, mesh.indices);
-#ifdef CT_ENABLE_TRACY
-    if (ct::profile::Enabled() && mesh.mesh == gfx::kNullMesh) {
-        ++gpu_upload_failures;
-    }
-#endif
+    PendingUploads().push_back(entry.mesh);
 }
 
 // Concatenates the faces in order. Each face's indices are rebased onto the batch's vertices (a skinned
@@ -990,18 +1000,26 @@ mgVisualFaceMesh mgVisualPortBuildFace(const mgCVisualMDT &visual, const mgCFace
 
 void mgVisualPortRefreshFace(mgCVisualMDT *visual, mgCFace *face) {
     CT_PROFILE_ZONE("Build visual face");
+    {
+    }
     const int        kind = visual->Iam();
-    FaceEntry       &entry = FaceTable()[face];
+    auto [found, added] = FaceTable().try_emplace(face);
+    FaceEntry       &entry = found->second;
     mgVisualFaceMesh mesh = mgVisualPortBuildFace(*visual, *face, kind == MG_VISUAL_KIND_MOTION_MDT);
+    const bool       persistent = kind == MG_VISUAL_KIND_FIX_MDT || kind == MG_VISUAL_KIND_MOTION_MDT;
+    if (added || entry.persistent != persistent) {
+        ++face_revision;
+    }
     // An unchanged face keeps its mesh, so the group batches built from it stay valid and are not rebuilt.
     // A changed face is a new mesh, and a group batch built from the previous one keeps it alive until it
     // next draws.
     if (entry.mesh == nullptr || !SameFaceMesh(*entry.mesh, mesh)) {
         entry.mesh = std::make_shared<const mgVisualFaceMesh>(std::move(mesh));
+        ++face_revision;
     }
     // A plain visual is rebuilt on every CreateFacePacket and would churn GPU meshes if uploaded, so its
     // group batches stay on the CPU.
-    entry.persistent = kind == MG_VISUAL_KIND_FIX_MDT || kind == MG_VISUAL_KIND_MOTION_MDT;
+    entry.persistent = persistent;
     entry.last_frame = mgPortFrameCount();
 }
 
@@ -1026,7 +1044,7 @@ void VisitGroupFaces(const mgFACE_GROUP *first, const mgFACE_GROUP *end, Visit &
             if (entry == nullptr || entry->mesh->indices.empty()) {
                 continue;
             }
-            visit(*entry);
+            visit(face, *entry);
         }
     }
 }
@@ -1039,17 +1057,32 @@ void SweepPeriodically() {
 
 // The batch of the groups from first up to end, keyed by first.
 std::shared_ptr<const mgVisualGroupMesh> GroupMesh(const mgFACE_GROUP *first, const mgFACE_GROUP *end) {
-    // The cached batch is checked face by face against its sources, so a steady frame copies no face pointers.
+    // A batch checked at the current face revision is current; marking it first keeps its faces through a sweep.
+    if (const auto found = GroupTable().find(first); found != GroupTable().end()) {
+        GroupEntry &cached = found->second;
+        if (cached.revision == face_revision && cached.end == end && cached.mesh != nullptr) {
+            cached.last_frame = mgPortFrameCount();
+            SweepPeriodically();
+            if (cached.revision == face_revision) {
+                UploadIfReady(cached);
+                return cached.mesh;
+            }
+        }
+    }
+
+    // Otherwise the cached batch is checked face by face against its sources.
     const GroupEntry *cached = nullptr;
     if (const auto found = GroupTable().find(first); found != GroupTable().end()) {
         cached = &found->second;
     }
-    bool   persistent = true;
-    bool   matched = cached != nullptr;
-    size_t kept = 0;
-    VisitGroupFaces(first, end, [&](const FaceEntry &entry) {
+    bool                         persistent = true;
+    bool                         matched = cached != nullptr;
+    size_t                       kept = 0;
+    std::vector<const mgCFace *> visited;
+    VisitGroupFaces(first, end, [&](const mgCFace *face, const FaceEntry &entry) {
         persistent = persistent && entry.persistent;
         matched = matched && kept < cached->sources.size() && cached->sources[kept].get() == entry.mesh.get();
+        visited.push_back(face);
         ++kept;
     });
     matched = matched && kept == cached->sources.size();
@@ -1066,10 +1099,13 @@ std::shared_ptr<const mgVisualGroupMesh> GroupMesh(const mgFACE_GROUP *first, co
         std::vector<std::shared_ptr<const mgVisualFaceMesh>> faces;
         faces.reserve(kept);
         // The sweep spares every face this walk visited, so the second walk sees the same faces.
-        VisitGroupFaces(first, end, [&](const FaceEntry &face_entry) { faces.push_back(face_entry.mesh); });
+        VisitGroupFaces(first, end, [&](const mgCFace *, const FaceEntry &face_entry) { faces.push_back(face_entry.mesh); });
         entry.mesh = BuildGroup(faces);
         entry.sources = std::move(faces);
     }
+    entry.faces = std::move(visited);
+    entry.end = end;
+    entry.revision = face_revision;
     entry.persistent = persistent;
     entry.last_frame = mgPortFrameCount();
     UploadIfReady(entry);
@@ -1087,6 +1123,23 @@ const mgVisualGroupMesh *mgVisualPortGroupMesh(const mgFACE_GROUP *first, const 
     return GroupMesh(first, end).get();
 }
 
+void mgVisualPortFlushUploads() {
+    for (const std::weak_ptr<mgVisualGroupMesh> &pending : PendingUploads()) {
+        const std::shared_ptr<mgVisualGroupMesh> mesh = pending.lock();
+        // A batch drawn more than once this tick is queued more than once.
+        if (mesh == nullptr || mesh->mesh != gfx::kNullMesh || mesh->indices.empty() || !mgPortRendererReady()) {
+            continue;
+        }
+        mesh->mesh = gfx::CreateMesh(mesh->vertices, mesh->indices);
+#ifdef CT_ENABLE_TRACY
+        if (ct::profile::Enabled() && mesh->mesh == gfx::kNullMesh) {
+            ++gpu_upload_failures;
+        }
+#endif
+    }
+    PendingUploads().clear();
+}
+
 void mgVisualPortSweep() {
     static int swept_frame = -1;
     const int  frame = mgPortFrameCount();
@@ -1097,6 +1150,15 @@ void mgVisualPortSweep() {
     CT_PROFILE_ZONE("Sweep visual faces");
 
     auto &faces = FaceTable();
+    // A batch returned without visiting its faces still used them when it was drawn.
+    for (const auto &[group, entry] : GroupTable()) {
+        static_cast<void>(group);
+        for (const mgCFace *face : entry.faces) {
+            if (const auto found = faces.find(face); found != faces.end()) {
+                found->second.last_frame = std::max(found->second.last_frame, entry.last_frame);
+            }
+        }
+    }
 #ifdef CT_ENABLE_TRACY
     const bool profiling = ct::profile::Enabled();
     uint64_t   gpu_groups = 0;
@@ -1115,6 +1177,7 @@ void mgVisualPortSweep() {
         }
         // A queued draw may still own this CPU geometry after the table forgets it.
         it = faces.erase(it);
+        ++face_revision;
     }
 
     auto &groups = GroupTable();
@@ -1200,6 +1263,37 @@ struct GroupPacket {
     GroupDraw            draw;
     std::vector<RunDraw> runs;
 };
+
+/**
+ * Group packets registered since the packet draws were last cleared, reused afterwards so their run vectors keep
+ * their storage.
+ */
+struct GroupPacketPool {
+    std::deque<GroupPacket> packets;   /**< Stable storage; a registered draw names its packet by index. */
+    std::size_t             used = 0;  /**< Packets handed out in the current epoch. */
+    std::uint64_t           epoch = 0; /**< mgPortPacketDrawEpoch when `used` was last reset. */
+};
+
+GroupPacketPool &GroupPackets() {
+    static GroupPacketPool pool;
+    return pool;
+}
+
+std::size_t NextGroupPacket() {
+    GroupPacketPool &pool = GroupPackets();
+    if (pool.epoch != mgPortPacketDrawEpoch()) {
+        // The geometry owners go with the cleared draws; the vectors keep their storage.
+        for (std::size_t index = 0; index < pool.used; ++index) {
+            pool.packets[index].runs.clear();
+        }
+        pool.epoch = mgPortPacketDrawEpoch();
+        pool.used = 0;
+    }
+    if (pool.used == pool.packets.size()) {
+        pool.packets.emplace_back();
+    }
+    return pool.used++;
+}
 
 // Both prog0 submissions. Every call goes through here, so the renderer and frame checks mgPortDrawMesh makes
 // apply to all of them.
@@ -1558,8 +1652,11 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
         draw.state.cull = gfx::Prog0CullMode(draw.prog0);
         draw.object = object;
 
-        std::vector<RunDraw> runs;
-        if (const auto geometry = GroupMesh(group, end)) {
+        static std::vector<RunDraw> runs;
+        runs.clear();
+        std::shared_ptr<const mgVisualGroupMesh> geometry;
+        geometry = GroupMesh(group, end);
+        if (geometry) {
             runs.reserve(geometry->runs.size());
             for (const mgVisualGroupRun &run : geometry->runs) {
                 const bool textured = (run.face_flags & MG_FACE_NO_TEXTURE) == 0;
@@ -1581,9 +1678,17 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
             break;
         }
 
-        auto group_packet = std::make_shared<const GroupPacket>(GroupPacket{std::move(draw), std::move(runs)});
-        mgPortSetPacketDraw(packet, [group_packet] {
-            SubmitRuns(group_packet->draw, group_packet->runs);
+        const std::size_t index = NextGroupPacket();
+        GroupPacket      &group_packet = GroupPackets().packets[index];
+        group_packet.draw = draw;
+        group_packet.runs.assign(runs.begin(), runs.end());
+        const std::uint64_t epoch = GroupPackets().epoch;
+        mgPortSetPacketDraw(packet, [index, epoch] {
+            // Registered draws are cleared with the epoch, so a matching epoch still owns this packet.
+            if (GroupPackets().epoch == epoch) {
+                const GroupPacket &deferred = GroupPackets().packets[index];
+                SubmitRuns(deferred.draw, deferred.runs);
+            }
         });
 
         const int block = mat->texture != nullptr ? mat->texture->block : -1;

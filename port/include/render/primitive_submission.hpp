@@ -20,6 +20,8 @@ void mgPortSetPacketDraw(const void *packet, std::function<void()> draw);
 void mgPortClearPacketDraw(const void *packet);
 // Invalidates all transient host draws when mgBeginPacket resets their shared data arena.
 void mgPortClearPacketDraws();
+// Counts mgPortClearPacketDraws calls, so state owned by registered draws can be reused once they are cleared.
+std::uint64_t mgPortPacketDrawEpoch();
 // Runs the host draw registered for `packet`; false when there is none, including a null packet.
 bool mgPortPacketDraw(const void *packet);
 

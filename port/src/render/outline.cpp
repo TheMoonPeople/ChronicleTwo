@@ -1,8 +1,12 @@
 #include "common.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
+#include <optional>
+#include <unordered_map>
 
+#include "camera_fixed.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
 #include "mg_frame.hpp"
@@ -218,7 +222,7 @@ gfx::LogicalRect LogicalRectOf(const OutlineBox &box, int outset) {
 }
 
 // Texels are at the box's own logical coordinates: the image is the frame's logical space.
-void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4], float depth,
+void DrawCopy(const OutlineBox &box, const mgPortExtent &display, int dx, int dy, const uint8_t (&colour)[4], float depth,
               const gfx::TextureBinding &binding, const gfx::DrawState &state, bool defer_alpha = false) {
     const float x0 = static_cast<float>(box.left + dx) / kUnitsPerPixel;
     const float y0 = static_cast<float>(box.top + dy) / kUnitsPerPixel;
@@ -245,15 +249,14 @@ void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4],
     const gfx::Vertex2D quad[4] = {corner(x0, y0, u0, v0), corner(x1, y0, u1, v0),
                                    corner(x1, y1, u1, v1), corner(x0, y1, u0, v1)};
     // Display frames redraw the image with the presentation camera, so the tick's box must not crop
-    // them: they sample the whole visible extent, which the matching display clear keeps to this object.
-    const mgPortExtent  extent = mgPortVisibleExtent();
+    // them: they sample the display extent, which the matching display clear keeps to this object.
     const float         ox = static_cast<float>(dx) / kUnitsPerPixel;
     const float         oy = static_cast<float>(dy) / kUnitsPerPixel;
     const gfx::Vertex2D display_quad[4] = {
-        corner(extent.left + ox, extent.top + oy, extent.left, extent.top),
-        corner(extent.right + ox, extent.top + oy, extent.right, extent.top),
-        corner(extent.right + ox, extent.bottom + oy, extent.right, extent.bottom),
-        corner(extent.left + ox, extent.bottom + oy, extent.left, extent.bottom)};
+        corner(display.left + ox, display.top + oy, display.left, display.top),
+        corner(display.right + ox, display.top + oy, display.right, display.top),
+        corner(display.right + ox, display.bottom + oy, display.right, display.bottom),
+        corner(display.left + ox, display.bottom + oy, display.left, display.bottom)};
     gfx::Presentation2D presentation{.vertices = display_quad, .state = state};
     if (defer_alpha) {
         // The following full-area body overwrites alpha before any consumer can observe it.
@@ -268,7 +271,60 @@ void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4],
     mgPortDraw2D(gfx::Primitive::Quads, quad, binding, state, &presentation);
 }
 
+/**
+ * An object's padded box and the tick it was drawn on.
+ */
+struct DrawnBox {
+    OutlineBox box;   /**< Padded box in 12.4. */
+    int        frame; /**< mgPortFrameCount when it was drawn. */
+};
+
+// Boxes by outline object, for the next tick's display frames.
+std::unordered_map<const COutLineDraw *, DrawnBox> &DrawnBoxes() {
+    static std::unordered_map<const COutLineDraw *, DrawnBox> boxes;
+    return boxes;
+}
+
+// The object's padded box on the tick before this one, and records this tick's.
+std::optional<OutlineBox> SwapDrawnBox(const COutLineDraw *outline, const OutlineBox &box) {
+    constexpr int forget_frames = 600;
+    auto         &boxes = DrawnBoxes();
+    const int     frame = mgPortFrameCount();
+    if (frame % forget_frames == 0) {
+        std::erase_if(boxes, [frame](const auto &entry) { return frame - entry.second.frame > 1; });
+    }
+    DrawnBox                 &drawn = boxes[outline];
+    std::optional<OutlineBox> previous;
+    if (drawn.frame == frame - 1) {
+        previous = drawn.box;
+    }
+    if (drawn.frame != frame) {
+        drawn = {.box = box, .frame = frame};
+    }
+    return previous;
+}
+
 } // namespace
+
+mgPortExtent OutlineDisplayExtent(const OutlineBox &box, const OutlineBox *previous, int edge_offset,
+                                  const mgPortExtent &extent) {
+    OutlineBox both = box;
+    if (previous != nullptr) {
+        both.left = std::min(both.left, previous->left);
+        both.top = std::min(both.top, previous->top);
+        both.right = std::max(both.right, previous->right);
+        both.bottom = std::max(both.bottom, previous->bottom);
+    }
+    const float  outset = kOutlineDisplayMargin + static_cast<float>(std::abs(edge_offset)) / kUnitsPerPixel;
+    mgPortExtent display = extent;
+    display.left = std::max(extent.left, static_cast<float>(both.left) / kUnitsPerPixel - outset);
+    display.top = std::max(extent.top, static_cast<float>(both.top) / kUnitsPerPixel - outset);
+    display.right = std::min(extent.right, static_cast<float>(both.right) / kUnitsPerPixel + outset);
+    display.bottom = std::min(extent.bottom, static_cast<float>(both.bottom) / kUnitsPerPixel + outset);
+    display.right = std::max(display.right, display.left);
+    display.bottom = std::max(display.bottom, display.top);
+    return display;
+}
 
 float OutlineScale(float scale) {
     if (!(scale <= 1.0f)) {
@@ -374,10 +430,15 @@ int COutLineDraw::Draw(float scale, float alpha) {
     const gfx::TextureHandle previous = gfx::CurrentRenderTarget();
     const gfx::LogicalRect   clear_rect = LogicalRectOf(padded, 16);
     const uint8_t            clear_colour[4] = {0, 0, 0, 0};
+    // The free mouse look turns the display camera anywhere, so it keeps the whole extent.
+    const std::optional<OutlineBox> previous_box = SwapDrawnBox(this, padded);
+    const mgPortExtent              display = TownMouseFixedOwner() != nullptr
+                                                  ? extent
+                                                  : OutlineDisplayExtent(padded, previous_box ? &*previous_box : nullptr, edge_offset, extent);
 
     gfx::SetRenderTarget(outline);
     // Depth is not cleared: the image shares the scene's depth buffer.
-    const gfx::LogicalRect display_clear = {.x = extent.left, .y = extent.top, .w = extent.right - extent.left, .h = extent.bottom - extent.top};
+    const gfx::LogicalRect display_clear = {.x = display.left, .y = display.top, .w = display.right - display.left, .h = display.bottom - display.top};
     gfx::Clear(true, clear_colour, false, 0.0f, &clear_rect, &display_clear);
     const int result = mgDrawDirect(frame);
     gfx::SetRenderTarget(previous);
@@ -439,14 +500,14 @@ int COutLineDraw::Draw(float scale, float alpha) {
         mgPortApplyDrawEnv(edge_state, edge_env);
         const bool defer_alpha = body_overwrites_alpha && edge_state == body_state;
 
-        DrawCopy(box, edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, -edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, 0, edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, 0, -edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, -edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, 0, edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, 0, -edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
     }
 
     const uint8_t body_colour[4] = {128, 128, 128, static_cast<uint8_t>(static_cast<int>(128.0f * alpha))};
-    DrawCopy(box, 0, 0, body_colour, mgPortDepth(static_cast<uint32_t>(depth)), binding, body_state);
+    DrawCopy(box, display, 0, 0, body_colour, mgPortDepth(static_cast<uint32_t>(depth)), binding, body_state);
 
     // The composite's packets are the last writes to these registers.
     gs.test = env.test.value;

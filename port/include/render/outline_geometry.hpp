@@ -20,3 +20,10 @@ int OutlineEdgeOffset(float width, float squared_scale);
 OutlineBox OutlineDrawBox(const float *box_min, const float *box_max, const mgPortExtent &extent);
 // The box outset by kOutlinePad, clamped to the visible extent.
 OutlineBox OutlinePaddedBox(const OutlineBox &box, const mgPortExtent &extent);
+
+// Logical pixels a display frame's object may lie beyond the box between its two ticks' poses and cameras.
+inline constexpr float kOutlineDisplayMargin = 12.0f;
+// The part of the visible extent a display frame's composite covers: this tick's padded box and, when it was drawn
+// on the tick before, that tick's, outset by the edge and by kOutlineDisplayMargin.
+mgPortExtent OutlineDisplayExtent(const OutlineBox &box, const OutlineBox *previous, int edge_offset,
+                                  const mgPortExtent &extent);

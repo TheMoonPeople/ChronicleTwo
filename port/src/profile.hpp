@@ -62,7 +62,10 @@ inline void RefreshEnabled() {
     } while (false)
 #define CT_PROFILE_REFRESH() ::ct::profile::RefreshEnabled()
 #else
-#define CT_PROFILE_ZONE(name)
+#include "gfx/profile.hpp"
+
+// Without Tracy, zones feed --perf-seconds' per-site timing report while it samples.
+#define CT_PROFILE_ZONE(name) KZ_PROFILE_SITE_ZONE(ct_profile_zone, name)
 #define CT_PROFILE_TEXT(text, size)
 #define CT_PROFILE_FRAME(name)
 #define CT_PROFILE_MAIN_FRAME()

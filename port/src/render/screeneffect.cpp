@@ -152,28 +152,27 @@ void DepthOfField(int levels, float *depths, mgCTexture *work_texture, float str
         .height = static_cast<int>(std::lround(extent.bottom)) - static_cast<int>(std::lround(extent.top)),
     };
 
-    // Ordinary targets, not frame targets: a frame target is the window's pixel width, so a
-    // half-size level made as one would be full size and never blur.
-    gfx::TextureHandle source = gfx::NamedRenderTarget("dof frame", frame.width, frame.height, false);
-    gfx::BlitTexture(gfx::kMainTarget, gfx::Rect{.x = frame.left, .y = frame.top, .w = frame.width, .h = frame.height}, source,
-                     gfx::Rect{.x = 0, .y = 0, .w = frame.width, .h = frame.height}, gfx::Filter::Linear);
-
-    const uint8_t     alpha = static_cast<uint8_t>(std::clamp(static_cast<int>(128.0f * strength), 0, 255));
-    DepthOfFieldLevel previous{.width = frame.width, .height = frame.height};
+    const uint8_t alpha = static_cast<uint8_t>(std::clamp(static_cast<int>(128.0f * strength), 0, 255));
+    // The first level reads the visible frame straight from the main target: retail's full-size copy of it is
+    // exact, so going through one only costs a frame's worth of bandwidth.
+    gfx::TextureHandle source = gfx::kMainTarget;
+    gfx::Rect          previous{.x = frame.left, .y = frame.top, .w = frame.width, .h = frame.height};
 
     for (int level = 0; level < levels; ++level) {
         const DepthOfFieldLevel  size = DepthOfFieldLevelSize(level, frame.width, frame.height);
+        // Ordinary targets, not frame targets: a frame target is the window's pixel width, so a
+        // half-size level made as one would be full size and never blur.
         const gfx::TextureHandle target =
             gfx::NamedRenderTarget("dof level " + std::to_string(level), size.width, size.height, false);
 
         // No half-texel shift before each move: retail's -8 (12.4) is a GS sampling-centre fix, and a
         // Linear blit samples texel centres itself.
-        gfx::BlitTexture(source, gfx::Rect{.x = 0, .y = 0, .w = previous.width, .h = previous.height}, target,
-                         gfx::Rect{.x = 0, .y = 0, .w = size.width, .h = size.height}, gfx::Filter::Linear);
+        gfx::BlitTexture(source, previous, target, gfx::Rect{.x = 0, .y = 0, .w = size.width, .h = size.height},
+                         gfx::Filter::Linear);
         DrawBlurLevel(target, size, level, frame, depths[level], alpha);
 
         source = target;
-        previous = size;
+        previous = {.x = 0, .y = 0, .w = size.width, .h = size.height};
     }
 }
 

@@ -36,6 +36,19 @@ TEST(PresentTiming, SlowRenderAndStallSkipExpiredSlotsWithoutCatchUpBursts) {
     EXPECT_EQ(decision.deadline, restarted + period);
 }
 
+TEST(PresentTiming, LateWakeupsKeepTheirSlot) {
+    PresentPacer pacer;
+    const auto   period = std::chrono::duration_cast<Clock::duration>(std::chrono::duration<double>(1.0 / 60));
+    ASSERT_TRUE(pacer.Present([] { return true; }, [] { return origin; }));
+    // Each display starts a little after its slot; the slots stay one period apart.
+    for (int slot = 1; slot <= 120; slot++) {
+        const auto due = origin + slot * period;
+        EXPECT_EQ(pacer.Next(due - 1ms, origin + 10s, 60).deadline, due);
+        ASSERT_EQ(pacer.Next(due + 1ms, origin + 10s, 60).action, Action::Display);
+        ASSERT_TRUE(pacer.Present([] { return true; }, [&] { return due + 1ms; }));
+    }
+}
+
 TEST(PresentTiming, DueGameFieldWinsEvenWithoutADisplay) {
     PresentPacer pacer;
     auto         now = origin;

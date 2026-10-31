@@ -43,6 +43,9 @@ const mgVisualFaceMesh *mgVisualPortFaceMesh(const mgCFace *face);
 // refreshed and uploaded when it can be.
 const mgVisualGroupMesh *mgVisualPortGroupMesh(const mgFACE_GROUP *first, const mgFACE_GROUP *end);
 void                     mgVisualPortSweep();
+// Uploads the batches first drawn this tick. Called under the tick's render lease, where the uploads do not wait for
+// the render thread; until then the batches draw from their CPU copies.
+void mgVisualPortFlushUploads();
 
 mgCDrawEnv mgVisualPortDrawEnv(const mgCVisualAttr &attr, const mgCDrawEnv &base);
 
