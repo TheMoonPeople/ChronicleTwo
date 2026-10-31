@@ -269,6 +269,9 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
     if (name == "game.skip_intro") {
         return ReadBool(value, config.skip_intro);
     }
+    if (name == "game.sprint") {
+        return ReadBool(value, config.sprint);
+    }
     if (name == "game.auto_use_event_item") {
         return ReadBool(value, config.auto_use_event_item);
     }
@@ -550,6 +553,7 @@ std::string ConfigSerialize(const Config &config) {
     root["game"]["autosave"] = config.autosave;
     root["game"]["quick_loadout_title"] = config.quick_loadout_plate ? "plate" : "bar";
     root["game"]["skip_intro"] = config.skip_intro;
+    root["game"]["sprint"] = config.sprint;
     root["game"]["auto_use_event_item"] = config.auto_use_event_item;
     root["game"]["spheda_handicap"] = config.spheda_handicap;
     root["game"]["floor_info_monsters"] = config.floor_info_monsters;

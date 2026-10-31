@@ -16,6 +16,7 @@
 #include "dng_hud.hpp"
 #include "dng_main.hpp"
 #include "dng_object.hpp"
+#include "dungeon_sprint.hpp"
 #include "font.hpp"
 #include "gamedata.hpp"
 #include "gamepad.hpp"
@@ -737,7 +738,7 @@ int DngMainKey() {
             return 0;
         }
     }
-    return dc2::dungeon::MainKeyCore();
+    return DungeonSprintMainKey(dc2::dungeon::MainKeyCore);
 }
 
 void PortQuickLoadoutPad() {

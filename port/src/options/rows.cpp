@@ -353,6 +353,7 @@ std::vector<Page> MakePages() {
                              Choice<&Config::autosave>("game.autosave", "Autosave", "Saves on arriving in a town or on a dungeon floor.\nThe load screen lists it first.", {"Off", "On"}),
                              Choice<&Config::quick_loadout_plate>("game.quick_loadout_title", "Quick loadout title", "How the D-pad down panel shows its title:\non a bar, or on a plate like the EXP gauge's.", {"Bar", "Plate"}),
                              Choice<&Config::skip_intro>("game.skip_intro", "Skip intro", "Boots past the Sony text, the copyright notice\nand the Level-5 logo to the title screen.", {"Off", "On"}),
+                             Choice<&Config::sprint>("game.sprint", "Sprint", "Hold R2 while walking to sprint in towns and\ndungeons. A tap still enters first person.", {"Off", "On"}),
                              Choice<&Config::auto_use_event_item>("game.auto_use_event_item", "Auto-use event items", "An event that asks for one item you carry\nis handed it without the item picker.", {"Off", "On"}),
                              Choice<&Config::spheda_handicap>("game.spheda_handicap", "Spheda handicap", "Extra shots added to each Spheda hole's par.\nOff is the original game.", {"Off", "+1", "+2", "+3", "+4", "+5"}),
                              Choice<&Config::floor_info_monsters>("game.floor_info_monsters", "Floor monster list", "Triangle on a floor's info lists its monsters, drops and\ngate key carrier (spoilers). Off is the original game.", {"Off", "On"}),

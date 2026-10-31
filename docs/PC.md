@@ -696,6 +696,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.auto_use_event_item` | bool | false | | an event that asks for one item the bag holds is handed it without the item picker; see "Auto-use event items" |
 | `game.spheda_handicap` | int | 0 | 0 to 5 | extra shots added to each Spheda hole's par as it is laid out; see "Spheda handicap" |
 | `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
+| `game.sprint` | bool | false | | holding R2 while walking in a town or on a dungeon floor sprints; a tap still enters the first-person view; see "Sprint" |
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
 | `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
@@ -1160,6 +1161,33 @@ reach the camera.
 and exercises yaw, vertical motion and a parts-menu interruption; its comments
 give capture frames. `GeoramaMouse.*` covers the stick parity, the distance
 limits and the ownership checks.
+
+### Sprint
+
+With **Sprint** (`game.sprint`, PC SETTINGS > Game, off by default; off leaves R2 to the retail game), holding
+R2 (R by default) while walking in a town or on a dungeon floor sprints: the retail walk moves
+1.8 times as far each step and its animation plays 1.4 times as fast, only while the player actually
+moves. A tap shorter than a quarter of a second still enters the first-person view, on release instead
+of on press; only a release seen on the current frame is a tap, so a press left over from a menu is
+dropped. In towns, ladders, events, Georama, subgames, first-person and photo view keep their retail R2
+handling. In dungeons, Max and Monica sprint on foot but not while locked on, carrying or charging; the
+monster form, the Ridepod, menus, subgames and the first-person view keep retail R2.
+
+`SprintTimer` (`port/src/sprint.hpp`) times the press for both. In towns, `EditControl`
+(`port/src/object/world/editctrl.cpp`) takes R2 from the retail eye-view toggle while walking. The retail
+walk step runs unchanged; `EditMoveChara` scales its ground velocity before delegating to the retail
+routine, kept as `EditMoveCharaCore`, so collision sees the sprint step. Other callers of
+`EditMoveChara` (the ridepod, fishing) are unaffected.
+
+In dungeons, `DungeonSprintMainKey` (`port/src/dungeon_sprint.cpp`, called from quick loadout's
+`DngMainKey`) hides R2's press edge from retail's first-person toggle, or makes one for a tap, around
+`dc2::dungeon::MainKeyCore`. `CActionChara::HumanMoveIF` (`port/src/object/dun/actionchara.cpp`) calls
+`DungeonSprintMove` as it ends, which scales the velocity the step set; the action step moves with
+collision. Retail sets the walk's motion step every frame but leaves the run's, so the
+sprint remembers the step it set and unscales it before scaling again.
+
+`TownSprint.*`, `SprintTimer.*` and `DungeonSprint.*` cover the speed, the hold, the tap and the stale
+press.
 
 ### First-person walking
 

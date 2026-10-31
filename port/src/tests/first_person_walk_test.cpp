@@ -20,6 +20,7 @@
 #include "render/renderer.hpp"
 #include "scoped_global_object.hpp"
 #include "stubs/photo.hpp"
+#include "sprint_setting.hpp"
 #include "userdata.hpp"
 
 extern sceVu0FVECTOR PortDungeonSavedEye asm("DngMain_SavedEye");
@@ -672,6 +673,96 @@ TEST(FirstPersonWalk, TownReleasedWalkFallsLandsAndRestoresFollowOffset) {
         EXPECT_NEAR(camera.pos[i], entry[i] + landed[i] - (i == 1 ? 100 : 0), 0.001f);
     }
     std::copy_n(old_saved_eye.data(), 4, PortTownSavedEye);
+    PortTownFallFlag = old_fall;
+    PortTownMotionMode = old_motion;
+    mgFrameRate = old_rate;
+}
+
+TEST(TownSprint, HoldingR2SpeedsUpWalkingAndATapStillEntersEyeView) {
+    RestoreFirstPersonState restore;
+    SprintSetting           setting(true);
+    const int               old_rate = mgFrameRate;
+    mgFrameRate = 2;
+    auto        save = std::make_unique<CSaveData>();
+    auto       *old_save = PortActiveSaveData;
+    const int   old_fall = PortTownFallFlag;
+    const auto  old_motion = PortTownMotionMode;
+    const auto  old_view = PortEditViewMode;
+    const auto  old_chara_move = DebugInfo.chara_move;
+    PortActiveSaveData = save.get();
+    // The retail walking camera reads the active map's name.
+    CScene         scene;
+    CMap           map;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
+    CCameraControl camera;
+    camera.FollowOff();
+    camera.ControlOff();
+    chara.SetPosition(0, 100, 0);
+    camera.SetPos(0, 128, -100);
+    camera.SetRef(0, 128, 0);
+    scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
+    scene.AssignMap(0, &map, const_cast<char *>("room"));
+    scene.SetStatus(SCENE_DATA_MAP, 0, SCENE_DATA_ACTIVE);
+    scene.player_chara = scene.active_camera = scene.active_map = scene.event_run = 0;
+    PortLoopNo = LOOP_EDIT;
+    PortTownLoopMode = EDIT_LOOP_WALK;
+    PortTownControlMode = EDIT_CONTROL_PLAYER;
+    PortTownLockChara = PortTownPause = PortEditLadderMode = PortTownFallFlag = 0;
+    PortEditViewMode = EDIT_VIEW_MODE_WALK;
+    PortTownMotionMode = EDIT_CHARA_MOTION_FREE;
+    GamePad__2.key_lock = DebugInfo.debug_camera = 0;
+    // Without a map the player never lands; the debug move flag keeps the fall from zeroing the walk.
+    DebugInfo.chara_move = 1;
+    TakePhotoMode = TAKE_PHOTO_OFF;
+    InputResetBindings();
+    CPadControl pad{};
+    pad.analog[PAD_ANALOG_LEFT_Y_2].value = 1;
+    bool last = false;
+    auto tick = [&](bool held, bool pressed) {
+        GamePad__2.previous_pad[0].button = last ? PAD_R2 : 0;
+        GamePad__2.pad[0].button = held ? PAD_R2 : 0;
+        last = held;
+        pad.btn[PAD_BTN_R2].value = pressed;
+        const float x = chara.position[0];
+        const float z = chara.position[2];
+        EditControl(&scene, &pad);
+        return std::hypot(chara.position[0] - x, chara.position[2] - z);
+    };
+    // Let the turn toward the stick settle, so no step is halved by it.
+    for (int warm = 0; warm < 10; ++warm) {
+        tick(false, false);
+    }
+    const float walk = tick(false, false);
+    ASSERT_GT(walk, 0);
+    EXPECT_NEAR(tick(true, true), 1.8f * walk, 0.01f * walk);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);
+    for (int held = 0; held < 10; ++held) {
+        tick(true, false);
+    }
+    EXPECT_NEAR(tick(false, false), walk, 0.01f * walk);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);
+    // A press on the frame a menu opens, released while EditControl is not called, is no tap.
+    tick(true, true);
+    last = false;
+    tick(false, false);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);
+    tick(true, true);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_WALK);
+    tick(false, false);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_EYE);
+    // With the setting off, holding R2 walks and its press enters the first-person view at once, as in retail.
+    PortEditViewMode = EDIT_VIEW_MODE_WALK;
+    setting.Set(false);
+    tick(false, false);
+    EXPECT_NEAR(tick(true, false), walk, 0.01f * walk);
+    tick(false, false);
+    tick(true, true);
+    EXPECT_EQ(PortEditViewMode, EDIT_VIEW_MODE_EYE);
+    PortEditViewMode = old_view;
+    DebugInfo.chara_move = old_chara_move;
+    PortActiveSaveData = old_save;
     PortTownFallFlag = old_fall;
     PortTownMotionMode = old_motion;
     mgFrameRate = old_rate;

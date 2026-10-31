@@ -56,6 +56,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
         "game.autosave",
         "game.quick_loadout_title",
         "game.skip_intro",
+        "game.sprint",
         "game.auto_use_event_item",
         "game.spheda_handicap",
         "game.floor_info_monsters",
