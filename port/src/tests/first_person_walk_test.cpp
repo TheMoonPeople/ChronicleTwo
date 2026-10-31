@@ -693,7 +693,8 @@ TEST(TownSprint, HoldingR2SpeedsUpWalkingAndATapStillEntersEyeView) {
     // The retail walking camera reads the active map's name.
     CScene         scene;
     CMap           map;
-    CCharacter2    chara;
+    auto           chara_owner = std::make_shared<CCharacter2>();
+    auto          &chara = *chara_owner;
     CCameraControl camera;
     camera.FollowOff();
     camera.ControlOff();
@@ -701,7 +702,7 @@ TEST(TownSprint, HoldingR2SpeedsUpWalkingAndATapStillEntersEyeView) {
     camera.SetPos(0, 128, -100);
     camera.SetRef(0, 128, 0);
     scene.AssignCamera(0, &camera, const_cast<char *>("MainCam"));
-    scene.AssignChara(0, &chara, const_cast<char *>("player"));
+    scene.AssignChara(0, dc2::scene::CharacterResource::FromOwned(chara_owner), "player");
     scene.AssignMap(0, &map, const_cast<char *>("room"));
     scene.SetStatus(SCENE_DATA_MAP, 0, SCENE_DATA_ACTIVE);
     scene.player_chara = scene.active_camera = scene.active_map = scene.event_run = 0;
