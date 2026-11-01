@@ -70,6 +70,10 @@ bool LoadSkin(CCharacter2 &character, const std::filesystem::path &gltf, std::st
 bool LoadSkin(CCharacter2 &character, std::span<const std::byte> gltf, const nlohmann::json &game, std::string_view profile,
               std::string_view skin_name, const CharacterLoadOptions &options, std::string &error);
 /**
+ * Detaches a character's replaceable skin resources before their producer arena is reset.
+ */
+bool PrepareSkinArenaReset(CCharacter2 &character, mgCMemory &memory, std::string &error);
+/**
  * Releases cached glTF documents and native animation registrations.
  */
 void Clear();

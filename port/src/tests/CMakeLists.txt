@@ -12,6 +12,13 @@ set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 
+if(NOT CT_SANITIZERS STREQUAL "none")
+    add_test(NAME Sanitizers.Runtime
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/cmake/test_sanitizers.py
+            --compiler ${CMAKE_CXX_COMPILER} --sanitizers ${CT_SANITIZERS})
+    set_tests_properties(Sanitizers.Runtime PROPERTIES TIMEOUT 90)
+endif()
+
 add_test(NAME PalettePaths.Check
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/check_palette_paths.py
         ${CMAKE_SOURCE_DIR}/port/src)

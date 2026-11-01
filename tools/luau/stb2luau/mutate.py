@@ -37,6 +37,7 @@ TOOLS = HERE.parent
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
+from stb import corpus as stb_corpus  # noqa: E402
 from stb.corpus import classify  # noqa: E402
 from stb2luau import api, harness, transpile  # noqa: E402
 from stb2luau.emit import handlers  # noqa: E402
@@ -415,6 +416,9 @@ def main(argv: list[str] | None = None) -> int:
     selected = [(path, data) for path, data in transpile.corpus(source, kinds) if path in wanted]
     missing = wanted - {path for path, _ in selected}
     if missing:
+        if not any(stb_corpus.scripts(source)):
+            print("no original script corpus: use dc2data export-scripts on the disc source", file=sys.stderr)
+            return SKIP
         print(f"not in the corpus: {', '.join(sorted(missing))}", file=sys.stderr)
         return 1
     status = 0

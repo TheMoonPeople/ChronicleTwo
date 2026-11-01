@@ -4,6 +4,7 @@ if(NOT CMAKE_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER clang++)
 endif()
 enable_language(CXX)
+include(${CMAKE_SOURCE_DIR}/tools/cmake/sanitizers.cmake)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

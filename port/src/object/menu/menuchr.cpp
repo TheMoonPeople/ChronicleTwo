@@ -383,6 +383,20 @@ std::unique_ptr<CMosBookMenu> &MonsterBookOwner() {
     static std::unique_ptr<CMosBookMenu> owner;
     return owner;
 }
+
+/**
+ *
+ * Detaches a character's sword trail before the arena holding it is reset.
+ *
+ */
+void DetachSwordTrail(CCharacter2 *chara) {
+    if (chara == nullptr) {
+        return;
+    }
+
+    dc2::character::ReleaseResource(*chara, dc2::character::ResourceChannel::Sword, 0);
+    chara->sword_effect[0] = nullptr;
+}
 } // namespace
 
 void dc2::menu::ResetMonsterBook() {
@@ -2082,27 +2096,10 @@ int CMenuChrCngMenu::KeyChangeMain() {
             int last_chara = GetUserDataMan()->active_chr_no;
             GetUserDataMan()->SetActiveChrNo(MenuArg.result[0]);
 
-            if (key_func->open_type == MENU_OPEN_MAIN_TOWN) {
-                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 1);
-            } else {
-                if (last_chara == USER_CHARA_MONSTER) {
-                    DeleteMonsterEffect();
-                }
-
-                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 0);
-            }
-
-            last_select = select;
-            MenuSePlay(se_sndtbl[select]);
-
-            if (MenuLoadInfo.town_model == true) {
-                EditCharaPrepare();
-            }
-
             if (GetMenuLoopType() == MENU_LOOP_DUNGEON && FxScriptMan != nullptr) {
                 CActionChara *player = static_cast<CActionChara *>(MenuMainScene->GetCharacter(0));
 
-                if (player->effect_man != nullptr && player->throw_effect >= 0) {
+                if (player != nullptr && player->effect_man != nullptr && player->throw_effect >= 0) {
                     for (int i = 0; i < 120; i++) {
                         player->effect_man->PauseFromLevel(3, 3);
                         player->effect_man->PauseFromLevel(1, 3);
@@ -2113,6 +2110,24 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 }
             }
 
+            if (key_func->open_type != MENU_OPEN_MAIN_TOWN && last_chara == USER_CHARA_MONSTER) {
+                DeleteMonsterEffect();
+            }
+
+            dc2::character::PrepareUnitReload(*MenuMainScene);
+
+            if (key_func->open_type == MENU_OPEN_MAIN_TOWN) {
+                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 1);
+            } else {
+                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 0);
+            }
+
+            last_select = select;
+            MenuSePlay(se_sndtbl[select]);
+
+            if (MenuLoadInfo.town_model == true) {
+                EditCharaPrepare();
+            }
             break;
         }
         case CHR_CNG_ACTION_CLOSE: {
@@ -5211,7 +5226,7 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                                       u_int *pack, mgCMemory *stack, int tex_block, int blur_type) {
     mgCTextureManager *tex_manager = &mgTexManager;
 
-    if ((chara != nullptr && part != 1) || part == 1) {
+    if ((part == 1 || part == 5) ? body != nullptr : chara != nullptr) {
         PortPrepareMenuCharacterArena(*stack, pack, menu_infocfgname, part);
         switch (part) {
             case 0:
@@ -5358,6 +5373,18 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
         info[i]->chara = menu_chara[i];
         mgCMemory *buffer = &MenuActionCharaBuffer[i];
 
+        // The melee weapon's arena also holds the body's sword trail.
+        if (i == 2) {
+            DetachSwordTrail(info[0]->chara);
+        }
+
+        if ((i == 1 || i == 5) && info[0]->chara != nullptr) {
+            std::string error;
+            if (!model_assets::PrepareSkinArenaReset(*info[0]->chara, *buffer, error)) {
+                CT_LOG_ERROR(Menu, "menu skin replacement: {}", error);
+                continue;
+            }
+        }
         if (buffer != nullptr) {
             buffer->stReset();
         }
@@ -5382,6 +5409,18 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             case MENU_LOAD_MODE_SCENE:
                 if (scene_target[i] != nullptr) {
                     mgCMemory *scene_stack = &MorattaStack[i];
+
+                    if (i == 2) {
+                        DetachSwordTrail(player);
+                    }
+
+                    if ((i == 1 || i == 5) && player != nullptr) {
+                        std::string error;
+                        if (!model_assets::PrepareSkinArenaReset(*player, *scene_stack, error)) {
+                            CT_LOG_ERROR(Menu, "scene skin replacement: {}", error);
+                            continue;
+                        }
+                    }
                     scene_stack->stReset();
                     MenuItemCharaDataLoadPack(chara_no, scene_target[i], player, i, reinterpret_cast<u_int *>(read.Bytes().data()),
                                               scene_stack, scene_tex_block, chara_no);
@@ -5845,6 +5884,10 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
                 part_stack = scene_stack[part];
 
+                if (part == 1) {
+                    DetachSwordTrail(parent);
+                }
+
                 if (part != 3 && part != 5 && part_stack != nullptr) {
                     part_stack->stReset();
                 }
@@ -5904,6 +5947,10 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                     }
 
                     part_stack = scene_stack[part];
+
+                    if (part == 1) {
+                        DetachSwordTrail(parent);
+                    }
 
                     if (part != 3 && part != 5 && part_stack != nullptr) {
                         part_stack->stReset();
@@ -7909,6 +7956,8 @@ void InitMainCharaBGCore(int chara_no, mgCMemory *stack, int mode) {
     }
 
     ReEquipFishingGameWeapon();
+
+    dc2::character::PrepareUnitReload(*MenuMainScene);
 
     if (mode == 1) {
         GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, NowReadMainCharaNo, 1);

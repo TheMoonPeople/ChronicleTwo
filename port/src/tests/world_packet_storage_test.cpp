@@ -6,8 +6,59 @@
 #include <stdexcept>
 
 #include "character.hpp"
+#include "charasetup.hpp"
+#include "map.hpp"
 #include "object/world/data_packets.hpp"
 #include "platform/arena.hpp"
+#include "scene.hpp"
+#include "userdata.hpp"
+
+TEST(WorldPacketStorage, ReloadingEveryPartyLayoutPreservesTheTownMapProducer) {
+    const int character_quads = GetCharaMemAllocSize() + CHARA_MEM_STACK_NUM * 4;
+    const int parent_quads = character_quads + 4096;
+    mgCMemory parent;
+    parent.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&parent,
+                                                                static_cast<std::size_t>(parent_quads) * sizeof(u_long128))),
+                       parent_quads);
+    mgCMemory characters;
+    dc2::world::BindCharacterPrefix(parent, characters, character_quads);
+    parent.Align64();
+    const int reserved = parent.stGetUsed();
+    parent.stSetLocked(true);
+    mgCMemory map_storage;
+    map_storage.stSetBorrowedBuffer(parent,
+                                    std::span(parent.stGetTop(), static_cast<std::size_t>(parent.stGetRest())));
+    auto *map = dc2::memory::NewObject<CMap>(map_storage);
+    ASSERT_NE(map, nullptr);
+    CScene scene;
+    scene.map_num = 1;
+    char name[] = "persistent";
+    ASSERT_EQ(scene.map[0].AssignData(map, name), 1);
+    scene.map[0].stack = &map_storage;
+    const auto map_lifetime = dc2::memory::ArenaLifetime::Capture(map_storage);
+    scene.map[0].BindResources(map_lifetime);
+    const auto               parent_generation = dc2::memory::ArenaGeneration(parent);
+    mgCMemory                parts[CHARA_MEM_STACK_NUM];
+    dc2::memory::ArenaBuffer previous_frame;
+    const int                types[] = {USER_CHARA_MAX, USER_CHARA_MONICA, USER_CHARA_ROBO, USER_CHARA_MONSTER};
+    for (int cycle = 0; cycle < 2; ++cycle) {
+        for (const int type : types) {
+            const int town = type == USER_CHARA_MAX || type == USER_CHARA_MONICA;
+            ASSERT_TRUE(GetCharaMemAllocPtr(&characters, parts, type, town));
+            EXPECT_TRUE(previous_frame.Bytes().empty());
+            EXPECT_EQ(dc2::memory::ArenaGeneration(parent), parent_generation);
+            EXPECT_EQ(parent.stGetUsed(), reserved);
+            EXPECT_TRUE(map_lifetime.IsLive());
+            EXPECT_EQ(scene.GetMap(0), map);
+            auto *frame = dc2::memory::NewObject<mgCFrame>(parts[0]);
+            ASSERT_NE(frame, nullptr);
+            previous_frame = dc2::memory::ArenaBuffer::Bind(parts[0],
+                                                            std::span(reinterpret_cast<u8 *>(frame), sizeof(*frame)));
+            EXPECT_FALSE(previous_frame.Bytes().empty());
+            EXPECT_LE(parts[0].stack + parts[0].stack_size, map_storage.stack);
+        }
+    }
+}
 
 TEST(WorldPacketStorage, MapAndGeoramaLayoutsPreserveCharacterProducers) {
     static char root_key;

@@ -357,3 +357,11 @@ extern mgCVisualMDT TestVisual;
  *
  */
 extern mgCFrame TestFrame;
+
+namespace dc2::world {
+enum class DataPacketMode;
+/**
+ * Tears down outgoing scene resources before preparing packets and rebinding edit-map storage.
+ */
+void PrepareEditMapJumpStorage(CScene &scene, DataPacketMode mode);
+} // namespace dc2::world

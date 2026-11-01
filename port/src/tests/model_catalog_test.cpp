@@ -30,6 +30,8 @@
 #include "gameutil.hpp"
 #include "mdslist.hpp"
 #include "menu_character_assets.hpp"
+#include "menuchr.hpp"
+#include "menumain.hpp"
 #include "mg_dataset.hpp"
 #include "mglib.hpp"
 #include "platform/arena.hpp"
@@ -490,6 +492,40 @@ TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
     model_assets::DeleteCharacterTextures(max, 0, 0);
     EXPECT_EQ(textures.GetTexture(name, 2), nullptr);
     textures.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, MenuSkinCompletionWithoutBodySkipsAssetConstruction) {
+    DataReadIndex(directory / "data");
+    const auto previous_directory = GetCurrentDir();
+    char       root_directory[] = "";
+    SetCurrentDir(root_directory);
+    StartReadBG();
+    char                   path[] = "models/model.gltf";
+    std::vector<u_long128> read_storage(4096);
+    int                    size = 0;
+    ASSERT_EQ(LoadFileBG(path, {reinterpret_cast<u8 *>(read_storage.data()), read_storage.size() * sizeof(u_long128)}, &size), 1);
+    EXPECT_EQ(ReadBGSync(), 1);
+    EXPECT_EQ(ReadBGSync(), 0);
+    MENU_BGREAD_INFO2 body{};
+    MENU_BGREAD_INFO2 skin{};
+    std::memcpy(skin.path, path, sizeof(path));
+    skin.reading = 1;
+    std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> slots{};
+    slots[0] = &body;
+    slots[1] = &skin;
+    const auto previous_load_info = MenuLoadInfo;
+    auto      *previous_scene = MenuMainScene;
+    MenuMainScene = nullptr;
+    MenuLoadInfo = {};
+    MenuLoadInfo.mode = MENU_LOAD_MODE_INVENT;
+    EXPECT_EQ(MenuItemCharaDataLoadEndCheck(slots.data(), nullptr, nullptr, USER_CHARA_MONICA, -1, -1), 0);
+    EXPECT_EQ(skin.reading, 0);
+    EXPECT_EQ(skin.chara, nullptr);
+    MenuLoadInfo = previous_load_info;
+    MenuMainScene = previous_scene;
+    auto restored_directory = previous_directory;
+    SetCurrentDir(restored_directory.data());
+    InitReadBG();
 }
 
 TEST_F(NativeModel, MenuCostumeArenaUsesActualNativeCountsInsteadOfRetailPartitionSize) {
@@ -1067,6 +1103,63 @@ TEST_F(NativeModel, ExplicitAbsentResourcesPreserveFollowingGameplayCommands) {
     EXPECT_FLOAT_EQ(character.body_height, 10);
     EXPECT_FLOAT_EQ(character.body_width, 20);
     EXPECT_FLOAT_EQ(character.body_depth, 30);
+}
+
+TEST_F(NativeModel, SkinReadsTextureResourceAfterItsImageSlot) {
+    const Json model = game;
+    const Json texture_document{
+        {"schema_version", 3                                                                                                                           },
+        {"groups",         {1}                                                                                                                         },
+        {"entries",        Json::array({{{"name", "costume"}, {"block", 1}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    game = {
+        {"schema_version", 1                                                                  },
+        {"kind",           "character"                                                        },
+        {"models",         Json::array({model})                                               },
+        {"resources",      {{"texture_sets", Json::array({{{"document", texture_document}}})}}}
+    };
+    game["profiles"]["info"]["commands"] = Json::array({
+        {{"command", "MODEL"}, {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}}
+    });
+    game["profiles"]["skin"]["commands"] = Json::array({
+        {{"command", "IMG"}, {"args", {IntegerArgument(0), {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}}}}
+    });
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    CCharacter2                        character;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory, .textures = &textures, .texture_block = 2, .outline = false};
+    const auto                         bytes = gltf.dump();
+    const auto                         source = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    std::string                        error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source, game, "info", options, error)) << error;
+    char name[] = "costume";
+    ASSERT_EQ(textures.GetTexture(name, 3), nullptr);
+    std::vector<u_long128> skin_storage(4096);
+    mgCMemory              skin_memory;
+    skin_memory.stSetBuffer(skin_storage.data(), static_cast<int>(skin_storage.size()));
+    options.model_memory = options.motion_memory = options.image_memory = &skin_memory;
+    for (int iteration = 0; iteration < 3; ++iteration) {
+        ASSERT_TRUE(model_assets::PrepareSkinArenaReset(character, skin_memory, error)) << error;
+        skin_memory.stReset();
+        ASSERT_TRUE(dc2::character::ResourcesLive(character));
+        game["profiles"]["skin"]["commands"][0]["args"] = iteration == 1
+                                                              ? Json::array({
+                                                                    {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}
+        })
+                                                              : Json::array({IntegerArgument(0), {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}});
+        ASSERT_TRUE(model_assets::LoadSkin(character, source, game, "skin", "", options, error)) << error;
+        EXPECT_NE(textures.GetTexture(name, 3), nullptr);
+    }
+    game["profiles"]["skin"]["commands"][0]["args"] = Json::array({
+        {{"type", "resource"}, {"kind", "model"}, {"index", 0}}
+    });
+    EXPECT_FALSE(model_assets::LoadSkin(character, source, game, "skin", "", options, error));
+    EXPECT_NE(error.find("resource kind mismatch"), std::string::npos);
+    textures.Initialize(0x1000, -1);
 }
 
 TEST_F(NativeModel, ImageEndSetsTheCharacterBlockWithoutImagesAndSkinEndRetainsIt) {
@@ -2704,6 +2797,57 @@ TEST_F(NativeModel, UnchangedProfilesReuseFrameAndAuxiliarySnapshotsWithoutRetai
         EXPECT_EQ(character.resource_state.Acquire<dc2::character::ResourceState>(), before);
         EXPECT_EQ(context.use_count(), baseline);
     }
+}
+
+TEST_F(NativeModel, CostumeSkinArenaCanBeReusedWithoutRetiringTheBody) {
+    const auto commands = Json::array({
+        {{"command", "MODEL"},       {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "OBJECT_NAME"}, {"args", {TextArgument("root")}}                                   },
+        {{"command", "MOTION"},      {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"},   {"args", Json::array()}                                            },
+        {{"command", "KEY"},         {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},     {"args", Json::array()}                                            }
+    });
+    auto       profile = NamedActionCharacter(game, commands);
+    profile["resources"]["bind_poses"] = Json::array({{{"matrices", Json::array({Json::array({1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 42, 0, 0, 1})})}}});
+    profile["profiles"]["skin"]["commands"] = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}                                              },
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0), {{"type", "resource"}, {"kind", "bind_pose"}, {"index", 0}}}}},
+        {{"command", "KEY_START"}, {"args", Json::array()}                                                                                          },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                                                                          }
+    });
+    const auto                         bytes = gltf.dump();
+    const auto                         source = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source, profile, "info", options, error)) << error;
+    auto         *root = character.CObjectFrame::frame;
+    sceVu0FMATRIX original_bind;
+    std::memcpy(original_bind, root->init_matrix[0], sizeof(original_bind));
+    std::vector<u_long128> skin_storage(8192);
+    mgCMemory              skin_memory;
+    skin_memory.stSetBuffer(skin_storage.data(), static_cast<int>(skin_storage.size()));
+    options.model_memory = options.motion_memory = options.image_memory = &skin_memory;
+    int used = 0;
+    for (int iteration = 0; iteration < 100; ++iteration) {
+        ASSERT_TRUE(model_assets::PrepareSkinArenaReset(character, skin_memory, error)) << error;
+        skin_memory.stReset();
+        ASSERT_TRUE(dc2::character::ResourcesLive(character));
+        ASSERT_TRUE(dc2::character::CloneInputsLive(character));
+        ASSERT_TRUE(model_assets::LoadSkin(character, source, profile, "skin", "", options, error)) << error;
+        ASSERT_EQ(character.CObjectFrame::frame, root);
+        ASSERT_NE(root->visual, nullptr);
+        EXPECT_EQ(std::memcmp(original_bind, root->init_matrix[0], sizeof(original_bind)), 0);
+        ASSERT_TRUE(dc2::character::CloneInputsLive(character));
+        if (iteration == 0) {
+            used = skin_memory.stack_used;
+        }
+        EXPECT_EQ(skin_memory.stack_used, used);
+    }
+    EXPECT_FALSE(model_assets::PrepareSkinArenaReset(character, memory, error));
+    EXPECT_TRUE(dc2::character::CloneInputsLive(character));
 }
 
 TEST_F(NativeModel, SkinUpdatesReuseExactEntryNamesAfterExternalRootReferenceChanges) {

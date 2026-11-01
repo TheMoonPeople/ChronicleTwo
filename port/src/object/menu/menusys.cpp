@@ -5872,8 +5872,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
 
                         if (static_cast<bool>(sound_file)) {
                             mgCMemory sound_stack;
-                            sound_stack.stSetBuffer(load_stack->stGetTop(), 0x1C0);
-                            load_stack->Alloc(0x1C0);
+                            sound_stack.stSetChildBuffer(*load_stack, load_stack->Alloc(0x1C0), 0x1C0);
                             MenuSePlay(0, reinterpret_cast<u_int *>(sound_file.Bytes().data()), &sound_stack);
                         }
 
@@ -5881,7 +5880,9 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         tex_manager->DeleteBlock(tex_block[2]);
                         load_stack->Align64();
                         int rest = load_stack->stGetRest();
-                        work.stSetBuffer(load_stack->stGetTop(), rest);
+                        if (!work.stShareBuffer(*load_stack, std::span(load_stack->stGetTop(), static_cast<std::size_t>(rest)))) {
+                            std::abort();
+                        }
                         build_up_chara = new (work.Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
                         build_up_chara->Initialize(nullptr);
                         build_up_chara->LoadPack(reinterpret_cast<u_int *>(model_file.Bytes().data()), "info", &work, &work, &work, tex_block[2], nullptr);
@@ -6231,6 +6232,8 @@ void CMenuItemInfo::ExitEnd() {
         AccumulateEffect.unk_320 = 0;
         AccumulateEffect.mode = 0;
         chara->accume_effect = &AccumulateEffect;
+        // The block's texture animations live in the arena just cleared; the model would append to them there.
+        mgTexManager.DeleteTexAnime(MenuArg.chara_tex_block);
         chara->LoadPack(MainCharaReadBuffer.model, "info", MorattaStack, MorattaStack, MorattaStack,
                         MenuArg.chara_tex_block, nullptr);
         SwordEffectStack.stClearUsed();
@@ -10147,12 +10150,18 @@ int CMenuItemInfo::ModelReadStart(int mode, int check_item, int restart_read) {
         case MENU_ITEM_VIEW_FISHING_ROD: {
             mgCMemory stack;
             int       rest = MenuItemMemory.stGetRest();
-            stack.stSetBuffer(MenuItemMemory.stGetTop(), rest);
+            if (!stack.stShareBuffer(MenuItemMemory, std::span(MenuItemMemory.stGetTop(), static_cast<std::size_t>(rest)))) {
+                std::abort();
+            }
             MenuMemoryAdjust(&stack, &MenuCharaLoadStack, MenuActionCharaBuffer, 0);
-            MenuActionCharaBuffer[0].stSetBuffer(stack.stGetTop(), 0x5A00);
+            if (!MenuActionCharaBuffer[0].stShareBuffer(stack, std::span(stack.stGetTop(), std::size_t{0x5A00}))) {
+                std::abort();
+            }
             stack.Alloc(0x5000);
             rest = stack.stGetRest();
-            load_stack->stSetBuffer(stack.stGetTop(), rest);
+            if (!load_stack->stShareBuffer(stack, std::span(stack.stGetTop(), static_cast<std::size_t>(rest)))) {
+                std::abort();
+            }
             result = MenuItemChrLoad(load_stack, view_chara, 1, MenuCharaBuild2[0], restart_read);
 
             if (result > 0) {
@@ -10975,7 +10984,9 @@ void CMenuItemInfo::KeyStepLocal(int select_key, int push_button, int flag) {
 
     if (GamePad__2.Down(PAD_R3) && menu_debug_flag == 1) {
         int rest = MenuCharaLoadStack.stGetRest();
-        MenuDebugStack.stSetBuffer(MenuCharaLoadStack.stGetTop(), rest);
+        if (!MenuDebugStack.stShareBuffer(MenuCharaLoadStack, std::span(MenuCharaLoadStack.stGetTop(), static_cast<std::size_t>(rest)))) {
+            std::abort();
+        }
         MenuDebugItemModel = nullptr;
         MenuDebugCamera = nullptr;
         MenuDebugModelDrawFlag = 0;

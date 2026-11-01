@@ -37,6 +37,18 @@
             }
         },
         {
+            "name": "linux-x64-asan",
+            "displayName": "Linux x86-64, AddressSanitizer",
+            "inherits": "linux-x64",
+            "binaryDir": "${sourceDir}/port/build/pc-asan",
+            "cacheVariables": {
+                "CT_SANITIZERS": "address",
+                "CT_ENABLE_TRACY": "OFF",
+                "CT_LTO": "off",
+                "CT_TEST_TIMEOUT": "60"
+            }
+        },
+        {
             "name": "linux-x64-release",
             "displayName": "Linux x86-64, Release (clang++-20)",
             "inherits": "linux",
@@ -142,6 +154,10 @@
     ],
     "buildPresets": [
         {
+            "name": "linux-x64-asan",
+            "configurePreset": "linux-x64-asan"
+        },
+        {
             "name": "linux-x64",
             "configurePreset": "linux-x64"
         },
@@ -163,6 +179,21 @@
         }
     ],
     "testPresets": [
+        {
+            "name": "linux-x64-asan",
+            "inherits": "test",
+            "configurePreset": "linux-x64-asan",
+            "filter": {
+                "exclude": {
+                    "label": "gpu",
+                    "name": "^Crash\\."
+                }
+            },
+            "environment": {
+                "ASAN_OPTIONS": "halt_on_error=1:detect_leaks=1",
+                "SDL_AUDIODRIVER": "dummy"
+            }
+        },
         {
             "name": "test",
             "hidden": true,

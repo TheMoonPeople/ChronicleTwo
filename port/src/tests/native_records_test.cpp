@@ -15,6 +15,7 @@
 
 #include "actionchara.hpp"
 #include "assets/data_registry.hpp"
+#include "charasetup.hpp"
 #include "dataread.hpp"
 #include "editmap.hpp"
 #include "fishing.hpp"
@@ -33,6 +34,7 @@
 #include "monster.hpp"
 #include "platform/datapacks.hpp"
 #include "quest.hpp"
+#include "scene.hpp"
 #include "scene_documents.hpp"
 #include "stubs/editmap.hpp"
 #include "stubs/fishing.hpp"
@@ -1052,11 +1054,14 @@ namespace {
  * Creates an auxiliary test allocation in an independently retireable producer block.
  */
 template <class T>
-T *CloneAuxObject(mgCMemory &producer) {
+T *CloneAuxObject(mgCMemory &producer, dc2::memory::ArenaLifetime *context = nullptr) {
     if (producer.StartStackMode(MG_STACK_MODE_FIT, 256) == nullptr) {
         return nullptr;
     }
     auto *object = dc2::memory::NewObject<T>(producer);
+    if (context != nullptr) {
+        *context = dc2::memory::ArenaLifetime::Capture(producer);
+    }
     producer.EndStackMode();
     return object;
 }
@@ -1064,8 +1069,8 @@ T *CloneAuxObject(mgCMemory &producer) {
 /**
  * Creates a graph frame whose name occupies an independently retireable allocation.
  */
-mgCFrame *CloneAuxFrame(mgCMemory &producer, std::string_view name) {
-    auto *frame = CloneAuxObject<mgCFrame>(producer);
+mgCFrame *CloneAuxFrame(mgCMemory &producer, std::string_view name, dc2::memory::ArenaLifetime *context = nullptr) {
+    auto *frame = CloneAuxObject<mgCFrame>(producer, context);
     if (frame == nullptr || producer.StartStackMode(MG_STACK_MODE_FIT, 32) == nullptr) {
         return nullptr;
     }
@@ -1077,6 +1082,22 @@ mgCFrame *CloneAuxFrame(mgCMemory &producer, std::string_view name) {
     }
     producer.EndStackMode();
     return text != nullptr ? frame : nullptr;
+}
+
+/**
+ * Publishes a synthetic model through the explicit context of its completed root block.
+ */
+bool CaptureCloneAuxModel(CCharacter2 &character, mgCMemory &producer, const dc2::memory::ArenaLifetime &context) {
+    dc2::character::ResourceState state;
+    state.anchor = dc2::memory::ArenaBuffer::Bind(producer, {reinterpret_cast<u8 *>(character.CObjectFrame::frame), sizeof(mgCFrame)});
+    state.producers.push_back({dc2::character::ResourceChannel::Model, 0, context});
+    const auto                      prior = character.resource_state.Acquire<dc2::character::ResourceState>();
+    dc2::character::CloneAuxBuilder builder(prior ? prior->clone_inputs : nullptr);
+    if (!builder.CaptureFrames(character, producer)) {
+        return false;
+    }
+    state.clone_inputs = builder.Finish(character);
+    return state.clone_inputs != nullptr && dc2::character::PublishResources(character, std::move(state));
 }
 
 /**
@@ -1098,8 +1119,9 @@ TEST_F(NativeRecords, EntryCloneBindingsRejectRetiredFramesAndNamesBeforeRemappi
         mgCMemory                   producer, destination_memory;
         producer.SetHeapMem(storage.data(), static_cast<int>(storage.size()));
         destination_memory.stSetBuffer(copies.data(), static_cast<int>(copies.size()));
-        CCharacter2 source;
-        source.CObjectFrame::frame = CloneAuxFrame(producer, "root");
+        CCharacter2                source;
+        dc2::memory::ArenaLifetime model_context;
+        source.CObjectFrame::frame = CloneAuxFrame(producer, "root", &model_context);
         auto *child = CloneAuxFrame(producer, "child");
         ASSERT_NE(source.CObjectFrame::frame, nullptr);
         ASSERT_NE(child, nullptr);
@@ -1108,7 +1130,7 @@ TEST_F(NativeRecords, EntryCloneBindingsRejectRetiredFramesAndNamesBeforeRemappi
         source.entry_object[3].frame = child;
         source.deform_frame[0] = child;
         source.deform_frame_num = 2;
-        ASSERT_TRUE(dc2::character::CaptureModelResources(source, producer));
+        ASSERT_TRUE(CaptureCloneAuxModel(source, producer, model_context));
         const auto  resources = source.resource_state.Acquire<dc2::character::ResourceState>();
         CCharacter2 destination;
         ASSERT_TRUE(source.Copy(destination, &destination_memory));
@@ -1170,10 +1192,11 @@ TEST_F(NativeRecords, ExactSoundLeasesRejectRetirementAndPermitIndependentBaseCo
         mgCMemory                   producer, destination_memory;
         producer.SetHeapMem(storage.data(), static_cast<int>(storage.size()));
         destination_memory.stSetBuffer(copies.data(), static_cast<int>(copies.size()));
-        CCharacter2 source;
-        source.CObjectFrame::frame = CloneAuxFrame(producer, "root");
+        CCharacter2                source;
+        dc2::memory::ArenaLifetime model_context;
+        source.CObjectFrame::frame = CloneAuxFrame(producer, "root", &model_context);
         ASSERT_NE(source.CObjectFrame::frame, nullptr);
-        ASSERT_TRUE(dc2::character::CaptureModelResources(source, producer));
+        ASSERT_TRUE(CaptureCloneAuxModel(source, producer, model_context));
         auto *cue = CloneAuxObject<CHRINFO_SE>(producer);
         ASSERT_NE(cue, nullptr);
         source.se_list[slot] = cue;
@@ -1250,14 +1273,15 @@ TEST_F(NativeRecords, SameAddressNameReplacementRequiresAnActualProducerGraphRef
     mgCMemory                   producer, destination_memory;
     producer.SetHeapMem(storage.data(), static_cast<int>(storage.size()));
     destination_memory.stSetBuffer(copies.data(), static_cast<int>(copies.size()));
-    CCharacter2 source;
-    source.CObjectFrame::frame = CloneAuxFrame(producer, "root");
+    CCharacter2                source;
+    dc2::memory::ArenaLifetime model_context;
+    source.CObjectFrame::frame = CloneAuxFrame(producer, "root", &model_context);
     auto *child = CloneAuxFrame(producer, "child");
     ASSERT_NE(source.CObjectFrame::frame, nullptr);
     ASSERT_NE(child, nullptr);
     child->SetParent(source.CObjectFrame::frame);
     source.entry_frame[0] = child;
-    ASSERT_TRUE(dc2::character::CaptureModelResources(source, producer));
+    ASSERT_TRUE(CaptureCloneAuxModel(source, producer, model_context));
     auto *old_name = child->name;
     producer.Free(reinterpret_cast<u_long128 *>(old_name));
     ASSERT_NE(producer.StartStackMode(MG_STACK_MODE_FIT, 32), nullptr);
@@ -1269,11 +1293,71 @@ TEST_F(NativeRecords, SameAddressNameReplacementRequiresAnActualProducerGraphRef
     EXPECT_FALSE(dc2::character::CloneInputsLive(source));
     CCharacter2 failed;
     EXPECT_FALSE(source.Copy(failed, &destination_memory));
-    ASSERT_TRUE(dc2::character::CaptureModelResources(source, producer));
+    ASSERT_TRUE(CaptureCloneAuxModel(source, producer, model_context));
     EXPECT_TRUE(dc2::character::CloneInputsLive(source));
     CCharacter2 destination;
     EXPECT_TRUE(source.Copy(destination, &destination_memory));
     EXPECT_TRUE(dc2::character::CloneInputsLive(destination));
+}
+
+TEST_F(NativeRecords, PartyMenuReloadRetiresEveryPartBeforeRepartitioningTheirModelArena) {
+    auto                                                      scene = std::make_unique<CScene>();
+    std::array<std::shared_ptr<CActionChara>, ROBO_MODEL_NUM> parts{};
+    scene->chara_num = ROBO_MODEL_NUM;
+    for (int slot = 0; slot < ROBO_MODEL_NUM; ++slot) {
+        auto &part = parts[slot];
+        part = std::make_shared<CActionChara>();
+        part->CObjectFrame::frame = NewGraphFrame(memory, "old-party-part");
+        ASSERT_NE(part->CObjectFrame::frame, nullptr);
+        ASSERT_TRUE(dc2::character::CaptureModelResources(*part, memory));
+        ASSERT_EQ(scene->AssignChara(slot, dc2::scene::CharacterResource::FromOwned(part)), slot);
+        if (slot != 0) {
+            parts[slot - 1]->next = part.get();
+            part->parent = parts[0].get();
+        }
+    }
+
+    dc2::character::PrepareUnitReload(*scene);
+    memory.stReset();
+    for (int slot = 0; slot < ROBO_MODEL_NUM; ++slot) {
+        auto &part = parts[slot];
+        ASSERT_EQ(scene->GetCharacter(slot), part.get());
+        EXPECT_EQ(part->CObjectFrame::frame, nullptr);
+        EXPECT_EQ(part->parent, nullptr);
+        EXPECT_EQ(part->next, nullptr);
+        EXPECT_FALSE(part->resource_state.HasValue());
+        part->UpdatePosition();
+    }
+}
+
+TEST_F(NativeRecords, UnitReloadClearsMissingRangedModelBeforeSoundArenaReuse) {
+    auto  scene = std::make_unique<CScene>();
+    auto  body = std::make_shared<CActionChara>();
+    auto  ranged = std::make_shared<CActionChara>();
+    auto *old_frame = NewGraphFrame(memory, "old-gun");
+    ASSERT_NE(old_frame, nullptr);
+    ranged->CObjectFrame::frame = old_frame;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(*ranged, memory));
+    body->next = ranged.get();
+    ranged->parent = body.get();
+    scene->chara_num = ROBO_MODEL_NUM;
+    ASSERT_EQ(scene->AssignChara(0, dc2::scene::CharacterResource::FromOwned(body)), 0);
+    ASSERT_EQ(scene->AssignChara(2, dc2::scene::CharacterResource::FromOwned(ranged)), 2);
+
+    dc2::character::PrepareUnitReload(*scene);
+    ASSERT_EQ(body->next, nullptr);
+    ASSERT_EQ(ranged->CObjectFrame::frame, nullptr);
+    EXPECT_EQ(ranged->parent, nullptr);
+    EXPECT_FALSE(ranged->resource_state.HasValue());
+    memory.stReset();
+    auto *sound_name = dc2::memory::NewObject<dc2::memory::ArenaText>(memory);
+    ASSERT_NE(sound_name, nullptr);
+    ASSERT_EQ(static_cast<void *>(sound_name), static_cast<void *>(old_frame));
+    const auto anchor = dc2::memory::ArenaBuffer::Bind(memory, {reinterpret_cast<u8 *>(sound_name), sizeof(*sound_name)});
+    *sound_name = dc2::memory::ArenaText::Copy(anchor, "replacement sound effect");
+    ASSERT_TRUE(sound_name->Text());
+    ranged->UpdatePosition();
+    EXPECT_TRUE(dc2::character::ResourcesLive(*ranged));
 }
 
 TEST_F(NativeRecords, RepeatedCharacterCopiesReleaseDestinationMetadataWithoutRetainingSourceSnapshots) {

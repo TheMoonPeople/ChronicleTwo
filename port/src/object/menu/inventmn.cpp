@@ -3332,10 +3332,9 @@ int CMenuInvent::IsCreateObject(int mode, int keys) {
                     this->create_timer = PAL_TIMING(200, 240);
                     this->create_chara = new (load_stack->Alloc(StackBlocks(sizeof(CActionChara)))) CActionChara;
                     this->create_chara->Initialize(nullptr);
-                    this->item_model_memory.stSetBuffer(load_stack->stGetTop(), 0x35C0);
+                    this->item_model_memory.stSetChildBuffer(*load_stack, load_stack->Alloc(0x35C0), 0x35C0);
                     this->item_model_memory.stClearUsed();
                     this->item_model_memory.stSetLocked(false);
-                    load_stack->Alloc(0x35C0);
                     load_stack->Align64();
                     std::string item_path = ItemFilePath(this->create_item_id, 1).value_or("");
                     if (!item_path.empty()) {
@@ -6000,15 +5999,12 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
     }
     MenuMoveItemPtr = new (stack->Alloc(align16_blocks(sizeof(CMenuMoveItem)) + 2)) CMenuMoveItem;
     dc2::menu::BindRandomLinePoints(*stack, CMenuInventPt->line_pos);
-    InventTeigiStack.stSetBuffer(stack->stGetTop(), 0x210);
-    stack->Alloc(0x210);
+    InventTeigiStack.stSetChildBuffer(*stack, stack->Alloc(0x210), 0x210);
     stack->Align64();
     InventUserDataPtr->ResetAddress();
     CMenuInventPt->AttachFormInfo();
     MenuMoveItemPtr->AttachForm();
-    u_long128 *data_top = stack->stGetTop();
-    CMenuInventPt->data_stack.stSetBuffer(data_top, 0x1310);
-    stack->Alloc(0x1310);
+    CMenuInventPt->data_stack.stSetChildBuffer(*stack, stack->Alloc(0x1310), 0x1310);
 
     if (CMenuInventPt->photo_only == 0) {
         const auto directory = dc2::menu::ReadMenuFile("inv2_bg.pac");
@@ -6024,33 +6020,28 @@ int MenuInventInit(mgCMemory *memory, int *tex_block, int arg) {
 
     InventSubDataReadBGInfo = dc2::io::FindBackgroundRead(0);
     u_long128 *chara_top = stack->stGetTop();
-    MenuInventMCStack.stSetBuffer(chara_top, stack->stGetRest());
-    MenuActionCharaBuffer[0].stSetBuffer(stack->stGetTop(), 0x1B80);
-    stack->Alloc(0x1B80);
+    MenuInventMCStack.stSetBorrowedBuffer(*stack, std::span(chara_top, static_cast<std::size_t>(stack->stGetRest())));
+    MenuActionCharaBuffer[0].stSetChildBuffer(*stack, stack->Alloc(0x1B80), 0x1B80);
     stack->Align64();
-    MenuActionCharaBuffer[1].stSetBuffer(stack->stGetTop(), 0x9AC0);
-    stack->Alloc(0x9AC0);
+    MenuActionCharaBuffer[1].stSetChildBuffer(*stack, stack->Alloc(0x9AC0), 0x9AC0);
     stack->Align64();
-    MenuActionCharaBuffer[4].stSetBuffer(stack->stGetTop(), 0xBC0);
-    stack->Alloc(0xBC0);
+    MenuActionCharaBuffer[4].stSetChildBuffer(*stack, stack->Alloc(0xBC0), 0xBC0);
     stack->Align64();
-    MenuActionCharaBuffer[5].stSetBuffer(stack->stGetTop(), 0x26C0);
-    stack->Alloc(0x26C0);
+    MenuActionCharaBuffer[5].stSetChildBuffer(*stack, stack->Alloc(0x26C0), 0x26C0);
     stack->Align64();
     MenuActionCharaBuffer[2].stSetBuffer(nullptr, 0);
     MenuActionCharaBuffer[3].stSetBuffer(nullptr, 0);
     MenuActionCharaBuffer[6].stSetBuffer(nullptr, 0);
 
     if (CMenuInventPt->photo_only == 1) {
-        CMenuInventPt->chara_stack.stSetBuffer(stack->stGetTop(), 0x1680);
-        stack->Alloc(0x1680);
+        CMenuInventPt->chara_stack.stSetChildBuffer(*stack, stack->Alloc(0x1680), 0x1680);
         stack->Align64();
     }
 
-    MenuInventCharaStack.stSetBuffer(chara_top, 0xC200);
+    MenuInventCharaStack.stSetBorrowedBuffer(*stack, std::span(chara_top, std::size_t{0xC200}));
     stack->Align64();
     int rest = stack->stGetRest();
-    MenuCharaLoadStack.stSetBuffer(stack->stGetTop(), rest);
+    MenuCharaLoadStack.stSetBorrowedBuffer(*stack, std::span(stack->stGetTop(), static_cast<std::size_t>(rest)));
     MenuCharaLoadStack.stClearUsed();
     MenuCharaLoadStack.stSetLocked(false);
     CMenuInventPt->LoadCharaCheck();

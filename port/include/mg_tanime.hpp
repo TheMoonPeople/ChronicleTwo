@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include <span>
+
 /**
  * @file
  * Declares the constants of the engine's texture animation and the list and rectangle templates its
@@ -172,3 +174,26 @@ void CList<T>::Initialize() {
     prev = nullptr;
     next = nullptr;
 }
+
+class mgCTextureAnime;
+class mgCTextureBlock;
+class mgCMemory;
+
+namespace dc2::render {
+
+/**
+ * Captures the exact arena allocation supplying an animation controller.
+ */
+void BindTextureAnimationStorage(mgCTextureBlock &block, mgCMemory &memory);
+
+/**
+ * Captures the allocation supplying a command group's name.
+ */
+void BindTextureAnimationGroupName(mgCTextureAnime &animation, int group, mgCMemory &memory, std::span<char> storage);
+
+/**
+ * Removes expired command groups and reports whether their controller remains live.
+ */
+bool TextureAnimationStorageLive(mgCTextureAnime *animation);
+
+} // namespace dc2::render

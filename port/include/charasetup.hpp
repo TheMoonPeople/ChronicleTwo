@@ -145,6 +145,11 @@ void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INF
 
 namespace dc2::character {
 /**
+ * Retires the current party models before their scene storage is repartitioned.
+ */
+void PrepareUnitReload(CScene &scene);
+
+/**
  * Attaches a unit's supplied parts and binds only its explicit persistent loop-sound owner.
  */
 void SetupUnit(std::span<CCharacter2 *const> parts, CUserDataManager *user_data, int unit,

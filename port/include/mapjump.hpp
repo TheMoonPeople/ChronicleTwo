@@ -261,3 +261,10 @@ void ExitInterior(CScene *scene, int *sub_map_no);
  * @size 0xF0
  */
 int InteriorMapJump(CScene *scene, int interior_no);
+
+namespace dc2::world {
+/**
+ * Releases the outgoing main and sub maps while their resource producers remain live.
+ */
+void DeleteMapJumpMaps(CScene &scene);
+} // namespace dc2::world

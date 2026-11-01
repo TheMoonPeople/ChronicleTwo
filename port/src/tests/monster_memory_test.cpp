@@ -137,7 +137,7 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
         source->Initialize();
         static char model_key;
         mgCMemory   model_memory;
-        const auto  words = static_cast<int>((static_cast<std::size_t>(count) * (sizeof(mgCFrame) + sizeof(mgCFrame *)) + 15) / 16 + 8);
+        const auto  words = static_cast<int>((static_cast<std::size_t>(count) * (sizeof(mgCFrame) + sizeof(mgCFrame *)) + 15) / 16 + count + 8);
         model_memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_key, static_cast<std::size_t>(words) * sizeof(u_long128))), words);
         auto *frames = dc2::memory::NewArray<mgCFrame>(model_memory, static_cast<std::size_t>(count));
         auto *table = dc2::memory::NewArray<mgCFrame *>(model_memory, static_cast<std::size_t>(count));
@@ -146,7 +146,9 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
         std::vector<std::string> names(count);
         for (int index = 0; index < count; ++index) {
             names[index] = "bone" + std::to_string(index);
-            frames[index].SetName(names[index].data());
+            auto *name = dc2::memory::CopyText(model_memory, names[index]);
+            ASSERT_NE(name, nullptr);
+            frames[index].SetName(name);
             table[index] = &frames[index];
         }
         frames[1].SetParent(frames);
@@ -155,7 +157,7 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
         source->CObjectFrame::frame = frames;
         ASSERT_TRUE(dc2::character::CaptureModelResources(*source, model_memory));
         source->copy_size = 0;
-        source->load_size = static_cast<int>((count * (sizeof(mgCFrame) + sizeof(mgCFrame *)) + 15) / 16 + 8);
+        source->load_size = model_memory.stack_used;
 
         ActiveMonster = manager.get();
         ASSERT_TRUE(source->Copy(*destination, &slot));

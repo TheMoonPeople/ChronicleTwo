@@ -100,6 +100,25 @@ COPY --from=sources /opt/deps/vendor/ /deps/vendor/
 COPY --from=sources /opt/deps/kz-ffmpeg /deps/kz-ffmpeg
 COPY --from=sources /opt/deps/ffmpeg.tar.xz /deps/ffmpeg.tar.xz
 
+FROM rust:1.99.0-slim-bookworm@sha256:2c3a22f0a5533ea2dd5a16627bc841228151faa2d4de2644ac9987e4a2f1f2fa AS windows-rust
+RUN rustup target add x86_64-pc-windows-gnullvm
+
+FROM fetch AS windows-compiler
+# Cross compiler shared by the Windows bridge and FFmpeg source builds.
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential nasm     && rm -rf /var/lib/apt/lists/*
+RUN fetch https://github.com/mstorsjo/llvm-mingw/releases/download/20260922/llvm-mingw-20260922-ucrt-ubuntu-22.04-x86_64.tar.xz \
+    bb7bb7654b33d5aa8712acb837c963b2e0c56352560c76105270a3268c665c21 /tmp/llvm.tar.xz \
+    && mkdir /opt/llvm && tar xf /tmp/llvm.tar.xz -C /opt/llvm --strip-components=1 && rm /tmp/llvm.tar.xz
+ENV PATH=/opt/llvm/bin:$PATH
+
+FROM windows-compiler AS windows-cxxbridge
+COPY --from=windows-rust /usr/local/cargo/ /usr/local/cargo/
+COPY --from=windows-rust /usr/local/rustup/ /usr/local/rustup/
+ENV CARGO_HOME=/usr/local/cargo RUSTUP_HOME=/usr/local/rustup PATH=/usr/local/cargo/bin:$PATH
+ENV CARGO_TARGET_X86_64_PC_WINDOWS_GNULLVM_LINKER=x86_64-w64-mingw32-clang
+RUN cargo install --locked cxxbridge-cmd --version 1.0.205 \
+    --target x86_64-pc-windows-gnullvm --root /opt/bridge
+
 FROM fetch AS windows-sdk
 # Native Windows tools; these are unpacked on Linux and never executed here.
 RUN mkdir -p /opt/deps
@@ -136,17 +155,7 @@ RUN fetch https://static.rust-lang.org/dist/2026-10-01/rust-1.99.0-x86_64-pc-win
     && mkdir -p /opt/deps/rust/1.99.0-gnullvm \
     && for component in rustc cargo rust-std-x86_64-pc-windows-gnullvm; do \
        cp -a /tmp/rust/rust-1.99.0-x86_64-pc-windows-gnullvm/$component/. /opt/deps/rust/1.99.0-gnullvm/; done && rm -rf /tmp/rust /tmp/rust.tar.xz
-RUN fetch https://github.com/Plarpoon/Kazarov/releases/download/deps-1/cxxbridge-1.0.205-windows-x64.zip \
-    8c9529bfbaaf423dbd3f2f9583c19ea6ca92e1e09d2e7b0c474799f57aa39a21 /tmp/cxxbridge.zip \
-    && unzip -q /tmp/cxxbridge.zip -d /opt/deps/rust/1.99.0-gnullvm/bin && rm -f /tmp/*.zip
-
-FROM fetch AS windows-compiler
-# Build the pinned LGPL source rather than depending on expiring BtbN autobuild assets.
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential nasm     && rm -rf /var/lib/apt/lists/*
-RUN fetch https://github.com/mstorsjo/llvm-mingw/releases/download/20260922/llvm-mingw-20260922-ucrt-ubuntu-22.04-x86_64.tar.xz \
-    bb7bb7654b33d5aa8712acb837c963b2e0c56352560c76105270a3268c665c21 /tmp/llvm.tar.xz \
-    && mkdir /opt/llvm && tar xf /tmp/llvm.tar.xz -C /opt/llvm --strip-components=1 && rm /tmp/llvm.tar.xz
-ENV PATH=/opt/llvm/bin:$PATH
+COPY --from=windows-cxxbridge /opt/bridge/bin/cxxbridge.exe /opt/deps/rust/1.99.0-gnullvm/bin/cxxbridge.exe
 
 FROM windows-compiler AS windows-ffmpeg
 COPY --from=sources /opt/deps/kz-ffmpeg /opt/deps/kz-ffmpeg
@@ -201,7 +210,7 @@ COPY --from=apple-archive /bundle/ /
 
 FROM fetch AS linux-tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential clang-22 lld-22 llvm-22 libclang1-22 python3-clang-22 \
+    build-essential clang-22 lld-22 llvm-22 libclang1-22 libclang-rt-22-dev python3-clang-22 \
     cmake ninja-build ccache nasm git pkg-config glslang-tools \
     mesa-vulkan-drivers vulkan-validationlayers libsdl3-dev libvulkan-dev \
     libxkbcommon-dev libwayland-dev libx11-dev libxcursor-dev libxi-dev libxrandr-dev libegl1-mesa-dev \

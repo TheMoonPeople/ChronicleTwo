@@ -31,13 +31,28 @@ args=(-DCT_BUILD_TESTS="$tests" -DCT_SYMBOLS=split
 if [ "$tests" = ON ]; then
     args+=(-DCT_TEST_TIMEOUT=60 -DCT_GPU_SLOW_TIMEOUT=180 -DCT_PAL_TIMING_BASE="$CT_PAL_TIMING_BASE")
 fi
-cmake --preset "$preset" -C tools/ci/dependencies.cmake "${args[@]}"
-cmake --build --preset "$preset" --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
 build=port/build/pc-release
 if [ "$tests" = ON ]; then
     build=port/build/pc
+fi
+if [ "${CT_SANITIZERS:-none}" != none ]; then
+    test "$tests" = ON
+    preset=linux-x64-asan
+    build=port/build/pc-asan
+    args+=(-DCT_SANITIZERS="$CT_SANITIZERS")
+    export ASAN_OPTIONS=halt_on_error=1:detect_leaks=1
+    export UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    export SDL_AUDIODRIVER=dummy
+fi
+cmake --preset "$preset" -C tools/ci/dependencies.cmake "${args[@]}"
+cmake --build "$build" --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
+if [ "$tests" = ON ]; then
     python3 -c 'from clang.cindex import Index; Index.create()'
-    ctest --test-dir "$build" --output-on-failure --no-tests=error -j4 --output-junit tests.xml
+    ctest_args=(--test-dir "$build" --output-on-failure --no-tests=error -j4 --output-junit tests.xml)
+    if [ "${CT_SANITIZERS:-none}" != none ]; then
+        ctest_args+=(-LE gpu -E '^Crash\.')
+    fi
+    ctest "${ctest_args[@]}"
     cmake -S tools/luau/harness -B port/build/luau-harness -G Ninja -C tools/ci/dependencies.cmake \
         -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
     cmake --build port/build/luau-harness --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"

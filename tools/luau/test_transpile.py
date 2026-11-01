@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -373,6 +374,22 @@ class WrapTest(unittest.TestCase):
 
 
 class MainTest(unittest.TestCase):
+    def test_native_only_archive_has_no_original_corpus(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            archive = Path(scratch) / "data.zip"
+            with zipfile.ZipFile(archive, "w") as output:
+                output.writestr("scripts/example.luau", "return {}")
+            with contextlib.redirect_stdout(io.TextIOWrapper(io.BytesIO())):
+                self.assertEqual(transpile.main(["--data", str(archive)]), transpile.SKIP)
+
+    def test_missing_explicit_selection_in_a_real_corpus_still_fails(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            script = Path(scratch) / "dungeon/act_script/present.stb"
+            script.parent.mkdir(parents=True)
+            script.write_bytes(assemble({"main": (0, 0, [("push", 0), ("RET",)])}, "main"))
+            with contextlib.redirect_stdout(io.TextIOWrapper(io.BytesIO())):
+                self.assertEqual(transpile.main(["--data", scratch, "--only", "missing.stb"]), 1)
+
     def test_check_with_harness_runs_the_harness(self):
         functions = {"main": (0, 0, [("push", 0), ("RET",)]), "p100": (0, 0, [("push", 0), ("RET",)])}
         with tempfile.TemporaryDirectory() as scratch:

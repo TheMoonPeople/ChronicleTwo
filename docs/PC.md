@@ -1523,6 +1523,10 @@ An arena view retains its actual backing allocation, logical owner, generations,
 
 Title submenus borrow the remaining `Stack_ReadBuff` storage explicitly. The menu retains that read arena as its owner when it shares the temporary cursor, so costume selection and the save browser remain live after title-menu initialization returns.
 
+A full party change clears old actor models and attachment chains before repartitioning the character arenas. An optional model that supplies no read therefore remains empty; the previous gun or accessory cannot survive until sound metadata reuses that same storage. NativeRecords.UnitReloadClearsMissingRangedModelBeforeSoundArenaReuse exercises the old-frame address being reused for an arena-owned sound name.
+
+Costume replacement detaches the previous skin while its arena is still live, before resetting the menu or scene costume slot. PrepareSkinArenaReset removes retiring visuals, deformation channels, copied deformation vertices and image dependencies, then publishes the remaining character dependencies. It refuses to retire a model or another nonreplaceable resource. Repeated changes reuse the same slot capacity without leaving the body dependent on its previous generation. Skin IMG commands read their texture resource after the image-slot argument, as the shipped character profiles specify. Only MODEL, MOTION, IMG and IMG_END commands apply during skin loading. Replacement bind matrices update the weighted visual frames; skeleton and fixed-visual bind matrices retain the base character pose. Skin loads require a body target even when the separate costume character slot is absent. NativeModel.CostumeSkinArenaCanBeReusedWithoutRetiringTheBody covers 100 replacements with stable allocation use; NativeModel.SkinReadsTextureResourceAfterItsImageSlot covers explicit costume texture registration.
+
 The renderer shares packet-data views while retaining their backing owner. Title initialization passes borrowed views of main-arena allocations, allowing model drawing to use those allocations after its temporary cursors are destroyed. Resetting the main arena still retires the renderer's views.
 
 `stAlloc` and `Alloc` past an arena's end abort, naming `mgCMemory::name` or, when it has none, the arena's address, where retail printed and returned NULL. `stAllocTest` keeps retail's probe.
@@ -2002,6 +2006,12 @@ The port layout (linked ports, dependent ports and `ezmidi_param` attributes)
 is the table that retail `CSound::Init` loads, kept in `sound.cpp` as `kLayout`.
 `TransBdState` always reports the transfer complete.
 
+Sound metadata borrows the allocator that loaded it. The title event bank and shop bank keep their allocator objects for the scene or menu lifetime, so later Start and shop sound requests retain valid mappings. The title menu also keeps its borrowed backing allocator alive while the main menu stack uses it; resetting the parent storage still retires these resources. The optional AudioReplay.TitleStart, AudioReplay.ShopTransaction and AudioReplay.CostumeMusic CTests initialize the real scenes, press Start or complete shop transactions after initialization returns and require a successful sample dispatch on the corresponding driver port in the mixer trace. They also require the title Options/costume music (`bg_048`) or shop music (`bg_050`) to start and dispatch synthesized samples; set DC2_DATA to current published data to run them.
+
+Scene music metadata lives in each scene's persistent BGM_INFO::stack, backed by its independent SceneBgm arena. Sequence playback retains shared ownership of its parsed SqFile in the sound port and mixer sequencer. Stream playback likewise retains its PcmTrack in StreamChannel, so EzBgmOpen's local loading handle can expire after opening the stream.
+
+Returning to the title resets its file workspace and renews both the global and scene read-buffer leases. The costume, Continue and Options menus load `bg_048` through that scene workspace, so its lease must refer to the current stack generation before their transition begins.
+
 ### Sound effects
 
 `SE_Play`, `SE_SetVol`, `SE_SetPan`, `SE_Stop` and `SE_SetPitch` queue the same short and HS messages that retail queued for `libmodmsin`. `CSound::Step` delivers them through `Mixer::ShortMessage` and `Mixer::HsMessage`. The HS pitch message (`FD 02`, 14-bit, centre `0x2000`) bends the effect voice over its split's bend range.
@@ -2214,6 +2224,40 @@ On PC, script strings have no length cap, and datapacks can replace any script. 
 - Item names, photo and memo titles, the Sphida score name, the treasure and item tables, `MotionProc2`'s deform buffer, the effect-list names and `GetCurrentDir` are bounded native replacements.
 
 `port/src/tests/memory_safety_test.cpp` covers these.
+
+The `linux-x64-asan` preset instruments the native game, host C++ libraries and tests with AddressSanitizer,
+including stack scope checks. The separate Linux sanitizer job in `tests.yml` runs the CPU CTest suite;
+the ordinary platform jobs retain GPU and crash-bundle smoke coverage. Instrumented lavapipe shader
+compilation can exhaust available memory, and deliberate crash-bundle tests install a competing fatal
+reporter with its own deadline. The sanitizer test preset excludes those checks; `Sanitizers.Runtime`
+requires ASan's own diagnostics instead.
+Use a separate build directory so ordinary and instrumented objects cannot be mixed:
+
+```sh
+cmake --preset linux-x64-asan
+cmake --build --preset linux-x64-asan
+ctest --preset linux-x64-asan
+ASAN_OPTIONS=halt_on_error=1:detect_leaks=1 port/build/pc-asan/darkchronicle --data port/run/data
+```
+
+Clang's compiler-rt runtimes are required. `CT_SANITIZERS=address,undefined` additionally enables
+UndefinedBehaviorSanitizer with immediate failure; `none` is the ordinary build default. These options
+support desktop Linux and macOS Clang toolchains. Configuration rejects unsupported platforms or a
+missing runtime instead of silently producing an uninstrumented executable. Cooperative thread switches
+announce their stack bounds to ASan, including worker returns and restarts. `Sanitizers.Runtime` builds
+small programs through the same CMake configuration and requires actual heap overflow, freed-memory and
+stack overflow diagnostics. Headless sanitizer tests select SDL's dummy audio driver so device enumeration
+does not introduce allocations retained by the system audio driver; leak detection remains enabled.
+
+ASan checks C++ allocations and stack objects; it cannot infer the lifetimes of individual objects inside
+the game's reusable arenas, and it does not instrument Rust or imported binary libraries. Arena allocation
+identities and resource dependency checks remain necessary. Texture animations capture both their controller
+and command-node allocations; a texture manager detaches an animation if either allocation has retired,
+before reading reused command memory. The texture and model regression suites exercise reclaimed storage,
+repeated outfit replacement and stale dependency rejection. Town character reloads use a reserved child
+arena so resetting characters cannot revoke the map's sibling storage; a regression cycles every party
+layout while retaining a live scene map. `AudioReplay.TitleStart` additionally checks
+the real title Start sound with published disc data; it skips when that optional data is unavailable.
 
 ## Keeping the PS2 build matching
 

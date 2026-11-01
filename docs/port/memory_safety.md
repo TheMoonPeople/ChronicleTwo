@@ -2,6 +2,60 @@
 
 The PC game builds from `port/src` and `port/include`. This ledger covers compiled native code and its file, script, save, and renderer inputs. The PS2 tree is unchanged. A passing build is not evidence that every input boundary is safe; the inventories below remain open until every location has been classified and the final instrumented runs pass.
 
+## Issues 164 onwards
+
+The reports in this range include issues 164–168 and 170–173; 169 is a pull request. These findings apply to the native PC
+tree and do not modify PS2 sources. The Windows opening-transition report faults in
+`RestoreAnimatedTextures` while following a command pointer containing floating-point matrix lanes.
+The Linux character-switch report faults at offset `0x70` of a null character in `CharacterProfile`.
+The Make report aborts on `MenuInventInit` binding an unreserved arena tail.
+
+| Issue | Cause and corrective contract | Regression coverage |
+| --- | --- | --- |
+| [164](https://github.com/TheMoonPeople/ChronicleTwo/issues/164) | `EditMapJump` rebound and cleared `MainDataBuff` before deleting outgoing maps. Their scene slots then expired before `DeleteMap` could release texture blocks, leaving animation pointers into reused map storage. Villagers and outgoing maps now tear down before packet preparation and map-arena rebinding. Exact controller leases reject address reuse; expired command or name allocations prune only their groups, preserving unrelated groups and separately owned decoded images. | The edit-map storage transition releases both maps' texture and effect blocks before retiring their shared producer, while preserving character storage and unrelated textures. Additional tests cover controller/command/name reset, same-address controller reuse, surviving groups and native texture-document recreation. |
+| [165](https://github.com/TheMoonPeople/ChronicleTwo/issues/165) | Menu skins admitted missing body targets. Full party changes also retained an old optional ranged model when its replacement supplied no read; character sound metadata then reused that arena and overwrote the stale frame. Skin loading requires its body target, and all party actor models and chains retire before character storage is repartitioned. | Missing-target menu completion, old ranged-frame address reused for arena-owned sound metadata, and repeated character loading. |
+| [166](https://github.com/TheMoonPeople/ChronicleTwo/issues/166) | Replacing a costume retired resources still referenced by the body; skin profiles also skipped the full-profile `IMG` argument shape and applied non-skin tags. Skin replacement detaches its old producers while their storage is live, then reuses the arena. Rebinding preserves skeleton bind matrices and copies only weighted visual binds. | Repeated bounded-arena costume replacement, full-profile image slots and skeleton bind preservation. |
+| [167](https://github.com/TheMoonPeople/ChronicleTwo/issues/167) | Delayed title, shop and build-up playback retained metadata owned by temporary allocator objects. Title initialization also cleared its read workspace without renewing the global and scene leases, so later music loads received empty storage. Persistent bank owners and renewed read leases keep playback storage live. | Read-workspace renewal and arena-owner lifetime tests; real-data title Start, shop transaction and costume-menu replays require actual sample dispatch, including menu music. |
+| [168](https://github.com/TheMoonPeople/ChronicleTwo/issues/168) | The shared renderer applied game-frame letterbox clipping to host overlays. Host overlay draws use window bounds. | A 1360-by-768 GPU case verifies overlay pixels survive in the side bar while the rest remains black. |
+| [170](https://github.com/TheMoonPeople/ChronicleTwo/issues/170) | Invention initialization treated unallocated parent tails as reserved children. Reserved children allocate their extents first; intentionally overlapping scratch views explicitly share storage. The same distinction applies to the remaining map, Spheda, Georama, preview and debug menu call sites. | Full invention workspace initialization and existing allocation/borrowed-view retirement cases. |
+| [171](https://github.com/TheMoonPeople/ChronicleTwo/issues/171) | Preview failures share the body and costume resource retirement defects above. The full party-menu switch also fetched the old player after repartitioning its arena. Town reloads additionally reset the parent owning both characters and the map, revoking the live map. Effects now drain before actor retirement; a bounded character-prefix child owns reload generations independently of the map tail. | Town and dungeon weapon-status/close/movement replays, retirement of all six chained party actors, and repeated repartitioning of every party layout while a real scene map producer remains live. |
+| [172](https://github.com/TheMoonPeople/ChronicleTwo/issues/172) | Inventory R3 debug entry bound an unallocated model-arena tail as owned storage. Its scratch cursor now explicitly shares the parent's live remaining view. | The actual R3 branch preserves model allocations, handles held-button and reopen behavior, and retires captures when the owner resets. |
+| [173](https://github.com/TheMoonPeople/ChronicleTwo/issues/173) | The upstream source-built Windows bridge was copied by `windows-sdk` before its stage was declared. Compiler, Rust, bridge and SDK stages now follow their dependency order; the bridge is built with the pinned Windows toolchain and crate version. | Six stage-order and version-pin checks cover prior stages, external images, numeric references, heredocs and the reported forward reference. Dependency and Linux workflows run the checks before Docker builds. |
+
+`CT_SANITIZERS=address` instruments the native C++ build, including host libraries, and the independent
+Linux ASan job runs the CPU CTest suite except intentional crash-bundle smoke tests; ordinary platform jobs retain
+GPU and crash-bundle coverage. The compiler runtime is an explicit CI toolchain dependency. Cooperative
+stack switches publish their stack boundaries to ASan; a worker-restart regression exercises context reuse.
+`Sanitizers.Runtime` proves heap overflow, freed-memory and stack overflow detection through the same
+CMake module. Arena lease regressions remain essential because ASan cannot infer the lifetime of a
+suballocation inside a mapped arena. See [PC memory safety](../PC.md#memory-safety) for local commands.
+
+The native game issue-fix checkpoint completes 2,284 enabled Windows CPU cases and 2,274 enabled
+Linux ASan CPU cases with zero failures; each configuration also has one disabled benchmark. Optional
+retail-data tests skip when their inputs are unavailable. The ASan run retains leak detection. Three
+focused Windows GPU cases cover host-overlay and game-frame clipping. Canonical-data Windows replays
+verify the Make screen, both directions of character switching, repeated outfit selection, and delayed
+title, shop and costume-menu sound dispatch. Town and dungeon weapon-preview closure preserve Max;
+party-menu switching preserves Monica and the town geometry after movement. The R3 replay enters the
+debug item grid and returns to a visible Max outdoors. The 16,000-frame opening replay crosses from
+Monica's battle into edit-map event 151, reaches Max in Cedric's workshop, and exits zero. These bounded
+checks do not establish campaign completion. The final Windows executable SHA-256 is
+`8ee1395d5a48a8a9530e0543eb90b376c554ae3df879ea3fb3d94a1d64732ef7`.
+
+For issue 173, the unfixed upstream recipe at `8ff3b52f788618f09bc8c606823ef214968cadee`
+fails the stage-order check at its reported line 190. The corrected recipe passes all six checks. A Linux
+cross-build with the pinned LLVM-MinGW, Rust 1.99.0 and cxxbridge 1.0.205 produces an AMD64 Windows
+executable that runs on Windows and generates the same fixture header as the existing bridge,
+byte-for-byte. The full SDK image export was not rebuilt; validation covers the reported stage ordering
+and the replacement source-built tool.
+
+The extended opening path also exercises event command 469, which accepts an object-sequence index
+and an optional motion-blend step. Its native handler now reads the second argument only when supplied,
+preserving the 0.2 default. Checked-dispatch regressions cover both arities, nonpositive fallback values,
+invalid counts, invalid indices and invalid step types without publishing partial commands. Command 231's
+two-argument rejection is explicitly preserved by the converted script catalog and is unrelated to the
+battle-exit crash.
+
 ## Current modernization checkpoint
 
 The `current-map-construction` source manifest has fingerprint `0be6e49be9ef8a7af54fdb5a104af25b9da15a2134e27bf420ed417abf18320d`. Its Linux normal, Linux ASan/UBSan, and Windows builds compile the game, GoogleTest executable, and data bridge. Each Linux CPU run selects 2,134 cases and reports zero failures and errors, with one disabled case. The Windows CPU run selects 2,140 cases with zero failures and errors, one disabled case, and 21 skips; its executable hash is unchanged during the run. Subsequent scene and monster assignment changes require their own integrated validation; these results do not cover those changes.

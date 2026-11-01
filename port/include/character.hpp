@@ -1267,4 +1267,8 @@ namespace dc2::character {
  * Replaces a semantic resource slot with an explicit live producer dependency.
  */
 [[nodiscard]] bool RetainResource(CCharacter2 &character, ResourceChannel channel, int index, mgCMemory &memory);
+/**
+ * Drops a semantic resource slot's producer dependency before its arena is reset.
+ */
+bool ReleaseResource(CCharacter2 &character, ResourceChannel channel, int index);
 } // namespace dc2::character

@@ -3064,4 +3064,14 @@ bool RetainResource(CCharacter2 &character, ResourceChannel channel, int index, 
     state.producers.push_back({channel, index, dc2::memory::ArenaLifetime::Capture(memory)});
     return PublishResources(character, std::move(state));
 }
+
+bool ReleaseResource(CCharacter2 &character, ResourceChannel channel, int index) {
+    auto previous = character.resource_state.Acquire<ResourceState>();
+    if (!previous) {
+        return false;
+    }
+    auto state = *previous;
+    std::erase_if(state.producers, [&](const auto &entry) { return entry.channel == channel && entry.index == index; });
+    return PublishResources(character, std::move(state));
+}
 } // namespace dc2::character
