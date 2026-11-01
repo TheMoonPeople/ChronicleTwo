@@ -1,10 +1,19 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
+#include <bit>
 #include <cstdlib>
+#include <limits>
+#include <random>
+#include <sstream>
+#include <string>
 #include <vector>
 
+#include "collision.hpp"
 #include "debug_fixture.hpp"
 #include "gamepad.hpp"
+#include "gameutil.hpp"
 #include "nowload.hpp"
 #include "object/menu/loading_screen.hpp"
 #include "platform/config.hpp"
@@ -13,6 +22,44 @@
 #include "test_hooks.hpp"
 
 using GamePadSingleDebug = dc::test::DebugFixture;
+
+TEST(TestHooks, InactiveDungeonStressNeedsNoSceneAndPreservesOrdinaryPreferences) {
+    const auto preferences = ConfigSerialize(ConfigGet());
+    EXPECT_FALSE(dc2::debug::DungeonStressEnabled());
+    EXPECT_FALSE(dc2::debug::DungeonStressCaptureWitnesses());
+    EXPECT_EQ(dc2::debug::DungeonStressPriorityLimit(5), 5);
+    EXPECT_EQ(dc2::debug::DungeonStressPriorityLimit(60), 60);
+    EXPECT_FLOAT_EQ(dc2::debug::DungeonStressProjection(524.0f), 524.0f);
+    {
+        dc2::debug::DungeonStressBodyScope enemy(dc2::debug::DungeonStressEntityKind::Enemy, 3);
+        const auto                         tag = dc2::debug::DungeonStressCurrentBody();
+        EXPECT_EQ(tag.generation, 0U);
+        EXPECT_FALSE(dc2::debug::DungeonStressBodySubmitted(tag));
+        EXPECT_FALSE(dc2::debug::DungeonStressObserveBodyWitness(tag, {0.0f, 0.0f, 0.0f}, 100.0f));
+        {
+            dc2::debug::DungeonStressBodyScope chest(dc2::debug::DungeonStressEntityKind::Chest, 1);
+            EXPECT_EQ(dc2::debug::DungeonStressCurrentBody().generation, 0U);
+        }
+        EXPECT_EQ(dc2::debug::DungeonStressCurrentBody().generation, 0U);
+    }
+    EXPECT_EQ(dc2::debug::DungeonStressCurrentBody().generation, 0U);
+    EXPECT_FALSE(dc2::debug::DungeonStressPlaceMonsters());
+    dc2::debug::DungeonStressAfterTreasures();
+    EXPECT_EQ(ConfigSerialize(ConfigGet()), preferences);
+}
+
+TEST(TestHooks, BossReadinessRejectsSurvivingMinionsAndRetiredBosses) {
+    EXPECT_FALSE(dc2::debug::CombatBossActorReady(-1, 100, true, false));
+    EXPECT_FALSE(dc2::debug::CombatBossActorReady(-1, 100, false, true));
+    EXPECT_TRUE(dc2::debug::CombatBossActorReady(-1, 100, true, true));
+    for (const int expected_monster : {517, 512, 511, 613}) {
+        SCOPED_TRACE(expected_monster);
+        EXPECT_TRUE(dc2::debug::CombatBossActorReady(expected_monster, expected_monster, true, false));
+        EXPECT_TRUE(dc2::debug::CombatBossActorReady(expected_monster, expected_monster, true, true));
+        EXPECT_FALSE(dc2::debug::CombatBossActorReady(expected_monster, expected_monster, false, true));
+        EXPECT_FALSE(dc2::debug::CombatBossActorReady(expected_monster, expected_monster + 1, true, true));
+    }
+}
 
 TEST(TestHooks, JumpAcceptsModesAndBounds) {
     GameJump jump;
@@ -35,6 +82,37 @@ TEST(TestHooks, JumpAcceptsModesAndBounds) {
         SCOPED_TRACE(bad);
         EXPECT_FALSE(GameParseJump(bad, jump));
     }
+}
+
+TEST(TestHooks, CombatFloorClassificationRequiresCompleteRetailBossRows) {
+    const std::array<std::array<int, 3>, 24> combat_events{
+        {{21010, 1, 4}, {21020, 1, 7}, {22030, 2, 15}, {23020, 3, 18}, {23030, 3, 23}, {24010, 4, 9}, {24020, 4, 20}, {25010, 5, 16}, {25020, 5, 22}, {25030, 5, 22}, {26010, 2, 12}, {26020, 3, 15}, {26030, 4, 14}, {26040, 5, 8}, {26050, 6, 0}, {27010, 6, 27}, {27020, 6, 27}, {27030, 6, 27}, {27040, 6, 27}, {27050, 6, 27}, {27060, 6, 27}, {27070, 6, 27}, {28010, 7, 27}, {28020, 7, 38}}
+    };
+    std::ostringstream rows;
+    for (const auto &entry : combat_events) {
+        rows << '\t' << entry[1] << '\t' << entry[2] << '\t' << entry[0] << "\t\t\t\tcombat\tB\r\n";
+    }
+    rows << "s03\t\t\t22010\t\t\t\tsubgame\tB\r\n"
+            "\t2\t6\t22020\t\t\t\tfishing\tB\r\n"
+            "\t\t\t23010\t\t\t\tspheda\tB\r\n";
+    const auto table = rows.str();
+    for (const auto &entry : combat_events) {
+        EXPECT_EQ(dc2::debug::CombatDungeonFloor(table, entry[1] - 1, entry[2]), std::optional{true}) << entry[0];
+    }
+    const std::array<std::array<int, 2>, 7> noncombat{
+        {{0, 1}, {1, 6}, {2, 8}, {2, 24}, {5, 11}, {5, 21}, {6, 5}}
+    };
+    for (const auto &entry : noncombat) {
+        EXPECT_EQ(dc2::debug::CombatDungeonFloor(table, entry[0], entry[1]), std::optional{false});
+    }
+    EXPECT_FALSE(dc2::debug::CombatDungeonFloor("", 0, 4).has_value());
+    EXPECT_FALSE(dc2::debug::CombatDungeonFloor(table.substr(0, table.find('\n') + 1), 0, 4).has_value());
+    EXPECT_FALSE(dc2::debug::CombatDungeonFloor(table + table.substr(0, table.find('\n') + 1), 0, 4).has_value());
+    auto malformed = table;
+    malformed.replace(malformed.find("21010"), 5, "oops!");
+    EXPECT_FALSE(dc2::debug::CombatDungeonFloor(malformed, 0, 4).has_value());
+    GameJump jump;
+    EXPECT_FALSE(GameParseJump("dungeon:5:0", jump));
 }
 
 TEST(TestHooks, GiveRejectsMalformedListsWithoutChangingThePreviousList) {
@@ -213,4 +291,86 @@ TEST_F(GamePadSingleDebug, ExplicitPauseChordEntersAndResumesWithoutLeakingModif
     pad.key_lock = 1;
     EXPECT_FALSE(GameDebugPauseRequested(pad));
     EXPECT_FALSE(GameDebugPauseResumeRequested(pad));
+}
+
+namespace {
+/**
+ * Creates a finite native test surface with distinguishable collision metadata.
+ */
+CCPoly StressTestTriangle(float z, unsigned short identity) {
+    CCPoly                                    poly{};
+    const std::array<std::array<float, 4>, 3> vertices{
+        {{-10, -10, z, 1}, {10, -10, z, 1}, {0, 10, z, 1}}
+    };
+    for (std::size_t index = 0; index < vertices.size(); ++index) {
+        std::ranges::copy(vertices[index], poly.vertex[index]);
+    }
+    poly.normal[2] = 1;
+    poly.parts_no = identity;
+    return poly;
+}
+
+/**
+ * Compares native hit identity and coordinates after stable cached broadphase filtering.
+ */
+void ExpectStressRayParity(std::vector<CCPoly> &polygons, std::array<float, 4> from, std::array<float, 4> to, int nearest = 1, int mask = 0) {
+    std::vector<dc2::debug::DungeonStressRayBounds> bounds;
+    std::vector<CCPoly>                             candidates;
+    dc2::debug::DungeonStressPrepareRayBounds(polygons, bounds);
+    dc2::debug::DungeonStressSelectRayCandidates(polygons, bounds, from, to, candidates);
+    std::array<float, 4> reference_hit{}, filtered_hit{};
+    const int            reference = CheckHit(polygons.data(), static_cast<int>(polygons.size()), from.data(), to.data(), reference_hit.data(), nearest, mask);
+    const int            filtered = CheckHit(candidates.data(), static_cast<int>(candidates.size()), from.data(), to.data(), filtered_hit.data(), nearest, mask);
+    ASSERT_EQ(reference >= 0, filtered >= 0);
+    if (reference >= 0 && filtered >= 0) {
+        EXPECT_EQ(polygons[static_cast<std::size_t>(reference)].parts_no, candidates[static_cast<std::size_t>(filtered)].parts_no);
+        for (std::size_t axis = 0; axis < 3; ++axis) {
+            EXPECT_EQ(std::bit_cast<std::uint32_t>(reference_hit[axis]), std::bit_cast<std::uint32_t>(filtered_hit[axis]));
+        }
+    }
+}
+} // namespace
+
+TEST(DungeonStressRayCache, MatchesNativeHitsMissesEndpointsAndTieOrder) {
+    std::vector polygons{StressTestTriangle(7, 1), StressTestTriangle(3, 2), StressTestTriangle(3, 3)};
+    for (int nearest : {0, 1}) {
+        ExpectStressRayParity(polygons, {0, 0, 0, 1}, {0, 0, 10, 1}, nearest);
+        ExpectStressRayParity(polygons, {0, 0, 10, 1}, {0, 0, 0, 1}, nearest);
+        ExpectStressRayParity(polygons, {-10, -10, 0, 1}, {-10, -10, 3, 1}, nearest);
+        ExpectStressRayParity(polygons, {20, 20, 0, 1}, {20, 20, 10, 1}, nearest);
+        ExpectStressRayParity(polygons, {0, 0, 3, 1}, {0, 0, 3, 1}, nearest);
+    }
+    polygons[1].ignore_mask = 1;
+    ExpectStressRayParity(polygons, {0, 0, 0, 1}, {0, 0, 10, 1}, 1, 1);
+}
+
+TEST(DungeonStressRayCache, MatchesDeterministicNativeSegmentsAndChangedSnapshots) {
+    std::vector                           polygons{StressTestTriangle(7, 1), StressTestTriangle(3, 2), StressTestTriangle(5, 3)};
+    std::mt19937                          random(1);
+    std::uniform_real_distribution<float> coordinate(-20, 20);
+    for (int index = 0; index < 256; ++index) {
+        ExpectStressRayParity(polygons, {coordinate(random), coordinate(random), -5, 1}, {coordinate(random), coordinate(random), 15, 1});
+    }
+    for (auto &vertex : polygons[0].vertex) {
+        vertex[0] += 50;
+    }
+    ExpectStressRayParity(polygons, {50, 0, 0, 1}, {50, 0, 10, 1});
+    polygons.clear();
+    ExpectStressRayParity(polygons, {0, 0, 0, 1}, {0, 0, 10, 1});
+}
+
+TEST(DungeonStressRayCache, KeepsNonfiniteInputsAndInvalidCachesConservative) {
+    std::vector polygons{StressTestTriangle(3, 1), StressTestTriangle(5, 2)};
+    polygons[1].vertex[0][0] = std::numeric_limits<float>::quiet_NaN();
+    std::vector<dc2::debug::DungeonStressRayBounds> bounds;
+    std::vector<CCPoly>                             candidates;
+    dc2::debug::DungeonStressPrepareRayBounds(polygons, bounds);
+    dc2::debug::DungeonStressSelectRayCandidates(polygons, bounds, {100, 100, 0, 1}, {100, 100, 10, 1}, candidates);
+    ASSERT_EQ(candidates.size(), 1);
+    EXPECT_EQ(candidates[0].parts_no, 2);
+    dc2::debug::DungeonStressSelectRayCandidates(polygons, bounds, {0, 0, 0, 1}, {std::numeric_limits<float>::infinity(), 0, 10, 1}, candidates);
+    EXPECT_EQ(candidates.size(), polygons.size());
+    bounds.clear();
+    dc2::debug::DungeonStressSelectRayCandidates(polygons, bounds, {100, 100, 0, 1}, {100, 100, 10, 1}, candidates);
+    EXPECT_EQ(candidates.size(), polygons.size());
 }

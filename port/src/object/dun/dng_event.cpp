@@ -61,6 +61,7 @@
 #include "scriptinterpreter.hpp"
 #include "snd_mngr.hpp"
 #include "snd_seseq.hpp"
+#include "test_hooks.hpp"
 #include "text/bounded.hpp"
 #include "userdata.hpp"
 #include "water.hpp"
@@ -627,6 +628,7 @@ void CTreasureBox::Draw(float *view_pos) {
             this->model->SetPosition(position);
             this->model->SetRotation(rotation);
             this->model->DrawDirect();
+            dc2::debug::DungeonStressBodyBounds(this->model->CObjectFrame::frame);
         }
     }
 }
@@ -762,6 +764,7 @@ void CTreasureBoxManager::Draw(float *view_pos) {
         slot = &this->box[i];
 
         if (slot->state != TREASURE_BOX_STATE_NONE) {
+            dc2::debug::DungeonStressBodyScope body(dc2::debug::DungeonStressEntityKind::Chest, i);
             slot->Draw(view_pos);
         }
 
@@ -1790,11 +1793,15 @@ void AutoSetTreasureBox() {
             }
         }
     }
+    dc2::debug::DungeonStressAfterTreasures();
 }
 
 void CreatMonsterFloorInfo(char *script, int length);
 
 void AutoSetMonster() {
+    if (dc2::debug::DungeonStressPlaceMonsters()) {
+        return;
+    }
     float           event_point[4];
     float           position[4];
     float           direction[4];

@@ -13,6 +13,7 @@
 #include "mg_texture.hpp"
 #include "mg_visual.hpp"
 #include "mglib.hpp"
+#include "profile.hpp"
 #include "visualmotion.hpp"
 
 void mgCVisualMotionMDT::Initialize() {
@@ -648,6 +649,7 @@ int mgCVisualMotionMDT::CreateFaceMotionPacket(u_int * /*packet*/, mgCFace *face
 
 int mgCVisualMotionMDT::CreateExtRenderInfoPacket(u_int * /*packet*/, float (*matrix)[4],
                                                   mgRENDER_INFO * /*info*/) {
+    CT_PROFILE_ZONE("Create native motion packet");
     if (model_assets::ApplySkin(*this, matrix)) {
         return 0;
     }

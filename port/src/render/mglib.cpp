@@ -861,21 +861,21 @@ bool frame_open = false;
 bool gfx_open = false;
 bool recording = false;
 // Destination alpha occupies one stencil bit until frame reset or shadow rendering.
-constexpr uint8_t       kDestAlphaBit = 0x80;
-bool                    dest_alpha_valid = false;
-bool                    dest_alpha_write = false;
-bool                    cut_next_tick = true;
-bool                    cut_camera_next_tick = true;
-unsigned long long      camera_generation = 0;
-gfx::DisplayListRef     last_list;
-gfx::DisplayListRef     previous_list;
-int                     frame_count = 0;
-int                     exit_frames = 0;
+constexpr uint8_t   kDestAlphaBit = 0x80;
+bool                dest_alpha_valid = false;
+bool                dest_alpha_write = false;
+bool                cut_next_tick = true;
+bool                cut_camera_next_tick = true;
+unsigned long long  camera_generation = 0;
+gfx::DisplayListRef last_list;
+gfx::DisplayListRef previous_list;
+int                 frame_count = 0;
+int                 exit_frames = 0;
 // When the game thread's current tick began: the end of its wait for the previous tick.
 std::chrono::steady_clock::time_point tick_start = std::chrono::steady_clock::now();
-std::filesystem::path   screenshot_path;
-mgPortScreenshotOptions screenshot_options;
-int                     store_count = 0;
+std::filesystem::path                 screenshot_path;
+mgPortScreenshotOptions               screenshot_options;
+int                                   store_count = 0;
 // Ticks that cleared the bars since a switch to letterboxing was asked for; -1 when none waits.
 int letterbox_clears = -1;
 
@@ -2298,8 +2298,10 @@ void mgEndFrame(mgCDrawManager *manager) {
             if (queue_render) {
                 queued_render = [render = last_list, publish = PresentPrepareTick(old_vcount, mgFrameRate, true)] {
                     CT_PROFILE_ZONE("Canonical scene render");
-                    dc2::presentation::BeforeCanonical();
-                    gfx::RenderList(*render, 1.0f, gfx::RenderOptions{.canonical = true});
+                    if (!dc2::presentation::TryRenderCanonicalBeforeEndpoint(*render)) {
+                        dc2::presentation::BeforeCanonical();
+                        gfx::RenderList(*render, 1.0f, gfx::RenderOptions{.canonical = true});
+                    }
                     if (publish) {
                         publish();
                     }

@@ -52,6 +52,8 @@ protected:
     void SetUp() override {
         static char key;
         buffer_ = reinterpret_cast<u_long128 *>(ArenaBlock(&key, kBytes));
+        // Each fixture reacquires the complete backing before initializing its contents.
+        dc2::memory::UnpoisonArenaBytes(buffer_, kBytes);
         std::memset(buffer_, 0, kBytes);
     }
 

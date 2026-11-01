@@ -4,9 +4,14 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
+#include <bit>
+#include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <limits>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -34,6 +39,22 @@ using dc::vu1::SdwPrismTriangle;
 using dc::vu1::Vec4;
 
 namespace {
+
+/**
+ * Restores the calling thread's shadow transform policy after a comparison render.
+ */
+class ShadowTransformScope {
+    dc2::render::ShadowTransformMode previous;
+
+public:
+    explicit ShadowTransformScope(dc2::render::ShadowTransformMode mode)
+        : previous(dc2::render::SetShadowTransformMode(mode)) {}
+
+    ~ShadowTransformScope() { dc2::render::SetShadowTransformMode(previous); }
+
+    ShadowTransformScope(const ShadowTransformScope &) = delete;
+    ShadowTransformScope &operator=(const ShadowTransformScope &) = delete;
+};
 
 class PresentRenderer {
 public:
@@ -158,11 +179,11 @@ struct Pixels {
     }
 };
 
-Pixels RenderGroundUnder(const std::vector<Caster> &casters) {
+Pixels RenderGroundUnder(const std::vector<Caster> &casters, float animation = 0) {
     const float kEyeDistance = 512.0f;
     const float kNear = 10.0f;
     const float kFar = 1000.0f;
-    mgSetRenderInfo(kEyeDistance, kNear, kFar);
+    mgSetRenderInfo(kEyeDistance * (1.0f + animation * 0.08f), kNear, kFar);
 
     float view[4][4] = {
         {1.0f, 0.0f, 0.0f, 0.0f},
@@ -170,6 +191,8 @@ Pixels RenderGroundUnder(const std::vector<Caster> &casters) {
         {0.0f, 0.0f, 1.0f, 0.0f},
         {0.0f, 0.0f, 0.0f, 1.0f}
     };
+    view[3][0] = animation * 4.0f;
+    view[3][1] = animation * 3.0f;
     float origin[3] = {0.0f, 0.0f, 0.0f};
     mgSetViewMatrix(view, origin);
 
@@ -225,7 +248,7 @@ Pixels RenderGroundUnder(const std::vector<Caster> &casters) {
     shadow_texture.tex0.PSM = SCE_GS_PSMCT32;
     mgBeginDrawShadow(&shadow_texture, nullptr);
 
-    float light[3] = {0.0f, 0.0f, 1.0f};
+    float light[3] = {animation * 0.05f, animation * 0.025f, 1.0f};
     float plane_pos[3] = {0.0f, 0.0f, plane_z};
     float plane_normal[3] = {0.0f, 0.0f, -1.0f};
     mgSetDropShadowMatrix(light, plane_pos, plane_normal);
@@ -236,6 +259,11 @@ Pixels RenderGroundUnder(const std::vector<Caster> &casters) {
         {0.0f, 0.0f, 1.0f, 0.0f},
         {0.0f, 0.0f, 0.0f, 1.0f}
     };
+    const float angle = animation * 0.1f;
+    identity[0][0] = identity[1][1] = std::cos(angle);
+    identity[0][1] = std::sin(angle);
+    identity[1][0] = animation == 0 ? 0.0f : -std::sin(angle);
+    identity[3][0] = animation * footprint_half * 0.15f;
     for (const Caster &c : casters) {
         const float   centre = c.centre * footprint_half;
         const float   half = c.half * footprint_half;
@@ -438,12 +466,57 @@ struct ShadowMeshFixture {
         visual.face_group = &group;
     }
 
-    void Build() {
+    void Build(const mgPortProjection &projection = TestProjection()) {
         face.index = corners.data();
         face.vertex_num = static_cast<short>(corners.size() / 3);
-        mgShadowPortBuildMesh(visual, model, info, TestProjection(), vertices, indices);
+        mgShadowPortBuildMesh(visual, model, info, projection, vertices, indices);
     }
 };
+
+dc2::render::ShadowMeshStats ExpectMemoMatchesReference(ShadowMeshFixture      &mesh,
+                                                        const mgPortProjection &projection = TestProjection(),
+                                                        bool                    nonempty = true) {
+    using Mode = dc2::render::ShadowTransformMode;
+    const auto before_reference = dc2::render::GetShadowMeshStats();
+    {
+        ShadowTransformScope mode(Mode::Reference);
+        mesh.Build(projection);
+    }
+    const auto after_reference = dc2::render::GetShadowMeshStats();
+    const auto reference_vertices = mesh.vertices;
+    const auto reference_indices = mesh.indices;
+    if (nonempty) {
+        EXPECT_FALSE(reference_vertices.empty());
+        EXPECT_FALSE(reference_indices.empty());
+    }
+    {
+        ShadowTransformScope mode(Mode::Memoized);
+        mesh.Build(projection);
+    }
+    const auto after_memo = dc2::render::GetShadowMeshStats();
+    EXPECT_EQ(after_reference.draws - before_reference.draws, 1u);
+    EXPECT_EQ(after_reference.reference_draws - before_reference.reference_draws, 1u);
+    EXPECT_LE(after_reference.transformed_positions - before_reference.transformed_positions,
+              after_reference.source_corners - before_reference.source_corners);
+    EXPECT_EQ(after_memo.draws - after_reference.draws, 1u);
+    EXPECT_EQ(after_memo.memoized_draws - after_reference.memoized_draws, 1u);
+    EXPECT_LE(after_memo.transformed_positions - after_reference.transformed_positions,
+              after_memo.source_corners - after_reference.source_corners);
+    EXPECT_EQ(mesh.indices, reference_indices);
+    EXPECT_EQ(mesh.vertices.size(), reference_vertices.size());
+    if (mesh.vertices.size() == reference_vertices.size() && !mesh.vertices.empty()) {
+        EXPECT_EQ(std::memcmp(mesh.vertices.data(), reference_vertices.data(),
+                              mesh.vertices.size() * sizeof(gfx::Vertex3D)),
+                  0);
+    }
+    return {.draws = after_memo.draws - after_reference.draws,
+            .memoized_draws = after_memo.memoized_draws - after_reference.memoized_draws,
+            .reference_draws = after_memo.reference_draws - after_reference.reference_draws,
+            .source_corners = after_memo.source_corners - after_reference.source_corners,
+            .transformed_positions = after_memo.transformed_positions - after_reference.transformed_positions,
+            .topology_hits = after_memo.topology_hits - after_reference.topology_hits,
+            .topology_rebuilds = after_memo.topology_rebuilds - after_reference.topology_rebuilds};
+}
 
 } // namespace
 
@@ -487,4 +560,208 @@ TEST(MgShadowMesh, RetainsTheSideBesideAClippedTriangle) {
     mesh.Build();
     EXPECT_TRUE(mesh.vertices.empty());
     EXPECT_TRUE(mesh.indices.empty());
+}
+
+TEST(MgShadowMesh, MemoizedTransformsMatchReferenceAcrossSeamsWindingAndAmbiguousEdges) {
+    ShadowMeshFixture mesh;
+    const auto        stats = ExpectMemoMatchesReference(mesh);
+    EXPECT_EQ(stats.source_corners, 6u);
+    EXPECT_EQ(stats.transformed_positions, 4u);
+    EXPECT_EQ(stats.topology_hits, 1u);
+    for (const std::vector<int> &corners : {
+             std::vector{0, 1, 2, 4, 5, 3},
+             std::vector{2, 1, 0, 3, 2, 0},
+             std::vector{0, 1, 2, 0, 1, 2},
+             std::vector{0, 1, 2, 0, 2, 3, 0, 2, 3}
+    }) {
+        mesh.corners = corners;
+        ExpectMemoMatchesReference(mesh);
+    }
+
+    const sceVu0FVECTOR zero_points[6] = {
+        {0.0f,  -1, 100, 1},
+        {1,     1,  100, 1},
+        {-1,    1,  100, 1},
+        {-0.0f, -1, 100, 1},
+        {1,     1,  100, 1},
+        {-1,    1,  100, 1},
+    };
+    std::memcpy(mesh.points, zero_points, sizeof zero_points);
+    mesh.corners = {0, 1, 2, 3, 4, 5};
+    const auto zero_stats = ExpectMemoMatchesReference(mesh);
+    EXPECT_EQ(zero_stats.source_corners, 6u);
+    EXPECT_EQ(zero_stats.transformed_positions, 4u); // Raw signed zeros remain distinct transform keys.
+}
+
+TEST(MgShadowMesh, MemoizedTransformsMatchReferenceAtClippingAndNonfiniteBoundaries) {
+    for (int scenario = 0; scenario < 7; ++scenario) {
+        SCOPED_TRACE(scenario);
+        ShadowMeshFixture mesh;
+        if (scenario == 0) {
+            mesh.points[3][2] = 1;
+        } else if (scenario == 1) {
+            mesh.points[3][2] = 1200;
+        } else if (scenario == 2) {
+            mesh.points[3][0] = 5000;
+        } else if (scenario == 3) {
+            mesh.points[3][1] = 5000;
+        } else if (scenario == 4) {
+            mesh.points[0][0] = std::numeric_limits<float>::quiet_NaN();
+        } else if (scenario == 5) {
+            mesh.points[0][1] = std::numeric_limits<float>::infinity();
+        } else {
+            mesh.corners = {0, 0, 0};
+        }
+        ExpectMemoMatchesReference(mesh, TestProjection(), scenario < 4);
+        if (scenario >= 4) {
+            EXPECT_TRUE(mesh.vertices.empty());
+            EXPECT_TRUE(mesh.indices.empty());
+        }
+    }
+    for (float z : {10.0f, 1000.0f}) {
+        ShadowMeshFixture mesh;
+        for (auto &point : mesh.points) {
+            point[2] = z;
+        }
+        ExpectMemoMatchesReference(mesh);
+    }
+}
+
+TEST(MgShadowMesh, RepeatedRawZeroAndNanVariantsPreserveReferenceBytesAndIndices) {
+    for (bool negative_first : {false, true}) {
+        ShadowMeshFixture   mesh;
+        const float         first = negative_first ? -0.0f : 0.0f;
+        const float         second = negative_first ? 0.0f : -0.0f;
+        const sceVu0FVECTOR points[6] = {
+            {first,  -1,     100, 1},
+            {1,      first,  100, 1},
+            {-1,     first,  101, 1},
+            {second, -1,     100, 1},
+            {1,      second, 100, 1},
+            {-1,     second, 101, 1},
+        };
+        std::memcpy(mesh.points, points, sizeof points);
+        mesh.corners = {0, 1, 2, 3, 4, 5, 3, 4, 5, 0, 1, 2};
+        const auto stats = ExpectMemoMatchesReference(mesh);
+        EXPECT_EQ(stats.source_corners, 12u);
+        EXPECT_GE(stats.transformed_positions, 6u);
+        EXPECT_LT(stats.transformed_positions, stats.source_corners);
+    }
+    for (std::uint32_t variant : {0x7fc00002u, 0xffc00001u}) {
+        ShadowMeshFixture mesh;
+        mesh.points[3][0] = std::bit_cast<float>(0x7fc00001u);
+        mesh.points[4][0] = std::bit_cast<float>(variant);
+        mesh.points[5][0] = std::bit_cast<float>(0x7fc00001u);
+        for (std::size_t index = 3; index < 6; ++index) {
+            mesh.points[index][1] = -1;
+            mesh.points[index][2] = 100;
+        }
+        mesh.corners = {0, 1, 2, 3, 1, 2, 4, 1, 2, 5, 1, 2, 4, 1, 2, 0, 1, 2};
+        const auto stats = ExpectMemoMatchesReference(mesh);
+        EXPECT_GE(stats.transformed_positions, 5u);
+        EXPECT_LT(stats.transformed_positions, stats.source_corners);
+    }
+}
+
+TEST(MgShadowMesh, MemoizedPositionsKeepEachTrianglesFirstCornerDepthBias) {
+    ShadowMeshFixture mesh;
+    mesh.points[1][2] = 200;
+    mesh.points[3][2] = 300;
+    mesh.info.shadow[2][2] = 0.25f;
+    mesh.corners = {0, 1, 2, 3, 2, 1};
+    sceVu0FVECTOR first_drop{};
+    sceVu0FVECTOR second_drop{};
+    sceVu0ApplyMatrix(first_drop, mesh.info.shadow, mesh.points[mesh.corners[0]]);
+    sceVu0ApplyMatrix(second_drop, mesh.info.shadow, mesh.points[mesh.corners[3]]);
+    ASSERT_NE(first_drop[2], second_drop[2]);
+    const auto stats = ExpectMemoMatchesReference(mesh);
+    EXPECT_LT(stats.transformed_positions, stats.source_corners);
+    mesh.corners = {1, 2, 0, 2, 1, 3};
+    ExpectMemoMatchesReference(mesh);
+    mesh.info.shadow_light_dir[2] = 1;
+    ExpectMemoMatchesReference(mesh);
+}
+
+TEST(MgShadowMesh, MemoizedTransformsRefreshInPlaceMutationsAndReusedVisualStorage) {
+    std::optional<ShadowMeshFixture> mesh(std::in_place);
+    const auto                      *visual_address = &mesh->visual;
+    const auto                      *vertex_address = mesh->visual.vertex;
+    auto                            *index_address = mesh->corners.data();
+    ExpectMemoMatchesReference(*mesh);
+    mesh->points[0][0] -= 0.25f;
+    EXPECT_EQ(mesh->visual.vertex, vertex_address);
+    ExpectMemoMatchesReference(*mesh);
+    mesh->corners[0] = 1;
+    mesh->corners[1] = 2;
+    mesh->corners[2] = 0;
+    EXPECT_EQ(mesh->corners.data(), index_address);
+    ExpectMemoMatchesReference(*mesh);
+
+    mesh.reset();
+    mesh.emplace();
+    EXPECT_EQ(&mesh->visual, visual_address);
+    mesh->points[0][2] = 250;
+    mesh->corners = {2, 1, 0, 3, 2, 0};
+    ExpectMemoMatchesReference(*mesh);
+}
+
+TEST(MgShadowMesh, MemoizedTransformsUseCurrentModelViewShadowLightAndProjectionPerDraw) {
+    ShadowMeshFixture mesh;
+    ExpectMemoMatchesReference(mesh);
+    mesh.model[3][0] = 3;
+    ExpectMemoMatchesReference(mesh);
+    mesh.info.view[3][1] = 2;
+    mesh.info.view[0][0] = mesh.info.view[1][1] = std::cos(0.25f);
+    mesh.info.view[0][1] = std::sin(0.25f);
+    mesh.info.view[1][0] = -std::sin(0.25f);
+    ExpectMemoMatchesReference(mesh);
+    mesh.info.shadow[3][0] = 0.75f;
+    ExpectMemoMatchesReference(mesh);
+    mesh.info.shadow_light_dir[0] = 0.25f;
+    ExpectMemoMatchesReference(mesh);
+
+    auto projection = TestProjection();
+    projection.eye *= 10000;
+    ExpectMemoMatchesReference(mesh, projection, false);
+    EXPECT_TRUE(mesh.indices.empty());
+    projection = TestProjection();
+    projection.near_z = 75;
+    ExpectMemoMatchesReference(mesh, projection, false);
+    EXPECT_TRUE(mesh.indices.empty());
+    projection = TestProjection();
+    projection.far_z = 60;
+    ExpectMemoMatchesReference(mesh, projection, false);
+    EXPECT_TRUE(mesh.indices.empty());
+    ExpectMemoMatchesReference(mesh);
+}
+
+TEST(MgShadow, MemoizedTransformsMatchReferenceRgbaAcrossAnimatedFrames) {
+    PresentRenderer renderer(640, 480);
+    for (float animation : {0.0f, 0.5f, -0.5f, 1.0f, -1.0f, 0.25f}) {
+        SCOPED_TRACE(animation);
+        const std::vector<Caster> casters{
+            {.centre = -0.35f + animation * 0.1f, .top = 0.45f + animation * 0.03f, .half = 1    },
+            {.centre = 0.7f - animation * 0.1f,   .top = 0.6f,                      .half = 0.75f},
+            {.centre = -2,                        .top = -0.2f,                     .half = 0.3f },
+        };
+        Pixels reference;
+        Pixels memoized;
+        {
+            ShadowTransformScope mode(dc2::render::ShadowTransformMode::Reference);
+            reference = RenderGroundUnder(casters, animation);
+        }
+        const auto before = dc2::render::GetShadowMeshStats();
+        {
+            ShadowTransformScope mode(dc2::render::ShadowTransformMode::Memoized);
+            memoized = RenderGroundUnder(casters, animation);
+        }
+        const auto after = dc2::render::GetShadowMeshStats();
+        EXPECT_EQ(after.memoized_draws - before.memoized_draws, casters.size());
+        EXPECT_LT(after.transformed_positions - before.transformed_positions,
+                  after.source_corners - before.source_corners);
+        ASSERT_EQ(memoized.width, reference.width);
+        ASSERT_EQ(memoized.height, reference.height);
+        EXPECT_EQ(memoized.rgba, reference.rgba);
+        EXPECT_LT(memoized.At(256, 240)[0] + 30, memoized.At(50, 50)[0]);
+    }
 }

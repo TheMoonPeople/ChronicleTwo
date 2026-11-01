@@ -3563,6 +3563,7 @@ bool LoadSkin(CCharacter2 &character, std::span<const std::byte> gltf, const Jso
 }
 
 bool ApplySkin(mgCVisualMotionMDT &visual, float (*matrix)[4]) {
+    CT_PROFILE_ZONE("Apply native skin packet");
     const auto found = inverse_binds.find(visual.weight);
     // The binds hold only in the hierarchy the skin was loaded with. A visual attached to another character's frames,
     // such as a costume piece, skins from that character's base matrices instead.

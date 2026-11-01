@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <barrier>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -14,6 +15,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "assets/data_registry.hpp"
@@ -1449,6 +1451,40 @@ TEST_P(SaveSlotImportTest, ArchiveMoveFailureRescansConvergeWithoutExtraCopies) 
     EXPECT_FALSE(fs::exists(Legacy(card, 0).parent_path()));
     fs::remove(flat); // User deletion cannot re-import an archived entry.
     EXPECT_EQ(SaveSlotScan().saves.size(), collision ? 1 : 0);
+}
+
+TEST_F(SaveSlotTest, ConcurrentDistinctFileWritesPreserveEveryPayloadAndUnrelatedFile) {
+    constexpr std::size_t writer_count = 8;
+    constexpr std::size_t writes_per_thread = 8;
+    const auto            directory = root / "concurrent-files";
+    fs::create_directories(directory);
+    const auto sentinel = directory / "unrelated.tmp";
+    WriteText(sentinel, "preserve unrelated file");
+    std::vector<FilesResult>  results(writer_count * writes_per_thread, FilesResult::kFailed);
+    std::barrier              start{static_cast<std::ptrdiff_t>(writer_count)};
+    std::vector<std::jthread> writers;
+    writers.reserve(writer_count);
+    for (std::size_t writer = 0; writer < writer_count; ++writer) {
+        writers.emplace_back([&, writer] {
+            start.arrive_and_wait();
+            for (std::size_t index = 0; index < writes_per_thread; ++index) {
+                const auto id = writer * writes_per_thread + index;
+                const auto payload = "payload-" + std::to_string(id);
+                results[id] = FilesWrite(directory / (std::to_string(id) + ".bin"), payload.data(), payload.size(), false);
+            }
+        });
+    }
+    writers.clear();
+    for (std::size_t id = 0; id < results.size(); ++id) {
+        SCOPED_TRACE(id);
+        ASSERT_EQ(results[id], FilesResult::kWritten);
+        const auto expected = "payload-" + std::to_string(id);
+        EXPECT_EQ(Bytes(directory / (std::to_string(id) + ".bin")), (std::vector<char>{expected.begin(), expected.end()}));
+    }
+    const std::string expected_sentinel = "preserve unrelated file";
+    EXPECT_EQ(Bytes(sentinel), (std::vector<char>{expected_sentinel.begin(), expected_sentinel.end()}));
+    EXPECT_EQ(static_cast<std::size_t>(std::distance(fs::directory_iterator{directory}, fs::directory_iterator{})),
+              results.size() + 1);
 }
 
 TEST_F(SaveSlotTest, PublishedCopySurvivesReportedSyncFailureAndRecovery) {

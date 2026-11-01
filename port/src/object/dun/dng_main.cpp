@@ -60,6 +60,7 @@
 #include "photo.hpp"
 #include "pot.hpp"
 #include "prespr.hpp"
+#include "profile.hpp"
 #include "quest.hpp"
 #include "savedata.hpp"
 #include "savedatadungeon.hpp"
@@ -71,6 +72,7 @@
 #include "sphida.hpp"
 #include "subgame.hpp"
 #include "sysmes.hpp"
+#include "test_hooks.hpp"
 #include "text/bounded.hpp"
 #include "userdata.hpp"
 #include "water.hpp"
@@ -982,6 +984,7 @@ int LoopDungeonMain() {
     if (auto *floor_map = dc2::dungeon::MainMap().Get(); floor_map != nullptr) {
         floor_map->GetLightInfo(&light);
         float projection = light.projection + PhotoAddProjection();
+        projection = dc2::debug::DungeonStressProjection(projection);
 
         mgSetRenderInfo(projection, 5.0f, 50000.0f);
     }
@@ -1163,6 +1166,7 @@ int LoopDungeonMain() {
 }
 
 void DngMainDraw() {
+    CT_PROFILE_ZONE("Dungeon draw recording");
     mgCTextureManager *tex_man = &mgTexManager;
     SV_CONFIG_OPTION  *config = {};
     sceVu0FVECTOR      cam_pos;
@@ -1174,6 +1178,7 @@ void DngMainDraw() {
     mgCCamera    *camera = DngMainScene->GetCamera(DngMainScene->active_camera);
 
     camera->Step(1);
+    dc2::debug::DungeonStressCamera(*camera);
     camera->GetCameraMatrix(view_mat);
     camera->GetPos(cam_pos);
     camera->GetRef(cam_ref);
@@ -1767,6 +1772,7 @@ void DngMainDraw() {
 }
 
 void DngStep() {
+    CT_PROFILE_ZONE("Dungeon update");
     SV_CONFIG_OPTION *config = &DngSaveData->config;
     DNG_BATTLE_AREA  *area = {};
     sceVu0FVECTOR     wind;

@@ -99,6 +99,11 @@ public:
     [[nodiscard]] bool Finished() const { return phase == Phase::Done; }
 
     /**
+     * Whether a successfully presented intermediate still needs its authored endpoint.
+     */
+    [[nodiscard]] bool PendingEndpoint() const { return phase == Phase::Endpoint; }
+
+    /**
      * Retires an obsolete frame without accumulating presentation debt.
      */
     void Cancel() { phase = Phase::Done; }
@@ -122,6 +127,39 @@ public:
     }
 
     /**
+     * Uses native pacing to admit a validated current source's intermediate once.
+     */
+    [[nodiscard]] Decision NextIdle(Clock::time_point now, Clock::time_point frame_end, double max_fps,
+                                    const PresentPacer &pacer, bool gate_active) const {
+        const bool native_gate = NativeGatePaces(max_fps, gate_active);
+        // The caller validates image lifetime independently of the simulation deadline.
+        const auto deadline = native_gate && phase == Phase::Intermediate ? Clock::time_point::max() : frame_end;
+        return Next(now, deadline, native_gate ? 0.0 : max_fps, pacer);
+    }
+
+    /**
+     * Queries native feedback only before an eligible idle endpoint whose intermediate was shown.
+     */
+    template <class Ready>
+    [[nodiscard]] bool IdleEndpointFeedbackReady(Action action, double max_fps, bool enabled,
+                                                 bool feedback_active, Ready ready) const {
+        return !enabled || action != Action::Endpoint || !PendingEndpoint() ||
+               !NativeGatePaces(max_fps, feedback_active) || ready();
+    }
+
+    /**
+     * Retires a shown intermediate through an active native gate before its image is replaced.
+     */
+    [[nodiscard]] Decision NextBeforeCanonical(Clock::time_point now, Clock::time_point frame_end, double max_fps,
+                                               const PresentPacer &pacer, bool gate_active) const {
+        const auto decision = Next(now, frame_end, max_fps, pacer);
+        if (PendingEndpoint() && NativeGatePaces(max_fps, gate_active)) {
+            return {Action::Endpoint, now};
+        }
+        return decision;
+    }
+
+    /**
      * Advances only after a successful presentation.
      */
     void Presented(Action action) {
@@ -133,6 +171,13 @@ public:
     }
 
 private:
+    /**
+     * Whether the active native gate can preserve the configured presentation rate.
+     */
+    [[nodiscard]] static bool NativeGatePaces(double max_fps, bool gate_active) {
+        return gate_active && (!std::isfinite(max_fps) || max_fps <= 0.0 || max_fps >= 60.0);
+    }
+
     enum class Phase {
         Intermediate,
         Endpoint,

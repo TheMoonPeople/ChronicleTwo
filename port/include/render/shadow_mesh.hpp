@@ -1,9 +1,45 @@
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #include "render/renderer.hpp"
 #include "vu1/sdw_geom.hpp"
+
+namespace dc2::render {
+
+/**
+ * Selects identical shadow output with memoized or reference corner evaluation.
+ */
+enum class ShadowTransformMode {
+    Memoized,
+    Reference
+};
+
+/**
+ * Counts game-thread shadow construction and exact transform reuse over its lifetime.
+ */
+struct ShadowMeshStats {
+    std::uint64_t draws = 0;                 /**< Builder invocations. */
+    std::uint64_t memoized_draws = 0;        /**< Invocations reusing raw-exact representative positions. */
+    std::uint64_t reference_draws = 0;       /**< Invocations evaluating original triangle corners. */
+    std::uint64_t source_corners = 0;        /**< Expanded triangle corners requested by the source. */
+    std::uint64_t transformed_positions = 0; /**< Positions whose original transform expressions were evaluated. */
+    std::uint64_t topology_hits = 0;         /**< Owned topology reuses after exact geometry comparison. */
+    std::uint64_t topology_rebuilds = 0;     /**< Topology rebuilds after source geometry changes. */
+};
+
+/**
+ * Selects a game-thread shadow evaluation mode and returns its previous value.
+ */
+ShadowTransformMode SetShadowTransformMode(ShadowTransformMode mode);
+
+/**
+ * Snapshots game-thread lifetime shadow construction counters.
+ */
+ShadowMeshStats GetShadowMeshStats();
+
+} // namespace dc2::render
 
 // Appends the shadow prism of one caster triangle, or nothing when retail's clip rejects it: a corner
 // (top or drop, eye space, before the drop bias) outside the projection's near/far range or the GS guard
