@@ -1458,6 +1458,15 @@ remain intact. Maps sharing the arena share this invalidation scope.
 
 This prevents a stale map-part access after the chapter 6 Griffon cutscenes load d06e01.
 
+### Texture blocks across a map change
+
+EditMapJump (port/src/object/world/editloop.cpp) deletes the old villagers and maps before it lays out the next map's
+memory. Rebinding MainDataBuff retires the map slot, and a retired slot no longer knows its texture blocks, so deleting
+the map afterwards would release nothing: a texture animation allocated in the map arena would stay on its block while
+the next map overwrites it, and the first draw of that block would walk the overwritten records.
+
+This prevents the crash when the opening moves from Monica's battle through op_rain to s42.
+
 ### Georama limits
 
 Retail caps a town at 256 edit part slots, a 1024-entry placement log, 32 houses,

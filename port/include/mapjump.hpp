@@ -124,6 +124,14 @@ int MapJump(CScene *scene, SCN_LOADMAP_INFO2 *info, int map_index);
 
 /**
  *
+ * Deletes the scene's sub map and main map. A caller that reuses the maps' arena calls this first: an arena reset retires
+ * the map slots, and a retired slot no longer knows the texture blocks, model lists and event handles to release.
+ *
+ */
+void DeleteJumpMaps(CScene *scene);
+
+/**
+ *
  * Fills a map load description with the main map settings and the file names of a map and its added map; gives 1 on success and 0 for an unknown map.
  *
  * @mangled GetLoadMapInfo__FP17SCN_LOADMAP_INFO2i

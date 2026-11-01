@@ -2268,6 +2268,12 @@ int EditMapJump(int map_no) {
     InitSphida();
     mgWaitFrame();
 
+    // Laying out the next map's memory retires the old map's slot. Delete the old scene first, so that its texture blocks,
+    // model lists and event handles do not outlive the arena they point into.
+    MainScene->DeleteVillager();
+    MainScene->DeleteSubVillager();
+    DeleteJumpMaps(MainScene);
+
     if (GetMapType(map_no) == MAP_TYPE_GEORAMA) {
         ConfigureDataPackets(dc2::world::DataPacketMode::Georama);
     } else {
@@ -2293,8 +2299,6 @@ int EditMapJump(int map_no) {
         dc2::text::Append(load_info.files[0].ipk_name, dc2::text::View("_2"));
     }
 
-    MainScene->DeleteVillager();
-    MainScene->DeleteSubVillager();
     MapJump(MainScene, &load_info, map_no);
     EditMapInitEvent(map_no, static_cast<CEditMap *>(MainScene->GetMap(0)));
     main_data = &MainDataBuff;

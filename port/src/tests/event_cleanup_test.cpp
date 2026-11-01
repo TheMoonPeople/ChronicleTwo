@@ -8,12 +8,16 @@
 #include <optional>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include "dng_main.hpp"
 #include "editmap.hpp"
 #include "event.hpp"
 #include "event_func.hpp"
+#include "mapjump.hpp"
 #include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
 #include "native_script_program.hpp"
 #include "platform/arena.hpp"
 #include "platform/game_loop_state.hpp"
@@ -185,6 +189,41 @@ TEST(SceneMapLifetime, DeleteSharedMapOwnersBeforeResettingTheirParentArena) {
     EXPECT_EQ(scene->DeleteMap(1, 1), 1);
     EXPECT_TRUE(leases[1].Bytes().empty());
     EXPECT_EQ(parent.stack_used, 0);
+}
+
+TEST(SceneMapLifetime, DeletingJumpMapsClearsTextureAnimationsInTheMapArena) {
+    std::vector<u_long128> table_storage(0x1000);
+    mgCMemory              tables;
+    tables.SetHeapMem(table_storage.data(), table_storage.size());
+    tables.StartStackMode(MG_STACK_MODE_FIT, table_storage.size());
+    mgTexManager.SetTableBuffer(16, 8, &tables);
+    mgTexManager.Initialize(0x1000, -1);
+    std::array<u_long128, 256> storage{};
+    mgCMemory                  memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgTexManager.GetTextureBlock(3)->anime = dc2::memory::NewObject<mgCTextureAnime>(memory);
+    ASSERT_NE(mgTexManager.GetTexAnime(3), nullptr);
+
+    CMap loaded_map;
+    auto scene = std::make_unique<CScene>();
+    scene->map_num = 2;
+    scene->map[0].AssignData(&loaded_map, const_cast<char *>("map"));
+    scene->map[0].stack = &memory;
+    scene->map[0].tex_block = 0;
+    scene->map[0].tex_block_num = 4;
+    MapJumpMapInfo main_map;
+    main_map.map_no = 0;
+    SetMainMapInfo(&main_map);
+    MapJumpMapInfo sub_map;
+    sub_map.map_no = 1;
+    SetSubMapInfo(&sub_map);
+
+    DeleteJumpMaps(scene.get());
+
+    EXPECT_EQ(mgTexManager.GetTexAnime(3), nullptr);
+    EXPECT_EQ(scene->GetMap(0), nullptr);
+    EXPECT_EQ(memory.stack_used, 0);
+    mgTexManager.Initialize(0x1000, -1);
 }
 
 TEST(SceneMapLifetime, MovesTransferOwnershipAndLeaveEverySourceSlotEmpty) {
