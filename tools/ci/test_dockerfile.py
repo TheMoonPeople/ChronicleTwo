@@ -115,10 +115,10 @@ COPY --from=first /a /a
         self.assertEqual(stage_errors(recipe), [])
         packages = tomllib.loads((root / "tools/kazarov/Cargo.lock").read_text(encoding="utf-8"))["package"]
         cxx = next(package["version"] for package in packages if package["name"] == "cxx")
-        bridge = re.search(r"cargo install --locked cxxbridge-cmd --version ([0-9.]+)", recipe)
-        self.assertIsNotNone(bridge)
-        self.assertEqual(bridge.group(1), cxx)
-        rust = re.search(r"FROM rust:([0-9.]+)-slim-bookworm@sha256:[0-9a-f]{64} AS windows-rust", recipe)
+        bridges = re.findall(r"cargo install --locked cxxbridge-cmd --version ([0-9.]+)", recipe)
+        self.assertTrue(bridges)
+        self.assertTrue(all(bridge == cxx for bridge in bridges))
+        rust = re.search(r"FROM rust:([0-9.]+)-slim-bookworm@sha256:[0-9a-f]{64} AS rust-base", recipe)
         self.assertIsNotNone(rust)
         self.assertIn(f"rust-{rust.group(1)}-x86_64-pc-windows-gnullvm.tar.xz", recipe)
 

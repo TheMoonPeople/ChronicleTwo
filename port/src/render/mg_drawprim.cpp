@@ -10,6 +10,7 @@
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 #include <tuple>
 #include <unordered_map>
@@ -362,10 +363,117 @@ std::unordered_map<const mgCDrawPrim *, PrimRun> runs;
 std::unordered_set<u_long>                       ignored_direct_registers;
 mgPortPrimSink                                   prim_sink;
 
+/**
+ * Deferred packet draws keyed by packet address, with open addressing so a steady frame allocates nothing.
+ */
+class PacketDrawTable {
+public:
+    void Set(const void *packet, std::function<void()> draw) {
+        if ((occupied + 1) * 2 > slots.size()) {
+            Rehash(std::max<std::size_t>(kMinimumSlots, slots.size() * 2));
+        }
+        Slot &slot = slots[InsertIndex(packet)];
+        if (slot.key != packet) {
+            occupied += slot.key == nullptr ? 1 : 0;
+            slot.key = packet;
+        }
+        slot.draw = std::move(draw);
+    }
+
+    void Erase(const void *packet) {
+        if (Slot *slot = Find(packet)) {
+            // The slot stays occupied so later keys in its probe sequence remain reachable.
+            slot->key = Tombstone();
+            slot->draw = nullptr;
+        }
+    }
+
+    // A copy, because the draw may clear or replace its own entry while it runs.
+    std::function<void()> Get(const void *packet) {
+        const Slot *slot = Find(packet);
+        return slot != nullptr ? slot->draw : std::function<void()>();
+    }
+
+    void Clear() {
+        for (Slot &slot : slots) {
+            if (slot.key != nullptr) {
+                slot.key = nullptr;
+                slot.draw = nullptr;
+            }
+        }
+        occupied = 0;
+    }
+
+private:
+    struct Slot {
+        const void           *key = nullptr;
+        std::function<void()> draw;
+    };
+
+    static constexpr std::size_t kMinimumSlots = 1024;
+
+    static const void *Tombstone() {
+        static const char mark = 0;
+        return &mark;
+    }
+
+    std::size_t Home(const void *packet) const {
+        const auto bits = static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(packet) >> 2);
+        return static_cast<std::size_t>(bits * 0x9E3779B97F4A7C15ULL) & (slots.size() - 1);
+    }
+
+    Slot *Find(const void *packet) {
+        if (slots.empty() || packet == nullptr) {
+            return nullptr;
+        }
+        for (std::size_t index = Home(packet);; index = (index + 1) & (slots.size() - 1)) {
+            Slot &slot = slots[index];
+            if (slot.key == packet) {
+                return &slot;
+            }
+            if (slot.key == nullptr) {
+                return nullptr;
+            }
+        }
+    }
+
+    // The packet's own slot, else the first reusable slot of its probe sequence.
+    std::size_t InsertIndex(const void *packet) const {
+        std::optional<std::size_t> reusable;
+        for (std::size_t index = Home(packet);; index = (index + 1) & (slots.size() - 1)) {
+            const Slot &slot = slots[index];
+            if (slot.key == packet) {
+                return index;
+            }
+            if (slot.key == nullptr) {
+                return reusable.value_or(index);
+            }
+            if (slot.key == Tombstone() && !reusable) {
+                reusable = index;
+            }
+        }
+    }
+
+    void Rehash(std::size_t count) {
+        std::vector<Slot> previous = std::exchange(slots, std::vector<Slot>(count));
+        occupied = 0;
+        for (Slot &slot : previous) {
+            if (slot.key != nullptr && slot.key != Tombstone()) {
+                Set(slot.key, std::move(slot.draw));
+            }
+        }
+    }
+
+    std::vector<Slot> slots;
+    std::size_t       occupied = 0; /**< Keys and tombstones. */
+};
+
+std::uint64_t packet_draw_epoch = 0;
+
 // Constructed on first use, so captured mesh owners are released before the renderer's
 // static resource tables at process exit.
-std::unordered_map<const void *, std::function<void()>> &PacketDraws() {
-    static std::unordered_map<const void *, std::function<void()>> draws;
+PacketDrawTable &PacketDraws() {
+    static PacketDrawTable draws;
     return draws;
 }
 
@@ -876,15 +984,20 @@ void mgPortSetPacketDraw(const void *packet, std::function<void()> draw) {
         return;
     }
 
-    PacketDraws()[packet] = std::move(draw);
+    PacketDraws().Set(packet, std::move(draw));
 }
 
 void mgPortClearPacketDraw(const void *packet) {
-    PacketDraws().erase(packet);
+    PacketDraws().Erase(packet);
 }
 
 void mgPortClearPacketDraws() {
-    PacketDraws().clear();
+    PacketDraws().Clear();
+    ++packet_draw_epoch;
+}
+
+std::uint64_t mgPortPacketDrawEpoch() {
+    return packet_draw_epoch;
 }
 
 bool mgPortPacketDraw(const void *packet) {
@@ -892,15 +1005,10 @@ bool mgPortPacketDraw(const void *packet) {
         return false;
     }
 
-    const auto &draws = PacketDraws();
-    const auto  it = draws.find(packet);
-
-    if (it == draws.end()) {
+    const std::function<void()> draw = PacketDraws().Get(packet);
+    if (!draw) {
         return false;
     }
-
-    // Copied because the draw may clear or replace its own entry while it runs.
-    const std::function<void()> draw = it->second;
     draw();
     return true;
 }

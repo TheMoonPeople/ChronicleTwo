@@ -38,7 +38,7 @@
         },
         {
             "name": "linux-x64-asan",
-            "displayName": "Linux x86-64, AddressSanitizer",
+            "displayName": "Linux x86-64, AddressSanitizer with arena reset poisoning",
             "inherits": "linux-x64",
             "binaryDir": "${sourceDir}/port/build/pc-asan",
             "cacheVariables": {
@@ -110,7 +110,7 @@
                 "CMAKE_OSX_ARCHITECTURES": "arm64",
                 "CMAKE_OSX_SYSROOT": "iphoneos",
                 "CMAKE_MACOSX_BUNDLE": "OFF",
-                "CMAKE_OSX_DEPLOYMENT_TARGET": "16.3",
+                "CMAKE_OSX_DEPLOYMENT_TARGET": "27.0",
                 "CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH": "NO",
                 "CMAKE_CXX_FLAGS": "-D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES",
                 "CT_BUILD_TESTS": "OFF"

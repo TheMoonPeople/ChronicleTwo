@@ -27,7 +27,7 @@ TEST(PcOptions, RequestedSettingsHaveUniqueRowsAndRoundTripTheirEdits) {
     const std::set<std::string> required{
         "video.fullscreen",
         "video.width",
-        "video.present_mode",
+        "video.vsync",
         "video.max_fps",
         "video.interpolation",
         "video.aspect",
@@ -131,10 +131,12 @@ TEST(PcOptions, BooleanAndEnumChoicesWrapInBothDirections) {
     EXPECT_TRUE(config.fullscreen);
     EXPECT_TRUE(options::StepRow(Find("video.fullscreen"), config, 1));
     EXPECT_FALSE(config.fullscreen);
-    EXPECT_TRUE(options::StepRow(Find("video.present_mode"), config, -1));
+    EXPECT_TRUE(options::StepRow(Find("video.vsync"), config, -1));
     EXPECT_EQ(config.present_mode, ConfigPresentMode::Immediate);
-    EXPECT_TRUE(options::StepRow(Find("video.present_mode"), config, 1));
+    EXPECT_EQ(Find("video.vsync").value(config), "Off");
+    EXPECT_TRUE(options::StepRow(Find("video.vsync"), config, 1));
     EXPECT_EQ(config.present_mode, ConfigPresentMode::Fifo);
+    EXPECT_EQ(Find("video.vsync").value(config), "On");
 }
 
 TEST(PcOptions, ResolutionsKeepDesktopAndCustomSizeAndDeduplicateDisplayModes) {

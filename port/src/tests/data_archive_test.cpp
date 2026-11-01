@@ -415,7 +415,7 @@ TEST_F(DataArchive, GameplayDocumentsPreservePackPriorityAcrossNamespacedAndLega
 }
 
 TEST_F(DataArchive, MoviePlaysIdenticallyFromAStoredArchiveEntry) {
-    const auto fixture = fs::path(__FILE__).parent_path() / "fixtures/movie.mp4";
+    const auto fixture = fs::absolute(fs::path(__FILE__)).parent_path().lexically_normal() / "fixtures/movie.mp4";
     fs::create_directories(root / "movies/movie");
     fs::copy_file(fixture, root / "movies/movie/clip.mp4");
     Pack(root / "movies", root / "data.zip");

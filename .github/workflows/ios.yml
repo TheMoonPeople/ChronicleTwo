@@ -19,7 +19,7 @@ jobs:
     name: Build (iOS arm64)
     needs: dependencies
     timeout-minutes: 60
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
       CARGO_TARGET_DIR: ${{ github.workspace }}/.kazarov/cargo-target/ios
       CCACHE_DIR: ${{ github.workspace }}/.kazarov/ccache/ios
@@ -28,11 +28,11 @@ jobs:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: true
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: apple-dependencies-ios
           path: .kazarov/bundle
@@ -40,21 +40,54 @@ jobs:
         run: |
           test "$(shasum -a 256 .kazarov/bundle/deps.tar.gz | cut -d' ' -f1)" = "$(cat .kazarov/bundle/deps.sha256)"
           tar xzf .kazarov/bundle/deps.tar.gz -C .kazarov
-      - uses: actions/cache@v5
+      - name: Restore native Apple dependencies
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        id: native-deps-cache
         with:
           path: |
             ~/Library/Caches/Homebrew
             ~/.cargo/registry
             ~/.cargo/git
+            .kazarov/deps/bin
             .kazarov/ffmpeg/ios-arm64
             .kazarov/apple/ios-arm64
+          key: native-deps-ios-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}
+      - name: Restore reusable compiler outputs
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        id: compile-cache
+        with:
+          path: |
             .kazarov/cargo-target/ios
+            port/build/ios-arm64-release/cargo
             .kazarov/ccache/ios
             port/build/ios-arm64-release/lto-cache
-          key: compile-ios-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock') }}-${{ github.sha }}
+          key: compile-ios-v2-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ github.sha }}-${{ github.run_attempt }}
           restore-keys: |
-            compile-ios-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock') }}-
+            compile-ios-v2-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ github.sha }}-
+            compile-ios-v2-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+            compile-ios-v2-
+      - name: Rebuild Rust outputs after dependency changes
+        env:
+          RESTORED_CACHE_KEY: ${{ steps.compile-cache.outputs.cache-matched-key }}
+          DEPENDENCY_CACHE_PREFIX: compile-ios-v2-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import shutil
+          key = os.environ['RESTORED_CACHE_KEY']
+          if key and not key.startswith(os.environ['DEPENDENCY_CACHE_PREFIX']):
+              workspace = Path(os.environ['GITHUB_WORKSPACE']).resolve()
+              targets = [workspace / '.kazarov/cargo-target/ios', workspace / 'port/build/ios-arm64-release/cargo']
+              if any(not target.resolve().is_relative_to(workspace) for target in targets):
+                  raise SystemExit('Rust cache paths must stay inside the workspace')
+              for target in targets:
+                  if target.exists():
+                      shutil.rmtree(target)
+              print('Dependency inputs changed; cached Rust outputs will be rebuilt.')
+          PY
       - name: Prepare Apple dependencies
+        id: prepare-native-deps
         run: bash tools/ci/apple-deps.sh ios-arm64
 
       - name: Configure for iOS
@@ -70,7 +103,7 @@ jobs:
         # Cargo's C builds (zstd, cxx, the movie muxer) otherwise target the SDK's own iOS version, not the app's.
         # Only here: FFmpeg's configure would build its host tools for iOS too and could not run them.
         env:
-          IPHONEOS_DEPLOYMENT_TARGET: "16.3"
+          IPHONEOS_DEPLOYMENT_TARGET: "27.0"
         run: cmake --build port/build/ios-arm64-release --target darkchronicle --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
 
       # The .ipa is unsigned: a sideloading tool (Sideloadly, AltStore) signs it with the installer's Apple ID.
@@ -98,16 +131,10 @@ jobs:
           file "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle"
           otool -hv "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle" | grep -q PIE
           otool -l "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle" | grep -A4 LC_BUILD_VERSION
-          # libc++ symbols newer than the minimum iOS kill the app in dyld before main. std::pmr (iOS 17) slipped in
-          # once, and iOS 16.3.1 has no floating-point std::to_chars although the headers say 16.3.
-          if nm -u "$RUNNER_TEMP/ipa/Payload/darkchronicle.app/darkchronicle" | grep -E '__ZNSt3__1(3pmr|8to_chars)'; then
-            echo "the executable imports libc++ symbols that iOS 16 lacks" >&2
-            exit 1
-          fi
           (cd "$RUNNER_TEMP/ipa" && zip -qry "$GITHUB_WORKSPACE/DarkChronicle.ipa" Payload)
 
       - name: Upload the .ipa
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: DarkChronicle-ios-arm64
           path: DarkChronicle.ipa
@@ -115,8 +142,32 @@ jobs:
 
       # The symbols stay out of the .ipa but are kept to read the addresses in a device's stack reports.
       - name: Upload the debug symbols
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: DarkChronicle-ios-arm64-dSYM
           path: port/build/ios-arm64-release/darkchronicle.app/darkchronicle.dSYM
           if-no-files-found: warn
+
+      - name: Save reusable compiler outputs
+        if: always() && steps.compile-cache.outputs.cache-primary-key != '' && steps.compile-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            .kazarov/cargo-target/ios
+            port/build/ios-arm64-release/cargo
+            .kazarov/ccache/ios
+            port/build/ios-arm64-release/lto-cache
+          key: ${{ steps.compile-cache.outputs.cache-primary-key }}
+
+      - name: Save native Apple dependencies
+        if: always() && steps.prepare-native-deps.outcome == 'success' && steps.native-deps-cache.outputs.cache-primary-key != '' && steps.native-deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            ~/.cargo/registry
+            ~/.cargo/git
+            .kazarov/deps/bin
+            .kazarov/ffmpeg/ios-arm64
+            .kazarov/apple/ios-arm64
+          key: ${{ steps.native-deps-cache.outputs.cache-primary-key }}

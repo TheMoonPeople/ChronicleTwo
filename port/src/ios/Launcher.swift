@@ -3,9 +3,19 @@
 // is tapped, as the game does from its own loop later.
 
 import ChronicleBridge
-import CxxStdlib
 import UIKit
 import UniformTypeIdentifiers
+
+// Decodes a borrowed native UTF-8 view without requiring a null terminator.
+private func bridgeText(_ value: IosString) -> String {
+    String(decoding: UnsafeBufferPointer(start: value.data, count: Int(value.size)), as: UTF8.self)
+}
+
+// Takes one owned native string and releases its bytes after decoding.
+private func takeBridgeText(_ value: IosString) -> String {
+    defer { IosStringFree(value) }
+    return bridgeText(value)
+}
 
 private let accent = UIColor(red: 0.93, green: 0.74, blue: 0.36, alpha: 1)
 
@@ -49,9 +59,9 @@ private final class SettingsController: UITableViewController {
 
     init() {
         super.init(style: .insetGrouped)
-        title = String(ct.ios.PageTitle())
-        for page in 0..<ct.ios.SettingsPageCount() {
-            let rows = (0..<ct.ios.SettingsRowCount(page)).filter { ct.ios.SettingsRowSteppable(page, $0) }
+        title = takeBridgeText(IosPageTitle())
+        for page in 0..<IosSettingsPageCount() {
+            let rows = (0..<IosSettingsRowCount(page)).filter { IosSettingsRowSteppable(page, $0) }
             if !rows.isEmpty {
                 sections.append((page, rows))
             }
@@ -77,7 +87,7 @@ private final class SettingsController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        String(ct.ios.SettingsPageName(sections[section].page))
+        takeBridgeText(IosSettingsPageName(sections[section].page))
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -91,8 +101,8 @@ private final class SettingsController: UITableViewController {
         cell.selectionStyle = .none
         let page = sections[path.section].page, row = sections[path.section].rows[path.row]
         var content = UIListContentConfiguration.subtitleCell()
-        content.text = String(ct.ios.SettingsRowLabel(page, row))
-        content.secondaryText = String(ct.ios.SettingsRowHelp(page, row))
+        content.text = takeBridgeText(IosSettingsRowLabel(page, row))
+        content.secondaryText = takeBridgeText(IosSettingsRowHelp(page, row))
         content.secondaryTextProperties.color = .secondaryLabel
         cell.contentConfiguration = content
 
@@ -109,7 +119,7 @@ private final class SettingsController: UITableViewController {
             button.widthAnchor.constraint(equalToConstant: 40).isActive = true
         }
         let value = UILabel()
-        value.text = String(ct.ios.SettingsRowValue(page, row))
+        value.text = takeBridgeText(IosSettingsRowValue(page, row))
         value.textAlignment = .center
         value.font = .monospacedDigitSystemFont(ofSize: 16, weight: .medium)
         value.adjustsFontSizeToFitWidth = true
@@ -123,15 +133,12 @@ private final class SettingsController: UITableViewController {
     private func step(_ button: UIButton, _ direction: Int32) {
         let path = IndexPath(row: button.tag % 1000, section: button.tag / 1000)
         let page = sections[path.section].page, row = sections[path.section].rows[path.row]
-        switch ct.ios.SettingsStep(page, row, direction) {
-        case .Unchanged:
-            return
-        case .NotSaved:
+        let change = IosSettingsStep(page, row, direction)
+        guard change.changed else { return }
+        if !change.saved {
             present(alert("Settings not saved",
                           "The change applies until the app closes, but config.json could not be written."),
                     animated: true)
-        default:
-            break
         }
         tableView.reloadRows(at: [path], with: .none)
     }
@@ -284,7 +291,7 @@ private final class LauncherController: UIViewController, UIDocumentPickerDelega
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { .landscape }
 
-    private var dataMissing: Bool { ct.ios.DataMissing(std.string(root)) }
+    private var dataMissing: Bool { IosDataMissing(root) }
 
     private func setStatus(_ symbol: String, _ colour: UIColor, _ title: String, _ body: String) {
         statusIcon.image = UIImage(systemName: symbol)
@@ -298,7 +305,7 @@ private final class LauncherController: UIViewController, UIDocumentPickerDelega
         if timer != nil {
             return
         }
-        let found = String(ct.ios.DiscImage())
+        let found = takeBridgeText(IosDiscImage())
         image = found.isEmpty ? nil : found
         progress.isHidden = true
         percent.isHidden = true
@@ -381,7 +388,7 @@ private final class LauncherController: UIViewController, UIDocumentPickerDelega
     }
 
     private func extract(_ image: String) {
-        ct.ios.ExtractBegin(std.string(image), std.string(root))
+        IosExtractBegin(image, root)
         // The screen must stay on through the extraction: a locked device suspends the app. A trip to the
         // background gets the little time iOS grants before it suspends it too.
         UIApplication.shared.isIdleTimerDisabled = true
@@ -411,10 +418,11 @@ private final class LauncherController: UIViewController, UIDocumentPickerDelega
     }
 
     private func tick() {
-        let extraction = ct.ios.ExtractPoll()
+        let extraction = IosExtractPoll()
+        defer { IosExtractionFree(extraction) }
         if extraction.running {
             progress.setProgress(extraction.fraction, animated: true)
-            percent.text = "\(Int(extraction.fraction * 100))%  ·  \(String(extraction.stage))"
+            percent.text = "\(Int(extraction.fraction * 100))%  ·  \(bridgeText(extraction.stage))"
             return
         }
         timer?.invalidate()
@@ -424,7 +432,7 @@ private final class LauncherController: UIViewController, UIDocumentPickerDelega
         UIApplication.shared.isIdleTimerDisabled = false
         endBackgroundTask()
         refresh()
-        let failure = String(extraction.failure)
+        let failure = bridgeText(extraction.failure)
         if failure.isEmpty {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             return

@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <future>
+#include <memory>
 #include <thread>
 #include <utility>
 
@@ -178,5 +179,80 @@ Extraction ExtractPoll() {
 }
 
 } // namespace ct::ios
+
+namespace {
+
+/**
+ * Copies native UTF-8 text into a buffer owned by the Swift caller.
+ */
+IosString CopyUtf8(const std::string &text) {
+    if (text.empty()) {
+        return {};
+    }
+    auto data = std::make_unique<uint8_t[]>(text.size());
+    std::ranges::copy(text, data.get());
+    return {.data = data.release(), .size = text.size()};
+}
+
+} // namespace
+
+// Unexpected native exceptions terminate at this boundary; extraction catches operational errors
+// and reports their text through the owned progress snapshot.
+void IosStringFree(IosString text) noexcept { delete[] text.data; }
+
+void IosExtractionFree(IosExtraction extraction) noexcept {
+    IosStringFree(extraction.stage);
+    IosStringFree(extraction.failure);
+}
+
+void IosSetTouchOverlay(IosTouchState state) noexcept {
+    ct::ios::SetTouchOverlay({.buttons = state.buttons, .left_x = state.left_x, .left_y = state.left_y, .right_x = state.right_x, .right_y = state.right_y});
+}
+
+bool IosTouchOverlayVisible() noexcept { return ct::ios::TouchOverlayVisible(); }
+
+uint16_t IosButtonBit(int index) noexcept { return ct::ios::ButtonBit(index); }
+
+int IosHapticsRate() noexcept { return ct::ios::HapticsRate(); }
+
+void IosHapticsRender(float *left_right, int frames) noexcept { ct::ios::HapticsRender(left_right, frames); }
+
+IosString IosPageTitle() noexcept { return CopyUtf8(ct::ios::PageTitle()); }
+
+int IosSettingsPageCount() noexcept { return ct::ios::SettingsPageCount(); }
+
+IosString IosSettingsPageName(int page) noexcept { return CopyUtf8(ct::ios::SettingsPageName(page)); }
+
+int IosSettingsRowCount(int page) noexcept { return ct::ios::SettingsRowCount(page); }
+
+bool IosSettingsRowSteppable(int page, int row) noexcept { return ct::ios::SettingsRowSteppable(page, row); }
+
+IosString IosSettingsRowLabel(int page, int row) noexcept { return CopyUtf8(ct::ios::SettingsRowLabel(page, row)); }
+
+IosString IosSettingsRowHelp(int page, int row) noexcept { return CopyUtf8(ct::ios::SettingsRowHelp(page, row)); }
+
+IosString IosSettingsRowValue(int page, int row) noexcept { return CopyUtf8(ct::ios::SettingsRowValue(page, row)); }
+
+IosSettingsChange IosSettingsStep(int page, int row, int direction) noexcept {
+    const ct::ios::StepResult result = ct::ios::SettingsStep(page, row, direction);
+    return {.changed = result != ct::ios::StepResult::Unchanged, .saved = result == ct::ios::StepResult::Saved};
+}
+
+bool IosDataMissing(const char *root) noexcept { return ct::ios::DataMissing(root); }
+
+IosString IosDiscImage() noexcept { return CopyUtf8(ct::ios::DiscImage()); }
+
+void IosExtractBegin(const char *image, const char *root) noexcept try {
+    ct::ios::ExtractBegin(image, root);
+} catch (...) {
+    std::terminate();
+}
+
+IosExtraction IosExtractPoll() noexcept try {
+    const ct::ios::Extraction extraction = ct::ios::ExtractPoll();
+    return {.running = extraction.running, .fraction = extraction.fraction, .stage = CopyUtf8(extraction.stage), .failure = CopyUtf8(extraction.failure)};
+} catch (...) {
+    std::terminate();
+}
 
 #endif

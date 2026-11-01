@@ -14,7 +14,7 @@ $container_configs = ([regex]::Match($configuration, '(?m)^KZ_CONTAINER_CONFIGS=
 $default_config = ([regex]::Match($configuration, "(?m)^KZ_DEFAULT_$($command.ToUpperInvariant())_WINDOWS=(.*)$").Groups[1].Value -replace '["()]', '').Trim()
 if ($default_config) { $config = $default_config }
 if ($rest.Count -gt 0) {
-    if ($rest[0] -in 'windows', 'windows-x64', 'windows-x64-release') {
+    if ($rest[0] -in 'windows', 'windows-x64', 'windows-x64-release', 'windows-x64-asan') {
         $config = $rest[0]
         $rest = @($rest | Select-Object -Skip 1)
     } elseif ($rest[0] -in $container_configs) {
@@ -22,7 +22,7 @@ if ($rest.Count -gt 0) {
         exit $LASTEXITCODE
     }
 }
-if ($config -notin 'windows', 'windows-x64', 'windows-x64-release') {
+if ($config -notin 'windows', 'windows-x64', 'windows-x64-release', 'windows-x64-asan') {
     & "$checkout/tools/kazarov/scripts/kazarov.ps1" $checkout $command @rest
     exit $LASTEXITCODE
 }
@@ -30,6 +30,7 @@ if ($config -notin 'windows', 'windows-x64', 'windows-x64-release') {
 switch ($config.ToLower()) {
     { $_ -in 'windows', 'windows-x64-release' } { $name = 'windows-x64-release'; $buildType = 'Release' }
     'windows-x64' { $name = 'windows-x64'; $buildType = 'Debug' }
+    'windows-x64-asan' { $name = 'windows-x64-asan'; $buildType = 'Debug' }
     default { throw "kazarov: unknown Windows configuration $config" }
 }
 
@@ -199,7 +200,7 @@ if ($stale) {
 $reconfigure = $cachedFfmpeg -ne $ffmpegDir -or $cached_cargo_home -ne "$($root.Replace('\', '/'))/deps/rust/cargo-home"
 if ($stale -or $reconfigure -or -not (Test-Path -LiteralPath (Join-Path $build 'build.ninja'))) {
     Write-Stage 'configuring CMake'
-    & "$PSScriptRoot/configure.ps1" -Root $root -BuildDirectory $build -BuildType $buildType
+    & "$PSScriptRoot/configure.ps1" -Root $root -BuildDirectory $build -BuildType $buildType -AddressSanitizer:($name -eq 'windows-x64-asan')
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
 } else {
     Write-Stage 'using cached CMake configuration'

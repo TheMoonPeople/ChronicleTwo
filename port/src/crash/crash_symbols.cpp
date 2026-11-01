@@ -204,4 +204,38 @@ std::string SymbolTableName(std::uint64_t address) {
 #endif
 }
 
+/**
+ * Resolves each captured address once while retaining every occurrence and inline frame.
+ */
+cpptrace::stacktrace ResolveFrames(const cpptrace::raw_trace                                              &raw,
+                                   const std::function<cpptrace::stacktrace(const cpptrace::raw_trace &)> &resolver) {
+    std::map<cpptrace::frame_ptr, std::vector<cpptrace::stacktrace_frame>> groups;
+    cpptrace::raw_trace                                                    unique;
+    for (const cpptrace::frame_ptr address : raw.frames) {
+        if (groups.try_emplace(address).second) {
+            unique.frames.push_back(address);
+        }
+    }
+    const cpptrace::stacktrace resolved = resolver(unique);
+    auto                       first = resolved.frames.begin();
+    for (auto frame = first; frame != resolved.frames.end(); ++frame) {
+        if (frame->is_inline) {
+            continue;
+        }
+        const auto                              after = std::next(frame);
+        std::vector<cpptrace::stacktrace_frame> group(first, after);
+        if (group.back().symbol.empty()) {
+            group.back().symbol = crash_detail::SymbolTableName(frame->raw_address);
+        }
+        groups.at(frame->raw_address) = std::move(group);
+        first = after;
+    }
+    cpptrace::stacktrace trace;
+    for (const cpptrace::frame_ptr address : raw.frames) {
+        const auto &group = groups.at(address);
+        trace.frames.insert(trace.frames.end(), group.begin(), group.end());
+    }
+    return trace;
+}
+
 } // namespace crash_detail

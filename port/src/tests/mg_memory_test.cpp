@@ -52,6 +52,8 @@ protected:
     void SetUp() override {
         static char key;
         buffer_ = reinterpret_cast<u_long128 *>(ArenaBlock(&key, kBytes));
+        // Each fixture reacquires the complete backing before initializing its contents.
+        dc2::memory::UnpoisonArenaBytes(buffer_, kBytes);
         std::memset(buffer_, 0, kBytes);
     }
 
@@ -1038,6 +1040,27 @@ TEST_F(MgMemory, ProducerLifetimeRejectsFreedBlockIdentityAfterItsAddressIsReuse
     EXPECT_TRUE(replacement.IsLive());
     EXPECT_FALSE(original.IsLive());
     EXPECT_TRUE(other.IsLive());
+    heap.EndStackMode();
+}
+
+TEST_F(MgMemory, ProducerLifetimeCapturesCompletedBlockAndRejectsItsReplacement) {
+    mgCMemory heap;
+    heap.SetHeapMem(buffer_, 128);
+    ASSERT_NE(heap.StartStackMode(MG_STACK_MODE_FIT, 32), nullptr);
+    auto *allocation = heap.Alloc(8);
+    ASSERT_NE(allocation, nullptr);
+    heap.EndStackMode();
+    const auto lifetime = dc2::memory::ArenaLifetime::Capture(heap, allocation);
+    EXPECT_TRUE(lifetime.IsLive());
+    EXPECT_FALSE(dc2::memory::ArenaLifetime::Capture(heap, nullptr).HasValue());
+    int external = 0;
+    EXPECT_FALSE(dc2::memory::ArenaLifetime::Capture(heap, &external).HasValue());
+    heap.Free(allocation);
+    EXPECT_FALSE(lifetime.IsLive());
+    ASSERT_NE(heap.StartStackMode(MG_STACK_MODE_FIRST, 0), nullptr);
+    ASSERT_EQ(heap.Alloc(8), allocation);
+    EXPECT_FALSE(lifetime.IsLive());
+    EXPECT_TRUE(dc2::memory::ArenaLifetime::Capture(heap, allocation).IsLive());
     heap.EndStackMode();
 }
 

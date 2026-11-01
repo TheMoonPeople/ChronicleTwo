@@ -1,5 +1,5 @@
 param([string]$Root, [string]$BuildDirectory, [switch]$Tests, [string]$BuildType = 'Debug',
-      [string]$VulkanLibrary, [int]$TestTimeout = 5, [string]$Symbols = 'embedded')
+      [string]$VulkanLibrary, [int]$TestTimeout = 5, [string]$Symbols = 'embedded', [switch]$AddressSanitizer)
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/common.ps1"
 $root = (Resolve-WindowsRoot $Root).Replace('\', '/')
@@ -20,6 +20,8 @@ $env:PATH = "$root/deps/cmake/cmake-4.4.5-windows-x86_64/bin;$root/deps/python;$
 $cmake = Find-WindowsTool cmake 'C:/Program Files/CMake/bin/cmake.exe'
 $python = "$root/deps/python/python.exe"
 $testOption = if ($Tests) { 'ON' } else { 'OFF' }
+# AddressSanitizer poisons reset arenas (docs/PC.md); its runtime DLL is in llvm-mingw's bin.
+$sanitizer = if ($AddressSanitizer) { @('-DCMAKE_C_FLAGS=-fsanitize=address -fno-omit-frame-pointer', '-DCMAKE_CXX_FLAGS=-fsanitize=address -fno-omit-frame-pointer', '-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address', '-DCMAKE_SHARED_LINKER_FLAGS=-fsanitize=address') } else { @() }
 $ccache = (Get-ChildItem -LiteralPath "$root/deps/ccache" -Filter ccache.exe -Recurse -File | Select-Object -First 1).FullName
 & $cmake -S $source -B $build -G Ninja -C "$source/tools/ci/dependencies.cmake" `
     -DPLATFORM=PC "-DCMAKE_BUILD_TYPE=$BuildType" "-DCT_BUILD_TESTS=$testOption" "-DCT_TEST_TIMEOUT=$TestTimeout" "-DCT_SYMBOLS=$Symbols" `
@@ -35,5 +37,5 @@ $ccache = (Get-ChildItem -LiteralPath "$root/deps/ccache" -Filter ccache.exe -Re
     "-DGLSLANG_VALIDATOR=$root/deps/glslang/bin/glslang.exe" `
     "-DRust_COMPILER=$rust/rustc.exe" "-DRust_CARGO=$rust/cargo.exe" `
     "-DRust_CARGO_TARGET=x86_64-pc-windows-gnullvm" "-DINSTALLED_CXXBRIDGE=$rust/cxxbridge.exe" `
-    "-DFETCHCONTENT_SOURCE_DIR_CORROSION=$corrosion"
+    "-DFETCHCONTENT_SOURCE_DIR_CORROSION=$corrosion" @sanitizer
 exit $LASTEXITCODE

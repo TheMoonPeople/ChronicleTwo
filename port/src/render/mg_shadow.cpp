@@ -11,6 +11,7 @@
 #include <map>
 #include <span>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "mg_drawenv.hpp"
@@ -19,6 +20,7 @@
 #include "mg_memory.hpp"
 #include "mg_shadow.hpp"
 #include "mg_visual.hpp"
+#include "profile.hpp"
 #include "render/renderer.hpp"
 #include "render/shadow_mesh.hpp"
 #include "vu1/sdw_geom.hpp"
@@ -214,10 +216,24 @@ bool InClipVolume(const vu::Vec4 &p, const mgPortProjection &projection) {
 using Triangle = std::array<vu::Vec4, 3>;
 using Neighbours = std::array<int32_t, 3>;
 
+/**
+ * Owns validated native triangles, cancellation links and exact computational position identities.
+ */
 struct Topology {
-    std::vector<Triangle>   triangles;
-    std::vector<Neighbours> neighbours;
+    std::vector<Triangle>                triangles;        /**< Owned source triangles compared before reuse. */
+    std::vector<Neighbours>              neighbours;       /**< Existing exact cancellation links. */
+    std::vector<vu::Vec4>                memo_positions;   /**< Raw-exact representatives and separately evaluated variants with homogeneous one. */
+    std::vector<std::array<uint32_t, 3>> corner_positions; /**< Original triangle corners mapped to exact source positions. */
 };
+
+/**
+ * Selects the game-thread evaluator while retaining the original reference expressions.
+ */
+thread_local dc2::render::ShadowTransformMode shadow_transform_mode = dc2::render::ShadowTransformMode::Memoized;
+/**
+ * Accumulates bounded game-thread shadow construction counters.
+ */
+thread_local dc2::render::ShadowMeshStats shadow_mesh_stats;
 
 // Position identities weld duplicated seam vertices without depending on the visual's index layout.
 std::array<uint32_t, 3> PositionKey(const vu::Vec4 &p) {
@@ -247,10 +263,14 @@ Topology &ShadowTopology(const mgCShadowMDT &visual) {
     auto &entry = cache[&visual];
     if (entry.triangles.size() == triangles.size() &&
         (triangles.empty() || std::memcmp(entry.triangles.data(), triangles.data(), triangles.size() * sizeof(Triangle)) == 0)) {
+        ++shadow_mesh_stats.topology_hits;
         return entry;
     }
+    ++shadow_mesh_stats.topology_rebuilds;
     entry.triangles = triangles;
     entry.neighbours.assign(triangles.size(), {-1, -1, -1});
+    entry.memo_positions.clear();
+    entry.corner_positions.resize(triangles.size());
 
     struct Edge {
         uint64_t key;
@@ -259,13 +279,35 @@ Topology &ShadowTopology(const mgCShadowMDT &visual) {
         auto     operator<=>(const Edge &) const = default;
     };
 
-    std::map<std::array<uint32_t, 3>, uint32_t> positions;
+    /**
+     * Retains independent cancellation identity and the first raw computational representative.
+     */
+    struct Position {
+        uint32_t adjacency_id;   /**< Original normalized position identity for edge construction. */
+        uint32_t representative; /**< First source position retained with its exact raw bits. */
+    };
+
+    std::map<std::array<uint32_t, 3>, Position> positions;
     std::vector<Edge>                           edges;
     edges.reserve(triangles.size() * 3);
     for (uint32_t t = 0; t < triangles.size(); ++t) {
         std::array<uint32_t, 3> ids{};
         for (int corner = 0; corner < 3; ++corner) {
-            ids[corner] = positions.try_emplace(PositionKey(triangles[t][corner]), static_cast<uint32_t>(positions.size())).first->second;
+            const auto &source = triangles[t][corner];
+            const auto [position, inserted] = positions.try_emplace(
+                PositionKey(source), Position{.adjacency_id = static_cast<uint32_t>(positions.size()),
+                                              .representative = static_cast<uint32_t>(entry.memo_positions.size())});
+            const auto raw_key = [](const vu::Vec4 &point) {
+                return std::array{std::bit_cast<uint32_t>(point.x), std::bit_cast<uint32_t>(point.y), std::bit_cast<uint32_t>(point.z)};
+            };
+            uint32_t computational_id = position->second.representative;
+            // Unmatched raw variants remain separate without another lookup or bucket allocation.
+            if (inserted || raw_key(entry.memo_positions[computational_id]) != raw_key(source)) {
+                computational_id = static_cast<uint32_t>(entry.memo_positions.size());
+                entry.memo_positions.push_back(source);
+            }
+            entry.corner_positions[t][static_cast<std::size_t>(corner)] = computational_id;
+            ids[corner] = position->second.adjacency_id;
         }
         for (uint32_t edge = 0; edge < 3; ++edge) {
             const auto a = ids[edge];
@@ -390,7 +432,10 @@ int mgCShadowMDT::CreateRenderInfoPacket(u_int * /*packet*/, float (*matrix)[4],
     static thread_local std::vector<gfx::Vertex3D> vertices;
     static thread_local std::vector<uint32_t>      indices;
     const mgPortProjection                         projection = mgPortCurrentProjection();
-    mgShadowPortBuildMesh(*this, matrix, *info, projection, vertices, indices);
+    {
+        CT_PROFILE_ZONE("Build native shadow mesh");
+        mgShadowPortBuildMesh(*this, matrix, *info, projection, vertices, indices);
+    }
     if (indices.empty()) {
         return 0;
     }
@@ -435,6 +480,16 @@ int mgCShadowMDT::CreateRenderInfoPacket(u_int * /*packet*/, float (*matrix)[4],
     return 0;
 }
 
+namespace dc2::render {
+
+ShadowTransformMode SetShadowTransformMode(ShadowTransformMode mode) {
+    return std::exchange(shadow_transform_mode, mode);
+}
+
+ShadowMeshStats GetShadowMeshStats() { return shadow_mesh_stats; }
+
+} // namespace dc2::render
+
 void mgShadowPortBuildMesh(const mgCShadowMDT &visual, float (*matrix)[4], mgRENDER_INFO &info,
                            const mgPortProjection &projection, std::vector<gfx::Vertex3D> &vertices,
                            std::vector<uint32_t> &indices) {
@@ -451,6 +506,32 @@ void mgShadowPortBuildMesh(const mgCShadowMDT &visual, float (*matrix)[4], mgREN
     const auto                            &topology = ShadowTopology(visual);
     static thread_local std::vector<Prism> prisms;
     prisms.resize(topology.triangles.size());
+    const bool memoized = shadow_transform_mode == dc2::render::ShadowTransformMode::Memoized;
+    ++shadow_mesh_stats.draws;
+    shadow_mesh_stats.memoized_draws += memoized ? 1 : 0;
+    shadow_mesh_stats.reference_draws += memoized ? 0 : 1;
+    shadow_mesh_stats.source_corners += topology.triangles.size() * 3;
+    shadow_mesh_stats.transformed_positions += memoized ? topology.memo_positions.size() : topology.triangles.size() * 3;
+
+    /**
+     * Retains one draw's pure corner expressions without sharing per-triangle bias.
+     */
+    struct TransformedPosition {
+        vu::Vec4 top{};         /**< Original model-to-eye result. */
+        vu::Vec4 drop{};        /**< Original receiving-plane result before bias. */
+        bool     valid = false; /**< Original unbiased clip predicate. */
+    };
+
+    static thread_local std::vector<TransformedPosition> transformed;
+    if (memoized) {
+        transformed.resize(topology.memo_positions.size());
+        for (std::size_t index = 0; index < transformed.size(); ++index) {
+            auto &position = transformed[index];
+            position.top = vu::Mul(to_eye, topology.memo_positions[index]);
+            position.drop = vu::Mul(drop_eye, topology.memo_positions[index]);
+            position.valid = InClipVolume(position.top, projection) && InClipVolume(position.drop, projection);
+        }
+    }
     vertices.clear();
     indices.clear();
     vertices.reserve(prisms.size() * 6);
@@ -460,9 +541,16 @@ void mgShadowPortBuildMesh(const mgCShadowMDT &visual, float (*matrix)[4], mgREN
         prism.valid = true;
         prism.sides.fill(true);
         for (int i = 0; i < 3; ++i) {
-            prism.top[i] = vu::Mul(to_eye, topology.triangles[t][i]);
-            prism.drop[i] = vu::Mul(drop_eye, topology.triangles[t][i]);
-            prism.valid = prism.valid && InClipVolume(prism.top[i], projection) && InClipVolume(prism.drop[i], projection);
+            if (memoized) {
+                const auto &position = transformed[topology.corner_positions[t][static_cast<std::size_t>(i)]];
+                prism.top[i] = position.top;
+                prism.drop[i] = position.drop;
+                prism.valid = prism.valid && position.valid;
+            } else {
+                prism.top[i] = vu::Mul(to_eye, topology.triangles[t][i]);
+                prism.drop[i] = vu::Mul(drop_eye, topology.triangles[t][i]);
+                prism.valid = prism.valid && InClipVolume(prism.top[i], projection) && InClipVolume(prism.drop[i], projection);
+            }
         }
         if (!prism.valid) {
             continue;

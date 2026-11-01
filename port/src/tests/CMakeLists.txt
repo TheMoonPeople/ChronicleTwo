@@ -151,40 +151,47 @@ endif()
 # loaded CI runner.
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DISCOVERY_TIMEOUT 60
     TEST_FILTER -PlatformClock.*:${CT_GPU_FILTER}:${CT_GPU_SLOW_FILTER}:${CT_CPU_FILTER}:${CT_CORPUS_FILTER}:${CT_CONFIG_PARITY_FILTER}
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT})
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DISCOVERY_TIMEOUT 60
     TEST_FILTER PlatformClock.*
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} RUN_SERIAL TRUE)
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_CORPUS_FILTER}
     PROPERTIES TIMEOUT ${CT_CORPUS_TIMEOUT} RUN_SERIAL TRUE LABELS "cpu;corpus")
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_CONFIG_PARITY_FILTER}
     PROPERTIES TIMEOUT ${CT_CONFIG_PARITY_TIMEOUT} RUN_SERIAL TRUE LABELS "cpu;corpus")
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_CPU_FILTER}
     PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} LABELS cpu)
 
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_GPU_FILTER}-${CT_GPU_SLOW_FILTER}:${CT_CPU_FILTER}
-    PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} LABELS gpu)
+    PROPERTIES TIMEOUT ${CT_TEST_TIMEOUT} LABELS gpu RESOURCE_LOCK renderer FIXTURES_REQUIRED gpu_pipeline_cache)
 gtest_discover_tests(darkchronicle_tests
     DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DISCOVERY_TIMEOUT 60
     TEST_FILTER ${CT_GPU_SLOW_FILTER}-${CT_CPU_FILTER}
-    PROPERTIES TIMEOUT ${CT_GPU_SLOW_TIMEOUT} LABELS gpu)
+    PROPERTIES TIMEOUT ${CT_GPU_SLOW_TIMEOUT} LABELS gpu RESOURCE_LOCK renderer FIXTURES_REQUIRED gpu_pipeline_cache)
 
 add_dependencies(darkchronicle_tests darkchronicle)
 # ctest reports a process that dies by abort() as failed even when PASS_REGULAR_EXPRESSION matches its
@@ -226,4 +233,19 @@ set_tests_properties(Smoke.HeadlessFramesScreenshot PROPERTIES
 file(GLOB ct_stream_cmake CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
 foreach(f IN LISTS ct_stream_cmake)
     include(${f})
+endforeach()
+
+add_test(NAME Gpu.PipelineWarmup
+    COMMAND darkchronicle_tests
+        --gtest_fail_if_no_test_selected
+        "--gtest_filter=GfxGpuMeshDc2.PipelinesOnlyWhenAsked:DynamicMask/GfxGpuColorWriteMask.DepthOnlyDrawsKeepTheirDepthAndLeaveColourAlone/0")
+set_tests_properties(Gpu.PipelineWarmup PROPERTIES
+    FIXTURES_SETUP gpu_pipeline_cache TIMEOUT 600 RUN_SERIAL TRUE LABELS gpu RESOURCE_LOCK renderer
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+get_property(ct_registered_tests DIRECTORY PROPERTY TESTS)
+foreach(test IN LISTS ct_registered_tests)
+    get_test_property(${test} LABELS labels)
+    if("gpu" IN_LIST labels AND NOT test STREQUAL "Gpu.PipelineWarmup")
+        set_property(TEST ${test} APPEND PROPERTY FIXTURES_REQUIRED gpu_pipeline_cache)
+    endif()
 endforeach()

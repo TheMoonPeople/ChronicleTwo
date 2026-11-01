@@ -280,8 +280,22 @@ bool Apply(Config &config, std::string_view name, const Json &value) {
         config.spheda_handicap = shots;
         return true;
     }
+    if (name == "video.vsync") {
+        bool vsync = true;
+        if (!ReadBool(value, vsync)) {
+            return false;
+        }
+        s.present_mode = vsync ? ConfigPresentMode::Fifo : ConfigPresentMode::Immediate;
+        return true;
+    }
     if (name == "video.present_mode") {
-        return ReadEnum(value, kPresentModeNames, s.present_mode);
+        // Older files chose a present mode; anything but FIFO turns V-Sync off.
+        ConfigPresentMode mode = ConfigPresentMode::Fifo;
+        if (!ReadEnum(value, kPresentModeNames, mode)) {
+            return false;
+        }
+        s.present_mode = mode == ConfigPresentMode::Fifo ? ConfigPresentMode::Fifo : ConfigPresentMode::Immediate;
+        return true;
     }
     if (name == "video.interpolation") {
         return ReadBool(value, config.interpolation);
@@ -557,7 +571,7 @@ std::string ConfigSerialize(const Config &config) {
     root["game"]["transformation_stats"] = config.transformation_stats;
     root["game"]["transformation_exp"] = config.transformation_exp;
     root["game"]["shared_badge_exp"] = config.shared_badge_exp;
-    root["video"]["present_mode"] = kPresentModeNames[static_cast<std::size_t>(s.present_mode)];
+    root["video"]["vsync"] = s.present_mode == ConfigPresentMode::Fifo;
     root["video"]["interpolation"] = config.interpolation;
     root["video"]["render_thread"] = kRenderThreadNames[static_cast<std::size_t>(config.render_thread)];
     root["video"]["max_fps"] = s.max_fps;

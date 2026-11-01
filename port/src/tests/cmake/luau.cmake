@@ -1,7 +1,8 @@
 # Script decoder, command catalog and corpus survey that the Luau script replacement is built from.
 add_test(NAME Luau.Tools
     COMMAND "${Python3_EXECUTABLE}" -m unittest discover -s "${CMAKE_SOURCE_DIR}/tools/luau" -p "test_*.py")
-set_tests_properties(Luau.Tools PROPERTIES LABELS cpu TIMEOUT 300 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_tests_properties(Luau.Tools PROPERTIES LABELS cpu TIMEOUT 300
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 # The checked-in catalog and report must match the published corpus; skipped without game data.
 add_test(NAME Luau.Survey

@@ -15,6 +15,7 @@
 #include <format>
 #include <fstream>
 #include <iterator>
+#include <span>
 #include <sstream>
 #include <string>
 #include <system_error>
@@ -609,16 +610,13 @@ void WriteSymbolised(const Capture &capture) {
     }
     try {
         cpptrace::raw_trace raw;
-        raw.frames.assign(std::begin(capture.frames), std::begin(capture.frames) + static_cast<std::ptrdiff_t>(capture.frame_count));
-        const cpptrace::stacktrace trace = raw.resolve();
+        const auto          frames = std::span(capture.frames).first(capture.frame_count);
+        raw.frames.assign(frames.begin(), frames.end());
+        const cpptrace::stacktrace trace = crash_detail::ResolveFrames(raw, [](const cpptrace::raw_trace &unique) { return unique.resolve(); });
         std::size_t                index = 0;
         for (const cpptrace::stacktrace_frame &frame : trace.frames) {
             out += frame.is_inline ? "    " : std::format("#{:<3}", index);
-            std::string symbol = frame.symbol;
-            if (symbol.empty() && !frame.is_inline) {
-                symbol = crash_detail::SymbolTableName(frame.raw_address);
-            }
-            out += symbol.empty() ? std::string("??") : symbol;
+            out += frame.symbol.empty() ? std::string("??") : frame.symbol;
             if (!frame.filename.empty()) {
                 out += " at ";
                 out += DisplaySourcePath(frame.filename);

@@ -8,7 +8,7 @@ import CoreHaptics
 import Foundation
 import GameController
 
-private let rate = Int(ct.ios.HapticsRate())
+private let rate = Int(IosHapticsRate())
 private let tickFrames = rate / 100
 private let tick: TimeInterval = 0.01
 private let retryTicks = 100
@@ -183,7 +183,7 @@ private func run() {
                 controller = found
                 ready.set(true)
             }
-            signal.withUnsafeMutableBufferPointer { ct.ios.HapticsRender($0.baseAddress, Int32(tickFrames)) }
+            signal.withUnsafeMutableBufferPointer { IosHapticsRender($0.baseAddress, Int32(tickFrames)) }
             handles[0].play(signal, 0)
             handles[1].play(signal, 1)
         }

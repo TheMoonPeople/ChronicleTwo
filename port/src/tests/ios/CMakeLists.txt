@@ -1,12 +1,14 @@
-# Run iOS compatibility regressions on the simulator without the desktop suite's subprocess/death-test APIs.
+# Run iOS runtime API checks on the simulator without desktop subprocess or death-test APIs.
 cmake_minimum_required(VERSION 3.25)
+# The app and simulator tests use the same minimum system-library ABI.
+set(CMAKE_OSX_DEPLOYMENT_TARGET 27.0)
 project(ChronicleTwoIosTests CXX)
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 add_subdirectory("$ENV{CT_DEPS_ROOT}/sources/googletest" googletest EXCLUDE_FROM_ALL)
-add_executable(ios_tests ../ios_to_chars_test.cpp)
+add_executable(ios_tests ../ios_runtime_test.cpp)
 target_include_directories(ios_tests PRIVATE ../..)
 target_link_libraries(ios_tests PRIVATE GTest::gtest_main)
 include(GoogleTest)

@@ -1,6 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <optional>
+#include <span>
 #include <vector>
 
 #include "gfx/gfx.hpp"
@@ -36,6 +39,27 @@ struct mgVisualGroupMesh {
     bool                          skinned = false;
 };
 
+namespace dc2::render {
+
+/**
+ * Describes a fully contained current-pose triangle submitted by a native body.
+ */
+struct ProjectedBodyWitness {
+    std::array<float, 3> world_point{};  /**< Surface centroid in the submitted pose's world space. */
+    float                pixel_area = 0; /**< Conservative triangle area in the actual target's pixels. */
+};
+
+/**
+ * Projects one Prog0 triangle conservatively inside its actual pose, clip planes, visible frame and draw state.
+ */
+std::optional<ProjectedBodyWitness> ProjectProg0BodyWitness(
+    std::span<const gfx::Vertex3D> vertices, std::array<std::uint32_t, 3> triangle,
+    const gfx::MeshConstants &mesh, const gfx::Prog0Constants &prog0, const gfx::Prog0Palette *palette,
+    const gfx::MeshTransform &transform, const gfx::DrawState &state, const gfx::LogicalMapping &mapping,
+    const gfx::LogicalRect &visible_extent);
+
+} // namespace dc2::render
+
 mgVisualFaceMesh        mgVisualPortBuildFace(const mgCVisualMDT &visual, const mgCFace &face, bool skinned);
 void                    mgVisualPortRefreshFace(mgCVisualMDT *visual, mgCFace *face);
 const mgVisualFaceMesh *mgVisualPortFaceMesh(const mgCFace *face);
@@ -43,6 +67,9 @@ const mgVisualFaceMesh *mgVisualPortFaceMesh(const mgCFace *face);
 // refreshed and uploaded when it can be.
 const mgVisualGroupMesh *mgVisualPortGroupMesh(const mgFACE_GROUP *first, const mgFACE_GROUP *end);
 void                     mgVisualPortSweep();
+// Uploads the batches first drawn this tick. Called under the tick's render lease, where the uploads do not wait for
+// the render thread; until then the batches draw from their CPU copies.
+void mgVisualPortFlushUploads();
 
 mgCDrawEnv mgVisualPortDrawEnv(const mgCVisualAttr &attr, const mgCDrawEnv &base);
 

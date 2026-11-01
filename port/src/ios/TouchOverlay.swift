@@ -1,6 +1,6 @@
 // The on-screen gamepad of iOS, TheMoonPeople/Chronicle's Android overlay (ChronicleTouchOverlay.java) in UIKit: a
 // view over the game's that draws the controls and takes every touch, so no draw call enters the game's frame. Its
-// state reaches pad 0 through ct.ios.SetTouchOverlay.
+// state reaches pad 0 through IosSetTouchOverlay.
 
 import ChronicleBridge
 import UIKit
@@ -17,7 +17,7 @@ private let labelColours: [UInt32] = [
     0xedf2ff, 0xedf2ff, 0xedf2ff, 0xedf2ff, 0xedf2ff, 0xedf2ff, 0xedf2ff, 0xedf2ff,
 ]
 
-private let buttonBits: [UInt16] = (0..<buttons).map { ct.ios.ButtonBit(Int32($0)) }
+private let buttonBits: [UInt16] = (0..<buttons).map { IosButtonBit(Int32($0)) }
 
 private func colour(_ argb: UInt32) -> UIColor {
     UIColor(red: CGFloat((argb >> 16) & 0xff) / 255, green: CGFloat((argb >> 8) & 0xff) / 255,
@@ -26,7 +26,7 @@ private func colour(_ argb: UInt32) -> UIColor {
 
 private func clamp(_ value: CGFloat, _ low: CGFloat, _ high: CGFloat) -> CGFloat { max(low, min(high, value)) }
 
-private func same(_ a: ct.ios.TouchState, _ b: ct.ios.TouchState) -> Bool {
+private func same(_ a: IosTouchState, _ b: IosTouchState) -> Bool {
     a.buttons == b.buttons && a.left_x == b.left_x && a.left_y == b.left_y && a.right_x == b.right_x &&
         a.right_y == b.right_y
 }
@@ -38,7 +38,7 @@ final class TouchOverlayView: UIView {
     // Each touch keeps the control it went down on, as on Android: a finger that slides off a button lets go of
     // it, and one that went down on nothing presses nothing.
     private var captures: [ObjectIdentifier: (touch: UITouch, control: Int)] = [:]
-    private var last = ct.ios.TouchState()
+    private var last = IosTouchState()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -95,7 +95,7 @@ final class TouchOverlayView: UIView {
     private func hit(_ p: CGPoint) -> Int { (0..<controls).first { distance($0, p) <= radius[$0] } ?? -1 }
 
     private func publish() {
-        var next = ct.ios.TouchState()
+        var next = IosTouchState()
         if !isHidden {
             for (touch, control) in captures.values where control >= 0 {
                 let p = touch.location(in: self)
@@ -125,7 +125,7 @@ final class TouchOverlayView: UIView {
             last = next
             setNeedsDisplay()
         }
-        ct.ios.SetTouchOverlay(next)
+        IosSetTouchOverlay(next)
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -214,7 +214,7 @@ final class TouchOverlayView: UIView {
         } else if host.subviews.last !== overlay {
             host.bringSubviewToFront(overlay)
         }
-        overlay.setControlsVisible(ct.ios.TouchOverlayVisible())
+        overlay.setControlsVisible(IosTouchOverlayVisible())
     }
 }
 

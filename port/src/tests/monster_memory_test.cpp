@@ -135,17 +135,21 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
     source->Initialize();
     auto copy_model = [&](int count, int &capacity) {
         source->Initialize();
-        static char model_key;
-        mgCMemory   model_memory;
-        const auto  words = static_cast<int>((static_cast<std::size_t>(count) * (sizeof(mgCFrame) + sizeof(mgCFrame *)) + 15) / 16 + count + 8);
+        static char              model_key;
+        mgCMemory                model_memory;
+        std::vector<std::string> names(count);
+        std::size_t              name_words = 0;
+        for (int index = 0; index < count; ++index) {
+            names[index] = "bone" + std::to_string(index);
+            name_words += (names[index].size() + 1 + 15) / 16;
+        }
+        const auto words = static_cast<int>((static_cast<std::size_t>(count) * (sizeof(mgCFrame) + sizeof(mgCFrame *)) + 15) / 16 + name_words + 8);
         model_memory.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&model_key, static_cast<std::size_t>(words) * sizeof(u_long128))), words);
         auto *frames = dc2::memory::NewArray<mgCFrame>(model_memory, static_cast<std::size_t>(count));
         auto *table = dc2::memory::NewArray<mgCFrame *>(model_memory, static_cast<std::size_t>(count));
         ASSERT_NE(frames, nullptr);
         ASSERT_NE(table, nullptr);
-        std::vector<std::string> names(count);
         for (int index = 0; index < count; ++index) {
-            names[index] = "bone" + std::to_string(index);
             auto *name = dc2::memory::CopyText(model_memory, names[index]);
             ASSERT_NE(name, nullptr);
             frames[index].SetName(name);

@@ -334,7 +334,7 @@ TEST_F(AudioAssetsTest, WaveOverrideWinsAndMalformedReplacementFallsBack) {
 }
 
 TEST_F(AudioAssetsTest, SelfContainedH264AacMp4OverrideAndInvalidFallback) {
-    const fs::path fixtures = fs::path(__FILE__).parent_path() / "fixtures";
+    const fs::path fixtures = fs::absolute(fs::path(__FILE__)).parent_path().lexically_normal() / "fixtures";
     const auto     base = root / "data/movie/test.mp4";
     fs::create_directories(base.parent_path());
     fs::copy_file(fixtures / "movie.mp4", base);

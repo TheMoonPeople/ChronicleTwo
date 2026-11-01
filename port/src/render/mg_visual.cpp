@@ -2,16 +2,22 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <climits>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <deque>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <optional>
 #include <span>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "log/log.hpp"
 #include "mg_dataset.hpp"
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
@@ -27,6 +33,7 @@
 #include "render/primitive_submission.hpp"
 #include "render/renderer.hpp"
 #include "render/visual_mesh.hpp"
+#include "test_hooks.hpp"
 #include "visualmotion.hpp"
 #include "water.hpp"
 
@@ -844,13 +851,21 @@ std::unordered_map<const mgCFace *, FaceEntry> &FaceTable() {
     return table;
 }
 
+// Changes whenever a face table entry is added, forgotten, or given new geometry or residency, so a group
+// batch validated at the current revision is still current without visiting its faces.
+std::uint64_t face_revision = 1;
+
 struct GroupEntry {
     std::shared_ptr<mgVisualGroupMesh> mesh;
     // The face meshes the batch was built from, in draw order. A refreshed face is a new mesh, so a
     // mismatch means the batch is stale; holding them also keeps their addresses from being reused.
     std::vector<std::shared_ptr<const mgVisualFaceMesh>> sources;
-    bool                                                 persistent = false;
-    int                                                  last_frame = 0;
+    // The faces visited for the batch; a draw that skips the visit still keeps them in the face table.
+    std::vector<const mgCFace *> faces;
+    const mgFACE_GROUP          *end = nullptr; /**< The group after the batch's last. */
+    std::uint64_t                revision = 0;  /**< face_revision when the sources were last checked. */
+    bool                         persistent = false;
+    int                          last_frame = 0;
 };
 
 std::unordered_map<const mgFACE_GROUP *, GroupEntry> &GroupTable() {
@@ -870,19 +885,19 @@ void ReleaseMesh(mgVisualGroupMesh &mesh) {
     }
 }
 
+// Batches waiting for the tick's render lease to upload.
+std::vector<std::weak_ptr<mgVisualGroupMesh>> &PendingUploads() {
+    static std::vector<std::weak_ptr<mgVisualGroupMesh>> pending;
+    return pending;
+}
+
 // The CPU copy supports reupload after eviction and immediate draws when no mesh slot is free.
 void UploadIfReady(GroupEntry &entry) {
-    mgVisualGroupMesh &mesh = *entry.mesh;
+    const mgVisualGroupMesh &mesh = *entry.mesh;
     if (!entry.persistent || mesh.mesh != gfx::kNullMesh || mesh.indices.empty() || !mgPortRendererReady()) {
         return;
     }
-
-    mesh.mesh = gfx::CreateMesh(mesh.vertices, mesh.indices);
-#ifdef CT_ENABLE_TRACY
-    if (ct::profile::Enabled() && mesh.mesh == gfx::kNullMesh) {
-        ++gpu_upload_failures;
-    }
-#endif
+    PendingUploads().push_back(entry.mesh);
 }
 
 // Concatenates the faces in order. Each face's indices are rebased onto the batch's vertices (a skinned
@@ -990,18 +1005,26 @@ mgVisualFaceMesh mgVisualPortBuildFace(const mgCVisualMDT &visual, const mgCFace
 
 void mgVisualPortRefreshFace(mgCVisualMDT *visual, mgCFace *face) {
     CT_PROFILE_ZONE("Build visual face");
-    const int        kind = visual->Iam();
-    FaceEntry       &entry = FaceTable()[face];
+    {
+    }
+    const int kind = visual->Iam();
+    auto [found, added] = FaceTable().try_emplace(face);
+    FaceEntry       &entry = found->second;
     mgVisualFaceMesh mesh = mgVisualPortBuildFace(*visual, *face, kind == MG_VISUAL_KIND_MOTION_MDT);
+    const bool       persistent = kind == MG_VISUAL_KIND_FIX_MDT || kind == MG_VISUAL_KIND_MOTION_MDT;
+    if (added || entry.persistent != persistent) {
+        ++face_revision;
+    }
     // An unchanged face keeps its mesh, so the group batches built from it stay valid and are not rebuilt.
     // A changed face is a new mesh, and a group batch built from the previous one keeps it alive until it
     // next draws.
     if (entry.mesh == nullptr || !SameFaceMesh(*entry.mesh, mesh)) {
         entry.mesh = std::make_shared<const mgVisualFaceMesh>(std::move(mesh));
+        ++face_revision;
     }
     // A plain visual is rebuilt on every CreateFacePacket and would churn GPU meshes if uploaded, so its
     // group batches stay on the CPU.
-    entry.persistent = kind == MG_VISUAL_KIND_FIX_MDT || kind == MG_VISUAL_KIND_MOTION_MDT;
+    entry.persistent = persistent;
     entry.last_frame = mgPortFrameCount();
 }
 
@@ -1026,7 +1049,7 @@ void VisitGroupFaces(const mgFACE_GROUP *first, const mgFACE_GROUP *end, Visit &
             if (entry == nullptr || entry->mesh->indices.empty()) {
                 continue;
             }
-            visit(*entry);
+            visit(face, *entry);
         }
     }
 }
@@ -1039,17 +1062,33 @@ void SweepPeriodically() {
 
 // The batch of the groups from first up to end, keyed by first.
 std::shared_ptr<const mgVisualGroupMesh> GroupMesh(const mgFACE_GROUP *first, const mgFACE_GROUP *end) {
-    // The cached batch is checked face by face against its sources, so a steady frame copies no face pointers.
+    CT_PROFILE_ZONE("Resolve visual group geometry");
+    // A batch checked at the current face revision is current; marking it first keeps its faces through a sweep.
+    if (const auto found = GroupTable().find(first); found != GroupTable().end()) {
+        GroupEntry &cached = found->second;
+        if (cached.revision == face_revision && cached.end == end && cached.mesh != nullptr) {
+            cached.last_frame = mgPortFrameCount();
+            SweepPeriodically();
+            if (cached.revision == face_revision) {
+                UploadIfReady(cached);
+                return cached.mesh;
+            }
+        }
+    }
+
+    // Otherwise the cached batch is checked face by face against its sources.
     const GroupEntry *cached = nullptr;
     if (const auto found = GroupTable().find(first); found != GroupTable().end()) {
         cached = &found->second;
     }
-    bool   persistent = true;
-    bool   matched = cached != nullptr;
-    size_t kept = 0;
-    VisitGroupFaces(first, end, [&](const FaceEntry &entry) {
+    bool                         persistent = true;
+    bool                         matched = cached != nullptr;
+    size_t                       kept = 0;
+    std::vector<const mgCFace *> visited;
+    VisitGroupFaces(first, end, [&](const mgCFace *face, const FaceEntry &entry) {
         persistent = persistent && entry.persistent;
         matched = matched && kept < cached->sources.size() && cached->sources[kept].get() == entry.mesh.get();
+        visited.push_back(face);
         ++kept;
     });
     matched = matched && kept == cached->sources.size();
@@ -1066,10 +1105,13 @@ std::shared_ptr<const mgVisualGroupMesh> GroupMesh(const mgFACE_GROUP *first, co
         std::vector<std::shared_ptr<const mgVisualFaceMesh>> faces;
         faces.reserve(kept);
         // The sweep spares every face this walk visited, so the second walk sees the same faces.
-        VisitGroupFaces(first, end, [&](const FaceEntry &face_entry) { faces.push_back(face_entry.mesh); });
+        VisitGroupFaces(first, end, [&](const mgCFace *, const FaceEntry &face_entry) { faces.push_back(face_entry.mesh); });
         entry.mesh = BuildGroup(faces);
         entry.sources = std::move(faces);
     }
+    entry.faces = std::move(visited);
+    entry.end = end;
+    entry.revision = face_revision;
     entry.persistent = persistent;
     entry.last_frame = mgPortFrameCount();
     UploadIfReady(entry);
@@ -1087,6 +1129,23 @@ const mgVisualGroupMesh *mgVisualPortGroupMesh(const mgFACE_GROUP *first, const 
     return GroupMesh(first, end).get();
 }
 
+void mgVisualPortFlushUploads() {
+    for (const std::weak_ptr<mgVisualGroupMesh> &pending : PendingUploads()) {
+        const std::shared_ptr<mgVisualGroupMesh> mesh = pending.lock();
+        // A batch drawn more than once this tick is queued more than once.
+        if (mesh == nullptr || mesh->mesh != gfx::kNullMesh || mesh->indices.empty() || !mgPortRendererReady()) {
+            continue;
+        }
+        mesh->mesh = gfx::CreateMesh(mesh->vertices, mesh->indices);
+#ifdef CT_ENABLE_TRACY
+        if (ct::profile::Enabled() && mesh->mesh == gfx::kNullMesh) {
+            ++gpu_upload_failures;
+        }
+#endif
+    }
+    PendingUploads().clear();
+}
+
 void mgVisualPortSweep() {
     static int swept_frame = -1;
     const int  frame = mgPortFrameCount();
@@ -1097,6 +1156,15 @@ void mgVisualPortSweep() {
     CT_PROFILE_ZONE("Sweep visual faces");
 
     auto &faces = FaceTable();
+    // A batch returned without visiting its faces still used them when it was drawn.
+    for (const auto &[group, entry] : GroupTable()) {
+        static_cast<void>(group);
+        for (const mgCFace *face : entry.faces) {
+            if (const auto found = faces.find(face); found != faces.end()) {
+                found->second.last_frame = std::max(found->second.last_frame, entry.last_frame);
+            }
+        }
+    }
 #ifdef CT_ENABLE_TRACY
     const bool profiling = ct::profile::Enabled();
     uint64_t   gpu_groups = 0;
@@ -1115,6 +1183,7 @@ void mgVisualPortSweep() {
         }
         // A queued draw may still own this CPU geometry after the table forgets it.
         it = faces.erase(it);
+        ++face_revision;
     }
 
     auto &groups = GroupTable();
@@ -1162,6 +1231,255 @@ int mgCVisualMDT::CreateFacePacket(u_int * /*packet*/, mgCFace *face) {
 
 namespace {
 
+bool WitnessFloat(float value) {
+    const auto bits = std::bit_cast<std::uint32_t>(value);
+    const auto exponent = bits & 0x7f800000u;
+    return exponent != 0x7f800000u && (exponent != 0 || (bits & 0x007fffffu) == 0);
+}
+
+struct WitnessVector {
+    std::array<float, 4>  value{};
+    std::array<double, 4> error{};
+};
+
+std::optional<WitnessVector> WitnessMultiply(const float *matrix, const WitnessVector &input) {
+    WitnessVector result;
+    for (std::size_t row = 0; row < 4; ++row) {
+        std::array<float, 4> products{};
+        double               magnitude = 0;
+        double               propagated = 0;
+        for (std::size_t column = 0; column < 4; ++column) {
+            const float coefficient = matrix[column * 4 + row];
+            if (!WitnessFloat(coefficient) || !WitnessFloat(input.value[column])) {
+                return std::nullopt;
+            }
+            magnitude += std::abs(static_cast<double>(coefficient) * input.value[column]);
+            propagated += std::abs(static_cast<double>(coefficient)) * input.error[column];
+            products[column] = coefficient * input.value[column];
+            if (!WitnessFloat(products[column])) {
+                return std::nullopt;
+            }
+        }
+        if (!std::isfinite(magnitude) || magnitude > std::numeric_limits<float>::max() / 64.0) {
+            return std::nullopt;
+        }
+        result.value[row] = ((products[0] + products[1]) + products[2]) + products[3];
+        result.error[row] = propagated + 64.0 * std::numeric_limits<float>::epsilon() * std::max(1.0, magnitude);
+        if (!WitnessFloat(result.value[row]) || !std::isfinite(result.error[row])) {
+            return std::nullopt;
+        }
+    }
+    return result;
+}
+
+bool WitnessAffine(const float *matrix) {
+    return matrix[3] == 0 && matrix[7] == 0 && matrix[11] == 0 && matrix[15] == 1;
+}
+
+std::optional<WitnessVector> WitnessPosition(std::span<const gfx::Vertex3D> vertices, std::uint32_t index,
+                                             bool skinned, const gfx::Prog0Palette *palette) {
+    const std::size_t stride = skinned ? 2 : 1;
+    if (index >= vertices.size() / stride || (skinned && (vertices.size() % 2 != 0 || palette == nullptr))) {
+        return std::nullopt;
+    }
+    const auto   &vertex = vertices[static_cast<std::size_t>(index) * stride];
+    WitnessVector result{
+        {vertex.position[0], vertex.position[1], vertex.position[2], 1},
+        {}
+    };
+    for (float coordinate : result.value) {
+        if (!WitnessFloat(coordinate)) {
+            return std::nullopt;
+        }
+    }
+    if (!skinned) {
+        return result;
+    }
+    gfx::Prog0Skin skin{};
+    std::memcpy(&skin, &vertices[static_cast<std::size_t>(index) * stride + 1], sizeof skin);
+    result.value = {0, 0, 0, 1};
+    for (std::size_t influence = 0; influence < 4; ++influence) {
+        const float weight = skin.weight[influence];
+        if (!WitnessFloat(weight)) {
+            return std::nullopt;
+        }
+        const std::array<float, 4> weighted{vertex.position[0] * weight, vertex.position[1] * weight,
+                                            vertex.position[2] * weight, weight};
+        for (float coordinate : weighted) {
+            if (!WitnessFloat(coordinate)) {
+                return std::nullopt;
+            }
+        }
+        const auto &bone = palette->bones[std::min<std::size_t>(skin.bone[influence], gfx::kProg0Bones - 1)];
+        for (std::size_t row = 0; row < 3; ++row) {
+            std::array<float, 4> products{};
+            double               magnitude = 0;
+            double               row_magnitude = 0;
+            for (std::size_t column = 0; column < 4; ++column) {
+                if (!WitnessFloat(bone[row][column])) {
+                    return std::nullopt;
+                }
+                products[column] = bone[row][column] * weighted[column];
+                magnitude += std::abs(static_cast<double>(bone[row][column]) * weighted[column]);
+                row_magnitude += std::abs(static_cast<double>(bone[row][column]));
+                if (!WitnessFloat(products[column])) {
+                    return std::nullopt;
+                }
+            }
+            if (!std::isfinite(magnitude) || magnitude > std::numeric_limits<float>::max() / 256.0) {
+                return std::nullopt;
+            }
+            result.value[row] += ((products[0] + products[1]) + products[2]) + products[3];
+            const double input_magnitude = std::max({1.0, std::abs(static_cast<double>(vertex.position[0])),
+                                                     std::abs(static_cast<double>(vertex.position[1])), std::abs(static_cast<double>(vertex.position[2])),
+                                                     std::abs(static_cast<double>(weight))});
+            result.error[row] += 64.0 * std::numeric_limits<float>::epsilon() * magnitude +
+                                 64.0 * std::numeric_limits<float>::min() * row_magnitude * input_magnitude;
+            if (!WitnessFloat(result.value[row])) {
+                return std::nullopt;
+            }
+        }
+    }
+    return result;
+}
+
+bool WitnessInside(const WitnessVector &clip, bool vulkan) {
+    for (std::size_t axis = 0; axis < 3; ++axis) {
+        if (vulkan && axis == 2) {
+            if (clip.value[axis] <= clip.error[axis]) {
+                return false;
+            }
+        } else if (static_cast<double>(clip.value[3]) + clip.value[axis] <= clip.error[3] + clip.error[axis]) {
+            return false;
+        }
+        if (static_cast<double>(clip.value[3]) - clip.value[axis] <= clip.error[3] + clip.error[axis]) {
+            return false;
+        }
+    }
+    return clip.value[3] > clip.error[3];
+}
+
+} // namespace
+
+std::optional<dc2::render::ProjectedBodyWitness> dc2::render::ProjectProg0BodyWitness(
+    std::span<const gfx::Vertex3D> vertices, std::array<std::uint32_t, 3> triangle,
+    const gfx::MeshConstants &mesh, const gfx::Prog0Constants &prog0, const gfx::Prog0Palette *palette,
+    const gfx::MeshTransform &transform, const gfx::DrawState &state, const gfx::LogicalMapping &mapping,
+    const gfx::LogicalRect &visible_extent) {
+    if ((state.color_write_mask & (gfx::kWriteRed | gfx::kWriteGreen | gfx::kWriteBlue)) == 0 ||
+        state.depth_test == gfx::DepthTest::Never ||
+        (state.alpha_test && state.alpha_func == gfx::AlphaFunc::Never) ||
+        state.screen_space || mapping.pixel_width == 0 ||
+        mapping.pixel_height == 0 || !WitnessFloat(mapping.scale_x) || !WitnessFloat(mapping.scale_y) ||
+        !WitnessFloat(mapping.offset_x) || !WitnessFloat(mapping.offset_y) || mapping.scale_x <= 0 ||
+        mapping.scale_y <= 0 || !WitnessAffine(transform.model) || !WitnessAffine(transform.local)) {
+        return std::nullopt;
+    }
+    for (std::size_t index = 0; index < 16; ++index) {
+        if (transform.middle[index] != (index % 5 == 0 ? 1.0f : 0.0f)) {
+            return std::nullopt;
+        }
+    }
+    std::array<double, 4> scissor{0, 0, static_cast<double>(mapping.pixel_width),
+                                  static_cast<double>(mapping.pixel_height)};
+    const auto            constrain_rect = [&](const gfx::LogicalRect &rect) {
+        if (!WitnessFloat(rect.x) || !WitnessFloat(rect.y) || !WitnessFloat(rect.w) || !WitnessFloat(rect.h) ||
+            rect.w <= 0 || rect.h <= 0) {
+            return false;
+        }
+        // Stay inside the unextended scissor even when its CPU float mapping rounds toward an integer boundary.
+        const auto constrain = [&](std::size_t axis, float position, float extent, float scale, float offset) {
+            constexpr double error_scale = 8.0 * std::numeric_limits<float>::epsilon();
+            const double     start = static_cast<double>(position) * scale + offset;
+            const double     start_error = error_scale *
+                                           (std::abs(static_cast<double>(position) * scale) + std::abs(static_cast<double>(offset)));
+            scissor[axis] = std::max(scissor[axis], start + start_error);
+            const double end = (static_cast<double>(position) + extent) * scale + offset;
+            const double end_error = error_scale *
+                                     ((std::abs(static_cast<double>(position)) + std::abs(static_cast<double>(extent))) * scale +
+                                      std::abs(static_cast<double>(offset)));
+            scissor[axis + 2] = std::min(scissor[axis + 2], end - end_error);
+        };
+        constrain(0, rect.x, rect.w, mapping.scale_x, mapping.offset_x);
+        constrain(1, rect.y, rect.h, mapping.scale_y, mapping.offset_y);
+        return true;
+    };
+    if (!constrain_rect(visible_extent) || (state.scissor && !constrain_rect(state.scissor_rect))) {
+        return std::nullopt;
+    }
+    std::array<std::array<double, 2>, 3> screen{};
+    std::array<std::array<double, 2>, 3> screen_error{};
+    std::array<double, 3>                world_sum{};
+    for (std::size_t vertex = 0; vertex < 3; ++vertex) {
+        const auto position = WitnessPosition(vertices, triangle[vertex], (prog0.flags & gfx::kProg0Skinned) != 0, palette);
+        if (!position) {
+            return std::nullopt;
+        }
+        const auto clip = WitnessMultiply(mesh.mvp, *position);
+        if (!clip || !WitnessInside(*clip, true)) {
+            return std::nullopt;
+        }
+        if ((prog0.flags & gfx::kProg0Scissor) != 0) {
+            const auto user_clip = WitnessMultiply(prog0.clip_or_view, *position);
+            if (!user_clip || !WitnessInside(*user_clip, false)) {
+                return std::nullopt;
+            }
+        }
+        const auto local = WitnessMultiply(transform.local, *position);
+        const auto world = local ? WitnessMultiply(transform.model, *local) : std::nullopt;
+        if (!world) {
+            return std::nullopt;
+        }
+        for (std::size_t axis = 0; axis < 3; ++axis) {
+            world_sum[axis] += world->value[axis];
+        }
+        for (std::size_t axis = 0; axis < 2; ++axis) {
+            const double dimension = axis == 0 ? mapping.pixel_width : mapping.pixel_height;
+            const double w = clip->value[3];
+            screen[vertex][axis] = (static_cast<double>(clip->value[axis]) / w + 1.0) * dimension * 0.5;
+            const double uncertainty = dimension * 0.5 *
+                                           (clip->error[axis] + std::abs(static_cast<double>(clip->value[axis]) / w) * clip->error[3]) /
+                                           (w - clip->error[3]) +
+                                       64.0 * std::numeric_limits<float>::epsilon() * dimension;
+            if (!std::isfinite(screen[vertex][axis]) || !std::isfinite(uncertainty) ||
+                screen[vertex][axis] <= scissor[axis] + uncertainty ||
+                screen[vertex][axis] >= scissor[axis + 2] - uncertainty) {
+                return std::nullopt;
+            }
+            screen_error[vertex][axis] = uncertainty;
+        }
+    }
+    const double cross = (screen[1][0] - screen[0][0]) * (screen[2][1] - screen[0][1]) -
+                         (screen[1][1] - screen[0][1]) * (screen[2][0] - screen[0][0]);
+    const double dx1 = screen[1][0] - screen[0][0];
+    const double dy1 = screen[1][1] - screen[0][1];
+    const double dx2 = screen[2][0] - screen[0][0];
+    const double dy2 = screen[2][1] - screen[0][1];
+    const double ex1 = screen_error[1][0] + screen_error[0][0];
+    const double ey1 = screen_error[1][1] + screen_error[0][1];
+    const double ex2 = screen_error[2][0] + screen_error[0][0];
+    const double ey2 = screen_error[2][1] + screen_error[0][1];
+    const double area_error = std::abs(dx1) * ey2 + std::abs(dy2) * ex1 + ex1 * ey2 +
+                              std::abs(dy1) * ex2 + std::abs(dx2) * ey1 + ey1 * ex2;
+    // Positive-height Vulkan viewports invert the signed area used by COUNTER_CLOCKWISE.
+    if (!std::isfinite(cross) || !std::isfinite(area_error) || std::abs(cross) <= area_error + 2.0 ||
+        (state.cull == gfx::CullMode::Back && cross >= 0) ||
+        (state.cull == gfx::CullMode::Front && cross <= 0)) {
+        return std::nullopt;
+    }
+    ProjectedBodyWitness result{};
+    result.pixel_area = static_cast<float>((std::abs(cross) - area_error) * 0.5);
+    for (std::size_t axis = 0; axis < 3; ++axis) {
+        result.world_point[axis] = static_cast<float>(world_sum[axis] / 3.0);
+        if (!WitnessFloat(result.world_point[axis])) {
+            return std::nullopt;
+        }
+    }
+    return result;
+}
+
+namespace {
+
 struct RenderRecord {
     gfx::MeshConstants  mesh;
     gfx::Prog0Constants prog0;
@@ -1193,13 +1511,178 @@ struct GroupDraw {
     gfx::MeshTransform               transform{};
     gfx::DrawState                   state;
     const void                      *object{};
+    dc2::debug::DungeonStressBodyTag body{};
+    gfx::LogicalMapping              body_mapping{};
+    gfx::LogicalRect                 body_extent{};
+    gfx::TextureHandle               body_outline = gfx::kNullTexture;
+    float                            body_texture_scale = 1;
+    const void                      *source_group{};
 };
+
+/**
+ * Retains one immutable, indexed triangle from a particular submitted native run.
+ */
+struct BodyTriangle {
+    std::shared_ptr<const mgVisualGroupMesh> geometry;
+    mgVisualGroupRun                         run;
+    const void                              *source_group{};
+    std::size_t                              first_index = 0;
+    float                                    area = 0;
+};
+
+/**
+ * Keeps setup-selected witnesses separate for each native monster or chest slot.
+ */
+struct BodyTriangles {
+    dc2::debug::DungeonStressEntityKind                                            kind{};
+    int                                                                            slot = -1;
+    std::vector<BodyTriangle>                                                      triangles;
+    std::vector<std::pair<const void *, std::shared_ptr<const mgVisualGroupMesh>>> groups;
+};
+
+void ObserveSubmittedBody(const GroupDraw &group, const RunDraw &draw, gfx::DrawState state) {
+    if (group.body.generation == 0) {
+        return;
+    }
+    CT_PROFILE_ZONE("Dungeon stress body witness");
+    const auto target = gfx::CurrentRenderTarget();
+    if (mgPortCurrentTarget() != gfx::kMainTarget ||
+        (target != gfx::kMainTarget && (group.body_outline == gfx::kNullTexture || target != group.body_outline)) ||
+        (state.color_write_mask & (gfx::kWriteRed | gfx::kWriteGreen | gfx::kWriteBlue)) == 0 ||
+        draw.run.index_count < 3 || draw.run.index_count % 3 != 0 ||
+        draw.run.first_index > draw.geometry->indices.size() ||
+        draw.run.index_count > draw.geometry->indices.size() - draw.run.first_index ||
+        draw.geometry->skinned != ((group.prog0.flags & gfx::kProg0Skinned) != 0) ||
+        !dc2::debug::DungeonStressBodySubmitted(group.body)) {
+        return;
+    }
+    static std::uint64_t              generation = 0;
+    static std::vector<BodyTriangles> bodies;
+    if (generation != group.body.generation) {
+        bodies.clear();
+        generation = group.body.generation;
+    }
+    const bool capture = dc2::debug::DungeonStressCaptureWitnesses();
+    auto       body = std::find_if(bodies.begin(), bodies.end(), [&](const BodyTriangles &candidate) {
+        return candidate.kind == group.body.kind && candidate.slot == group.body.slot;
+    });
+    if (body == bodies.end()) {
+        if (!capture) {
+            return;
+        }
+        bodies.push_back({group.body.kind, group.body.slot, {}, {}});
+        body = std::prev(bodies.end());
+        body->triangles.reserve(8);
+    }
+    auto source = std::find_if(body->groups.begin(), body->groups.end(), [&](const auto &candidate) {
+        return candidate.first == group.source_group;
+    });
+    if (source == body->groups.end() || source->second != draw.geometry) {
+        std::erase_if(body->triangles, [&](const BodyTriangle &candidate) {
+            return candidate.source_group == group.source_group;
+        });
+        if (!capture) {
+            return;
+        }
+        if (source == body->groups.end()) {
+            body->groups.emplace_back(group.source_group, draw.geometry);
+        } else {
+            source->second = draw.geometry;
+        }
+    }
+    auto &rect = state.scissor_rect;
+    rect = {rect.x * group.body_texture_scale, rect.y * group.body_texture_scale,
+            rect.w * group.body_texture_scale, rect.h * group.body_texture_scale};
+    const auto project = [&](std::size_t first_index) {
+        const auto &indices = draw.geometry->indices;
+        return dc2::render::ProjectProg0BodyWitness(draw.geometry->vertices,
+                                                    {indices[first_index], indices[first_index + 1], indices[first_index + 2]},
+                                                    group.mesh, group.prog0, group.palette ? &*group.palette : nullptr,
+                                                    group.transform, state, group.body_mapping, group.body_extent);
+    };
+    const auto matches = [&](const BodyTriangle &candidate) {
+        return candidate.geometry == draw.geometry && candidate.source_group == group.source_group &&
+               candidate.run.first_index == draw.run.first_index && candidate.run.index_count == draw.run.index_count &&
+               candidate.run.face_flags == draw.run.face_flags &&
+               candidate.first_index >= draw.run.first_index &&
+               candidate.first_index - draw.run.first_index <= draw.run.index_count - 3 &&
+               (candidate.first_index - draw.run.first_index) % 3 == 0;
+    };
+    if (capture) {
+        const std::size_t triangle_count = draw.run.index_count / 3;
+        const std::size_t sample_count = std::min<std::size_t>(triangle_count, 64);
+        for (std::size_t sample = 0; sample < sample_count; ++sample) {
+            const std::size_t first_index = draw.run.first_index + (sample * triangle_count / sample_count) * 3;
+            const auto        projected = project(first_index);
+            if (!projected) {
+                continue;
+            }
+            const auto existing = std::find_if(body->triangles.begin(), body->triangles.end(), [&](const BodyTriangle &candidate) {
+                return matches(candidate) && candidate.first_index == first_index;
+            });
+            if (existing != body->triangles.end()) {
+                existing->area = projected->pixel_area;
+            } else {
+                BodyTriangle candidate{draw.geometry, draw.run, group.source_group, first_index, projected->pixel_area};
+                if (body->triangles.size() < 8) {
+                    body->triangles.push_back(std::move(candidate));
+                } else {
+                    auto smallest = std::min_element(body->triangles.begin(), body->triangles.end(),
+                                                     [](const BodyTriangle &left, const BodyTriangle &right) { return left.area < right.area; });
+                    if (candidate.area > smallest->area) {
+                        *smallest = std::move(candidate);
+                    }
+                }
+            }
+        }
+    }
+    for (const auto &candidate : body->triangles) {
+        if (matches(candidate)) {
+            const auto projected = project(candidate.first_index);
+            if (projected && dc2::debug::DungeonStressObserveBodyWitness(
+                                 group.body, projected->world_point, projected->pixel_area)) {
+                return;
+            }
+        }
+    }
+}
 
 // A deferred group draw's state, shared by the packet's closure so the closure stays small.
 struct GroupPacket {
     GroupDraw            draw;
     std::vector<RunDraw> runs;
 };
+
+/**
+ * Group packets registered since the packet draws were last cleared, reused afterwards so their run vectors keep
+ * their storage.
+ */
+struct GroupPacketPool {
+    std::deque<GroupPacket> packets;   /**< Stable storage; a registered draw names its packet by index. */
+    std::size_t             used = 0;  /**< Packets handed out in the current epoch. */
+    std::uint64_t           epoch = 0; /**< mgPortPacketDrawEpoch when `used` was last reset. */
+};
+
+GroupPacketPool &GroupPackets() {
+    static GroupPacketPool pool;
+    return pool;
+}
+
+std::size_t NextGroupPacket() {
+    GroupPacketPool &pool = GroupPackets();
+    if (pool.epoch != mgPortPacketDrawEpoch()) {
+        // The geometry owners go with the cleared draws; the vectors keep their storage.
+        for (std::size_t index = 0; index < pool.used; ++index) {
+            pool.packets[index].runs.clear();
+        }
+        pool.epoch = mgPortPacketDrawEpoch();
+        pool.used = 0;
+    }
+    if (pool.used == pool.packets.size()) {
+        pool.packets.emplace_back();
+    }
+    return pool.used++;
+}
 
 // Both prog0 submissions. Every call goes through here, so the renderer and frame checks mgPortDrawMesh makes
 // apply to all of them.
@@ -1229,6 +1712,7 @@ void SubmitRuns(const GroupDraw &group, const std::vector<RunDraw> &runs) {
             mgPortDrawMeshImmediateProg0(draw.geometry->vertices, indices, group.mesh, group.prog0, draw.binding, state,
                                          &group.transform, palette);
         }
+        ObserveSubmittedBody(group, draw, state);
     }
 }
 
@@ -1330,6 +1814,7 @@ gfx::Prog0Palette &mgVisualPortCurrentPalette() {
 }
 
 int mgCVisualMDT::CreateRenderInfoPacket(u_int * /*packet*/, float (*matrix)[4], mgRENDER_INFO *info) {
+    CT_PROFILE_ZONE("Create visual render state");
     RenderRecord &record = CurrentRecord();
     record.drawn = info->attr != nullptr;
 
@@ -1537,7 +2022,10 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
             end = end->next;
         }
         mgMaterial         *mat = material + group->material;
-        gfx::TextureBinding binding = mgPortBinding(mat->texture);
+        gfx::TextureBinding binding = [&] {
+            CT_PROFILE_ZONE("Resolve visual texture binding");
+            return mgPortBinding(mat->texture);
+        }();
         // Set each material's CLAMP so a draw does not inherit another material's wrap mode.
         if (mat->texture != nullptr) {
             binding.wrap_u = mgPortWrapU(mat->texture->clamp_bits);
@@ -1557,9 +2045,32 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
         draw.state = record.state;
         draw.state.cull = gfx::Prog0CullMode(draw.prog0);
         draw.object = object;
+        draw.body = dc2::debug::DungeonStressCurrentBody();
+        if (draw.body.generation != 0) {
+            CT_PROFILE_ZONE("Dungeon stress body snapshot");
+            draw.body_mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
+            draw.body_extent = gfx::VisibleLogicalRect(gfx::kMainTarget);
+            draw.body_texture_scale = mgPortTextureScale(gfx::kMainTarget);
+            draw.source_group = group;
+            const auto outline = gfx::FindNamedRenderTarget("outline");
+            if (outline != gfx::kNullTexture) {
+                const auto  info = gfx::GetTextureInfo(outline);
+                const auto  mapping = gfx::GetLogicalMapping(outline);
+                const auto &main = draw.body_mapping;
+                if (info && info->shares_main_depth && mapping.scale_x == main.scale_x &&
+                    mapping.scale_y == main.scale_y && mapping.offset_x == main.offset_x &&
+                    mapping.offset_y == main.offset_y && mapping.pixel_width == main.pixel_width &&
+                    mapping.pixel_height == main.pixel_height) {
+                    draw.body_outline = outline;
+                }
+            }
+        }
 
-        std::vector<RunDraw> runs;
-        if (const auto geometry = GroupMesh(group, end)) {
+        static std::vector<RunDraw> runs;
+        runs.clear();
+        std::shared_ptr<const mgVisualGroupMesh> geometry;
+        geometry = GroupMesh(group, end);
+        if (geometry) {
             runs.reserve(geometry->runs.size());
             for (const mgVisualGroupRun &run : geometry->runs) {
                 const bool textured = (run.face_flags & MG_FACE_NO_TEXTURE) == 0;
@@ -1581,9 +2092,17 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
             break;
         }
 
-        auto group_packet = std::make_shared<const GroupPacket>(GroupPacket{std::move(draw), std::move(runs)});
-        mgPortSetPacketDraw(packet, [group_packet] {
-            SubmitRuns(group_packet->draw, group_packet->runs);
+        const std::size_t index = NextGroupPacket();
+        GroupPacket      &group_packet = GroupPackets().packets[index];
+        group_packet.draw = draw;
+        group_packet.runs.assign(runs.begin(), runs.end());
+        const std::uint64_t epoch = GroupPackets().epoch;
+        mgPortSetPacketDraw(packet, [index, epoch] {
+            // Registered draws are cleared with the epoch, so a matching epoch still owns this packet.
+            if (GroupPackets().epoch == epoch) {
+                const GroupPacket &deferred = GroupPackets().packets[index];
+                SubmitRuns(deferred.draw, deferred.runs);
+            }
         });
 
         const int block = mat->texture != nullptr ? mat->texture->block : -1;

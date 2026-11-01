@@ -65,6 +65,7 @@ struct Options {
     const char           *give = nullptr;
     const char           *log_level = nullptr;
     bool                  fast_load = false;
+    int                   perf_seconds = 0;
     bool                  skip_events = false;
     bool                  invincible = false;
     const char           *seed = nullptr;
@@ -87,7 +88,7 @@ Options g_options;
 
 [[noreturn]] void Usage(const char *program) {
     CT_LOG_ERROR(Main,
-                 "usage: {} [--data DIR] [--run-dir DIR] [--save DIR] [--window WxH] [--headless] [--offscreen]\n          [--frames N] [--screenshot PATH] [--input SCRIPT] [--display-per-tick N]\n          [--show-fps] [--log-fps] [--screenshot-display N] [--screenshot-fps]\n          [--log-level SPEC]\n  --jump MODE[:ARG]  start in town:<map>, georama:<0-4>, dungeon:<n>[:<floor>], event:<id>, title, opening, menu (DC2_JUMP)\n  --fast-load        shorten loading-screen holds (DC2_FAST_LOAD=1)\n  --give ITEM,...    give missing items and weapons on arrival (DC2_GIVE)\n  --skip-events      enter a jumped dungeon floor directly; skip skippable dungeon scenes (DC2_SKIP_EVENTS=1)\n  --invincible       the dungeon character takes no hits (DC2_INVINCIBLE=1)\n  --seed N           reseed the random generator with N as each dungeon floor is built (DC2_SEED)\n  --run-dir DIR      game root containing data.zip and saves/\n                     (default: the per-user chronicletwo app data directory)\n  --data DIR         override the extracted data/ subdirectory (DC2_DATA)\n  --save DIR         override the saves/ subdirectory (DC2_SAVE)\n  --headless         render offscreen (SDL offscreen driver, VK_EXT_headless_surface)\n  --offscreen        --headless without a Vulkan surface: render to an image only\n  --frames N         exit after frame N of the game's main loop (N a positive integer)\n  --screenshot PATH  with --frames: write the last frame to PATH as a PNG on exit\n  --screenshot-display N  with --screenshot: also write N interpolated display frames of that frame\n                     beside PATH, as PATH-display-K.png for K = 0..N-1\n  --screenshot-fps   with --screenshot: draw the FPS counter and menu pointer into the written image\n  --input SCRIPT     drive the pads from an input script; live input is ignored\n  --window WxH       window size in pixels (default: config.json, then the monitor's)\n  --display-per-tick N  headless: also render N interpolated display frames per tick (discarded)\n  --show-fps         draw the FPS counter on presented frames, headless too\n  --log-fps          print the FPS counter's text on stderr every second\n  --log-level SPEC   trace, debug, info, warning, error, critical or off, and/or CATEGORY=LEVEL,\n                     comma-separated (DC2_LOG; default: config.json's log.level)",
+                 "usage: {} [--data DIR] [--run-dir DIR] [--save DIR] [--window WxH] [--headless] [--offscreen]\n          [--frames N] [--screenshot PATH] [--input SCRIPT] [--display-per-tick N]\n          [--show-fps] [--log-fps] [--screenshot-display N] [--screenshot-fps]\n          [--log-level SPEC]\n  --jump MODE[:ARG]  start in town:<map>, georama:<0-4>, dungeon:<n>[:<floor>], event:<id>, title, opening, menu (DC2_JUMP)\n  --fast-load        shorten loading-screen holds (DC2_FAST_LOAD=1)\n  --give ITEM,...    give missing items and weapons on arrival (DC2_GIVE)\n  --skip-events      enter a jumped dungeon floor directly; skip skippable dungeon scenes (DC2_SKIP_EVENTS=1)\n  --invincible       the dungeon character takes no hits (DC2_INVINCIBLE=1)\n  --seed N           reseed the random generator with N as each dungeon floor is built (DC2_SEED)\n  --perf-seconds N   once the scene has control and a second has passed, log N one-second windows of presented\n                     frames and tick times, then exit (DC2_PERF_ZONES=1 adds per-zone times)\n  --run-dir DIR      game root containing data.zip and saves/\n                     (default: the per-user chronicletwo app data directory)\n  --data DIR         override the extracted data/ subdirectory (DC2_DATA)\n  --save DIR         override the saves/ subdirectory (DC2_SAVE)\n  --headless         render offscreen (SDL offscreen driver, VK_EXT_headless_surface)\n  --offscreen        --headless without a Vulkan surface: render to an image only\n  --frames N         exit after frame N of the game's main loop (N a positive integer)\n  --screenshot PATH  with --frames: write the last frame to PATH as a PNG on exit\n  --screenshot-display N  with --screenshot: also write N interpolated display frames of that frame\n                     beside PATH, as PATH-display-K.png for K = 0..N-1\n  --screenshot-fps   with --screenshot: draw the FPS counter and menu pointer into the written image\n  --input SCRIPT     drive the pads from an input script; live input is ignored\n  --window WxH       window size in pixels (default: config.json, then the monitor's)\n  --display-per-tick N  headless: also render N interpolated display frames per tick (discarded)\n  --show-fps         draw the FPS counter on presented frames, headless too\n  --log-fps          print the FPS counter's text on stderr every second\n  --log-level SPEC   trace, debug, info, warning, error, critical or off, and/or CATEGORY=LEVEL,\n                     comma-separated (DC2_LOG; default: config.json's log.level)",
                  program);
     LogFlush();
     std::exit(kExitUsage);
@@ -147,6 +148,8 @@ Options ParseOptions(int argc, const char **argv) {
             }
         } else if (arg == "--fast-load") {
             options.fast_load = true;
+        } else if (arg == "--perf-seconds") {
+            options.perf_seconds = ParsePositive(OptionValue(argc, argv, i), argv[0]);
         } else if (arg == "--skip-events") {
             options.skip_events = true;
         } else if (arg == "--invincible") {
@@ -210,15 +213,14 @@ void ReportPipelineProgress(std::uint32_t done, std::uint32_t total) {
     }
 }
 
+// V-Sync off presents immediately where the surface offers it. The Switch always waits for V-Sync.
 gfx::PresentMode PresentMode(ConfigPresentMode mode) {
-    switch (mode) {
-        case ConfigPresentMode::Mailbox:
-            return gfx::PresentMode::Mailbox;
-        case ConfigPresentMode::Immediate:
-            return gfx::PresentMode::Immediate;
-        default:
-            return gfx::PresentMode::Fifo;
-    }
+#ifdef __SWITCH__
+    static_cast<void>(mode);
+    return gfx::PresentMode::Fifo;
+#else
+    return mode == ConfigPresentMode::Fifo ? gfx::PresentMode::Fifo : gfx::PresentMode::Immediate;
+#endif
 }
 
 gfx::RenderThreadMode RenderThread(ConfigRenderThread mode) {
@@ -401,6 +403,7 @@ int Run(int argc, const char **argv) {
     PortAutosave = !options.headless && !GameHasJump() && options.input.empty();
     const char *fast = SettingsEnv("FAST_LOAD");
     GameSetFastLoad(options.fast_load || (fast && *fast && *fast != '0'));
+    GameSetPerfSeconds(options.perf_seconds);
     const char *skip_events = SettingsEnv("SKIP_EVENTS");
     GameSetSkipEvents(options.skip_events || (skip_events && *skip_events && *skip_events != '0'));
     const char *invincible = SettingsEnv("INVINCIBLE");
@@ -466,9 +469,6 @@ int Run(int argc, const char **argv) {
     renderer.offscreen = offscreen;
     renderer.layout = Layout(ConfigGet());
     renderer.prog0_meshes = true;
-#ifdef __SWITCH__
-    renderer.main_height_limit = 480;
-#endif
     renderer.validation = renderer.validation || SettingsEnv("VULKAN_VALIDATION") != nullptr;
     // DC2_RENDER_SCALE: pixels per PS2 line of the render targets, 0 for the window's height over 480.
     if (const char *setting = SettingsEnv("RENDER_SCALE")) {

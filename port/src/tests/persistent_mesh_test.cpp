@@ -55,6 +55,8 @@ TEST_F(PersistentMesh, IdleGpuEvictionKeepsCpuGeometryAndReuploadsOnReuse) {
     mgVisualPortRefreshFace(&visual, &face);
     const auto *geometry = mgVisualPortGroupMesh(&group, nullptr);
     ASSERT_NE(geometry, nullptr);
+    EXPECT_EQ(geometry->mesh, gfx::kNullMesh);
+    mgVisualPortFlushUploads();
     ASSERT_NE(geometry->mesh, gfx::kNullMesh);
     for (int frame = 0; frame < 1800; ++frame) {
         mgEndFrame(nullptr);
@@ -68,6 +70,8 @@ TEST_F(PersistentMesh, IdleGpuEvictionKeepsCpuGeometryAndReuploadsOnReuse) {
     EXPECT_FLOAT_EQ(geometry->vertices[0].position[0], -1);
     EXPECT_EQ(geometry->indices, (std::vector<uint32_t>{0, 1, 2}));
     EXPECT_EQ(mgVisualPortGroupMesh(&group, nullptr), geometry);
+    EXPECT_EQ(geometry->mesh, gfx::kNullMesh);
+    mgVisualPortFlushUploads();
     EXPECT_NE(geometry->mesh, gfx::kNullMesh);
 }
 
@@ -79,12 +83,14 @@ TEST_F(PersistentMesh, FailedGpuUploadRetainsCpuGeometryAndRetriesWhenCapacityRe
     mgVisualPortRefreshFace(&visual, &face);
     const auto *geometry = mgVisualPortGroupMesh(&group, nullptr);
     ASSERT_NE(geometry, nullptr);
+    mgVisualPortFlushUploads();
     EXPECT_EQ(geometry->mesh, gfx::kNullMesh);
     ASSERT_EQ(geometry->vertices.size(), 3u);
     EXPECT_EQ(geometry->indices.size(), 3u);
     EXPECT_FLOAT_EQ(geometry->vertices[1].position[0], 1);
     gfx::DestroyMesh(occupied);
     EXPECT_EQ(mgVisualPortGroupMesh(&group, nullptr), geometry);
+    mgVisualPortFlushUploads();
     EXPECT_NE(geometry->mesh, gfx::kNullMesh);
     EXPECT_EQ(geometry->indices, (std::vector<uint32_t>{0, 1, 2}));
 }

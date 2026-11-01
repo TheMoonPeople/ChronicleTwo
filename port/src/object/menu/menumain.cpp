@@ -2671,6 +2671,8 @@ int MenuExitCore() {
     MenuPrevEndCode = -1;
     SetMenuKeyCtrlEnv(1);
     MenuPosData->ClearPos();
+    // The draw environment lives in the menu arena, which is cleared below.
+    const float old_projection = MenuDrawEnv->old_projection;
     MenuMainStack.stClearUsed();
     MenuPosData = nullptr;
     MenuMainStack.stSetLocked(false);
@@ -2679,7 +2681,7 @@ int MenuExitCore() {
     CMenuInterPt = nullptr;
     menu_debug_flag = 0;
     EdEventMenuExit();
-    mgSetProjection(MenuDrawEnv->old_projection);
+    mgSetProjection(old_projection);
     scene = GetMainScene();
     camera = scene->GetCamera(scene->active_camera);
 

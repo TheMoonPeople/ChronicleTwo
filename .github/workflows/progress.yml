@@ -16,6 +16,7 @@ jobs:
     # trigger this workflow but cannot use the retail binary.
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     env:
+      BUILDER: docker
       HAS_PRIVATE: ${{ secrets.PRIVATE_REPO_TOKEN != '' && vars.PRIVATE_REPOSITORY != '' }}
       PRIVATE_REPOSITORY: ${{ vars.PRIVATE_REPOSITORY }}
     steps:
@@ -25,7 +26,7 @@ jobs:
 
       - name: Check out source
         if: env.HAS_PRIVATE == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
@@ -35,7 +36,7 @@ jobs:
 
       - name: Check out private assets
         if: env.HAS_PRIVATE == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: ${{ env.PRIVATE_REPOSITORY }}
           path: .private
@@ -51,9 +52,23 @@ jobs:
           scripts/host/overlay_private.sh .private
           rm -rf .private
 
+      - name: Identify the toolchain image
+        if: env.HAS_PRIVATE == 'true'
+        id: image
+        run: echo "tag=$(git -C tools/kazarov rev-parse HEAD:image HEAD:tools/ffmpeg HEAD:.dockerignore | sha256sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        if: env.HAS_PRIVATE == 'true'
       - name: Build toolchain image
         if: env.HAS_PRIVATE == 'true'
-        run: tools/kazarov/scripts/kazarov image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: tools/kazarov
+          file: tools/kazarov/image/Dockerfile
+          load: true
+          tags: kazarov-dev:${{ steps.image.outputs.tag }}
+          build-args: KZ_IMAGE_ID=${{ steps.image.outputs.tag }}
+          cache-from: type=gha,scope=ci-ps2
+          cache-to: type=gha,mode=max,scope=ci-ps2,ignore-error=true
 
       - name: Build and generate objdiff report
         if: env.HAS_PRIVATE == 'true'
@@ -79,7 +94,7 @@ jobs:
       # decomp.dev reads this artifact after the repository is registered.
       - name: Upload PAL report for decomp.dev
         if: env.HAS_PRIVATE == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pal_report
           path: progress/report.json
@@ -94,7 +109,7 @@ jobs:
     steps:
       - name: Check out source
         if: env.HAS_DISCORD == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
@@ -102,7 +117,7 @@ jobs:
         if: env.HAS_DISCORD == 'true'
         id: download
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: pal_report
           path: reports/pal_report
@@ -116,10 +131,10 @@ jobs:
 
       - name: Send progress to Discord
         if: env.HAS_DISCORD == 'true' && steps.download.outcome == 'success'
+        shell: pwsh
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          curl --fail-with-body --show-error --silent --retry 3 \
-            -H 'Content-Type: application/json' \
-            --data-binary "@$RUNNER_TEMP/discord-progress.json" \
-            "$DISCORD_WEBHOOK_URL"
+          Invoke-RestMethod -Uri $env:DISCORD_WEBHOOK_URL -Method Post `
+            -ContentType 'application/json' -InFile "$env:RUNNER_TEMP/discord-progress.json" `
+            -MaximumRetryCount 3 -RetryIntervalSec 1 -ErrorAction Stop

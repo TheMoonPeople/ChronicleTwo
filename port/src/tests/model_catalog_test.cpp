@@ -2862,7 +2862,7 @@ TEST_F(NativeModel, SkinUpdatesReuseExactEntryNamesAfterExternalRootReferenceCha
     auto       profile = NamedActionCharacter(game, commands);
     profile["profiles"]["skin"]["commands"] = Json::array({
         {{"command", "MODEL"},  {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
-        {{"command", "MOTION"}, {"args", {AnimationArgument(0)}}                                   }
+        {{"command", "MOTION"}, {"args", {IntegerArgument(0), AnimationArgument(0)}}               }
     });
     const auto                         bytes = gltf.dump();
     const auto                         source_data = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());

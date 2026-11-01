@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "collision.hpp"
+#include "funcpoint.hpp"
 #include "log/game_output.hpp"
 #include "map.hpp"
 #include "mapload.hpp"
@@ -368,11 +369,16 @@ void CScene::DrawEffect(int tex_block) {
     fire_texture =
         tex_manager->GetTexture("fire_work", tex_block);
     fire_raster.SetTexture(fire_texture);
-    mgCTexture  frame;
-    mgRect<int> rect;
-    mgGetFrameBuffer(&frame);
-    rect.Set(0, 0, (mgScreenWidth - 1) << 4, (mgScreenHeight - 1) << 4);
-    mgSetPkMoveImage(&frame, rect, fire_texture, 0, 0, 0);
+    // Nothing draws between the copy and the rasters, so it waits for the first raster that samples it.
+    static mgCTexture *grab_texture = nullptr;
+    grab_texture = fire_texture;
+    dc2::effects::DeferFireGrab([] {
+        mgCTexture  frame;
+        mgRect<int> rect;
+        mgGetFrameBuffer(&frame);
+        rect.Set(0, 0, (mgScreenWidth - 1) << 4, (mgScreenHeight - 1) << 4);
+        mgSetPkMoveImage(&frame, rect, grab_texture, 0, 0, 0);
+    });
 
     for (k = 0; k < count; k++) {
         if (maps[k] != nullptr) {
@@ -381,6 +387,7 @@ void CScene::DrawEffect(int tex_block) {
             maps[k]->fire_raster = nullptr;
         }
     }
+    dc2::effects::CancelFireGrab();
 }
 
 #include "common.h"

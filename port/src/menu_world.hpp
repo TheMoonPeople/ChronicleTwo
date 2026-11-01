@@ -68,6 +68,8 @@ const CActionChara *PausingPlayer();
  * Renders the captured frame once with the player's meshes omitted, then the full frame it was recorded from.
  */
 bool RenderPauseFrame(const gfx::DisplayList &source);
+// Whether RenderPauseFrame would render the tick's pause picture.
+bool PauseFrameWanted();
 
 /**
  * Captures the paused world when the town or dungeon main menu opens; other menus leave the world alone.

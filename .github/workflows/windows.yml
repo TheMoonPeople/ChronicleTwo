@@ -4,6 +4,10 @@ on:
     branches: [master]
   pull_request:
   workflow_dispatch:
+    inputs:
+      tests:
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       tests:
@@ -11,126 +15,150 @@ on:
         default: false
 permissions:
   contents: read
+env:
+  RUN_TESTS: ${{ inputs.tests || github.event_name == 'push' || github.event_name == 'pull_request' }}
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.tests || false }}-windows
   cancel-in-progress: true
 jobs:
-  dependencies:
-    uses: ./.github/workflows/dependencies.yml
-    with:
-      platform: windows
-      artifact: windows-dependencies
   build:
-    name: ${{ inputs.tests && 'Tests (Windows)' || 'Build (Windows)' }}
-    needs: dependencies
+    name: Cross compile (Windows)
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
-    env:
-      CARGO_TARGET_DIR: ${{ github.workspace }}/.kazarov/cargo-target/windows
-      CCACHE_DIR: ${{ github.workspace }}/.kazarov/ccache/windows
-      CCACHE_BASEDIR: ${{ github.workspace }}
-      CCACHE_COMPILERCHECK: content
-    runs-on: windows-2025
-    defaults:
-      run:
-        shell: pwsh
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: true
-
-      - uses: actions/download-artifact@v7
-        with:
-          name: windows-dependencies
-          path: .kazarov/bundle
-      - name: Unpack verified dependencies
-        run: |
-          $archive = '.kazarov/bundle/deps.tar.gz'
-          $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash
-          if ($actual -ne (Get-Content .kazarov/bundle/deps.sha256).Trim()) { throw 'Dependency bundle checksum mismatch' }
-          tar -xzf $archive -C $env:RUNNER_TEMP
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          "$env:RUNNER_TEMP/deps/cmake/cmake-4.4.5-windows-x86_64/bin" >> $env:GITHUB_PATH
-          "$env:RUNNER_TEMP/deps/python" >> $env:GITHUB_PATH
-          "CMAKE_BUILD_PARALLEL_LEVEL=$([Environment]::ProcessorCount)" >> $env:GITHUB_ENV
-          "CARGO_BUILD_JOBS=$([Environment]::ProcessorCount)" >> $env:GITHUB_ENV
-      - uses: actions/cache@v5
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        id: compile-cache
         with:
           path: |
-            ${{ runner.temp }}/deps/rust/cargo-home
-            .kazarov/cargo-target/windows
-            .kazarov/ccache/windows
-            port/build/windows-x64-release/lto-cache
-          key: compile-windows-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock') }}-${{ inputs.tests && 'tests' || 'build' }}-${{ github.sha }}
+            .kazarov/ccache/windows-cross
+            .kazarov/cargo-target/windows-cross
+            port/build/windows-cross-x64-release/cargo
+            port/build/windows-cross-x64-release/lto-cache
+          key: compile-windows-cross-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/windows-toolchain.cmake', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}-${{ github.sha }}-${{ github.run_attempt }}
           restore-keys: |
-            compile-windows-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock') }}-${{ inputs.tests && 'tests' || 'build' }}-
-            compile-windows-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock') }}-
-
-      - name: Configure
+            compile-windows-cross-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/windows-toolchain.cmake', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}-${{ github.sha }}-
+            compile-windows-cross-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/windows-toolchain.cmake', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}-
+            compile-windows-cross-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/windows-toolchain.cmake', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+            compile-windows-cross-
+      - name: Rebuild Rust outputs after dependency changes
+        env:
+          RESTORED_CACHE_KEY: ${{ steps.compile-cache.outputs.cache-matched-key }}
+          DEPENDENCY_CACHE_PREFIX: compile-windows-cross-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/windows-toolchain.cmake', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
         run: |
-          ./tools/windows/configure.ps1 -Root $env:RUNNER_TEMP -BuildDirectory $env:GITHUB_WORKSPACE/port/build/windows-x64-release -Tests:$${{ inputs.tests && 'true' || 'false' }} -BuildType Release -TestTimeout 60 -Symbols split
-
-      - name: Build
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import shutil
+          key = os.environ['RESTORED_CACHE_KEY']
+          prefixes = tuple(os.environ['DEPENDENCY_CACHE_PREFIX'].splitlines())
+          if key and not key.startswith(prefixes):
+              workspace = Path(os.environ['GITHUB_WORKSPACE']).resolve()
+              targets = [workspace / ".kazarov/cargo-target/windows-cross", workspace / "port/build/windows-cross-x64-release/cargo"]
+              if any(target.resolve() != target or not target.resolve().is_relative_to(workspace) for target in targets):
+                  raise SystemExit('Rust cache paths must be real directories inside the workspace')
+              for target in targets:
+                  if target.exists():
+                      shutil.rmtree(target)
+              print('Dependency inputs changed; cached Rust outputs will be rebuilt.')
+          PY
+      - name: Prepare the LLVM cross compiler
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: tools/ci/Dockerfile
+          target: windows
+          load: true
+          tags: chronicletwo-ci:windows
+          cache-from: type=gha,scope=ci-windows
+          cache-to: type=gha,mode=max,scope=ci-windows,ignore-error=true
+      - name: Build Windows executables
         run: |
-          ./tools/windows/build.ps1 -Root $env:RUNNER_TEMP -BuildDirectory $env:GITHUB_WORKSPACE/port/build/windows-x64-release -Tests:$${{ inputs.tests && 'true' || 'false' }}
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-
-      # The runner has no Vulkan device, so cases labelled gpu are excluded.
-      - name: Test
-        if: inputs.tests
-        run: ctest --test-dir port/build/windows-x64-release --output-on-failure --no-tests=error --output-junit tests.xml -j4 -LE gpu
-
-      - name: Test Rust data publisher
-        if: inputs.tests
-        run: |
-          $env:CARGO_HOME = "$env:RUNNER_TEMP/deps/rust/cargo-home"
-          $rust = "$env:RUNNER_TEMP/deps/rust/1.99.0-gnullvm/bin"
-          $llvm = "$env:RUNNER_TEMP/deps/llvm/llvm-mingw-20260922-ucrt-x86_64/bin"
-          $env:PATH = "$rust;$llvm;$env:PATH"
-          & "$rust/cargo.exe" test --locked --manifest-path tools/kazarov/Cargo.toml
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-
-      - name: Package the Windows build
-        if: ${{ !inputs.tests }}
-        run: |
-          ./tools/windows/package.ps1 -BuildDirectory port/build/windows-x64-release -Destination chronicletwo-windows-x64.zip
-
-      - name: Upload the Windows build
-        if: ${{ !inputs.tests }}
-        uses: actions/upload-artifact@v7
+          docker run --rm -v "$GITHUB_WORKSPACE:/work" \
+            chronicletwo-ci:windows bash tools/ci/windows.sh ${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}
+      - name: Package Windows executables
+        run: docker run --rm -v "$GITHUB_WORKSPACE:/work" chronicletwo-ci:windows python3 tools/ci/windows-package.py ${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}
+      - name: Restore cache ownership
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .kazarov port/build
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: chronicletwo-windows-x64
-          path: chronicletwo-windows-x64.zip
+          path: artifacts/chronicletwo-windows-x64.zip
+          compression-level: 0
           if-no-files-found: error
-
-      - name: Check the executable resolves a frame
-        if: inputs.tests
-        run: |
-          $llvm = "$env:RUNNER_TEMP/deps/llvm/llvm-mingw-20260922-ucrt-x86_64/bin"
-          $exe = 'port/build/windows-x64-release/darkchronicle.exe'
-          $address = (& "$llvm/llvm-nm.exe" $exe | Where-Object { $_ -match ' T wmain$' }).Split(' ')[0]
-          '#0  darkchronicle.exe+0x{0:x}' -f ([Convert]::ToUInt64($address, 16) - 0x140000000) | Set-Content report.txt
-          python tools/crash/symbolize.py report.txt --binary $exe --llvm-symbolizer "$llvm/llvm-symbolizer.exe" | Tee-Object symbolized.txt
-          if (!(Select-String -Quiet -Path symbolized.txt -Pattern 'main.cpp:')) { exit 1 }
-
-      # docs/SYMBOLS.md: the executables (their DWARF), any PDBs and their build ids, for tools/crash/symbolize.py.
-      - name: Package the Windows symbols
-        if: ${{ !inputs.tests }}
-        run: |
-          ./tools/windows/package-symbols.ps1 -Root $env:RUNNER_TEMP -BuildDirectory port/build/windows-x64-release -Destination chronicletwo-windows-x64-symbols.zip
-
-      - name: Upload the Windows symbols
-        if: ${{ !inputs.tests }}
-        uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: env.RUN_TESTS == 'true'
+        with:
+          name: windows-test-binaries
+          path: artifacts/windows-test-binaries.zip
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: chronicletwo-windows-x64-symbols-${{ github.sha }}
-          path: chronicletwo-windows-x64-symbols.zip
+          path: artifacts/chronicletwo-windows-x64-symbols.zip
+          compression-level: 0
           if-no-files-found: error
+      - name: Save reusable compiler outputs
+        if: always() && steps.compile-cache.outputs.cache-primary-key != '' && steps.compile-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            .kazarov/ccache/windows-cross
+            .kazarov/cargo-target/windows-cross
+            port/build/windows-cross-x64-release/cargo
+            port/build/windows-cross-x64-release/lto-cache
+          key: ${{ steps.compile-cache.outputs.cache-primary-key }}
 
-      - uses: actions/upload-artifact@v7
-        if: always() && inputs.tests
+  test:
+    name: Tests (Windows)
+    if: inputs.tests || github.event_name == 'push' || github.event_name == 'pull_request'
+    needs: build
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: windows-test-binaries
+          path: artifacts
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.14.10'
+      - name: Prepare tests for the Windows runner
+        shell: pwsh
+        run: |
+          Expand-Archive artifacts/windows-test-binaries.zip port/build/windows-cross-x64-release
+          # Compiled fixture paths use the container's /work prefix on the current drive.
+          $work = Join-Path ([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE)) 'work'
+          New-Item -ItemType Junction -Path $work -Target $env:GITHUB_WORKSPACE | Out-Null
+          python tools/ci/windows-package.py relocate
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Run native Windows tests
+        run: ctest --test-dir port/build/windows-cross-x64-release --output-on-failure --no-tests=error --output-junit tests.xml -j4 -LE gpu
+      - name: Test Rust data publisher
+        shell: pwsh
+        run: |
+          $tests = @(Get-ChildItem port/build/windows-cross-x64-release/rust-tests/*.exe | Where-Object Name -ne 'ffmpeg.exe')
+          if (!$tests.Count) { throw 'No cross-compiled Rust tests were packaged' }
+          foreach ($test in $tests) {
+            & $test.FullName
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
         with:
           name: tests-windows
           path: |
-            port/build/windows-x64-release/tests.xml
-            port/build/windows-x64-release/Testing/Temporary/
+            port/build/windows-cross-x64-release/tests.xml
+            port/build/windows-cross-x64-release/Testing/Temporary/
           if-no-files-found: warn

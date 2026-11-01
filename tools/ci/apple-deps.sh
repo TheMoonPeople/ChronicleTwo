@@ -14,17 +14,37 @@ export CT_DEPS_ROOT=$deps
 export PATH="$deps/bin:$PATH"
 export CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL:-$(sysctl -n hw.ncpu)}
 export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
+export CCACHE_MAXSIZE=${CCACHE_MAXSIZE:-1G}
+echo "CCACHE_MAXSIZE=$CCACHE_MAXSIZE" >> "$GITHUB_ENV"
+install_formulae() {
+    local missing=() formula
+    for formula in "$@"; do
+        if ! brew list --versions "$formula" >/dev/null 2>&1; then missing+=("$formula"); fi
+    done
+    if [ "${#missing[@]}" -gt 0 ]; then brew install "${missing[@]}"; fi
+}
 rustup toolchain install 1.99.0 --profile minimal
 rustup default 1.99.0
+if [ ! -x "$deps/bin/cxxbridge" ]; then
+    cargo install --locked cxxbridge-cmd --version 1.0.205 --root "$deps"
+fi
 if [ "$platform" = macos-arm64 ]; then
-    brew install llvm lld cmake ninja python glslang sdl3 vulkan-headers vulkan-loader vulkan-tools molten-vk ccache
+    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-$(python3 -c 'import json, sys; presets = json.load(open(sys.argv[1]))["configurePresets"]; print(next(p["cacheVariables"]["CMAKE_OSX_DEPLOYMENT_TARGET"] for p in presets if p["name"] == "macos"))' "$root/CMakePresets.json")}
+    export MACOSX_DEPLOYMENT_TARGET
+    echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET" >> "$GITHUB_ENV"
+    install_formulae llvm lld cmake ninja python glslang sdl3 vulkan-headers vulkan-loader vulkan-tools molten-vk ccache
     ffmpeg=$root/.kazarov/ffmpeg/darwin-arm64
     python3 "$deps/kz-ffmpeg" --tarball "$deps/ffmpeg.tar.xz" --out "$ffmpeg" --jobs "$CMAKE_BUILD_PARALLEL_LEVEL"
     echo "SDL_VULKAN_LIBRARY=$(brew --prefix vulkan-loader)/lib/libvulkan.1.dylib" >> "$GITHUB_ENV"
     echo "VK_DRIVER_FILES=$(brew --prefix)/etc/vulkan/icd.d/MoltenVK_icd.json" >> "$GITHUB_ENV"
 else
-    brew install cmake ninja glslang ccache
+    install_formulae cmake ninja glslang ccache
     sdk=iphoneos
+    sdk_version=$(xcrun --sdk "$sdk" --show-sdk-version)
+    if [ "${sdk_version%%.*}" -lt 27 ]; then
+        echo "iOS builds require Xcode with the iOS 27 SDK or newer, found $sdk_version" >&2
+        exit 1
+    fi
     triple=aarch64-apple-ios
     slice=ios-arm64
     rustup target add --toolchain 1.99.0 "$triple"
@@ -34,7 +54,7 @@ else
         tar xzf "$deps/sdl.tar.gz" -C "$prefix"
         cmake -S "$prefix/SDL-release-3.4.0" -B "$prefix/sdl-build" -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_SYSROOT="$sdk" \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=16.3 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=27.0 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$prefix/sdl" \
             -DSDL_STATIC=ON -DSDL_SHARED=OFF -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
         cmake --build "$prefix/sdl-build" --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"

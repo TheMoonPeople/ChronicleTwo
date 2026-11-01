@@ -1,5 +1,13 @@
 # The x64 port: native game sources built with clang as C++26 for the host.
 
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET 27.0 CACHE STRING "Minimum supported iOS version" FORCE)
+    elseif(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 27.0)
+        message(FATAL_ERROR "The iOS port requires iOS 27.0 or newer")
+    endif()
+endif()
+
 if(NOT CMAKE_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER clang++)
 endif()
@@ -426,7 +434,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         MACOSX_BUNDLE_SHORT_VERSION_STRING 0.1
         MACOSX_BUNDLE_BUNDLE_VERSION 1)
     # The launcher, the on-screen gamepad and the DualSense haptics are Swift (port/src/ios), which calls the game
-    # through Swift's C++ interoperability: ios/module.modulemap makes ios/bridge.hpp the module ChronicleBridge.
+    # through a C-compatible interface: ios/module.modulemap exposes ios/bridge.hpp as ChronicleBridge.
     execute_process(COMMAND xcrun --sdk iphoneos --show-sdk-path OUTPUT_VARIABLE CT_IOS_SDK
         OUTPUT_STRIP_TRAILING_WHITESPACE COMMAND_ERROR_IS_FATAL ANY)
     execute_process(COMMAND xcrun --sdk iphoneos --find swiftc OUTPUT_VARIABLE CMAKE_Swift_COMPILER
@@ -437,18 +445,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     enable_language(Swift)
     add_library(ct_ios_swift STATIC ${PORT_DIR}/ios/Launcher.swift ${PORT_DIR}/ios/TouchOverlay.swift
         ${PORT_DIR}/ios/Haptics.swift)
-    target_compile_options(ct_ios_swift PRIVATE -cxx-interoperability-mode=default "SHELL:-Xcc -std=c++20"
-        "SHELL:-I ${PORT_DIR}/ios")
+    target_compile_options(ct_ios_swift PRIVATE "SHELL:-I ${PORT_DIR}/ios")
     target_link_libraries(darkchronicle PRIVATE ct_ios_swift)
-    # clang++ links, so the C++ flags apply; the Swift runtime is in iOS, its back-deployment and C++ interop
-    # libraries in the toolchain.
+    # clang++ links the game; Swift autolinking resolves its runtime from the SDK and toolchain.
     set_target_properties(darkchronicle PROPERTIES LINKER_LANGUAGE CXX)
     get_filename_component(CT_SWIFT_LIBRARIES "${CMAKE_Swift_COMPILER}/../../lib/swift/iphoneos" ABSOLUTE)
     target_link_directories(darkchronicle PRIVATE ${CT_IOS_SDK}/usr/lib/swift ${CT_SWIFT_LIBRARIES})
-    # iOS 16's libc++ lacks std::to_chars for floating point, which std::format calls; the executable defines it.
-    add_library(ct_ios_to_chars OBJECT ${PORT_DIR}/ios/to_chars.cpp)
-    set_target_properties(ct_ios_to_chars PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
-    target_link_libraries(darkchronicle PRIVATE ct_ios_to_chars)
+
 endif()
 if(WIN32)
     target_link_options(darkchronicle PRIVATE -municode)

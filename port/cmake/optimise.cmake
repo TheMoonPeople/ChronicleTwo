@@ -18,8 +18,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64)$")
     target_compile_options(ct_options INTERFACE -march=${CT_X86_64_LEVEL})
     target_compile_options(ct_host PRIVATE -march=${CT_X86_64_LEVEL})
 endif()
-# iOS 16, the minimum, runs only on A11 and later, so iOS builds target that core (ARMv8.2, with LSE atomics) rather
-# than the toolchain's A7 baseline.
+# iOS builds use an ARMv8.2 baseline with LSE atomics instead of the toolchain's generic A7 baseline.
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_compile_options(ct_options INTERFACE -mcpu=apple-a11)
     target_compile_options(ct_host PRIVATE -mcpu=apple-a11)

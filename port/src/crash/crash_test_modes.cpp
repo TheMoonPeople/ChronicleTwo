@@ -59,9 +59,11 @@ volatile std::uintptr_t g_bad_address = 0x10; /**< Invalid address used by the f
     throw std::runtime_error("crash test");
 }
 
-[[gnu::noinline]] int CrashTestStackOverflow(int depth) {
+[[gnu::noinline, clang::disable_tail_calls]] int CrashTestStackOverflow(int depth) {
     volatile char frame[4096];
-    frame[0] = static_cast<char>(depth);
+    for (auto &byte : frame) {
+        byte = static_cast<char>(depth);
+    }
     // Four GiB of recursive frames exhausts the process stack before this finite stress budget.
     constexpr int frame_limit = 1 << 20;
     if (depth >= frame_limit) {

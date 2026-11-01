@@ -2,12 +2,15 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <climits>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <limits>
 #include <span>
 #include <string>
 #include <vector>
@@ -745,6 +748,7 @@ TEST(MgVisual, QueuedFixFaceSurvivesFaceAddressReuse) {
     const mgFACE_GROUP *group = first.face_group;
     const auto         *geometry = mgVisualPortGroupMesh(group, nullptr);
     ASSERT_NE(geometry, nullptr);
+    mgVisualPortFlushUploads();
     const gfx::MeshHandle previous = geometry->mesh;
     ASSERT_NE(previous, gfx::kNullMesh);
 
@@ -1066,4 +1070,252 @@ TEST(MgVisualInitialization, PoisonedBaseAndMdtConstructionAndResetInitializeEve
     mdt->Initialize();
     check_base(*mdt, 60, 180);
     std::destroy_at(mdt);
+}
+
+namespace {
+
+/**
+ * Supplies a device-independent native Prog0 triangle and its complete current draw state.
+ */
+struct BodyWitnessFixture {
+    std::vector<gfx::Vertex3D> vertices = {
+        {.position = {-0.5f, -0.5f, 0.5f}},
+        {.position = {0.0f, 0.5f, 0.5f}},
+        {.position = {0.5f, -0.5f, 0.5f}},
+    };
+    std::array<std::uint32_t, 3> triangle{0, 1, 2};
+    gfx::MeshConstants           mesh{};
+    gfx::Prog0Constants          prog0{};
+    gfx::Prog0Palette            palette{};
+    gfx::MeshTransform           transform = gfx::IdentityMeshTransform();
+    gfx::DrawState               state{};
+    gfx::LogicalMapping          mapping{1, 1, 0, 0, 200, 100};
+    gfx::LogicalRect             visible_extent{0, 0, 200, 100};
+
+    BodyWitnessFixture() {
+        std::memcpy(mesh.mvp, transform.projection, sizeof mesh.mvp);
+        std::memcpy(prog0.clip_or_view, transform.projection, sizeof prog0.clip_or_view);
+        for (auto &bone : palette.bones) {
+            bone[0][0] = bone[1][1] = bone[2][2] = 1;
+        }
+    }
+
+    std::optional<dc2::render::ProjectedBodyWitness> Project() const {
+        return dc2::render::ProjectProg0BodyWitness(vertices, triangle, mesh, prog0, &palette, transform, state, mapping,
+                                                    visible_extent);
+    }
+
+    void Skin(std::array<float, 4> weights, std::array<std::uint8_t, 4> bones) {
+        std::vector<gfx::Vertex3D> packed;
+        for (const auto &vertex : vertices) {
+            packed.push_back(vertex);
+            gfx::Prog0Skin skin{};
+            std::copy(weights.begin(), weights.end(), skin.weight);
+            std::copy(bones.begin(), bones.end(), skin.bone);
+            gfx::Vertex3D bytes{};
+            std::memcpy(&bytes, &skin, sizeof bytes);
+            packed.push_back(bytes);
+        }
+        vertices = std::move(packed);
+        prog0.flags |= gfx::kProg0Skinned;
+    }
+};
+
+} // namespace
+
+TEST(NativeBodyWitness, UsesSubmittedMvpAndCurrentModelLocalSurfaceCentroid) {
+    BodyWitnessFixture fixture;
+    fixture.transform.model[12] = fixture.mesh.mvp[12] = 0.125f;
+    fixture.transform.local[13] = fixture.mesh.mvp[13] = 0.25f;
+    const auto witness = fixture.Project();
+    ASSERT_TRUE(witness);
+    EXPECT_FLOAT_EQ(witness->world_point[0], 0.125f);
+    EXPECT_NEAR(witness->world_point[1], 1.0f / 12.0f, 0.000001f);
+    EXPECT_FLOAT_EQ(witness->world_point[2], 0.5f);
+    EXPECT_GT(witness->pixel_area, 2490);
+    EXPECT_LT(witness->pixel_area, 2500);
+
+    // The draw's actual MVP is authoritative even when transform metadata remains unchanged.
+    fixture.mesh.mvp[12] = 2;
+    EXPECT_FALSE(fixture.Project());
+}
+
+TEST(NativeBodyWitness, AppliesVulkanCullWindingIncludingReversedAndMirroredTriangles) {
+    BodyWitnessFixture fixture;
+    fixture.state.cull = gfx::CullMode::Back;
+    ASSERT_TRUE(fixture.Project());
+    fixture.state.cull = gfx::CullMode::Front;
+    EXPECT_FALSE(fixture.Project());
+    fixture.triangle = {2, 1, 0};
+    EXPECT_TRUE(fixture.Project());
+    fixture.state.cull = gfx::CullMode::Back;
+    EXPECT_FALSE(fixture.Project());
+    fixture.state.cull = gfx::CullMode::None;
+    EXPECT_TRUE(fixture.Project());
+
+    fixture.triangle = {0, 1, 2};
+    fixture.transform.model[0] = fixture.mesh.mvp[0] = -1;
+    fixture.state.cull = gfx::CullMode::Front;
+    EXPECT_TRUE(fixture.Project());
+    fixture.state.cull = gfx::CullMode::Back;
+    EXPECT_FALSE(fixture.Project());
+}
+
+TEST(NativeBodyWitness, RequiresAllThreeVerticesInsideVulkanClipWithSafePositiveW) {
+    for (float z : {-0.1f, 0.0f, 1.0f, 1.1f}) {
+        BodyWitnessFixture fixture;
+        fixture.vertices[0].position[2] = z;
+        EXPECT_FALSE(fixture.Project()) << z;
+    }
+    for (float w : {0.0f, -1.0f, std::ldexp(1.0f, -100)}) {
+        BodyWitnessFixture fixture;
+        for (float &coefficient : fixture.mesh.mvp) {
+            coefficient *= w;
+        }
+        EXPECT_FALSE(fixture.Project()) << w;
+    }
+    BodyWitnessFixture fixture;
+    fixture.vertices[1].position[0] = -0.0f;
+    EXPECT_TRUE(fixture.Project());
+    fixture.vertices[1].position[0] = std::numeric_limits<float>::denorm_min();
+    EXPECT_FALSE(fixture.Project());
+    fixture = BodyWitnessFixture{};
+    fixture.mesh.mvp[0] = std::numeric_limits<float>::infinity();
+    EXPECT_FALSE(fixture.Project());
+    fixture.mesh.mvp[0] = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(fixture.Project());
+}
+
+TEST(NativeBodyWitness, UsesAllSixActualProg0UserPlanesIndependentlyOfVulkanFrustum) {
+    BodyWitnessFixture fixture;
+    fixture.prog0.flags = gfx::kProg0Scissor;
+    ASSERT_TRUE(fixture.Project());
+    for (std::size_t axis = 0; axis < 3; ++axis) {
+        for (float shift : {-2.0f, 2.0f}) {
+            SCOPED_TRACE(axis);
+            SCOPED_TRACE(shift);
+            BodyWitnessFixture clipped;
+            clipped.prog0.flags = gfx::kProg0Scissor;
+            clipped.prog0.clip_or_view[12 + axis] = shift;
+            EXPECT_FALSE(clipped.Project());
+            clipped.prog0.flags = gfx::kProg0Clip;
+            EXPECT_TRUE(clipped.Project());
+        }
+    }
+}
+
+TEST(NativeBodyWitness, RequiresContainmentInsideMappedUnextendedScissor) {
+    BodyWitnessFixture fixture;
+    fixture.mapping = {2, 2, 10, 6, 200, 100};
+    fixture.visible_extent = {0, 0, 100, 50};
+    fixture.state.scissor = true;
+    fixture.state.scissor_rect = {0, 0, 100, 50};
+    ASSERT_TRUE(fixture.Project());
+    fixture.state.scissor_rect = {19.6f, 9.1f, 60, 26.5f};
+    EXPECT_TRUE(fixture.Project());
+    fixture.state.scissor_rect = {30, 0, 40, 50};
+    EXPECT_FALSE(fixture.Project());
+    fixture.state.extend_scissor = false;
+    EXPECT_FALSE(fixture.Project());
+    fixture.state.scissor_rect.w = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(fixture.Project());
+    fixture.state.scissor_rect = {0, 0, std::numeric_limits<float>::infinity(), 50};
+    EXPECT_FALSE(fixture.Project());
+}
+
+TEST(NativeBodyWitness, ClipsLetterboxBarsEvenWithoutAnExplicitDrawScissor) {
+    BodyWitnessFixture fixture;
+    fixture.mapping = {1, 1, 50, 0, 300, 100};
+    ASSERT_FALSE(fixture.state.scissor);
+    ASSERT_TRUE(fixture.Project());
+    fixture.vertices[0].position[0] = -0.9f;
+    EXPECT_FALSE(fixture.Project());
+    fixture.visible_extent = {-50, 0, 300, 100};
+    EXPECT_TRUE(fixture.Project());
+}
+
+TEST(NativeBodyWitness, UnequalWReturnsWorldSurfaceCentroidRatherThanScreenCentroid) {
+    BodyWitnessFixture fixture;
+    fixture.mesh.mvp[3] = 0.25f;
+    fixture.mesh.mvp[7] = 0.125f;
+    const auto witness = fixture.Project();
+    ASSERT_TRUE(witness);
+    EXPECT_FLOAT_EQ(witness->world_point[0], 0);
+    EXPECT_NEAR(witness->world_point[1], -1.0f / 6.0f, 0.000001f);
+    const auto ndc = [](const float *point) {
+        const double w = 1.0 + 0.25 * point[0] + 0.125 * point[1];
+        return std::array<double, 2>{point[0] / w, point[1] / w};
+    };
+    const auto centroid = ndc(witness->world_point.data());
+    double     screen_centroid_x = 0;
+    for (std::size_t index = 0; index < 3; ++index) {
+        const auto   first = ndc(fixture.vertices[index].position);
+        const auto   second = ndc(fixture.vertices[(index + 1) % 3].position);
+        const double cross = (second[0] - first[0]) * (centroid[1] - first[1]) -
+                             (second[1] - first[1]) * (centroid[0] - first[0]);
+        EXPECT_LT(cross, 0);
+        screen_centroid_x += first[0] / 3;
+    }
+    EXPECT_GT(std::abs(screen_centroid_x - centroid[0]), 0.01);
+}
+
+TEST(NativeBodyWitness, UsesRawSkinWeightsAndShaderClampedBoneIndicesWithoutNormalization) {
+    BodyWitnessFixture fixture;
+    fixture.Skin({0.3f, 0.7f, 0, 0}, {0, 255, 1, 2});
+    fixture.palette.bones[0][1][3] = 0.1f;
+    fixture.palette.bones[31][0][3] = 0.2f;
+    const auto witness = fixture.Project();
+    ASSERT_TRUE(witness);
+    EXPECT_NEAR(witness->world_point[0], 0.14f, 0.000001f);
+    EXPECT_NEAR(witness->world_point[1], -1.0f / 6.0f + 0.03f, 0.000001f);
+    EXPECT_FLOAT_EQ(witness->world_point[2], 0.5f);
+
+    BodyWitnessFixture nonnormalized;
+    nonnormalized.Skin({0.6f, 0.9f, 0, 0}, {0, 255, 1, 2});
+    nonnormalized.palette.bones[0][1][3] = 0.1f;
+    nonnormalized.palette.bones[31][0][3] = 0.2f;
+    const auto scaled = nonnormalized.Project();
+    ASSERT_TRUE(scaled);
+    EXPECT_NEAR(scaled->world_point[0], 0.18f, 0.000001f);
+    EXPECT_NEAR(scaled->world_point[1], -0.19f, 0.000001f);
+    EXPECT_FLOAT_EQ(scaled->world_point[2], 0.75f);
+
+    fixture.palette.bones[1][0][0] = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(fixture.Project()); // Zero-weight referenced rows still participate in the shader.
+    fixture.palette.bones[1][0][0] = 1;
+    EXPECT_FALSE(dc2::render::ProjectProg0BodyWitness(fixture.vertices, fixture.triangle, fixture.mesh, fixture.prog0,
+                                                      nullptr, fixture.transform, fixture.state, fixture.mapping,
+                                                      fixture.visible_extent));
+    fixture.vertices.pop_back();
+    EXPECT_FALSE(fixture.Project());
+}
+
+TEST(NativeBodyWitness, RejectsInvalidIndicesDegeneracyShadowAndNonRgbPasses) {
+    BodyWitnessFixture fixture;
+    fixture.triangle = {0, 1, 3};
+    EXPECT_FALSE(fixture.Project());
+    fixture.triangle = {0, 0, 2};
+    EXPECT_FALSE(fixture.Project());
+    fixture.triangle = {0, 1, 2};
+    fixture.transform.middle[12] = 1;
+    EXPECT_FALSE(fixture.Project());
+    fixture.transform = gfx::IdentityMeshTransform();
+    fixture.transform.local[3] = 0.1f;
+    EXPECT_FALSE(fixture.Project());
+    fixture.transform = gfx::IdentityMeshTransform();
+    for (std::uint8_t mask : {std::uint8_t{0}, std::uint8_t{gfx::kWriteAlpha}}) {
+        fixture.state.color_write_mask = mask;
+        EXPECT_FALSE(fixture.Project());
+    }
+    fixture.state.color_write_mask = gfx::kWriteRed;
+    EXPECT_TRUE(fixture.Project());
+    fixture.state.screen_space = true;
+    EXPECT_FALSE(fixture.Project());
+    fixture.state.screen_space = false;
+    fixture.state.depth_test = gfx::DepthTest::Never;
+    EXPECT_FALSE(fixture.Project());
+    fixture.state.depth_test = gfx::DepthTest::Always;
+    fixture.state.alpha_test = true;
+    fixture.state.alpha_func = gfx::AlphaFunc::Never;
+    EXPECT_FALSE(fixture.Project());
 }

@@ -442,6 +442,22 @@ void DrawFireEffect(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck
  */
 void DrawFireRaster(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck *check, CFireRaster *raster);
 
+namespace dc2::effects {
+/**
+ *
+ * Holds the frame copy the heat haze samples until the first fire raster draws, so a frame without one skips it.
+ *
+ */
+void DeferFireGrab(void (*grab)());
+
+/**
+ *
+ * Drops a frame copy no fire raster needed.
+ *
+ */
+void CancelFireGrab();
+} // namespace dc2::effects
+
 /**
  *
  * Gives the sound, volume and pan of every audible fire and sound point, and how many there are.

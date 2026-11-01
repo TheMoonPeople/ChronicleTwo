@@ -23,9 +23,11 @@ public:
         if (now >= next_tick) {
             return {.action = Action::Tick, .deadline = next_tick};
         }
+        period_ = Clock::duration::zero();
         if (std::isfinite(max_fps) && max_fps > 0.0) {
             const auto period = std::chrono::duration_cast<Clock::duration>(
                 std::chrono::duration<double>(1.0 / std::max(1.0, max_fps)));
+            period_ = period;
             const auto due = last_start_ > Clock::time_point::max() - period
                                  ? Clock::time_point::max()
                                  : last_start_ + period;
@@ -44,14 +46,20 @@ public:
         if (!render()) {
             return false;
         }
-        // Keep no debt for missed display slots: the next deadline is one period
-        // after this presentation's actual start, regardless of rendering cost.
-        last_start_ = start;
+        // A presentation that starts within half a period of its slot keeps the slot, so wake-up lateness never
+        // accumulates into a skipped tick; a later one keeps no debt for the slots it missed.
+        const auto slot = last_start_ + period_;
+        last_start_ = period_ > Clock::duration::zero() && last_start_ <= Clock::time_point::max() - period_ && start >= slot &&
+                              start - slot < period_ / 2
+                          ? slot
+                          : start;
         return true;
     }
 
 private:
     Clock::time_point last_start_;
+    // The display period the last Next allowed, or zero when uncapped.
+    mutable Clock::duration period_{};
 };
 
 inline float PresentFrameAlpha(double elapsed_fields, double fractional_field, int frame_fields) {
@@ -86,6 +94,16 @@ public:
     void Begin() { phase = Phase::Intermediate; }
 
     /**
+     * Whether the current publication has shown both of its images, or was retired.
+     */
+    [[nodiscard]] bool Finished() const { return phase == Phase::Done; }
+
+    /**
+     * Whether a successfully presented intermediate still needs its authored endpoint.
+     */
+    [[nodiscard]] bool PendingEndpoint() const { return phase == Phase::Endpoint; }
+
+    /**
      * Retires an obsolete frame without accumulating presentation debt.
      */
     void Cancel() { phase = Phase::Done; }
@@ -109,6 +127,39 @@ public:
     }
 
     /**
+     * Uses native pacing to admit a validated current source's intermediate once.
+     */
+    [[nodiscard]] Decision NextIdle(Clock::time_point now, Clock::time_point frame_end, double max_fps,
+                                    const PresentPacer &pacer, bool gate_active) const {
+        const bool native_gate = NativeGatePaces(max_fps, gate_active);
+        // The caller validates image lifetime independently of the simulation deadline.
+        const auto deadline = native_gate && phase == Phase::Intermediate ? Clock::time_point::max() : frame_end;
+        return Next(now, deadline, native_gate ? 0.0 : max_fps, pacer);
+    }
+
+    /**
+     * Queries native feedback only before an eligible idle endpoint whose intermediate was shown.
+     */
+    template <class Ready>
+    [[nodiscard]] bool IdleEndpointFeedbackReady(Action action, double max_fps, bool enabled,
+                                                 bool feedback_active, Ready ready) const {
+        return !enabled || action != Action::Endpoint || !PendingEndpoint() ||
+               !NativeGatePaces(max_fps, feedback_active) || ready();
+    }
+
+    /**
+     * Retires a shown intermediate through an active native gate before its image is replaced.
+     */
+    [[nodiscard]] Decision NextBeforeCanonical(Clock::time_point now, Clock::time_point frame_end, double max_fps,
+                                               const PresentPacer &pacer, bool gate_active) const {
+        const auto decision = Next(now, frame_end, max_fps, pacer);
+        if (PendingEndpoint() && NativeGatePaces(max_fps, gate_active)) {
+            return {Action::Endpoint, now};
+        }
+        return decision;
+    }
+
+    /**
      * Advances only after a successful presentation.
      */
     void Presented(Action action) {
@@ -120,6 +171,13 @@ public:
     }
 
 private:
+    /**
+     * Whether the active native gate can preserve the configured presentation rate.
+     */
+    [[nodiscard]] static bool NativeGatePaces(double max_fps, bool gate_active) {
+        return gate_active && (!std::isfinite(max_fps) || max_fps <= 0.0 || max_fps >= 60.0);
+    }
+
     enum class Phase {
         Intermediate,
         Endpoint,

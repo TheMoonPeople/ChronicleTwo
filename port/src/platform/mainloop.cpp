@@ -1864,6 +1864,7 @@ void MainLoop() {
                 break;
             }
             PortAutosaveStep(PortLoopNo);
+            GamePerfStep(PortLoopNo);
 
             if (GamePad__2.On(PAD_CIRCLE)) {
                 cat_end();

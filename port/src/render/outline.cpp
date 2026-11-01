@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 
 #include "mg_drawenv.hpp"
@@ -11,6 +12,7 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "outline.hpp"
+#include "profile.hpp"
 #include "render/outline_geometry.hpp"
 #include "render/renderer.hpp"
 
@@ -218,7 +220,7 @@ gfx::LogicalRect LogicalRectOf(const OutlineBox &box, int outset) {
 }
 
 // Texels are at the box's own logical coordinates: the image is the frame's logical space.
-void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4], float depth,
+void DrawCopy(const OutlineBox &box, const mgPortExtent &display, int dx, int dy, const uint8_t (&colour)[4], float depth,
               const gfx::TextureBinding &binding, const gfx::DrawState &state, bool defer_alpha = false) {
     const float x0 = static_cast<float>(box.left + dx) / kUnitsPerPixel;
     const float y0 = static_cast<float>(box.top + dy) / kUnitsPerPixel;
@@ -245,16 +247,15 @@ void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4],
     const gfx::Vertex2D quad[4] = {corner(x0, y0, u0, v0), corner(x1, y0, u1, v0),
                                    corner(x1, y1, u1, v1), corner(x0, y1, u0, v1)};
     // Display frames redraw the image with the presentation camera, so the tick's box must not crop
-    // them: they sample the whole visible extent, which the matching display clear keeps to this object.
-    const mgPortExtent  extent = mgPortVisibleExtent();
+    // them: they sample the display extent, which the matching display clear keeps to this object.
     const float         ox = static_cast<float>(dx) / kUnitsPerPixel;
     const float         oy = static_cast<float>(dy) / kUnitsPerPixel;
     const gfx::Vertex2D display_quad[4] = {
-        corner(extent.left + ox, extent.top + oy, extent.left, extent.top),
-        corner(extent.right + ox, extent.top + oy, extent.right, extent.top),
-        corner(extent.right + ox, extent.bottom + oy, extent.right, extent.bottom),
-        corner(extent.left + ox, extent.bottom + oy, extent.left, extent.bottom)};
-    gfx::Presentation2D presentation{.vertices = display_quad, .state = state};
+        corner(display.left + ox, display.top + oy, display.left, display.top),
+        corner(display.right + ox, display.top + oy, display.right, display.top),
+        corner(display.right + ox, display.bottom + oy, display.right, display.bottom),
+        corner(display.left + ox, display.bottom + oy, display.left, display.bottom)};
+    gfx::Presentation2D presentation{.vertices = display_quad, .state = state, .bounded_region = true};
     if (defer_alpha) {
         // The following full-area body overwrites alpha before any consumer can observe it.
         presentation.state.color_write_mask = static_cast<uint8_t>(state.color_write_mask & ~gfx::kWriteAlpha);
@@ -266,6 +267,24 @@ void DrawCopy(const OutlineBox &box, int dx, int dy, const uint8_t (&colour)[4],
         presentation.state.alpha_ref = 0;
     }
     mgPortDraw2D(gfx::Primitive::Quads, quad, binding, state, &presentation);
+}
+
+/**
+ * Preserves the full-area body's destination alpha before its RGB coverage is bounded.
+ */
+void DrawPresentationAlphaReset(const mgPortExtent &extent, const gfx::DrawState &body_state) {
+    gfx::DrawState state = body_state;
+    state.blend = false;
+    state.alpha_test = false;
+    state.color_write_mask = gfx::kWriteAlpha;
+    const gfx::Vertex2D quad[4] = {
+        {.x = extent.left,  .y = extent.top   },
+        {.x = extent.right, .y = extent.top   },
+        {.x = extent.right, .y = extent.bottom},
+        {.x = extent.left,  .y = extent.bottom}
+    };
+    const gfx::Presentation2D presentation{.vertices = quad, .state = state, .presentation_only = true, .region_alpha_reset = true};
+    gfx::Draw2D(gfx::Primitive::Quads, quad, {}, state, &presentation);
 }
 
 } // namespace
@@ -350,8 +369,11 @@ int COutLineDraw::Draw(float scale, float alpha) {
     const int edge_offset = OutlineEdgeOffset(width, scale);
     mgVu0FBOX draw_box{};
 
-    if (mgGetDrawRect(frame, &draw_box) == 0) {
-        return 0;
+    {
+        CT_PROFILE_ZONE("Outline native draw rectangle");
+        if (mgGetDrawRect(frame, &draw_box) == 0) {
+            return 0;
+        }
     }
 
     const mgPortExtent extent = mgPortVisibleExtent();
@@ -374,10 +396,15 @@ int COutLineDraw::Draw(float scale, float alpha) {
     const gfx::TextureHandle previous = gfx::CurrentRenderTarget();
     const gfx::LogicalRect   clear_rect = LogicalRectOf(padded, 16);
     const uint8_t            clear_colour[4] = {0, 0, 0, 0};
+    // Interpolated cameras and poses can project outside both authored endpoint boxes.
+    const mgPortExtent display = extent;
 
+    const gfx::LogicalRect display_extent{.x = extent.left, .y = extent.top, .w = extent.right - extent.left, .h = extent.bottom - extent.top};
+    const float            sampling_padding = static_cast<float>(kOutlinePad + std::abs(edge_offset)) / kUnitsPerPixel + 1.0f;
+    gfx::BeginPresentationRegion(outline, display_extent, sampling_padding);
     gfx::SetRenderTarget(outline);
     // Depth is not cleared: the image shares the scene's depth buffer.
-    const gfx::LogicalRect display_clear = {.x = extent.left, .y = extent.top, .w = extent.right - extent.left, .h = extent.bottom - extent.top};
+    const gfx::LogicalRect display_clear = {.x = display.left, .y = display.top, .w = display.right - display.left, .h = display.bottom - display.top};
     gfx::Clear(true, clear_colour, false, 0.0f, &clear_rect, &display_clear);
     const int result = mgDrawDirect(frame);
     gfx::SetRenderTarget(previous);
@@ -439,14 +466,18 @@ int COutLineDraw::Draw(float scale, float alpha) {
         mgPortApplyDrawEnv(edge_state, edge_env);
         const bool defer_alpha = body_overwrites_alpha && edge_state == body_state;
 
-        DrawCopy(box, edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, -edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, 0, edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, 0, -edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, -edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, 0, edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, 0, -edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
     }
 
+    if (body_overwrites_alpha && gfx::Recording()) {
+        DrawPresentationAlphaReset(display, body_state);
+    }
     const uint8_t body_colour[4] = {128, 128, 128, static_cast<uint8_t>(static_cast<int>(128.0f * alpha))};
-    DrawCopy(box, 0, 0, body_colour, mgPortDepth(static_cast<uint32_t>(depth)), binding, body_state);
+    DrawCopy(box, display, 0, 0, body_colour, mgPortDepth(static_cast<uint32_t>(depth)), binding, body_state);
+    gfx::EndPresentationRegion(body_overwrites_alpha);
 
     // The composite's packets are the last writes to these registers.
     gs.test = env.test.value;

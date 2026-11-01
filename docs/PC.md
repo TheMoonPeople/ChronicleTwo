@@ -25,6 +25,14 @@ The renderer's cases need a Vulkan device with the features `tools/kazarov/src/c
 
 ### Windows
 
+GitHub Actions cross-compiles Windows releases and test executables on Ubuntu with the `windows` target in `tools/ci/Dockerfile`. Linux host tools build the C++26 and Rust code for `x86_64-pc-windows-gnullvm`; a separate Windows job runs the resulting CPU and Rust tests with an official Python installation. Cross builds use `port/build/windows-cross-x64-release`, keeping their CMake cache separate from native Windows builds.
+
+The Windows and macOS workflows each compile, test and package one build per push or pull request. The Tests workflow covers Linux and the iOS simulator; it does not repeat the desktop release builds. Manual desktop runs can disable tests with the `tests` input.
+
+For a local cross build, run `docker build --target windows -f tools/ci/Dockerfile -t chronicletwo-ci:windows .`, then `docker run --rm -v "${PWD}:/work" chronicletwo-ci:windows bash tools/ci/windows.sh build` from Bash. Use `tests` to compile the test executables as well. Run `python3 tools/ci/windows-package.py build` inside that container to validate the bundled DLL imports and symbol lookup and write the runtime and symbol ZIPs under `artifacts/`.
+
+CI images pin their base-image digests and Ubuntu package snapshot. Rust comes from its official image, target libraries from rustup, and bridge generators from Cargo with locked dependencies. The Docker source bundle verifies upstream archive checksums, rejects conflicting pins, and keeps its download layer cached across unrelated CMake edits. CMake consumes only those verified sources, and Linux and Windows compilation use the Cargo dependencies fetched into the image without network access. BuildKit, compiler, Rust and ThinLTO caches are reused across runs. GPU tests share a CTest resource lock so renderer startup cannot exhaust hosted-runner resources while CPU tests remain parallel.
+
 ```bat
 .\build.bat windows-x64
 .\run.bat windows-x64
@@ -72,9 +80,9 @@ export VK_DRIVER_FILES="$(brew --prefix)/etc/vulkan/icd.d/MoltenVK_icd.json"
 
 ### iOS
 
-The iOS arm64 build requires macOS and Xcode with Swift C++ interoperability. The
+The iOS arm64 build requires macOS and Xcode with the iOS 27 SDK or newer. The
 [build workflow](../.github/workflows/ios.yml) builds SDL3 and FFmpeg, supplies the iOS MoltenVK library,
-and packages an unsigned IPA with its scripts, glyphs and gameplay seed. It targets iOS 16.3 and later;
+and packages an unsigned IPA with its scripts, glyphs and gameplay seed. It targets iOS 27 and later;
 install the IPA through a sideloading tool that signs it for your device.
 
 For a local build, export Docker's `apple-deps` target into `.kazarov`, then run
@@ -102,6 +110,12 @@ Release, RelWithDebInfo and MinSizeRel link the game with ThinLTO (`port/cmake/o
 
 Every configuration keeps DWARF line tables in `darkchronicle`, so crash reports name `file:line`: Release and MinSizeRel build with `-gline-tables-only`, and Debug and RelWithDebInfo keep `-g`. Linux and Windows links write a build id, and Mach-O has its `LC_UUID`. On macOS, non-Debug builds run `dsymutil` after the link, and `darkchronicle.dSYM` must travel with the binary. `-DCT_SYMBOLS=split` also writes `darkchronicle.pdb` (Windows) or `darkchronicle.debug` (Linux), and a Debug dSYM on macOS. `-DCT_SYMBOLS=off` adds nothing. [SYMBOLS.md](SYMBOLS.md) describes the symbol artifacts CI uploads and `tools/crash/symbolize.py`, which re-resolves a report's raw frames.
 
+### AddressSanitizer
+
+The `linux-x64-asan` preset builds Debug with AddressSanitizer into `port/build/pc-asan`. In that build an arena reset (`stClearUsed`, `stReset`) poisons everything the arena had handed out, and allocating, growing the last allocation or taking `RemainingBytes` unpoisons only what is handed out again; binding an arena to a buffer unpoisons the buffer. A pointer the game still holds into a reset arena is then reported where it is read or written, with the reset that freed it, instead of corrupting whatever is allocated there next.
+
+`tools/crash/asan-replays.ps1 [-Data <data dir>] [replays...]` builds the `windows-x64-asan` configuration (`build.bat windows-x64-asan`) and runs the replays that reload characters, weapons and menus (by default the dungeon weapon swap, the town and dungeon Items and Character menus and the equipped-weapon views) offscreen on the host GPU with game data. A replay's first line names its launch arguments; a run fails on any AddressSanitizer report, and its log stays in `port/build/windows-x64-asan/replays`. `tools/crash/asan-replays.sh` does the same in the Linux preset where a GPU driver is available; under the container's software Vulkan the game's pipeline set does not fit in memory, so there the preset serves the unit tests (`ctest --preset linux-x64-asan`).
+
 ### The PS2 build
 
 ```sh
@@ -113,7 +127,7 @@ BUILD_DIR=build/pal python3 scripts/build/verify.py -c
 
 ### Continuous integration
 
-Four independent workflows publish Windows, macOS, iOS and Linux builds on pushes to `master`, pull requests and manual dispatches. Builds configure `CT_BUILD_TESTS=OFF`; neither the game suite nor the data bridge test executable is compiled. Linux remains the Flatpak in `linux.yml`, without a duplicate native Release build. Platform packages retain their separate symbol artifacts.
+Five independent workflows publish Windows, macOS, iOS, Linux and Nintendo Switch builds on pushes to `master`, pull requests and manual dispatches. Builds configure `CT_BUILD_TESTS=OFF`; neither the game suite nor the data bridge test executable is compiled. Linux remains the Flatpak in `linux.yml`, without a duplicate native Release build. `switch.yml` builds Kazarov's Switch toolchain image (cached between runs) and uploads the NRO with its ELF. Platform packages retain their separate symbol artifacts.
 
 `tests.yml` runs separately and calls the same Windows, macOS and Linux configurations with tests enabled. Linux uses the Docker toolchain, Debug assertions and lavapipe; it preserves the PAL timing baseline check, Python clang-binding checks, Rust publisher tests, crash-symboliser tests, native runtime gate, PIE check and split-symbol checks. Windows runs the desktop suite excluding GPU cases, Rust tests and symbol resolution. macOS runs its desktop and Rust suites and checks dSYM resolution; the documented virtual-GPU exceptions remain report-only. iOS runs the existing floating-point formatting compatibility regressions on an available arm64 iPhone simulator. The desktop suite's subprocess/death-test assumptions are not supported by iOS. Each platform uploads CTest XML and diagnostics on failure.
 
@@ -157,7 +171,7 @@ Help movie extraction first appears in Kazarov `2e6ef96` (data version 14). The 
 
 Never edit `data.json` to claim the new version: the marker would pass, but the older `data.zip` still lacks the newly extracted assets.
 
-On iOS a launcher (`port/src/ios/Launcher.swift`; the iOS code is Swift under `port/src/ios`, calling the game through `ios/bridge.hpp` with Swift's C++ interoperability) comes up on every start, before the game's window. It shows whether the data is current and offers **Play** only then. Without data it finds a disc image (`.iso`) in the app's Documents folder or its Inbox, where the Files app and Open In put it, or lets the player choose one in Files, opened in place rather than copied; it then extracts into the data root on a worker thread and draws the progress. **Extract Again…** re-extracts over current data, saves and settings untouched. **Settings** lists the APP SETTINGS rows, apart from the bindings, and **Help** explains where the disc image goes, LiveContainer included. The on-screen gamepad starts after the launcher.
+On iOS a launcher (`port/src/ios/Launcher.swift`; the iOS code is Swift under `port/src/ios`, calling the game through the C-compatible interface in `ios/bridge.hpp`) comes up on every start, before the game's window. It shows whether the data is current and offers **Play** only then. Without data it finds a disc image (`.iso`) in the app's Documents folder or its Inbox, where the Files app and Open In put it, or lets the player choose one in Files, opened in place rather than copied; it then extracts into the data root on a worker thread and draws the progress. **Extract Again…** re-extracts over current data, saves and settings untouched. **Settings** lists the APP SETTINGS rows, apart from the bindings, and **Help** explains where the disc image goes, LiveContainer included. The on-screen gamepad starts after the launcher.
 
 `run.sh` and `run.bat` pass `--run-dir <checkout>/port/run`, giving them the data root `port/run/data`, whose parent holds `data.zip`, and `port/run/saves`. A direct executable launch defaults to the per-user `chronicletwo` application data root with the same layout. They also set `DC2_LOG=debug` when it is unset, so the console shows debug lines ([logging](LOGGING.md)).
 
@@ -548,6 +562,7 @@ darkchronicle [options]
 | `--display-per-tick N` | also render N interpolated display frames per clock tick, discarded. N is a positive integer |
 | `--show-fps` | draw the FPS counter on presented frames, headless too |
 | `--log-fps` | print the FPS counter's text on stderr once a second |
+| `--perf-seconds N` | measure a scene: once it has player control (or, without control, once its mode runs) and one more second has passed, log N one-second windows (`perf window`: ticks, presented images, canonical endpoints, superseded authored pairs, replayed ticks, presented FPS and update/busy milliseconds), then a `perf total` and exit 0. With `DC2_PERF_ZONES=1` it also lists each profiling zone's game-thread milliseconds per tick, its largest single tick and its time on other threads |
 | `--log-level SPEC` | the log level: `trace`, `debug`, `info`, `warning`, `error`, `critical` or `off`, and/or `CATEGORY=LEVEL` pairs, comma-separated (for example `info,gfx=trace`). Outranks `DC2_LOG` and `log.level`; see [LOGGING.md](LOGGING.md) |
 
 There is no `--help`. An unknown argument, an option without its value (other than `--data` and `--save`), or a bad value prints the usage on stderr and exits with status 2. `--data` and `--save` without a directory print `--data needs a directory` (or `--save needs a directory`) and exit with status 2, without the usage.
@@ -623,7 +638,7 @@ reaches the first Underground Channel floor with movement and the HUD. See
 `tools/input/perf-ocean-walk.input` is the Ocean's Roar performance replay: run
 `darkchronicle --jump dungeon:3:1 --fast-load --skip-events --invincible --seed 1234
 --window 1920x1080 --input tools/input/perf-ocean-walk.input --frames 480 --log-fps`
-in a real window with `video.present_mode` `immediate`. Max walks into the open
+in a real window with `video.vsync` `false`. Max walks into the open
 water and the camera pans across it, at about 3,000 scene draws a tick.
 
 To replay a milestone save without changing its source, use:
@@ -698,7 +713,7 @@ Writes are atomic: the file is written as `config.json.tmp` and renamed over `co
 | `game.skip_intro` | bool | false | | boot past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo to the title screen |
 | `game.floor_info_monsters` | bool | false | | Triangle on a dungeon floor's information lists its monsters (spoilers); see "Floor monster list" |
 | `game.more_monsters` | bool | false | | a dungeon floor holds up to 60 monsters instead of 24, and every monster in range shows and acts; see "Dungeon monster limit" |
-| `video.present_mode` | string | fifo | fifo, mailbox, immediate | Vulkan present mode |
+| `video.vsync` | bool | true | true, false | V-Sync: FIFO presentation when on, immediate when off. An older `video.present_mode` is read as on for `fifo` and off otherwise |
 | `video.interpolation` | bool | true (false on iOS) | | interpolate display frames between ticks |
 | `video.render_thread` | string | async | off, lockstep, async | `async` (default) renders and presents display frames on a separate render thread while the game ticks, and follows the mouse between ticks so the menu pointer and the fixed-camera look move at the display rate; `off` runs everything on the game thread; `lockstep` runs device work on a worker while the caller waits; `DC2_RENDER_THREAD` overrides it; headless and screenshot runs always use `off`; applies at startup |
 | `video.max_fps` | number | 0 | 0 or more | display frame cap; 0 is unlimited |
@@ -751,7 +766,7 @@ settings and merges only those edits into the current file, preserving unknown
 keys and unrelated values edited externally. Binding action names are merged
 case-insensitively, so editing or restoring `cross` also replaces or removes a
 hand-written `Cross` override without leaving a duplicate. It calls `DisplayChanged` and a
-change hook. `SettingsChange` changes the shared host fields while retaining interpolation, aspect and UI scale. Through the hook, `main` applies the log settings, present mode, input bindings and controls, master volume, and presentation settings. Aspect and UI scale are applied between frame recordings.
+change hook. `SettingsChange` changes the shared host fields while retaining interpolation, aspect and UI scale. Through the hook, `main` applies the log settings, V-Sync, input bindings and controls, master volume, and presentation settings. Aspect and UI scale are applied between frame recordings.
 
 ### Gameplay timing
 
@@ -778,7 +793,7 @@ without a guessed migration factor.
 
 Open **Options**, then press **SELECT** (Backspace with the default keyboard bindings), or click **PC SETTINGS** above the list. The original Options page still edits the retail save's options. Its confirm, cancel, reset, and L1/R1 page scrolling are unchanged; returning from PC SETTINGS keeps its cursor and choices.
 
-On iOS the page is called **APP SETTINGS** and leaves out the rows that have nothing to act on there: window mode, resolution, present mode, the mouse rows and the DualSense speaker. The launcher's **Settings** shows the same rows, without the bindings, before the game starts.
+On iOS the page is called **APP SETTINGS** and leaves out the rows that have nothing to act on there: window mode, resolution, V-Sync, the mouse rows and the DualSense speaker. The launcher's **Settings** shows the same rows, without the bindings, before the game starts.
 
 The PC page uses the game's font and Options artwork. L1/R1 changes tabs, Up/Down selects a row, Left/Right changes a value, and confirm advances a choice or opens binding capture. Cancel returns to Options; Japanese retains its reversed confirm/cancel layout. The mouse can click tabs and value arrows, scroll rows, restore a binding, and return to Options. Hit targets follow aspect ratio, UI scale and window DPI.
 
@@ -1586,7 +1601,7 @@ The native `render/mglib.cpp` contains the renderer-facing implementation and re
 ### Ticks and display frames
 
 - One game frame is one pass of the game's loop, and one recorded list. It spans `mgFrameRate` clock ticks: 2 at the fixed 60 Hz rate, so 30 game frames a second. `mgFrameRate` keeps its meaning.
-- After the canonical render, `mgEndFrame` calls `PresentWaitFrame`. It waits the same tick count `WaitVSync` waited for; the rotating-thread and pump behaviour is unchanged. Meanwhile `present.cpp` renders display frames from the newest list and the one before it. Each display frame's alpha is the elapsed fraction of the game frame: the ticks since the frame began plus the fraction of the current tick, over `mgFrameRate`. An alpha from the clock tick alone would run 0 to 1 twice per game frame at `mgFrameRate` 2. Display frames are presented as fast as `video.present_mode` and `video.max_fps` allow (`max_fps` 0 is unlimited). A game frame whose wait presented nothing presents its canonical image afterwards (`PresentTickEnd`).
+- After the canonical render, `mgEndFrame` calls `PresentWaitFrame`. It waits the same tick count `WaitVSync` waited for; the rotating-thread and pump behaviour is unchanged. Meanwhile `present.cpp` renders display frames from the newest list and the one before it. Each display frame's alpha is the elapsed fraction of the game frame: the ticks since the frame began plus the fraction of the current tick, over `mgFrameRate`. An alpha from the clock tick alone would run 0 to 1 twice per game frame at `mgFrameRate` 2. Display frames are presented as fast as `video.vsync` and `video.max_fps` allow (`max_fps` 0 is unlimited). A game frame whose wait presented nothing presents its canonical image afterwards (`PresentTickEnd`).
 - Interpolated: the models of tagged mesh draws, and the camera (`tools/kazarov/src/cpp/gfx/README.md`, "Display lists"). A draw is tagged with `mgPortInterpScope(object, teleport_distance, blend_vertices, no_interpolation)`, keyed by the `mgCFrame` or, outside a frame, the visual's record. `kMgPortFrameTeleportDistance` is 200 units. Skinned prog0 draws blend their 32-bone model-space palette (`gfx::Prog0Palette::bones`) per bone: translation lerped, rotation slerped from the Gram-Schmidt rotation, scale and shear lerped in its frame. A bone that moved further than the draw's teleport distance keeps the newest pose. The rest of the per-draw block follows the interpolated model and camera: `model_world` is the interpolated model, `clip_or_view` and the object-space eye are re-based through the tick's and the interpolated object-to-eye transforms, and point lights shift with the object's origin. Dark Cloud 1's port, which shares the renderer, records no prog0 block, so it takes no such path.
 - Depth-tested screen effects set `gfx::DrawState::screen_space` so the depth-of-field layers stay screen-aligned while sampling the display camera's refreshed grabs. World sprites retain camera reprojection.
 - Dungeon pickup sprites (`CPullItem`, including coins, ABS and floating items) opt into keyed world-corner interpolation. `SetItem` starts a new emission generation; matched corners blend in world space under the display camera, including bobbing, glow size and opacity. Atlas animation stays newest. Reused slots, unmatched/incompatible draws, motion beyond 200 units, near-plane crossings and multi-camera lists keep newest own motion. Canonical and alpha-1 rendering remain exact.
@@ -1602,7 +1617,7 @@ The native `render/mglib.cpp` contains the renderer-facing implementation and re
 - Interpolation diagnostic: set `KZ_INTERPOLATION_TINT=1` to tint draws on the main presentation image (default off). Green is a matched transformed mesh; cyan is an unmatched or pose-excluded mesh carried by the display camera; red is newest-only geometry; blue is flat 2D or a screen effect; yellow is a depth-tested sprite with reprojected corners. Unchanged matched meshes remain green. This classifies geometry, not all its inputs: texture contents, lighting, fog parameters and sprite motion can still be tick-exact. Alpha tests, coverage, depth and blending are retained, so translucent passes can mix tints. Reusable intermediate render targets keep their original colours; their final composites are tinted on the main image. Canonical renders and ordinary screenshots never receive the tint. Use `--screenshot-display 8` to inspect the diagnostic at eight interpolation phases. Optional `KZ_INTERPOLATION_TRACE=<file>` appends per-draw CSV sections at alpha zero, including matching/cut reasons, texture IDs, camera IDs, target IDs, whether a draw is tinted on the main image, and changed fog/material/projection/local inputs. It writes only while tint is enabled; remove both environment variables after diagnosis.
 - Outlined models render into a shared transparent image. Canonical clears and copies retain the retail draw rectangle; presentation scratch clears and replacement vertices cover the full visible extent so the interpolated model/bone pose remains complete under the display camera, including fixed-camera mouse look. Each copy preserves its texture-to-screen offset. Fixed-look current and previous lists preserve presentation vertices and clear rectangles while leaving resource retirement ownership with their source lists. Transparent texels in a depth-writing presentation composite do not write depth. GPU regressions compare a rotating thin part at alpha 0.5 against an independently recorded horizontal pose and complete fixed-look outline pixels at alpha 1 and 0.5 against a direct full-extent reference render; translation, scratch-target reuse and transparent-depth regressions remain covered. `tools/input/area-dungeon-chest-turn.input` with `--jump dungeon:0:1 --fast-load --frames 2518 --screenshot chest.png --screenshot-display 8` exercises the unopened chest during a camera turn. For multi-part NPCs, use `--input tools/input/repro-town-npc-outline.input --jump town:10 --fast-load --frames 278 --window 1280x720 --screenshot woman.png --screenshot-display 8`; the woman's face must remain visible throughout the turn. `--input tools/input/repro-clown-outline.input --frames 27230 --window 1280x720 --screenshot clown.png --screenshot-display 8` checks the clown's face during the prologue camera move.
 - `--screenshot-display N` writes N display frames of the screenshot's frame, at alpha k/N from the previous list to the last, as `<stem>-display-<k>.png`. `--screenshot-fps` writes the screenshot with the FPS counter and any visible menu pointer drawn into it, at window size, from a presented frame (`RecordHostOverlay`, shared with presentation). With `--offscreen`, nothing is presented, and the image is read back from the display image instead. Neither reaches any other written image.
-- `video.max_fps=0` leaves presentation uncapped; a positive cap paces display starts without catching up in bursts. A due logic tick takes priority. FIFO follows the display's synchronization, while mailbox and immediate depend on device support. Interpolation off presents canonical frames at their game cadence; a high display cap does not increase the logic tick rate.
+- `video.max_fps=0` leaves presentation uncapped; a positive cap paces display starts without catching up in bursts. A due logic tick takes priority. With V-Sync on, FIFO follows the display's synchronization; off, immediate presentation depends on device support. Interpolation off presents canonical frames at their game cadence; a high display cap does not increase the logic tick rate.
 
 ### Packets
 
@@ -1958,7 +1973,7 @@ Visual faces (`port/src/render/mg_visual.cpp`) keep their triangles on the CPU. 
 - The dungeon floor map (`CDngFreeMap::DrawRoot` and `DrawRoomOne`, `port/src/object/dun/dngmenu.cpp`) culls its rooms and passages at `mgPortVisibleUiExtent`, the visible extent in the UI units its 2D is drawn in, so floors in a wide window's flanks, or uncovered by `video.ui_scale` below 1, are drawn. Retail strokes each passage with three 1-pixel GS lines a pixel apart; each is filled as the pixel-wide band the GS covers, so a passage stays one solid stroke above 512x480 (`MglibAspect.FloorMap*`).
 - A layout change (`video.aspect`, `video.ui_scale`) is applied from the pump outside a recording, through `mgPortSetFrameLayout`. Letterboxing never draws or clears the bars, so a switch from `auto` to `4:3` first lets two ticks clear the main target outside the frame (one per main image, each also rendering the display image so presentation and display screenshots lose the art too) and then switches; otherwise the bars keep the last Fill frame's art (`MglibPresent.LetterboxSwitchClearsWhatFillDrewBesideTheFrame`).
 - `--window WxH` sets the window size (headless: the offscreen image's).
-- Config keys: `video.interpolation` (`true`), `video.max_fps` (`0`), `video.present_mode` (`fifo`, `mailbox` or `immediate`), `video.aspect` (`auto` or `4:3`), `video.ui_scale` (`1`), `video.show_fps`, `video.fps_detail`.
+- Config keys: `video.interpolation` (`true`), `video.max_fps` (`0`), `video.vsync` (`true`), `video.aspect` (`auto` or `4:3`), `video.ui_scale` (`1`), `video.show_fps`, `video.fps_detail`.
 
 ## Character motion
 

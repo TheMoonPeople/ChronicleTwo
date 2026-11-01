@@ -312,8 +312,12 @@ void DrawPausePicture(std::array<gfx::Vertex2D, 4> vertices, int player_alpha) {
 
 } // namespace
 
+bool PauseFrameWanted() {
+    return state.stage == Stage::Open && !state.captured && state.player != nullptr;
+}
+
 bool RenderPauseFrame(const gfx::DisplayList &source) {
-    if (state.stage != Stage::Open || state.captured || state.player == nullptr) {
+    if (!PauseFrameWanted()) {
         return false;
     }
     const gfx::TextureHandle clean = gfx::NamedRenderTarget("menu world without player",

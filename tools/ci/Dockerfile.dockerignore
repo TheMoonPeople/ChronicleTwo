@@ -13,3 +13,5 @@
 !tools/kazarov/tools/
 !tools/kazarov/tools/ffmpeg/
 !tools/kazarov/tools/ffmpeg/kz-ffmpeg
+!tools/kazarov/Cargo.toml
+!tools/kazarov/Cargo.lock

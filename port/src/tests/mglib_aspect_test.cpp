@@ -83,6 +83,18 @@ bool Inside(float x) {
     return x >= e.left && x <= e.right;
 }
 
+/**
+ * Writes a captured canonical frame for a failed graphics assertion.
+ */
+void WriteFailureFrame(const std::string &suffix, const std::vector<uint8_t> &rgba, uint32_t width, uint32_t height) {
+    const char *capture = std::getenv("DC2_CAPTURE_DIR");
+    const auto  directory = capture ? std::filesystem::path(capture) : std::filesystem::path("Testing/Temporary/metal-pixels");
+    std::filesystem::create_directories(directory);
+    const auto *test = testing::UnitTest::GetInstance()->current_test_info();
+    const auto  name = std::string(test->name()) + "_" + suffix + ".png";
+    EXPECT_TRUE(gfx::WritePng(directory / name, rgba.data(), width, height));
+}
+
 gfx::Vertex2D QuadCorner(float x, float y) {
     gfx::Vertex2D vertex = {};
     vertex.x = x;
@@ -732,6 +744,10 @@ TEST(MglibAspect, MenuFormsKeepMessageCursorAndTailWhole) {
         if (c.drawn) {
             EXPECT_GT(pixel(c.sample_x, sample_y, 1), 200) << "cut off at the screen's edge";
             EXPECT_LT(pixel(c.sample_x, sample_y, 0), 100) << "cut off at the screen's edge";
+            if (pixel(c.sample_x, sample_y, 1) <= 200 || pixel(c.sample_x, sample_y, 0) >= 100) {
+                WriteFailureFrame(std::to_string(c.preset) + "_" + std::to_string(c.x), rgba, width,
+                                  static_cast<uint32_t>(rgba.size() / 4 / width));
+            }
         } else {
             EXPECT_GT(pixel(c.sample_x, sample_y, 0), 190) << "parked window shows at the side";
         }
@@ -901,6 +917,10 @@ void ExpectPartForms(int window_width, int window_height, float ui_scale, bool u
         }
         EXPECT_GT(pixel(ui_mapping, c.quad_x + 12, c.quad_y + 12, 0), 240) << "form clip leaked to a following draw";
         EXPECT_GT(pixel(ui_mapping, c.quad_x + 12, c.quad_y + 12, 2), 240) << "form clip leaked to a following draw";
+        if (pixel(ui_mapping, c.quad_x + 12, c.quad_y + 12, 0) <= 240 ||
+            pixel(ui_mapping, c.quad_x + 12, c.quad_y + 12, 2) <= 240) {
+            WriteFailureFrame(std::to_string(c.x) + "_" + std::to_string(c.y), rgba, width, height);
+        }
     }
     gfx::SetFrameLayout({.aspect = gfx::AspectMode::Fill, .ui_scale = 1.0f});
 }

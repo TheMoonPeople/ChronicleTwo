@@ -3042,7 +3042,7 @@ bool CaptureModelResources(CCharacter2 &character, mgCMemory &memory) {
     }
     ResourceState state;
     state.anchor = dc2::memory::ArenaBuffer::Bind(memory, std::span<u8>(reinterpret_cast<u8 *>(character.CObjectFrame::frame), sizeof(mgCFrame)));
-    state.producers.push_back({ResourceChannel::Model, 0, dc2::memory::ArenaLifetime::Capture(memory)});
+    state.producers.push_back({ResourceChannel::Model, 0, dc2::memory::ArenaLifetime::Capture(memory, character.CObjectFrame::frame)});
     const auto      prior = character.resource_state.Acquire<ResourceState>();
     CloneAuxBuilder builder(prior ? prior->clone_inputs : nullptr);
     if (!builder.CaptureFrames(character, memory)) {

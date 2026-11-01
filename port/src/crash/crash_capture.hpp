@@ -2,8 +2,11 @@
 
 // State passed from the crashing thread to the report writer.
 
+#include <cpptrace/basic.hpp>
+
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
 
@@ -88,6 +91,12 @@ std::string_view WriterReportPath();
  * Finds the function name associated with a program address.
  */
 std::string SymbolTableName(std::uint64_t address);
+
+/**
+ * Resolves unique program counters and restores every original physical and inlined frame.
+ */
+cpptrace::stacktrace ResolveFrames(const cpptrace::raw_trace                                              &raw,
+                                   const std::function<cpptrace::stacktrace(const cpptrace::raw_trace &)> &resolver);
 
 /**
  * Returns the current operating system thread identifier.

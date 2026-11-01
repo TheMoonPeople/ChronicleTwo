@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <functional>
@@ -7,8 +8,10 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 #include "crash/crash.hpp"
+#include "crash/crash_capture.hpp"
 #include "crash/crash_detail.hpp"
 
 namespace {
@@ -172,3 +175,68 @@ TEST(CrashTestOption, ParsesModesAndTiming) {
 }
 
 } // namespace
+
+TEST(CrashSymbols, ReusesUniqueAddressesAndReplaysZeroAddressInlines) {
+    cpptrace::raw_trace raw;
+    raw.frames.assign(126, 84);
+    raw.frames[0] = 42;
+    raw.frames[2] = 42;
+    unsigned   calls = 0;
+    const auto trace = crash_detail::ResolveFrames(raw, [&](const cpptrace::raw_trace &unique) {
+        calls++;
+        EXPECT_EQ(unique.frames, (std::vector<cpptrace::frame_ptr>{42, 84}));
+        return cpptrace::stacktrace{
+            {
+             {.raw_address = 0, .object_address = 0, .line = 19, .column = 3, .filename = "inline.cpp", .symbol = "inline_call", .is_inline = true},
+             {.raw_address = 42, .object_address = 42, .line = 29, .column = {}, .filename = "caller.cpp", .symbol = "caller", .is_inline = false},
+             {.raw_address = 84, .object_address = 84, .line = 39, .column = {}, .filename = "other.cpp", .symbol = "other", .is_inline = false},
+             }
+        };
+    });
+    EXPECT_EQ(calls, 1u);
+    ASSERT_EQ(trace.frames.size(), 128u);
+    EXPECT_EQ(std::ranges::count_if(trace.frames, [](const auto &frame) { return !frame.is_inline; }), 126);
+    EXPECT_EQ(trace.frames.back().raw_address, 84u);
+    EXPECT_TRUE(trace.frames[0].is_inline);
+    EXPECT_EQ(trace.frames[0].raw_address, 0u);
+    EXPECT_EQ(trace.frames[0].symbol, "inline_call");
+    EXPECT_EQ(trace.frames[0].filename, "inline.cpp");
+    EXPECT_EQ(trace.frames[0].line.value(), 19u);
+    EXPECT_EQ(trace.frames[0].column.value(), 3u);
+    EXPECT_FALSE(trace.frames[1].is_inline);
+    EXPECT_EQ(trace.frames[1].raw_address, 42u);
+    EXPECT_EQ(trace.frames[2].raw_address, 84u);
+    EXPECT_TRUE(trace.frames[3].is_inline);
+    EXPECT_FALSE(trace.frames[4].is_inline);
+    EXPECT_TRUE(trace.frames[3] == trace.frames[0]);
+    EXPECT_TRUE(trace.frames[4] == trace.frames[1]);
+}
+
+TEST(CrashSymbols, RetainsRepeatedUnresolvedFrames) {
+    cpptrace::raw_trace raw;
+    raw.frames = {1, 1};
+    const auto trace = crash_detail::ResolveFrames(raw, [](const cpptrace::raw_trace &unique) {
+        EXPECT_EQ(unique.frames, (std::vector<cpptrace::frame_ptr>{1}));
+        return cpptrace::stacktrace{{{.raw_address = 1, .object_address = 0, .line = {}, .column = {}, .filename = {}, .symbol = {}, .is_inline = false}}};
+    });
+    ASSERT_EQ(trace.frames.size(), 2u);
+    for (const auto &frame : trace.frames) {
+        EXPECT_EQ(frame.raw_address, 1u);
+        EXPECT_FALSE(frame.is_inline);
+        EXPECT_TRUE(frame.symbol.empty());
+        EXPECT_TRUE(frame.filename.empty());
+        EXPECT_FALSE(frame.line.has_value());
+    }
+}
+
+TEST(CrashSymbols, AcceptsEmptyCapturesAndEmptyResolution) {
+    for (const cpptrace::raw_trace &raw : {cpptrace::raw_trace{}, cpptrace::raw_trace{{42, 42, 84}}}) {
+        unsigned   calls = 0;
+        const auto trace = crash_detail::ResolveFrames(raw, [&](const cpptrace::raw_trace &) {
+            calls++;
+            return cpptrace::stacktrace{};
+        });
+        EXPECT_EQ(calls, 1u);
+        EXPECT_TRUE(trace.frames.empty());
+    }
+}

@@ -1,5 +1,6 @@
 // clang-format off
 #include "platform/native_config.hpp"
+#include "profile.hpp"
 #include "log/game_output.hpp"
 // clang-format on
 
@@ -51,6 +52,7 @@
 #include "snd_mngr.hpp"
 #include "sound.hpp"
 #include "swordeffect.hpp"
+#include "test_hooks.hpp"
 #include "text/bounded.hpp"
 #include "userdata.hpp"
 
@@ -1356,7 +1358,11 @@ void CMonsterMan::DrawActMonster() {
             !(monster->alpha < 1.0f) && !(monster->view_alpha < 1.0f) &&
             !(monster->camera_alpha < 1.0f)) {
             tex->ReloadTexture(monster->refer_no + MONSTER_TEXB_REFER, (sceVif1Packet *) nullptr);
+            dc2::debug::DungeonStressBodyScope body(dc2::debug::DungeonStressEntityKind::Enemy, i);
             active_monster->DrawDirect();
+            for (CActionChara *part = active_monster; part != nullptr; part = part->next) {
+                dc2::debug::DungeonStressBodyBounds(part->CObjectFrame::frame);
+            }
         }
     }
 }
@@ -2462,6 +2468,7 @@ void CMonsterMan::CheckDamage() {
 }
 
 void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) {
+    CT_PROFILE_ZONE("Monster movement collision");
     auto *scene = GetScene();
     if (scene == nullptr) {
         return;
@@ -2609,6 +2616,7 @@ void CMonsterMan::MoveUnit(CActiveMonster *monster, CCPoly *poly, int poly_num) 
 }
 
 void CMonsterMan::ThinkHost() {
+    CT_PROFILE_ZONE("Monster host update");
     const auto bound_scene = scene_view;
     auto      *scene = GetScene();
     if (scene == nullptr) {
@@ -2670,14 +2678,20 @@ void CMonsterMan::ThinkHost() {
 
         if (battle->pause_flag & DNG_PAUSE_ENEMY_STEP) {
             if (monster->tbl->user_mons_id == user_monster) {
-                monster->Step();
+                {
+                    CT_PROFILE_ZONE("Monster paused animation action step");
+                    monster->Step();
+                }
             }
 
             continue;
         }
 
         if (monster->catch_state == ACTION_CATCH_HELD) {
-            RunScript(i);
+            {
+                CT_PROFILE_ZONE("Monster held script update");
+                RunScript(i);
+            }
             if (bound_scene.Get() != scene) {
                 return;
             }
@@ -2768,7 +2782,10 @@ void CMonsterMan::ThinkHost() {
             monster->damage_req = ACTION_DAMAGE_REQ_NONE;
         }
 
-        RunScript(i);
+        {
+            CT_PROFILE_ZONE("Monster script update");
+            RunScript(i);
+        }
         if (bound_scene.Get() != scene) {
             return;
         }
@@ -2921,7 +2938,10 @@ void CMonsterMan::ThinkHost() {
             monster->SetStep(step);
         }
 
-        monster->Step();
+        {
+            CT_PROFILE_ZONE("Monster animation action step");
+            monster->Step();
+        }
     }
 
     PriorityLevelCheck();
@@ -3168,7 +3188,7 @@ int active_monsters = kRetailActiveMonsters;
 int PortMonsterLatchLimits() {
     const bool more = ConfigGet().more_monsters;
     active_monsters = more ? MONSTER_ACTIVE_MAX : kRetailActiveMonsters;
-    return more ? MONSTER_ACTIVE_MAX : kRetailPriorityLimit;
+    return dc2::debug::DungeonStressPriorityLimit(more ? MONSTER_ACTIVE_MAX : kRetailPriorityLimit);
 }
 
 int PortMonsterActiveLimit() { return active_monsters; }

@@ -73,6 +73,16 @@ Row Number(const char *key, const char *label, const char *help, const std::vect
     return row;
 }
 
+// V-Sync on presents in FIFO order; off presents at once and may tear.
+Row VSync() {
+    Row row{.key = "video.vsync", .label = "V-Sync", .help = "On prevents tearing.\nOff shows each frame at once and may tear."};
+    row.value = [](const Config &c) { return std::string(c.present_mode == ConfigPresentMode::Fifo ? "On" : "Off"); };
+    row.step = [](Config &c, int) {
+        c.present_mode = c.present_mode == ConfigPresentMode::Fifo ? ConfigPresentMode::Immediate : ConfigPresentMode::Fifo;
+    };
+    return row;
+}
+
 Row Resolution() {
     Row row{.key = "video.width", .label = "Resolution", .help = "Window size. Fullscreen uses the desktop.\nCommand-line --window overrides this setting."};
     row.value = [](const Config &c) {
@@ -297,7 +307,7 @@ bool PcOnly(std::string_view key) {
 #endif
         "video.fullscreen",
         "video.width",
-        "video.present_mode",
+        "video.vsync",
         "audio.dualsense_speaker",
         "audio.controller_volume",
         "input.mouse_sensitivity",
@@ -316,7 +326,7 @@ std::vector<Page> MakePages() {
         {.name = "Display",  .rows = {
                                 Choice<&Config::fullscreen>("video.fullscreen", "Window mode", "Applies immediately. Fullscreen uses the desktop.", {"Windowed", "Fullscreen"}),
                                 Resolution(),
-                                Choice<&Config::present_mode>("video.present_mode", "Present mode", "FIFO prevents tearing. Mailbox keeps the newest frame.\nUnsupported modes fall back to FIFO.", {"FIFO", "Mailbox", "Immediate"}),
+                                VSync(),
                                 Number<&Config::max_fps>("video.max_fps", "Frame cap", "Limits display frames, not game speed.", {0, 30, 50, 60, 75, 90, 100, 120, 144, 165, 180, 240, 360}, 1, " FPS"),
                                 Choice<&Config::interpolation>("video.interpolation", "Interpolation", "Smooths display frames between game ticks.", {"Off", "On"}),
                                 Choice<&Config::aspect>("video.aspect", "Aspect ratio", "Auto fills the window. 4:3 adds black side bars.", {"Auto", "4:3"}),

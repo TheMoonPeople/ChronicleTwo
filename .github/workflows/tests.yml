@@ -35,16 +35,16 @@ jobs:
   ios:
     name: Tests (iOS simulator)
     needs: ios-dependencies
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     env:
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: true
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: apple-dependencies-ios-tests
           path: .kazarov/bundle
@@ -59,9 +59,10 @@ jobs:
           import json, os, subprocess
           devices = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
           phones = [device for runtime, group in devices["devices"].items() if ".iOS-" in runtime
+                    and int(runtime.split(".iOS-")[1].split("-")[0]) >= 27
                     for device in group if device["name"].startswith("iPhone") and device["isAvailable"]]
           if not phones:
-              raise SystemExit("The runner has no available iOS simulator runtime")
+              raise SystemExit("The standard-library oracle requires an available iOS 27 or newer simulator")
           phone = phones[0]
           if phone["state"] != "Booted":
               subprocess.run(["xcrun", "simctl", "boot", phone["udid"]], check=True)
@@ -71,16 +72,17 @@ jobs:
           PY
       - name: Build the iOS compatibility tests
         run: |
-          brew install cmake ninja
+          brew list --versions cmake >/dev/null 2>&1 || brew install cmake
+          brew list --versions ninja >/dev/null 2>&1 || brew install ninja
           cmake -S port/src/tests/ios -B port/build/ios-tests -G Ninja \
             -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_DEPLOYMENT_TARGET=16.3 \
+            -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_DEPLOYMENT_TARGET=27.0 \
             -DCMAKE_BUILD_TYPE=Release \
             "-DCMAKE_CROSSCOMPILING_EMULATOR=xcrun;simctl;spawn;$SIMULATOR_UDID"
           cmake --build port/build/ios-tests --parallel "$(sysctl -n hw.ncpu)"
       - name: Run tests on iOS
         run: ctest --test-dir port/build/ios-tests --output-on-failure --no-tests=error --output-junit tests.xml -j2
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: tests-ios

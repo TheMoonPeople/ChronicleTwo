@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <utility>
 
 #include "funcpoint.hpp"
 #include "mapparts.hpp"
@@ -1162,6 +1163,19 @@ void DrawFireEffect(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck
     }
 }
 
+namespace {
+// The heat haze's frame copy, until a raster needs it.
+void (*pending_fire_grab)() = nullptr;
+} // namespace
+
+void dc2::effects::DeferFireGrab(void (*grab)()) {
+    pending_fire_grab = grab;
+}
+
+void dc2::effects::CancelFireGrab() {
+    pending_fire_grab = nullptr;
+}
+
 void DrawFireRaster(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck *check, CFireRaster *raster) {
     float       position[4];
     CFuncPoint *first = {};
@@ -1183,6 +1197,9 @@ void DrawFireRaster(float (*lw_matrix)[4], CFuncPointMngr *mngr, CFuncPointCheck
                     float distance = mgGetDistFromCamera(position);
 
                     if (!(distance < 40.0f) && distance <= 400.0f) {
+                        if (pending_fire_grab != nullptr) {
+                            std::exchange(pending_fire_grab, nullptr)();
+                        }
                         raster->Draw(position, point->scale);
                     }
                 }

@@ -86,7 +86,7 @@ TEST_F(PlatformConfig, TinyFrameCapsClampButZeroRemainsUncapped) {
 
 TEST_F(PlatformConfig, FullFileRoundTrips) {
     Config full;
-    full.present_mode = ConfigPresentMode::Mailbox;
+    full.present_mode = ConfigPresentMode::Immediate;
     full.render_thread = ConfigRenderThread::Async;
     full.max_fps = 144.0;
     full.window_width = 1920;
@@ -184,7 +184,7 @@ TEST_F(PlatformConfig, UnknownKeysAndSectionsAreIgnored) {
     Config config = ConfigParse(R"({
         // comment
         "game": {"tick_rate": 60, "debug_menu": true, "unknown": 1},
-        "video": {"vsync": false, "width": 1280},
+        "video": {"unknown": false, "width": 1280},
         "audio": {"master_volume": 0.5},
         "extra": {"tick_rate": 30},
         "stray": 1
@@ -194,6 +194,14 @@ TEST_F(PlatformConfig, UnknownKeysAndSectionsAreIgnored) {
     ASSERT_TRUE(config.master_volume == 0.5f);
     ASSERT_TRUE(config.present_mode == ConfigPresentMode::Fifo);
     ASSERT_TRUE(ConfigParse(R"({"game": {"debug_menu": false}, "stray": 1})") == Config{});
+}
+
+TEST_F(PlatformConfig, VSyncIsOnByDefaultAndLegacyPresentModesMapToIt) {
+    EXPECT_EQ(ConfigParse("{}").present_mode, ConfigPresentMode::Fifo);
+    EXPECT_EQ(ConfigParse(R"({"video":{"vsync":false}})").present_mode, ConfigPresentMode::Immediate);
+    EXPECT_EQ(ConfigParse(R"({"video":{"vsync":true}})").present_mode, ConfigPresentMode::Fifo);
+    EXPECT_EQ(ConfigParse(R"({"video":{"present_mode":"mailbox"}})").present_mode, ConfigPresentMode::Immediate);
+    EXPECT_EQ(ConfigParse(R"({"video":{"present_mode":"fifo"}})").present_mode, ConfigPresentMode::Fifo);
 }
 
 TEST_F(PlatformConfig, DebugModeParsesBoolsAndDefaultsToOff) {

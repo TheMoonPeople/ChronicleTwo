@@ -4,6 +4,10 @@ on:
     branches: [master]
   pull_request:
   workflow_dispatch:
+    inputs:
+      tests:
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       tests:
@@ -11,6 +15,8 @@ on:
         default: false
 permissions:
   contents: read
+env:
+  RUN_TESTS: ${{ inputs.tests || github.event_name == 'push' || github.event_name == 'pull_request' }}
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.tests || false }}-macos
   cancel-in-progress: true
@@ -21,29 +27,27 @@ jobs:
       platform: apple
       artifact: apple-dependencies-macos
   build:
-    name: ${{ inputs.tests && 'Tests (macOS)' || 'Build (macOS)' }}
+    name: ${{ (inputs.tests || github.event_name == 'push' || github.event_name == 'pull_request') && 'Build and test (macOS)' || 'Build (macOS)' }}
     needs: dependencies
     timeout-minutes: 60
-    runs-on: macos-26
+    runs-on: xcode-27
     env:
       CARGO_TARGET_DIR: ${{ github.workspace }}/.kazarov/cargo-target/macos
       CCACHE_DIR: ${{ github.workspace }}/.kazarov/ccache/macos
       CCACHE_BASEDIR: ${{ github.workspace }}
       CCACHE_COMPILERCHECK: content
+      KZ_PIPELINE_COMPILER_THREADS: 2
+      KZ_PIPELINE_PREWARM: 0
+      # Direct Metal allocations preserve draws the hosted Paravirtual GPU omits with heaps.
+      MVK_CONFIG_USE_MTLHEAP: "0"
       HOMEBREW_NO_AUTO_UPDATE: 1
       HOMEBREW_NO_INSTALL_CLEANUP: 1
-      # These 14 rendering tests read back black frames or wrong pixels only on the hosted runner's virtual
-      # GPU (Apple Paravirtual device under MoltenVK). The same test binary passes all 14 on Apple Silicon
-      # hardware (M3, macOS 27.0.1, MoltenVK 1.4.2), and Linux CI gates them on lavapipe. They are reported
-      # here without failing the job; remove this once the runner's GPU renders them correctly.
-      MACOS_GPU_REPORT_ONLY: >-
-        ^(MgDrawPrimRender\.LinearAtlasCellsKeepTopOutlinesWithoutSamplingTheNextCell|MgShadow\.OverlappingCastersShadeTheirUnionNotTheirSum|MgVisual\.DrawManagerPathMatchesDirect|MgVisual\.DirectMaterialUsesItsOwnTextureWrap|MgVisual\.QueuedMaterialRetainsItsOwnTextureWrap|MglibAspect\.MenuFormsHideParkedStatsWithoutClippingEnteringPanel|MglibPresent\.BackBufferCapturePreservesWidePixelsAndHoldsUntilRecaptured|MglibSeam\.ReusedTextureKeyDoesNotSampleRetiredRenderTarget|MenuIconGpu\.ItemDrawSamplesSelectedAtlasCellsInCanonicalAndDisplayFrames|MenuIconGpu\.EffectUsesSelectedBakedRgbaAtlasAndRestoresNormally|MgTextureGpu\.HighResolutionKeepsLogicalCpuStrideAndSpriteBounds|GfxGpuMeshDc2\.RefSphere|GfxGpuMeshDc2\.Prog0CullModeFollowsFlagAndMirror|GfxGpuDisplayList\.PresentationCompositeDoesNotWriteTransparentDepth)$
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: true
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: apple-dependencies-macos
           path: .kazarov/bundle
@@ -51,25 +55,58 @@ jobs:
         run: |
           test "$(shasum -a 256 .kazarov/bundle/deps.tar.gz | cut -d' ' -f1)" = "$(cat .kazarov/bundle/deps.sha256)"
           tar xzf .kazarov/bundle/deps.tar.gz -C .kazarov
-      - uses: actions/cache@v5
+      - name: Restore native Apple dependencies
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        id: native-deps-cache
         with:
           path: |
             ~/Library/Caches/Homebrew
             ~/.cargo/registry
             ~/.cargo/git
+            .kazarov/deps/bin
             .kazarov/ffmpeg/darwin-arm64
+          key: native-deps-macos-xcode27-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}
+      - name: Restore reusable compiler outputs
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        id: compile-cache
+        with:
+          path: |
             .kazarov/cargo-target/macos
+            port/build/macos-arm64-release/cargo
             .kazarov/ccache/macos
             port/build/macos-arm64-release/lto-cache
-          key: compile-macos-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock') }}-${{ inputs.tests && 'tests' || 'build' }}-${{ github.sha }}
+          key: compile-macos-v2-xcode27-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}-${{ github.sha }}-${{ github.run_attempt }}
           restore-keys: |
-            compile-macos-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock') }}-${{ inputs.tests && 'tests' || 'build' }}-
-            compile-macos-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock') }}-
+            compile-macos-v2-xcode27-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}-${{ github.sha }}-
+            compile-macos-v2-xcode27-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ env.RUN_TESTS == 'true' && 'tests' || 'build' }}-
+            compile-macos-v2-xcode27-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+            compile-macos-v2-
+      - name: Rebuild Rust outputs after dependency changes
+        env:
+          RESTORED_CACHE_KEY: ${{ steps.compile-cache.outputs.cache-matched-key }}
+          DEPENDENCY_CACHE_PREFIX: compile-macos-v2-xcode27-${{ hashFiles('tools/ci/Dockerfile', 'tools/ci/apple-deps.sh', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import shutil
+          key = os.environ['RESTORED_CACHE_KEY']
+          if key and not key.startswith(os.environ['DEPENDENCY_CACHE_PREFIX']):
+              workspace = Path(os.environ['GITHUB_WORKSPACE']).resolve()
+              targets = [workspace / '.kazarov/cargo-target/macos', workspace / 'port/build/macos-arm64-release/cargo']
+              if any(not target.resolve().is_relative_to(workspace) for target in targets):
+                  raise SystemExit('Rust cache paths must stay inside the workspace')
+              for target in targets:
+                  if target.exists():
+                      shutil.rmtree(target)
+              print('Dependency inputs changed; cached Rust outputs will be rebuilt.')
+          PY
       - name: Install the native Apple toolchain
+        id: prepare-native-deps
         run: bash tools/ci/apple-deps.sh macos-arm64
 
       - name: Describe the Vulkan driver
-        if: inputs.tests
+        if: env.RUN_TESTS == 'true'
         run: |
           mkdir -p artifacts
           vulkaninfo --summary > artifacts/vulkaninfo.txt 2>&1 || true
@@ -79,33 +116,82 @@ jobs:
       # Homebrew's clang defaults to the Command Line Tools SDK while CMake's find modules search xcrun's (Xcode's);
       # naming one SDK keeps a library found in it (Iconv) from adding its usr/include ahead of libc++'s headers.
       - name: Configure
-        run: cmake --preset macos-arm64-release -C tools/ci/dependencies.cmake -DCT_BUILD_TESTS=${{ inputs.tests && 'ON' || 'OFF' }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCT_TEST_TIMEOUT=60 -DCT_SYMBOLS=split -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)"
+        run: cmake --preset macos-arm64-release -C tools/ci/dependencies.cmake -DCT_BUILD_TESTS=${{ env.RUN_TESTS == 'true' && 'ON' || 'OFF' }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCT_TEST_TIMEOUT=60 -DCT_SYMBOLS=split -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)"
 
       - name: Build
         run: cmake --build --preset macos-arm64-release --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
 
       - name: Test
-        if: inputs.tests
-        run: ctest --preset macos-arm64-release --no-tests=error --output-junit tests.xml -E "$MACOS_GPU_REPORT_ONLY"
+        id: functional-tests
+        if: env.RUN_TESTS == 'true'
+        run: ctest --preset macos-arm64-release --no-tests=error --output-junit tests.xml
 
-      - name: Test cases the hosted runner's virtual GPU renders wrongly (report only)
-        if: inputs.tests
-        continue-on-error: true
-        run: ctest --preset macos-arm64-release -R "$MACOS_GPU_REPORT_ONLY"
+      - name: Diagnose Metal command and memory handling
+        if: failure() && steps.functional-tests.outcome == 'failure'
+        shell: bash
+        run: |
+          unset KZ_BINDLESS MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS MVK_CONFIG_USE_COMMAND_POOLING \
+            MVK_CONFIG_PREFILL_METAL_COMMAND_BUFFERS MVK_CONFIG_USE_MTLHEAP MVK_CONFIG_FAST_MATH_ENABLED
+          build="$GITHUB_WORKSPACE/port/build/macos-arm64-release"
+          directory="$build/Testing/Temporary/metal-diagnostics"
+          mkdir -p "$directory"
+          filter='^(MglibAspect\.(MenuFormsKeepMessageCursorAndTailWhole|MenuFormsParkPastHalfScaleUi|MenuFormsParkPastOneAndAHalfScaleUi|MenuFormsParkVerticallyOnTallWindow)|TargetPresentation\.WorldLifeGaugeInterpolatesPositionAndHealthAndReuseCuts)$'
+          for mode in command-pooling prefill metal-heaps precise-math; do
+            case "$mode" in
+              command-pooling) settings=(MVK_CONFIG_USE_COMMAND_POOLING=0) ;;
+              prefill) settings=(MVK_CONFIG_PREFILL_METAL_COMMAND_BUFFERS=1) ;;
+              metal-heaps) settings=(MVK_CONFIG_USE_MTLHEAP=0) ;;
+              precise-math) settings=(MVK_CONFIG_FAST_MATH_ENABLED=0) ;;
+            esac
+            log="$directory/$mode.log"
+            if env "${settings[@]}" DC2_CAPTURE_DIR="$directory/$mode-pixels" \
+              ctest --test-dir "$build" -j1 --no-tests=error \
+              --fixture-exclude-any gpu_pipeline_cache --timeout 60 -R "$filter" \
+              --output-on-failure --output-junit "$directory/$mode.xml" > "$log" 2>&1; then
+              echo "$mode: passed"
+            else
+              echo "$mode: failed; full output is in the test artifact"
+            fi
+            tail -n 40 "$log"
+          done
+          exit 0
+
+      - name: Package the reusable GPU test runtime
+        id: package-gpu-runtime
+        if: always() && steps.functional-tests.outcome == 'failure'
+        run: |
+          build="$GITHUB_WORKSPACE/port/build/macos-arm64-release"
+          metadata="$GITHUB_WORKSPACE/artifacts/macos-gpu-runtime"
+          mkdir -p "$metadata"
+          git rev-parse HEAD > "$metadata/source.sha"
+          for binary in darkchronicle_tests darkchronicle dc2data; do
+            otool -L "$build/$binary"
+          done > "$metadata/dylibs.txt"
+          tar -czf artifacts/macos-gpu-test-runtime.tar.gz -C "$build" \
+            darkchronicle_tests darkchronicle dc2data assets/data.zip scripts fonts glyphs \
+            -C "$metadata" source.sha dylibs.txt
+
+      - name: Upload the reusable GPU test runtime
+        if: always() && steps.package-gpu-runtime.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: macos-gpu-test-runtime
+          path: artifacts/macos-gpu-test-runtime.tar.gz
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
 
       - name: Test Rust data publisher
-        if: inputs.tests
+        if: env.RUN_TESTS == 'true'
         run: cargo test --locked --manifest-path tools/kazarov/Cargo.toml
 
       - name: Package the macOS build
-        if: ${{ !inputs.tests }}
         run: |
           mkdir -p artifacts
           tar -czf artifacts/chronicletwo-macos-arm64.tar.gz -C port/build/macos-arm64-release darkchronicle dc2data scripts glyphs fonts Luau-LICENSE.txt Tracy-LICENSE.txt -C assets data.zip
 
       - name: Upload the macOS build
-        if: ${{ !inputs.tests }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: chronicletwo-macos-arm64
           path: artifacts/chronicletwo-macos-arm64.tar.gz
@@ -113,7 +199,7 @@ jobs:
 
       # Without Homebrew's llvm on PATH the symboliser falls back to atos, against the dSYM.
       - name: Check the dSYM resolves a frame
-        if: inputs.tests
+        if: env.RUN_TESTS == 'true'
         run: |
           address=$(nm port/build/macos-arm64-release/darkchronicle | awk '$3 == "_main" { print $1 }')
           printf '#0  darkchronicle+0x%x\n' $((0x$address - 0x100000000)) > report.txt
@@ -122,30 +208,51 @@ jobs:
 
       # docs/SYMBOLS.md: tools/crash/symbolize.py resolves a report from this build with the dSYM.
       - name: Package the macOS symbols
-        if: ${{ !inputs.tests }}
         run: tar -czf artifacts/chronicletwo-macos-arm64-symbols.tar.gz -C port/build/macos-arm64-release darkchronicle darkchronicle.dSYM
 
       - name: Upload the macOS symbols
-        if: ${{ !inputs.tests }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: chronicletwo-macos-arm64-symbols-${{ github.sha }}
           path: artifacts/chronicletwo-macos-arm64-symbols.tar.gz
           if-no-files-found: error
 
       - name: Upload the Vulkan description
-        if: always() && inputs.tests
-        uses: actions/upload-artifact@v7
+        if: always() && env.RUN_TESTS == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: macos
           path: artifacts/vulkaninfo.txt
           if-no-files-found: warn
 
-      - uses: actions/upload-artifact@v7
-        if: always() && inputs.tests
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always() && env.RUN_TESTS == 'true'
         with:
           name: tests-macos
           path: |
             port/build/macos-arm64-release/tests.xml
             port/build/macos-arm64-release/Testing/Temporary/
           if-no-files-found: warn
+
+      - name: Save reusable compiler outputs
+        if: always() && steps.compile-cache.outputs.cache-primary-key != '' && steps.compile-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            .kazarov/cargo-target/macos
+            port/build/macos-arm64-release/cargo
+            .kazarov/ccache/macos
+            port/build/macos-arm64-release/lto-cache
+          key: ${{ steps.compile-cache.outputs.cache-primary-key }}
+
+      - name: Save native Apple dependencies
+        if: always() && steps.prepare-native-deps.outcome == 'success' && steps.native-deps-cache.outputs.cache-primary-key != '' && steps.native-deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            ~/.cargo/registry
+            ~/.cargo/git
+            .kazarov/deps/bin
+            .kazarov/ffmpeg/darwin-arm64
+          key: ${{ steps.native-deps-cache.outputs.cache-primary-key }}
