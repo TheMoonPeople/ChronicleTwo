@@ -15,8 +15,11 @@
 #include <memory>
 #include <numbers>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "actionchara.hpp"
 #include "assets/data_registry.hpp"
@@ -38,6 +41,7 @@
 #include "mapload.hpp"
 #include "mapselect.hpp"
 #include "memcard.hpp"
+#include "memory/tracked_copy.hpp"
 #include "menu_character_assets.hpp"
 #include "menuaqua.hpp"
 #include "menuchr.hpp"
@@ -63,6 +67,7 @@
 #include "platform/model_assets.hpp"
 #include "prespr.hpp"
 #include "quick_loadout.hpp"
+#include "render/renderer.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
 #include "scriptinterpreter.hpp"
@@ -94,7 +99,7 @@ static inline u_int align16_blocks(u_int size) {
     return size >> 4;
 }
 
-inline CMenuChrCngMenu::CMenuChrCngMenu() {
+CMenuChrCngMenu::CMenuChrCngMenu() {
     change_phase = CHR_CNG_PHASE_NONE;
     change_chara = -1;
     change_ready = false;
@@ -234,55 +239,6 @@ static inline unsigned int blocks_for(unsigned int size) {
 
 /**
  *
- * Non-zero while the party townsperson model is loading.
- *
- */
-static signed char MenuNPCLoadFlag;
-
-/**
- *
- * Number of transformation effect resource pairs read.
- *
- */
-static int mos_effect_read_num;
-
-/**
- *
- * Transformation effect resources selected for the monster menu.
- *
- */
-static MOS_HENGE_PARAM *mos_effect_henge_param;
-
-/**
- *
- * Script buffer for each loaded transformation effect.
- *
- */
-static u8 *mos_effect_readbuff1[MONSTER_EFFECT_NUM];
-
-/**
- *
- * Script byte count for each loaded transformation effect.
- *
- */
-static int mos_effect_readbuff1_size[MONSTER_EFFECT_NUM];
-
-/**
- *
- * Pack buffer for each loaded transformation effect.
- *
- */
-static u8 *mos_effect_readbuff2[MONSTER_EFFECT_NUM];
-
-/**
- *
- * Pack byte count for each loaded transformation effect.
- *
- */
-static int mos_effect_readbuff2_size[MONSTER_EFFECT_NUM];
-
-/**
- *
  * Active monster selection menu.
  *
  */
@@ -339,13 +295,6 @@ static short NowReadMainCharaNo = -1;
 
 /**
  *
- * Pack data read for the party townsperson model.
- *
- */
-static u_int *MenuPartyNPCModelReadBuffer;
-
-/**
- *
  * Current phase of the costume menu model load.
  *
  */
@@ -375,6 +324,102 @@ constexpr int monster_body_blocks = 0x6400;
 constexpr int monster_trail_blocks = 0x3C0;
 
 /**
+ * Keeps the pending NPC model input alive independently of reusable menu scratch arenas.
+ */
+dc2::io::FileRead &PendingNpcModelRead() {
+    static dc2::io::FileRead read;
+    return read;
+}
+
+/**
+ * Owns the NPC portrait until its texture has been registered.
+ */
+dc2::io::FileRead &PendingNpcFaceRead() {
+    static dc2::io::FileRead read;
+    return read;
+}
+
+/**
+ * Keeps character sound metadata independent of scene loading scratch storage.
+ */
+dc2::io::FileRead &PendingCharaSoundRead() {
+    static dc2::io::FileRead read;
+    return read;
+}
+
+/**
+ * Retains a complete transformation resource and script pair under its effect name.
+ */
+struct TransformationEffectRead {
+    std::string       name;     /**< Effect whose native base consumes these inputs. */
+    dc2::io::FileRead resource; /**< Independently owned model or texture input. */
+    dc2::io::FileRead script;   /**< Independently owned effect script input. */
+};
+
+/**
+ * Owns the transformation inputs until their effect bases are built.
+ */
+std::vector<TransformationEffectRead> &TransformationEffectReads() {
+    static std::vector<TransformationEffectRead> reads;
+    return reads;
+}
+
+/**
+ * Keeps an unfinished or cancelled character load from retiring the currently displayed resources.
+ */
+bool CharacterMenuInputsReady(MENU_BGREAD_INFO2 **info) {
+    if (info == nullptr) {
+        return false;
+    }
+    for (int slot = 0; slot < MENU_CHARA_LOAD_MAX; ++slot) {
+        if (info[slot] != nullptr && info[slot]->reading != 0) {
+            const auto read = dc2::io::FindBackgroundReadInCurrentDir(info[slot]->path);
+            if (!read || !read.Done() || read.Cancelled()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * Reserves initialized sector-padded menu input before copying it into an arena.
+ */
+std::span<u8> StageMenuArchive(mgCMemory &memory, std::string_view name) {
+    if (memory.lock != 0 || !dc2::memory::ArenaStorageLive(memory)) {
+        return {};
+    }
+    const auto read = dc2::menu::ReadMenuFile(name);
+    if (!read || read.Size() <= 0) {
+        return {};
+    }
+    const auto padded = read.PaddedBytes();
+    auto      *destination = dc2::memory::NewArray<u8>(memory, padded.size());
+    if (destination == nullptr) {
+        return {};
+    }
+    dc2::memory::CopyTrackedBytes(destination, padded.data(), padded.size());
+    return {destination, static_cast<std::size_t>(read.Size())};
+}
+
+/**
+ * Owns class-change inputs and their persistent sound metadata workspace.
+ */
+struct MonsterClassChangeInput {
+    dc2::io::FileRead model;        /**< Independently owned class-change effect model. */
+    dc2::io::FileRead sound;        /**< Independently owned class-change sound input. */
+    mgCMemory         sound_memory; /**< Sound metadata arena retained while the effect plays. */
+};
+
+/**
+ * Retains the active class-change inputs until the next class-change request.
+ */
+MonsterClassChangeInput &MonsterClassChangeInputs() {
+    static MonsterClassChangeInput inputs;
+    return inputs;
+}
+
+/**
  *
  * Owns the monster book independently of the arena containing its model data.
  *
@@ -396,6 +441,17 @@ void DetachSwordTrail(CCharacter2 *chara) {
 
     dc2::character::ReleaseResource(*chara, dc2::character::ResourceChannel::Sword, 0);
     chara->sword_effect[0] = nullptr;
+}
+
+/**
+ * Requires the replacement party actor and its model to remain live before gameplay resumes.
+ */
+CActionChara &RequireLoadedPartyRoot(CScene *scene) {
+    auto *character = scene != nullptr ? static_cast<CActionChara *>(scene->GetCharacter(0)) : nullptr;
+    if (character == nullptr || character->GetFrame() == nullptr) {
+        throw std::runtime_error("character replacement has no live root model");
+    }
+    return *character;
 }
 } // namespace
 
@@ -1125,46 +1181,49 @@ void CMenuChrCngMenu::EnterDataMenu(u_char *pack) {
 }
 
 void CMenuChrCngMenu::LoadNPCFaceData(mgCMemory *memory, int mode) {
-    char         path[0x40];
-    unsigned int size = {};
-
-    memory->stClearUsed();
-    memory->stSetLocked(false);
+    auto &read = PendingNpcFaceRead();
+    read = {};
     face_loaded = mode;
     face_img = nullptr;
+    face_state = -1;
+    if (memory == nullptr || memory->lock != 0 || !dc2::memory::ArenaStorageLive(*memory) || MenuUserDataManPtr == nullptr) {
+        return;
+    }
+    memory->stClearUsed();
     face_chara = MenuUserDataManPtr->NowPartyCharaID();
-
     if (face_chara < 0) {
         face_loaded = MENU_FILE_LOAD_DIRECT;
-        face_state = -1;
-    } else {
+        return;
+    }
+    face_chara = std::clamp<int>(face_chara, PARTY_NPC_CEDRIC, PARTY_NPC_LIN);
+    read = dc2::menu::ReadMenuFile(std::format("textures/npcface/{}.json", face_chara), mode == MENU_FILE_LOAD_BG);
+    if (read) {
+        face_img = read.Bytes().data();
         face_state = 0;
-
-        if (face_chara <= 0) {
-            face_chara = PARTY_NPC_CEDRIC;
-        }
-
-        if (face_chara > PARTY_NPC_LIN) {
-            face_chara = PARTY_NPC_LIN;
-        }
-
-        std::snprintf(path, sizeof(path), "textures/npcface/%d.json", face_chara);
-        memory->Align64();
-        face_img = reinterpret_cast<u8 *>(memory->stGetTop());
-        size = LoadFileMenu(path, dc2::memory::AvailableFrom(*memory, face_img), mode);
-        memory->Alloc(blocks_for(size));
     }
 }
 
 void CMenuChrCngMenu::EnterNPCFaceData() {
-    signed char load_state = {};
-
-    if ((face_state == 0) && ((load_state = face_loaded, (load_state == MENU_FILE_LOAD_DIRECT)) ||
-                              ((load_state == MENU_FILE_LOAD_BG) && (ReadBGSync() == 0)))) {
-        mgTexManager.EnterIMGFile(face_img, tex_block[0], nullptr, nullptr);
-        face_state = 1;
-        ExeScript("NPCFACEEND");
+    auto &read = PendingNpcFaceRead();
+    if (face_state != 0) {
+        return;
     }
+    if (!read || read.Cancelled() || read.Bytes().data() != face_img) {
+        face_img = nullptr;
+        face_state = -1;
+        return;
+    }
+    if (face_loaded == MENU_FILE_LOAD_BG && ReadBGSync() != 0) {
+        return;
+    }
+    if (!read.Done()) {
+        return;
+    }
+    mgTexManager.EnterIMGFile(read.Bytes().data(), tex_block[0], nullptr, nullptr);
+    face_img = nullptr;
+    face_state = 1;
+    ExeScript("NPCFACEEND");
+    read = {};
 }
 
 int CMenuChrCngMenu::LoadBGNPCModel(int restart_read) {
@@ -2075,7 +2134,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                     break;
                 case USER_CHARA_ROBO:
                     load_info->load_all = true;
-                    MenuCharaLoadStack.Alloc(blocks_for(MenuItemRoboDataLoad(&MenuCharaLoadStack, MenuCharaBuild2, 1)));
+                    MenuItemRoboDataLoad(&MenuCharaLoadStack, MenuCharaBuild2, 1);
                     break;
             }
 
@@ -2114,13 +2173,8 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 DeleteMonsterEffect();
             }
 
-            dc2::character::PrepareUnitReload(*MenuMainScene);
-
-            if (key_func->open_type == MENU_OPEN_MAIN_TOWN) {
-                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 1);
-            } else {
-                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 0);
-            }
+            dc2::character::RepartitionUnitStorage(*MenuMainScene, MenuArg.chara_stack, MorattaStack,
+                                                   change_chara, key_func->open_type == MENU_OPEN_MAIN_TOWN);
 
             last_select = select;
             MenuSePlay(se_sndtbl[select]);
@@ -2789,13 +2843,12 @@ int CMenuChrCngMenu::CheckChrChange() {
                         break;
                 }
 
-                chara = static_cast<CActionChara *>(MenuMainScene->GetCharacter(0));
+                chara = &RequireLoadedPartyRoot(MenuMainScene);
 
                 if (GetMenuLoopType() == MENU_LOOP_DUNGEON) {
                     chara->effect_man = FxScriptMan;
                 }
-
-                if (chara != nullptr && MenuLoadInfo.town_model == false) {
+                if (MenuLoadInfo.town_model == false) {
                     chara->InitScript();
                 }
 
@@ -2803,6 +2856,10 @@ int CMenuChrCngMenu::CheckChrChange() {
                 CopyActiveItemAndWeapon(change_chara, -1);
                 result = 2;
                 change_phase += 1;
+                CT_LOG_DEBUG(Menu, "party change complete: loop={}, character={}, root_live={}, frame={}",
+                             GetMenuLoopType() == MENU_LOOP_DUNGEON ? "dungeon" : "town",
+                             GetUserDataMan()->active_chr_no, chara != nullptr && chara->GetFrame() != nullptr,
+                             mgPortFrameCount());
             }
 
             break;
@@ -3146,7 +3203,6 @@ void MenuCharaChangeStarDraw() {
 int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     u_long128       *buffer = {};
     int              size = {};
-    unsigned int     file_size = {};
     CMenuChrCngMenu *menu = {};
     CRepairManager  *repair = {};
     int              i = {};
@@ -3157,8 +3213,11 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     buffer = stack->stack;
 
     if (mode == MENU_OPEN_CHARA_CHANGE || mode == MENU_OPEN_CHARA_CHANGE_DUNGEON) {
-        file_size = LoadFileMenu("chrchg0.pac", dc2::memory::AvailableFrom(*stack, buffer), MENU_FILE_LOAD_DIRECT);
-        stack->Alloc(blocks_for(file_size));
+        const auto archive = StageMenuArchive(*stack, "chrchg0.pac");
+        if (archive.empty()) {
+            return 0;
+        }
+        buffer = reinterpret_cast<u_long128 *>(archive.data());
         stack->Align64();
     }
 
@@ -3194,7 +3253,7 @@ int MenuCharaChangeInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuBGReadInfo2Malloc(&MenuChangeMemory, tbl);
     MenuCharaChangeCLUT_Tex = nullptr;
     MenuMainFrameModeSet(MENU_MAIN_FRAME_LEAVE_RIGHT, true);
-    ChrChangMenuPt->EnterDataMenu(reinterpret_cast<u8 *>(stack->stack));
+    ChrChangMenuPt->EnterDataMenu(reinterpret_cast<u8 *>(buffer));
     MenuChangeMemory.Align64();
     size = MenuChangeMemory.stGetRest();
     MenuChangeNpcMemory.stShareBuffer(MenuChangeMemory, std::span(MenuChangeMemory.stGetTop(), static_cast<std::size_t>(size)));
@@ -3284,9 +3343,13 @@ int MenuCharaChangeKey() {
                         ChrChangMenuPt->sub_menu = CHR_CNG_SUB_MENU_NONE;
                         MenuCharaLoadStack.stClearUsed();
                         MenuCharaLoadStack.stSetLocked(false);
+                        const auto archive = dc2::menu::ReadMenuFile("chrchg0.pac");
                         texture = reinterpret_cast<u8 *>(ChrChangeInitTextureStack.stack);
-                        char file_name[0x40] = "chrchg0.pac";
-                        LoadFileMenu(file_name, dc2::memory::AvailableFrom(ChrChangeInitTextureStack, texture), MENU_FILE_LOAD_DIRECT);
+                        const auto destination = dc2::memory::AvailableFrom(ChrChangeInitTextureStack, texture);
+                        if (!archive || destination.size() < archive.PaddedBytes().size()) {
+                            return 1;
+                        }
+                        dc2::memory::CopyTrackedBytes(texture, archive.PaddedBytes().data(), archive.PaddedBytes().size());
                         ChrChangMenuPt->EnterDataMenu(texture);
                         ChrChangMenuPt->LoadNPCFaceData(&MenuChangeNpcMemory, MENU_FILE_LOAD_DIRECT);
                         ChrChangMenuPt->EnterNPCFaceData();
@@ -3665,89 +3728,53 @@ void MonsterScaleCheck(CCharacter2 *chara) {
 }
 
 int MonsterEffectRead(mgCMemory *stack, int monster_no, int background) {
-    char script_path[0x80];
-    char pack_path[0x80];
-    int  i = {};
-
-    mos_effect_henge_param = GetMonsterHengeParam(monster_no);
-    mos_effect_read_num = 0;
-
-    if (mos_effect_henge_param != nullptr && stack != nullptr) {
-        if (FxScriptMan != nullptr) {
-            for (i = 0; i < MONSTER_EFFECT_NUM; i++) {
-                char *effect_name = mos_effect_henge_param->effect_name[i];
-
-                if (effect_name == nullptr) {
-                    continue;
-                }
-
-                if (!FxScriptMan->GetNeedFilePath(effect_name, script_path, pack_path)) {
-                    continue;
-                }
-                stack->Align64();
-                mos_effect_readbuff1[i] = reinterpret_cast<u8 *>(stack->stGetTop());
-
-                if (background) {
-                    if (LoadFileBG(script_path, dc2::memory::AvailableFrom(*stack, mos_effect_readbuff1[i]),
-                                   &mos_effect_readbuff1_size[i]) == 0) {
-                        continue;
-                    }
-                } else if (LoadFile2(script_path, dc2::memory::AvailableFrom(*stack, mos_effect_readbuff1[i]),
-                                     &mos_effect_readbuff1_size[i], 0) == 0) {
-                    continue;
-                }
-
-                unsigned int total = mos_effect_readbuff1_size[i] + 0x800;
-                stack->Alloc(blocks_for(total));
-                stack->Align64();
-                mos_effect_readbuff2[i] = reinterpret_cast<u8 *>(stack->stGetTop());
-
-                if (background) {
-                    if (LoadFileBG(pack_path, dc2::memory::AvailableFrom(*stack, mos_effect_readbuff2[i]),
-                                   &mos_effect_readbuff2_size[i]) == 0) {
-                        continue;
-                    }
-                } else if (LoadFile2(pack_path, dc2::memory::AvailableFrom(*stack, mos_effect_readbuff2[i]),
-                                     &mos_effect_readbuff2_size[i], 0) == 0) {
-                    continue;
-                }
-
-                total = mos_effect_readbuff2_size[i] + 0x800;
-                stack->Alloc(blocks_for(total));
-                mos_effect_read_num += 1;
-            }
-        }
+    auto &reads = TransformationEffectReads();
+    reads.clear();
+    const auto *parameters = GetMonsterHengeParam(monster_no);
+    if (stack == nullptr || stack->lock != 0 || !dc2::memory::ArenaStorageLive(*stack) || parameters == nullptr || FxScriptMan == nullptr) {
+        return 0;
     }
-
-    return mos_effect_read_num;
+    for (int index = 0; index < MONSTER_EFFECT_NUM; ++index) {
+        char *name = parameters->effect_name[index];
+        if (name == nullptr) {
+            continue;
+        }
+        std::array<char, 128> resource_path{};
+        std::array<char, 128> script_path{};
+        if (!FxScriptMan->GetNeedFilePath(name, resource_path, script_path)) {
+            continue;
+        }
+        auto resource = background != 0 ? dc2::io::QueueBackgroundRead(resource_path.data()) : dc2::io::ReadFile(resource_path.data());
+        if (!resource) {
+            continue;
+        }
+        auto script = background != 0 ? dc2::io::QueueBackgroundRead(script_path.data()) : dc2::io::ReadFile(script_path.data());
+        if (!script) {
+            continue;
+        }
+        reads.push_back({.name = name, .resource = std::move(resource), .script = std::move(script)});
+    }
+    return static_cast<int>(reads.size());
 }
 
 int MonsterEffectEnter(CScene *scene, u_long128 *buffer, int tex_block) {
-    int        i = {};
-    u_long128 *saved_buffer = {};
-
-    if (mos_effect_henge_param != nullptr && 0 < mos_effect_read_num && FxScriptMan != nullptr) {
-        mgTexManager.DeleteBlock(tex_block);
-        saved_buffer = reinterpret_cast<u_long128 *>(scene->GetReadBufferBytes().data());
-        i = 0;
-        FxScriptMan->load_buffer = buffer;
-
-        for (; i < mos_effect_read_num; i++) {
-            char *effect_name = mos_effect_henge_param->effect_name[i];
-
-            if (effect_name != nullptr) {
-                FxScriptMan->BuildBase(effect_name, reinterpret_cast<u_long128 *>(mos_effect_readbuff1[i]),
-                                       mos_effect_readbuff1_size[i],
-                                       reinterpret_cast<u_long128 *>(mos_effect_readbuff2[i]),
-                                       mos_effect_readbuff2_size[i], MorattaStack, tex_block);
-            }
-        }
-
-        FxScriptMan->load_buffer = saved_buffer;
-        return 1;
+    auto &reads = TransformationEffectReads();
+    if (scene == nullptr || FxScriptMan == nullptr || reads.empty()) {
+        return 0;
     }
-
-    return 0;
+    if (std::ranges::any_of(reads, [](const auto &read) { return !read.resource.Done() || !read.script.Done() || read.resource.Cancelled() || read.script.Cancelled(); })) {
+        return 0;
+    }
+    mgTexManager.DeleteBlock(tex_block);
+    auto *saved_buffer = reinterpret_cast<u_long128 *>(scene->GetReadBufferBytes().data());
+    FxScriptMan->load_buffer = buffer;
+    for (auto &read : reads) {
+        FxScriptMan->BuildBase(read.name.data(), reinterpret_cast<u_long128 *>(read.resource.Bytes().data()), read.resource.Size(),
+                               reinterpret_cast<u_long128 *>(read.script.Bytes().data()), read.script.Size(), MorattaStack, tex_block);
+    }
+    FxScriptMan->load_buffer = saved_buffer;
+    reads.clear();
+    return 1;
 }
 
 int CMenuMosSelect::CheckLoadBGMonster() {
@@ -3840,6 +3867,12 @@ int CMenuMosSelect::CheckLoadBGMonster() {
                 }
 
                 MonsterEffectEnter(MenuMainScene, buffer, MONSTER_EFFECT_TEX_BLOCK);
+                if (MenuLoadInfo.update_scene) {
+                    auto &character = RequireLoadedPartyRoot(MenuMainScene);
+                    CT_LOG_DEBUG(Menu, "monster change complete: loop=dungeon, character={}, root_live={}, frame={}",
+                                 GetUserDataMan()->active_chr_no, character.GetFrame() != nullptr,
+                                 mgPortFrameCount());
+                }
             }
 
             break;
@@ -4115,9 +4148,11 @@ void MenuMonsterBoxInit(mgCMemory *stack, int *tex_block, int mode) {
     MenuDrawEnv->camera.SetPos(posdef);
     MenuDrawEnv->camera.SetRef(refdef);
     stack->Align64();
-    u_int *pack = reinterpret_cast<u_int *>(stack->stGetTop());
-    size = LoadFileMenu("mosbox.pac", dc2::memory::AvailableFrom(*stack, pack), MENU_FILE_LOAD_DIRECT);
-    stack->Alloc(blocks_for(size));
+    const auto archive = StageMenuArchive(*stack, "mosbox.pac");
+    if (archive.empty()) {
+        return;
+    }
+    u_int  *pack = reinterpret_cast<u_int *>(archive.data());
     u_char *image = reinterpret_cast<u_char *>(AssetDirectoryRead(pack, "mosbox.json", nullptr));
     int     block = MenuMosSelectPtr->tex_block[0];
     mgTexManager.EnterIMGFile(image, block, nullptr, nullptr);
@@ -4446,40 +4481,26 @@ int CMenuMosSelect::KeyStep() {
                                 MenuMonChangeLoadStack.stReset();
                                 effect.Initialize(nullptr);
                                 effect_show = false;
-                                int                   model_bytes = 0;
-                                int                   sound_bytes = 0;
-                                constexpr std::size_t sector_bytes = DATAREAD_SECTOR_SIZE;
-                                constexpr std::size_t build_bytes = 0x3B80 * sizeof(u_long128);
-                                const auto            storage = dc2::memory::RemainingBytes(MenuMonChangeLoadStack);
-                                if (!LoadFile2("menu/eff/mos_chn.gltf", std::span<u8>{}, &model_bytes, LOAD_FILE_SIZE) ||
-                                    !LoadFile2("snd2/sp/SP_045.sound.json", std::span<u8>{}, &sound_bytes, LOAD_FILE_SIZE) ||
-                                    model_bytes <= 0 || sound_bytes <= 0) {
+                                auto &inputs = MonsterClassChangeInputs();
+                                inputs.model = {};
+                                inputs.sound = {};
+                                auto *model_memory = dc2::memory::NewArray<u_long128>(MenuMonChangeLoadStack, 0x3980);
+                                auto *sound_memory = dc2::memory::NewArray<u_long128>(MenuMonChangeLoadStack, 0x140);
+                                if (model_memory == nullptr || sound_memory == nullptr) {
                                     step = MOS_SELECT_STEP_COMMAND;
                                     return 0;
                                 }
-                                const auto model_extent = (static_cast<std::size_t>(model_bytes) + sector_bytes - 1) / sector_bytes * sector_bytes;
-                                const auto sound_extent = (static_cast<std::size_t>(sound_bytes) + sector_bytes - 1) / sector_bytes * sector_bytes;
-                                if (storage.size() < build_bytes || model_extent > storage.size() - build_bytes ||
-                                    sound_extent > storage.size() - build_bytes - model_extent) {
-                                    step = MOS_SELECT_STEP_COMMAND;
-                                    return 0;
-                                }
-                                auto model_storage = storage.first(model_extent);
-                                auto sound_storage = storage.subspan(model_extent, sound_extent);
-                                auto build_storage = storage.last(build_bytes).first(0x3980 * sizeof(u_long128));
-                                if (!effect_stack.stShareBuffer(MenuMonChangeLoadStack,
-                                                                std::span(reinterpret_cast<u_long128 *>(build_storage.data()), build_storage.size() / sizeof(u_long128)))) {
-                                    step = MOS_SELECT_STEP_COMMAND;
-                                    return 0;
-                                }
-                                effect_data = reinterpret_cast<u_long128 *>(model_storage.data());
-                                effect_sound = reinterpret_cast<u32 *>(sound_storage.data());
+                                effect_stack.stSetChildBuffer(MenuMonChangeLoadStack, model_memory, 0x3980);
+                                inputs.sound_memory.stSetChildBuffer(MenuMonChangeLoadStack, sound_memory, 0x140);
                                 StartReadBG();
-                                if (!LoadFileBG("snd2/sp/SP_045.sound.json", sound_storage, &size) ||
-                                    !LoadFileBG("menu/eff/mos_chn.gltf", model_storage, &size)) {
+                                inputs.sound = dc2::io::QueueBackgroundRead("snd2/sp/SP_045.sound.json");
+                                inputs.model = dc2::io::QueueBackgroundRead("menu/eff/mos_chn.gltf");
+                                if (!inputs.sound || !inputs.model) {
                                     step = MOS_SELECT_STEP_COMMAND;
                                     return 0;
                                 }
+                                effect_data = reinterpret_cast<u_long128 *>(inputs.model.Bytes().data());
+                                effect_sound = reinterpret_cast<u32 *>(inputs.sound.Bytes().data());
                             }
 
                             if (answer == MES_YESNO_NO) {
@@ -4495,16 +4516,17 @@ int CMenuMosSelect::KeyStep() {
                             change_wait++;
 
                             if (ReadBGSync() == 0 && !effect_show) {
-                                if (effect_sound != nullptr) {
-                                    mgCMemory sound_stack;
-                                    sound_stack.stShareBuffer(MenuMonChangeLoadStack,
-                                                              std::span(MenuMonChangeLoadStack.stack + MenuMonChangeLoadStack.stack_size - 0x200, 0x140));
-                                    MenuSePlay(0, effect_sound, &sound_stack);
+                                auto &inputs = MonsterClassChangeInputs();
+                                if (!inputs.model || !inputs.sound || !inputs.model.Done() || !inputs.sound.Done() ||
+                                    inputs.model.Cancelled() || inputs.sound.Cancelled()) {
+                                    step = MOS_SELECT_STEP_COMMAND;
+                                    return 0;
                                 }
+                                MenuSePlay(0, reinterpret_cast<u32 *>(inputs.sound.Bytes().data()), &inputs.sound_memory);
 
                                 mgTexManager.DeleteBlock(tex_block[2]);
                                 effect.Initialize(nullptr);
-                                effect.LoadPack(reinterpret_cast<u_int *>(effect_data), "info", &effect_stack, &effect_stack, &effect_stack,
+                                effect.LoadPack(reinterpret_cast<u_int *>(inputs.model.Bytes().data()), "info", &effect_stack, &effect_stack, &effect_stack,
                                                 tex_block[2], nullptr);
                                 effect.SetScale(1.5f, 1.5f, 1.5f);
                                 sceVu0FVECTOR effect_pos;
@@ -4783,7 +4805,8 @@ int CMenuMosSelect::KeyStep() {
                         DeleteMonsterEffect();
                     }
 
-                    GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, USER_CHARA_MONSTER, 0);
+                    dc2::character::RepartitionUnitStorage(*MenuMainScene, MenuArg.chara_stack, MorattaStack,
+                                                           USER_CHARA_MONSTER, 0);
                     MenuLoadInfo.mode = MENU_LOAD_MODE_SCENE;
                     MenuLoadInfo.update_scene = true;
                     MenuMosLoadStack.stReset();
@@ -5066,6 +5089,10 @@ void MenuWeaponRealStepEnvFunc(CActionChara *chara, int step) {
 }
 
 int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **info, int restart_read) {
+    if (stack == nullptr || info == nullptr || stack->lock != 0 || !dc2::memory::ArenaStorageLive(*stack)) {
+        return 0;
+    }
+
     /**
      *
      * Character model path category selected by alternate model mode.
@@ -5105,7 +5132,6 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
         chara_no = 0;
     }
 
-    stack->Align64();
     s8 path_kind[MENU_CHARA_LOAD_MAX] = {0, 2, 1, 1, 2, 2, 3};
 
     for (u32 slot = 0; slot < MENU_CHARA_LOAD_MAX; slot++) {
@@ -5187,7 +5213,6 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
             break;
     }
 
-    int size = 0;
     int total = 0;
 
     for (i = 0; i < MENU_CHARA_LOAD_MAX; i++) {
@@ -5200,17 +5225,9 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
             info[i]->chara = nullptr;
             dc2::text::Copy(info[i]->name, dc2::text::View(name[i]));
             dc2::text::Append(info[i]->path, dc2::text::View(info[i]->name));
-            u_long128 *buffer = stack->stGetTop();
-            size = 0;
-            info[i]->reading = 0;
-
-            if (LoadFileBG(info[i]->path, dc2::memory::AvailableFrom(*stack, buffer), &size)) {
-                info[i]->reading = 1;
-            }
-
-            stack->Alloc(blocks_for(size));
-            stack->Align64();
-            total += size;
+            const auto read = dc2::io::QueueBackgroundRead(info[i]->path);
+            info[i]->reading = read ? 1 : 0;
+            total += read.Size();
         }
     }
 
@@ -5289,6 +5306,10 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
 
 int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CActionChara **chara, int chara_no,
                                   int tex_block, int scene_tex_block) {
+    if (!CharacterMenuInputsReady(info)) {
+        return 0;
+    }
+
     int                i = {};
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
@@ -5366,7 +5387,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
 
         dc2::io::FileRead read = dc2::io::FindBackgroundReadInCurrentDir(info[i]->path);
 
-        if (!read) {
+        if (!read || !read.Done() || read.Cancelled()) {
             continue;
         }
 
@@ -5517,40 +5538,29 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
 }
 
 unsigned int MenuCharaSoundLoad(mgCMemory *stack, int chara_no, int background) {
-    std::string  sound_path;
-    int          size = {};
-    unsigned int blocks = {};
+    auto &read = PendingCharaSoundRead();
+    read = {};
     CharaSndBuffer = nullptr;
     MenuSoundCharaNo = chara_no;
-    size = 0;
-    stack->Align64();
-    CharaSndBuffer = reinterpret_cast<u32 *>(stack->stack + stack->stack_used);
-
-    if (chara_no < 3) {
+    if (stack == nullptr || stack->lock != 0 || !dc2::memory::ArenaStorageLive(*stack)) {
+        return 0;
+    }
+    std::string sound_path;
+    if (chara_no < USER_CHARA_MONSTER) {
         sound_path = dc2::character::SoundAssetPath(GetUserDataMan(), chara_no);
     } else {
-        const auto sound_file = GetMonsterModelFile(GetUserDataMan()->monster_id, MONSTER_FILE_SOUND);
-        if (!sound_file) {
+        const auto file = GetMonsterModelFile(GetUserDataMan()->monster_id, MONSTER_FILE_SOUND);
+        if (!file) {
             return 0;
         }
-        sound_path = *sound_file;
+        sound_path = *file;
     }
-
-    if (sound_path.empty()) {
+    read = background != 0 ? dc2::io::QueueBackgroundRead(sound_path) : dc2::io::ReadFile(sound_path);
+    if (!read) {
         return 0;
     }
-    if (background != 0) {
-        LoadFileBG(sound_path.data(), dc2::memory::RemainingBytes(*stack), &size);
-    } else {
-        LoadFile2(sound_path.data(), dc2::memory::RemainingBytes(*stack), &size, 0);
-    }
-
-    if (size <= 0) {
-        return 0;
-    }
-    blocks = (size & 0xF) ? (static_cast<unsigned int>(size) >> 4) + 1 : static_cast<unsigned int>(size) >> 4;
-    stack->Alloc(blocks);
-    return size;
+    CharaSndBuffer = reinterpret_cast<u32 *>(read.Bytes().data());
+    return static_cast<unsigned int>(read.Size());
 }
 
 void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port) {
@@ -5563,7 +5573,10 @@ void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port) {
             sndInitPort(7);
         }
 
-        unsigned int *buffer = static_cast<unsigned int *>(CharaSndBuffer);
+        const auto &read = PendingCharaSoundRead();
+        auto       *buffer = read && read.Done() && !read.Cancelled() && read.Bytes().data() == reinterpret_cast<u8 *>(CharaSndBuffer)
+                                 ? reinterpret_cast<u32 *>(read.Bytes().data())
+                                 : nullptr;
 
         if (buffer != nullptr) {
             int         index = {};
@@ -5585,14 +5598,15 @@ void MenuCharaSoundEnter(CScene *scene, CActionChara *chara, int open_port) {
 
 unsigned int MenuItemChrLoad(mgCMemory *stack, int item_no, int variant, MENU_BGREAD_INFO2 *info,
                              int restart) {
-    unsigned int size = {};
-    unsigned int blocks = {};
 
     if (restart != 0) {
         BreakReadBG();
         StartReadBG();
     }
 
+    if (stack == nullptr || info == nullptr || stack->lock != 0 || !dc2::memory::ArenaStorageLive(*stack)) {
+        return 0;
+    }
     GetGameDataPt();
     info->reading = 1;
     info->chara = nullptr;
@@ -5609,25 +5623,21 @@ unsigned int MenuItemChrLoad(mgCMemory *stack, int item_no, int variant, MENU_BG
     }
 
     dc2::text::Copy(info->path, *item_path);
-    size = 0;
-    stack->Align64();
-
-    if (LoadFileBG(info->path, dc2::memory::RemainingBytes(*stack),
-                   reinterpret_cast<int *>(&size)) == 0) {
-        info->reading = 0;
-    } else {
-        blocks = (size & 0xF) ? (size >> 4) + 1 : size >> 4;
-        stack->Alloc(blocks);
-        stack->Align64();
-    }
-
-    return size;
+    const auto read = dc2::io::QueueBackgroundRead(info->path);
+    info->reading = read ? 1 : 0;
+    return static_cast<unsigned int>(read.Size());
 }
 
 int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMemory *stack,
                             int tex_block) {
+    if (info == nullptr || stack == nullptr || stack->lock != 0 || !dc2::memory::ArenaStorageLive(*stack)) {
+        return 0;
+    }
     if (info->reading != 0) {
         dc2::io::FileRead  loaded = dc2::io::FindBackgroundReadInCurrentDir(info->path);
+        if (!loaded || !loaded.Done() || loaded.Cancelled()) {
+            return 0;
+        }
         mgCTextureManager *tex_manager = &mgTexManager;
         u_int             *model_buffer = {};
         tex_manager->DeleteBlock(tex_block);
@@ -5652,6 +5662,10 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
 }
 
 int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart_read) {
+    if (stack == nullptr || info == nullptr || stack->lock != 0 || !dc2::memory::ArenaStorageLive(*stack)) {
+        return 0;
+    }
+
     /**
      *
      * Background loading phase associated with each ridepod part.
@@ -5660,7 +5674,6 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
     static s8 convItoPhase[6] = {0, 1, 2, 2, 4, 2};
 
     int i = {};
-    int size = {};
     int load = {};
 
     if (restart_read) {
@@ -5675,7 +5688,6 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
     }
 
     ROBO_INFO_DATA *robo = GetRoboPartsInfo(MenuUserDataManPtr);
-    size = 0;
     int total = 0;
 
     for (i = 0; i < 6; i++) {
@@ -5717,27 +5729,19 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
             dc2::text::Append(info[i]->path, dc2::text::View(info[i]->name));
         }
 
-        size = 0;
-        info[i]->reading = 0;
-
-        if (LoadFileBG(info[i]->path, dc2::memory::RemainingBytes(*stack), &size)) {
-            info[i]->reading = 1;
-            stack->Alloc(blocks_for(size));
-            stack->Align64();
-            total += size;
-        }
+        const auto read = dc2::io::QueueBackgroundRead(info[i]->path);
+        info[i]->reading = read ? 1 : 0;
+        total += read.Size();
     }
 
     if (MenuLoadInfo.mode == MENU_LOAD_MODE_SCENE || (MenuLoadInfo.load_all == false && MenuLoadInfo.load_phase == 6)) {
         MENU_BGREAD_INFO2 *hat = info[6];
-        hat->reading = 1;
         hat->chara = nullptr;
         dc2::text::Copy(hat->name, dc2::text::View("robo.stb"));
         dc2::text::Copy(hat->path, dc2::text::View("dungeon/act_script/robo.stb"));
-        LoadFileBG(hat->path, dc2::memory::RemainingBytes(*stack), &size);
-        stack->Alloc(blocks_for(size));
-        stack->Align64();
-        total += size;
+        const auto read = dc2::io::QueueBackgroundRead(hat->path);
+        hat->reading = read ? 1 : 0;
+        total += read.Size();
     }
 
     return total;
@@ -5760,6 +5764,10 @@ void DeleteOutLineMenu(CActionChara *chara, int alternate) {
 
 int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CActionChara **chara, int tex_block,
                                  int scene_tex_block) {
+    if (!CharacterMenuInputsReady(info)) {
+        return 0;
+    }
+
     CActionChara      *parent = nullptr;
     mgCTextureManager *tex_manager = &mgTexManager;
     CScene            *scene = MenuMainScene;
@@ -5767,7 +5775,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
     int                i = {};
     mgCMemory         *part_stack = {};
 
-    if (scene != nullptr && MenuLoadInfo.update_scene) {
+    if (scene != nullptr && (MenuLoadInfo.update_scene || MenuLoadInfo.mode == MENU_LOAD_MODE_SCENE)) {
         for (i = 0; i < 6; i++) {
             scene_chara[i] = static_cast<CActionChara *>(scene->GetCharacter(i));
         }
@@ -5818,7 +5826,7 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
 
         dc2::io::FileRead read = dc2::io::FindBackgroundReadInCurrentDir(info[part]->path);
 
-        if (!read) {
+        if (!read || !read.Done() || read.Cancelled()) {
             continue;
         }
 
@@ -5882,6 +5890,16 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                     parent = scene_chara[0];
                 }
 
+                CActionChara *model = scene_chara[part];
+                if (model == nullptr || (part > 0 && parent == nullptr)) {
+                    break;
+                }
+
+                if (part == 0) {
+                    model->AllDeleteDamage();
+                    tex_manager->DeleteTexAnime(tex_block);
+                }
+
                 part_stack = scene_stack[part];
 
                 if (part == 1) {
@@ -5892,17 +5910,8 @@ int MenuItemRoboDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CAc
                     part_stack->stReset();
                 }
 
-                if (part == 0) {
-                    scene_chara[part]->AllDeleteDamage();
-                    tex_manager->DeleteTexAnime(tex_block);
-                }
-
-                CActionChara *model = scene_chara[part];
-
-                if (static_cast<bool>(model)) {
-                    model->Initialize(nullptr);
-                    model->LoadPack(pack, menu_infocfgname, part_stack, part_stack, part_stack, scene_tex_block, parent);
-                }
+                model->Initialize(nullptr);
+                model->LoadPack(pack, menu_infocfgname, part_stack, part_stack, part_stack, scene_tex_block, parent);
 
                 if (parent != nullptr && CheckBattleLoop() && part == 1) {
                     SetSwordBlurEffect(parent, part_stack, 2);
@@ -6045,7 +6054,10 @@ void MenuRoboPartsLightOff(mgCFrame *frame) {
 }
 
 int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no, int restart_read) {
-    int size = {};
+    if (stack == nullptr || info == nullptr || info[0] == nullptr || stack->lock != 0 || !dc2::memory::ArenaStorageLive(*stack)) {
+        return 0;
+    }
+    info[0]->reading = 0;
 
     if (restart_read) {
         BreakReadBG();
@@ -6078,23 +6090,19 @@ int MenuMonsterLoadBG(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int monster_no
     }
     dc2::text::Copy(info[0]->name, *model);
     dc2::text::Copy(info[0]->path, path);
-    stack->Align64();
-    u_long128 *model_data = stack->stGetTop();
-
-    if (LoadFileBG(info[0]->path, dc2::memory::AvailableFrom(*stack, model_data), &size) != 0) {
-        info[0]->reading = 1;
-        stack->Alloc(blocks_for(size));
-
-        if (MenuLoadInfo.mode == MENU_LOAD_MODE_SCENE) {
-            stack->Align64();
-            u_long128 *buffer = stack->stGetTop();
-            path = "dungeon/act_script/" + *script;
-            dc2::text::Copy(script_file_name, *script);
-            LoadFileBG(path.data(), dc2::memory::AvailableFrom(*stack, buffer), &size);
-            stack->Alloc(blocks_for(size));
+    const auto model_read = dc2::io::QueueBackgroundRead(info[0]->path);
+    if (!model_read) {
+        return 0;
+    }
+    info[0]->reading = 1;
+    if (MenuLoadInfo.mode == MENU_LOAD_MODE_SCENE) {
+        path = "dungeon/act_script/" + *script;
+        dc2::text::Copy(script_file_name, *script);
+        if (!dc2::io::QueueBackgroundRead(path)) {
+            info[0]->reading = 0;
+            return 0;
         }
     }
-
     return 1;
 }
 
@@ -6102,6 +6110,17 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
                            int scene_tex_block) {
     mgCTextureManager *tex_manager = &mgTexManager;
     int                i = {};
+    if (info == nullptr || info[0] == nullptr || chara == nullptr) {
+        return 0;
+    }
+    const auto model = dc2::io::FindBackgroundReadInCurrentDir(info[0]->path);
+    if (!model || model.Cancelled()) {
+        info[0]->reading = 0;
+        return 0;
+    }
+    if (!model.Done()) {
+        return 0;
+    }
 
     if (MenuLoadInfo.mode == MENU_LOAD_MODE_SCENE) {
         tex_manager->DeleteBlock(scene_tex_block);
@@ -6119,12 +6138,6 @@ int MenuMonsterLoadBGCheck(MENU_BGREAD_INFO2 **info, CActionChara **chara, int t
     }
 
     info[0]->reading = 0;
-    dc2::io::FileRead model = dc2::io::FindBackgroundReadInCurrentDir(info[0]->path);
-
-    if (!model) {
-        return 0;
-    }
-
     u_int *pack = reinterpret_cast<u_int *>(model.Bytes().data());
     info[0]->chara = chara[0];
     const auto name = GetMonsterModelFile(monster_load_id, MONSTER_FILE_CONFIG);
@@ -6305,6 +6318,7 @@ int ReadMainCharaBG() {
                     break;
             }
 
+            NowReadMainChara = &RequireLoadedPartyRoot(MenuMainScene);
             NowReadMainChara->SetPosition(NowMainReadPosition);
             MenuCharaLoadStack.stReset();
             StartReadBG();
@@ -6314,18 +6328,12 @@ int ReadMainCharaBG() {
             }
 
             if (NowReadMainCharaNo == 3) {
-                if (const auto sound_file = GetMonsterModelFile(GetUserDataMan()->monster_id, MONSTER_FILE_SOUND)) {
-                    StartReadBG();
-                    CharaSndBuffer = reinterpret_cast<u32 *>(MenuCharaLoadStack.stGetTop());
-                    std::string sound_path = *sound_file;
-                    LoadFileBG(sound_path.data(), dc2::memory::AvailableFrom(MenuCharaLoadStack, CharaSndBuffer), &size);
-                    MenuCharaLoadStack.Alloc(blocks_for(size + 0x2800));
-                }
+                StartReadBG();
+                MenuCharaSoundLoad(&MenuCharaLoadStack, USER_CHARA_MONSTER, 1);
             }
 
             if (MenuLoadInfo.town_model == false && NowReadMainCharaNo < 3) {
-                MenuCharaLoadStack.Align64();
-                LoadFileBG("textures/img/allitem.json", dc2::memory::RemainingBytes(MenuCharaLoadStack), &script_size);
+                dc2::io::QueueBackgroundRead("textures/img/allitem.json");
             }
 
             NowReadMainCharaPhase++;
@@ -6348,6 +6356,7 @@ int ReadMainCharaBG() {
                     break;
             }
 
+            NowReadMainChara = &RequireLoadedPartyRoot(MenuMainScene);
             if (MenuLoadInfo.town_model == false) {
                 NowReadMainChara->effect_man = FxScriptMan;
                 NowReadMainChara->InitScript();
@@ -6398,53 +6407,44 @@ void DrawMainCharaBG() {
 }
 
 int MenuNPCModelLoad(mgCMemory *memory, int chara_no, int background) {
-    int    size = {};
-    u_int *buffer = {};
-    char  *name = {};
-
-    MenuNPCLoadFlag = 0;
-    memory->Align64();
-    name = GetPartyCharaModelName(chara_no, NPC_MODEL_PATH_MENU);
-    buffer = reinterpret_cast<u_int *>(memory_free_top(memory));
-    MenuPartyNPCModelReadBuffer = buffer;
-
+    auto &read = PendingNpcModelRead();
+    read = {};
+    if (memory == nullptr || memory->lock != 0 || !dc2::memory::ArenaStorageLive(*memory)) {
+        return 0;
+    }
+    const char *name = GetPartyCharaModelName(chara_no, NPC_MODEL_PATH_MENU);
     if (name == nullptr) {
         return 0;
     }
-
-    if (background != 0) {
-        LoadFileBG(name, dc2::memory::AvailableFrom(*memory, buffer), &size);
-    } else {
-        LoadFile2(name, dc2::memory::AvailableFrom(*memory, buffer), &size, 0);
+    read = background != 0 ? dc2::io::QueueBackgroundRead(name) : dc2::io::ReadFile(name);
+    if (!read || read.Size() <= 0) {
+        read = {};
+        return 0;
     }
-
-    if (size > 0) {
-        MenuNPCLoadFlag = 1;
-    }
-
-    memory->Alloc(blocks_for(size));
-    return MenuNPCLoadFlag;
+    return 1;
 }
 
 int MenuNPCLoadCheck(CActionChara *chara, mgCMemory *memory, int tex_block) {
-    if (MenuNPCLoadFlag == 1) {
-        if (chara != nullptr) {
-
-            mgCTextureManager *tex_manager = static_cast<mgCTextureManager *>(&mgTexManager);
-            memory->stClearUsed();
-            memory->stSetLocked(false);
-            tex_manager->DeleteBlock(tex_block);
-            dc2::text::Copy(tex_manager->name_suffix, dc2::text::View("_mn"));
-            chara->Initialize(nullptr);
-            chara->LoadPack(MenuPartyNPCModelReadBuffer, menu_infocfgname, memory, memory, memory,
-                            tex_block, nullptr);
-            tex_manager->name_suffix[0] = 0;
-            MenuNPCLoadFlag = 0;
-            return 1;
-        }
+    auto &pending = PendingNpcModelRead();
+    if (pending.Cancelled()) {
+        pending = {};
+        return 0;
     }
-
-    return 0;
+    if (!pending || !pending.Done() || chara == nullptr || memory == nullptr || memory->lock != 0 ||
+        !dc2::memory::ArenaStorageLive(*memory)) {
+        return 0;
+    }
+    // The model loader consumes the registered source synchronously; retain it through all callbacks.
+    const auto         read = std::exchange(pending, {});
+    mgCTextureManager *tex_manager = &mgTexManager;
+    memory->stClearUsed();
+    tex_manager->DeleteBlock(tex_block);
+    dc2::text::Copy(tex_manager->name_suffix, dc2::text::View("_mn"));
+    chara->Initialize(nullptr);
+    chara->LoadPack(reinterpret_cast<u_int *>(read.Bytes().data()), menu_infocfgname, memory, memory, memory,
+                    tex_block, nullptr);
+    tex_manager->name_suffix[0] = 0;
+    return 1;
 }
 
 void CMenuCostumeSel::UpdateCostumeList(int mode, unsigned long long chara_flag) {
@@ -6508,7 +6508,6 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     int                     i = {};
     mgCTextureManager      *tex_manager = {};
     u8                     *buffer = {};
-    unsigned int            size = {};
     u8                     *icons = {};
     dc2::text::MessageTable system_mes;
     int                     free_size = {};
@@ -6521,10 +6520,11 @@ void CMenuCostumeSel::LoadMenuData(mgCMemory *stack, int *tex_block) {
     }
 
     tex_manager = &mgTexManager;
-    buffer = reinterpret_cast<u8 *>(stack->stGetTop());
-    size = LoadFileMenu("textures/fukusel.json", dc2::memory::AvailableFrom(*stack, buffer), MENU_FILE_LOAD_DIRECT);
-    stack->Alloc(static_cast<int>(size) / 16 + 0x10);
-    stack->Align64();
+    const auto texture_read = dc2::menu::ReadMenuFile("textures/fukusel.json");
+    if (!texture_read) {
+        return;
+    }
+    buffer = texture_read.Bytes().data();
     mgTexManager.EnterIMGFile(buffer, *tex_block, nullptr, nullptr);
     this->tile_tex = mgTexManager.GetTexture("fukusen", -1);
     icons = GetMenuMainIMGPtr();
@@ -7296,17 +7296,16 @@ void CMosBookMenu::SetMonsterInfo(BASE_MONSTER_TBL *monster) {
 
 void CMosBookMenu::InitEnd() {
     u8               *buffer = {};
-    unsigned int      size = {};
     int               free_size = {};
     int               i = {};
     BASE_MONSTER_TBL *entry = {};
 
-    buffer = memory_free_top(&MosBookStack);
     ready = false;
-    size = LoadFileMenu("memomos.pac", dc2::memory::AvailableFrom(MosBookStack, buffer), MENU_FILE_LOAD_DIRECT);
-    if (size <= 0 || MosBookStack.Alloc(blocks_for(size)) == nullptr) {
+    const auto archive = StageMenuArchive(MosBookStack, "memomos.pac");
+    if (archive.empty()) {
         return;
     }
+    buffer = archive.data();
     mgTexManager.EnterIMGFile(reinterpret_cast<u8 *>(AssetDirectoryRead(reinterpret_cast<unsigned int *>(buffer), "out.json", nullptr)),
                               this->tex_block[0], nullptr, nullptr);
     Tex_MBase = mgTexManager.GetTexture("mosbox", -1);
@@ -7957,13 +7956,8 @@ void InitMainCharaBGCore(int chara_no, mgCMemory *stack, int mode) {
 
     ReEquipFishingGameWeapon();
 
-    dc2::character::PrepareUnitReload(*MenuMainScene);
-
-    if (mode == 1) {
-        GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, NowReadMainCharaNo, 1);
-    } else {
-        GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, NowReadMainCharaNo, 0);
-    }
+    dc2::character::RepartitionUnitStorage(*MenuMainScene, MenuArg.chara_stack, MorattaStack,
+                                           NowReadMainCharaNo, mode == 1);
 
     SetMenuLoadItemNo(NowReadMainCharaNo);
 
@@ -8500,6 +8494,10 @@ void PortFinishQuickChange() {
 
     const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started);
     CT_LOG_INFO(Menu, "quick change: {}, {:.1f} ms", dungeon ? "dungeon" : "town", static_cast<double>(elapsed.count()) / 1000.0);
+    auto &character = RequireLoadedPartyRoot(GetMainScene());
+    CT_LOG_DEBUG(Menu, "quick change complete: loop={}, character={}, root_live={}, frame={}",
+                 dungeon ? "dungeon" : "town", GetUserDataMan()->active_chr_no,
+                 character.GetFrame() != nullptr, mgPortFrameCount());
 }
 
 // Starts on the first game frame after the menu closes. Instead of Dark Cloud's ambient pulse and ceffe_s model,

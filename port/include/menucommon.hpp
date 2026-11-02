@@ -270,10 +270,10 @@ int LoadFileMenu(char *name, std::span<u8> destination, int mode);
 namespace dc2::menu {
 /**
  *
- * Owns a menu file selected by the current language and resource directory.
+ * Owns a language-selected menu file and optionally retains background queue timing.
  *
  */
-io::FileRead ReadMenuFile(std::string_view name);
+io::FileRead ReadMenuFile(std::string_view name, bool background = false);
 } // namespace dc2::menu
 
 /**

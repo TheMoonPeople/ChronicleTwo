@@ -1121,7 +1121,11 @@ TEST_F(LuauRuntime, RetiredArenaStorageDropsTheInstanceBeforeReadingItsPoisonedC
     ASSERT_TRUE(script->BindRetainedTextArena(memory, std::span(slots, 64)));
     ASSERT_TRUE(luau_runtime::Owns(script));
     memory.stClearUsed();
-    std::memset(storage, 0xA5, 1024 * sizeof(u_long128));
+    EXPECT_FALSE(luau_runtime::Owns(script));
+    const int replacement_quads = memory.stGetSize() - 1;
+    auto     *replacement = memory.Alloc(replacement_quads);
+    ASSERT_EQ(static_cast<void *>(replacement), static_cast<void *>(script));
+    std::memset(replacement, 0xA5, static_cast<std::size_t>(replacement_quads) * sizeof(u_long128));
     EXPECT_FALSE(luau_runtime::Owns(script));
 }
 

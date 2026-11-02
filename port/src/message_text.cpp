@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <algorithm>
 #include <charconv>
 #include <cstdint>
 #include <cstring>
@@ -423,6 +424,11 @@ const dc2::text::MessageDocument *ParseTable(std::span<const std::byte> bytes) {
         // Every control and glyph in this format occupies one complete 16-bit word.
         const auto end = std::find(words.begin() + static_cast<std::ptrdiff_t>(offset), words.end(), kCodeEnd);
         if (end == words.end()) {
+            // A boundary record may point to trailing line separators rather than message content.
+            if (std::all_of(words.begin() + static_cast<std::ptrdiff_t>(offset), words.end(),
+                            [](u16 word) { return word == kCodeNewline; })) {
+                continue;
+            }
             return nullptr;
         }
         const auto  length = static_cast<std::size_t>(end - (words.begin() + static_cast<std::ptrdiff_t>(offset))) + 1;

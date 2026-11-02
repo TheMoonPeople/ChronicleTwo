@@ -9,7 +9,9 @@
 #include <vector>
 
 #include "assets/data_registry.hpp"
+#include "dataread.hpp"
 #include "mainloop.hpp"
+#include "menuchr.hpp"
 #include "mg_memory.hpp"
 #include "npccfg.hpp"
 #include "platform/datapacks.hpp"
@@ -487,4 +489,39 @@ TEST_F(NativeConfigLoaders, QuestRecordsInitializeMissingCommentsAndUnusedCapaci
     manager.LoadCfg(&memory, input.data(), static_cast<int>(input.size()));
     EXPECT_EQ(manager.info, before);
     EXPECT_EQ(manager.num, 3);
+}
+
+TEST_F(NativeConfigLoaders, NpcPreviewInputOutlivesResetScratchAndHonorsBackgroundCancellation) {
+    Write("npc1.cfg.json", "party_characters", {
+                                                   {"characters", Json::array({Character(PARTY_NPC_ADEL, "Adel", "fixture", 0, 0, 0, {0, 0, 0, 0}, 0), Character(PARTY_NPC_CEDRIC, "Cedric", "missing", 0, 0, 0, {0, 0, 0, 0}, 0)})}
+    });
+    std::filesystem::create_directories(directory / "data/menu/npc");
+    std::ofstream(directory / "data/menu/npc/tfixture.gltf") << "{}";
+    DataReadIndex(directory / "data");
+    LoadNPCCfg();
+    auto *previous = memory.Alloc(128);
+    ASSERT_NE(previous, nullptr);
+    std::memset(previous, 0x81, 128 * sizeof(u_long128));
+    memory.stReset();
+    EXPECT_EQ(MenuNPCModelLoad(&memory, PARTY_NPC_ADEL, 0), 1);
+    EXPECT_EQ(memory.stack_used, 0);
+    EXPECT_EQ(MenuNPCLoadCheck(nullptr, &memory, 0), 0);
+    memory.stSetLocked(true);
+    EXPECT_EQ(MenuNPCModelLoad(&memory, PARTY_NPC_ADEL, 0), 0);
+    memory.stSetLocked(false);
+    EXPECT_EQ(MenuNPCModelLoad(nullptr, PARTY_NPC_ADEL, 0), 0);
+    EXPECT_EQ(MenuNPCModelLoad(&memory, PARTY_NPC_ADEL + 1, 0), 0);
+    EXPECT_EQ(MenuNPCModelLoad(&memory, PARTY_NPC_CEDRIC, 0), 0);
+    StartReadBG();
+    ASSERT_EQ(MenuNPCModelLoad(&memory, PARTY_NPC_ADEL, 1), 1);
+    const auto read = dc2::io::FindBackgroundRead("menu/npc/tfixture.gltf");
+    ASSERT_TRUE(read);
+    EXPECT_FALSE(read.Done());
+    memory.stReset();
+    EXPECT_GT(read.Size(), 0);
+    EXPECT_EQ(memory.stack_used, 0);
+    InitReadBG();
+    EXPECT_TRUE(read.Cancelled());
+    EXPECT_EQ(MenuNPCLoadCheck(nullptr, &memory, 0), 0);
+    EXPECT_EQ(MenuNPCLoadCheck(nullptr, nullptr, 0), 0);
 }

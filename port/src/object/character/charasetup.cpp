@@ -7,6 +7,7 @@
 #include <cstring>
 #include <format>
 #include <iterator>
+#include <stdexcept>
 #include <string>
 
 #include "actionchara.hpp"
@@ -481,12 +482,24 @@ int GetCharaMemAllocPtr(mgCMemory *memory, mgCMemory *stacks, int chara_type, in
 }
 
 void dc2::character::PrepareUnitReload(CScene &scene) {
-    for (int slot = 0; slot < ROBO_MODEL_NUM; ++slot) {
+    // The ridepod hat occupies the slot after its five ordinary model files.
+    for (int slot = 0; slot <= ROBO_MODEL_NUM; ++slot) {
         auto *part = static_cast<CActionChara *>(scene.GetCharacter(slot));
         if (part != nullptr) {
             part->AllDeleteDamage();
             part->Initialize(nullptr);
         }
+    }
+}
+
+void dc2::character::RepartitionUnitStorage(CScene &scene, mgCMemory *memory, mgCMemory *stacks, int unit,
+                                            bool town) {
+    if (memory == nullptr || stacks == nullptr || unit < USER_CHARA_MAX || unit >= USER_CHARA_NUM) {
+        throw std::invalid_argument("party reload requires storage, part workspaces and a valid unit");
+    }
+    PrepareUnitReload(scene);
+    if (GetCharaMemAllocPtr(memory, stacks, unit, town) == 0) {
+        throw std::length_error("party reload could not allocate the replacement workspaces");
     }
 }
 

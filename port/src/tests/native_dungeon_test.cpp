@@ -406,7 +406,11 @@ TEST_F(NativeDungeon, GridConsumersRejectArenaRetirementAndAddressReuse) {
         EXPECT_TRUE(cell.visible);
     }
     memory.stClearUsed();
-    std::memset(cells, 0xA5, 4 * sizeof(CAutoMapParts));
+    EXPECT_TRUE(generator->GridCells().empty());
+    EXPECT_TRUE(symbol.GridCells().empty());
+    auto *reused = dc2::memory::NewArray<CAutoMapParts>(memory, 4);
+    ASSERT_EQ(reused, cells);
+    std::memset(reused, 0xA5, 4 * sizeof(CAutoMapParts));
     std::array<u8, 4 * sizeof(CAutoMapParts)> poison{};
     poison.fill(0xA5);
     EXPECT_TRUE(generator->GridCells().empty());
@@ -421,9 +425,7 @@ TEST_F(NativeDungeon, GridConsumersRejectArenaRetirementAndAddressReuse) {
     EXPECT_EQ(generator->LinkConnectCheck(0, 0, 0, 0, 0), 0);
     symbol.DrawSymbol(point, 0);
     symbol.Draw(point);
-    EXPECT_EQ(std::memcmp(cells, poison.data(), poison.size()), 0);
-    auto *reused = dc2::memory::NewArray<CAutoMapParts>(memory, 4);
-    ASSERT_EQ(reused, cells);
+    EXPECT_EQ(std::memcmp(reused, poison.data(), poison.size()), 0);
     EXPECT_TRUE(generator->GridCells().empty());
     EXPECT_TRUE(symbol.GridCells().empty());
     generator->SetGridStorage(dc2::memory::ArenaBuffer::Bind(memory,
@@ -432,7 +434,7 @@ TEST_F(NativeDungeon, GridConsumersRejectArenaRetirementAndAddressReuse) {
     generator->grid_w = 3;
     EXPECT_TRUE(generator->GridCells().empty());
     generator->MinimapAllVisible();
-    EXPECT_EQ(std::memcmp(cells, poison.data(), poison.size()), 0);
+    EXPECT_EQ(std::memcmp(reused, poison.data(), poison.size()), 0);
 }
 
 TEST_F(NativeDungeon, GridCoordinatesAndRoomLinksRejectOutOfRangeInputsBeforeWriting) {

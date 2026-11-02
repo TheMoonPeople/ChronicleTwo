@@ -14,12 +14,14 @@
 #include <filesystem>
 #include <fstream>
 #include <limits>
+#include <memory>
 #include <print>
 #include <vector>
 
 #include "assets/data_registry.hpp"
 #include "character.hpp"
 #include "character_motion.hpp"
+#include "charasetup.hpp"
 #include "collision.hpp"
 #include "collision_assets.hpp"
 #include "dng_event.hpp"
@@ -28,9 +30,11 @@
 #include "dungeon_articles.hpp"
 #include "dynamicanime.hpp"
 #include "gameutil.hpp"
+#include "mainloop.hpp"
 #include "mdslist.hpp"
 #include "menu_character_assets.hpp"
 #include "menuchr.hpp"
+#include "menucommon.hpp"
 #include "menumain.hpp"
 #include "mg_dataset.hpp"
 #include "mglib.hpp"
@@ -40,7 +44,9 @@
 #include "platform/texture_catalog.hpp"
 #include "render/texture_runtime.hpp"
 #include "render/visual_mesh.hpp"
+#include "scene.hpp"
 #include "texture_source.hpp"
+#include "userdata.hpp"
 #include "visualmotion.hpp"
 
 namespace {
@@ -130,11 +136,74 @@ protected:
         return frame;
     }
 
+    /**
+     * Publishes a standalone character profile containing the fixture's model.
+     */
+    void PublishCharacter(const std::string &name, const std::string &profile) {
+        const Json resource{
+            {"type",  "resource"},
+            {"kind",  "model"   },
+            {"index", 0         }
+        };
+        const Json document{
+            {"schema_version",  1                                                                                                    },
+            {"kind",            "character"                                                                                          },
+            {"default_profile", profile                                                                                              },
+            {"models",          Json::array({game})                                                                                  },
+            {"resources",       {{"texture_sets", Json::array()}}                                                                    },
+            {"profiles",        {{profile, {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+        };
+        auto path = directory / "data" / name;
+        std::filesystem::create_directories(path.parent_path());
+        Write(path, gltf);
+        path.replace_extension(".game.json");
+        Write(path, document);
+        DataReadIndex(directory / "data");
+    }
+
     tagMOTION_TYPE Motion() {
         tagMOTION_TYPE motion{};
         std::string    error;
         EXPECT_TRUE(model_assets::LoadAnimation(std::filesystem::path("models/model.gltf"), motion, memory, 0, std::nullopt, std::nullopt, std::nullopt, error)) << error;
         return motion;
+    }
+};
+
+/**
+ * Isolates the menu's background queue and monster-book model workspace.
+ */
+struct MenuBackgroundState {
+    MENU_LOAD_INFO    load_info = MenuLoadInfo;       /**< Loading configuration restored after the fixture. */
+    CScene           *scene = MenuMainScene;          /**< Scene receiving menu loads before the fixture. */
+    CUserDataManager *user_data = MenuUserDataManPtr; /**< User data used by menu callbacks before the fixture. */
+    std::string       directory = GetCurrentDir();    /**< Asset directory restored after the fixture. */
+    int               language = LanguageCode;        /**< Language restored after localized menu reads. */
+
+    /**
+     * Starts an isolated monster-book read queue without scene callbacks.
+     */
+    MenuBackgroundState() {
+        SetCurrentDir(nullptr);
+        InitReadBG();
+        StartReadBG();
+        MenuMainScene = nullptr;
+        MenuUserDataManPtr = nullptr;
+        MenuLoadInfo = {};
+        MenuLoadInfo.mode = MENU_LOAD_MODE_BOOK;
+        LanguageCode = LANG_ENGLISH;
+    }
+
+    /**
+     * Clears fixture reads and model storage before restoring menu state.
+     */
+    ~MenuBackgroundState() {
+        InitReadBG();
+        MenuActionCharaBuffer[0].stSetBuffer(nullptr, 0);
+        MenuLoadInfo = load_info;
+        MenuMainScene = scene;
+        MenuUserDataManPtr = user_data;
+        SetCurrentDir(directory.data());
+        LanguageCode = language;
     }
 };
 } // namespace
@@ -494,6 +563,154 @@ TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
     textures.Initialize(0x1000, -1);
 }
 
+TEST_F(NativeModel, NpcPortraitBackgroundReadSurvivesScratchResetAndHonorsDelayAndCancellation) {
+    const auto path = directory / "data/textures/menu/1/npcface/1.json";
+    std::filesystem::create_directories(path.parent_path());
+    Write(path, Json{
+                    {"schema_version", 3            },
+                    {"groups",         Json::array()},
+                    {"entries",        Json::array()}
+    });
+    DataReadIndex(directory / "data");
+    MenuBackgroundState cleanup;
+    auto                user = std::make_unique<CUserDataManager>();
+    user->SetPartyCharaStatus(PARTY_NPC_CEDRIC, PARTY_CHARA_STATUS_IN_PARTY);
+    ASSERT_EQ(user->NowPartyCharaID(), PARTY_NPC_CEDRIC);
+    MenuUserDataManPtr = user.get();
+    std::array<u_long128, 1> scratch_storage{};
+    mgCMemory                scratch;
+    scratch.stSetBuffer(scratch_storage.data(), static_cast<int>(scratch_storage.size()));
+    CMenuChrCngMenu menu;
+    menu.LoadNPCFaceData(&scratch, MENU_FILE_LOAD_BG);
+    EXPECT_EQ(menu.face_loaded, MENU_FILE_LOAD_BG);
+    ASSERT_EQ(menu.face_state, 0);
+    ASSERT_NE(menu.face_img, nullptr);
+    EXPECT_NE(menu.face_img, reinterpret_cast<u8 *>(scratch_storage.data()));
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    scratch.stReset();
+    menu.EnterNPCFaceData();
+    EXPECT_EQ(menu.face_state, 0);
+    auto cancelled = dc2::io::FindBackgroundReadInCurrentDir("textures/menu/1/npcface/1.json");
+    ASSERT_TRUE(cancelled);
+    EXPECT_TRUE(cancelled.Issued());
+    EXPECT_FALSE(cancelled.Done());
+    StartReadBG();
+    EXPECT_TRUE(cancelled.Cancelled());
+    menu.EnterNPCFaceData();
+    EXPECT_EQ(menu.face_state, -1);
+    EXPECT_EQ(menu.face_img, nullptr);
+
+    menu.LoadNPCFaceData(&scratch, MENU_FILE_LOAD_BG);
+    ASSERT_EQ(menu.face_state, 0);
+    auto retained = dc2::io::FindBackgroundReadInCurrentDir("textures/menu/1/npcface/1.json");
+    ASSERT_TRUE(retained);
+    scratch.stReset();
+    ASSERT_EQ(ReadBGSync(), 1);
+    ASSERT_EQ(ReadBGSync(), 0);
+    EXPECT_TRUE(retained.Done());
+    EXPECT_FALSE(retained.Cancelled());
+    EXPECT_EQ(menu.face_img, retained.Bytes().data());
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    menu.LoadNPCFaceData(nullptr, MENU_FILE_LOAD_BG);
+    EXPECT_EQ(menu.face_state, -1);
+    EXPECT_EQ(menu.face_img, nullptr);
+}
+
+TEST_F(NativeModel, MonsterBookBackgroundReadOutlivesScratchResetAndDoesNotReserveDestinationBytes) {
+    constexpr int monster_id = 0;
+    const auto    model_name = GetMonsterModelFile(monster_id, MONSTER_FILE_MODEL);
+    const auto    profile = GetMonsterModelFile(monster_id, MONSTER_FILE_CONFIG);
+    ASSERT_TRUE(model_name);
+    ASSERT_TRUE(profile);
+    const std::string path = "menu/monster/" + *model_name;
+    PublishCharacter(path, *profile);
+    MenuBackgroundState      cleanup;
+    std::array<u_long128, 1> scratch_storage{};
+    mgCMemory                scratch;
+    scratch.stSetBuffer(scratch_storage.data(), static_cast<int>(scratch_storage.size()));
+    std::array<MENU_BGREAD_INFO2, MENU_CHARA_LOAD_MAX>   records{};
+    std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> reads{};
+    for (std::size_t slot = 0; slot < reads.size(); ++slot) {
+        reads[slot] = &records[slot];
+    }
+
+    ASSERT_EQ(MenuMonsterLoadBG(&scratch, reads.data(), monster_id, 0), 1);
+    ASSERT_EQ(records[0].reading, 1);
+    auto queued = dc2::io::FindBackgroundReadInCurrentDir(path);
+    ASSERT_TRUE(queued);
+    EXPECT_GT(queued.Size(), sizeof(scratch_storage));
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    scratch.stReset();
+    ASSERT_EQ(ReadBGSync(), 1);
+    ASSERT_EQ(ReadBGSync(), 0);
+    ASSERT_TRUE(queued.Done());
+    EXPECT_FALSE(queued.Cancelled());
+
+    ASSERT_TRUE(MenuActionCharaBuffer[0].stShareStack(memory));
+    auto                                            body = std::make_unique<CActionChara>();
+    std::array<CActionChara *, MENU_CHARA_LOAD_MAX> targets{};
+    targets[0] = body.get();
+    ASSERT_EQ(MenuMonsterLoadBGCheck(reads.data(), targets.data(), -1, -1), 1);
+    EXPECT_EQ(records[0].reading, 0);
+    ASSERT_NE(body->GetFrame(), nullptr);
+    queued = {};
+    InitReadBG();
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    body->UpdatePosition();
+    EXPECT_NE(body->GetFrame(), nullptr);
+    body->Initialize(nullptr);
+}
+
+TEST_F(NativeModel, MonsterBookPendingCancelledAndMissingReadsDoNotReplaceTheCurrentModel) {
+    constexpr int monster_id = 0;
+    const auto    model_name = GetMonsterModelFile(monster_id, MONSTER_FILE_MODEL);
+    const auto    profile = GetMonsterModelFile(monster_id, MONSTER_FILE_CONFIG);
+    ASSERT_TRUE(model_name);
+    ASSERT_TRUE(profile);
+    const std::string path = "menu/monster/" + *model_name;
+    PublishCharacter(path, *profile);
+    MenuBackgroundState cleanup;
+    auto                body = std::make_unique<CActionChara>();
+    body->CObjectFrame::frame = Instantiate();
+    ASSERT_NE(body->GetFrame(), nullptr);
+    ASSERT_TRUE(dc2::character::CaptureModelResources(*body, memory));
+    auto *original_frame = body->GetFrame();
+    ASSERT_TRUE(MenuActionCharaBuffer[0].stShareStack(memory));
+    const int                original_used = MenuActionCharaBuffer[0].stGetUsed();
+    std::array<u_long128, 1> scratch_storage{};
+    mgCMemory                scratch;
+    scratch.stSetBuffer(scratch_storage.data(), static_cast<int>(scratch_storage.size()));
+    std::array<MENU_BGREAD_INFO2, MENU_CHARA_LOAD_MAX>   records{};
+    std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> reads{};
+    std::array<CActionChara *, MENU_CHARA_LOAD_MAX>      targets{};
+    targets[0] = body.get();
+    for (std::size_t slot = 0; slot < reads.size(); ++slot) {
+        reads[slot] = &records[slot];
+    }
+
+    ASSERT_EQ(MenuMonsterLoadBG(&scratch, reads.data(), monster_id, 0), 1);
+    EXPECT_EQ(MenuMonsterLoadBGCheck(reads.data(), targets.data(), -1, -1), 0);
+    EXPECT_EQ(records[0].reading, 1);
+    EXPECT_EQ(body->GetFrame(), original_frame);
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    EXPECT_EQ(MenuActionCharaBuffer[0].stGetUsed(), original_used);
+    BreakReadBG();
+    EXPECT_EQ(MenuMonsterLoadBGCheck(reads.data(), targets.data(), -1, -1), 0);
+    EXPECT_EQ(records[0].reading, 0);
+    EXPECT_EQ(body->GetFrame(), original_frame);
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    EXPECT_EQ(MenuActionCharaBuffer[0].stGetUsed(), original_used);
+
+    StartReadBG();
+    constexpr int missing_monster_id = 1;
+    EXPECT_EQ(MenuMonsterLoadBG(&scratch, reads.data(), missing_monster_id, 0), 0);
+    EXPECT_EQ(records[0].reading, 0);
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    EXPECT_EQ(body->GetFrame(), original_frame);
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    body->Initialize(nullptr);
+}
+
 TEST_F(NativeModel, MenuSkinCompletionWithoutBodySkipsAssetConstruction) {
     DataReadIndex(directory / "data");
     const auto previous_directory = GetCurrentDir();
@@ -526,6 +743,125 @@ TEST_F(NativeModel, MenuSkinCompletionWithoutBodySkipsAssetConstruction) {
     auto restored_directory = previous_directory;
     SetCurrentDir(restored_directory.data());
     InitReadBG();
+}
+
+TEST_F(NativeModel, RidepodSceneCompletionLoadsExplicitSceneTargetsAndSkipsRetiredOnes) {
+    /**
+     * Describes whether the scene can resolve the model that a completed read targets.
+     */
+    enum class TargetState {
+        Missing,
+        Live,
+        Retired
+    };
+
+    const Json model = game;
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array()}}                                                                   },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+
+    /**
+     * Restores the menu loading state after the scene completion regression.
+     */
+    struct Cleanup {
+        MENU_LOAD_INFO    load_info = MenuLoadInfo;       /**< Previous character loading configuration. */
+        CScene           *scene = MenuMainScene;          /**< Previous scene receiving menu model loads. */
+        CUserDataManager *user_data = MenuUserDataManPtr; /**< Previous user data used by menu callbacks. */
+        mgCMemory        *stacks = MorattaStack;          /**< Previous character part workspaces. */
+        std::string       directory = GetCurrentDir();    /**< Previous asset directory for background reads. */
+
+        /**
+         * Restores menu globals and clears pending background reads.
+         */
+        ~Cleanup() {
+            MenuLoadInfo = load_info;
+            MenuMainScene = scene;
+            MenuUserDataManPtr = user_data;
+            MorattaStack = stacks;
+            SetCurrentDir(directory.data());
+            InitReadBG();
+        }
+    } cleanup;
+
+    DataReadIndex(directory / "data");
+    char root_directory[] = "";
+    SetCurrentDir(root_directory);
+    StartReadBG();
+    char                   path[] = "models/model.gltf";
+    std::vector<u_long128> read_storage(4096);
+    int                    size = 0;
+    ASSERT_EQ(LoadFileBG(path, {reinterpret_cast<u8 *>(read_storage.data()), read_storage.size() * sizeof(u_long128)}, &size), 1);
+    ASSERT_EQ(ReadBGSync(), 1);
+    ASSERT_EQ(ReadBGSync(), 0);
+    MenuUserDataManPtr = nullptr;
+
+    for (bool update_scene : {false, true}) {
+        for (auto target_state : {TargetState::Missing, TargetState::Live, TargetState::Retired}) {
+            SCOPED_TRACE(testing::Message() << update_scene << ":" << static_cast<int>(target_state));
+            memory.stReset();
+            auto scene = std::make_unique<CScene>();
+            auto body = std::make_shared<CActionChara>();
+            auto arm = std::make_shared<CActionChara>();
+            arm->prog = 0x1234;
+            scene->chara_num = ROBO_MODEL_NUM + 1;
+            if (target_state != TargetState::Missing) {
+                if (target_state == TargetState::Retired) {
+                    body->CObjectFrame::frame = Instantiate();
+                    ASSERT_NE(body->CObjectFrame::frame, nullptr);
+                    ASSERT_TRUE(dc2::character::CaptureModelResources(*body, memory));
+                }
+                ASSERT_EQ(scene->AssignChara(0, dc2::scene::CharacterResource::FromOwned(body)), 0);
+                if (target_state == TargetState::Retired) {
+                    memory.stReset();
+                    ASSERT_EQ(scene->GetCharacter(0), nullptr);
+                }
+            }
+            ASSERT_EQ(scene->AssignChara(1, dc2::scene::CharacterResource::FromOwned(arm)), 1);
+            std::array<mgCMemory, CHARA_MEM_STACK_NUM> stacks{};
+            ASSERT_TRUE(stacks[0].stShareStack(memory));
+            ASSERT_NE(stacks[0].Alloc(1), nullptr);
+            MenuMainScene = scene.get();
+            MorattaStack = stacks.data();
+            MenuLoadInfo = {};
+            MenuLoadInfo.mode = MENU_LOAD_MODE_SCENE;
+            MenuLoadInfo.update_scene = update_scene;
+            MenuLoadInfo.load_all = true;
+            std::array<MENU_BGREAD_INFO2, MENU_CHARA_LOAD_MAX>   reads{};
+            std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> slots{};
+            std::array<CActionChara *, MENU_CHARA_LOAD_MAX>      menu_characters{};
+            for (std::size_t index = 0; index < slots.size(); ++index) {
+                slots[index] = &reads[index];
+            }
+            std::memcpy(reads[0].path, path, sizeof(path));
+            reads[0].reading = 1;
+            if (target_state != TargetState::Live) {
+                std::memcpy(reads[1].path, path, sizeof(path));
+                reads[1].reading = 1;
+            }
+            EXPECT_EQ(MenuItemRoboDataLoadEndCheck(slots.data(), nullptr, menu_characters.data(), -1, -1), 0);
+            EXPECT_EQ(reads[0].reading, 0);
+            if (target_state == TargetState::Live) {
+                EXPECT_NE(body->GetFrame(), nullptr);
+                EXPECT_EQ(scene->GetCharacter(0), body.get());
+            } else {
+                EXPECT_EQ(stacks[0].stGetUsed(), 1);
+                EXPECT_EQ(scene->GetCharacter(0), nullptr);
+                EXPECT_EQ(arm->prog, 0x1234);
+                EXPECT_EQ(reads[1].reading, 0);
+            }
+        }
+    }
 }
 
 TEST_F(NativeModel, MenuCostumeArenaUsesActualNativeCountsInsteadOfRetailPartitionSize) {

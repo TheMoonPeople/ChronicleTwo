@@ -10,6 +10,7 @@
 #include <limits>
 #include <memory>
 #include <new>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,8 @@
 #include "mapsky.hpp"
 #include "mdslist.hpp"
 #include "menuaqua.hpp"
+#include "menuchr.hpp"
+#include "menumain.hpp"
 #include "mg_dataset.hpp"
 #include "mg_memory.hpp"
 #include "mg_visual.hpp"
@@ -1301,10 +1304,10 @@ TEST_F(NativeRecords, SameAddressNameReplacementRequiresAnActualProducerGraphRef
 }
 
 TEST_F(NativeRecords, PartyMenuReloadRetiresEveryPartBeforeRepartitioningTheirModelArena) {
-    auto                                                      scene = std::make_unique<CScene>();
-    std::array<std::shared_ptr<CActionChara>, ROBO_MODEL_NUM> parts{};
-    scene->chara_num = ROBO_MODEL_NUM;
-    for (int slot = 0; slot < ROBO_MODEL_NUM; ++slot) {
+    auto                                                          scene = std::make_unique<CScene>();
+    std::array<std::shared_ptr<CActionChara>, ROBO_MODEL_NUM + 1> parts{};
+    scene->chara_num = ROBO_MODEL_NUM + 2;
+    for (int slot = 0; slot <= ROBO_MODEL_NUM; ++slot) {
         auto &part = parts[slot];
         part = std::make_shared<CActionChara>();
         part->CObjectFrame::frame = NewGraphFrame(memory, "old-party-part");
@@ -1317,9 +1320,16 @@ TEST_F(NativeRecords, PartyMenuReloadRetiresEveryPartBeforeRepartitioningTheirMo
         }
     }
 
+    auto event = std::make_shared<CActionChara>();
+    event->prog = 0x1234;
+    ASSERT_EQ(scene->AssignChara(ROBO_MODEL_NUM + 1, dc2::scene::CharacterResource::FromOwned(event)),
+              ROBO_MODEL_NUM + 1);
+
     dc2::character::PrepareUnitReload(*scene);
+    EXPECT_EQ(event->prog, 0x1234);
+    EXPECT_EQ(scene->GetCharacter(ROBO_MODEL_NUM + 1), event.get());
     memory.stReset();
-    for (int slot = 0; slot < ROBO_MODEL_NUM; ++slot) {
+    for (int slot = 0; slot <= ROBO_MODEL_NUM; ++slot) {
         auto &part = parts[slot];
         ASSERT_EQ(scene->GetCharacter(slot), part.get());
         EXPECT_EQ(part->CObjectFrame::frame, nullptr);
@@ -1358,6 +1368,117 @@ TEST_F(NativeRecords, UnitReloadClearsMissingRangedModelBeforeSoundArenaReuse) {
     ASSERT_TRUE(sound_name->Text());
     ranged->UpdatePosition();
     EXPECT_TRUE(dc2::character::ResourcesLive(*ranged));
+}
+
+TEST_F(NativeRecords, UnitReloadRepartitionsEveryPartyLayoutAfterRetiringAllModelDependencies) {
+    std::vector<u_long128> partition_storage(static_cast<std::size_t>(GetCharaMemAllocSize()) + 8);
+    for (int unit : {USER_CHARA_MAX, USER_CHARA_MONICA, USER_CHARA_ROBO, USER_CHARA_MONSTER}) {
+        for (bool town : {false, true}) {
+            SCOPED_TRACE(testing::Message() << unit << ":" << town);
+            mgCMemory producer;
+            producer.stSetBuffer(partition_storage.data(), static_cast<int>(partition_storage.size()));
+            std::array<mgCMemory, CHARA_MEM_STACK_NUM> stacks{};
+            auto                                       scene = std::make_unique<CScene>();
+            scene->chara_num = ROBO_MODEL_NUM + 1;
+            std::array<std::shared_ptr<CActionChara>, ROBO_MODEL_NUM + 1> parts{};
+            std::array<dc2::memory::ArenaBuffer, ROBO_MODEL_NUM + 1>      old_models{};
+            for (std::size_t slot = 0; slot < parts.size(); ++slot) {
+                auto &part = parts[slot];
+                part = std::make_shared<CActionChara>();
+                auto *frame = NewGraphFrame(producer, "old-unit-model");
+                ASSERT_NE(frame, nullptr);
+                part->CObjectFrame::frame = frame;
+                ASSERT_TRUE(dc2::character::CaptureModelResources(*part, producer));
+                old_models[slot] = dc2::memory::ArenaBuffer::Bind(producer,
+                                                                  std::span(reinterpret_cast<u8 *>(frame), sizeof(*frame)));
+                ASSERT_FALSE(old_models[slot].Bytes().empty());
+                ASSERT_EQ(scene->AssignChara(static_cast<int>(slot), dc2::scene::CharacterResource::FromOwned(part)), slot);
+            }
+            EXPECT_THROW(dc2::character::RepartitionUnitStorage(*scene, nullptr, stacks.data(), unit, town), std::invalid_argument);
+            EXPECT_THROW(dc2::character::RepartitionUnitStorage(*scene, &producer, nullptr, unit, town), std::invalid_argument);
+            EXPECT_THROW(dc2::character::RepartitionUnitStorage(*scene, &producer, stacks.data(), USER_CHARA_NUM, town), std::invalid_argument);
+            ASSERT_NE(parts[0]->GetFrame(), nullptr);
+            ASSERT_NO_THROW(dc2::character::RepartitionUnitStorage(*scene, &producer, stacks.data(), unit, town));
+            EXPECT_TRUE(dc2::memory::ArenaStorageLive(stacks[0]));
+            for (std::size_t slot = 0; slot < parts.size(); ++slot) {
+                EXPECT_TRUE(old_models[slot].Bytes().empty());
+                EXPECT_EQ(scene->GetCharacter(static_cast<int>(slot)), parts[slot].get());
+                EXPECT_EQ(parts[slot]->GetFrame(), nullptr);
+                EXPECT_FALSE(parts[slot]->resource_state.HasValue());
+            }
+        }
+    }
+}
+
+TEST_F(NativeRecords, PartyMenuCompletionRejectsMissingEmptyAndRetiredRootModelsBeforeAdvancing) {
+    /**
+     * Describes an unavailable replacement actor or its model.
+     */
+    enum class ActorState {
+        Missing,
+        Empty,
+        Retired
+    };
+
+    /**
+     * Restores menu loading globals after rejected completion attempts.
+     */
+    struct Cleanup {
+        MENU_LOAD_INFO                                       load_info = MenuLoadInfo;  /**< Previous character loading configuration. */
+        CScene                                              *scene = MenuMainScene;     /**< Previous scene receiving menu model loads. */
+        CUserDataManager                                    *user = MenuUserDataManPtr; /**< Previous menu callback user data. */
+        std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> reads{};                   /**< Previous background read descriptors. */
+
+        /**
+         * Captures the previous background read descriptors.
+         */
+        Cleanup() { std::copy_n(MenuCharaBuild2, reads.size(), reads.begin()); }
+
+        /**
+         * Restores the previous menu state and clears background reads.
+         */
+        ~Cleanup() {
+            MenuLoadInfo = load_info;
+            MenuMainScene = scene;
+            MenuUserDataManPtr = user;
+            std::copy(reads.begin(), reads.end(), MenuCharaBuild2);
+            InitReadBG();
+        }
+    } cleanup;
+
+    InitReadBG();
+    MenuUserDataManPtr = nullptr;
+    std::fill_n(MenuCharaBuild2, MENU_CHARA_LOAD_MAX, nullptr);
+    for (auto state : {ActorState::Missing, ActorState::Empty, ActorState::Retired}) {
+        SCOPED_TRACE(static_cast<int>(state));
+        memory.stReset();
+        auto scene = std::make_unique<CScene>();
+        auto body = std::make_shared<CActionChara>();
+        scene->chara_num = 1;
+        if (state != ActorState::Missing) {
+            if (state == ActorState::Retired) {
+                body->CObjectFrame::frame = NewGraphFrame(memory, "retired-body");
+                ASSERT_NE(body->CObjectFrame::frame, nullptr);
+                ASSERT_TRUE(dc2::character::CaptureModelResources(*body, memory));
+            }
+            ASSERT_EQ(scene->AssignChara(0, dc2::scene::CharacterResource::FromOwned(body)), 0);
+            if (state == ActorState::Retired) {
+                memory.stReset();
+            }
+        }
+        MenuMainScene = scene.get();
+        MenuLoadInfo = {};
+        MenuLoadInfo.mode = MENU_LOAD_MODE_SCENE;
+        MenuLoadInfo.load_all = true;
+        MenuLoadInfo.update_scene = true;
+        MenuLoadInfo.request_phase = 1;
+        CMenuChrCngMenu menu;
+        menu.change_phase = CHR_CNG_PHASE_ENTER;
+        menu.change_ready = true;
+        menu.change_chara = USER_CHARA_MAX;
+        EXPECT_THROW(menu.CheckChrChange(), std::runtime_error);
+        EXPECT_EQ(menu.change_phase, CHR_CNG_PHASE_ENTER);
+    }
 }
 
 TEST_F(NativeRecords, RepeatedCharacterCopiesReleaseDestinationMetadataWithoutRetainingSourceSnapshots) {

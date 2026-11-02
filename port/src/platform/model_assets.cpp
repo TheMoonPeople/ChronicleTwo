@@ -2417,8 +2417,9 @@ const Json &ExternalResource(const Json &resource, const std::optional<MotionOwn
  * The named actions of a built motion set and the arena memory that holds them.
  */
 struct BuiltMotion {
-    std::vector<character_motion::Action> actions; /**< Actions with game frames from zero. */
-    std::span<const std::byte>            storage; /**< Arena run holding the actions' channels and the anchor. */
+    std::vector<character_motion::Action> actions;            /**< Actions with game frames from zero. */
+    std::span<const std::byte>            storage;            /**< Arena run holding the actions' channels and the anchor. */
+    mgCMemory                            *producer = nullptr; /**< Arena owning the registered motion anchor. */
 };
 
 /**
@@ -2445,7 +2446,8 @@ BuiltMotion BuildMotion(const std::shared_ptr<Document> &source, tagMOTION_TYPE 
         }
     }
     BuiltMotion built;
-    auto       &actions = built.actions;
+    built.producer = &memory;
+    auto &actions = built.actions;
     if (animation) {
         const auto *storage = reinterpret_cast<const std::byte *>(memory.stGetTop());
         if (source->custom->contains("resources")) {
@@ -2491,7 +2493,7 @@ void RegisterActions(const tagMOTION_TYPE &motion, BuiltMotion built, int base) 
         action.base = base;
         base += static_cast<int>(std::ceil(action.duration)) + 2;
     }
-    character_motion::Register(motion.motion_list, std::move(built.actions), built.storage);
+    character_motion::Register(motion.motion_list, std::move(built.actions), built.storage, built.producer);
 }
 
 /**

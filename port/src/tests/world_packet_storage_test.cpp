@@ -138,3 +138,35 @@ TEST(WorldPacketStorage, BootstrapStorageDoesNotBorrowTheCharacterOrReadBuffer) 
         EXPECT_NE(buffer.Alloc(4999), nullptr);
     }
 }
+
+TEST(WorldPacketStorage, RepeatedLayoutChangesRetirePacketsWithoutBorrowingThePreviousExtent) {
+    mgCMemory characters;
+    characters.stSetBuffer(reinterpret_cast<u_long128 *>(ArenaBlock(&characters, 256 * sizeof(u_long128))), 256);
+    ASSERT_NE(characters.Alloc(80), nullptr);
+    characters.stSetLocked(true);
+    const auto                              character_generation = dc2::memory::ArenaGeneration(characters);
+    dc2::world::DataPacketStorage           packets;
+    std::array<dc2::memory::ArenaBuffer, 2> previous;
+    for (const auto mode : {dc2::world::DataPacketMode::Georama, dc2::world::DataPacketMode::Map,
+                            dc2::world::DataPacketMode::Bootstrap, dc2::world::DataPacketMode::Map,
+                            dc2::world::DataPacketMode::Georama, dc2::world::DataPacketMode::Map,
+                            dc2::world::DataPacketMode::Georama}) {
+        const auto prepared = packets.Prepare(mode, characters, 80);
+        ASSERT_TRUE(prepared.changed);
+        for (std::size_t index = 0; index < previous.size(); ++index) {
+            EXPECT_TRUE(previous[index].Bytes().empty());
+            auto     &buffer = prepared.buffers[index];
+            const int expected = mode == dc2::world::DataPacketMode::Georama ? 115000 : mode == dc2::world::DataPacketMode::Map ? 70000
+                                                                                                                                : 5000;
+            EXPECT_EQ(buffer.stGetSize(), expected);
+            auto *allocation = buffer.Alloc(expected - 1);
+            ASSERT_NE(allocation, nullptr);
+            previous[index] = dc2::memory::ArenaBuffer::Bind(buffer,
+                                                             std::span(reinterpret_cast<u8 *>(allocation), static_cast<std::size_t>(expected - 1) * sizeof(u_long128)));
+            EXPECT_FALSE(previous[index].Bytes().empty());
+        }
+        EXPECT_EQ(characters.stGetUsed(), 80);
+        EXPECT_NE(characters.lock, 0);
+        EXPECT_EQ(dc2::memory::ArenaGeneration(characters), character_generation);
+    }
+}

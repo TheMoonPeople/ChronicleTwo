@@ -921,14 +921,18 @@ TEST_F(DataRead, FileCacheRetiresPointersWhenItsExactArenaAllocationIsReleased) 
     char name[] = "DIR/Sub/File.BIN";
     ASSERT_EQ(LoadFileCacheBG(name), 1);
     ASSERT_TRUE(dc2::io::FindBackgroundRead(name));
-    const std::vector<u_long128> before(storage.begin(), storage.end());
     reset.owner.stClearUsed();
+    auto *reused = reset.owner.Alloc(static_cast<int>(storage.size() - 1));
+    ASSERT_EQ(reused, storage.data());
+    const std::span<u_long128> replacement(reused, storage.size() - 1);
+    std::memset(replacement.data(), 0xA5, replacement.size_bytes());
+    const std::vector<u_long128> before(replacement.begin(), replacement.end());
     int size = -1;
     EXPECT_EQ(SearchFileCache(name, &size), nullptr);
     EXPECT_EQ(size, 0);
     EXPECT_FALSE(dc2::io::FindBackgroundRead(name));
     EXPECT_EQ(LoadFileCacheBG(name), 0);
-    EXPECT_TRUE(std::ranges::equal(storage, before));
+    EXPECT_TRUE(std::ranges::equal(replacement, before));
 }
 
 TEST_F(DataRead, OwnedBackgroundReadSurvivesDestinationResetAndQueueSlotReuse) {

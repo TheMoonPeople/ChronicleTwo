@@ -19,6 +19,7 @@
 #include "editparts.hpp"
 #include "font.hpp"
 #include "gamedata.hpp"
+#include "log/log.hpp"
 #include "mainloop.hpp"
 #include "map.hpp"
 #include "memory/tracked_copy.hpp"
@@ -36,6 +37,7 @@
 #include "mglib.hpp"
 #include "npccfg.hpp"
 #include "prespr.hpp"
+#include "render/renderer.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
 #include "scriptinterpreter.hpp"
@@ -3427,6 +3429,7 @@ void CMenuGeorama::InitEnd() {
     if (!MenuCharaLoadStack.stShareBuffer(MenuGeoramaStack, std::span(MenuGeoramaStack.stGetTop(), static_cast<std::size_t>(free_blocks)))) {
         std::abort();
     }
+    CT_LOG_DEBUG(Menu, "georama menu ready: town={}, frame={}", town_no, mgPortFrameCount());
 }
 
 void CMenuGeorama::ExitEnd() {
@@ -3447,6 +3450,7 @@ void CMenuGeorama::ExitEnd() {
     InitMenuDl(nullptr, 0);
     InitDownLoadAnaunce(nullptr);
     GeoRequestFlag = nullptr;
+    CT_LOG_DEBUG(Menu, "georama menu closed: town={}, frame={}", town_no, mgPortFrameCount());
 }
 
 int CMenuGeorama::GetPartsIDListNum(int list_mode) {
