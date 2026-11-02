@@ -206,6 +206,22 @@ static mgCMemory TitleMapBuffer;
  */
 static mgCMemory TitleWorkBuffer;
 
+namespace {
+/**
+ *
+ * Owns the title event sound metadata while the title scene is active.
+ *
+ */
+mgCMemory title_sound_buffer;
+
+/**
+ *
+ * Keeps the title menu storage live until the menu closes or the title scene exits.
+ *
+ */
+mgCMemory title_menu_buffer;
+} // namespace
+
 /**
  *
  * Memory stack the title scene reads files through.
@@ -761,9 +777,8 @@ static void TitleBootInit() {
 
     RushStart = textures->GetTexture("pushstart", 0x43);
     DataBuffer.Alloc(Align16Blocks(file_size));
-    mgCMemory snd_memory;
-    auto     *sound_workspace = DataBuffer.Alloc(0x280);
-    snd_memory.stSetChildBuffer(DataBuffer, sound_workspace, 0x280);
+    auto *sound_workspace = DataBuffer.Alloc(0x280);
+    title_sound_buffer.stSetChildBuffer(DataBuffer, sound_workspace, 0x280);
     DataBuffer.Align64();
     textures->EnterIMGFile(GetGaijiImgPtr(), 0x46, nullptr, nullptr);
     ReLoadFontTexture(0x46);
@@ -786,7 +801,7 @@ static void TitleBootInit() {
     sndWaitTransBd();
     LoadFile2("snd2/event/EV_600_000.sound.json", dc2::memory::AvailableFrom(DataBuffer, sound_buffer), &file_size, 0);
     sndInitPort(4);
-    TitleEventSound = sndLoadSound(SND_PORT_EVENT, reinterpret_cast<u_int *>(sound_buffer), &snd_memory);
+    TitleEventSound = sndLoadSound(SND_PORT_EVENT, reinterpret_cast<u_int *>(sound_buffer), &title_sound_buffer);
     DataBuffer.Align64();
     int        read_capacity = DataBuffer.stGetRest();
     u_long128 *read_top = DataBuffer.stGetTop();
@@ -1217,12 +1232,11 @@ int TitleLoop() {
                 TitleProjection = 800.0f;
                 dc2::memory::CopyTrackedBytes(&GetSaveData()->config, &TitleInfo->config, sizeof(SV_CONFIG_OPTION));
                 Stack_ReadBuff.stReset();
-                mgCMemory  menu_stack;
                 int        rest = Stack_ReadBuff.stGetRest();
                 u_long128 *top = Stack_ReadBuff.stGetTop();
-                menu_stack.stSetBorrowedBuffer(Stack_ReadBuff, std::span(top, static_cast<std::size_t>(rest)));
+                title_menu_buffer.stSetBorrowedBuffer(Stack_ReadBuff, std::span(top, static_cast<std::size_t>(rest)));
                 Stack_ReadBuff.Alloc(0x40000);
-                MenuArg.stack = &menu_stack;
+                MenuArg.stack = &title_menu_buffer;
                 MenuArg.chara_stack = &Stack_MenuCharaBuff_Fix;
                 MenuArg.base_chara_stack = TitleInfo->chara_stack;
                 MenuMainInit(&MenuArg);
@@ -1436,6 +1450,8 @@ void TitleModeInit() {
     Stack_ReadBuff.stClearUsed();
     TitlePushStart_AlphaPlus = 0;
     Stack_ReadBuff.stSetLocked(false);
+    BindReadBuffer(dc2::memory::RemainingBytes(Stack_ReadBuff), Stack_ReadBuff, GetMainStack());
+    TitleScene->read_buffer_storage = ReadBufferLease();
     TitleMCCheck->InitForMC();
     TitleMCActivePort = 0;
     TitleMCCheck->port = 0;

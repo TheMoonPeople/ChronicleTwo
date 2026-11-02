@@ -745,7 +745,9 @@ int CWorldMapMenu::KeyStep() {
                         WorldMapMenuType = WORLD_MAP_MENU_TREE_MAP;
                         mgCMemory stack;
                         int       rest = WorldMapStack.stGetRest();
-                        stack.stSetBuffer(WorldMapStack.stGetTop(), rest);
+                        if (!stack.stShareBuffer(WorldMapStack, std::span(WorldMapStack.stGetTop(), static_cast<std::size_t>(rest)))) {
+                            std::abort();
+                        }
                         DngTreeMapInit(&stack, &tex_block[2], 0, select_pos->dng_no);
                     }
 
@@ -1182,7 +1184,9 @@ int WorldMoveInit(mgCMemory *stack, int *tex_block, int open_type) {
 
     int        available = stack->stGetRest();
     u_long128 *top = stack->stGetTop();
-    WorldMapStack.stSetBuffer(top, available);
+    if (!WorldMapStack.stShareBuffer(*stack, std::span(top, static_cast<std::size_t>(available)))) {
+        std::abort();
+    }
     WorldMapPtr = new (WorldMapStack.Alloc((sizeof(CWorldMapMenu) + 15) / 16 + 2)) CWorldMapMenu;
     WorldMapStack.Align64();
     WorldMapPtr->SetTexBlock(tex_block);
@@ -1315,7 +1319,9 @@ void SphidaScreListUpdate(CDC2Mes *mes, int update) {
 void SphidaMenuInit(mgCMemory *stack, int *tex_block, int open_type) {
     int        available = stack->stGetRest();
     u_long128 *top = stack->stGetTop();
-    SphidaStack.stSetBuffer(top, available);
+    if (!SphidaStack.stShareBuffer(*stack, std::span(top, static_cast<std::size_t>(available)))) {
+        std::abort();
+    }
 
     for (int i = 0; i < 16; i++) {
         SphidaMenuTexbk[i] = tex_block[i];
@@ -1832,7 +1838,9 @@ void SphidaMenuDraw() {
 void SphidaScoreViewInit(mgCMemory *memory, int *tex_block, int open_type) {
     int        available = memory->stGetRest();
     u_long128 *top = memory->stGetTop();
-    SphidaStack.stSetBuffer(top, available);
+    if (!SphidaStack.stShareBuffer(*memory, std::span(top, static_cast<std::size_t>(available)))) {
+        std::abort();
+    }
     SphidaMenuTexbk[0] = tex_block[0];
     SphidaMenuTexbk[1] = tex_block[1];
     SphidaMenuTexbk[2] = tex_block[2];

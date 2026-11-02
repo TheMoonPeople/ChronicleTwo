@@ -150,9 +150,8 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
         ASSERT_NE(frames, nullptr);
         ASSERT_NE(table, nullptr);
         for (int index = 0; index < count; ++index) {
-            auto *name = dc2::memory::NewArray<char>(model_memory, names[index].size() + 1);
+            auto *name = dc2::memory::CopyText(model_memory, names[index]);
             ASSERT_NE(name, nullptr);
-            std::memcpy(name, names[index].c_str(), names[index].size() + 1);
             frames[index].SetName(name);
             table[index] = &frames[index];
         }
@@ -162,7 +161,7 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
         source->CObjectFrame::frame = frames;
         ASSERT_TRUE(dc2::character::CaptureModelResources(*source, model_memory));
         source->copy_size = 0;
-        source->load_size = words;
+        source->load_size = model_memory.stack_used;
 
         ActiveMonster = manager.get();
         ASSERT_TRUE(source->Copy(*destination, &slot));

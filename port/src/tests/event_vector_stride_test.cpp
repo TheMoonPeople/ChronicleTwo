@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cstring>
+#include <limits>
 
 #include "dng_main.hpp"
 #include "effscript.hpp"
@@ -92,5 +93,47 @@ TEST_F(EventVectorStride, FrameCountFollowsOffsetVector) {
     EXPECT_EQ(ObjectSeq[0].pos_last->sub_frame, 60);
     EXPECT_FLOAT_EQ(ObjectSeq[0].pos_last->vec[0], 3);
     EXPECT_FLOAT_EQ(ObjectSeq[0].pos_last->vec[3], 1);
+    ObjectSeq[0].ZeroInitialize();
+}
+
+TEST_F(EventVectorStride, MotionBlendStepAcceptsItsDefaultAndExplicitStep) {
+    _SEN_OBJ_SEQ nodes[8]{};
+    ObjectSeq[0].Initialize(nodes, 8);
+    const auto   handler = EventScript.ext_func_table[EVENT_EXT_OBJS_CHENGE_STEP];
+    RS_STACKDATA default_args[] = {Integer(0)};
+    ASSERT_EQ(InvokeNativeExternal(handler, default_args), 1);
+    ASSERT_NE(ObjectSeq[0].mot_last, nullptr);
+    EXPECT_EQ(ObjectSeq[0].mot_last->cmd, SCENE_OBJ_CMD_SET_MOT_CHANGE_STEP);
+    EXPECT_FLOAT_EQ(ObjectSeq[0].mot_last->value, 0.2f);
+
+    RS_STACKDATA explicit_args[] = {Integer(0), Number(0.05f)};
+    ASSERT_EQ(InvokeNativeExternal(handler, explicit_args), 1);
+    EXPECT_FLOAT_EQ(ObjectSeq[0].mot_last->value, 0.05f);
+    explicit_args[1] = Number(0.0f);
+    ASSERT_EQ(InvokeNativeExternal(handler, explicit_args), 1);
+    EXPECT_FLOAT_EQ(ObjectSeq[0].mot_last->value, 0.2f);
+    explicit_args[1] = Number(-0.5f);
+    ASSERT_EQ(InvokeNativeExternal(handler, explicit_args), 1);
+    EXPECT_FLOAT_EQ(ObjectSeq[0].mot_last->value, 0.2f);
+    ObjectSeq[0].ZeroInitialize();
+}
+
+TEST_F(EventVectorStride, MotionBlendStepRejectsInvalidArgumentsWithoutQueuingCommands) {
+    _SEN_OBJ_SEQ nodes[4]{};
+    ObjectSeq[0].Initialize(nodes, 4);
+    const auto handler = EventScript.ext_func_table[EVENT_EXT_OBJS_CHENGE_STEP];
+    EXPECT_EQ(InvokeNativeExternal(handler, {}), 0);
+    RS_STACKDATA extra[] = {Integer(0), Number(0.05f), Integer(0)};
+    EXPECT_EQ(InvokeNativeExternal(handler, extra), 0);
+    RS_STACKDATA bad_index[] = {Integer(-1)};
+    EXPECT_EQ(InvokeNativeExternal(handler, bad_index), 0);
+    bad_index[0] = Integer(EVENT_OBJECT_SEQ_NUM);
+    EXPECT_EQ(InvokeNativeExternal(handler, bad_index), 0);
+    RS_STACKDATA bad_step[] = {Integer(0), Number(std::numeric_limits<float>::quiet_NaN())};
+    EXPECT_EQ(InvokeNativeExternal(handler, bad_step), 0);
+    bad_step[1] = {};
+    bad_step[1].type = RS_STR;
+    EXPECT_EQ(InvokeNativeExternal(handler, bad_step), 0);
+    EXPECT_EQ(ObjectSeq[0].mot_last, nullptr);
     ObjectSeq[0].ZeroInitialize();
 }

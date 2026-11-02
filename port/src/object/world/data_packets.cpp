@@ -50,6 +50,17 @@ int PacketQuadwords(DataPacketMode mode) {
 }
 } // namespace
 
+void BindCharacterPrefix(mgCMemory &parent, mgCMemory &characters, int quadwords) {
+    if (&parent == &characters || quadwords <= 0) {
+        throw std::invalid_argument("invalid character prefix binding");
+    }
+    auto *storage = parent.stAlloc64(quadwords);
+    if (storage == nullptr) {
+        throw std::length_error("character prefix exceeds its parent storage");
+    }
+    characters.stSetChildBuffer(parent, storage, quadwords);
+}
+
 PreparedDataPackets DataPacketStorage::Prepare(DataPacketMode requested_mode, mgCMemory &character_memory,
                                                std::size_t character_quadwords) & {
     const int quadwords = PacketQuadwords(requested_mode);

@@ -12,10 +12,12 @@
 #include "actionchara.hpp"
 #include "charasetup.hpp"
 #include "editmenu.hpp"
+#include "gamepad.hpp"
 #include "inventmn.hpp"
 #include "mainloop.hpp"
 #include "memcard.hpp"
 #include "menuchr.hpp"
+#include "menucls1.hpp"
 #include "menucommon.hpp"
 #include "menudraw.hpp"
 #include "menumain.hpp"
@@ -483,4 +485,115 @@ TEST(MenuMemory, IconEffectsRejectMissingAndExhaustedStorage) {
     MenuItemBrdItemIconEffectMalloc(&empty, nullptr, 1);
     MenuItemBrdItemIconEffectMalloc(&empty, &part, 0);
     EXPECT_EQ(part.name, nullptr);
+}
+
+TEST(MenuMemory, InventionMenuAllocatesChildStorageAndOverlappingCharacterViews) {
+    ASSERT_EXIT(
+        {
+            auto save = std::make_unique<CSaveData>();
+            PortActiveSaveData = save.get();
+            MenuUserDataManPtr = &save->user_data;
+            CMenuKeyFunc common{};
+            common.user_data = MenuUserDataManPtr;
+            common.open_type = MENU_OPEN_INVENT;
+            MenuCommonInfo = &common;
+            CMenuPosDataManage layout{};
+            layout.Initialize();
+            MenuPosData = &layout;
+            CMenuPosDataForm message{};
+            char             message_name[] = "msg0";
+            message.name = message_name;
+            layout.form = &message;
+            layout.form_num = 1;
+            layout.InitDrawList();
+            common.waku_form = &message;
+            MenuMesForm[0] = &message;
+            MENU_DRAW_ENV draw{};
+            MenuDrawEnv = &draw;
+            int blocks[4];
+            std::fill_n(blocks, 4, -1);
+            std::vector<u_long128> storage(0x40000);
+            mgCMemory              owner;
+            owner.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+            EXPECT_EQ(MenuInventInit(&owner, blocks, 0), 1);
+            EXPECT_TRUE(dc2::memory::ArenaStorageLive(InventTeigiStack));
+            EXPECT_TRUE(dc2::memory::ArenaStorageLive(CMenuInventPt->data_stack));
+            EXPECT_TRUE(dc2::memory::ArenaStorageLive(MenuCharaLoadStack));
+            owner.stReset();
+            EXPECT_FALSE(dc2::memory::ArenaStorageLive(InventTeigiStack));
+            EXPECT_FALSE(dc2::memory::ArenaStorageLive(MenuCharaLoadStack));
+            std::_Exit(testing::Test::HasFailure() ? 1 : 0);
+        },
+        testing::ExitedWithCode(0), "");
+}
+
+TEST(MenuMemory, InventoryDebugR3SharesTheUnallocatedModelTail) {
+    ASSERT_EXIT(
+        {
+            CMenuKeyFunc common{};
+            common.key_enable = false;
+            MenuCommonInfo = &common;
+            auto move = std::make_unique<CMenuMoveItem>();
+            MenuMoveItemPtr = move.get();
+            move->move_on = false;
+            std::fill_n(MenuCharaBuild2, MENU_CHARA_LOAD_MAX, nullptr);
+            auto menu = std::make_unique<CMenuItemInfo>();
+            menu->mode = MENU_ASK_MODE_ITEM_COMMAND;
+            menu->key_arg_no = ITEM_MENU_PANEL_BAG;
+            GamePad__2.key_lock = 0;
+            GamePad__2.previous_pad[0].button = 0;
+            GamePad__2.pad[0].button = PAD_R3;
+            MenuDebugStack.stSetBuffer(nullptr, 0);
+            MenuCharaLoadStack.stSetBuffer(nullptr, 0);
+            menu_debug_flag = 0;
+            menu->KeyStepLocal(0, 0, 0);
+            EXPECT_EQ(MenuDebugStack.stack, nullptr);
+
+            mgCMemory owner;
+            auto     *storage = reinterpret_cast<u_long128 *>(ArenaBlock(&owner, 512 * sizeof(u_long128)));
+            owner.stSetBuffer(storage, 512);
+            auto *prefix = owner.Alloc(16);
+            ASSERT_NE(prefix, nullptr);
+            const auto prefix_storage = dc2::memory::ArenaBuffer::Bind(owner,
+                                                                       std::span(reinterpret_cast<u8 *>(prefix), 16 * sizeof(u_long128)));
+            ASSERT_TRUE(MenuCharaLoadStack.stShareBuffer(owner,
+                                                         std::span(owner.stGetTop(), static_cast<std::size_t>(owner.stGetRest()))));
+            ASSERT_NE(MenuCharaLoadStack.Alloc(12), nullptr);
+            auto      *first_top = MenuCharaLoadStack.stGetTop();
+            const int  first_rest = MenuCharaLoadStack.stGetRest();
+            const auto owner_generation = dc2::memory::ArenaGeneration(owner);
+
+            menu_debug_flag = 1;
+            menu->KeyStepLocal(0, 0, 0);
+
+            EXPECT_EQ(MenuDebugStack.stack, first_top);
+            EXPECT_EQ(MenuDebugStack.stGetSize(), first_rest);
+            EXPECT_EQ(MenuDebugStack.stGetUsed(), 0);
+            EXPECT_EQ(MenuCharaLoadStack.stGetUsed(), 12);
+            EXPECT_EQ(owner.stGetUsed(), 16);
+            EXPECT_EQ(dc2::memory::ArenaGeneration(owner), owner_generation);
+            ASSERT_TRUE(dc2::memory::ArenaStorageLive(MenuDebugStack));
+            auto *debug_data = MenuDebugStack.Alloc(8);
+            ASSERT_NE(debug_data, nullptr);
+            const auto debug_storage = dc2::memory::ArenaBuffer::Bind(MenuDebugStack,
+                                                                      std::span(reinterpret_cast<u8 *>(debug_data), 8 * sizeof(u_long128)));
+            ASSERT_FALSE(debug_storage.Bytes().empty());
+            GamePad__2.previous_pad[0].button = PAD_R3;
+            menu->KeyStepLocal(0, 0, 0);
+            EXPECT_EQ(MenuDebugStack.stGetUsed(), 8);
+            EXPECT_FALSE(debug_storage.Bytes().empty());
+
+            ASSERT_NE(MenuCharaLoadStack.Alloc(24), nullptr);
+            GamePad__2.previous_pad[0].button = 0;
+            menu->KeyStepLocal(0, 0, 0);
+            EXPECT_EQ(MenuDebugStack.stack, MenuCharaLoadStack.stGetTop());
+            EXPECT_EQ(MenuDebugStack.stGetSize(), MenuCharaLoadStack.stGetRest());
+            EXPECT_EQ(MenuDebugStack.stGetUsed(), 0);
+            EXPECT_TRUE(debug_storage.Bytes().empty());
+            EXPECT_FALSE(prefix_storage.Bytes().empty());
+            owner.stReset();
+            EXPECT_TRUE(dc2::memory::RemainingBytes(MenuDebugStack).empty());
+            std::_Exit(testing::Test::HasFailure() ? 1 : 0);
+        },
+        testing::ExitedWithCode(0), "");
 }

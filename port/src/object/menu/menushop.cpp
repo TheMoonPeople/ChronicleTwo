@@ -55,6 +55,13 @@ static mgCMemory MenuLocalStack;
 
 namespace {
 /**
+ *
+ * Owns shop sound metadata until the shop menu releases its resources.
+ *
+ */
+mgCMemory shop_sound_buffer;
+
+/**
  * Constructs a shop controller in checked storage sized for its native layout.
  */
 template <class T>
@@ -626,15 +633,14 @@ void CShopMenu::InitEnd() {
                                                         : dc2::text::MessageTable{};
     }
 
-    mgCMemory sound_memory;
     MenuLocalStack.Align64();
-    sound_memory.stSetBuffer(MenuLocalStack.stGetTop(), 0x300);
-    MenuLocalStack.Alloc(0x300);
+    auto *sound_storage = MenuLocalStack.Alloc(0x300);
+    shop_sound_buffer.stSetChildBuffer(MenuLocalStack, sound_storage, 0x300);
     u_int *sound_buffer = reinterpret_cast<u_int *>(MenuLocalStack.stGetTop());
 
     if (LoadFile2("snd2/sp/SP_042.sound.json", dc2::memory::RemainingBytes(MenuLocalStack), nullptr, 0) != 0) {
         sndInitPort(8);
-        se_handle = sndLoadSound(SND_PORT_MENU, sound_buffer, &sound_memory);
+        se_handle = sndLoadSound(SND_PORT_MENU, sound_buffer, &shop_sound_buffer);
     }
 
     MenuPosData->AttachCommonTexInfo();

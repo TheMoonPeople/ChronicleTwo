@@ -1011,6 +1011,25 @@ TEST(MgTexture, NativeSetsReuseLiveAnimationGroupsAndRecreateDeletedOrChangedScr
     ASSERT_NE(h.manager.GetTexAnime(0), nullptr);
     EXPECT_EQ(h.manager.GetTexAnime(0)->list[0]->data.wait, 7);
     EXPECT_EQ(h.manager.texture_num, 2);
+
+    h.manager.DeleteBlock(0);
+    std::array<u_long128, 1024> transient_storage{};
+    mgCMemory                   transient;
+    transient.stSetBuffer(transient_storage.data(), static_cast<int>(transient_storage.size()));
+    MgTextureEnterNativeSet(&h.manager, 0, document, &transient, decode);
+    ASSERT_NE(h.manager.GetTexAnime(0), nullptr);
+    transient.stReset();
+    auto *replacement = transient.Alloc(1024);
+    ASSERT_NE(replacement, nullptr);
+    std::memset(replacement, 0x3f, 1024 * sizeof(u_long128));
+    h.manager.ReloadTexture(0, static_cast<sceVif1Packet *>(nullptr));
+    EXPECT_EQ(h.manager.GetTexAnime(0), nullptr);
+    EXPECT_NE(h.manager.GetTexture("source", 0), nullptr);
+    EXPECT_EQ(h.manager.texture_num, 2);
+    MgTextureEnterNativeSet(&h.manager, 0, document, &transient, decode);
+    ASSERT_NE(h.manager.GetTexAnime(0), nullptr);
+    EXPECT_EQ(h.manager.GetTexAnime(0)->list[0]->data.wait, 7);
+    EXPECT_EQ(h.manager.texture_num, 2);
 }
 
 TEST(MgTexture, NativeSetScriptsAnimateTheirOwnPicturesOverEarlierPicturesOfTheSameName) {
@@ -2441,4 +2460,92 @@ TEST(MgTexture, NativeDecoderRejectsAnOversizedMipTableAndShortPixelStorageBefor
         EXPECT_EQ(harness.manager.texture_num, previous) << malformed;
         EXPECT_EQ(harness.manager.SearchHash("malformed_decoder", 0), nullptr) << malformed;
     }
+}
+
+TEST(MgTexture, ReloadDiscardsAnimationControllerWhoseArenaWasReused) {
+    Harness                    h;
+    mgCMemory                  animation_memory;
+    std::array<u_long128, 256> storage{};
+    animation_memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    auto *animation = dc2::memory::NewObject<mgCTextureAnime>(animation_memory);
+    ASSERT_NE(animation, nullptr);
+    auto *block = h.manager.GetTextureBlock(0);
+    block->anime = animation;
+    dc2::render::BindTextureAnimationStorage(*block, animation_memory);
+    animation_memory.stReset();
+    auto *replacement = animation_memory.Alloc(128);
+    ASSERT_NE(replacement, nullptr);
+    std::memset(replacement, 0x3f, 128 * sizeof(u_long128));
+    h.manager.ReloadTexture(0, static_cast<sceVif1Packet *>(nullptr));
+    EXPECT_EQ(h.manager.GetTexAnime(0), nullptr);
+}
+
+TEST(MgTexture, ReloadDiscardsExpiredCommandGroupsAndPreservesOtherArenas) {
+    Harness                    h;
+    mgCTextureAnime            animation;
+    mgCMemory                  command_memory;
+    std::array<u_long128, 256> storage{};
+    command_memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCTexAnimeData command;
+    command.group = 0;
+    ASSERT_EQ(animation.EnterTexAnime(&command, &h.memory), 1);
+    ASSERT_EQ(animation.EnterTexAnime(&command, &command_memory), 1);
+    command.group = 1;
+    ASSERT_EQ(animation.EnterTexAnime(&command, &h.memory), 1);
+    auto *surviving = animation.list[1];
+    h.manager.GetTextureBlock(0)->anime = &animation;
+    command_memory.stReset();
+    auto *replacement = command_memory.Alloc(128);
+    ASSERT_NE(replacement, nullptr);
+    std::memset(replacement, 0x3f, 128 * sizeof(u_long128));
+    h.manager.ReloadTexture(0, static_cast<sceVif1Packet *>(nullptr));
+    EXPECT_EQ(h.manager.GetTexAnime(0), &animation);
+    EXPECT_EQ(animation.list[0], nullptr);
+    EXPECT_EQ(animation.name[0], nullptr);
+    EXPECT_EQ(animation.list[1], surviving);
+}
+
+TEST(MgTexture, ReloadDiscardsGroupsWhoseIndependentNameArenaWasReused) {
+    Harness                    h;
+    mgCTextureAnime            animation;
+    mgCMemory                  names;
+    std::array<u_long128, 256> storage{};
+    names.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    mgCTexAnimeData command;
+    command.group = 0;
+    ASSERT_EQ(animation.EnterTexAnime(&command, &h.memory), 1);
+    char  expected[] = "expired";
+    auto *name = dc2::memory::NewArray<char>(names, sizeof(expected));
+    ASSERT_NE(name, nullptr);
+    std::memcpy(name, expected, sizeof(expected));
+    animation.SetGroupName(0, name);
+    dc2::render::BindTextureAnimationGroupName(animation, 0, names, std::span(name, sizeof(expected)));
+    h.manager.GetTextureBlock(0)->anime = &animation;
+    names.stReset();
+    auto *replacement = names.Alloc(128);
+    ASSERT_NE(replacement, nullptr);
+    std::memset(replacement, 0x3f, 128 * sizeof(u_long128));
+    h.manager.ReloadTexture(0, static_cast<sceVif1Packet *>(nullptr));
+    EXPECT_EQ(h.manager.GetTexAnime(0), &animation);
+    EXPECT_EQ(animation.list[0], nullptr);
+    EXPECT_EQ(animation.SearchGroupName(expected), -1);
+}
+
+TEST(MgTexture, ControllerAddressReuseDoesNotReviveAnotherBlocksAnimation) {
+    Harness                    h;
+    mgCMemory                  memory;
+    std::array<u_long128, 256> storage{};
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    auto *old_block = h.manager.GetTextureBlock(0);
+    old_block->anime = dc2::memory::NewObject<mgCTextureAnime>(memory);
+    ASSERT_NE(old_block->anime, nullptr);
+    dc2::render::BindTextureAnimationStorage(*old_block, memory);
+    const auto *old_address = old_block->anime;
+    memory.stReset();
+    auto *new_block = h.manager.GetTextureBlock(1);
+    new_block->anime = dc2::memory::NewObject<mgCTextureAnime>(memory);
+    ASSERT_EQ(new_block->anime, old_address);
+    dc2::render::BindTextureAnimationStorage(*new_block, memory);
+    EXPECT_EQ(h.manager.GetTexAnime(0), nullptr);
+    EXPECT_EQ(h.manager.GetTexAnime(1), old_address);
 }

@@ -13,6 +13,7 @@
 #include <string>
 
 #include "assets/data_registry.hpp"
+#include "mainloop.hpp"
 #include "mg_memory.hpp"
 #include "platform/datapacks.hpp"
 #include "scenesnd.hpp"
@@ -181,6 +182,35 @@ TEST(SceneReadStorage, UnalignedWorkspaceIsRejectedBeforeAnyTypedReaderReceivesI
     const auto bytes = dc2::memory::AllocationBytes(memory, data);
     scene.read_buffer_storage = dc2::memory::ArenaBuffer::Bind(memory, bytes.subspan(1));
     EXPECT_TRUE(scene.GetReadBufferBytes().empty());
+}
+
+TEST(SceneReadStorage, TitleWorkspaceResetRequiresRenewingTheGlobalAndSceneLeases) {
+    std::array<u_long128, 128> storage{};
+    mgCMemory                  backing;
+    backing.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    auto *workspace = backing.Alloc(64);
+    ASSERT_NE(workspace, nullptr);
+    mgCMemory reader;
+    reader.stSetChildBuffer(backing, workspace, 64);
+    ASSERT_EQ(dc2::memory::RemainingBytes(reader).size(), 64 * sizeof(u_long128));
+    auto scene = std::make_unique<CScene>();
+    BindReadBuffer(dc2::memory::RemainingBytes(reader), reader, &backing);
+    scene->read_buffer_storage = ReadBufferLease();
+    const auto previous = scene->read_buffer_storage;
+    ASSERT_EQ(scene->GetReadBufferBytes().size(), 64 * sizeof(u_long128));
+
+    reader.stClearUsed();
+    EXPECT_TRUE(ReadBufferBytes().empty());
+    EXPECT_TRUE(scene->GetReadBufferBytes().empty());
+    BindReadBuffer(dc2::memory::RemainingBytes(reader), reader, &backing);
+    scene->read_buffer_storage = ReadBufferLease();
+    EXPECT_EQ(scene->GetReadBufferBytes().size(), 64 * sizeof(u_long128));
+    EXPECT_EQ(scene->GetReadBufferBytes().data(), ReadBufferBytes().data());
+    EXPECT_TRUE(previous.Bytes().empty());
+
+    reader.stReset();
+    EXPECT_TRUE(scene->GetReadBufferBytes().empty());
+    BindReadBuffer({}, reader);
 }
 
 TEST(SceneStackStorage, PhysicalBoundsOverrideAForgedDeclaredStackCount) {

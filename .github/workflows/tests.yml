@@ -14,6 +14,19 @@ jobs:
     uses: ./.github/workflows/linux.yml
     with:
       tests: true
+  linux-asan:
+    uses: ./.github/workflows/linux.yml
+    with:
+      tests: true
+      sanitizers: address
+  windows:
+    uses: ./.github/workflows/windows.yml
+    with:
+      tests: true
+  macos:
+    uses: ./.github/workflows/macos.yml
+    with:
+      tests: true
   ios-dependencies:
     uses: ./.github/workflows/dependencies.yml
     with:

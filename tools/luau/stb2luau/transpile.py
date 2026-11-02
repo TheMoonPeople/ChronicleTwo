@@ -1051,6 +1051,9 @@ def main(argv: list[str] | None = None) -> int:
     only = {timing.key(path) for path in args.only}
     selected = [(path, data) for path, data in corpus(source, kinds) if not only or timing.key(path) in only]
     if not selected:
+        if not any(stb_corpus.scripts(source)):
+            print("no original script corpus: use dc2data export-scripts on the disc source", file=sys.stderr)
+            return SKIP
         print("no scripts selected", file=sys.stderr)
         return 1
     collisions = sorted(

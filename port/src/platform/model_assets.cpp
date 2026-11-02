@@ -2565,10 +2565,10 @@ void Rebind(mgCFrame &source, mgCFrame &target, const sceVu0FMATRIX *matrices) {
         if (destination < 0) {
             continue;
         }
-        if (matrices && target.init_matrix) {
-            std::memcpy(target.init_matrix[destination], matrices[index], sizeof(sceVu0FMATRIX));
-        }
         if (frame->visual && frame->visual->Iam() == MG_VISUAL_KIND_MOTION_MDT) {
+            if (matrices && target.init_matrix) {
+                std::memcpy(target.init_matrix[destination], matrices[index], sizeof(sceVu0FMATRIX));
+            }
             auto *visual = static_cast<mgCVisualMotionMDT *>(frame->visual);
             for (int &bone : visual->bone) {
                 if (bone < 0) {
@@ -2972,7 +2972,10 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
     // Actions of the current motion set by English name, for the KEY commands that follow.
     std::vector<character_motion::Action> slot_actions;
     for (const auto &command : commands) {
-        const auto                         tag_name = command.at("command").get<std::string>();
+        const auto tag_name = command.at("command").get<std::string>();
+        if (skin && tag_name != "MODEL" && tag_name != "MOTION" && tag_name != "IMG" && tag_name != "IMG_END") {
+            continue;
+        }
         const auto                        &args = command.at("args");
         std::vector<std::string>           strings;
         auto                               stack = Arguments(args, strings);
@@ -3011,9 +3014,14 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
             shadow_model = index;
             MatchShadow(character, memory);
         } else if (tag_name == "MOTION" || tag_name == "SHADOW_MOTION") {
-            const bool        shadow = tag_name == "SHADOW_MOTION";
-            const std::size_t start = shadow ? 0 : 1;
-            if (!shadow) {
+            const bool shadow = tag_name == "SHADOW_MOTION";
+            const auto first_type = args.empty() ? std::string{} : args.at(0).value("type", std::string{});
+            const bool reduced_skin = skin && (first_type == "resource" || first_type == "string");
+            if (skin && !reduced_skin && first_type != "int") {
+                throw std::runtime_error("skin MOTION requires an animation argument, optionally after its motion slot");
+            }
+            const std::size_t start = shadow || reduced_skin ? 0 : 1;
+            if (!shadow && !reduced_skin) {
                 motion_slot = dc2::script::TagInteger(checked);
                 PortCharacterMetadataMotionSlot(motion_slot);
             }
@@ -3192,7 +3200,11 @@ void CharacterProfile(CCharacter2 &character, const std::shared_ptr<Document> &d
             // Effects carry direct script references rather than a selected archive.
         } else if (tag_name == "IMG") {
             const int  slot = skin ? 0 : dc2::script::TagInteger(checked);
-            const auto set = Reference(args, skin ? 0 : 1, "texture_set");
+            const bool reduced = skin && args.size() == 1 && args.at(0).value("type", std::string{}) == "resource";
+            if (skin && !reduced && (args.size() < 2 || args.at(0).value("type", std::string{}) != "int" || args.at(1).value("type", std::string{}) != "resource")) {
+                throw std::runtime_error("skin IMG requires a texture resource, optionally after its image slot");
+            }
+            const auto set = Reference(args, reduced ? 0 : 1, "texture_set");
             if (set) {
                 replace(dc2::character::ResourceChannel::Image, slot, options.image_memory ? *options.image_memory : memory);
                 EnterTextureSet(document, *set, options, &character, slot);
@@ -3559,6 +3571,71 @@ bool LoadSkin(CCharacter2 &character, const std::filesystem::path &gltf, std::st
 bool LoadSkin(CCharacter2 &character, std::span<const std::byte> gltf, const Json &game, std::string_view profile, std::string_view name, const CharacterLoadOptions &options, std::string &error) {
     return Attempt(error, [&] {
         CharacterProfile(character, ReadBytes(gltf, game), profile, name, options, true);
+    });
+}
+
+bool PrepareSkinArenaReset(CCharacter2 &character, mgCMemory &memory, std::string &error) {
+    return Attempt(error, [&] {
+        if (!dc2::character::ResourcesWouldRetireOnReset(character, memory, dc2::memory::ArenaResetKind::Stack)) {
+            return;
+        }
+        auto previous = character.resource_state.Acquire<dc2::character::ResourceState>();
+        if (!previous || !dc2::character::CloneInputsLive(character)) {
+            throw std::runtime_error("skin replacement requires live prior character resources");
+        }
+        const auto retiring = [&](const auto &producer) { return producer.lifetime.WouldRetireOnReset(memory); };
+        for (const auto &producer : previous->producers) {
+            if (retiring(producer) && producer.channel != dc2::character::ResourceChannel::Skin &&
+                producer.channel != dc2::character::ResourceChannel::Image) {
+                throw std::runtime_error("skin arena also supplies nonreplaceable character resources");
+            }
+        }
+        auto  state = *previous;
+        auto *root = character.CObjectFrame::frame;
+        for (const auto &producer : state.producers) {
+            if (!retiring(producer) || producer.channel != dc2::character::ResourceChannel::Skin) {
+                continue;
+            }
+            auto *frame = root->GetFrame(producer.index);
+            if (!frame || !frame->clone_inputs.Matches(*frame)) {
+                throw std::runtime_error("skin replacement has invalid frame inputs");
+            }
+            const auto                           inputs = frame->clone_inputs;
+            const dc2::render::VisualCloneInputs absent;
+            frame->SetVisual(nullptr);
+            if (!inputs.PublishChanges(*frame, nullptr, &absent)) {
+                throw std::runtime_error("skin detachment clone input publication failed");
+            }
+        }
+        for (auto &motion : character.motion) {
+            auto **link = &motion.skin_list;
+            while (*link) {
+                if (!dc2::memory::AllocationBytes(memory, *link).empty()) {
+                    *link = (*link)->next;
+                } else {
+                    link = &(*link)->next;
+                }
+            }
+            for (auto &info : motion.frame_info_view) {
+                if (!dc2::memory::AllocationBytes(memory, info.base_vertices).empty()) {
+                    info.base_vertices = nullptr;
+                    info.vertex_count = 0;
+                }
+                if (!dc2::memory::AllocationBytes(memory, info.base_normals).empty()) {
+                    info.base_normals = nullptr;
+                    info.normal_count = 0;
+                }
+            }
+        }
+        if (auto images = character_images.find(&character); images != character_images.end()) {
+            std::erase_if(images->second, [&](const auto &image) {
+                return image.lifetime.WouldRetireOnReset(memory);
+            });
+        }
+        std::erase_if(state.producers, retiring);
+        if (!dc2::character::PublishResources(character, std::move(state)) || !dc2::character::CloneInputsLive(character)) {
+            throw std::runtime_error("skin detachment resource publication failed");
+        }
     });
 }
 

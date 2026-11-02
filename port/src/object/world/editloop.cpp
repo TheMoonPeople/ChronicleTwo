@@ -309,7 +309,11 @@ static int MenuDataSize;
  */
 namespace {
 std::size_t fixed_character_quadwords{};
-}
+/**
+ * Owns reload generations for the reserved character prefix independently of map storage.
+ */
+mgCMemory character_reload_storage;
+} // namespace
 
 /**
  *
@@ -485,6 +489,18 @@ void ConfigureDataPackets(dc2::world::DataPacketMode mode) {
     mgSetDataBuffer(&prepared.buffers[0], &prepared.buffers[1], 1);
 }
 } // namespace
+
+void dc2::world::PrepareEditMapJumpStorage(CScene &scene, DataPacketMode mode) {
+    scene.DeleteVillager();
+    scene.DeleteSubVillager();
+    DeleteMapJumpMaps(scene);
+    ConfigureDataPackets(mode);
+    ControlCharaBuff.stSetLocked(true);
+    MainDataBuff.stSetBorrowedBuffer(ControlCharaBuff,
+                                     std::span(ControlCharaBuff.stGetTop(), static_cast<std::size_t>(ControlCharaBuff.stGetRest())));
+    MainDataBuff.stClearUsed();
+    MainDataBuff.stSetLocked(false);
+}
 
 /**
  *
@@ -808,7 +824,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     data_size = TotalDataBuff.stGetRest();
     ControlCharaBuff.stSetBorrowedBuffer(TotalDataBuff, std::span(TotalDataBuff.stGetTop(), static_cast<std::size_t>(data_size)));
     ControlCharaBuff.stReset();
-    MainScene->SetStack(0, &ControlCharaBuff);
+    MainScene->SetStack(0, &character_reload_storage);
     MainScene->SetStack(1, &MainDataBuff);
     MainScene->SetStack(2, &MainCharaBuff);
     MainScene->SetStack(3, &SubDataBuff);
@@ -818,12 +834,14 @@ void EditInit(INIT_LOOP_ARG arg) {
     MainScene->SetStack(7, &EventBuff[2]);
     MainScene->SetStack(8, &EventBuff[3]);
     MainScene->work_stack = &WorkBuffer;
-    ControlCharaBuff.stAlloc64(GetCharaMemAllocSize());
+    // Each partition can align to 64 bytes, and the stack allocator retains an end guard.
+    const int character_quadwords = GetCharaMemAllocSize() + CHARA_MEM_STACK_NUM * 4;
+    dc2::world::BindCharacterPrefix(ControlCharaBuff, character_reload_storage, character_quadwords);
     ControlCharaBuff.Align64();
     ControlCharaBuff.stSetLocked(true);
     fixed_character_quadwords = static_cast<std::size_t>(ControlCharaBuff.stGetUsed());
     active_chara_no = GetUserData()->active_chr_no;
-    SetupMainUnit(ReadBufferBytes(), &ControlCharaBuff, CharaBufs, 70, MainScene, GetUserData(), active_chara_no, 1);
+    SetupMainUnit(ReadBufferBytes(), &character_reload_storage, CharaBufs, 70, MainScene, GetUserData(), active_chara_no, 1);
     ActiveCharaNo = GetUserData()->active_chr_no;
     ControlCharaID = 0;
     MainScene->SetActive(SCENE_DATA_CHARA, 0);
@@ -914,7 +932,7 @@ void EditInit(INIT_LOOP_ARG arg) {
     MenuInfo->mes_tex_block = 154;
     MenuInfo->active_chara_no = ActiveCharaNo;
     MenuInfo->user_data = GetUserData();
-    MenuInfo->chara_stack = &ControlCharaBuff;
+    MenuInfo->chara_stack = &character_reload_storage;
     MenuInfo->base_chara_stack = CharaBufs;
     MenuInfo->chara_tex_block = 70;
     MenuInfo->pack = reinterpret_cast<u_int *>(MenuDataBuf);
@@ -2241,7 +2259,6 @@ int EditMapJump(int map_no) {
     int                loaded_sub = {};
     int                used_quads = {};
     int                used_kb = {};
-    int                free_quads = {};
 
     InitEditEvent();
     DeleteFileCache();
@@ -2268,17 +2285,10 @@ int EditMapJump(int map_no) {
     InitSphida();
     mgWaitFrame();
 
-    if (GetMapType(map_no) == MAP_TYPE_GEORAMA) {
-        ConfigureDataPackets(dc2::world::DataPacketMode::Georama);
-    } else {
-        ConfigureDataPackets(dc2::world::DataPacketMode::Map);
-    }
-
-    free_quads = ControlCharaBuff.stack_size;
-    ControlCharaBuff.stSetLocked(true);
-    MainDataBuff.stSetBorrowedBuffer(ControlCharaBuff, std::span(ControlCharaBuff.stGetTop(), static_cast<std::size_t>(free_quads - ControlCharaBuff.stack_used)));
-    MainDataBuff.stClearUsed();
-    MainDataBuff.stSetLocked(false);
+    const auto packet_mode = GetMapType(map_no) == MAP_TYPE_GEORAMA
+                                 ? dc2::world::DataPacketMode::Georama
+                                 : dc2::world::DataPacketMode::Map;
+    dc2::world::PrepareEditMapJumpStorage(*MainScene, packet_mode);
     dc2::log::PrintGame("MAP DATA %p\n", static_cast<void *>(MainDataBuff.stack + MainDataBuff.stack_used));
     SCN_LOADMAP_INFO2 load_info;
 
@@ -2293,8 +2303,6 @@ int EditMapJump(int map_no) {
         dc2::text::Append(load_info.files[0].ipk_name, dc2::text::View("_2"));
     }
 
-    MainScene->DeleteVillager();
-    MainScene->DeleteSubVillager();
     MapJump(MainScene, &load_info, map_no);
     EditMapInitEvent(map_no, static_cast<CEditMap *>(MainScene->GetMap(0)));
     main_data = &MainDataBuff;

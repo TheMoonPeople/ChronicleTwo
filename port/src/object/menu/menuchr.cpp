@@ -2096,27 +2096,10 @@ int CMenuChrCngMenu::KeyChangeMain() {
             int last_chara = GetUserDataMan()->active_chr_no;
             GetUserDataMan()->SetActiveChrNo(MenuArg.result[0]);
 
-            if (key_func->open_type == MENU_OPEN_MAIN_TOWN) {
-                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 1);
-            } else {
-                if (last_chara == USER_CHARA_MONSTER) {
-                    DeleteMonsterEffect();
-                }
-
-                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 0);
-            }
-
-            last_select = select;
-            MenuSePlay(se_sndtbl[select]);
-
-            if (MenuLoadInfo.town_model == true) {
-                EditCharaPrepare();
-            }
-
             if (GetMenuLoopType() == MENU_LOOP_DUNGEON && FxScriptMan != nullptr) {
                 CActionChara *player = static_cast<CActionChara *>(MenuMainScene->GetCharacter(0));
 
-                if (player->effect_man != nullptr && player->throw_effect >= 0) {
+                if (player != nullptr && player->effect_man != nullptr && player->throw_effect >= 0) {
                     for (int i = 0; i < 120; i++) {
                         player->effect_man->PauseFromLevel(3, 3);
                         player->effect_man->PauseFromLevel(1, 3);
@@ -2127,6 +2110,24 @@ int CMenuChrCngMenu::KeyChangeMain() {
                 }
             }
 
+            if (key_func->open_type != MENU_OPEN_MAIN_TOWN && last_chara == USER_CHARA_MONSTER) {
+                DeleteMonsterEffect();
+            }
+
+            dc2::character::PrepareUnitReload(*MenuMainScene);
+
+            if (key_func->open_type == MENU_OPEN_MAIN_TOWN) {
+                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 1);
+            } else {
+                GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, change_chara, 0);
+            }
+
+            last_select = select;
+            MenuSePlay(se_sndtbl[select]);
+
+            if (MenuLoadInfo.town_model == true) {
+                EditCharaPrepare();
+            }
             break;
         }
         case CHR_CNG_ACTION_CLOSE: {
@@ -5225,7 +5226,7 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                                       u_int *pack, mgCMemory *stack, int tex_block, int blur_type) {
     mgCTextureManager *tex_manager = &mgTexManager;
 
-    if ((chara != nullptr && part != 1) || part == 1) {
+    if ((part == 1 || part == 5) ? body != nullptr : chara != nullptr) {
         PortPrepareMenuCharacterArena(*stack, pack, menu_infocfgname, part);
         switch (part) {
             case 0:
@@ -5377,6 +5378,13 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             DetachSwordTrail(info[0]->chara);
         }
 
+        if ((i == 1 || i == 5) && info[0]->chara != nullptr) {
+            std::string error;
+            if (!model_assets::PrepareSkinArenaReset(*info[0]->chara, *buffer, error)) {
+                CT_LOG_ERROR(Menu, "menu skin replacement: {}", error);
+                continue;
+            }
+        }
         if (buffer != nullptr) {
             buffer->stReset();
         }
@@ -5406,6 +5414,13 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
                         DetachSwordTrail(player);
                     }
 
+                    if ((i == 1 || i == 5) && player != nullptr) {
+                        std::string error;
+                        if (!model_assets::PrepareSkinArenaReset(*player, *scene_stack, error)) {
+                            CT_LOG_ERROR(Menu, "scene skin replacement: {}", error);
+                            continue;
+                        }
+                    }
                     scene_stack->stReset();
                     MenuItemCharaDataLoadPack(chara_no, scene_target[i], player, i, reinterpret_cast<u_int *>(read.Bytes().data()),
                                               scene_stack, scene_tex_block, chara_no);
@@ -7941,6 +7956,8 @@ void InitMainCharaBGCore(int chara_no, mgCMemory *stack, int mode) {
     }
 
     ReEquipFishingGameWeapon();
+
+    dc2::character::PrepareUnitReload(*MenuMainScene);
 
     if (mode == 1) {
         GetCharaMemAllocPtr(MenuArg.chara_stack, MorattaStack, NowReadMainCharaNo, 1);

@@ -480,6 +480,16 @@ int GetCharaMemAllocPtr(mgCMemory *memory, mgCMemory *stacks, int chara_type, in
     return true;
 }
 
+void dc2::character::PrepareUnitReload(CScene &scene) {
+    for (int slot = 0; slot < ROBO_MODEL_NUM; ++slot) {
+        auto *part = static_cast<CActionChara *>(scene.GetCharacter(slot));
+        if (part != nullptr) {
+            part->AllDeleteDamage();
+            part->Initialize(nullptr);
+        }
+    }
+}
+
 void SetupUnitMan(CScene *scene, CUserDataManager *user_data, int unit, ROBO_INFO_DATA *robo_info) {
     if (scene == nullptr || user_data == nullptr) {
         return;

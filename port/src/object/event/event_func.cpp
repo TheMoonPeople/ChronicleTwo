@@ -12998,10 +12998,14 @@ static int _OBJS_SET_STEP(dc2::script::RunArguments stack) {
  *
  */
 static int _OBJS_CHENGE_STEP(dc2::script::RunArguments stack, int argc) {
+    if (argc < 1 || argc > 2) {
+        return false;
+    }
+
     float step = 0.2f;
     int   index = dc2::script::RunInteger(stack++);
 
-    if (argc > 0) {
+    if (argc == 2) {
         step = dc2::script::RunFloat(stack);
     }
 

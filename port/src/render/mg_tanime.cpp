@@ -7,7 +7,9 @@
 #include <cstring>
 #include <limits>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "log/game_output.hpp"
 #include "mg_drawenv.hpp"
@@ -23,6 +25,23 @@
 #include "scriptinterpreter.hpp"
 
 namespace {
+
+/**
+ * Tracks the exact arena allocations backing each animation and its command lists.
+ */
+struct AnimationAllocation {
+    int                      group;              /**< Command group, or -1 for the controller. */
+    dc2::memory::ArenaBuffer storage;            /**< Exact live allocation supplying this record. */
+    bool                     group_name = false; /**< Whether this allocation supplies the group's name. */
+};
+
+/**
+ * Retains the allocation identities for each animation controller and command group.
+ */
+std::unordered_map<const mgCTextureAnime *, std::vector<AnimationAllocation>> &AnimationStorage() {
+    static std::unordered_map<const mgCTextureAnime *, std::vector<AnimationAllocation>> storage;
+    return storage;
+}
 
 /**
  *
@@ -53,6 +72,46 @@ short TextureTagCoordinate(dc2::script::TagArguments argument) {
 }
 
 } // namespace
+
+void dc2::render::BindTextureAnimationStorage(mgCTextureBlock &block, mgCMemory &memory) {
+    auto bytes = std::span(reinterpret_cast<u8 *>(block.anime), sizeof(*block.anime));
+    block.animation_storage = dc2::memory::ArenaBuffer::Bind(memory, bytes);
+    block.animation_storage_bound = true;
+    AnimationStorage()[block.anime] = {
+        {.group = -1, .storage = block.animation_storage}
+    };
+}
+
+void dc2::render::BindTextureAnimationGroupName(mgCTextureAnime &animation, int group, mgCMemory &memory, std::span<char> storage) {
+    auto &allocations = AnimationStorage()[&animation];
+    std::erase_if(allocations, [group](const auto &allocation) { return allocation.group == group && allocation.group_name; });
+    allocations.push_back({.group = group,
+                           .storage = dc2::memory::ArenaBuffer::Bind(memory, std::span(reinterpret_cast<u8 *>(storage.data()), storage.size_bytes())),
+                           .group_name = true});
+}
+
+bool dc2::render::TextureAnimationStorageLive(mgCTextureAnime *animation) {
+    const auto found = AnimationStorage().find(animation);
+    if (found == AnimationStorage().end()) {
+        return true;
+    }
+    std::vector<int> expired_groups;
+    for (const auto &allocation : found->second) {
+        if (!allocation.storage.Bytes().empty()) {
+            continue;
+        }
+        if (allocation.group < 0) {
+            return false;
+        }
+        if (std::ranges::find(expired_groups, allocation.group) == expired_groups.end()) {
+            expired_groups.push_back(allocation.group);
+        }
+    }
+    for (const int group : expired_groups) {
+        animation->DeleteGroup(group);
+    }
+    return true;
+}
 
 static int texTEX_ANIME(dc2::script::TagArguments args);
 
@@ -229,6 +288,7 @@ void mgCTextureAnime::Initialize() {
 }
 
 mgCTextureAnime::mgCTextureAnime() {
+    AnimationStorage().erase(this);
     Initialize();
 }
 
@@ -335,6 +395,9 @@ void mgCTextureAnime::DeleteGroup(int group) {
     }
 
     Disable(group);
+    if (const auto found = AnimationStorage().find(this); found != AnimationStorage().end()) {
+        std::erase_if(found->second, [group](const auto &allocation) { return allocation.group == group; });
+    }
     list[group] = nullptr;
     now[group] = nullptr;
     name[group] = nullptr;
@@ -686,6 +749,7 @@ int texTEX_ANIME_DATA_END(dc2::script::TagArguments stack, int argc) {
             if (block->anime == nullptr) {
                 return 0;
             }
+            dc2::render::BindTextureAnimationStorage(*block, *TexAnimeStack);
             pTexAnime = block->anime;
         } else {
             pTexAnime = pLoadTexAnime;
@@ -701,6 +765,10 @@ int texTEX_ANIME_DATA_END(dc2::script::TagArguments stack, int argc) {
     if (pTexAnime != nullptr && now_group >= 0) {
         nowTexData.group = now_group;
         pTexAnime->SetGroupName(now_group, group_name);
+        if (group_name != nullptr && TexAnimeStack != nullptr) {
+            dc2::render::BindTextureAnimationGroupName(*pTexAnime, now_group, *TexAnimeStack,
+                                                       std::span(group_name, std::strlen(group_name) + 1));
+        }
 
         if (ta_enable != 0) {
             pTexAnime->Enable(now_group);
@@ -1122,6 +1190,8 @@ CList<mgCTexAnimeData> *mgCTextureAnime::NewTexAnimeGroupData(int group, mgCMemo
         return nullptr;
     }
 
+    auto bytes = std::span(reinterpret_cast<u8 *>(node), sizeof(*node));
+    AnimationStorage()[this].push_back({.group = group, .storage = dc2::memory::ArenaBuffer::Bind(*stack, bytes)});
     node->Initialize();
 
     if (list[group] == nullptr) {

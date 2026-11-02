@@ -3424,7 +3424,9 @@ void CMenuGeorama::InitEnd() {
     InitMenuDl(download_texture, MenuGeoStoneDownLoadTime);
     free_blocks = MenuGeoramaStack.stack_size - MenuGeoramaStack.stack_used;
     used_blocks = free_blocks;
-    MenuCharaLoadStack.stSetBuffer(MenuGeoramaStack.stGetTop(), free_blocks);
+    if (!MenuCharaLoadStack.stShareBuffer(MenuGeoramaStack, std::span(MenuGeoramaStack.stGetTop(), static_cast<std::size_t>(free_blocks)))) {
+        std::abort();
+    }
 }
 
 void CMenuGeorama::ExitEnd() {

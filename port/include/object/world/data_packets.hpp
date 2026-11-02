@@ -18,6 +18,11 @@ enum class DataPacketMode {
 };
 
 /**
+ * Reserves a reloadable character child without sharing its resets with the parent's map tail.
+ */
+void BindCharacterPrefix(mgCMemory &parent, mgCMemory &characters, int quadwords);
+
+/**
  * Reports the live packet arenas and whether their layout needs publication.
  */
 struct PreparedDataPackets {

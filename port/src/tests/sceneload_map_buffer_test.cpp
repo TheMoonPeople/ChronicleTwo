@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -12,14 +13,21 @@
 #include <vector>
 
 #include "assets/data_registry.hpp"
+#include "charasetup.hpp"
 #include "dataread.hpp"
 #include "dng_event.hpp"
 #include "dng_main.hpp"
+#include "editloop.hpp"
 #include "event_func.hpp"
 #include "map.hpp"
+#include "mapjump.hpp"
 #include "mdslist.hpp"
 #include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "mglib.hpp"
+#include "object/world/data_packets.hpp"
 #include "object/world/map_load_size.hpp"
+#include "platform/arena.hpp"
 #include "platform/paths.hpp"
 #include "scenesnd.hpp"
 #include "scoped_global_object.hpp"
@@ -470,6 +478,83 @@ TEST(SceneDeleteMap, EmptySlotsPreserveHandlesAndSharedArenaMapsAreDeletedTogeth
     EXPECT_EQ(scene.GetMap(0), nullptr);
     EXPECT_EQ(scene.GetMap(1), nullptr);
     EventObjHandleMother = CEohMother{};
+}
+
+TEST(SceneDeleteMap, EditMapJumpStorageReleasesMapTexturesBeforeRebindingTheirProducer) {
+    ASSERT_EXIT(
+        {
+            const int character_quads = GetCharaMemAllocSize() + 4;
+            const int control_quads = character_quads + 0x10000;
+            auto     *control_storage = reinterpret_cast<u_long128 *>(ArenaBlock(&ControlCharaBuff,
+                                                                                 static_cast<std::size_t>(control_quads) * sizeof(u_long128)));
+            ControlCharaBuff.stSetBuffer(control_storage, control_quads);
+            auto *prefix = ControlCharaBuff.Alloc(character_quads);
+            ASSERT_NE(prefix, nullptr);
+            const auto prefix_storage = dc2::memory::ArenaBuffer::Bind(ControlCharaBuff,
+                                                                       std::span(reinterpret_cast<u8 *>(prefix), sizeof(u_long128)));
+            const auto control_generation = dc2::memory::ArenaGeneration(ControlCharaBuff);
+            MainDataBuff.stSetBorrowedBuffer(ControlCharaBuff,
+                                             std::span(ControlCharaBuff.stGetTop(), static_cast<std::size_t>(ControlCharaBuff.stGetRest())));
+            const auto             outgoing = dc2::memory::ArenaLifetime::Capture(MainDataBuff);
+            mgCMemory              textures;
+            std::vector<u_long128> texture_storage(4096);
+            textures.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+            mgTexManager.SetTableBuffer(16, 8, &textures);
+            mgTexManager.Initialize(0x1000, -1);
+            u_long128  pixel{};
+            u_long128 *images[MG_TEXTURE_LEVEL_MAX]{};
+            images[0] = &pixel;
+            for (int block = 1; block <= 5; ++block) {
+                auto name = "transition_" + std::to_string(block);
+                ASSERT_NE(mgTexManager.EnterTexture(block, name.data(), images, 1, 1, 32, nullptr, 0, 0), nullptr);
+            }
+            CScene scene;
+            scene.map_num = 2;
+            char main_name[] = "main";
+            char sub_name[] = "sub";
+            for (int index = 0; index < 2; ++index) {
+                auto *map = dc2::memory::NewObject<CMap>(MainDataBuff);
+                ASSERT_NE(map, nullptr);
+                map->effect_list.block = index + 3;
+                auto &slot = scene.map[index];
+                ASSERT_EQ(slot.AssignData(map, index == 0 ? main_name : sub_name), 1);
+                slot.stack = &MainDataBuff;
+                slot.tex_block = index + 1;
+                slot.tex_block_num = 1;
+                slot.BindResources(outgoing);
+            }
+            MapJumpMapInfo main_info;
+            MapJumpMapInfo sub_info;
+            main_info.map_no = 0;
+            sub_info.map_no = 1;
+            SetMainMapInfo(&main_info);
+            SetSubMapInfo(&sub_info);
+            auto *block = mgTexManager.GetTextureBlock(1);
+            block->anime = dc2::memory::NewObject<mgCTextureAnime>(MainDataBuff);
+            ASSERT_NE(block->anime, nullptr);
+            dc2::render::BindTextureAnimationStorage(*block, MainDataBuff);
+            ASSERT_EQ(mgTexManager.texture_num, 5);
+
+            dc2::world::PrepareEditMapJumpStorage(scene, dc2::world::DataPacketMode::Map);
+
+            EXPECT_FALSE(outgoing.IsLive());
+            EXPECT_EQ(scene.map[0].map, nullptr);
+            EXPECT_EQ(scene.map[1].map, nullptr);
+            EXPECT_EQ(block->anime, nullptr);
+            EXPECT_EQ(mgTexManager.texture_num, 1);
+            EXPECT_EQ(mgTexManager.GetTexture("transition_1", 1), nullptr);
+            EXPECT_EQ(mgTexManager.GetTexture("transition_2", 2), nullptr);
+            EXPECT_EQ(mgTexManager.GetTexture("transition_3", 3), nullptr);
+            EXPECT_EQ(mgTexManager.GetTexture("transition_4", 4), nullptr);
+            EXPECT_NE(mgTexManager.GetTexture("transition_5", 5), nullptr);
+            EXPECT_EQ(dc2::memory::ArenaGeneration(ControlCharaBuff), control_generation);
+            EXPECT_FALSE(prefix_storage.Bytes().empty());
+            EXPECT_EQ(MainDataBuff.stack, ControlCharaBuff.stGetTop());
+            EXPECT_EQ(MainDataBuff.stGetUsed(), 0);
+            EXPECT_FALSE(dc2::memory::RemainingBytes(MainDataBuff).empty());
+            std::_Exit(testing::Test::HasFailure() ? 1 : 0);
+        },
+        testing::ExitedWithCode(0), "");
 }
 
 TEST_F(SceneLoadMapBuffer, CopiesKeepTheirFileBytesAcrossThreeGrowingLoadsAndOriginalRequestReset) {

@@ -1,6 +1,8 @@
 import json
+import tempfile
 import sys
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -41,6 +43,24 @@ class CallsTest(unittest.TestCase):
         # arguments, so they are read as set_variable reads them, marshalled as an unknown type.
         self.assertEqual((found[0].reads, found[0].integers, found[0].tagged, found[0].variant), ("it", "11", 1, "set_variable_float"))
         self.assertEqual((found[1].reads, found[1].integers), ("xit", "111"))
+
+
+class CorpusAvailabilityTest(unittest.TestCase):
+    def test_native_only_archive_has_no_original_corpus(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            archive = Path(scratch) / "data.zip"
+            with zipfile.ZipFile(archive, "w") as output:
+                output.writestr("scripts/example.luau", "return {}")
+            with mock.patch.object(harness, "HOST", Path(__file__)):
+                self.assertEqual(mutate.main(["--data", str(archive)]), mutate.SKIP)
+
+    def test_missing_explicit_selection_in_a_real_corpus_still_fails(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            script = Path(scratch) / "dungeon/act_script/present.stb"
+            script.parent.mkdir(parents=True)
+            script.write_bytes(assemble({"main": (0, 0, [("push", 0), ("RET",)])}, "main"))
+            with mock.patch.object(harness, "HOST", Path(__file__)):
+                self.assertEqual(mutate.main(["--data", scratch, "--only", "dungeon/act_script/missing.stb"]), 1)
 
 
 @unittest.skipUnless(harness.HOST.exists(), "luau-harness is not built")

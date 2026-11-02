@@ -128,6 +128,23 @@ TEST(EeKernelThreads, HigherPriorityThreadRunsImmediatelyAndReturnsDormant) {
     EXPECT_EQ(DeleteThread(h), 0);
 }
 
+TEST(EeKernelThreads, DormantWorkerRestartsWithFreshStack) {
+    KzThreadsSetMainPriority(kPriority);
+    g_log.clear();
+
+    ThreadParam param = Param(HighPriorityOnce, kPriority - 1);
+    const int   worker = CreateThread(&param);
+    ASSERT_GT(worker, 0);
+    for (int iteration = 0; iteration < 32; ++iteration) {
+        std::string caller_stack(64, static_cast<char>('a' + iteration % 26));
+        const auto  expected = caller_stack;
+        ASSERT_EQ(StartThread(worker, nullptr), worker);
+        EXPECT_EQ(caller_stack, expected);
+    }
+    EXPECT_EQ(g_log, std::string(32, 'H'));
+    EXPECT_EQ(DeleteThread(worker), 0);
+}
+
 TEST(EeKernelThreads, TerminatedThreadDeletedThenRecreatedRuns) {
     KzThreadsSetMainPriority(kPriority);
     g_log.clear();

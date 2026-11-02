@@ -5872,8 +5872,7 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
 
                         if (static_cast<bool>(sound_file)) {
                             mgCMemory sound_stack;
-                            sound_stack.stSetBuffer(load_stack->stGetTop(), 0x1C0);
-                            load_stack->Alloc(0x1C0);
+                            sound_stack.stSetChildBuffer(*load_stack, load_stack->Alloc(0x1C0), 0x1C0);
                             MenuSePlay(0, reinterpret_cast<u_int *>(sound_file.Bytes().data()), &sound_stack);
                         }
 
@@ -5881,7 +5880,9 @@ int CMenuItemInfo::IsAskExtend(int select_key, int push_button) {
                         tex_manager->DeleteBlock(tex_block[2]);
                         load_stack->Align64();
                         int rest = load_stack->stGetRest();
-                        work.stSetBuffer(load_stack->stGetTop(), rest);
+                        if (!work.stShareBuffer(*load_stack, std::span(load_stack->stGetTop(), static_cast<std::size_t>(rest)))) {
+                            std::abort();
+                        }
                         build_up_chara = new (work.Alloc(align16_blocks(sizeof(CActionChara)) + 2)) CActionChara;
                         build_up_chara->Initialize(nullptr);
                         build_up_chara->LoadPack(reinterpret_cast<u_int *>(model_file.Bytes().data()), "info", &work, &work, &work, tex_block[2], nullptr);
@@ -10152,7 +10153,7 @@ int CMenuItemInfo::ModelReadStart(int mode, int check_item, int restart_read) {
             stack.stSetBorrowedBuffer(MenuItemMemory, std::span(MenuItemMemory.stGetTop(), static_cast<std::size_t>(rest)));
             MenuMemoryAdjust(&stack, &MenuCharaLoadStack, MenuActionCharaBuffer, 0);
             // The weapon and the load stack overlap the character partitions this view leaves unused.
-            if (!MenuActionCharaBuffer[0].stShareBuffer(stack, std::span(stack.stGetTop(), 0x5A00))) {
+            if (!MenuActionCharaBuffer[0].stShareBuffer(stack, std::span(stack.stGetTop(), std::size_t{0x5A00}))) {
                 std::abort();
             }
             stack.Alloc(0x5000);
@@ -10982,7 +10983,9 @@ void CMenuItemInfo::KeyStepLocal(int select_key, int push_button, int flag) {
 
     if (GamePad__2.Down(PAD_R3) && menu_debug_flag == 1) {
         int rest = MenuCharaLoadStack.stGetRest();
-        MenuDebugStack.stSetBuffer(MenuCharaLoadStack.stGetTop(), rest);
+        if (!MenuDebugStack.stShareBuffer(MenuCharaLoadStack, std::span(MenuCharaLoadStack.stGetTop(), static_cast<std::size_t>(rest)))) {
+            std::abort();
+        }
         MenuDebugItemModel = nullptr;
         MenuDebugCamera = nullptr;
         MenuDebugModelDrawFlag = 0;

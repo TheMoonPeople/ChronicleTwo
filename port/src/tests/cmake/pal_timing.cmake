@@ -11,7 +11,11 @@ add_test(NAME PalTiming.IdentitySelfTest
 set_tests_properties(PalTiming.IdentitySelfTest PROPERTIES LABELS cpu TIMEOUT 10)
 add_test(NAME PalTiming.Sites
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/pal_timing_sites.py)
-set_tests_properties(PalTiming.Sites PROPERTIES LABELS cpu TIMEOUT 10)
+set(ct_pal_sites_timeout 10)
+if(CT_TEST_TIMEOUT GREATER ct_pal_sites_timeout)
+    set(ct_pal_sites_timeout ${CT_TEST_TIMEOUT})
+endif()
+set_tests_properties(PalTiming.Sites PROPERTIES LABELS cpu TIMEOUT ${ct_pal_sites_timeout})
 add_test(NAME PalTiming.SitesSelfTest
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/pal_timing_sites.py --self-test)
 set_tests_properties(PalTiming.SitesSelfTest PROPERTIES LABELS cpu TIMEOUT 10)

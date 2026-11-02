@@ -9,22 +9,29 @@ on:
       tests:
         type: boolean
         default: false
+      sanitizers:
+        type: string
+        default: none
 permissions:
   contents: read
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.tests || false }}-linux
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.tests || false }}-linux-${{ inputs.sanitizers || 'none' }}
   cancel-in-progress: true
 jobs:
   build:
-    name: Tests (Linux)
+    name: Tests (Linux, ${{ inputs.sanitizers || 'none' }})
     if: inputs.tests
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    env:
+      CT_CACHE_PROFILE: ${{ inputs.sanitizers && inputs.sanitizers != 'none' && format('{0}-', inputs.sanitizers) || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: true
           fetch-depth: ${{ inputs.tests && '0' || '1' }}
+      - name: Check dependency stage ordering
+        run: python3 tools/ci/test_dockerfile.py
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
         id: compile-cache
@@ -33,19 +40,20 @@ jobs:
             .kazarov/ccache/linux
             .kazarov/mesa-cache/linux
             .kazarov/cargo-target/linux
-            port/build/pc/cargo
-          key: compile-linux-${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ github.sha }}-${{ github.run_attempt }}
+            port/build/pc*/cargo
+          key: compile-linux-${{ env.CT_CACHE_PROFILE }}${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ github.sha }}-${{ github.run_attempt }}
           restore-keys: |
-            compile-linux-${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ github.sha }}-
-            compile-linux-${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
-            compile-linux-${{ inputs.tests && 'build' || 'tests' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
-            compile-linux-
+            compile-linux-${{ env.CT_CACHE_PROFILE }}${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-${{ github.sha }}-
+            compile-linux-${{ env.CT_CACHE_PROFILE }}${{ inputs.tests && 'tests' || 'build' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+            compile-linux-${{ env.CT_CACHE_PROFILE }}${{ inputs.tests && 'build' || 'tests' }}-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+            compile-linux-${{ env.CT_CACHE_PROFILE }}tests-
+            compile-linux-${{ env.CT_CACHE_PROFILE }}build-
       - name: Rebuild Rust outputs after dependency changes
         env:
           RESTORED_CACHE_KEY: ${{ steps.compile-cache.outputs.cache-matched-key }}
           DEPENDENCY_CACHE_PREFIX: |
-            compile-linux-tests-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
-            compile-linux-build-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+            compile-linux-${{ env.CT_CACHE_PROFILE }}tests-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
+            compile-linux-${{ env.CT_CACHE_PROFILE }}build-${{ hashFiles('tools/ci/Dockerfile', 'tools/kazarov/Cargo.lock', 'tools/kazarov/tools/ffmpeg/kz-ffmpeg') }}-
         run: |
           python3 - <<'PY'
           import os
@@ -55,7 +63,7 @@ jobs:
           prefixes = tuple(os.environ['DEPENDENCY_CACHE_PREFIX'].splitlines())
           if key and not key.startswith(prefixes):
               workspace = Path(os.environ['GITHUB_WORKSPACE']).resolve()
-              targets = [workspace / ".kazarov/cargo-target/linux", workspace / "port/build/pc/cargo"]
+              targets = [workspace / ".kazarov/cargo-target/linux", workspace / "port/build/pc/cargo", workspace / "port/build/pc-asan/cargo"]
               if any(target.resolve() != target or not target.resolve().is_relative_to(workspace) for target in targets):
                   raise SystemExit('Rust cache paths must be real directories inside the workspace')
               for target in targets:
@@ -79,9 +87,10 @@ jobs:
           BEFORE: ${{ github.event.before }}
           EVENT: ${{ github.event_name }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          CT_SANITIZERS: ${{ inputs.sanitizers || 'none' }}
         run: |
           docker run --rm -v "$GITHUB_WORKSPACE:/work" \
-            -e PR_BASE -e BEFORE -e EVENT -e DEFAULT_BRANCH \
+            -e PR_BASE -e BEFORE -e EVENT -e DEFAULT_BRANCH -e CT_SANITIZERS \
             chronicletwo-ci:build bash tools/ci/linux.sh ${{ inputs.tests && 'tests' || 'build' }}
       - name: Restore cache ownership
         if: always()
@@ -89,10 +98,10 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always() && inputs.tests
         with:
-          name: tests-linux
+          name: tests-linux-${{ inputs.sanitizers || 'none' }}
           path: |
-            port/build/pc/tests.xml
-            port/build/pc/Testing/Temporary/
+            port/build/pc*/tests.xml
+            port/build/pc*/Testing/Temporary/
           if-no-files-found: warn
 
       - name: Save reusable compiler outputs
@@ -103,7 +112,7 @@ jobs:
             .kazarov/ccache/linux
             .kazarov/mesa-cache/linux
             .kazarov/cargo-target/linux
-            port/build/pc/cargo
+            port/build/pc*/cargo
           key: ${{ steps.compile-cache.outputs.cache-primary-key }}
 
   # docs/FLATPAK.md: the Linux build packaged in Flathub's freedesktop 26.08 image. The manifest uses the

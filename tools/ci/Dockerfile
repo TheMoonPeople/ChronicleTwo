@@ -132,7 +132,7 @@ RUN mkdir -p /opt/cargo-manifest/src/rust \
 
 FROM fetch AS linux-tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential clang-22 lld-22 llvm-22 libclang1-22 python3-clang-22 \
+    build-essential clang-22 lld-22 llvm-22 libclang1-22 libclang-rt-22-dev python3-clang-22 \
     cmake ninja-build ccache nasm git pkg-config glslang-tools \
     mesa-vulkan-drivers vulkan-validationlayers libsdl3-dev libvulkan-dev \
     libxkbcommon-dev libwayland-dev libx11-dev libxcursor-dev libxi-dev libxrandr-dev libegl1-mesa-dev \
@@ -161,6 +161,17 @@ RUN fetch https://github.com/libsdl-org/SDL/releases/download/release-3.4.18/SDL
 RUN fetch https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-1.4.363.0.zip \
     f4be95220ff0ee0b1c620301ff4fe9ae48592d71f4c30f2d5c571351a153ae81 /tmp/vulkan.zip \
     && unzip -q /tmp/vulkan.zip -d /opt/deps/vulkan && rm -f /tmp/*.zip
+FROM linux-tools AS windows-compiler
+RUN fetch https://github.com/mstorsjo/llvm-mingw/releases/download/20260922/llvm-mingw-20260922-ucrt-ubuntu-22.04-x86_64.tar.xz \
+    bb7bb7654b33d5aa8712acb837c963b2e0c56352560c76105270a3268c665c21 /tmp/llvm.tar.xz \
+    && mkdir /opt/llvm && tar xf /tmp/llvm.tar.xz -C /opt/llvm --strip-components=1 && rm /tmp/llvm.tar.xz
+ENV PATH=/opt/llvm/bin:$PATH
+
+FROM windows-compiler AS windows-cxxbridge
+ENV CARGO_TARGET_X86_64_PC_WINDOWS_GNULLVM_LINKER=x86_64-w64-mingw32-clang
+RUN cargo install --locked cxxbridge-cmd --version 1.0.205 \
+    --target x86_64-pc-windows-gnullvm --root /opt/bridge
+
 FROM windows-target-deps AS windows-sdk
 RUN fetch https://static.rust-lang.org/dist/2026-10-01/rust-1.99.0-x86_64-pc-windows-gnullvm.tar.xz \
     958c1b5b43413c7f7c226234422799a0b13bbc6904659ed3300591762d5a4e55 /tmp/rust.tar.xz \
@@ -188,17 +199,6 @@ RUN fetch https://github.com/KhronosGroup/glslang/releases/download/16.6.0/glsla
     82bf434e69b9bb4829de7e2b4bc2c5e7a7861e53d66cf75e5cc70f5f694a8d9b /tmp/glslang.zip \
     && unzip -q /tmp/glslang.zip -d /opt/deps/glslang && rm -f /tmp/*.zip
 COPY --from=windows-cxxbridge /opt/bridge/bin/cxxbridge.exe /opt/deps/rust/1.99.0-gnullvm/bin/cxxbridge.exe
-
-FROM linux-tools AS windows-compiler
-RUN fetch https://github.com/mstorsjo/llvm-mingw/releases/download/20260922/llvm-mingw-20260922-ucrt-ubuntu-22.04-x86_64.tar.xz \
-    bb7bb7654b33d5aa8712acb837c963b2e0c56352560c76105270a3268c665c21 /tmp/llvm.tar.xz \
-    && mkdir /opt/llvm && tar xf /tmp/llvm.tar.xz -C /opt/llvm --strip-components=1 && rm /tmp/llvm.tar.xz
-ENV PATH=/opt/llvm/bin:$PATH
-
-FROM windows-compiler AS windows-cxxbridge
-ENV CARGO_TARGET_X86_64_PC_WINDOWS_GNULLVM_LINKER=x86_64-w64-mingw32-clang
-RUN cargo install --locked cxxbridge-cmd --version 1.0.205 \
-    --target x86_64-pc-windows-gnullvm --root /opt/bridge
 
 # Build the official loader sources; LunarG's binary download endpoint rejects some CI clients.
 FROM windows-compiler AS windows-vulkan

@@ -525,10 +525,12 @@ STATIC_ASSERT(sizeof(mgCTextureAnime) == 0x1E4);
  */
 class mgCTextureBlock {
 public:
-    int              unk_0{};
-    int              unk_4{};
-    mgCTexture      *texture{}; /**< First texture of the block's list, or NULL when the block is empty. */
-    mgCTextureAnime *anime{};   /**< Texture animation of the block, or NULL. */
+    int                      unk_0{};
+    int                      unk_4{};
+    mgCTexture              *texture{};                       /**< First texture of the block's list, or NULL when the block is empty. */
+    mgCTextureAnime         *anime{};                         /**< Texture animation of the block, or NULL. */
+    dc2::memory::ArenaBuffer animation_storage{};             /**< Exact controller allocation associated with this block. */
+    bool                     animation_storage_bound = false; /**< Whether the controller has an arena allocation identity. */
 
     /**
      *
