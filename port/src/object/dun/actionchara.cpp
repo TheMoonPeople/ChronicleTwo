@@ -18,6 +18,7 @@
 #include "dng_event.hpp"
 #include "dng_main.hpp"
 #include "dng_status.hpp"
+#include "dungeon_sprint.hpp"
 #include "effect.hpp"
 #include "effscript.hpp"
 #include "gamedata.hpp"
@@ -1778,6 +1779,8 @@ int CActionChara::HumanMoveIF() {
 
     sceVu0CopyVector(velocity, move_velocity);
     RockOn();
+    // Holding R2 sprints on foot, scaling the walk this step has set.
+    DungeonSprintMove(this);
     return true;
 }
 
