@@ -6,8 +6,9 @@ import unittest
 from pathlib import Path
 
 if __package__:
-    from . import native_architecture
+    from . import gpu_test_labels, native_architecture
 else:
+    import gpu_test_labels
     import native_architecture
 
 
@@ -25,6 +26,42 @@ class NativeArchitectureTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
         return path
+
+    def test_gpu_labels_preserve_numeric_separators_across_nested_blocks(self):
+        """Keep device ownership visible when timestamp literals contain digit separators."""
+        source = self.write("port/src/tests/feedback_test.cpp", """
+TEST(Feedback, NumericSeparators) {
+    const auto check = [] {
+        const auto pause = 1'000'002'000;
+        const auto query = 1'000'002'100;
+        return 1'000'003'000;
+    };
+    RendererInit();
+    const auto presented = 1'000'002'500;
+    const auto after = 1'000'003'001;
+}
+TEST(Feedback, FollowingCase) { RendererInit(); }
+""")
+        self.assertEqual(list(gpu_test_labels.device_tests(source)),
+                         ["Feedback.NumericSeparators", "Feedback.FollowingCase"])
+
+    def test_gpu_labels_ignore_prefixed_character_braces(self):
+        """Exclude character-literal braces without hiding actual renderer creation."""
+        for prefix in ("", "u8", "u", "U", "L"):
+            with self.subTest(prefix=prefix):
+                source = self.write("port/src/tests/character_test.cpp",
+                                    "TEST(Character, Brace) { const auto brace = "
+                                    + prefix + "'{'; RendererInit(); }\n")
+                self.assertEqual(list(gpu_test_labels.device_tests(source)), ["Character.Brace"])
+
+    def test_gpu_labels_preserve_character_tokens_adjacent_to_keywords(self):
+        """Keep renderer ownership visible after whitespace-free character returns and cases."""
+        source = self.write("port/src/tests/keyword_test.cpp", """
+TEST(Character, Return) { auto value = [] { return'}'; }; RendererInit(); }
+TEST(Character, Case) { switch (value) { case'{': break; } RendererInit(); }
+""")
+        self.assertEqual(list(gpu_test_labels.device_tests(source)),
+                         ["Character.Return", "Character.Case"])
 
     def test_clean_runtime_ignores_comments_strings_and_test_fixtures(self):
         self.write(

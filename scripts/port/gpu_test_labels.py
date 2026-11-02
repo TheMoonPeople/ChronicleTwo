@@ -21,7 +21,8 @@ def block(code, opening):
 
 def device_tests(path):
     code = path.read_text(encoding='utf-8')
-    code = re.sub(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+    # Numeric tokens consume digit separators before character-literal handling.
+    code = re.sub(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\b[0-9][\w.\']*|(?:u8|u|U|L)?\'(?:\\.|[^\'\\\r\n])*\'',
                   ' ', code, flags=re.S)
     device = re.compile(r'\b(?:GfxFixture|RendererInit)\b')
     fixtures = set()
