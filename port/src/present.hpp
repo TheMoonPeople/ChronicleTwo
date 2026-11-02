@@ -18,6 +18,8 @@ struct PresentSettings {
     bool            show_fps = false;
     ConfigFpsDetail fps_detail = ConfigFpsDetail::All;
     bool            log_fps = false;
+    bool            endpoint_preflight = false; /**< Checks native feedback before an eligible idle endpoint. */
+    bool            deferred_canonical = false; /**< Allows guarded canonical rendering before prior endpoint retirement. */
 };
 
 struct PresentStats {
@@ -50,6 +52,14 @@ bool PresentScreenshotDisplay(float alpha, std::vector<uint8_t> &rgba, uint32_t 
 bool PresentScreenshotFps(std::vector<uint8_t> &rgba, uint32_t &width, uint32_t &height);
 
 namespace dc2::presentation {
+/**
+ * Applies the Switch presentation defaults while preserving a positive lower frame cap.
+ */
+PresentSettings SwitchPresentationSettings(PresentSettings settings);
+/**
+ * Retires suspended publications and reanchors frame timing while rendering remains quiescent.
+ */
+void ResumeAfterSuspend();
 /**
  * Preallocates optional scheduling diagnostics before scene warmup.
  */

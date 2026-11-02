@@ -105,12 +105,12 @@ bool DungeonStressEnabled();
 DungeonStressBodyTag DungeonStressCurrentBody();
 
 /**
- * Allows immutable triangle witnesses to be selected only before measurement starts.
+ * Allows immutable triangle discovery until readiness freezes witnesses for warmup and measurement.
  */
 bool DungeonStressCaptureWitnesses();
 
 /**
- * Records an indexed body submission, permitting setup capture or an unproven measured witness.
+ * Records an indexed body submission, permitting discovery or the current canonical body's first witness.
  */
 bool DungeonStressBodySubmitted(DungeonStressBodyTag tag);
 

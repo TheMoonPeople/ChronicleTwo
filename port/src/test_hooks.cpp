@@ -1167,7 +1167,7 @@ bool DungeonStressEnabled() { return stress.enabled; }
 
 DungeonStressBodyTag DungeonStressCurrentBody() { return stress_body; }
 
-bool DungeonStressCaptureWitnesses() { return stress.enabled && !stress.measuring; }
+bool DungeonStressCaptureWitnesses() { return stress.enabled && !perf.ready; }
 
 bool DungeonStressBodySubmitted(DungeonStressBodyTag tag) {
     const int index = StressBodyIndex(tag);
@@ -1175,7 +1175,7 @@ bool DungeonStressBodySubmitted(DungeonStressBodyTag tag) {
         return false;
     }
     stress.submitted[static_cast<std::size_t>(index)] = true;
-    return !stress.measuring || !stress.witnessed[static_cast<std::size_t>(index)];
+    return DungeonStressCaptureWitnesses() || !stress.witnessed[static_cast<std::size_t>(index)];
 }
 
 void DungeonStressBodyBounds(mgCFrame *frame) {

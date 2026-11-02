@@ -9,7 +9,7 @@
 namespace dc2::render {
 
 /**
- * Selects identical shadow output with memoized or reference corner evaluation.
+ * Selects memoized shadow construction or independent ordered-map topology and corner evaluation.
  */
 enum class ShadowTransformMode {
     Memoized,
@@ -26,7 +26,7 @@ struct ShadowMeshStats {
     std::uint64_t source_corners = 0;        /**< Expanded triangle corners requested by the source. */
     std::uint64_t transformed_positions = 0; /**< Positions whose original transform expressions were evaluated. */
     std::uint64_t topology_hits = 0;         /**< Owned topology reuses after exact geometry comparison. */
-    std::uint64_t topology_rebuilds = 0;     /**< Topology rebuilds after source geometry changes. */
+    std::uint64_t topology_rebuilds = 0;     /**< Topology construction passes for changed geometry or independent reference evaluation. */
 };
 
 /**

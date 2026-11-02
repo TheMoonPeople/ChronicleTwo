@@ -4,6 +4,8 @@
 #include <limits>
 #include <utility>
 
+#include "platform_fixture.hpp"
+#include "present.hpp"
 #include "present_timing.hpp"
 
 namespace {
@@ -12,6 +14,93 @@ using Action = PresentPacer::Action;
 using namespace std::chrono_literals;
 const auto origin = Clock::time_point{} + 1s;
 } // namespace
+
+/**
+ * Restores presentation settings and explicit environment controls after each configuration case.
+ */
+class PresentationSettings : public testing::Test {
+protected:
+    PresentSettings       previous = PresentGetSettings();                                    /**< Presentation state restored after each case. */
+    dc::test::EnvSnapshot preflight = dc::test::SaveEnv("DC2_PERF_ENDPOINT_PREFLIGHT");       /**< Original endpoint override. */
+    dc::test::EnvSnapshot deferred = dc::test::SaveEnv("DC2_PERF_DEFERRED_CANONICAL_COMMIT"); /**< Original canonical override. */
+
+    /**
+     * Removes ambient overrides before applying each instance's requested defaults.
+     */
+    void SetUp() override {
+        ASSERT_EQ(dc::test::UnsetEnv("DC2_PERF_ENDPOINT_PREFLIGHT"), 0);
+        ASSERT_EQ(dc::test::UnsetEnv("DC2_PERF_DEFERRED_CANONICAL_COMMIT"), 0);
+    }
+
+    /**
+     * Restores caller controls and their presentation state.
+     */
+    void TearDown() override {
+        dc::test::RestoreEnv(preflight);
+        dc::test::RestoreEnv(deferred);
+        PresentSetSettings(previous);
+    }
+};
+
+TEST_F(PresentationSettings, SwitchDefaultsPreserveLowerCapsAndOrdinarySettings) {
+    PresentSetSettings({});
+    EXPECT_FALSE(PresentGetSettings().endpoint_preflight);
+    EXPECT_FALSE(PresentGetSettings().deferred_canonical);
+    const std::array cases{
+        std::pair{24.0,                                    24.0},
+        std::pair{30.0,                                    30.0},
+        std::pair{60.0,                                    60.0},
+        std::pair{0.0,                                     60.0},
+        std::pair{-1.0,                                    60.0},
+        std::pair{120.0,                                   60.0},
+        std::pair{std::numeric_limits<double>::infinity(), 60.0}
+    };
+    for (const auto &[cap, expected] : cases) {
+        PresentSettings requested;
+        requested.max_fps = cap;
+        requested.interpolation = false;
+        requested.show_fps = true;
+        requested.display_per_tick = 4;
+        PresentSetSettings(dc2::presentation::SwitchPresentationSettings(requested));
+        const auto &actual = PresentGetSettings();
+        EXPECT_DOUBLE_EQ(actual.max_fps, expected);
+        EXPECT_TRUE(actual.endpoint_preflight);
+        EXPECT_TRUE(actual.deferred_canonical);
+        EXPECT_FALSE(actual.interpolation);
+        EXPECT_TRUE(actual.show_fps);
+        EXPECT_EQ(actual.display_per_tick, 0);
+    }
+    PresentSetSettings({});
+    EXPECT_FALSE(PresentGetSettings().endpoint_preflight);
+    EXPECT_FALSE(PresentGetSettings().deferred_canonical);
+}
+
+TEST_F(PresentationSettings, ExplicitOverridesAreResolvedAgainForEachSettingsInstance) {
+    const auto shipping = dc2::presentation::SwitchPresentationSettings({});
+    ASSERT_EQ(dc::test::SetEnv("DC2_PERF_ENDPOINT_PREFLIGHT", "0", 1), 0);
+    ASSERT_EQ(dc::test::SetEnv("DC2_PERF_DEFERRED_CANONICAL_COMMIT", "0", 1), 0);
+    PresentSetSettings(shipping);
+    EXPECT_FALSE(PresentGetSettings().endpoint_preflight);
+    EXPECT_FALSE(PresentGetSettings().deferred_canonical);
+    ASSERT_EQ(dc::test::SetEnv("DC2_PERF_ENDPOINT_PREFLIGHT", "1", 1), 0);
+    ASSERT_EQ(dc::test::SetEnv("DC2_PERF_DEFERRED_CANONICAL_COMMIT", "1", 1), 0);
+    PresentSetSettings({});
+    EXPECT_TRUE(PresentGetSettings().endpoint_preflight);
+    EXPECT_TRUE(PresentGetSettings().deferred_canonical);
+    ASSERT_EQ(dc::test::SetEnv("DC2_PERF_ENDPOINT_PREFLIGHT", "invalid", 1), 0);
+    ASSERT_EQ(dc::test::SetEnv("DC2_PERF_DEFERRED_CANONICAL_COMMIT", "invalid", 1), 0);
+    PresentSetSettings(shipping);
+    EXPECT_TRUE(PresentGetSettings().endpoint_preflight);
+    EXPECT_TRUE(PresentGetSettings().deferred_canonical);
+    PresentSetSettings({});
+    EXPECT_FALSE(PresentGetSettings().endpoint_preflight);
+    EXPECT_FALSE(PresentGetSettings().deferred_canonical);
+    ASSERT_EQ(dc::test::UnsetEnv("DC2_PERF_ENDPOINT_PREFLIGHT"), 0);
+    ASSERT_EQ(dc::test::UnsetEnv("DC2_PERF_DEFERRED_CANONICAL_COMMIT"), 0);
+    PresentSetSettings({});
+    EXPECT_FALSE(PresentGetSettings().endpoint_preflight);
+    EXPECT_FALSE(PresentGetSettings().deferred_canonical);
+}
 
 TEST(PresentTiming, RenderTimeIsPartOfTheCapPeriod) {
     for (double rate : {60.0, 120.0, 240.0}) {

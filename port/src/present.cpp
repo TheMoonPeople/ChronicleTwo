@@ -166,28 +166,6 @@ struct EndpointPreflightMetrics {
 EndpointPreflightMetrics endpoint_preflight_metrics;
 
 /**
- * Selects the default-off idle endpoint feedback experiment.
- */
-bool EndpointPreflightEnabled() {
-    static const bool enabled = [] {
-        const char *setting = std::getenv("DC2_PERF_ENDPOINT_PREFLIGHT");
-        return setting != nullptr && std::string_view{setting} == "1";
-    }();
-    return enabled;
-}
-
-/**
- * Selects the default-off queued canonical overlap experiment.
- */
-bool DeferredCanonicalEnabled() {
-    static const bool enabled = [] {
-        const char *setting = std::getenv("DC2_PERF_DEFERRED_CANONICAL_COMMIT");
-        return setting != nullptr && std::string_view{setting} == "1";
-    }();
-    return enabled;
-}
-
-/**
  * Identifies the publication or scheduling site that produced an observation.
  */
 enum class ScheduleEvent {
@@ -741,7 +719,7 @@ std::chrono::steady_clock::duration PresentRenderIdle(void *) {
         const bool gate = gfx::VsyncGateActive();
         const auto decision = render_pair.NextIdle(now, frame.frame_start + frame.frame_length, frame.settings.max_fps,
                                                    render_pacer, gate);
-        if (decision.action == Action::Endpoint && EndpointPreflightEnabled() &&
+        if (decision.action == Action::Endpoint && frame.settings.endpoint_preflight &&
             !render_pair.IdleEndpointFeedbackReady(decision.action, frame.settings.max_fps, true,
                                                    gfx::PresentedGateActive(), [] {
                                                        endpoint_preflight_metrics.probes.fetch_add(1, std::memory_order_relaxed);
@@ -828,6 +806,37 @@ std::chrono::steady_clock::duration PresentRenderIdle(void *) {
 
 namespace dc2::presentation {
 
+PresentSettings SwitchPresentationSettings(PresentSettings value) {
+    value.endpoint_preflight = true;
+    value.deferred_canonical = true;
+    value.max_fps = value.max_fps > 0.0 && value.max_fps < 60.0 ? value.max_fps : 60.0;
+    value.display_per_tick = 0;
+    return value;
+}
+
+void ResumeAfterSuspend() {
+    gfx::RenderLease lease;
+    const auto       epoch = settings_epoch.fetch_add(1) + 1;
+    std::uint64_t    retired_serial = 0;
+    {
+        std::scoped_lock lock{publish_mutex};
+        retired_serial = published.serial;
+        published = {};
+        published.serial = retired_serial;
+        published.epoch = epoch;
+        render_serial = retired_serial;
+    }
+    render_pair.Cancel();
+    render_pacer = {};
+    pacer = {};
+    render_frames = OverlayRate{};
+    render_tick_shown = false;
+    tick_shown = true;
+    dc2::timing::BeginFrame();
+    mgPortCutInterpolation();
+    CT_LOG_INFO(Main, "presentation resume: retired_publication={} epoch={} pending_endpoint=cancelled next_publication=fresh-replay", retired_serial, epoch);
+}
+
 void PrepareSchedulingTrace() {
     const char *setting = std::getenv("DC2_PERF_PRESENT_TRACE");
     if (setting == nullptr || std::string_view{setting} != "1") {
@@ -860,12 +869,17 @@ void EndSchedulingTrace(Clock::time_point now, std::uint64_t native_ns) {
 }
 
 void LogSchedulingTrace() {
-    if (EndpointPreflightEnabled()) {
+    PresentSettings captured_settings;
+    {
+        std::scoped_lock lock{publish_mutex};
+        captured_settings = published.settings;
+    }
+    if (captured_settings.endpoint_preflight) {
         CT_LOG_INFO(Main, "perf endpoint preflight: scope=lifetime feedback={} probes={} pending={}",
                     gfx::PresentedGateActive(), endpoint_preflight_metrics.probes.load(std::memory_order_relaxed),
                     endpoint_preflight_metrics.pending.load(std::memory_order_relaxed));
     }
-    if (DeferredCanonicalEnabled()) {
+    if (captured_settings.deferred_canonical) {
         const auto &metrics = deferred_canonical_metrics;
         CT_LOG_INFO(Main, "perf deferred canonical: scope=lifetime feedback={} attempts={} selected={} rendered={} retired={} fallback_mode={} fallback_pair={} fallback_policy={} fallback_epoch={} fallback_gpu={} fallback_image={} fallback_preservation={}",
                     gfx::PresentedGateActive(), metrics.attempts.load(), metrics.selected.load(), metrics.rendered.load(),
@@ -978,7 +992,15 @@ void BeforeCanonical() {
 }
 
 bool TryRenderCanonicalBeforeEndpoint(const gfx::DisplayList &next) {
-    if (!DeferredCanonicalEnabled() || !PresentAsync()) {
+    if (!PresentAsync()) {
+        return false;
+    }
+    Published frame;
+    {
+        std::scoped_lock lock{publish_mutex};
+        frame = published;
+    }
+    if (!frame.settings.deferred_canonical) {
         return false;
     }
     auto &metrics = deferred_canonical_metrics;
@@ -986,11 +1008,6 @@ bool TryRenderCanonicalBeforeEndpoint(const gfx::DisplayList &next) {
     if (!gfx::PresentedGateActive()) {
         ++metrics.mode;
         return false;
-    }
-    Published frame;
-    {
-        std::scoped_lock lock{publish_mutex};
-        frame = published;
     }
     if (!frame.list || !frame.canonical_image || frame.endpoint_policy != EndpointPolicy::CanonicalAuthored ||
         frame.mouse_fixed || frame.mouse_pointer || frame.suppressed_2d_key != 0 ||
@@ -1040,6 +1057,18 @@ bool PresentMouseActive() {
 
 void PresentSetSettings(const PresentSettings &value) {
     settings = value;
+    const auto resolve = [](const char *name, bool fallback) {
+        const char *setting = std::getenv(name);
+        if (setting != nullptr && std::string_view{setting} == "0") {
+            return false;
+        }
+        if (setting != nullptr && std::string_view{setting} == "1") {
+            return true;
+        }
+        return fallback;
+    };
+    settings.endpoint_preflight = resolve("DC2_PERF_ENDPOINT_PREFLIGHT", value.endpoint_preflight);
+    settings.deferred_canonical = resolve("DC2_PERF_DEFERRED_CANONICAL_COMMIT", value.deferred_canonical);
     settings_epoch.fetch_add(1);
     overlay.on = value.show_fps;
     if (PresentAsync()) {
@@ -1162,7 +1191,10 @@ void Publish(TickPublication tick, const std::optional<gfx::CanonicalImageToken>
     std::optional<ScheduleRow> trace;
     {
         std::scoped_lock lock(publish_mutex);
-        bool             eligible_source = false;
+        if (tick.epoch != settings_epoch.load()) {
+            return;
+        }
+        bool eligible_source = false;
         published.endpoint_policy = EndpointPolicyFor(tick, image, published, published.canonical_image, eligible_source);
         published.canonical_endpoint_source = eligible_source;
         published.canonical_image = image;

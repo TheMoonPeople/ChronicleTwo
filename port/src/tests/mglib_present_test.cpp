@@ -49,6 +49,7 @@
 #include "platform/arena.hpp"
 #include "platform/clock.hpp"
 #include "platform/firstrun.hpp"
+#include "platform/frame_timing.hpp"
 #include "platform/game_loop_state.hpp"
 #include "platform/input.hpp"
 #include "platform/model_assets.hpp"
@@ -498,6 +499,63 @@ TEST(MglibPresent, AsyncPublishesTheTickPairAndPresentsFromTheWorker) {
     const PresentStats stats = PresentGetStats();
     EXPECT_EQ(stats.ticks, 2u);
     EXPECT_GT(stats.display_frames, 0u);
+    EXPECT_EQ(gfx::ValidationMessageCount(), 0u);
+}
+
+TEST(MglibPresent, ResumeRejectsQueuedOldPublicationAndFreshCanonicalRestartsReplay) {
+    if (std::getenv("KZ_RENDER_THREAD") != nullptr) {
+        GTEST_SKIP() << "KZ_RENDER_THREAD overrides the render thread mode";
+    }
+    PresentRenderer renderer(640, 480, gfx::RenderThreadMode::Async);
+    PresentResetStats();
+    PresentSetSettings(PresentSettings{.interpolation = true, .max_fps = 60.0});
+    static int object;
+    RecordTicks(2, &object, 0.0f);
+    PresentStats before;
+    {
+        gfx::RenderLease lease;
+        auto             queued_publication = PresentPrepareTick(static_cast<int>(ClockTickCount()), 2, true);
+        ASSERT_TRUE(queued_publication);
+        before = PresentGetStats();
+        const auto callback = ClockSetResumeCallback(dc2::presentation::ResumeAfterSuspend);
+        ClockReanchor();
+        ClockSetResumeCallback(callback);
+        queued_publication();
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(40));
+    EXPECT_EQ(PresentGetStats().display_frames, before.display_frames);
+    EXPECT_EQ(PresentGetStats().canonical_presents, before.canonical_presents);
+    EXPECT_EQ(PresentGetStats().replay_ticks, before.replay_ticks);
+
+    RecordTicks(1, &object, 10.0f);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (PresentGetStats().display_frames == before.display_frames && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    EXPECT_GT(PresentGetStats().display_frames, before.display_frames);
+    EXPECT_EQ(PresentGetStats().canonical_presents, before.canonical_presents);
+    EXPECT_EQ(PresentGetStats().replay_ticks, before.replay_ticks + 1);
+    EXPECT_EQ(gfx::ValidationMessageCount(), 0u);
+}
+
+TEST(MglibPresent, ResumeReanchorsAnOpenCpuFrameWithoutAdvancingGameTicks) {
+    PresentRenderer renderer(640, 480);
+    PresentSetSettings(PresentSettings{.interpolation = true});
+    ClockSetUnbounded(false);
+    ClockSetTickRate(60.0);
+    mgBeginFrame(nullptr);
+    ASSERT_TRUE(mgPortRecording());
+    const auto count = ClockTickCount();
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    EXPECT_GT(dc2::timing::FrameFields(), 1.0f);
+    const auto callback = ClockSetResumeCallback(dc2::presentation::ResumeAfterSuspend);
+    ClockReanchor();
+    ClockSetResumeCallback(callback);
+    EXPECT_EQ(ClockTickCount(), count);
+    EXPECT_TRUE(mgPortRecording());
+    EXPECT_LT(dc2::timing::FrameFields(), 1.0f);
+    mgEndFrame(nullptr);
+    EXPECT_FALSE(mgPortRecording());
     EXPECT_EQ(gfx::ValidationMessageCount(), 0u);
 }
 

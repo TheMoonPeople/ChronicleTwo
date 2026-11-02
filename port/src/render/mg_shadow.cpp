@@ -8,6 +8,7 @@
 #include <bit>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <map>
 #include <span>
 #include <unordered_map>
@@ -240,74 +241,129 @@ std::array<uint32_t, 3> PositionKey(const vu::Vec4 &p) {
     return {std::bit_cast<uint32_t>(p.x + 0.0f), std::bit_cast<uint32_t>(p.y + 0.0f), std::bit_cast<uint32_t>(p.z + 0.0f)};
 }
 
-Topology &ShadowTopology(const mgCShadowMDT &visual) {
-    static std::unordered_map<const mgCShadowMDT *, Topology> cache;
-    static thread_local std::vector<Triangle>                 triangles;
-    triangles.clear();
-    for (const mgFACE_GROUP *group = visual.face_group; group; group = group->next) {
-        for (const mgCFace *face = group->face; face; face = face->next) {
-            for (int t = 0; t < face->vertex_num; ++t) {
-                Triangle triangle;
-                for (int corner = 0; corner < 3; ++corner) {
-                    const float *p = visual.vertex[face->index[t * 3 + corner]];
-                    triangle[corner] = {.x = p[0], .y = p[1], .z = p[2], .w = 1.0f};
-                }
-                triangles.push_back(triangle);
-            }
+/**
+ * Retains independent cancellation identity and the first raw computational representative.
+ */
+struct Position {
+    uint32_t adjacency_id;   /**< First-seen normalized position identity for edge construction. */
+    uint32_t representative; /**< First source position retained with its exact raw bits. */
+};
+
+/**
+ * Orders one triangle edge by its normalized endpoints and source location.
+ */
+struct Edge {
+    uint64_t key;      /**< Sorted endpoint identities packed into one key. */
+    uint32_t triangle; /**< Source triangle owning the edge. */
+    uint32_t edge;     /**< Original corner starting the edge. */
+    auto     operator<=>(const Edge &) const = default;
+};
+
+/**
+ * Reuses exact normalized position identities without allocating one node per position.
+ */
+class PositionTable {
+    /**
+     * Stores one occupied normalized key and its first-seen position identity.
+     */
+    struct Bucket {
+        std::array<uint32_t, 3> key{};            /**< Exact normalized XYZ bits. */
+        Position                position{};       /**< First-seen adjacency and computational representative. */
+        bool                    occupied = false; /**< Whether the key participates in this rebuild. */
+    };
+
+    std::vector<Bucket>      buckets;              /**< Power-of-two table with at most half its buckets occupied. */
+    std::vector<std::size_t> occupied_slots;       /**< Buckets to clear before the next rebuild. */
+    uint32_t                 unique_positions = 0; /**< Number of first-seen normalized keys in source order. */
+
+    /**
+     * Mixes all normalized coordinate bits before power-of-two bucket selection.
+     */
+    static std::size_t Hash(const std::array<uint32_t, 3> &key) {
+        uint64_t hash = 0x9e3779b97f4a7c15ULL;
+        for (const auto component : key) {
+            hash ^= component;
+            hash *= 0xbf58476d1ce4e5b9ULL;
+            hash ^= hash >> 27;
         }
+        return static_cast<std::size_t>(hash);
     }
-    // Cached geometry is owned, never read through retired arena pointers, and compared before reuse.
-    if (cache.size() >= kShadowCacheEntries && !cache.contains(&visual)) {
-        cache.clear();
+
+public:
+    /**
+     * Clears the previous rebuild and provides checked capacity for every source corner.
+     */
+    bool Reset(std::size_t corners) {
+        for (const auto slot : occupied_slots) {
+            buckets[slot].occupied = false;
+        }
+        occupied_slots.clear();
+        unique_positions = 0;
+        if (!std::in_range<uint32_t>(corners) || corners > std::numeric_limits<std::size_t>::max() / 2) {
+            return false;
+        }
+        const auto  required = std::max<std::size_t>(2, corners * 2);
+        std::size_t capacity = 2;
+        while (capacity < required) {
+            if (capacity > std::numeric_limits<std::size_t>::max() / 2) {
+                return false;
+            }
+            capacity *= 2;
+        }
+        if (buckets.size() < capacity) {
+            buckets.resize(capacity);
+        }
+        occupied_slots.reserve(corners);
+        return true;
     }
-    auto &entry = cache[&visual];
-    if (entry.triangles.size() == triangles.size() &&
-        (triangles.empty() || std::memcmp(entry.triangles.data(), triangles.data(), triangles.size() * sizeof(Triangle)) == 0)) {
-        ++shadow_mesh_stats.topology_hits;
-        return entry;
+
+    /**
+     * Resolves an exact key while preserving source-order identity and representative assignment.
+     */
+    std::pair<Position, bool> FindOrInsert(const std::array<uint32_t, 3> &key, uint32_t representative) {
+        auto slot = Hash(key) & (buckets.size() - 1);
+        while (buckets[slot].occupied) {
+            if (buckets[slot].key == key) {
+                return {buckets[slot].position, false};
+            }
+            slot = (slot + 1) & (buckets.size() - 1);
+        }
+        auto &bucket = buckets[slot];
+        bucket.key = key;
+        bucket.position = {.adjacency_id = unique_positions++, .representative = representative};
+        bucket.occupied = true;
+        occupied_slots.push_back(slot);
+        return {bucket.position, true};
     }
-    ++shadow_mesh_stats.topology_rebuilds;
-    entry.triangles = triangles;
+};
+
+/**
+ * Rebuilds exact corner identities and cancellation links using the selected position lookup.
+ */
+template <class Lookup>
+void RebuildTopology(Topology &entry, std::span<const Triangle> triangles, Lookup lookup, std::vector<Edge> &edges) {
+    entry.triangles.assign(triangles.begin(), triangles.end());
     entry.neighbours.assign(triangles.size(), {-1, -1, -1});
     entry.memo_positions.clear();
     entry.corner_positions.resize(triangles.size());
-
-    struct Edge {
-        uint64_t key;
-        uint32_t triangle;
-        uint32_t edge;
-        auto     operator<=>(const Edge &) const = default;
-    };
-
-    /**
-     * Retains independent cancellation identity and the first raw computational representative.
-     */
-    struct Position {
-        uint32_t adjacency_id;   /**< Original normalized position identity for edge construction. */
-        uint32_t representative; /**< First source position retained with its exact raw bits. */
-    };
-
-    std::map<std::array<uint32_t, 3>, Position> positions;
-    std::vector<Edge>                           edges;
+    edges.clear();
     edges.reserve(triangles.size() * 3);
     for (uint32_t t = 0; t < triangles.size(); ++t) {
         std::array<uint32_t, 3> ids{};
         for (int corner = 0; corner < 3; ++corner) {
             const auto &source = triangles[t][corner];
-            const auto [position, inserted] = positions.try_emplace(
-                PositionKey(source), Position{.adjacency_id = static_cast<uint32_t>(positions.size()),
-                                              .representative = static_cast<uint32_t>(entry.memo_positions.size())});
+            const auto [position, inserted] = lookup(PositionKey(source), static_cast<uint32_t>(entry.memo_positions.size()));
             const auto raw_key = [](const vu::Vec4 &point) {
                 return std::array{std::bit_cast<uint32_t>(point.x), std::bit_cast<uint32_t>(point.y), std::bit_cast<uint32_t>(point.z)};
             };
-            uint32_t computational_id = position->second.representative;
+            uint32_t computational_id = position.representative;
             // Unmatched raw variants remain separate without another lookup or bucket allocation.
             if (inserted || raw_key(entry.memo_positions[computational_id]) != raw_key(source)) {
                 computational_id = static_cast<uint32_t>(entry.memo_positions.size());
                 entry.memo_positions.push_back(source);
             }
             entry.corner_positions[t][static_cast<std::size_t>(corner)] = computational_id;
-            ids[corner] = position->second.adjacency_id;
+            ids[corner] = position.adjacency_id;
         }
         for (uint32_t edge = 0; edge < 3; ++edge) {
             const auto a = ids[edge];
@@ -330,6 +386,60 @@ Topology &ShadowTopology(const mgCShadowMDT &visual) {
             entry.neighbours[b.triangle][b.edge] = static_cast<int32_t>(a.triangle * 3 + a.edge);
         }
         first = end;
+    }
+}
+
+/**
+ * Builds topology through the original ordered-map identity lookup for independent comparison.
+ */
+void RebuildReferenceTopology(Topology &entry, std::span<const Triangle> triangles, std::vector<Edge> &edges) {
+    std::map<std::array<uint32_t, 3>, Position> positions;
+    RebuildTopology(entry, triangles, [&](const auto &key, uint32_t representative) {
+        const auto [position,inserted]=positions.try_emplace(key,Position{.adjacency_id=static_cast<uint32_t>(positions.size()),.representative=representative});
+        return std::pair{position->second,inserted}; }, edges);
+}
+
+Topology &ShadowTopology(const mgCShadowMDT &visual) {
+    CT_PROFILE_ZONE("Build native shadow topology");
+    static std::unordered_map<const mgCShadowMDT *, Topology> cache;
+    static thread_local std::vector<Triangle>                 triangles;
+    triangles.clear();
+    for (const mgFACE_GROUP *group = visual.face_group; group; group = group->next) {
+        for (const mgCFace *face = group->face; face; face = face->next) {
+            for (int t = 0; t < face->vertex_num; ++t) {
+                Triangle triangle;
+                for (int corner = 0; corner < 3; ++corner) {
+                    const float *p = visual.vertex[face->index[t * 3 + corner]];
+                    triangle[corner] = {.x = p[0], .y = p[1], .z = p[2], .w = 1.0f};
+                }
+                triangles.push_back(triangle);
+            }
+        }
+    }
+    static thread_local std::vector<Edge> edges;
+    if (shadow_transform_mode == dc2::render::ShadowTransformMode::Reference) {
+        static thread_local Topology          reference;
+        static thread_local std::vector<Edge> reference_edges;
+        ++shadow_mesh_stats.topology_rebuilds;
+        RebuildReferenceTopology(reference, triangles, reference_edges);
+        return reference;
+    }
+    // Cached geometry is owned, never read through retired arena pointers, and compared before reuse.
+    if (cache.size() >= kShadowCacheEntries && !cache.contains(&visual)) {
+        cache.clear();
+    }
+    auto &entry = cache[&visual];
+    if (entry.triangles.size() == triangles.size() &&
+        (triangles.empty() || std::memcmp(entry.triangles.data(), triangles.data(), triangles.size() * sizeof(Triangle)) == 0)) {
+        ++shadow_mesh_stats.topology_hits;
+        return entry;
+    }
+    ++shadow_mesh_stats.topology_rebuilds;
+    static thread_local PositionTable positions;
+    if (triangles.size() <= std::numeric_limits<std::size_t>::max() / 3 && positions.Reset(triangles.size() * 3)) {
+        RebuildTopology(entry, triangles, [&](const auto &key, uint32_t representative) { return positions.FindOrInsert(key, representative); }, edges);
+    } else {
+        RebuildReferenceTopology(entry, triangles, edges);
     }
     return entry;
 }

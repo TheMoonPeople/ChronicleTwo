@@ -11,6 +11,7 @@
 #include <cstring>
 #include <filesystem>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -473,7 +474,48 @@ struct ShadowMeshFixture {
     }
 };
 
-dc2::render::ShadowMeshStats ExpectMemoMatchesReference(ShadowMeshFixture      &mesh,
+/**
+ * Supplies independently indexed seam vertices while retaining one visual across topology sizes.
+ */
+struct ShadowTopologyFixture : ShadowMeshFixture {
+    std::unique_ptr<sceVu0FVECTOR[]> owned_points; /**< Owns seam vertices independently of the visual's borrowed source pointer. */
+
+    /**
+     * Replaces the source with a grid of independently indexed adjacent triangles.
+     */
+    void Grid(int width, int height) {
+        const int count = width * height * 6;
+        owned_points = std::make_unique<sceVu0FVECTOR[]>(static_cast<std::size_t>(std::max(count, 1)));
+        corners.resize(static_cast<std::size_t>(count));
+        const int offsets[6][2] = {
+            {0, 0},
+            {1, 0},
+            {1, 1},
+            {0, 0},
+            {1, 1},
+            {0, 1}
+        };
+        int index = 0;
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                for (const auto &offset : offsets) {
+                    auto &point = owned_points[static_cast<std::size_t>(index)];
+                    point[0] = static_cast<float>(x + offset[0]) - 8.0f;
+                    point[1] = static_cast<float>(y + offset[1]) - 8.0f;
+                    point[2] = 100.0f;
+                    point[3] = 1.0f;
+                    corners[static_cast<std::size_t>(index)] = index;
+                    ++index;
+                }
+            }
+        }
+        visual.vertex = owned_points.get();
+        visual.vertex_num = count;
+    }
+};
+
+template <typename Fixture>
+dc2::render::ShadowMeshStats ExpectMemoMatchesReference(Fixture                &mesh,
                                                         const mgPortProjection &projection = TestProjection(),
                                                         bool                    nonempty = true) {
     using Mode = dc2::render::ShadowTransformMode;
@@ -567,7 +609,12 @@ TEST(MgShadowMesh, MemoizedTransformsMatchReferenceAcrossSeamsWindingAndAmbiguou
     const auto        stats = ExpectMemoMatchesReference(mesh);
     EXPECT_EQ(stats.source_corners, 6u);
     EXPECT_EQ(stats.transformed_positions, 4u);
-    EXPECT_EQ(stats.topology_hits, 1u);
+    const auto before_repeat = dc2::render::GetShadowMeshStats();
+    {
+        ShadowTransformScope mode(dc2::render::ShadowTransformMode::Memoized);
+        mesh.Build();
+    }
+    EXPECT_EQ(dc2::render::GetShadowMeshStats().topology_hits - before_repeat.topology_hits, 1u);
     for (const std::vector<int> &corners : {
              std::vector{0, 1, 2, 4, 5, 3},
              std::vector{2, 1, 0, 3, 2, 0},
@@ -591,6 +638,117 @@ TEST(MgShadowMesh, MemoizedTransformsMatchReferenceAcrossSeamsWindingAndAmbiguou
     const auto zero_stats = ExpectMemoMatchesReference(mesh);
     EXPECT_EQ(zero_stats.source_corners, 6u);
     EXPECT_EQ(zero_stats.transformed_positions, 4u); // Raw signed zeros remain distinct transform keys.
+}
+
+TEST(MgShadowMesh, TopologyScratchGrowthShrinkAndEmptyResetMatchIndependentReference) {
+    ShadowTopologyFixture mesh;
+    for (const auto dimensions : {
+             std::array{1,  1},
+             std::array{8,  8},
+             std::array{1,  3},
+             std::array{16, 8},
+             std::array{0,  0},
+             std::array{8,  8}
+    }) {
+        SCOPED_TRACE(::testing::Message() << dimensions[0] << " x " << dimensions[1]);
+        mesh.Grid(dimensions[0], dimensions[1]);
+        ExpectMemoMatchesReference(mesh, TestProjection(), dimensions[0] != 0);
+        if (dimensions[0] == 0) {
+            EXPECT_TRUE(mesh.vertices.empty());
+            EXPECT_TRUE(mesh.indices.empty());
+        } else {
+            EXPECT_EQ(mesh.vertices.size(), mesh.corners.size() * 2);
+        }
+    }
+}
+
+TEST(MgShadowMesh, TopologyFirstSeenIdsPreserveReorderedSeamsAndNonmanifoldEdges) {
+    ShadowTopologyFixture mesh;
+    mesh.Grid(8, 4);
+    ExpectMemoMatchesReference(mesh);
+    for (std::size_t first = 0, last = mesh.corners.size() - 3; first < last; first += 3, last -= 3) {
+        for (std::size_t corner = 0; corner < 3; ++corner) {
+            std::swap(mesh.corners[first + corner], mesh.corners[last + corner]);
+        }
+    }
+    ExpectMemoMatchesReference(mesh);
+    for (std::size_t triangle = 0; triangle < mesh.corners.size(); triangle += 3) {
+        std::rotate(mesh.corners.begin() + static_cast<std::ptrdiff_t>(triangle),
+                    mesh.corners.begin() + static_cast<std::ptrdiff_t>(triangle + 1),
+                    mesh.corners.begin() + static_cast<std::ptrdiff_t>(triangle + 3));
+    }
+    ExpectMemoMatchesReference(mesh);
+    const auto original_corners = mesh.corners;
+    mesh.corners.insert(mesh.corners.end(), original_corners.begin(), original_corners.begin() + 6);
+    mesh.corners.insert(mesh.corners.end(), original_corners.begin(), original_corners.begin() + 3);
+    ExpectMemoMatchesReference(mesh);
+    mesh.corners = original_corners;
+    for (std::size_t point = 0; point < mesh.corners.size(); ++point) {
+        mesh.owned_points[point][0] += (point % 7 == 0) ? 0.25f : 0.0f;
+    }
+    ExpectMemoMatchesReference(mesh);
+    mesh.Grid(1, 1);
+    ExpectMemoMatchesReference(mesh);
+}
+
+TEST(MgShadowMesh, TopologyLinearProbeCollisionsPreserveIndependentReferenceGeometry) {
+    // These finite X coordinates share twenty low hash bits for Y=-1 and Z=100.
+    constexpr std::array<std::uint32_t, 12> colliding_x = {
+        0x3f10e6beu, 0x3f14f19bu, 0x3f175303u, 0x3f430471u, 0x3f61fd09u, 0x3f625b60u,
+        0x3f74b52au, 0x3f772d8eu, 0x3f928934u, 0x3f999dcbu, 0x3fb24dabu, 0x3fb4dbbdu};
+    ShadowTopologyFixture mesh;
+    mesh.Grid(3, 1);
+    mesh.corners.clear();
+    for (std::size_t index = 0; index < colliding_x.size(); ++index) {
+        const auto    key = colliding_x[index];
+        std::uint64_t hash = 0x9e3779b97f4a7c15ULL;
+        for (const auto component : {key, 0xbf800000u, 0x42c80000u}) {
+            hash ^= component;
+            hash *= 0xbf58476d1ce4e5b9ULL;
+            hash ^= hash >> 27;
+        }
+        ASSERT_EQ(hash & 0xfffffULL, 0u);
+        auto &point = mesh.owned_points[index];
+        point[0] = std::bit_cast<float>(key);
+        point[1] = -1;
+        point[2] = 100;
+        point[3] = 1;
+        if (index + 1 < colliding_x.size()) {
+            mesh.corners.insert(mesh.corners.end(), {static_cast<int>(index), static_cast<int>(index + 1), 12});
+        }
+    }
+    mesh.owned_points[12][0] = -1;
+    mesh.owned_points[12][1] = 1;
+    mesh.owned_points[12][2] = 100;
+    mesh.owned_points[12][3] = 1;
+    mesh.visual.vertex_num = 13;
+    ExpectMemoMatchesReference(mesh);
+    std::reverse(mesh.corners.begin(), mesh.corners.end());
+    ExpectMemoMatchesReference(mesh);
+    mesh.Grid(1, 1);
+    ExpectMemoMatchesReference(mesh);
+}
+
+TEST(MgShadowMesh, TopologyEvictionAndReusedVisualAddressPreserveIndependentReferenceGeometry) {
+    std::vector<std::optional<ShadowMeshFixture>> meshes(129);
+    for (std::size_t index = 0; index < meshes.size(); ++index) {
+        SCOPED_TRACE(index);
+        auto &mesh = meshes[index].emplace();
+        mesh.points[0][0] -= static_cast<float>(index) * 0.001f;
+        ExpectMemoMatchesReference(mesh);
+    }
+    auto       &first = meshes.front();
+    const auto *visual_address = &first->visual;
+    ExpectMemoMatchesReference(*first);
+    first->points[0][2] = 150;
+    first->corners = {2, 1, 0, 3, 2, 0};
+    ExpectMemoMatchesReference(*first);
+    first.reset();
+    auto &replacement = first.emplace();
+    ASSERT_EQ(&replacement.visual, visual_address);
+    replacement.points[2][1] = 2;
+    replacement.corners = {0, 1, 2, 4, 5, 3, 4, 5, 3};
+    ExpectMemoMatchesReference(replacement);
 }
 
 TEST(MgShadowMesh, MemoizedTransformsMatchReferenceAtClippingAndNonfiniteBoundaries) {
