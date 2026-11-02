@@ -121,7 +121,6 @@ These work with the pad-2 Circle toggle. Pad 2 is locked unless the boot unlock 
 
 - The keyboard feeds pad 1 only (`tools/kazarov/src/cpp/platform/input.cpp`, `Compose`); L2+Select makes its debug button reads available too.
 - `developer_menu` (paddle 2) is bound in `input.cpp` but nothing reads it.
-- GyoRace hits the `sgLoopGyoRace` stub (`port/src/gyorace.cpp`).
 
 ## Jump replays
 
