@@ -5287,9 +5287,14 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                 }
 
                 if (body != nullptr && part == 2 && stack != nullptr && CheckBattleLoop()) {
-                    int rest = stack->stGetRest();
-                    SwordEffectStack.stShareBuffer(*stack, std::span(stack->stGetTop(), static_cast<std::size_t>(rest)));
-                    SetSwordBlurEffect(body, &SwordEffectStack, blur_type);
+                    // The menu's preview body (blur_type -1) and the scene's player each retain the arena their trail
+                    // shares. Retail reshares the one SwordEffectStack for both, so the player's reload on menu exit
+                    // would retire the preview body before its second weapon, hat and skin load.
+                    static mgCMemory menu_sword_effect_stack;
+                    mgCMemory       &sword_stack = blur_type < 0 ? menu_sword_effect_stack : SwordEffectStack;
+                    int              rest = stack->stGetRest();
+                    sword_stack.stShareBuffer(*stack, std::span(stack->stGetTop(), static_cast<std::size_t>(rest)));
+                    SetSwordBlurEffect(body, &sword_stack, blur_type);
                 }
 
                 break;
