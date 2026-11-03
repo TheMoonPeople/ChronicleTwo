@@ -1,5 +1,6 @@
 #include "common.h"
 #include "mw_runtime.h"
+#include "log/log.hpp"
 
 #include <libcdvd.h>
 
