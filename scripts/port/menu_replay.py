@@ -109,7 +109,7 @@ def main() -> int:
     if silent_drops:
         raise AssertionError(f"characters lost their parts: {silent_drops}; see {log_path}")
     # A part whose body retired fails inside the loader and never reaches the attachment check.
-    load_failures = re.findall(r".*character(?: skin)?: .*(?:not live|requires live).*", output)
+    load_failures = re.findall(r".*(?:character(?: skin)?|skin replacement): .*(?:not live|requires live).*", output)
     if load_failures:
         raise AssertionError(f"character parts failed to load: {load_failures}; see {log_path}")
     if args.case == "equip-dungeon":
@@ -120,7 +120,20 @@ def main() -> int:
         if exits != [3]:
             raise AssertionError(f"expected one body reload keeping 3 parts; got {exits}; see {log_path}")
     elif args.case == "weapon-view-dungeon":
-        pass
+        previews = [(int(part), live == "true") for part, live in re.findall(
+            r"menu preview part loaded: character=0, part=([0-9]+), body_live=(true|false)", output)]
+        reloads = [(int(part), player == "true" and preview == "true") for part, player, preview in re.findall(
+            r"menu scene part reloaded: character=0, part=([0-9]+), player_live=(true|false), preview_live=(true|false)",
+            output)]
+        receipt["previews"] = previews
+        receipt["scene_reloads"] = reloads
+        receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+        # Viewing the gun loads the preview body and its parts; backing out reloads the scene player's parts after
+        # the preview's, and neither body may retire while the other reloads its melee weapon.
+        if not previews or not all(live for _, live in previews) or 2 not in [part for part, _ in previews]:
+            raise AssertionError(f"expected the weapon view to load a live preview body; got {previews}; see {log_path}")
+        if [part for part, _ in reloads] != [1, 2, 3, 4, 5] or not all(live for _, live in reloads):
+            raise AssertionError(f"expected the menu exit to reload parts 1-5 with both bodies live; got {reloads}; see {log_path}")
     elif args.case == "georama":
         transitions = [(state, int(frame)) for state, frame in re.findall(
             r"georama menu (ready|closed): town=0, frame=([0-9]+)", output)]
