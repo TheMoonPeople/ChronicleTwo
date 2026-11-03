@@ -47,4 +47,7 @@ jobs:
           path: |
             port/build/switch/darkchronicle.nro
             port/build/switch/darkchronicle.elf
+            port/build/switch/scripts/
+            port/build/switch/glyphs/
+            port/build/switch/fonts/
           if-no-files-found: error
