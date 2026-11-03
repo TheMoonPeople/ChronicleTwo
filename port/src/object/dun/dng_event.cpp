@@ -2,6 +2,7 @@
 #include "platform/native_config.hpp"
 #include "memory/tracked_copy.hpp"
 #include "log/game_output.hpp"
+#include "log/log.hpp"
 // clang-format on
 
 #include "common.h"
@@ -1039,6 +1040,7 @@ void BattleAreaBGMCtrl() {
                 if (!(fade < 1.0f)) {
                     state->battle_bgm_state = DNG_BGM_BATTLE;
                     fade = 1.0f;
+                                        CT_LOG_INFO(Audio, "battle music: start, slot 4 holds sound {}", EdEventInfo.snd_id[4]);
                     sndSePlay(EdEventInfo.snd_id[4], 0, 0);
                     DngMainScene->PauseBGM();
                 }
