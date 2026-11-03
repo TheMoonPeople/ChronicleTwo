@@ -99,7 +99,7 @@ local function helper_393ea807()
 			var8 = vm.f32(var8 - 50.0)
 			var7 = vm.f32(var7 + var8)
 			event.set_character_position(8 + var0, var5, var6, var7)
-			var9 = vm.float_bits(event.get_random_number(100)) or var9
+			var9 = event.get_random_number_int(100) or var9
 			if vm.imod(var9, 2) == 0 then
 				event.set_object_handle_motion(1 + var0, "走り", 4)
 			else

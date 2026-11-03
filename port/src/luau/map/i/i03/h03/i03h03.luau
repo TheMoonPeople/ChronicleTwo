@@ -105,13 +105,13 @@ local function helper_111e8()
 		event.set_message_window_mode(1, 0)
 		event.set_message_window_option(1, 7, 20, 100, 20, 128)
 		event.set_message_window_option(1, 8, 0)
-		frame[9] = vm.float_bits(event.get_random_number(1000)) or frame[9]
+		frame[9] = event.get_random_number_int(1000) or frame[9]
 		frame[3] = vm.i32(vm.i32(15000 + vm.i32(frame[2] * 1000)) + frame[9])
 		if frame[3] > frame[11] then
 			frame[1] = vm.i32(frame[1] + 1)
 		end
 		while frame[8] < 5 do
-			frame[9] = vm.float_bits(event.get_random_number(vm.idiv(frame[vm.index(vm.i32(frame[8] + 1), 47)], 3))) or frame[9]
+			frame[9] = event.get_random_number_int(vm.idiv(frame[vm.index(vm.i32(frame[8] + 1), 47)], 3)) or frame[9]
 			frame[vm.index(vm.i32(frame[8] + 2), 47)] =
 				vm.i32(frame[vm.index(vm.i32(frame[8] + 1), 47)] - vm.i32(frame[9] + 1))
 			if frame[vm.index(vm.i32(frame[8] + 2), 47)] < 0 then
@@ -132,7 +132,7 @@ local function helper_111e8()
 				event.set_message_number(1, vm.i32(frame[1] + 1), frame[11])
 				frame[12] = 1
 			else
-				frame[9] = vm.float_bits(event.get_random_number(24)) or frame[9]
+				frame[9] = event.get_random_number_int(24) or frame[9]
 				while true do
 					frame[45] = 0
 					while frame[14] > frame[45] do
@@ -145,7 +145,7 @@ local function helper_111e8()
 					if frame[14] == frame[45] then
 						break
 					else
-						frame[9] = vm.float_bits(event.get_random_number(24)) or frame[9]
+						frame[9] = event.get_random_number_int(24) or frame[9]
 					end
 				end
 				frame[vm.index(vm.i32(frame[14] + 14), 47)] = frame[9]

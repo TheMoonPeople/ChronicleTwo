@@ -103,13 +103,13 @@ local function helper_11868()
 		if frame[12] == 1 then
 			event.set_message_window_option(1, 2, 0.5)
 		end
-		frame[9] = vm.float_bits(event.get_random_number(1000)) or frame[9]
+		frame[9] = event.get_random_number_int(1000) or frame[9]
 		frame[3] = vm.i32(vm.i32(15000 + vm.i32(frame[2] * 1000)) + frame[9])
 		if frame[3] > frame[11] then
 			frame[1] = vm.i32(frame[1] + 1)
 		end
 		while frame[8] < 5 do
-			frame[9] = vm.float_bits(event.get_random_number(vm.idiv(frame[vm.index(vm.i32(frame[8] + 1), 48)], 3))) or frame[9]
+			frame[9] = event.get_random_number_int(vm.idiv(frame[vm.index(vm.i32(frame[8] + 1), 48)], 3)) or frame[9]
 			frame[vm.index(vm.i32(frame[8] + 2), 48)] =
 				vm.i32(frame[vm.index(vm.i32(frame[8] + 1), 48)] - vm.i32(frame[9] + 1))
 			if frame[vm.index(vm.i32(frame[8] + 2), 48)] < 0 then
@@ -130,7 +130,7 @@ local function helper_11868()
 				event.set_message_number(1, vm.i32(frame[1] + 1), frame[11])
 				frame[13] = 1
 			else
-				frame[9] = vm.float_bits(event.get_random_number(24)) or frame[9]
+				frame[9] = event.get_random_number_int(24) or frame[9]
 				while true do
 					frame[46] = 0
 					while frame[15] > frame[46] do
@@ -143,7 +143,7 @@ local function helper_11868()
 					if frame[15] == frame[46] then
 						break
 					else
-						frame[9] = vm.float_bits(event.get_random_number(24)) or frame[9]
+						frame[9] = event.get_random_number_int(24) or frame[9]
 					end
 				end
 				frame[vm.index(vm.i32(frame[15] + 15), 48)] = frame[9]

@@ -85,7 +85,7 @@ STATE_CHOICES = 4
 ZERO_CHOICES = 2
 # Per kind namespace, the random-number commands and the position of their range input: the handler writes a value
 # from zero towards the range, so the mock does too.
-RANDOM = {"effect": {13: 0}, "monster": {35: 0, 36: 0}}
+RANDOM = {"effect": {13: 0}, "monster": {35: 0, 36: 0}, "event": {1013: 0}}
 # Fractions of a random command's range that the mock draws from.
 RANDOM_FRACTIONS = (0.0, 0.0, 0.25, 0.5, 0.75, 0.999)
 

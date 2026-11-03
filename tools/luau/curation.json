@@ -17929,14 +17929,19 @@
   },
   "_GET_RAND": {
    "luau": "get_random_number",
+   "notes": "An integer range gives an integer, a float range a float.",
    "signatures": {
     "2": {
      "params": [
       {
-       "name": "range"
+       "name": "range",
+       "type": "f32",
+       "tagged": true
       },
       {
-       "name": "value"
+       "name": "value",
+       "type": "f32",
+       "tagged": true
       }
      ]
     }

@@ -820,7 +820,7 @@ function script.event_1200()
 		flag_2 = event.get_save_flag(820) or flag_2
 		if flag ~= 0 and flag_2 == 0 then
 			var2 = 0
-			var2 = vm.float_bits(event.get_random_number(100)) or var2
+			var2 = event.get_random_number_int(100) or var2
 			if var2 < 50 then
 				at = 1
 				helper_a9eaf20e(0, 8600060)

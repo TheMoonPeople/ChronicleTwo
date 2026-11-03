@@ -102,7 +102,7 @@ local function helper_16814()
 			var3 = vm.f32(var3 - 50.0)
 			var2 = vm.f32(var2 + var3)
 			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
+			var4 = event.get_random_number_int(100) or var4
 			if vm.imod(var4, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り", 4)
 			else
@@ -158,7 +158,7 @@ local function helper_16814()
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
+			var14 = event.get_random_number_int(100) or var14
 			if vm.imod(var14, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
 			else
@@ -346,7 +346,7 @@ local function helper_189c4()
 			var3 = vm.f32(var3 - 50.0)
 			var2 = vm.f32(var2 + var3)
 			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
+			var4 = event.get_random_number_int(100) or var4
 			if vm.imod(var4, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り", 4)
 			else
@@ -402,7 +402,7 @@ local function helper_189c4()
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
+			var14 = event.get_random_number_int(100) or var14
 			if vm.imod(var14, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
 			else
@@ -590,7 +590,7 @@ local function helper_1ab74()
 			var3 = vm.f32(var3 - 50.0)
 			var2 = vm.f32(var2 + var3)
 			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
+			var4 = event.get_random_number_int(100) or var4
 			if vm.imod(var4, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り", 4)
 			else
@@ -645,7 +645,7 @@ local function helper_1ab74()
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
+			var14 = event.get_random_number_int(100) or var14
 			if vm.imod(var14, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
 			else
@@ -829,7 +829,7 @@ local function helper_db30()
 			var8 = vm.f32(var8 - 50.0)
 			var7 = vm.f32(var7 + var8)
 			event.set_character_position(8 + var0, var5, var6, var7)
-			var9 = vm.float_bits(event.get_random_number(100)) or var9
+			var9 = event.get_random_number_int(100) or var9
 			if vm.imod(var9, 2) == 0 then
 				event.set_object_handle_motion(1 + var0, "走り", 4)
 			else
@@ -1023,7 +1023,7 @@ local function helper_148e0()
 			var3 = vm.f32(var3 - 50.0)
 			var2 = vm.f32(var2 + var3)
 			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
+			var4 = event.get_random_number_int(100) or var4
 			if vm.imod(var4, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り", 4)
 			else
@@ -1066,7 +1066,7 @@ local function helper_148e0()
 				pos_y = out2 or pos_y
 				pos_z = out3 or pos_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
+			var14 = event.get_random_number_int(100) or var14
 			if vm.imod(var14, 2) == 0 then
 				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
 			else

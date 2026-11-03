@@ -933,6 +933,44 @@ TEST_F(LuauRuntime, EventModuleRunsNumberedPrograms) {
     EXPECT_EQ(calls[2].args[0].val.i, 50);
 }
 
+// Event GetRand (command 1013) branches on its range's tag: an integer range gives an integer, a float range a float.
+int HandleEventGetRand(dc2::script::RunArguments args, int argc) {
+    RecordedCall call{.no = static_cast<NativeCommand>(1013), .argc = argc};
+    call.args.push_back(args.At(0));
+    calls.push_back(std::move(call));
+    RS_STACKDATA &output = dc2::script::RunOutput(args + 1);
+    if (args.At(0).type == RS_FLOAT) {
+        output.val.f = args.At(0).val.f * 0.5f;
+    } else {
+        output.val.i = args.At(0).val.i - 3;
+    }
+    return 1;
+}
+
+TEST_F(LuauRuntime, EventRandomNumberKeepsTheRangeType) {
+    static dc2::script::RunFunction event_table[1500]{};
+    event_table[static_cast<int>(NativeCommand::ProgSet)] = HandleProgSet;
+    event_table[1013] = HandleEventGetRand;
+    std::string                  handle = luau_runtime::MakeHandle("map/event_random");
+    std::array<RS_STACKDATA, 64> slots{};
+    std::array<RS_CALLDATA, 16>  call_stack{};
+    CRunScript                   script;
+    script.ext_func(event_table, static_cast<int>(std::size(event_table)));
+    ASSERT_TRUE(script.load({reinterpret_cast<u8 *>(handle.data()), handle.size()}, slots, call_stack));
+    ASSERT_EQ(script.run(3), 0);
+    ASSERT_EQ(calls.size(), 3u);
+    EXPECT_EQ(calls[0].args[0].type, RS_INT);
+    EXPECT_EQ(calls[0].args[0].val.i, 10);
+    EXPECT_EQ(calls[1].args[0].type, RS_FLOAT);
+    EXPECT_FLOAT_EQ(calls[1].args[0].val.f, 6.25f);
+    // The integer result comes back as 7, not as the bits of a float; the float result as 3.125.
+    EXPECT_EQ(calls[2].no, NativeCommand::ProgSet);
+    EXPECT_EQ(calls[2].args[0].type, RS_INT);
+    EXPECT_EQ(calls[2].args[0].val.i, 7);
+    EXPECT_EQ(calls[2].args[1].type, RS_FLOAT);
+    EXPECT_FLOAT_EQ(calls[2].args[1].val.f, 3.125f);
+}
+
 TEST_F(LuauRuntime, SkipRunsToTheNextSkipEnd) {
     Loaded      loaded("facade/skip");
     CRunScript &script = loaded.script;
