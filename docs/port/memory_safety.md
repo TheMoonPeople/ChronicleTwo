@@ -167,6 +167,27 @@ Screen-effect captures keep explicit arena image leases, including bounded subvi
 
 Script byte readers check the source end before reading or comparing delimiters. Numeric tokens and converted command operands are range-checked before conversion; malformed or truncated binary tags cannot reuse retained arguments as a successful invocation. The unchecked pointer-only run/tag getters have no remaining callers and are removed. Native model-profile branches use the same checked argument and text views as registered handlers.
 
+### Owned and borrowed character resources
+
+A character's resource snapshot lists each producer arena it retains. Owned channels (its model, motions, images,
+skins and so on) are lifetime dependencies: resetting their arena retires the character. Borrowed channels
+(`BorrowedChannel`, currently `ParentOutline`) only record what the character took from another one: an attached
+weapon, second weapon or hat uses its body's outline texture. Retiring a borrowed producer invalidates the borrow, not
+the borrower; `CCharacter2::DrawDirect` draws the part without its outline until `CopyOutLine` re-binds it, which
+`SetupUnit` does after every body reload, as retail does.
+
+Treating the borrow as owned made equipment vanish. Equipping a weapon with a different stance (the Big Bucks Hammer and
+later wrenches) makes the item menu's exit reload Max's body into its arena. Every attached part then counted as
+retired, `CScene::GetSceneCharacter` cleared their slots, and `SetupMints` found nothing to attach, so the weapons and
+cap stopped drawing with no error.
+
+Silent loss of this kind is now reported in three places. `CScene::GetSceneCharacter` warns when it drops a character
+that nothing released. `SetupUnit` logs an error for every equipped part it cannot attach, except the weapons a town
+body leaves unloaded. Every `MenuReplay` case fails on either message. `MenuReplay.EquipBodyReload` equips the spawned
+hammer, closes the menu and requires the reloaded body to keep its three parts.
+`NativeRecords.AttachedPartsSurviveTheReloadOfTheBodyWhoseOutlineTheyBorrow` resets a body arena under an attached
+part and checks that the part stays in the scene with only its borrow retired, then re-attaches it.
+
 A focused core/unix/C++ Clang analyzer pass over the changed character, dynamic-animation, event, and monster-opcode units reported no diagnostics after the null, bounds, and vector-alias fixes. This is source-analysis evidence only; the final linked, optimized, and instrumented runtime gates below remain required.
 
 ## Compiler and runtime gates

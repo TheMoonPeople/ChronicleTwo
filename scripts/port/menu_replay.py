@@ -19,7 +19,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exe", type=Path, required=True)
     parser.add_argument("--work", type=Path, required=True)
-    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu"), default="georama")
+    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu", "equip-dungeon"), default="georama")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[2]
     data = Path(os.environ.get("DC2_DATA", "data")).resolve()
@@ -49,6 +49,13 @@ def main() -> int:
                           "400 l1 l2 r1 r2 r3\n406\n900 r3\n906\n1400 l3\n1406\n1900 r3\n1906\n2400 r3\n2406\n2900 l3\n2906\n3200 up\n3300\n3350 cross\n3356\n"),
         "party-town": ("town:10", 2900, party_script),
         "party-dungeon": ("event:26010", 2900, party_script),
+        # Skips the tutorial, equips the spawned Big Bucks Hammer from the bag and closes the menu, which reloads
+        # Max's body for the hammer's stance.
+        "equip-dungeon": ("dungeon:0:1", 3600,
+                          "300 cross\n306\n520 cross\n526\n900 start\n906\n940 triangle\n946\n1100 cross\n1106\n1250 cross\n1256\n"
+                          "1400 cross\n1406\n1550 cross\n1556\n1700 cross\n1706\n1850 cross\n1856\n2000 cross\n2006\n2200 128 0 128 128\n2260\n"
+                          "2400 triangle\n2406\n2520 cross\n2526\n2700 right\n2706\n2740 right\n2746\n2780 right\n2786\n2820 right\n2826\n"
+                          "2860 right\n2866\n2950 cross\n2956\n3050 cross\n3056\n3150 circle\n3156\n3300 circle\n3306\n"),
         "monster-menu": ("event:26010", 2400,
                          "400 l3\n406\n900 triangle\n906\n970 down\n971\n1020 cross\n1026\n1200 up\n1206\n1250 cross\n1256\n1500 cross\n1506\n1650 cross\n1656\n1800 cross\n1806\n2000 up\n2100\n2150 cross\n2156\n"),
     }[args.case]
@@ -67,6 +74,8 @@ def main() -> int:
     ]
     if args.case.endswith("-dungeon") or args.case == "monster-menu":
         command.append("--invincible")
+    if args.case == "equip-dungeon":
+        command += ["--give", "21"]
     with args.exe.resolve().open("rb") as binary:
         binary_hash = hashlib.file_digest(binary, "sha256").hexdigest()
     receipt = {"case": args.case, "binary_sha256": binary_hash, "command": command}
@@ -87,7 +96,18 @@ def main() -> int:
         receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
         raise AssertionError(f"game exited {result.returncode}; see {log_path}")
     output = log_path.read_text(encoding="utf-8", errors="replace")
-    if args.case == "georama":
+    # A model retired behind the game's back stays loaded but is never drawn again.
+    silent_drops = re.findall(r".*(?:is not attached:|dropped: its resources retired).*", output)
+    if silent_drops:
+        raise AssertionError(f"characters lost their parts: {silent_drops}; see {log_path}")
+    if args.case == "equip-dungeon":
+        exits = [int(parts) for parts in re.findall(r"item menu exit: character=0 body reloaded with ([0-9]+) attached parts", output)]
+        receipt["attached_parts"] = exits
+        receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+        # The hammer, the gun and the cap stay attached to the reloaded body.
+        if exits != [3]:
+            raise AssertionError(f"expected one body reload keeping 3 parts; got {exits}; see {log_path}")
+    elif args.case == "georama":
         transitions = [(state, int(frame)) for state, frame in re.findall(
             r"georama menu (ready|closed): town=0, frame=([0-9]+)", output)]
         receipt["transitions"] = transitions

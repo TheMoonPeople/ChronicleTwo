@@ -22,6 +22,7 @@
 #include "effscript.hpp"
 #include "gamedata.hpp"
 #include "log/game_output.hpp"
+#include "log/log.hpp"
 #include "mainloop.hpp"
 #include "maintex.hpp"
 #include "mapselect.hpp"
@@ -92,6 +93,39 @@ namespace {
  */
 CCharacter2 *UnitPart(std::span<CCharacter2 *const> parts, std::size_t index) {
     return index < parts.size() ? parts[index] : nullptr;
+}
+
+/**
+ * Reports an equipped part that will not be drawn because it could not be attached to its body.
+ */
+void ReportUnattachedPart(std::string_view unit, std::string_view part, std::string_view reason) {
+    CT_LOG_ERROR(Data, "{}'s {} is not attached: {}", unit, part, reason);
+}
+
+/**
+ * Attaches a human's equipped weapon, second weapon and hat parts to the body at their named frames.
+ */
+void AttachHumanParts(std::span<CActionChara *const, 5> characters, const CGameDataUsed *equip, std::string_view unit,
+                      std::span<char *const, 3> attach_names) {
+    static constexpr std::array<const char *, 3> part_names = {"sword", "shot", "hat"};
+    for (std::size_t part = 0; part < part_names.size(); ++part) {
+        if (equip[part].item_no <= 0) {
+            continue;
+        }
+        CActionChara *attached = characters[part + 1];
+        if (attached == nullptr) {
+            ReportUnattachedPart(unit, part_names[part], "its scene character is missing");
+        } else if (!characters[0]->SetRef(attached, attach_names[part])) {
+            dc2::log::PrintGame("setref failed : %s\n", attach_names[part]);
+            // Town bodies leave the weapons unloaded on purpose.
+            if (attached->GetFrame() != nullptr) {
+                ReportUnattachedPart(unit, part_names[part], std::format("the body has no {} frame", attach_names[part]));
+            }
+        } else {
+            dc2::text::Copy(attached->name, part_names[part]);
+            attached->CopyOutLine(characters[0]);
+        }
+    }
 }
 } // namespace
 
@@ -565,29 +599,11 @@ static int SetupMints(std::span<CCharacter2 *const> parts_view, CUserDataManager
     SetupNameTable4 attach_names = {
         {"ef00", "gun_hand", "hat", ""}
     };
-    SetupNameTable3 part_names = {
-        {"sword", "shot", "hat"}
-    };
-    int part = {};
-
     if (characters[0] != nullptr) {
         dc2::text::Copy(characters[0]->name, "body");
     }
 
-    for (part = 0; part < 3; part++, equip++) {
-        if (0 < equip->item_no) {
-            if (characters[part + 1] != nullptr) {
-                char *attach_name = attach_names.names[part];
-
-                if (!characters[0]->SetRef(characters[part + 1], attach_name)) {
-                    dc2::log::PrintGame("setref failed : %s\n", attach_name);
-                } else {
-                    dc2::text::Copy(characters[part + 1]->name, part_names.names[part]);
-                    characters[part + 1]->CopyOutLine(characters[0]);
-                }
-            }
-        }
-    }
+    AttachHumanParts(characters, equip, "Max", std::span(attach_names.names).first<3>());
 
     characters[0]->move_type = ACTION_MOVE_HUMAN;
     characters[0]->attack_type = 0;
@@ -615,29 +631,11 @@ static int SetupMonica(std::span<CCharacter2 *const> parts_view, CUserDataManage
     SetupNameTable3 attach_names = {
         {"sword_hand", "wr", "ac"}
     };
-    SetupNameTable3 part_names = {
-        {"sword", "shot", "hat"}
-    };
-    int part = {};
-
     if (characters[0] != nullptr) {
         dc2::text::Copy(characters[0]->name, "body");
     }
 
-    for (part = 0; part < 3; part++, equip++) {
-        if (0 < equip->item_no) {
-            if (characters[part + 1] != nullptr) {
-                char *attach_name = attach_names.names[part];
-
-                if (!characters[0]->SetRef(characters[part + 1], attach_name)) {
-                    dc2::log::PrintGame("setref failed : %s\n", attach_name);
-                } else {
-                    dc2::text::Copy(characters[part + 1]->name, part_names.names[part]);
-                    characters[part + 1]->CopyOutLine(characters[0]);
-                }
-            }
-        }
-    }
+    AttachHumanParts(characters, equip, "Monica", attach_names.names);
 
     characters[0]->move_type = ACTION_MOVE_HUMAN;
     characters[0]->chara_type = ACTION_CHARA_MONICA;
@@ -665,6 +663,7 @@ static int SetupRobo(std::span<CCharacter2 *const> parts_view, CUserDataManager 
         parts[i] = static_cast<CActionChara *>(UnitPart(parts_view, static_cast<std::size_t>(i)));
 
         if (parts[i] == nullptr) {
+            ReportUnattachedPart("The Ridepod", std::format("part {}", i), "its scene character is missing");
             return false;
         }
     }

@@ -1481,6 +1481,47 @@ TEST_F(NativeRecords, PartyMenuCompletionRejectsMissingEmptyAndRetiredRootModels
     }
 }
 
+TEST_F(NativeRecords, AttachedPartsSurviveTheReloadOfTheBodyWhoseOutlineTheyBorrow) {
+    std::vector<u_long128> body_storage(0x1000);
+    mgCMemory              body_memory;
+    body_memory.stSetBuffer(body_storage.data(), static_cast<int>(body_storage.size()));
+    mgCTexture   outline_texture{};
+    COutLineDraw body_line;
+    COutLineDraw part_line;
+    auto         body = std::make_shared<CActionChara>();
+    auto         part = std::make_shared<CActionChara>();
+    const auto   load_body = [&] {
+        body->CObjectFrame::frame = NewGraphFrame(body_memory, "body");
+        ASSERT_NE(body->CObjectFrame::frame, nullptr);
+        ASSERT_TRUE(dc2::character::CaptureModelResources(*body, body_memory));
+        body_line.texture = &outline_texture;
+        body->outline = &body_line;
+    };
+    load_body();
+    part->CObjectFrame::frame = NewGraphFrame(memory, "hat");
+    ASSERT_NE(part->CObjectFrame::frame, nullptr);
+    ASSERT_TRUE(dc2::character::CaptureModelResources(*part, memory));
+    part->outline = &part_line;
+    auto scene = std::make_unique<CScene>();
+    scene->chara_num = 2;
+    ASSERT_EQ(scene->AssignChara(0, dc2::scene::CharacterResource::FromOwned(body)), 0);
+    ASSERT_EQ(scene->AssignChara(1, dc2::scene::CharacterResource::FromOwned(part)), 1);
+    part->CopyOutLine(body.get());
+    ASSERT_EQ(part_line.texture, &outline_texture);
+    EXPECT_FALSE(dc2::character::ResourcesWouldRetireOnReset(*part, body_memory, dc2::memory::ArenaResetKind::Stack));
+
+    // Equipping a weapon with another stance reloads only the body; the part keeps its own model.
+    body_memory.stReset();
+    EXPECT_EQ(scene->GetCharacter(1), part.get());
+    EXPECT_TRUE(dc2::character::ResourcesLive(*part));
+    EXPECT_FALSE(dc2::character::BorrowedResourcesLive(*part));
+
+    load_body();
+    part->CopyOutLine(body.get());
+    EXPECT_TRUE(dc2::character::BorrowedResourcesLive(*part));
+    EXPECT_EQ(scene->GetCharacter(1), part.get());
+}
+
 TEST_F(NativeRecords, RepeatedCharacterCopiesReleaseDestinationMetadataWithoutRetainingSourceSnapshots) {
     CCharacter2 source;
     source.CObjectFrame::frame = NewGraphFrame(memory, "root");
