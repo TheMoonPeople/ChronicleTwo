@@ -5240,7 +5240,7 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
  *
  */
 static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CActionChara *body, int part,
-                                      u_int *pack, mgCMemory *stack, int tex_block, int blur_type) {
+                                      u_int *pack, mgCMemory *stack, int tex_block, int blur_type, bool menu_preview) {
     mgCTextureManager *tex_manager = &mgTexManager;
 
     if ((part == 1 || part == 5) ? body != nullptr : chara != nullptr) {
@@ -5287,9 +5287,14 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
                 }
 
                 if (body != nullptr && part == 2 && stack != nullptr && CheckBattleLoop()) {
-                    int rest = stack->stGetRest();
-                    SwordEffectStack.stShareBuffer(*stack, std::span(stack->stGetTop(), static_cast<std::size_t>(rest)));
-                    SetSwordBlurEffect(body, &SwordEffectStack, blur_type);
+                    // The menu's preview body and the scene's player each retain the arena their trail shares. Retail
+                    // reshares the one SwordEffectStack for both, so the player's reload on menu exit would retire the
+                    // preview body before its second weapon, hat and skin load.
+                    static mgCMemory menu_sword_effect_stack;
+                    mgCMemory       &sword_stack = menu_preview ? menu_sword_effect_stack : SwordEffectStack;
+                    int              rest = stack->stGetRest();
+                    sword_stack.stShareBuffer(*stack, std::span(stack->stGetTop(), static_cast<std::size_t>(rest)));
+                    SetSwordBlurEffect(body, &sword_stack, blur_type);
                 }
 
                 break;
@@ -5420,7 +5425,9 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             case MENU_LOAD_MODE_THINK:
                 dc2::text::Copy(tex_manager->name_suffix, "_menu");
                 MenuItemCharaDataLoadPack(chara_no, info[i]->chara, info[0]->chara, i, reinterpret_cast<u_int *>(read.Bytes().data()), buffer,
-                                          tex_block, -1);
+                                          tex_block, -1, true);
+                CT_LOG_DEBUG(Menu, "menu preview part loaded: character={}, part={}, body_live={}", chara_no, i,
+                             info[0]->chara != nullptr && dc2::character::ResourcesLive(*info[0]->chara));
                 tex_manager->name_suffix[0] = 0;
                 break;
         }
@@ -5444,7 +5451,10 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
                     }
                     scene_stack->stReset();
                     MenuItemCharaDataLoadPack(chara_no, scene_target[i], player, i, reinterpret_cast<u_int *>(read.Bytes().data()),
-                                              scene_stack, scene_tex_block, chara_no);
+                                              scene_stack, scene_tex_block, chara_no, false);
+                    CT_LOG_DEBUG(Menu, "menu scene part reloaded: character={}, part={}, player_live={}, preview_live={}", chara_no, i,
+                                 player != nullptr && dc2::character::ResourcesLive(*player),
+                                 info[0] == nullptr || info[0]->chara == nullptr || dc2::character::ResourcesLive(*info[0]->chara));
 
                     if (i == 0 && scene_target[0] != nullptr) {
                         player->SetPosition(menu_old_chara_position);

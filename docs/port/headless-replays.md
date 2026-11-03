@@ -21,8 +21,9 @@ The MenuReplay CTests require current published data through the DC2_DATA proces
 They create fresh saves, retain their binary hash and input command, and require completed lifecycle
 transitions with live replacement models before accepting the final rendered capture. The cases reopen
 Georama, switch party members in town and dungeons, cycle all four playable forms through quick change,
-transform through the monster badge menu, and equip a weapon whose stance reloads Max's body. Every case fails
-when a character drops out of the scene unreleased or an equipped part is left unattached. Missing data reports
+transform through the monster badge menu, equip a weapon whose stance reloads Max's body, and view an equipped weapon
+before backing out of the dungeon menu. Every case fails when a character drops out of the scene unreleased, an
+equipped part is left unattached, or a character part fails to load because its body retired. Missing data reports
 a skip rather than a successful replay.
 
 ~~~sh

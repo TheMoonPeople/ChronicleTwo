@@ -19,7 +19,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exe", type=Path, required=True)
     parser.add_argument("--work", type=Path, required=True)
-    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu", "equip-dungeon"), default="georama")
+    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu", "equip-dungeon", "weapon-view-dungeon"), default="georama")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[2]
     data = Path(os.environ.get("DC2_DATA", "data")).resolve()
@@ -56,6 +56,14 @@ def main() -> int:
                           "1400 cross\n1406\n1550 cross\n1556\n1700 cross\n1706\n1850 cross\n1856\n2000 cross\n2006\n2200 128 0 128 128\n2260\n"
                           "2400 triangle\n2406\n2520 cross\n2526\n2700 right\n2706\n2740 right\n2746\n2780 right\n2786\n2820 right\n2826\n"
                           "2860 right\n2866\n2950 cross\n2956\n3050 cross\n3056\n3150 circle\n3156\n3300 circle\n3306\n"),
+        # Skips the tutorial, views Max's equipped Classic Gun from Items without changing anything and backs out of
+        # the menu, whose exit reloads the menu's body and the scene's player part by part.
+        "weapon-view-dungeon": ("dungeon:0:1", 4300,
+                                "300 cross\n306\n520 cross\n526\n900 start\n906\n940 triangle\n946\n1100 cross\n1106\n1250 cross\n1256\n"
+                                "1400 cross\n1406\n1550 cross\n1556\n1700 cross\n1706\n1850 cross\n1856\n2000 cross\n2006\n2200 128 0 128 128\n2260\n"
+                                "2400 triangle\n2406\n2520 cross\n2526\n2720 left\n2726\n2790 down\n2796\n2860 down\n2866\n2930 right\n2936\n"
+                                "3000 cross\n3006\n3150 cross\n3156\n3300 circle\n3306\n3450 circle\n3456\n3600 circle\n3606\n3750 circle\n3756\n"
+                                "3900 circle\n3906\n"),
         "monster-menu": ("event:26010", 2400,
                          "400 l3\n406\n900 triangle\n906\n970 down\n971\n1020 cross\n1026\n1200 up\n1206\n1250 cross\n1256\n1500 cross\n1506\n1650 cross\n1656\n1800 cross\n1806\n2000 up\n2100\n2150 cross\n2156\n"),
     }[args.case]
@@ -100,6 +108,10 @@ def main() -> int:
     silent_drops = re.findall(r".*(?:is not attached:|dropped: its resources retired).*", output)
     if silent_drops:
         raise AssertionError(f"characters lost their parts: {silent_drops}; see {log_path}")
+    # A part whose body retired fails inside the loader and never reaches the attachment check.
+    load_failures = re.findall(r".*(?:character(?: skin)?|skin replacement): .*(?:not live|requires live).*", output)
+    if load_failures:
+        raise AssertionError(f"character parts failed to load: {load_failures}; see {log_path}")
     if args.case == "equip-dungeon":
         exits = [int(parts) for parts in re.findall(r"item menu exit: character=0 body reloaded with ([0-9]+) attached parts", output)]
         receipt["attached_parts"] = exits
@@ -107,6 +119,21 @@ def main() -> int:
         # The hammer, the gun and the cap stay attached to the reloaded body.
         if exits != [3]:
             raise AssertionError(f"expected one body reload keeping 3 parts; got {exits}; see {log_path}")
+    elif args.case == "weapon-view-dungeon":
+        previews = [(int(part), live == "true") for part, live in re.findall(
+            r"menu preview part loaded: character=0, part=([0-9]+), body_live=(true|false)", output)]
+        reloads = [(int(part), player == "true" and preview == "true") for part, player, preview in re.findall(
+            r"menu scene part reloaded: character=0, part=([0-9]+), player_live=(true|false), preview_live=(true|false)",
+            output)]
+        receipt["previews"] = previews
+        receipt["scene_reloads"] = reloads
+        receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+        # Viewing the gun loads the preview body and its parts; backing out reloads the scene player's parts after
+        # the preview's, and neither body may retire while the other reloads its melee weapon.
+        if not previews or not all(live for _, live in previews) or 2 not in [part for part, _ in previews]:
+            raise AssertionError(f"expected the weapon view to load a live preview body; got {previews}; see {log_path}")
+        if [part for part, _ in reloads] != [1, 2, 3, 4, 5] or not all(live for _, live in reloads):
+            raise AssertionError(f"expected the menu exit to reload parts 1-5 with both bodies live; got {reloads}; see {log_path}")
     elif args.case == "georama":
         transitions = [(state, int(frame)) for state, frame in re.findall(
             r"georama menu (ready|closed): town=0, frame=([0-9]+)", output)]
