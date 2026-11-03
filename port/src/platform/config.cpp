@@ -514,6 +514,13 @@ bool WriteReplacing(const std::filesystem::path &path, std::string_view text) {
         }
     }
     std::filesystem::rename(temp, path, error);
+    std::error_code check;
+    if (error && std::filesystem::is_regular_file(path, check)) {
+        error.clear();
+        std::filesystem::remove(path, error);
+        error.clear();
+        std::filesystem::rename(temp, path, error);
+    }
     if (error) {
         std::filesystem::remove(temp, error);
         return false;
