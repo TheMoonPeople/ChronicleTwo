@@ -1172,6 +1172,14 @@ enum class ResourceChannel {
 };
 
 /**
+ * Reports whether a channel only borrows another character's resource rather than owning it.
+ *
+ * A borrowed producer's retirement invalidates the borrow, never the borrower: an attached part outlives the
+ * reload of the body it is attached to, as retail re-attaches it afterwards.
+ */
+[[nodiscard]] constexpr bool BorrowedChannel(ResourceChannel channel) { return channel == ResourceChannel::ParentOutline; }
+
+/**
  * Associates a semantic resource slot with its actual allocation context.
  */
 struct ResourceProducer {
@@ -1244,6 +1252,10 @@ private:
  * Reports whether every retained character resource still belongs to a live producer.
  */
 [[nodiscard]] bool ResourcesLive(const CCharacter2 &character);
+/**
+ * Reports whether every resource the character borrows from another character still belongs to a live producer.
+ */
+[[nodiscard]] bool BorrowedResourcesLive(const CCharacter2 &character);
 /**
  * Predicts whether an arena operation would retire any retained character resource.
  */

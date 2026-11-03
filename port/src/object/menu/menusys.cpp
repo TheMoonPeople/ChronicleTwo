@@ -25,6 +25,7 @@
 #include "font.hpp"
 #include "gamedata.hpp"
 #include "inventmn.hpp"
+#include "log/log.hpp"
 #include "mainloop.hpp"
 #include "maintex.hpp"
 #include "map.hpp"
@@ -6253,6 +6254,11 @@ void CMenuItemInfo::ExitEnd() {
                         MenuArg.chara_tex_block);
         SetupUnitMan(MenuMainScene, GetUserDataMan(), chara_no, nullptr);
         chara->effect_man = FxScriptMan;
+        int attached = 0;
+        for (const CActionChara *part = chara->next; part != nullptr; part = part->next) {
+            ++attached;
+        }
+        CT_LOG_DEBUG(Menu, "item menu exit: character={} body reloaded with {} attached parts", chara_no, attached);
     }
 
     equip_list_no = CheckEquipListNo(0);
