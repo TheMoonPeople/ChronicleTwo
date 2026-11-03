@@ -13417,6 +13417,7 @@ static int _SND_LOAD_SOUND(dc2::script::RunArguments stack, int argc) {
     sndInitPort(port);
     SetStack(stack, sound_id = sndLoadSound(port, pack, memory));
     EdEventInfo.snd_id[port] = sound_id;
+        CT_LOG_INFO(Audio, "event sound: slot {} loaded {} as sound {}", port, std::string(file_name), sound_id);
     EdEventInfo.last_snd_id = sound_id;
     return true;
 }
