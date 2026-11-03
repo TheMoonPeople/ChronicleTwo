@@ -698,7 +698,7 @@ local function event_1010()
 			if var1 >= 9 and var1 <= 11 then
 				event.load_dungeon_map("d02f01s", "d02f01", 1)
 			else
-				var8 = vm.float_bits(event.get_random_number(100)) or var8
+				var8 = event.get_random_number_int(100) or var8
 				if vm.imod(var8, 8) == 0 then
 					event.load_dungeon_map("d02f01r", "d02f01", 1)
 					event.set_dungeon_weather(2)
@@ -1824,7 +1824,7 @@ function script.random_circle()
 	end
 	var26 = event.get_direction_angle(pos_x_4, pos_y_4, pos_z_4, pos_x_3, pos_y_3, pos_z_3) or var26
 	var27 = 0
-	var27 = vm.float_bits(event.get_random_number(10)) or var27
+	var27 = event.get_random_number_int(10) or var27
 	var27 = vm.i32(var27 + 4)
 	var18 = 0
 	while true do
@@ -1869,14 +1869,14 @@ function script.random_circle()
 	end
 	var26 = var14
 	wait_frames(20)
-	var29 = vm.float_bits(event.get_random_number(10)) or var29
+	var29 = event.get_random_number_int(10) or var29
 	if now_party_chara_id == 24 then
 		var30 = 100
 	else
 		var30 = 6
 	end
 	if var29 < var30 then
-		var29 = vm.float_bits(event.get_random_number(10)) or var29
+		var29 = event.get_random_number_int(10) or var29
 		if circle_id == 0 then
 			if now_party_chara_id == 24 then
 				var30 = 0
@@ -1899,7 +1899,7 @@ function script.random_circle()
 			end
 			wait_frames(10)
 		else
-			var29 = vm.float_bits(event.get_random_number(10)) or var29
+			var29 = event.get_random_number_int(10) or var29
 			if var29 < 1 then
 				var26 = vm.f32(var26 + vm.f32(3.14))
 				var26 = event.wrap_angle(var26) or var26

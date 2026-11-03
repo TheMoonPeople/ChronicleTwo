@@ -4885,7 +4885,7 @@ function script.event_1200()
 	return vm.guard(function()
 		active_chr_no = event.get_playable_character() or active_chr_no
 		if active_chr_no == 1 or active_chr_no == 3 then
-			var1 = vm.float_bits(event.get_random_number(100)) or var1
+			var1 = event.get_random_number_int(100) or var1
 			if vm.imod(var1, 2) == 0 then
 				at = 1
 				helper_a9eaf20e(0, 8530100)

@@ -3049,7 +3049,7 @@ local function helper_31928(arg0: s32)
 		)
 	end
 	if arg0 == 13 or arg0 == 14 or arg0 == 15 then
-		var29 = vm.float_bits(event.get_random_number(10)) or var29
+		var29 = event.get_random_number_int(10) or var29
 		if var29 == 0 then
 			event.open_message_window_2(0, "ピユーイ！！")
 		end
@@ -3370,7 +3370,7 @@ function script.event_1200()
 		flag = event.get_save_flag(440) or flag
 		flag_2 = event.get_save_flag(444) or flag_2
 		if flag ~= 0 and flag_2 == 0 then
-			var2 = vm.float_bits(event.get_random_number(100)) or var2
+			var2 = event.get_random_number_int(100) or var2
 			if var2 < 50 then
 				at = 1
 				helper_a9eaf20e(0, 8620060)

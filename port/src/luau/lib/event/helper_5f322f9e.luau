@@ -127,7 +127,7 @@ local function helper_5f322f9e(arg0: any, arg1: s32)
 	local _ = open_message(0, 2220, 8, 0, 0)
 	var8 = helper_f51aa7a3(0, 2, 0, 1)
 	event.set_message_bubble_screen_slot(0, 0)
-	var10 = vm.float_bits(event.get_random_number(100)) or var10
+	var10 = event.get_random_number_int(100) or var10
 	if vm.imod(var10, 2) == 0 then
 		var11 = arg0
 		arg0 = arg1

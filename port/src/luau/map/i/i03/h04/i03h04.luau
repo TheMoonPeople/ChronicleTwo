@@ -241,7 +241,7 @@ local function helper_15b54()
 			if frame[6] == frame[8] then
 				frame[12] = 1
 			else
-				frame[7] = vm.float_bits(event.get_random_number(24)) or frame[7]
+				frame[7] = event.get_random_number_int(24) or frame[7]
 				while true do
 					frame[45] = 0
 					while frame[14] > frame[45] do
@@ -254,7 +254,7 @@ local function helper_15b54()
 					if frame[14] == frame[45] then
 						break
 					else
-						frame[7] = vm.float_bits(event.get_random_number(24)) or frame[7]
+						frame[7] = event.get_random_number_int(24) or frame[7]
 					end
 				end
 				frame[vm.index(vm.i32(frame[14] + 14), 48)] = frame[7]

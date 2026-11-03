@@ -77,7 +77,7 @@ local function helper_cffd0192()
 		var0 = 0
 		while var0 < 6 do
 			var6 = 0
-			var6 = vm.float_bits(event.get_random_number(6)) or var6
+			var6 = event.get_random_number_int(6) or var6
 			event.delay_object_sequence_motion_track(0 + var0, var6)
 			event.set_object_sequence_motion(0 + var0, "攻撃１in", 6)
 			event.queue_object_sequence_next_motion(0 + var0, "攻撃１", 0)

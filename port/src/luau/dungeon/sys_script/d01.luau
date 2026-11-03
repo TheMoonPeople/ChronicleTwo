@@ -1317,7 +1317,7 @@ local function helper_ebb4(arg0: any, arg1: s32)
 	local _ = helper_14b4(0, 2220, 8, 0, 0)
 	var8 = helper_f51aa7a3(0, 2, 0, 1)
 	event.set_message_bubble_screen_slot(0, 0)
-	var10 = vm.float_bits(event.get_random_number(100)) or var10
+	var10 = event.get_random_number_int(100) or var10
 	if vm.imod(var10, 2) == 0 then
 		var11 = arg0
 		arg0 = arg1
@@ -2015,7 +2015,7 @@ function script.random_circle()
 	end
 	var25 = event.get_direction_angle(pos_x_4, pos_y_4, pos_z_4, pos_x_3, pos_y_3, pos_z_3) or var25
 	var26 = 0
-	var26 = vm.float_bits(event.get_random_number(10)) or var26
+	var26 = event.get_random_number_int(10) or var26
 	var26 = vm.i32(var26 + 4)
 	var17 = 0
 	while true do
@@ -2049,9 +2049,9 @@ function script.random_circle()
 		var17 = vm.i32(var17 + 1)
 	end
 	helper_888ab2a3(20)
-	var28 = vm.float_bits(event.get_random_number(10)) or var28
+	var28 = event.get_random_number_int(10) or var28
 	if var28 < 6 then
-		var28 = vm.float_bits(event.get_random_number(10)) or var28
+		var28 = event.get_random_number_int(10) or var28
 		if circle_id == 0 then
 			var29 = 2
 		else
@@ -2068,7 +2068,7 @@ function script.random_circle()
 			end
 			helper_888ab2a3(10)
 		else
-			var28 = vm.float_bits(event.get_random_number(10)) or var28
+			var28 = event.get_random_number_int(10) or var28
 			if var28 < 1 then
 				var25 = vm.f32(var25 + vm.f32(3.14))
 				var25 = event.wrap_angle(var25) or var25

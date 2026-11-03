@@ -2412,7 +2412,7 @@ function script.event_1200()
 		flag_2 = event.get_save_flag(536) or flag_2
 		if flag ~= 0 and flag_2 == 0 then
 			var1 = 0
-			var1 = vm.float_bits(event.get_random_number(100)) or var1
+			var1 = event.get_random_number_int(100) or var1
 			if var1 < 50 then
 				at = 1
 				helper_a9eaf20e(0, 8540060)
@@ -2425,7 +2425,7 @@ function script.event_1200()
 		flag_3 = event.get_save_flag(528) or flag_3
 		if flag_3 ~= 0 and flag == 0 then
 			var1 = 0
-			var1 = vm.float_bits(event.get_random_number(100)) or var1
+			var1 = event.get_random_number_int(100) or var1
 			if var1 < 50 then
 				at = 3
 				helper_a9eaf20e(0, 8530100)
