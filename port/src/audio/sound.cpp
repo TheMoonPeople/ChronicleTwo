@@ -532,7 +532,7 @@ void CSound::SQ_Play(int port, int seq_no, int volume) {
     if (volume != audio::kFullPortVolume) {
         volume = static_cast<int>(2.015748f * volume);
     }
-
+    CT_LOG_INFO(Audio, "sequence play: port {} sequence {} volume {}", port, seq_no, volume);
     mixer.SetVolume(port, volume);
     mixer.Rewind(port, 0);
     mixer.Play(port);
