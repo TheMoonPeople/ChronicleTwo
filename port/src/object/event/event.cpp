@@ -36,6 +36,7 @@
 #include "scenesnd.hpp"
 #include "snd_mngr.hpp"
 #include "sound.hpp"
+#include "test_hooks.hpp"
 #include "text/bounded.hpp"
 
 /**
@@ -134,8 +135,13 @@ void InitEvent(CScene *scene) {
 
 int RunEvent(int event_no, CScene *scene) {
     EventScene = scene;
-    ++event_script_generation;
-    return EventScript.run(event_no);
+    const auto generation = ++event_script_generation;
+    dc2::debug::ObserveHalloweenPreambleEvent(event_no, scene, nullptr, 0);
+    const int result = EventScript.run(event_no);
+    if (event_script_generation == generation && EventScript.prog != nullptr && !EventScript.end) {
+        dc2::debug::ObserveHalloweenPreambleEvent(event_no, scene, &EventScript, result);
+    }
+    return result;
 }
 
 int EventDoorLoop(int frame, int use_scene_se) {
@@ -564,6 +570,7 @@ dc2::script::DeferredIntegerWriter CaptureEventInteger(void *, RS_STACKDATA &val
 }
 
 void ConfigureEventScriptFunctions() {
+    dc2::debug::ObserveHalloweenPreambleEvent(-1, nullptr, nullptr, 0);
     SetEventFunc(&EventScript);
     ++event_script_generation;
     EventScript.deferred_integer_factory = CaptureEventInteger;
@@ -577,6 +584,7 @@ void ConfigureEventScriptFunctions() {
 } // namespace
 
 void SetEventScript(std::span<u8> program, mgCMemory *memory) {
+    dc2::debug::ObserveHalloweenPreambleEvent(-1, nullptr, nullptr, 0);
     if (memory == nullptr || !EventScript.load(program, event_script_values, event_script_calls)) {
         EventScript.DeleteProgram();
         return;

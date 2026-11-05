@@ -11,6 +11,9 @@
 
 class mgCCamera;
 class mgCFrame;
+class CScene;
+class CGamePad;
+class CRunScript;
 struct CCPoly;
 
 enum class JumpMode {
@@ -31,6 +34,66 @@ struct GameJump {
 };
 
 namespace dc2::debug {
+
+/**
+ * Describes the current native Halloween message and performance-input boundary.
+ */
+struct HalloweenPreambleInputContext {
+    const CScene *scene = nullptr;     /**< Current combat scene. */
+    const void   *program = nullptr;   /**< Current event program identity. */
+    bool          exact_scene = false; /**< Whether the requested and resolved Halloween arena match. */
+    bool          running = false;     /**< Whether the observed event program is still running. */
+    bool          ready = false;       /**< Whether performance warmup has begun. */
+    bool          started = false;     /**< Whether a measurement has ever begun. */
+    bool          measuring = false;   /**< Whether a measurement window is active. */
+    int           monster_id = -1;     /**< Current live boss identity. */
+    int           tutorial_flags = 0;  /**< Actual boss tutorial bits. */
+    bool          live_boss = false;   /**< Whether the drawn boss and its life metadata remain valid. */
+    int           message_state = 0;   /**< Native state of event message zero. */
+};
+
+/**
+ * Composes one explicitly enabled tutorial acknowledgement with ordinary controller samples.
+ */
+struct HalloweenPreambleInput {
+    bool          enabled = false;   /**< Whether the explicit setup option is active. */
+    bool          consumed = false;  /**< Whether this option lifetime already supplied its one edge. */
+    const CScene *scene = nullptr;   /**< Scene that successfully started event 540. */
+    const void   *program = nullptr; /**< Program that successfully started event 540. */
+
+    /**
+     * Replaces the observed event identity without renewing an already consumed acknowledgement.
+     */
+    void Observe(int event, const CScene *event_scene, const void *event_program, int result);
+    /**
+     * Adds one normal Circle press only to an eligible, fully shown pre-measurement tutorial.
+     */
+    bool Apply(CGamePad &pad, const HalloweenPreambleInputContext &context);
+};
+
+/**
+ * Validates the explicit setup-input option against its requested event and measurement duration.
+ */
+constexpr bool HalloweenPreambleAcknowledgementAllowed(bool enabled, const GameJump *jump, int seconds) {
+    return !enabled || (jump != nullptr && jump->mode == JumpMode::Event && jump->event == 21020 && seconds > 0);
+}
+
+/**
+ * Configures the optional acknowledgement only for an explicitly measured Halloween event.
+ */
+bool ConfigureHalloweenPreambleAcknowledgement(bool enabled);
+/**
+ * Reports whether the explicit Halloween setup-input option is enabled.
+ */
+bool HalloweenPreambleAcknowledgementEnabled();
+/**
+ * Observes a real event start or invalidation without changing the event interpreter.
+ */
+void ObserveHalloweenPreambleEvent(int event, CScene *scene, CRunScript *script, int result);
+/**
+ * Composes the optional acknowledgement at the primary controller's ordinary consumption point.
+ */
+void ApplyHalloweenPreambleAcknowledgement(CGamePad &pad);
 
 /**
  * Retains the native triangle broadphase bounds for one current collision snapshot.
@@ -154,6 +217,15 @@ float DungeonStressProjection(float focal_distance);
  */
 constexpr bool CombatBossActorReady(int expected_monster, int monster_id, bool live_active, bool boss_metadata) {
     return live_active && (expected_monster >= 0 ? monster_id == expected_monster : boss_metadata);
+}
+
+/**
+ * Waits for Halloween's natural first-bomb tutorial and every event-request handoff to finish.
+ */
+constexpr bool CombatBossPreambleReady(int event, int monster_id, int tutorial_flags, int monster_pending,
+                                       bool scene_present, int scene_pending, bool scene_running) {
+    return event != 21020 || (monster_id == 500 && (tutorial_flags & 2) != 0 && monster_pending == -1 &&
+                              scene_present && scene_pending < 0 && !scene_running);
 }
 
 /**

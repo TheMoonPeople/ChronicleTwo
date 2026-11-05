@@ -604,6 +604,8 @@ void CGamePad::UpDate() {
         Play(&pad[0]);
     }
 
+    dc2::debug::ApplyHalloweenPreambleAcknowledgement(*this);
+
     // Retail applies pad 0's left stick to both thresholds, whichever host device supplies each axis.
     for (int port = 0; port < 2; ++port) {
         const int threshold = axis_threshold[port];

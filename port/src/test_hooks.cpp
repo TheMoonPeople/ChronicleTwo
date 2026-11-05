@@ -26,6 +26,7 @@
 #include "event_func.hpp"
 #include "exitcodes.hpp"
 #include "gamedata.hpp"
+#include "gamepad.hpp"
 #include "gameutil.hpp"
 #include "log/log.hpp"
 #include "main.hpp"
@@ -35,6 +36,7 @@
 #include "mg_camera.hpp"
 #include "mg_math.hpp"
 #include "monster.hpp"
+#include "nd_meswin.hpp"
 #include "options/screen.hpp"
 #include "platform/config.hpp"
 #include "platform/game_loop_state.hpp"
@@ -45,6 +47,7 @@
 #include "profile.hpp"
 #include "render/renderer.hpp"
 #include "render/shadow_mesh.hpp"
+#include "runscript.hpp"
 #include "savedata.hpp"
 #include "title.hpp"
 #include "userdata.hpp"
@@ -100,6 +103,19 @@ struct PerfRun {
 };
 
 PerfRun perf;
+
+/**
+ * Owns the explicit one-shot Halloween setup-input lifetime.
+ */
+dc2::debug::HalloweenPreambleInput halloween_input;
+/**
+ * Borrows the permanent event interpreter whose successful start was observed.
+ */
+CRunScript *halloween_event_script = nullptr;
+/**
+ * Limits the setup eligibility receipt to the first fully shown message.
+ */
+bool halloween_input_observed_shown = false;
 
 using StressPoint = std::array<float, 4>;
 constexpr int kStressBodies = 10;
@@ -825,6 +841,9 @@ constexpr std::chrono::seconds kPerfWarmup{1};
  * Records the exact queued-image sequence boundary for captured presentation measurements.
  */
 void PerfLogMarker(const char *boundary) {
+    if (std::strcmp(boundary, "end") == 0) {
+        gfx::LogAttachmentAlphaTrace();
+    }
     const auto marker = gfx::GetPresentMarkerSnapshot();
     if (marker.enabled) {
         CT_LOG_INFO(Main, "perf marker {}: instance {} sequence {} accepted {} failed {} boundary_ns {} present_ns {}",
@@ -889,9 +908,11 @@ bool PerfBossActorsReady() {
     if (ActiveMonster != nullptr) {
         for (int index = 0; index < MONSTER_ACTIVE_MAX; ++index) {
             CActiveMonster *monster = ActiveMonster->GetActiveMonster(index);
-            if (monster != nullptr && dc2::debug::CombatBossActorReady(expected_monster, monster->monster_id,
-                                                                       monster->IsDraw(1) != 0,
-                                                                       monster->tbl != nullptr && monster->tbl->boss != 0)) {
+            if (monster != nullptr && dc2::debug::CombatBossActorReady(expected_monster, monster->monster_id, monster->IsDraw(1) != 0, monster->tbl != nullptr && monster->tbl->boss != 0) &&
+                dc2::debug::CombatBossPreambleReady(target->event, monster->monster_id, monster->script_vars[7].i,
+                                                    monster->event_no, BattleAreaScene != nullptr,
+                                                    BattleAreaScene != nullptr ? BattleAreaScene->script.event_no : -1,
+                                                    BattleAreaScene != nullptr && BattleAreaScene->script.running != 0)) {
                 return true;
             }
         }
@@ -927,6 +948,12 @@ void PerfLogScene(const char *phase, int mode) {
             CActiveMonster *monster = ActiveMonster->GetActiveMonster(index);
             if (monster != nullptr && monster->IsDraw(1) != 0) {
                 CT_LOG_INFO(Main, "perf actor slot {} monster_id {} program {}", index, monster->monster_id, monster->now_prog);
+                if (target && target->mode == JumpMode::Event && target->event == 21020 && monster->monster_id == 500) {
+                    CT_LOG_INFO(Main, "perf boss preamble: event=21020 monster=500 vars6={} vars7={} actor_pending={} scene_present={} scene_pending={} scene_running={}",
+                                monster->script_vars[6].i, monster->script_vars[7].i, monster->event_no,
+                                BattleAreaScene != nullptr, BattleAreaScene != nullptr ? BattleAreaScene->script.event_no : -1,
+                                BattleAreaScene != nullptr && BattleAreaScene->script.running != 0);
+                }
             }
         }
     }
@@ -1117,6 +1144,104 @@ bool ResolveEvent(int event, int &mode, INIT_LOOP_ARG &arg) {
 } // namespace
 
 namespace dc2::debug {
+
+void HalloweenPreambleInput::Observe(int event, const CScene *event_scene, const void *event_program, int result) {
+    scene = nullptr;
+    program = nullptr;
+    if (enabled && event == 540 && result == 1 && event_scene != nullptr && event_program != nullptr) {
+        scene = event_scene;
+        program = event_program;
+    }
+}
+
+bool HalloweenPreambleInput::Apply(CGamePad &pad, const HalloweenPreambleInputContext &context) {
+    constexpr int debug_modifier = PAD_L2 | PAD_SELECT;
+    if (!enabled || consumed || scene == nullptr || program == nullptr || context.scene != scene ||
+        context.program != program || !context.exact_scene || !context.running || context.ready ||
+        context.started || context.measuring || context.monster_id != 500 || !context.live_boss ||
+        (context.tutorial_flags & 2) == 0 || context.message_state != CLSMES_SHOWN || pad.key_lock != 0 ||
+        ((pad.pad[0].button | pad.previous_pad[0].button) & PAD_CIRCLE) != 0 ||
+        (pad.pad[0].button & debug_modifier) == debug_modifier ||
+        (pad.previous_pad[0].button & debug_modifier) == debug_modifier) {
+        return false;
+    }
+    pad.pad[0].button |= PAD_CIRCLE;
+    consumed = true;
+    return true;
+}
+
+bool ConfigureHalloweenPreambleAcknowledgement(bool enabled) {
+    halloween_input = HalloweenPreambleInput{};
+    halloween_event_script = nullptr;
+    halloween_input_observed_shown = false;
+    if (!HalloweenPreambleAcknowledgementAllowed(enabled, target ? &*target : nullptr, perf.seconds)) {
+        return false;
+    }
+    halloween_input.enabled = enabled;
+    return true;
+}
+
+bool HalloweenPreambleAcknowledgementEnabled() { return halloween_input.enabled; }
+
+void ObserveHalloweenPreambleEvent(int event, CScene *scene, CRunScript *script, int result) {
+    if (!halloween_input.enabled) {
+        return;
+    }
+    halloween_input.Observe(event, scene, script != nullptr ? script->prog : nullptr, result);
+    halloween_event_script = halloween_input.program != nullptr ? script : nullptr;
+    if (event == 540 && result == 1) {
+        CT_LOG_INFO(Main, "perf Halloween event observed: event=540 result={} bound={} running={}", result,
+                    halloween_input.scene != nullptr, script != nullptr && !script->end);
+    }
+}
+
+void ApplyHalloweenPreambleAcknowledgement(CGamePad &pad) {
+    if (&pad != &GamePad__2 || !halloween_input.enabled || halloween_input.consumed || perf.ready ||
+        perf.started != PerfClock::time_point{} || perf.window_start) {
+        return;
+    }
+    HalloweenPreambleInputContext context;
+    context.scene = DngMainScene;
+    context.program = halloween_event_script != nullptr ? halloween_event_script->prog : nullptr;
+    context.exact_scene = target && target->mode == JumpMode::Event && target->event == 21020 && perf_target &&
+                          perf_target->mode == LOOP_DUNGEON && perf_target->argument.map_no == 0 &&
+                          perf_target->argument.floor_no == 7 && GetNowLoopNo() == LOOP_DUNGEON &&
+                          DngStatus.dungeon_no == 0 && DngMainScene != nullptr && DngSaveDataDungeon != nullptr &&
+                          DngSaveDataDungeon->floor_id[0] == 7 && BattleAreaScene != nullptr &&
+                          BattleAreaScene == &DngMainScene->battle_area &&
+                          std::string_view(BattleAreaScene->map_name) == "d01b01";
+    context.running = halloween_event_script != nullptr && !halloween_event_script->end && BattleAreaScene != nullptr &&
+                      BattleAreaScene->script.running != 0 && EventScene == DngMainScene && DngStatus.mode == DNG_STATUS_EVENT;
+    context.ready = perf.ready.has_value();
+    context.started = perf.started != PerfClock::time_point{};
+    context.measuring = perf.window_start.has_value();
+    if (ActiveMonster != nullptr) {
+        for (int slot = 0; slot < MONSTER_ACTIVE_MAX; ++slot) {
+            auto *monster = ActiveMonster->GetActiveMonster(slot);
+            if (monster != nullptr && monster->monster_id == 500 && monster->IsDraw(1) != 0) {
+                context.monster_id = monster->monster_id;
+                context.tutorial_flags = monster->script_vars[7].i;
+                context.live_boss = monster->tbl != nullptr && monster->tbl->boss != 0 && ActiveMonster->boss_max_life > 0;
+                break;
+            }
+        }
+    }
+    if (auto *message = GetEventMessage(0); message != nullptr) {
+        context.message_state = message->State();
+    }
+    if (context.message_state == CLSMES_SHOWN && !halloween_input_observed_shown) {
+        halloween_input_observed_shown = true;
+        CT_LOG_INFO(Main, "perf Halloween input eligibility: bound={} scene_match={} program_match={} exact={} running={} live={} monster={} vars7={} key_lock={} debug_lock={} buttons={} previous={} loop={} mode={}",
+                    halloween_input.scene != nullptr, context.scene == halloween_input.scene,
+                    context.program == halloween_input.program, context.exact_scene, context.running,
+                    context.live_boss, context.monster_id, context.tutorial_flags, pad.key_lock, pad.debug_key_lock,
+                    pad.pad[0].button, pad.previous_pad[0].button, GetNowLoopNo(), DngStatus.mode);
+    }
+    if (halloween_input.Apply(pad, context)) {
+        CT_LOG_INFO(Main, "perf Halloween preamble input: event=540 message_state={} vars7={} button=Circle edges=1 ready={} started={} measuring={}",
+                    context.message_state, context.tutorial_flags, context.ready, context.started, context.measuring);
+    }
+}
 
 void DungeonStressPrepareRayBounds(std::span<CCPoly> polygons, std::vector<DungeonStressRayBounds> &bounds) {
     bounds.resize(polygons.size());
@@ -1663,6 +1788,7 @@ void GamePerfStep(int mode) {
                 stress.measured_tick = stress.tick;
             }
             perf.window_present = perf.start_present = PresentGetStats();
+            gfx::BeginAttachmentAlphaTrace(static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count()));
             gfx::BeginPresentationHistory(native_now_ns);
             dc2::presentation::BeginSchedulingTrace(now, native_now_ns);
             PerfLogMarker("start");
@@ -1697,6 +1823,7 @@ void GamePerfStep(int mode) {
     const double elapsed = std::chrono::duration<double>(now - perf.started).count();
     const bool   complete = elapsed >= perf.seconds;
     if (complete) {
+        gfx::EndAttachmentAlphaTrace(static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count()));
         gfx::EndPresentationHistory(native_now_ns);
         dc2::presentation::EndSchedulingTrace(now, native_now_ns);
     }
@@ -1761,6 +1888,7 @@ void GameDebugFrame(int mode) {
 }
 
 void GamePrepareJump(int &mode, INIT_LOOP_ARG &arg) {
+    dc2::debug::ObserveHalloweenPreambleEvent(-1, nullptr, nullptr, 0);
     for (int item : gifts) {
         RequireKnownItem(item);
     }

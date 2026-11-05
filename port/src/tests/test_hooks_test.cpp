@@ -14,6 +14,7 @@
 #include "debug_fixture.hpp"
 #include "gamepad.hpp"
 #include "gameutil.hpp"
+#include "nd_meswin.hpp"
 #include "nowload.hpp"
 #include "object/menu/loading_screen.hpp"
 #include "platform/config.hpp"
@@ -22,6 +23,161 @@
 #include "test_hooks.hpp"
 
 using GamePadSingleDebug = dc::test::DebugFixture;
+
+namespace {
+/**
+ * Supplies identity-only scene and program tokens for the input state machine.
+ */
+dc2::debug::HalloweenPreambleInputContext PreambleInputContext() {
+    alignas(64) static int scene_identity;
+    static int             program_identity;
+    return {.scene = reinterpret_cast<const CScene *>(&scene_identity), .program = &program_identity, .exact_scene = true, .running = true, .monster_id = 500, .tutorial_flags = 2, .live_boss = true, .message_state = CLSMES_SHOWN};
+}
+} // namespace
+
+TEST(TestHooks, HalloweenAcknowledgementRequiresExplicitMeasuredTarget) {
+    EXPECT_TRUE(dc2::debug::ConfigureHalloweenPreambleAcknowledgement(false));
+    EXPECT_FALSE(dc2::debug::HalloweenPreambleAcknowledgementEnabled());
+    const GameJump halloween{.mode = JumpMode::Event, .event = 21020};
+    const GameJump other{.mode = JumpMode::Event, .event = 21010};
+    const GameJump dungeon{.mode = JumpMode::Dungeon, .event = 21020};
+    using dc2::debug::HalloweenPreambleAcknowledgementAllowed;
+    EXPECT_TRUE(HalloweenPreambleAcknowledgementAllowed(false, nullptr, 0));
+    EXPECT_FALSE(HalloweenPreambleAcknowledgementAllowed(true, nullptr, 8));
+    EXPECT_FALSE(HalloweenPreambleAcknowledgementAllowed(true, &other, 8));
+    EXPECT_FALSE(HalloweenPreambleAcknowledgementAllowed(true, &dungeon, 8));
+    EXPECT_FALSE(HalloweenPreambleAcknowledgementAllowed(true, &halloween, 0));
+    EXPECT_FALSE(HalloweenPreambleAcknowledgementAllowed(true, &halloween, -1));
+    EXPECT_TRUE(HalloweenPreambleAcknowledgementAllowed(true, &halloween, 8));
+}
+
+TEST(TestHooks, HalloweenAcknowledgementProducesOneOrdinaryEdgeAndNaturalRelease) {
+    auto                               context = PreambleInputContext();
+    dc2::debug::HalloweenPreambleInput input{.enabled = true};
+    input.Observe(540, context.scene, context.program, 1);
+    CGamePad pad{};
+    pad.pad[0].button = PAD_RIGHT;
+    pad.pad[0].left_x = 128;
+    pad.pad[0].left_y = 127;
+    pad.pad[0].right_x = 255;
+    pad.pad[0].right_y = 128;
+    pad.DebugKeyLock(1);
+    ASSERT_TRUE(input.Apply(pad, context));
+    EXPECT_TRUE(pad.Down(PAD_CIRCLE));
+    EXPECT_EQ(pad.pad[0].button, PAD_RIGHT | PAD_CIRCLE);
+    EXPECT_EQ(pad.pad[0].left_x, 128);
+    EXPECT_EQ(pad.pad[0].left_y, 127);
+    EXPECT_EQ(pad.pad[0].right_x, 255);
+    EXPECT_EQ(pad.pad[0].right_y, 128);
+    pad.previous_pad[0] = pad.pad[0];
+    pad.pad[0].button = PAD_RIGHT;
+    EXPECT_FALSE(input.Apply(pad, context));
+    EXPECT_TRUE(pad.Up(PAD_CIRCLE));
+    pad.previous_pad[0] = pad.pad[0];
+    EXPECT_FALSE(input.Apply(pad, context));
+    input.Observe(540, context.scene, context.program, 1);
+    EXPECT_FALSE(input.Apply(pad, context));
+}
+
+TEST(TestHooks, HalloweenAcknowledgementRejectsEveryNonfinalMessageAndMeasurementCut) {
+    const auto baseline = PreambleInputContext();
+    const auto rejected = [](const auto &context) {
+        dc2::debug::HalloweenPreambleInput input{.enabled = true};
+        const auto                         original = PreambleInputContext();
+        input.Observe(540, original.scene, original.program, 1);
+        CGamePad pad{};
+        EXPECT_FALSE(input.Apply(pad, context));
+        EXPECT_FALSE(input.consumed);
+        EXPECT_EQ(pad.pad[0].button, 0);
+    };
+    for (int state : {CLSMES_CLOSED, CLSMES_OPENING, CLSMES_REVEALING, CLSMES_CLOSING, CLSMES_PAGE_WAIT, CLSMES_SCROLLING}) {
+        auto context = baseline;
+        context.message_state = state;
+        rejected(context);
+    }
+    auto context = baseline;
+    context.exact_scene = false;
+    rejected(context);
+    context = baseline;
+    context.running = false;
+    rejected(context);
+    context = baseline;
+    context.ready = true;
+    rejected(context);
+    context = baseline;
+    context.started = true;
+    rejected(context);
+    context = baseline;
+    context.measuring = true;
+    rejected(context);
+    context = baseline;
+    context.monster_id = 1000;
+    rejected(context);
+    context = baseline;
+    context.live_boss = false;
+    rejected(context);
+    context = baseline;
+    context.tutorial_flags = 1;
+    rejected(context);
+    context = baseline;
+    context.scene = nullptr;
+    rejected(context);
+    context = baseline;
+    context.program = nullptr;
+    rejected(context);
+}
+
+TEST(TestHooks, HalloweenAcknowledgementNeverManufacturesHeldLockedOrDebugRoutedEdges) {
+    const auto context = PreambleInputContext();
+    for (int variant = 0; variant < 5; ++variant) {
+        dc2::debug::HalloweenPreambleInput input{.enabled = true};
+        input.Observe(540, context.scene, context.program, 1);
+        CGamePad pad{};
+        if (variant == 0) {
+            pad.pad[0].button = PAD_CIRCLE;
+        }
+        if (variant == 1) {
+            pad.previous_pad[0].button = PAD_CIRCLE;
+        }
+        if (variant == 2) {
+            pad.key_lock = 1;
+        }
+        if (variant == 3) {
+            pad.pad[0].button = PAD_SELECT | PAD_L2;
+        }
+        if (variant == 4) {
+            pad.previous_pad[0].button = PAD_SELECT | PAD_L2;
+        }
+        const int buttons = pad.pad[0].button;
+        EXPECT_FALSE(input.Apply(pad, context));
+        EXPECT_EQ(pad.pad[0].button, buttons);
+        EXPECT_FALSE(input.consumed);
+    }
+}
+
+TEST(TestHooks, HalloweenAcknowledgementInvalidatesOtherFailedAndReplacedPrograms) {
+    auto                               context = PreambleInputContext();
+    dc2::debug::HalloweenPreambleInput input;
+    input.Observe(540, context.scene, context.program, 1);
+    CGamePad pad{};
+    EXPECT_FALSE(input.Apply(pad, context));
+    input.enabled = true;
+    for (const int event : {530, 540, 21020}) {
+        input.Observe(540, context.scene, context.program, 1);
+        input.Observe(event, context.scene, context.program, event == 540 ? 0 : 1);
+        EXPECT_FALSE(input.Apply(pad, context));
+    }
+    input.Observe(540, context.scene, context.program, 1);
+    int replacement;
+    context.program = &replacement;
+    EXPECT_FALSE(input.Apply(pad, context));
+    input.Observe(-1, nullptr, nullptr, 0);
+    context = PreambleInputContext();
+    EXPECT_FALSE(input.Apply(pad, context));
+    input = dc2::debug::HalloweenPreambleInput{.enabled = true};
+    input.Observe(540, context.scene, context.program, 1);
+    EXPECT_TRUE(input.Apply(pad, context));
+}
 
 TEST(TestHooks, InactiveDungeonStressNeedsNoSceneAndPreservesOrdinaryPreferences) {
     const auto preferences = ConfigSerialize(ConfigGet());
@@ -58,6 +214,27 @@ TEST(TestHooks, BossReadinessRejectsSurvivingMinionsAndRetiredBosses) {
         EXPECT_TRUE(dc2::debug::CombatBossActorReady(expected_monster, expected_monster, true, true));
         EXPECT_FALSE(dc2::debug::CombatBossActorReady(expected_monster, expected_monster, false, true));
         EXPECT_FALSE(dc2::debug::CombatBossActorReady(expected_monster, expected_monster + 1, true, true));
+    }
+}
+
+TEST(TestHooks, HalloweenPreambleWaitsForNaturalTutorialAndEveryEventHandoff) {
+    using dc2::debug::CombatBossPreambleReady;
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 500, 0, -1, true, -1, false));
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 500, 1, -1, true, -1, false));
+    EXPECT_TRUE(CombatBossPreambleReady(21020, 500, 2, -1, true, -1, false));
+    EXPECT_TRUE(CombatBossPreambleReady(21020, 500, 3, -1, true, -1, false));
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 1000, 2, -1, true, -1, false));
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 500, 2, 540, true, -1, false));
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 500, 2, -1, false, -1, false));
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 500, 2, -1, true, 540, false));
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 500, 2, -1, true, 0, false));
+    EXPECT_FALSE(CombatBossPreambleReady(21020, 500, 2, -1, true, -1, true));
+}
+
+TEST(TestHooks, OtherBossEventsDoNotAcquireAHalloweenTutorialPrerequisite) {
+    for (const int event : {21010, 22030, 23020, 25010, 25020, 25030, 26040, 28020}) {
+        SCOPED_TRACE(event);
+        EXPECT_TRUE(dc2::debug::CombatBossPreambleReady(event, 1000, 0, 540, false, 540, true));
     }
 }
 
