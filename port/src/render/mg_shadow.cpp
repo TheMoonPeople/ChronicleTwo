@@ -183,7 +183,7 @@ constexpr float kIdentity[16] = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 // Flat colour 1 is retail's RGBAQ (1, 1, 1) against a material of 0x80.
 constexpr float       kShadowDiffuse = 1.0f / 128.0f;
 constexpr float       kShadowAlpha = 0.5f;
-constexpr std::size_t kShadowCacheEntries = 128;
+constexpr std::size_t kShadowCacheEntries = 1024;
 
 // Z-fail counts the volume's far caps, which lie on the receiving plane. A cap on the plane passes
 // GEQUAL against the floor and is missed, so the drop is pushed past the plane by this fraction of

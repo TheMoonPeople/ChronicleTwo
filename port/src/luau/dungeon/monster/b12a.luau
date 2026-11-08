@@ -565,7 +565,7 @@ local function helper_1c03c(arg0: f32, arg1: f32, arg2: f32)
 		pos_z = out3 or pos_z
 	end
 	var3 = monster.get_distance_between(pos_x, pos_y, pos_z, arg0, arg1, arg2) or var3
-	monster.get_angle_to_position(arg0, arg1, arg2, var7)
+	var7 = monster.get_angle_to_position(arg0, arg1, arg2) or var7
 	var8 = monster.get_height_above_ground() or var8
 	if var8 > 20.0 then
 		if helper_de1504df(arg0, vm.f32(arg1 + 1.0), arg2, var3, var7) ~= 0 then

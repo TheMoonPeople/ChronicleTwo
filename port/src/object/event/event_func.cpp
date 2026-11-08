@@ -19895,7 +19895,7 @@ static int _COPY_MONS2SCNCHR(dc2::script::RunArguments stack) {
     }
 
     EventScene->SetStatus(SCENE_DATA_CHARA, slot, SCENE_DATA_LOADED | SCENE_DATA_ASSIGNED);
-    EventScene->SetCharaTexb(dst_no, monster_index + MONSTER_TEXB_REFER);
+    EventScene->SetCharaTexb(dst_no, MonsterReferTexb(monster_index));
     return true;
 }
 

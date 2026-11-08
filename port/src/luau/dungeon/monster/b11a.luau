@@ -468,7 +468,7 @@ local function helper_1aa54(arg0: f32, arg1: f32, arg2: f32)
 			pos_z = out3 or pos_z
 		end
 		var12 = monster.get_distance_between(pos_x, pos_y, pos_z, arg0, arg1, arg2) or var12
-		monster.get_angle_to_position(arg0, arg1, arg2, var16)
+		var16 = monster.get_angle_to_position(arg0, arg1, arg2) or var16
 		if helper_de1504df(arg0, arg1, arg2, var12, var16) ~= 0 then
 			return 0
 		end

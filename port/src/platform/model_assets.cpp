@@ -2435,13 +2435,16 @@ BuiltMotion BuildMotion(const std::shared_ptr<Document> &source, tagMOTION_TYPE 
     motion = {};
     if (bind_pose) {
         const auto &matrices = resources.at("bind_poses").at(*bind_pose).at("matrices");
-        if (matrices.size() < document->metadata.at("frames").size()) {
-            throw std::runtime_error("bind pose lacks native frame matrices");
-        }
-        motion.base_matrices = Allocate<sceVu0FMATRIX>(memory, matrices.size());
-        for (std::size_t index = 0; index < matrices.size(); ++index) {
-            const auto value = matrices.at(index).get<Matrix>();
-            std::memcpy(motion.base_matrices[index], value.data(), sizeof(sceVu0FMATRIX));
+        // Mine Moler's model has a frame more than its bind pose, which keeps its own transform.
+        const std::size_t count = std::max(matrices.size(), document->metadata.at("frames").size());
+        motion.base_matrices = Allocate<sceVu0FMATRIX>(memory, count);
+        for (std::size_t index = 0; index < count; ++index) {
+            if (index < matrices.size()) {
+                const auto value = matrices.at(index).get<Matrix>();
+                std::memcpy(motion.base_matrices[index], value.data(), sizeof(sceVu0FMATRIX));
+            } else {
+                sceVu0UnitMatrix(motion.base_matrices[index]);
+            }
         }
     }
     BuiltMotion built;

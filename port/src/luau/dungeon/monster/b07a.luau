@@ -398,7 +398,7 @@ local function helper_10bdc(arg0: f32, arg1: any, arg2: f32, arg3: s32)
 			var5 = out2 or var5
 			var6 = out3 or var6
 		end
-		monster.get_angle_to_position(var4, var5, var6, var10)
+		var10 = monster.get_angle_to_position(var4, var5, var6) or var10
 		var10 = monster.get_target_angle() or var10
 		from = vm.f32(-33.22)
 		from_3 = 763.5

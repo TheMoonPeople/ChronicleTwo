@@ -23,6 +23,7 @@
 #include "luau_bytecode.hpp"
 #include "luau_runtime.hpp"
 #include "menumain.hpp"
+#include "mg_memory.hpp"
 #include "monster.hpp"
 #include "native_script_program.hpp"
 #include "platform/arena.hpp"
@@ -1121,6 +1122,8 @@ TEST_F(LuauRuntime, RetiredArenaStorageDropsTheInstanceBeforeReadingItsPoisonedC
     ASSERT_TRUE(script->BindRetainedTextArena(memory, std::span(slots, 64)));
     ASSERT_TRUE(luau_runtime::Owns(script));
     memory.stClearUsed();
+    // Reused addresses are writable again, as a later allocation would make them.
+    dc2::memory::UnpoisonArenaBytes(storage, 1024 * sizeof(u_long128));
     std::memset(storage, 0xA5, 1024 * sizeof(u_long128));
     EXPECT_FALSE(luau_runtime::Owns(script));
 }

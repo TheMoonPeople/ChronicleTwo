@@ -6945,7 +6945,7 @@
     {
       "scene": "boss:21020",
       "name": "Halloween",
-      "status": "needs_optimization",
+      "status": "native_presentation_pass",
       "source_target": {
         "jump": "event:21020",
         "event_id": 21020,
@@ -7011,13 +7011,13 @@
         ]
       },
       "last_attempt": {
-        "started_utc": "2026-11-03T21:38:28.7658182Z",
-        "elf_sha256": "04D3F3EA3C14760B98059124FB76FB632B80FBCE7F988DBA12742F85D062424C",
-        "nso_sha256": "9A4BF4FD0F9B9918FCB04F64C88279946034C68816F1E67DCDF13465200D58F0",
-        "arguments": "--data romfs:/data --save host:/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env KZ_SWITCH_HOST_DIRECTORY=C:/Users/Adubbz/Development/PS2/Projects/ChronicleTwo-swperf/.kazarov/switch-perf-review/host-cache --env DC2_SWITCH_HIDE_FPS=1 --env KZ_PERF_PRESENT_MARKER=1 --env KZ_PERF_FRAME_HISTORY=1 --env DC2_PERF_CAPTURE_HOLD_MS=15000 --env KZ_PERF_INTERPOLATE_PHASES=1 --env KZ_PERF_PRESENTATION_REGIONS=1 --env KZ_PERF_FRAME_PHASES=1 --env KZ_PERF_INIT_TRACE=1 --env DC2_PERF_PRESENT_TRACE=1 --env NAK_FSETP_AND_FUSION=1 --env MESA_SHADER_CACHE_DISABLE=1 --env KZ_PIPELINE_CACHE_DISABLE=1 --env KZ_PROG0_SHARED_RGB=1 --env KZ_PROG0_RGB_COST_DIAGNOSTIC=0 --env KZ_PERF_GUARDED_ZERO_SAMPLES=0 --env KZ_PERF_ATTACHMENT_ALPHA_TRACE=0 --env KZ_PERF_FRAGMENT_INVOCATIONS=0 --env KZ_PERF_PROG0_FOG_REJECTIONS=0 --env KZ_PROG0_EARLY_FRAGMENT_TESTS=0 --env KZ_PROG0_SINGLE_MIP_LOD0=0 --env KZ_GPU_SCOPES=0 --env DC2_PERF_ZONES=1 --perf-ack-halloween-preamble",
-        "result": "native_pacing_failed",
-        "run": "C:\\Users\\Adubbz\\Development\\PS2\\Projects\\ChronicleTwo-swperf\\.kazarov\\switch-perf-review\\ChronicleTwo-boss-21020-Devkit-20261104-083828-923ca96c",
-        "completed_utc": "2026-11-03T21:41:02.2143660Z"
+        "started_utc": "2026-11-06T22:51:01.494393Z",
+        "elf_sha256": "C51E079C8A7412CE9366CCE6EEE9BF2AA2268E74EAA19A63DEA4E6E5C7492DCD",
+        "nso_sha256": "29F9D7B8876995143C0E8D4737108030E3A132A764AA71F79B72F44349D860FA",
+        "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_FRAME_HISTORY=1 --env DC2_PERF_CAPTURE_HOLD_MS=15000",
+        "result": "awaiting_capture_validation",
+        "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf",
+        "completed_utc": "2026-11-06T22:53:07.6902994Z"
       },
       "validation_runs": [
         {
@@ -7451,8 +7451,211 @@
           "total": "[XAL03100178815] perf total 8.033s loop 2 ticks 225 presented 452 canonical 226 unfinished 0 replay 0 fps 56.27 update 15.81/25.26 busy 35.62/50.98 draws 394",
           "result": "native_pacing_failed",
           "summary_sha256": "D2AD75B498022D3B941F880166DB2574F94911E7311F5718088C0EB3651C0EB8"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-084006-fa5a6b86",
+          "elf_sha256": "B44B75C633362C91A1D2862D8E2DDA109992D719BF4D0E22DDBF818244D8645A",
+          "nso_sha256": "FFCECC4CA19F2FD84DB7D2587BF073214FB7A8FCB5B78BB2B3C25CDF322EA7BD",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_LIST_DUMP=1 --env KZ_GPU_SCOPES=draw",
+          "total": "[XAL03100178815] perf total 8.017s loop 2 ticks 218 presented 438 canonical 219 unfinished 0 replay 0 fps 54.64 update 15.55/23.83 busy 36.72/62.14 draws 407",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "D1B1B4F07F49DD52FD6BCDF4DB46500C18D161A59FAA42E09BF82A4D9844979D"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-085304-8f91f21d",
+          "elf_sha256": "67CEC3B2A78DF19AF361D15E80C96D28BB097688DDFF1DF00C73523D1F7351B5",
+          "nso_sha256": "884032D949F5102FA78CCA24B675F53B15E0F7B9614193A0FC77939D2B736AF0",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_FRAME_HISTORY=1",
+          "total": "[XAL03100178815] perf total 8.015s loop 2 ticks 221 presented 444 canonical 222 unfinished 0 replay 0 fps 55.39 update 15.76/24.30 busy 35.71/50.84 draws 403",
+          "result": "native_pacing_failed",
+          "summary_sha256": "F9C86BAD458DDB7F2F56AF3EDBD19C5F33360F2D4B98BFE0F07A20A2A604683B"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-085616-aeb6a44b",
+          "elf_sha256": "67CEC3B2A78DF19AF361D15E80C96D28BB097688DDFF1DF00C73523D1F7351B5",
+          "nso_sha256": "884032D949F5102FA78CCA24B675F53B15E0F7B9614193A0FC77939D2B736AF0",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_GPU_SCOPES=draw --env KZ_PERF_LIST_DUMP=1",
+          "total": "[XAL03100178815] perf total 8.034s loop 2 ticks 217 presented 436 canonical 218 unfinished 0 replay 0 fps 54.27 update 16.79/24.92 busy 36.97/61.91 draws 404",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "313E4165E71CE540DBDCF97251015188AE41C1417E4D7FD6415B96976B84E266"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-090221-d311b4dd",
+          "elf_sha256": "F0E896A5344F507B89BC57BD0432F22753217E5CC03962544C794AB71EB31885",
+          "nso_sha256": "5D982E83BD1C874CC3ECE05511C8EA07151E732EE32BDD773C912D1D23155ABC",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_LIST_DUMP=1",
+          "total": "[XAL03100178815] perf total 8.017s loop 2 ticks 218 presented 438 canonical 219 unfinished 0 replay 0 fps 54.64 update 15.76/26.52 busy 36.72/80.09 draws 408",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "490C856505D63FE583E12E9D04185ED86D83FF19E8BC86F25DAB7C7A47C1CEF1"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-090923-67d8bc69",
+          "elf_sha256": "BB80D0C293A0307B0915BE98A336F8F3BE248CDF418D0262EC96FB26F7FC4FDF",
+          "nso_sha256": "4E88F2082BDDDDE2B6C44787D8660DBB5F55977D21C43B241E9ED40609AB42B3",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_GPU_SCOPES=draw",
+          "total": "[XAL03100178815] perf total 8.016s loop 2 ticks 235 presented 472 canonical 236 unfinished 0 replay 0 fps 58.89 update 15.76/23.72 busy 34.06/49.71 draws 391",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "5B38F4474627D5EAA60CC07E08842C7A9F3425826F749A923A97AC6BAA30D3B6"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-091251-95714e4b",
+          "elf_sha256": "BB80D0C293A0307B0915BE98A336F8F3BE248CDF418D0262EC96FB26F7FC4FDF",
+          "nso_sha256": "4E88F2082BDDDDE2B6C44787D8660DBB5F55977D21C43B241E9ED40609AB42B3",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_FRAME_HISTORY=1",
+          "total": "[XAL03100178815] perf total 8.034s loop 2 ticks 240 presented 482 canonical 241 unfinished 0 replay 0 fps 60.00 update 15.40/23.62 busy 33.42/49.48 draws 366",
+          "result": "native_pacing_failed",
+          "summary_sha256": "2FDCEAFDDC9D8CB6BB87AB8E5581A25F8C2A0E4EDAE68A7EAA3B581E33441A9E"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-091910-de772399",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_FRAME_HISTORY=1 --env KZ_ADDITIVE_LAYER_DIV=3",
+          "total": "[XAL03100178815] perf total 8.035s loop 2 ticks 241 presented 484 canonical 242 unfinished 0 replay 0 fps 60.24 update 15.14/23.79 busy 33.28/34.86 draws 372",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "C8FD358D00789B0C375DAD453DE0B148DAEB40AEB1691779F921F0A493983223"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-092205-5e786cbd",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_FRAME_HISTORY=1 --env KZ_ADDITIVE_LAYER_DIV=2.5",
+          "total": "[XAL03100178815] perf total 8.034s loop 2 ticks 241 presented 484 canonical 242 unfinished 0 replay 0 fps 60.25 update 15.28/24.28 busy 33.28/35.04 draws 373",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "8114879C3E3D4CE6CB13646C0036F5D2238C8897F6486384266FEB9B6EC357E7"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-092525-49ff3ea2",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_ADDITIVE_LAYER=0",
+          "total": "[XAL03100178815] perf total 8.033s loop 2 ticks 222 presented 446 canonical 223 unfinished 0 replay 0 fps 55.52 update 15.14/24.02 busy 36.02/50.99 draws 393",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "07855F1F9018F1B5289B10363BBD8CBED1A92E9699E3CCCBBD8B8A74A6F9EAAF"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-092826-53b30212",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_ADDITIVE_LAYER_DIV=2.5",
+          "total": "[XAL03100178815] perf total 8.000s loop 2 ticks 240 presented 482 canonical 241 unfinished 0 replay 0 fps 60.25 update 15.11/24.64 busy 33.28/34.88 draws 366",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "2A0FEED097DCB26766D6A57EF421137151D6E1C75B45F2E32C50537FA82C1969"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-093123-0caf9608",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_ADDITIVE_LAYER_DIV=3",
+          "total": "[XAL03100178815] perf total 8.033s loop 2 ticks 241 presented 484 canonical 242 unfinished 0 replay 0 fps 60.25 update 15.07/23.47 busy 25.95/27.32 draws 372",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "7A30FA12DF9FA1B055B0A808618D6485A96C688C66225D86EE39482270665444"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-093547-01b11ece",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_ADDITIVE_LAYER=0 --env DC2_PERF_CAPTURE_HOLD_MS=15000",
+          "total": "[XAL03100178815] perf total 8.000s loop 2 ticks 221 presented 444 canonical 222 unfinished 0 replay 0 fps 55.50 update 15.68/23.67 busy 36.14/50.81 draws 396",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "018DB1A68CE928C561C774C4A344BB2E272A4F701A83F7C29B599BB21A8531EA"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-093836-40d9448f",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_ADDITIVE_LAYER_DIV=2.5 --env DC2_PERF_CAPTURE_HOLD_MS=15000",
+          "total": "[XAL03100178815] perf total 8.000s loop 2 ticks 240 presented 482 canonical 241 unfinished 0 replay 0 fps 60.25 update 15.39/25.26 busy 33.27/35.07 draws 366",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "3FF4673852C1926816DB5EF3F8203F161C3254C855A27651E06D5F2964055C61"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-094123-e48a14ec",
+          "elf_sha256": "0DDB615EE1FFEE36B0AC7F0C22C2BEB449504D1D15AD4F29BE189796C59D9196",
+          "nso_sha256": "876C1872CDD11E31E4E2606224476BA3CB1F69D16790933F2817C8C4F3686D77",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_ADDITIVE_LAYER_DIV=3 --env DC2_PERF_CAPTURE_HOLD_MS=15000",
+          "total": "[XAL03100178815] perf total 8.000s loop 2 ticks 240 presented 482 canonical 241 unfinished 0 replay 0 fps 60.25 update 15.45/22.98 busy 33.28/35.42 draws 366",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "B9EE0871D116215CF46085C493A11AE38C9543D948EC9C959EB3402B7C8E06A8"
+        },
+        {
+          "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf",
+          "elf_sha256": "C51E079C8A7412CE9366CCE6EEE9BF2AA2268E74EAA19A63DEA4E6E5C7492DCD",
+          "nso_sha256": "29F9D7B8876995143C0E8D4737108030E3A132A764AA71F79B72F44349D860FA",
+          "arguments": "--data romfs:/data --save sdmc:/switch/chronicletwo/perf-saves --env KZ_PERF_LOG=1 --jump event:21020 --fast-load --skip-events --invincible --seed 1 --input romfs:/scene.input --perf-seconds 8 --env DC2_SWITCH_HIDE_FPS=1 --perf-ack-halloween-preamble --env KZ_PERF_FRAME_HISTORY=1 --env DC2_PERF_CAPTURE_HOLD_MS=15000",
+          "total": "[XAL03100178815] perf total 8.001s loop 2 ticks 240 presented 482 canonical 241 unfinished 0 replay 0 fps 60.25 update 15.21/22.59 busy 33.28/35.24 draws 366",
+          "result": "awaiting_capture_validation",
+          "summary_sha256": "874CA128D565CD3AFD6346E7702A6801B3BA15EDB5409DBA14343A4605F136F0"
         }
-      ]
+      ],
+      "capture_evidence": {
+        "scene": "boss:21020",
+        "run": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf",
+        "elf_sha256": "C51E079C8A7412CE9366CCE6EEE9BF2AA2268E74EAA19A63DEA4E6E5C7492DCD",
+        "nso_sha256": "29F9D7B8876995143C0E8D4737108030E3A132A764AA71F79B72F44349D860FA",
+        "pacing_source": "native_frame_history",
+        "capture_path": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf\\scene.mp4",
+        "capture_sha256": "C0DC04A8865AA037A11EDCF3E10502D48494E059403868B8184A958F483EAD04",
+        "scene_evidence_path": "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf\\camera-coverage.png",
+        "scene_verified": true,
+        "camera_sweep_verified": true,
+        "measurement_interval_verified": true,
+        "scope": "Native BufferQueue Presented timestamps through the SDK VI frame-history protocol",
+        "native_history": {
+          "scope": "Native BufferQueue Presented timestamps through the SDK VI frame-history protocol",
+          "accepted": true,
+          "errors": [],
+          "measured_seconds": 8.000542864,
+          "frames": 482,
+          "intervals": 481,
+          "nominal_interval_ns": 16666666.666666666,
+          "interval_tolerance_ns": 500000,
+          "boundaries": {
+            "records": 490,
+            "instance": 1,
+            "begin_ns": 1054976495055156,
+            "end_ns": 1054984495598020,
+            "clock_hz": 19200000
+          },
+          "integrity": {
+            "queries": 243,
+            "overflow": 0,
+            "records": 490,
+            "unresolved": 0,
+            "query_total_ns": 16615725,
+            "query_errors": 0,
+            "missing_ids": 0,
+            "invalid_clock": 0,
+            "invalid_mode": 0,
+            "conflicts": 0,
+            "query_max_ns": 139271,
+            "stale_history": 0
+          },
+          "first_frame": {
+            "frame": 370,
+            "enqueue_ns": 1054976477109791,
+            "presentation_ns": 1054976493167812,
+            "state": 3
+          },
+          "last_frame": {
+            "frame": 851,
+            "enqueue_ns": 1054984494056093,
+            "presentation_ns": 1054984509708333,
+            "state": 3
+          },
+          "interval_min_ns": 16387344.0,
+          "interval_max_ns": 16953593.0,
+          "interval_mean_ns": 16666404.40956341
+        },
+        "evidence_files_sha256": {
+          "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf\\camera-coverage.png": "83A77CDF8F825DB77CD5D0EE5A464312B403830B2B3E7F15BBB4DE65CFC64317",
+          "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf\\target-manager-recording.jsonl": "6466DEAAA1FD89406E48856B0EBD654459814A9F0DB4F06B650B3771AA9AF2BE",
+          "C:\\Users\\Adubbz\\AppData\\Local\\Temp\\ChronicleTwo-boss-21020-Devkit-20261107-095101-98130edf\\run-manifest.json": "23A3CD55E954338D8891CC2651C7C0349B73424D2388F7FE50C6D76587CB7634"
+        },
+        "run_log_sha256": "9EBB1A7382FE5E87475CC3BFD87B03FD5BC2A398C57A96B18116768048D1AE44",
+        "run_summary_sha256": "874CA128D565CD3AFD6346E7702A6801B3BA15EDB5409DBA14343A4605F136F0",
+        "accepted_utc": "2026-11-06T22:54:41.4125071Z"
+      }
     },
     {
       "scene": "boss:22010",
@@ -8968,7 +9171,7 @@
     "subgames": 3
   },
   "workflow": {
-    "active_scene": "boss:21020",
+    "active_scene": "georama:1",
     "priority_request": "User requested Underground Water Channel floor3, then10enemies+10chests simultaneously on screen.",
     "no_further_palm_brinks_tests": true
   },

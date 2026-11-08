@@ -92,7 +92,7 @@ TEST_P(MonsterMemory, SingleMonsterLoadInitializesEveryHostArena) {
     const auto parent_begin = reinterpret_cast<std::uintptr_t>(memory.stack);
     const auto parent_end = parent_begin + static_cast<std::size_t>(memory.stack_size) * sizeof(u_long128);
     const int  parent_used = memory.stack_used;
-    EXPECT_EQ(PortMonsterActiveLimit(), GetParam() ? MONSTER_ACTIVE_MAX : 24);
+    EXPECT_EQ(PortMonsterActiveLimit(), GetParam() ? MONSTER_MORE_MAX : 24);
     // Every slot binds its scene character; only the floor's slots get script memory.
     for (int i = 0; i < MONSTER_ACTIVE_MAX; ++i) {
         EXPECT_EQ(manager->GetActiveMonster(i), monsters[i].get()) << i;
@@ -264,9 +264,13 @@ TEST(MonsterConstruction, ReusedStorageStartsWithDefinedControllerAndInactiveMon
     }
     std::destroy_at(monster);
 
-    alignas(CMonsterMan) std::array<std::byte, sizeof(CMonsterMan)> controller_storage{};
-    std::ranges::fill(controller_storage, std::byte{0xA5});
-    auto *controller = std::construct_at(reinterpret_cast<CMonsterMan *>(controller_storage.data()));
+    // The controller outgrows an AddressSanitizer stack frame, so its storage is on the heap.
+    struct alignas(CMonsterMan) ControllerStorage {
+        std::array<std::byte, sizeof(CMonsterMan)> bytes;
+    };
+    const auto controller_storage = std::make_unique<ControllerStorage>();
+    std::ranges::fill(controller_storage->bytes, std::byte{0xA5});
+    auto *controller = std::construct_at(reinterpret_cast<CMonsterMan *>(controller_storage->bytes.data()));
     EXPECT_EQ(controller->GetScene(), nullptr);
     EXPECT_EQ(controller->effect_man, nullptr);
     EXPECT_EQ(controller->boss_max_life, 0);

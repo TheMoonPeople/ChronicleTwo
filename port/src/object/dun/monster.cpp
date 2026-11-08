@@ -784,7 +784,7 @@ void CMonsterMan::Initialize(CScene *scene) {
     }
 
     for (j = 0; j < MONSTER_REFER_MAX; j++) {
-        textures->DeleteBlock(j + MONSTER_TEXB_REFER);
+        textures->DeleteBlock(MonsterReferTexb(j));
         refer[j].id = -1;
         refer[j].script = {};
     }
@@ -1357,7 +1357,7 @@ void CMonsterMan::DrawActMonster() {
         if (monster != nullptr && monster->chara_kind == ACTION_KIND_SCRIPT && monster->view_state != MONSTER_VIEW_OUT &&
             !(monster->alpha < 1.0f) && !(monster->view_alpha < 1.0f) &&
             !(monster->camera_alpha < 1.0f)) {
-            tex->ReloadTexture(monster->refer_no + MONSTER_TEXB_REFER, (sceVif1Packet *) nullptr);
+            tex->ReloadTexture(MonsterReferTexb(monster->refer_no), (sceVif1Packet *) nullptr);
             dc2::debug::DungeonStressBodyScope body(dc2::debug::DungeonStressEntityKind::Enemy, i);
             active_monster->DrawDirect();
             for (CActionChara *part = active_monster; part != nullptr; part = part->next) {
@@ -1388,7 +1388,7 @@ void CMonsterMan::DrawInvisibleMonster() {
                 }
 
                 active_monster->alpha *= active_monster->camera_alpha;
-                textures->ReloadTexture(active_monster->refer_no + MONSTER_TEXB_REFER, (sceVif1Packet *) nullptr);
+                textures->ReloadTexture(MonsterReferTexb(active_monster->refer_no), (sceVif1Packet *) nullptr);
                 active_monster->DrawDirect();
                 active_monster->alpha = saved_alpha;
             }
@@ -3042,7 +3042,7 @@ int CMonsterMan::LoadReferMonsterFile(int id, BASE_MONSTER_TBL *table, mgCMemory
     }
     auto             &entry = refer[slot];
     const std::string model_path = "dungeon/monster/" + std::string(table->model) + ".gltf";
-    const int         texture_block = slot + MONSTER_TEXB_REFER;
+    const int         texture_block = MonsterReferTexb(slot);
     model_assets::DeleteCharacterTextures(entry.chara, 0, CHARA_IMAGE_MAX - 1);
     mgTexManager.DeleteBlock(texture_block);
     dc2::text::Copy(mgTexManager.name_suffix, dc2::text::View("_m"));
@@ -3187,8 +3187,9 @@ int active_monsters = kRetailActiveMonsters;
 
 int PortMonsterLatchLimits() {
     const bool more = ConfigGet().more_monsters;
-    active_monsters = more ? MONSTER_ACTIVE_MAX : kRetailActiveMonsters;
-    return dc2::debug::DungeonStressPriorityLimit(more ? MONSTER_ACTIVE_MAX : kRetailPriorityLimit);
+    active_monsters = dc2::debug::RosterStressEnabled() ? MONSTER_ACTIVE_MAX : more ? MONSTER_MORE_MAX
+                                                                                    : kRetailActiveMonsters;
+    return dc2::debug::DungeonStressPriorityLimit(more ? MONSTER_MORE_MAX : kRetailPriorityLimit);
 }
 
 int PortMonsterActiveLimit() { return active_monsters; }

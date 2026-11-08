@@ -662,7 +662,8 @@ CCharacter2 *CharacterView::Get() const {
         return nullptr;
     }
     const auto &slot = *binding->owner;
-    return slot.status != 0 && slot.ResourcesLive() ? slot.Resource().Get() : nullptr;
+    // Resolving the resource checks the character's liveness, so the slot's own check would repeat it.
+    return slot.status != 0 && slot.CSceneData::ResourcesLive() ? slot.Resource().Get() : nullptr;
 }
 
 /**

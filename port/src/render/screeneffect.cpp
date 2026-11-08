@@ -278,6 +278,14 @@ float FlareDistance(const LensFlareSun &sun) {
     return std::sqrt(dx * dx + dy * dy);
 }
 
+std::array<gfx::TextureHandle, 3> LensFlareTargets() {
+    const auto frame_w = static_cast<uint32_t>(mgScreenWidth);
+    const auto frame_h = static_cast<uint32_t>(mgScreenHeight);
+    return {gfx::NamedRenderTarget("lens flare a", frame_w, frame_h, true, true),
+            gfx::NamedRenderTarget("lens flare b", frame_w, frame_h, true, true),
+            gfx::NamedRenderTarget("lens flare mask", frame_w, frame_h, true, false)};
+}
+
 } // namespace
 
 LensFlareSun LensFlareSunOf(const int screen[4]) {
@@ -299,9 +307,7 @@ void LensFlareDraw(const LensFlareSun &sun, const float colour[4], const LensFla
     const auto               frame_w = static_cast<uint32_t>(mgScreenWidth);
     const auto               frame_h = static_cast<uint32_t>(mgScreenHeight);
     const gfx::TextureHandle entry = mgPortCurrentTarget();
-    const gfx::TextureHandle first = gfx::NamedRenderTarget("lens flare a", frame_w, frame_h, true, true);
-    const gfx::TextureHandle second = gfx::NamedRenderTarget("lens flare b", frame_w, frame_h, true, true);
-    const gfx::TextureHandle mask = gfx::NamedRenderTarget("lens flare mask", frame_w, frame_h, true, false);
+    const auto [first, second, mask] = LensFlareTargets();
 
     if (first == gfx::kNullTexture || second == gfx::kNullTexture || mask == gfx::kNullTexture) {
         return;
@@ -466,4 +472,10 @@ void LensFlare(sceVu0IVECTOR screen, sceVu0FVECTOR color, int bank, char *textur
     source.second_alpha = second->tex0.bits.tcc != 0;
     std::memcpy(&source.tex1, &sampled.tex1, sizeof source.tex1);
     LensFlareDraw(sun, color, source);
+}
+
+void PrewarmLensFlareTargets() {
+    if (mgPortRendererReady()) {
+        LensFlareTargets();
+    }
 }

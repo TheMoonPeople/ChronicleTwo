@@ -42,6 +42,13 @@ int sgLoopBuggy(SubGameInfo *info);
 
 /**
  *
+ * Reports whether the train fight is being played, past its introductory help.
+ *
+ */
+bool PortBuggyPlaying();
+
+/**
+ *
  * Draws the buggy sub game's characters; always gives 1.
  *
  * @mangled sgDrawBuggy__FP11SubGameInfo

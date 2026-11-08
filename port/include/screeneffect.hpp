@@ -11,6 +11,13 @@
 
 /**
  *
+ * Creates the lens flare's targets ahead of its first use, which would otherwise wait on the render thread mid-frame.
+ *
+ */
+void PrewarmLensFlareTargets();
+
+/**
+ *
  * Blurs the parts of the frame lying beyond each given depth by drawing a
  * shrunken copy of the frame buffer back over the screen, depth tested
  * against those depths, once per level.

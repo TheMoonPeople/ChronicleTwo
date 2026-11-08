@@ -287,6 +287,8 @@ TEST_F(EventArgData, ReusingTheArenaDiscardsTheRetiredHeadBeforeFollowingAnyOldL
     ASSERT_EQ(arguments.list_num, 2);
     const auto retired_head = arguments.list_storage;
     memory.stClearUsed();
+    // Reused addresses are writable again, as a later allocation would make them.
+    dc2::memory::UnpoisonArenaBytes(memory.stack, storage.size() * sizeof(u_long128));
     std::memset(memory.stack, 0xA5, storage.size() * sizeof(u_long128));
     arguments.BuildArgData(HandleBytes(handle));
     EXPECT_TRUE(retired_head.Bytes().empty());

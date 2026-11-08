@@ -142,7 +142,7 @@ const Floor &Refresh(const CMenuTreeMap &menu) {
     if (floor < 0) {
         return current;
     }
-    current.species = FloorSpecies(PortFloorMonsterIds(dungeon, floor), MONSTER_ACTIVE_MAX);
+    current.species = FloorSpecies(PortFloorMonsterIds(dungeon, floor), MONSTER_MORE_MAX);
     const std::string  key = ItemName(GetGateKeyIndex(dungeon, floor));
     std::vector<Entry> entries;
     for (const Species &species : current.species) {

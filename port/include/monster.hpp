@@ -32,8 +32,9 @@
  *
  */
 enum MONSTER_MAN_SIZE {
-    MONSTER_ACTIVE_MAX = 60, /**< Monsters that can be out on the floor at once. */
-    MONSTER_REFER_MAX = 12,  /**< Monster kinds that can be loaded at once. */
+    MONSTER_ACTIVE_MAX = 96, /**< Monster slots; only the roster stress fixture uses more than the floor limit. */
+    MONSTER_MORE_MAX = 60,   /**< Monsters that can be out on the floor at once with game.more_monsters. */
+    MONSTER_REFER_MAX = 128, /**< Monster kinds that can be loaded at once; floors use at most 12. */
     MONSTER_LOCATE_MAX = 32, /**< Entries in the floor's list of monsters to place. */
     MONSTER_VAR_MAX = 8,     /**< Variables that each monster's script keeps for itself. */
     MONSTER_VAR2_MAX = 32,   /**< Second set of variables that each monster's script keeps for itself. */
@@ -142,8 +143,19 @@ enum MONSTER_SCOOP_TYPE {
  */
 enum MONSTER_TEXB {
     MONSTER_TEXB_REFER = 0x28,   /**< Block of the first loaded kind slot; each loaded kind slot takes the next block. */
+    MONSTER_TEXB_REFER_NUM = 12, /**< Kind slots with blocks here. */
+    MONSTER_TEXB_REFER_EXTRA = 0xAF, /**< Block of the first kind slot past those, for the roster stress fixture. */
     MONSTER_TEXB_FREE_END = 0xAA /**< Block after the last of the free blocks that the manager clears when it starts. */
 };
+
+/**
+ *
+ * Returns the texture block of a loaded kind slot.
+ *
+ */
+constexpr int MonsterReferTexb(int slot) {
+    return slot < MONSTER_TEXB_REFER_NUM ? MONSTER_TEXB_REFER + slot : MONSTER_TEXB_REFER_EXTRA + slot - MONSTER_TEXB_REFER_NUM;
+}
 
 /**
  *
@@ -730,7 +742,6 @@ public:
     void RunScript(int index);
 };
 
-STATIC_ASSERT(sizeof(CMonsterMan) == 0x100F0);
 
 /**
  *

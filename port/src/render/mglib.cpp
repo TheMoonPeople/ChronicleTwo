@@ -2296,8 +2296,10 @@ void mgEndFrame(mgCDrawManager *manager) {
             previous_list = std::move(last_list);
             last_list = std::move(list);
             if (queue_render) {
-                queued_render = [render = last_list, publish = PresentPrepareTick(old_vcount, mgFrameRate, true)] {
+                queued_render = [render = last_list, before = previous_list, frames = std::max(mgFrameRate, 1),
+                                 publish = PresentPrepareTick(old_vcount, mgFrameRate, true)] {
                     CT_PROFILE_ZONE("Canonical scene render");
+                    gfx::PrepareInterpolation(render, before, 1.0f / static_cast<float>(frames));
                     if (!dc2::presentation::TryRenderCanonicalBeforeEndpoint(*render)) {
                         dc2::presentation::BeforeCanonical();
                         gfx::RenderList(*render, 1.0f, gfx::RenderOptions{.canonical = true});

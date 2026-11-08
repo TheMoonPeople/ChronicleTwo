@@ -406,6 +406,8 @@ TEST_F(NativeDungeon, GridConsumersRejectArenaRetirementAndAddressReuse) {
         EXPECT_TRUE(cell.visible);
     }
     memory.stClearUsed();
+    // Reused addresses are writable again, as a later allocation would make them.
+    dc2::memory::UnpoisonArenaBytes(cells, 4 * sizeof(CAutoMapParts));
     std::memset(cells, 0xA5, 4 * sizeof(CAutoMapParts));
     std::array<u8, 4 * sizeof(CAutoMapParts)> poison{};
     poison.fill(0xA5);

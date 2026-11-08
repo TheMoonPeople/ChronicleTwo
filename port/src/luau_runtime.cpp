@@ -23,11 +23,14 @@
 #include <iterator>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <span>
+#include <stop_token>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -866,6 +869,68 @@ std::vector<std::filesystem::path> PrecompiledFiles(const std::filesystem::path 
     return files;
 }
 
+#ifdef __SWITCH__
+/**
+ * Reads the bytecode of the scripts a fight can start at any moment, so starting one reads no files.
+ */
+class ScriptPrefetch {
+public:
+    /**
+     * Starts reading once; later calls do nothing.
+     */
+    void Start() {
+        if (reader.joinable()) {
+            return;
+        }
+        const std::optional<std::filesystem::path> root = ScriptsRoot();
+        if (!root) {
+            return;
+        }
+        reader = std::jthread([this, scripts = *root](const std::stop_token &stop) { Read(stop, scripts); });
+    }
+
+    /**
+     * Returns a script's bytecode when it has been read.
+     */
+    [[nodiscard]] std::optional<std::string> Find(const std::string &key) {
+        const std::scoped_lock lock(mutex);
+        const auto             found = bytecode.find(key);
+        return found != bytecode.end() ? std::optional(found->second) : std::nullopt;
+    }
+
+private:
+    void Read(const std::stop_token &stop, const std::filesystem::path &scripts) {
+        for (const char *directory : {"lib", "dungeon"}) {
+            std::error_code error;
+            for (const auto &entry : std::filesystem::recursive_directory_iterator(scripts / directory, error)) {
+                if (stop.stop_requested()) {
+                    return;
+                }
+                if (entry.path().extension() != ".luau") {
+                    continue;
+                }
+                std::filesystem::path precompiled_file = entry.path();
+                precompiled_file += "c";
+                std::ifstream     source_input(entry.path(), std::ios::binary);
+                std::ifstream     precompiled_input(precompiled_file, std::ios::binary);
+                const std::string source((std::istreambuf_iterator<char>(source_input)), std::istreambuf_iterator<char>());
+                const std::string precompiled((std::istreambuf_iterator<char>(precompiled_input)), std::istreambuf_iterator<char>());
+                if (const auto valid = luau_bytecode::Bytecode(precompiled, source)) {
+                    const std::scoped_lock lock(mutex);
+                    bytecode.emplace(Utf8(entry.path()), *valid);
+                }
+            }
+        }
+    }
+
+    std::mutex                                   mutex;    /**< Guards bytecode. */
+    std::unordered_map<std::string, std::string> bytecode; /**< Valid bytecode by script path. */
+    std::jthread                                 reader;   /**< Reads the files. */
+};
+
+ScriptPrefetch script_prefetch;
+#endif
+
 /**
  *
  * Pushes a module's compiled chunk onto lua, reusing the cached function when the file already compiled.
@@ -880,6 +945,20 @@ bool PushModuleFunction(lua_State *lua, const std::filesystem::path &file, std::
         return true;
     }
     lua_pop(lua, 2);
+
+#ifdef __SWITCH__
+    if (const auto prefetched = script_prefetch.Find(key)) {
+        const std::string prefetched_chunk = "@" + PathsDisplay(file);
+        if (luau_load(lua, prefetched_chunk.c_str(), prefetched->data(), prefetched->size(), 0) == 0) {
+            lua_getref(lua, module_cache_ref);
+            lua_pushvalue(lua, -2);
+            lua_setfield(lua, -2, key.c_str());
+            lua_pop(lua, 1);
+            return true;
+        }
+        lua_pop(lua, 1);
+    }
+#endif
 
     std::ifstream input(file, std::ios::binary);
     if (!input) {
@@ -1129,6 +1208,9 @@ lua_State *EnsureState() {
     if (state != nullptr) {
         return state;
     }
+#ifdef __SWITCH__
+    script_prefetch.Start();
+#endif
     state = luaL_newstate();
     if (state == nullptr) {
         CT_LOG_ERROR(Script, "luau: cannot create a Luau state");

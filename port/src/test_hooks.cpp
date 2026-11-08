@@ -37,7 +37,9 @@
 #include "mg_math.hpp"
 #include "monster.hpp"
 #include "nd_meswin.hpp"
+#include "object/dun/floor_monster_ids.hpp"
 #include "options/screen.hpp"
+#include "pbuggy.hpp"
 #include "platform/config.hpp"
 #include "platform/game_loop_state.hpp"
 #include "platform/input.hpp"
@@ -834,6 +836,125 @@ void StressLogSummary() {
     }
 }
 
+/**
+ * One kind of the dungeon's roster, placed by the roster stress fixture.
+ */
+struct RosterActor {
+    CActiveMonster *actor = nullptr; /**< Actor returned by native activation. */
+    int             monster_id = -1; /**< Kind placed. */
+};
+
+/**
+ * Holds the fixture showing one monster of every kind a dungeon can place.
+ */
+struct RosterStress {
+    bool                     enabled = false;          /**< Whether the run requested the fixture. */
+    bool                     player_placed = false;    /**< Whether the player stands at the centre. */
+    bool                     ready = false;            /**< Whether the camera shows every monster. */
+    bool                     measuring = false;        /**< Whether a sample is running. */
+    float                    focal_scale = 0.6f;       /**< Share of the native focal distance used. */
+    float                    reach = 0.0f;             /**< Distance of the eye from the centre. */
+    int                      stable_ticks = 0;         /**< Consecutive ticks showing every monster. */
+    int                      setup_ticks = 0;          /**< Ticks spent framing. */
+    int                      ticks = 0;                /**< Ticks measured. */
+    int                      unloaded = 0;             /**< Kinds whose assets did not load. */
+    bool                     place_at_arrival = false; /**< Whether placing waits for the player's arrival. */
+    int                      min_live = INT_MAX;       /**< Fewest living monsters in a measured tick. */
+    int                      min_drawn = INT_MAX;      /**< Fewest drawn monsters in a measured tick. */
+    int                      min_framed = INT_MAX;     /**< Fewest monsters inside the frame in a measured tick. */
+    std::vector<int>         kinds;                    /**< Every kind the dungeon's floors place. */
+    std::vector<RosterActor> actors;                   /**< Monsters placed. */
+    StressPoint              centre{};                 /**< Ground point the camera looks at. */
+    StressPoint              eye{};                    /**< Camera position. */
+};
+
+RosterStress roster;
+
+[[noreturn]] void RosterInvalid(std::string_view reason) {
+    CT_LOG_ERROR(Main, "perf invalid: roster {}", reason);
+    LogFlush();
+    std::exit(2);
+}
+
+/**
+ * Counts the placed monsters whose bodies' middles project inside the frame.
+ */
+int RosterFramed() {
+    std::array<float, 16> matrix{};
+    mgPortWorldToClip(matrix.data());
+    int framed = 0;
+    for (const RosterActor &placed : roster.actors) {
+        StressPoint world{};
+        placed.actor->GetPosition(world.data());
+        world[1] += 0.5f * placed.actor->GetBodyHeight();
+        world[3] = 1.0f;
+        StressPoint clip{};
+        for (std::size_t row = 0; row < 4; ++row) {
+            for (std::size_t column = 0; column < 4; ++column) {
+                clip[row] += matrix[column * 4 + row] * world[column];
+            }
+        }
+        framed += clip[3] > 0.0f && std::abs(clip[0]) < clip[3] && std::abs(clip[1]) < clip[3] ? 1 : 0;
+    }
+    return framed;
+}
+
+/**
+ * Frames the monsters from a fixed camera and records how many stay shown.
+ */
+void RosterStep(mgCCamera &camera) {
+    if (!roster.player_placed) {
+        MainChara__2->SetPosition(roster.centre.data());
+        MainChara__2->SetRotation(0.0f, 0.0f, 0.0f);
+        MainChara__2->ResetAccele();
+        MainChara__2->ResetDAPosition();
+        MainChara__2->Step();
+        MainChara__2->StepDA(10);
+        mgPortCutInterpolation();
+        roster.player_placed = true;
+    }
+    const int framed = RosterFramed();
+    const int total = static_cast<int>(roster.actors.size());
+    if (!roster.ready) {
+        ++roster.setup_ticks;
+        roster.stable_ticks = framed == total ? roster.stable_ticks + 1 : 0;
+        if (framed < total && roster.setup_ticks % 15 == 0) {
+            roster.reach *= 1.12f;
+        }
+        roster.ready = roster.stable_ticks >= 30 || roster.setup_ticks >= 600;
+        if (roster.ready) {
+            CT_LOG_INFO(Main, "perf roster framed: framed={} total={} setup_ticks={} reach={} focal_scale={}", framed, total,
+                        roster.setup_ticks, roster.reach, roster.focal_scale);
+        }
+    }
+    roster.eye = {roster.centre[0], roster.centre[1] + 0.8f * roster.reach, roster.centre[2] - 0.6f * roster.reach, 1.0f};
+    camera.SetPos(roster.eye.data());
+    camera.SetRef(roster.centre.data());
+    if (roster.measuring) {
+        int live = 0;
+        int drawn = 0;
+        for (const RosterActor &placed : roster.actors) {
+            live += placed.actor->life > 0 ? 1 : 0;
+            drawn += placed.actor->IsDraw(1) != 0 ? 1 : 0;
+        }
+        ++roster.ticks;
+        roster.min_live = std::min(roster.min_live, live);
+        roster.min_drawn = std::min(roster.min_drawn, drawn);
+        roster.min_framed = std::min(roster.min_framed, framed);
+    }
+}
+
+/**
+ * Reports what a measured sample actually showed.
+ */
+void RosterLogSummary() {
+    if (roster.enabled) {
+        CT_LOG_INFO(Main, "perf roster summary: dungeon={} kinds={} unloaded={} placed={} ticks={} min_live={} min_drawn={} min_framed={}",
+                    DngStatus.dungeon_no, roster.kinds.size(), roster.unloaded, roster.actors.size(), roster.ticks, roster.min_live,
+                    roster.min_drawn, roster.min_framed);
+    }
+}
+
 // Control returns after loading and the arrival scene; time before then is not part of the scene.
 constexpr std::chrono::seconds kPerfWarmup{1};
 
@@ -978,6 +1099,9 @@ bool PerfReady(int mode) {
                 DngSaveDataDungeon == nullptr || DngSaveDataDungeon->floor_id[dungeon] != perf_target->argument.floor_no) {
                 return false;
             }
+            if (!dc2::debug::RosterStressReady()) {
+                return false;
+            }
             // A combat event can return control before it has placed its opponent.
             if (PerfCombatBoss() && (!PerfBossActorsReady() || ActiveMonster == nullptr || ActiveMonster->boss_max_life <= 0)) {
                 return false;
@@ -989,7 +1113,7 @@ bool PerfReady(int mode) {
         case LOOP_MENU:
             return false;
         case LOOP_EDIT:
-            return PortTownFieldControl() || IsEditMode() != 0;
+            return PortTownFieldControl() || IsEditMode() != 0 || PortBuggyPlaying();
         case LOOP_DUNGEON:
             if (!PortDungeonFieldControl()) {
                 return false;
@@ -1012,10 +1136,10 @@ void PerfAdd(PerfSpan &span, double update_ms, double busy_ms) {
 void PerfLog(const char *label, int mode, double seconds, const PerfSpan &span, const PresentStats &from) {
     const PresentStats now = PresentGetStats();
     const double       ticks = std::max(1, span.ticks);
-    CT_LOG_INFO(Main, "perf {} {:.3f}s loop {} ticks {} presented {} canonical {} unfinished {} replay {} fps {:.2f} update {:.2f}/{:.2f} busy {:.2f}/{:.2f} draws {}",
+    CT_LOG_INFO(Main, "perf {} {:.3f}s loop {} ticks {} presented {} canonical {} unfinished {} replay {} held {} fps {:.2f} update {:.2f}/{:.2f} busy {:.2f}/{:.2f} draws {}",
                 label, seconds, mode, span.ticks, now.presented - from.presented,
                 now.canonical_presents - from.canonical_presents, now.unfinished_pairs - from.unfinished_pairs,
-                now.replay_ticks - from.replay_ticks,
+                now.replay_ticks - from.replay_ticks, now.held_frames - from.held_frames,
                 static_cast<double>(now.presented - from.presented) / seconds, span.update_ms / ticks, span.update_max_ms,
                 span.busy_ms / ticks, span.busy_max_ms, now.last_draws);
 }
@@ -1349,10 +1473,16 @@ bool DungeonStressObserveBodyWitness(DungeonStressBodyTag tag, std::array<float,
 }
 
 int DungeonStressPriorityLimit(int ordinary_limit) {
+    if (roster.enabled) {
+        return MONSTER_ACTIVE_MAX;
+    }
     return stress.enabled ? std::max(ordinary_limit, kStressBodies) : ordinary_limit;
 }
 
 float DungeonStressProjection(float focal_distance) {
+    if (roster.enabled) {
+        return focal_distance * roster.focal_scale;
+    }
     if (!stress.enabled) {
         return focal_distance;
     }
@@ -1363,6 +1493,176 @@ float DungeonStressProjection(float focal_distance) {
     stress.projection_selected = focal_distance * stress.projection_scale;
     return stress.projection_selected;
 }
+
+int JumpScriptLanguage(int language) {
+    constexpr std::array kJapaneseOnly{25010, 25020, 25030, 26040};
+    return target && target->mode == JumpMode::Event && std::ranges::find(kJapaneseOnly, target->event) != kJapaneseOnly.end() ? 0 : language;
+}
+
+bool RosterStressEnabled() { return roster.enabled; }
+
+void RosterStressLoadMonsters(mgCMemory *memory) {
+    if (!roster.enabled) {
+        return;
+    }
+    if (memory == nullptr || ActiveMonster == nullptr || DngSaveDataDungeon == nullptr) {
+        RosterInvalid("loading before the monster manager exists");
+    }
+    roster.kinds.clear();
+    constexpr int kDungeonFloorsMax = 100;
+    for (int floor = 0; floor < kDungeonFloorsMax; ++floor) {
+        for (int id : PortFloorMonsterIds(DngSaveDataDungeon->stage_id, floor)) {
+            if (std::ranges::find(roster.kinds, id) == roster.kinds.end()) {
+                roster.kinds.push_back(id);
+            }
+        }
+    }
+    std::ranges::sort(roster.kinds);
+    if (roster.kinds.empty() || std::cmp_greater(roster.kinds.size(), static_cast<int>(MONSTER_REFER_MAX))) {
+        RosterInvalid("roster is empty or exceeds the loaded kinds");
+    }
+    std::erase_if(roster.kinds, [&](int id) {
+        if (ActiveMonster->SearchBaseIndex(id) >= 0 || ActiveMonster->EntryRefer(id, memory)) {
+            return false;
+        }
+        CT_LOG_ERROR(Main, "perf roster load failed: monster_id={} rest={}", id, memory->stGetRest());
+        ++roster.unloaded;
+        return true;
+    });
+    CT_LOG_INFO(Main, "perf roster load: dungeon={} kinds={} rest_quadwords={}", DngSaveDataDungeon->stage_id, roster.kinds.size(),
+                memory->stGetRest());
+}
+
+bool RosterStressPlaceMonsters() {
+    if (!roster.enabled) {
+        return false;
+    }
+    if (DngMainScene == nullptr || ActiveMonster == nullptr) {
+        RosterInvalid("placing before the floor exists");
+    }
+    if (AutoMapGen.room_num <= 0 && !PortDungeonFieldControl()) {
+        // A hand-authored floor has no generated rooms: this waits for the player's arrival point.
+        roster.place_at_arrival = true;
+        return true;
+    }
+    stress.map = DngMainScene->GetMap(DngMainScene->active_map);
+    // The largest room with floor near its middle; some rooms hold a pit or pillar there.
+    std::vector<int> rooms;
+    for (int room = 0; room < AutoMapGen.room_num; ++room) {
+        if (room != AutoMapGen.door_room) {
+            rooms.push_back(room);
+        }
+    }
+    std::ranges::stable_sort(rooms, [](int left, int right) {
+        const auto &a = AutoMapGen.room[left];
+        const auto &b = AutoMapGen.room[right];
+        return static_cast<std::int64_t>(a.w) * a.h > static_cast<std::int64_t>(b.w) * b.h;
+    });
+    int         best = -1;
+    StressPoint ground{};
+    for (int room : rooms) {
+        StressPoint centre{};
+        int         cells = 0;
+        for (const auto &cell : AutoMapGen.GridCells()) {
+            if (cell.room_no == room && cell.parts != nullptr && (cell.attr & AUTOMAP_ATTR_HIDE) == 0) {
+                StressPoint point{};
+                cell.parts->GetPosition(point.data());
+                for (std::size_t axis = 0; axis < 3; ++axis) {
+                    centre[axis] += point[axis];
+                }
+                ++cells;
+            }
+        }
+        if (cells == 0 || stress.map == nullptr) {
+            continue;
+        }
+        for (std::size_t axis = 0; axis < 3; ++axis) {
+            centre[axis] /= static_cast<float>(cells);
+            const float extent = axis == 1 ? 4200.0f : 1440.0f;
+            stress.collision_bounds.min[axis] = centre[axis] - extent;
+            stress.collision_bounds.max[axis] = centre[axis] + extent;
+        }
+        stress.collision_bounds.min[3] = stress.collision_bounds.max[3] = 1.0f;
+        if (!StressRefreshCollision()) {
+            continue;
+        }
+        for (int ring = 0; ring < 12 && best < 0; ++ring) {
+            for (int z = -ring; z <= ring && best < 0; ++z) {
+                for (int x = -ring; x <= ring && best < 0; ++x) {
+                    if (std::max(std::abs(x), std::abs(z)) == ring &&
+                        StressFloorAt(centre[0] + static_cast<float>(x) * 44.0f, centre[2] + static_cast<float>(z) * 44.0f, centre[1], ground)) {
+                        best = room;
+                    }
+                }
+            }
+        }
+        if (best >= 0) {
+            break;
+        }
+    }
+    if (best < 0 && AutoMapGen.room_num <= 0 && MainChara__2 != nullptr && stress.map != nullptr) {
+        StressPoint arrival{};
+        MainChara__2->GetPosition(arrival.data());
+        for (std::size_t axis = 0; axis < 3; ++axis) {
+            const float extent = axis == 1 ? 4200.0f : 1440.0f;
+            stress.collision_bounds.min[axis] = arrival[axis] - extent;
+            stress.collision_bounds.max[axis] = arrival[axis] + extent;
+        }
+        stress.collision_bounds.min[3] = stress.collision_bounds.max[3] = 1.0f;
+        // The player stands here, whatever the room search would make of its surface.
+        StressRefreshCollision();
+        ground = arrival;
+        best = 0;
+    }
+    if (best < 0) {
+        RosterInvalid("floor has no room with usable floor");
+    }
+    roster.centre = ground;
+    DngMainScene->battle_area.battle_clear = false;
+    // Outward rings of cells around the centre, the first free for the player.
+    const float              spacing = roster.kinds.size() > 36 ? 44.0f : 56.0f;
+    std::vector<StressPoint> cells_free;
+    for (int ring = 1; ring < 16 && cells_free.size() < roster.kinds.size(); ++ring) {
+        for (int z = -ring; z <= ring; ++z) {
+            for (int x = -ring; x <= ring; ++x) {
+                if (std::max(std::abs(x), std::abs(z)) != ring) {
+                    continue;
+                }
+                StressPoint point{};
+                const float cell_x = ground[0] + static_cast<float>(x) * spacing;
+                const float cell_z = ground[2] + static_cast<float>(z) * spacing;
+                if (StressFloorAt(cell_x, cell_z, ground[1], point) && std::abs(point[1] - ground[1]) < 40.0f) {
+                    cells_free.push_back(point);
+                } else if (AutoMapGen.room_num <= 0) {
+                    cells_free.push_back({cell_x, ground[1], cell_z, 1.0f});
+                }
+            }
+        }
+    }
+    if (cells_free.size() < roster.kinds.size()) {
+        CT_LOG_ERROR(Main, "perf roster layout: cells={} kinds={}", cells_free.size(), roster.kinds.size());
+        RosterInvalid("floor has too few cells around its largest room");
+    }
+    float radius = 0.0f;
+    for (std::size_t index = 0; index < roster.kinds.size(); ++index) {
+        const int   id = roster.kinds[index];
+        const int   base = ActiveMonster->SearchBaseIndex(id);
+        StressPoint direction{};
+        auto       *actor = base >= 0 ? ActiveMonster->SetActiveMonster(base, cells_free[index].data(), direction.data(), -1) : nullptr;
+        if (actor == nullptr) {
+            CT_LOG_ERROR(Main, "perf roster activation failed: monster_id={}", id);
+            RosterInvalid("a monster kind did not activate");
+        }
+        roster.actors.push_back({.actor = actor, .monster_id = id});
+        radius = std::max(radius, std::hypot(cells_free[index][0] - ground[0], cells_free[index][2] - ground[2]));
+    }
+    roster.reach = std::max(180.0f, 2.2f * radius);
+    CT_LOG_INFO(Main, "perf roster placed: dungeon={} room={} kinds={} spacing={} radius={} centre={},{},{}", DngStatus.dungeon_no,
+                best, roster.actors.size(), spacing, radius, ground[0], ground[1], ground[2]);
+    return true;
+}
+
+bool RosterStressReady() { return !roster.enabled || roster.ready; }
 
 void DungeonStressAfterTreasures() {
     if (!stress.enabled) {
@@ -1519,6 +1819,16 @@ bool DungeonStressPlaceMonsters() {
 }
 
 void DungeonStressCamera(mgCCamera &camera) {
+    if (roster.enabled) {
+        if (roster.place_at_arrival && PortDungeonFieldControl()) {
+            roster.place_at_arrival = false;
+            RosterStressPlaceMonsters();
+        }
+        if (!roster.actors.empty() && PortDungeonFieldControl()) {
+            RosterStep(camera);
+        }
+        return;
+    }
     if (!stress.enabled || !stress.monsters_placed || !PortDungeonFieldControl()) {
         return;
     }
@@ -1783,6 +2093,7 @@ void GamePerfStep(int mode) {
         }
         if (now - *perf.ready >= kPerfWarmup) {
             perf.window_start = perf.started = now;
+            roster.measuring = roster.enabled;
             if (stress.enabled) {
                 stress.measuring = true;
                 stress.measured_tick = stress.tick;
@@ -1852,6 +2163,7 @@ void GamePerfStep(int mode) {
         gfx::LogPresentationHistory();
         dc2::presentation::LogSchedulingTrace();
         StressLogSummary();
+        RosterLogSummary();
         if (stress.enabled) {
             if (const char *screenshot = std::getenv("DC2_PERF_STRESS_SCREENSHOT"); screenshot != nullptr && *screenshot != '\0') {
                 std::vector<std::uint8_t> pixels;
@@ -1900,6 +2212,12 @@ void GamePrepareJump(int &mode, INIT_LOOP_ARG &arg) {
     if (stress_requested && (!target || target->mode != JumpMode::Dungeon || target->map != 0 || target->floor != 3 ||
                              seed != std::optional<std::uint32_t>{1} || perf.seconds != 8 || !skip_events || !invincible)) {
         StressInvalid("fixture requires dungeon:0:3 seed1 perf8 skip-events and invincible");
+    }
+    const char *roster_option = std::getenv("DC2_PERF_ROSTER_STRESS");
+    roster = RosterStress{};
+    roster.enabled = roster_option != nullptr && std::string_view(roster_option) == "1";
+    if (roster.enabled && (!target || target->mode != JumpMode::Dungeon || !skip_events || !invincible)) {
+        RosterInvalid("fixture requires a dungeon jump with skip-events and invincible");
     }
     stress = DungeonStress{};
     stress.chest_slots.fill(-1);

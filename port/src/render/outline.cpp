@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 
 #include "mg_drawenv.hpp"
 #include "mg_drawprim.hpp"
@@ -269,6 +270,24 @@ void DrawCopy(const OutlineBox &box, const mgPortExtent &display, int dx, int dy
     mgPortDraw2D(gfx::Primitive::Quads, quad, binding, state, &presentation);
 }
 
+// How far behind the object's farthest depth its outline copies sit, for the display frames' interpolated cameras.
+constexpr float kOutlineEdgeDepthMargin = 0.98f;
+
+/**
+ * Reports whether outline copies test depth, which only pays where fill is the constraint.
+ */
+bool OutlineEdgeDepthTest() {
+    static const bool enabled = [] {
+        const char *setting = std::getenv("DC2_OUTLINE_EDGE_DEPTH");
+#ifdef __SWITCH__
+        return setting == nullptr || std::string_view(setting) != "0";
+#else
+        return setting != nullptr && std::string_view(setting) == "1";
+#endif
+    }();
+    return enabled;
+}
+
 /**
  * Preserves the full-area body's destination alpha before its RGB coverage is bounded.
  */
@@ -466,10 +485,24 @@ int COutLineDraw::Draw(float scale, float alpha) {
         mgPortApplyDrawEnv(edge_state, edge_env);
         const bool defer_alpha = body_overwrites_alpha && edge_state == body_state;
 
-        DrawCopy(box, display, edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, display, -edge_offset, 0, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, display, 0, edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
-        DrawCopy(box, display, 0, -edge_offset, edge_colour, 0.0f, binding, edge_state, defer_alpha);
+        // The body covers these copies wherever it has depth, so testing them behind its farthest point rejects its
+        // interior before shading. The object drew into the scene's depth buffer, which the image shares.
+        float edge_depth = 0.0f;
+        if (OutlineEdgeDepthTest() && previous == gfx::kMainTarget) {
+            float eye_to_clip[16];
+            mgPortEyeToClip(mgPortCurrentProjection(), mgPortCurrentTarget(), eye_to_clip);
+            const float distance = eye_to_clip[11] * draw_box.max[3] + eye_to_clip[15] > 0.0f ? draw_box.max[3] : -draw_box.max[3];
+            const float clip_w = eye_to_clip[11] * distance + eye_to_clip[15];
+            if (clip_w != 0.0f) {
+                edge_state.depth_test = gfx::DepthTest::GEqual;
+                edge_depth = std::clamp(kOutlineEdgeDepthMargin * (eye_to_clip[10] * distance + eye_to_clip[14]) / clip_w, 0.0f, 1.0f);
+            }
+        }
+
+        DrawCopy(box, display, edge_offset, 0, edge_colour, edge_depth, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, -edge_offset, 0, edge_colour, edge_depth, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, 0, edge_offset, edge_colour, edge_depth, binding, edge_state, defer_alpha);
+        DrawCopy(box, display, 0, -edge_offset, edge_colour, edge_depth, binding, edge_state, defer_alpha);
     }
 
     if (body_overwrites_alpha && gfx::Recording()) {

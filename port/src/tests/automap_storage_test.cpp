@@ -8,6 +8,7 @@
 #include "automap.hpp"
 #include "dng_main.hpp"
 #include "editmap.hpp"
+#include "mg_memory.hpp"
 #include "platform/arena.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
@@ -109,6 +110,8 @@ TEST(AutoMapStorage, MiniMapRejectsRetiredPartsAndSlotAssignmentReuse) {
     symbol.SetMapInfo(slot.GetMapView(), {}, 0, 0, 320.0f, 320.0f);
     ASSERT_EQ(symbol.PlacedParts().size(), 1);
     memory.stClearUsed();
+    // Reused addresses are writable again, as a later allocation would make them.
+    dc2::memory::UnpoisonArenaBytes(parts.data(), parts.size_bytes());
     std::memset(parts.data(), 0xA5, parts.size_bytes());
     EXPECT_TRUE(symbol.PlacedParts().empty());
     float position[4]{};

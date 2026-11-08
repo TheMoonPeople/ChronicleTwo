@@ -163,6 +163,31 @@ public:
 bool DungeonStressEnabled();
 
 /**
+ * Returns the language of the dungeon script to load; the debug-only boss events exist in the Japanese script alone.
+ */
+int JumpScriptLanguage(int language);
+
+/**
+ * Reports whether this run shows one monster of every kind its dungeon can place.
+ */
+bool RosterStressEnabled();
+
+/**
+ * Loads every kind of the current dungeon for the roster fixture.
+ */
+void RosterStressLoadMonsters(mgCMemory *memory);
+
+/**
+ * Places one monster of every loaded kind, replacing the floor's own placement when the fixture runs.
+ */
+bool RosterStressPlaceMonsters();
+
+/**
+ * Reports whether the roster fixture has framed its monsters, or is not running.
+ */
+bool RosterStressReady();
+
+/**
  * Copies the body identity into a native packet before its deferred submission.
  */
 DungeonStressBodyTag DungeonStressCurrentBody();
