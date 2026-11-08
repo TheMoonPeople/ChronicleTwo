@@ -838,9 +838,12 @@ std::optional<std::string> MenuFilePath(std::string_view member) {
 }
 } // namespace
 
-dc2::io::FileRead dc2::menu::ReadMenuFile(std::string_view name) {
+dc2::io::FileRead dc2::menu::ReadMenuFile(std::string_view name, bool background) {
     const auto path = MenuFilePath(name);
-    return path ? io::ReadFile(*path) : io::FileRead{};
+    if (!path) {
+        return {};
+    }
+    return background ? io::QueueBackgroundRead(*path) : io::ReadFile(*path);
 }
 
 int LoadFileMenu(char *name, std::span<u8> destination, int mode) {

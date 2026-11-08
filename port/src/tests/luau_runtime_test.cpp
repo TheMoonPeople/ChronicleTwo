@@ -23,7 +23,6 @@
 #include "luau_bytecode.hpp"
 #include "luau_runtime.hpp"
 #include "menumain.hpp"
-#include "mg_memory.hpp"
 #include "monster.hpp"
 #include "native_script_program.hpp"
 #include "platform/arena.hpp"
@@ -553,7 +552,9 @@ TEST_F(LuauRuntime, RunWaitResumeEnd) {
 TEST_F(LuauRuntime, MonsterWithoutStunProgramResumesSuspendedBehaviorAfterStun) {
     auto        monster_owner = std::make_shared<CActiveMonster>();
     auto       &monster = *monster_owner;
-    CMonsterMan manager{};
+    // The manager outgrows an AddressSanitizer stack frame, so it lives on the heap.
+    const auto  manager_owner = std::make_unique<CMonsterMan>();
+    auto       &manager = *manager_owner;
     CScene      scene{};
     scene.chara_num = DNG_CHARA_SLOT_MONSTER_END;
     ASSERT_EQ(scene.AssignChara(DNG_CHARA_SLOT_MONSTER, dc2::scene::CharacterResource::FromOwned(monster_owner)), DNG_CHARA_SLOT_MONSTER);
@@ -1122,9 +1123,11 @@ TEST_F(LuauRuntime, RetiredArenaStorageDropsTheInstanceBeforeReadingItsPoisonedC
     ASSERT_TRUE(script->BindRetainedTextArena(memory, std::span(slots, 64)));
     ASSERT_TRUE(luau_runtime::Owns(script));
     memory.stClearUsed();
-    // Reused addresses are writable again, as a later allocation would make them.
-    dc2::memory::UnpoisonArenaBytes(storage, 1024 * sizeof(u_long128));
-    std::memset(storage, 0xA5, 1024 * sizeof(u_long128));
+    EXPECT_FALSE(luau_runtime::Owns(script));
+    const int replacement_quads = memory.stGetSize() - 1;
+    auto     *replacement = memory.Alloc(replacement_quads);
+    ASSERT_EQ(static_cast<void *>(replacement), static_cast<void *>(script));
+    std::memset(replacement, 0xA5, static_cast<std::size_t>(replacement_quads) * sizeof(u_long128));
     EXPECT_FALSE(luau_runtime::Owns(script));
 }
 

@@ -5,22 +5,38 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <initializer_list>
 #include <memory>
 #include <new>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
+#include "assets/data_registry.hpp"
 #include "character_metadata_bridge.hpp"
 #include "character_motion.hpp"
+#include "editmap.hpp"
+#include "editmenu.hpp"
 #include "gameutil.hpp"
+#include "mainloop.hpp"
+#include "menuchr.hpp"
+#include "menudraw.hpp"
+#include "menumain.hpp"
 #include "mg_frame.hpp"
 #include "mg_memory.hpp"
+#include "mg_texture.hpp"
 #include "mg_visual.hpp"
+#include "mglib.hpp"
+#include "npccfg.hpp"
 #include "platform/arena.hpp"
 #include "platform/arena_usage.hpp"
+#include "platform/datapacks.hpp"
+#include "platform/model_assets.hpp"
+#include "stubs/editmenu.hpp"
 
 namespace {
 
@@ -121,14 +137,13 @@ struct ArenaMotionSet {
             .name = "idle", .duration = 10, .base = 0, .head = channel};
         character_motion::Register(
             anchor, {idle},
-            {storage, reinterpret_cast<const std::byte *>(arena.stGetTop())});
+            {storage, reinterpret_cast<const std::byte *>(arena.stGetTop())}, &arena);
     }
 };
 
 u_long128 *ArenaBuffer() {
     static char key;
     auto       *buffer = reinterpret_cast<u_long128 *>(ArenaBlock(&key, kBytes));
-    std::memset(buffer, 0, kBytes);
     return buffer;
 }
 
@@ -240,6 +255,49 @@ TEST_F(CharacterMotion, AllocationPastMotionStorageKeepsSet) {
     EXPECT_EQ(character_motion::Actions(set.motion).size(), 1u);
 }
 
+TEST_F(CharacterMotion, ResetArenaReleasesMotionBeforeItsAnchorOrChannelsAreReused) {
+    mgCMemory arena;
+    arena.stSetBuffer(ArenaBuffer(), kQuadwords);
+    ArenaMotionSet set(arena);
+    ASSERT_EQ(character_motion::Actions(set.motion).size(), 1u);
+    arena.stReset();
+    EXPECT_TRUE(character_motion::Actions(set.motion).empty());
+    mgCFrame root;
+    character_motion::Pose(root, set.motion, 5, nullptr);
+    character_motion::Blend(root, set.motion, 0, 5, .5f, nullptr);
+}
+
+TEST_F(CharacterMotion, ParentResetReleasesChildMotionBeforeReadingPoisonedStorage) {
+    mgCMemory parent;
+    mgCMemory child;
+    parent.stSetBuffer(ArenaBuffer(), kQuadwords);
+    auto *storage = parent.Alloc(kQuadwords / 2);
+    child.stSetChildBuffer(parent, storage, kQuadwords / 2);
+    ArenaMotionSet set(child);
+    ASSERT_EQ(character_motion::Actions(set.motion).size(), 1u);
+    parent.stReset();
+    EXPECT_TRUE(character_motion::Actions(set.motion).empty());
+}
+
+TEST_F(CharacterMotion, HeapStackResetRetiresExactMotionAllocationWithoutChangingArenaGeneration) {
+    mgCMemory arena;
+    arena.SetHeapMem(ArenaBuffer(), kQuadwords);
+    ASSERT_NE(arena.StartStackMode(MG_STACK_MODE_FIRST, 0), nullptr);
+    ArenaMotionSet set(arena);
+    const auto     generation = dc2::memory::ArenaGeneration(arena);
+    arena.stReset();
+    EXPECT_EQ(dc2::memory::ArenaGeneration(arena), generation);
+    EXPECT_TRUE(character_motion::Actions(set.motion).empty());
+    arena.EndStackMode();
+}
+
+TEST_F(CharacterMotion, MotionRegistrationRejectsAnAnchorOutsideItsProducersAllocations) {
+    mgCMemory arena;
+    arena.stSetBuffer(ArenaBuffer(), kQuadwords);
+    Mot_List anchor{};
+    EXPECT_THROW(character_motion::Register(&anchor, {}, {}, &arena), std::invalid_argument);
+}
+
 TEST_F(CharacterMotion, EmptyOverwriteInsideMotionStorageKeepsSet) {
     mgCMemory arena;
     arena.stSetBuffer(ArenaBuffer(), kQuadwords);
@@ -255,14 +313,15 @@ TEST_F(CharacterMotion, EmptyOverwriteInsideMotionStorageKeepsSet) {
 TEST_F(CharacterMotion, ResetArenaReusingChannelsReleasesSet) {
     mgCMemory arena;
     arena.stSetBuffer(ArenaBuffer(), kQuadwords);
-    ArenaMotionSet                          set(arena);
-    std::array<std::byte, sizeof(Mot_List)> anchor{};
-    std::memcpy(anchor.data(), set.anchor, anchor.size());
+    ArenaMotionSet set(arena);
+    const auto     anchor = dc2::memory::ArenaBuffer::Bind(arena, {reinterpret_cast<u8 *>(set.anchor), sizeof(*set.anchor)});
+    ASSERT_FALSE(anchor.Bytes().empty());
     arena.stReset();
-    std::memset(arena.Alloc(kListQuadwords), kReused, sizeof(Mot_List));
-    ASSERT_EQ(std::memcmp(reinterpret_cast<const std::byte *>(set.anchor),
-                          anchor.data(), anchor.size()),
-              0);
+    auto *reused = arena.Alloc(kListQuadwords);
+    ASSERT_EQ(reused, reinterpret_cast<u_long128 *>(set.channel));
+    ASSERT_LE(reinterpret_cast<std::uintptr_t>(reused) + sizeof(Mot_List), reinterpret_cast<std::uintptr_t>(set.anchor));
+    std::memset(reused, kReused, sizeof(Mot_List));
+    EXPECT_TRUE(anchor.Bytes().empty());
     EXPECT_TRUE(character_motion::Actions(set.motion).empty());
 }
 
@@ -323,16 +382,16 @@ TEST_F(CharacterMotion, RebindingHeapBufferReleasesSetInsideTheImport) {
         .name = "idle", .duration = 10, .base = 0, .head = channel};
     character_motion::Register(
         anchor, {idle},
-        {storage, reinterpret_cast<const std::byte *>(arena.stGetTop())});
+        {storage, reinterpret_cast<const std::byte *>(arena.stGetTop())}, &arena);
+    const auto lease = dc2::memory::ArenaBuffer::Bind(arena, {reinterpret_cast<u8 *>(anchor), sizeof(*anchor)});
+    ASSERT_FALSE(lease.Bytes().empty());
     arena.EndStackMode();
-    std::array<std::byte, sizeof(Mot_List)> kept{};
-    std::memcpy(kept.data(), anchor, kept.size());
+    const auto import_end = reinterpret_cast<std::uintptr_t>(arena.heap) + sizeof(external);
+    ASSERT_LT(reinterpret_cast<std::uintptr_t>(channel), import_end);
+    ASSERT_GE(reinterpret_cast<std::uintptr_t>(anchor), import_end);
 
     arena.SetHeapMem(external, kQuadwords);
-    ASSERT_EQ(std::memcmp(reinterpret_cast<const std::byte *>(anchor),
-                          kept.data(), kept.size()),
-              0);
-    ASSERT_EQ(reinterpret_cast<const unsigned char *>(channel)[0], kReused);
+    EXPECT_TRUE(lease.Bytes().empty());
     EXPECT_TRUE(character_motion::Actions(motion).empty());
 }
 
@@ -651,7 +710,10 @@ TEST(
         reinterpret_cast<u_long128 *>(ArenaBlock(&key, 512 * sizeof(u_long128)));
     mgCMemory memory;
     memory.stSetBuffer(storage, 512);
-    std::memset(storage, 0xA5, 512 * sizeof(u_long128));
+    auto *seed = memory.Alloc(511);
+    ASSERT_NE(seed, nullptr);
+    std::memset(seed, 0xA5, 511 * sizeof(u_long128));
+    memory.stReset();
     CDynamicAnime dynamic;
     dynamic.NewFrameTable(2, &memory);
     ASSERT_EQ(dynamic.frame_num, 2);
@@ -711,4 +773,166 @@ TEST(CharacterMetadata,
     EXPECT_EQ(child.stack_used, 0);
     EXPECT_EQ(source.se_list[0], cue);
     EXPECT_EQ(source.se_num[0], 1);
+}
+
+TEST(NativeCharacterRetail, GeoramaNpcPreviewCyclesAdelAndBlendsEveryActionInReservedStorage) {
+    const auto *data = std::getenv("DC2_DATA");
+    if (data == nullptr || *data == char{}) {
+        GTEST_SKIP() << "DC2_DATA supplies the converted NPC models and gameplay documents";
+    }
+    std::vector<u_long128> workspace(0x20000);
+    std::vector<u_long128> texture_storage(65536);
+    mgCMemory              parent;
+    mgCMemory              preview;
+    mgCMemory              scratch;
+    mgCMemory              textures;
+    CCharacter2            character;
+
+    /**
+     * Releases the native assets loaded by the preview regression.
+     */
+    struct Cleanup {
+        ~Cleanup() {
+            mgTexManager.Initialize(0x1000, -1);
+            model_assets::Clear();
+            datapacks::Clear();
+        }
+    } cleanup;
+
+    parent.stSetBuffer(workspace.data(), static_cast<int>(workspace.size()));
+    textures.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    preview.stSetChildBuffer(parent, parent.Alloc(0xFA00), 0xFA00);
+    ASSERT_TRUE(scratch.stShareBuffer(parent, std::span(parent.stGetTop(), static_cast<std::size_t>(parent.stGetRest()))));
+    mgTexManager.SetTableBuffer(1024, 64, &textures);
+    mgTexManager.Initialize(0x1000, -1);
+    DataReadIndex(data);
+    model_assets::CharacterLoadOptions options{.model_memory = &preview, .motion_memory = &preview, .image_memory = &preview};
+    options.outline = false;
+    for (const char *path : {"menu/npc/tp01_09a.gltf", "menu/npc/tp01_03a.gltf", "menu/npc/tp01_09a.gltf", "menu/npc/tp01_05a.gltf"}) {
+        SCOPED_TRACE(path);
+        mgTexManager.DeleteBlock(0);
+        preview.stReset();
+        character.Initialize();
+        std::string error;
+        ASSERT_TRUE(model_assets::LoadCharacter(character, std::filesystem::path(path), "info", options, error)) << error;
+        auto *root = character.CObjectFrame::frame;
+        ASSERT_NE(root, nullptr);
+        const auto actions = character_motion::Actions(character.motion[0]);
+        ASSERT_GT(actions.size(), 1u);
+        scratch.stReset();
+        auto *unrelated = scratch.Alloc(128);
+        std::memset(unrelated, kReused, 128 * sizeof(u_long128));
+        for (const auto &action : actions) {
+            character_motion::Pose(*root, character.motion[0], static_cast<float>(action.base), nullptr);
+            for (const auto &target : actions) {
+                character_motion::Blend(*root, character.motion[0], static_cast<float>(action.base), static_cast<float>(target.base), .5f, nullptr);
+            }
+        }
+        for (int index = 0; index < root->frame_num; ++index) {
+            const auto *frame = root->GetFrame(index);
+            ASSERT_NE(frame, nullptr);
+            for (const auto &row : frame->trans_matrix) {
+                for (float value : row) {
+                    EXPECT_TRUE(std::isfinite(value));
+                }
+            }
+        }
+        const auto retired_motion = character.motion[0];
+        preview.stReset();
+        EXPECT_TRUE(character_motion::Actions(retired_motion).empty());
+    }
+}
+
+TEST(NativeCharacterRetail, GeoramaRemovalMenuLoadsAndStepsAdelThroughItsActualPreviewStates) {
+    const auto *data = std::getenv("DC2_DATA");
+    if (data == nullptr || *data == char{}) {
+        GTEST_SKIP() << "DC2_DATA supplies the converted NPC models and gameplay documents";
+    }
+    std::vector<u_long128> workspace(0x20000);
+    std::vector<u_long128> texture_storage(65536);
+    mgCMemory              parent;
+    mgCMemory              scratch;
+    mgCMemory              textures;
+    CRemovalMenu           menu;
+    CMenuKeyFunc           keys;
+    CMenuPosDataManage     forms{};
+    CMenuPosDataForm       preview_form{};
+    auto                   map = std::make_unique<CEditMap>();
+
+    /**
+     * Restores the global menu context and releases preview assets.
+     */
+    struct Cleanup {
+        CMenuKeyFunc       *keys = MenuCommonInfo;   /**< Menu context restored when the fixture ends. */
+        CMenuPosDataManage *forms = MenuPosData;     /**< Form manager restored when the fixture ends. */
+        CEditMap           *map = MenuMainMapInfo;   /**< World map restored when the fixture ends. */
+        int                 language = LanguageCode; /**< Language restored when the fixture ends. */
+
+        ~Cleanup() {
+            MenuCommonInfo = keys;
+            MenuPosData = forms;
+            MenuMainMapInfo = map;
+            LanguageCode = language;
+            mgTexManager.Initialize(0x1000, -1);
+            model_assets::Clear();
+            datapacks::Clear();
+        }
+    } cleanup;
+
+    MenuCommonInfo = &keys;
+    MenuPosData = &forms;
+    MenuMainMapInfo = map.get();
+    LanguageCode = 1;
+    keys.key_enable = 0;
+    keys.tex_block[4] = 0;
+    parent.stSetBuffer(workspace.data(), static_cast<int>(workspace.size()));
+    textures.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    menu.chara_stack.stSetChildBuffer(parent, parent.Alloc(0xFA00), 0xFA00);
+    ASSERT_TRUE(scratch.stShareBuffer(parent, std::span(parent.stGetTop(), static_cast<std::size_t>(parent.stGetRest()))));
+    mgTexManager.SetTableBuffer(1024, 64, &textures);
+    mgTexManager.Initialize(0x1000, -1);
+    DataReadIndex(data);
+    LoadNPCCfg();
+    menu.mode = MENU_ASK_MODE_CLOSE;
+    menu.npc_chr_form = &preview_form;
+    menu.npc_num = 1;
+    for (const auto [npc, background] : {
+             std::pair{PARTY_NPC_ADEL,   0},
+             std::pair{PARTY_NPC_CEDRIC, 1},
+             std::pair{PARTY_NPC_ADEL,   1}
+    }) {
+        SCOPED_TRACE(npc);
+        scratch.stReset();
+        StartReadBG();
+        ASSERT_EQ(MenuNPCModelLoad(&scratch, npc, background), 1);
+        menu.npc_list[0] = npc;
+        menu.model_state = 2;
+        for (int poll = 0; poll < 4 && menu.model_state == 2; ++poll) {
+            menu.KeyStep();
+        }
+        ASSERT_EQ(menu.model_state, 3);
+        ASSERT_EQ(preview_form.chara, &menu.chara);
+        ASSERT_NE(menu.chara.CObjectFrame::frame, nullptr);
+        auto *idle = menu.chara.GetKeyListPtr(const_cast<char *>("\x97\xA7\x82\xBF"), nullptr);
+        ASSERT_NE(idle, nullptr);
+        for (int frame = 0; frame < 120; ++frame) {
+            menu.KeyStep();
+        }
+        const auto actions = character_motion::Actions(menu.chara.motion[0]);
+        EXPECT_GT(actions.size(), 1u);
+        for (const auto &action : actions) {
+            for (const auto &target : actions) {
+                ChangeMotion(menu.chara.CObjectFrame::frame, &menu.chara.motion[0], action.base, target.base, .5f, nullptr);
+            }
+        }
+        for (int index = 0; index < menu.chara.CObjectFrame::frame->frame_num; ++index) {
+            const auto *frame = menu.chara.CObjectFrame::frame->GetFrame(index);
+            ASSERT_NE(frame, nullptr);
+            for (const auto &row : frame->trans_matrix) {
+                for (float value : row) {
+                    EXPECT_TRUE(std::isfinite(value));
+                }
+            }
+        }
+    }
 }

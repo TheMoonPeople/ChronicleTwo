@@ -8,6 +8,7 @@
 
 class mgCFrame;
 class mgCCamera;
+class mgCMemory;
 struct Mot_List;
 struct tagMOTION_TYPE;
 
@@ -33,9 +34,10 @@ struct Action {
  *
  * The storage is the arena memory holding the set's channels and anchor; the set stops resolving once any
  * of it is handed out again. The anchor is also stamped, so a set whose anchor is overwritten without going
- * through an arena stops resolving too.
+ * through an arena stops resolving too. Native loaders supply the producer to reject reset or freed
+ * storage before reading its anchor, including memory that has not yet been reused.
  */
-void Register(Mot_List *anchor, std::vector<Action> actions, std::span<const std::byte> storage);
+void Register(Mot_List *anchor, std::vector<Action> actions, std::span<const std::byte> storage, mgCMemory *producer = nullptr);
 
 /**
  * Forgets a motion set whose channel anchor is released or replaced.

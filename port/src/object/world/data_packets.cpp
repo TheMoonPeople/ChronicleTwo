@@ -83,6 +83,8 @@ PreparedDataPackets DataPacketStorage::Prepare(DataPacketMode requested_mode, mg
         return {buffers, false};
     }
     for (auto &buffer : buffers) {
+        // Retire the old logical extent before reusing or resizing its independent root mapping.
+        buffer.stSetBuffer(nullptr, 0);
         auto *storage = ArenaBlock(&buffer, static_cast<std::size_t>(quadwords) * sizeof(u_long128));
         buffer.stSetBuffer(reinterpret_cast<u_long128 *>(storage), quadwords);
     }

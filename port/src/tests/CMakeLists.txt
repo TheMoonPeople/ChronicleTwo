@@ -26,6 +26,34 @@ add_test(NAME NativeArchitecture.Check
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/native_architecture.py
         --root ${CMAKE_SOURCE_DIR} --build ${CMAKE_BINARY_DIR})
 
+add_test(NAME MenuReplay.GeoramaReopen
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
+        --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case georama)
+set_tests_properties(MenuReplay.GeoramaReopen PROPERTIES
+    SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
+add_test(NAME MenuReplay.MonsterMenuTransform
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
+        --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case monster-menu)
+set_tests_properties(MenuReplay.MonsterMenuTransform PROPERTIES
+    SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
+add_test(NAME MenuReplay.EquipBodyReload
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
+        --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case equip-dungeon)
+set_tests_properties(MenuReplay.EquipBodyReload PROPERTIES
+    SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
+foreach(case IN ITEMS town dungeon)
+    add_test(NAME MenuReplay.QuickChange_${case}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
+            --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case quick-${case})
+    set_tests_properties(MenuReplay.QuickChange_${case} PROPERTIES
+        SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
+    add_test(NAME MenuReplay.PartyChange_${case}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
+            --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case party-${case})
+    set_tests_properties(MenuReplay.PartyChange_${case} PROPERTIES
+        SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
+endforeach()
+
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
 add_executable(darkchronicle_tests ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${TEST_SOURCES})
 if(WIN32)

@@ -5,11 +5,13 @@
 #include <cstring>
 #include <optional>
 #include <span>
+#include <stdexcept>
 #include <unordered_map>
 #include <utility>
 
 #include "character_motion.hpp"
 #include "gameutil.hpp"
+#include "mg_memory.hpp"
 #include "platform/model_assets.hpp"
 
 namespace character_motion {
@@ -18,9 +20,10 @@ namespace {
  * The registered actions of one motion set.
  */
 struct Set {
-    std::uint32_t              stamp = 0; /**< Registration stamp, also written into the anchor. */
-    std::vector<Action>        actions;   /**< Actions in game-frame order. */
-    std::span<const std::byte> storage;   /**< Arena memory holding the channels and the anchor. */
+    std::uint32_t                           stamp = 0; /**< Registration stamp, also written into the anchor. */
+    std::vector<Action>                     actions;   /**< Actions in game-frame order. */
+    std::span<const std::byte>              storage;   /**< Arena memory holding the channels and the anchor. */
+    std::optional<dc2::memory::ArenaBuffer> anchor;    /**< Exact allocation lease checked before the anchor is read. */
 };
 
 /**
@@ -71,7 +74,7 @@ const Set *Lookup(const Mot_List *anchor) {
     if (found == Registry().end()) {
         return nullptr;
     }
-    if (StampOf(*anchor) != found->second.stamp) {
+    if ((found->second.anchor && found->second.anchor->Bytes().empty()) || StampOf(*anchor) != found->second.stamp) {
         Forget(anchor);
         return nullptr;
     }
@@ -152,7 +155,14 @@ void Apply(mgCFrame &root, const Action &action, float local, mgCCamera *camera)
 }
 } // namespace
 
-void Register(Mot_List *anchor, std::vector<Action> actions, std::span<const std::byte> storage) {
+void Register(Mot_List *anchor, std::vector<Action> actions, std::span<const std::byte> storage, mgCMemory *producer) {
+    std::optional<dc2::memory::ArenaBuffer> allocation;
+    if (producer != nullptr) {
+        allocation = dc2::memory::ArenaBuffer::Bind(*producer, {reinterpret_cast<u8 *>(anchor), sizeof(*anchor)});
+        if (allocation->Bytes().empty()) {
+            throw std::invalid_argument("motion anchor lacks a live allocation");
+        }
+    }
     static std::uint32_t next_stamp = 0;
     // A cleared arena holds zero, so zero never stamps a set.
     if (++next_stamp == 0) {
@@ -161,7 +171,7 @@ void Register(Mot_List *anchor, std::vector<Action> actions, std::span<const std
     // A set registered again at the same anchor drops the old one's poses along with its actions.
     Forget(anchor);
     std::memcpy(anchor->unk_1C, &next_stamp, sizeof(next_stamp));
-    Registry().insert_or_assign(anchor, Set{.stamp = next_stamp, .actions = std::move(actions), .storage = storage});
+    Registry().insert_or_assign(anchor, Set{.stamp = next_stamp, .actions = std::move(actions), .storage = storage, .anchor = allocation});
 }
 
 void Forget(const Mot_List *anchor) {

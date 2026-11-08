@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <format>
 #include <memory>
 #include <optional>
@@ -19,6 +21,8 @@
 #include "mg_drawprim.hpp"
 #include "mglib.hpp"
 #include "nd_meswin.hpp"
+#include "platform/archive_mount.hpp"
+#include "platform/vfs.hpp"
 #include "render/primitive_submission.hpp"
 #include "render/renderer.hpp"
 
@@ -364,6 +368,59 @@ TEST(MessageTable, EndOfFileBoundaryRecordsKeepValidMessagesWithoutReadingPastTh
     EXPECT_FALSE(dc2::text::MessageTable::Parse(std::as_bytes(std::span(source))));
     const std::array<u16, 5> unterminated{1, 0, 7, 2, 33};
     EXPECT_FALSE(dc2::text::MessageTable::Parse(std::as_bytes(std::span(unterminated))));
+}
+
+TEST(MessageTable, TrailingLineSeparatorBoundaryRecordsKeepValidMessages) {
+    for (int separators = 1; separators <= 3; ++separators) {
+        std::vector<u16> source{2, 0, 150, 3, 7039, 5, 33, MES_CODE_END};
+        source.insert(source.end(), static_cast<std::size_t>(separators), MES_CODE_NEWLINE);
+        const auto table = dc2::text::MessageTable::Parse(std::as_bytes(std::span(source)));
+        ASSERT_TRUE(table);
+        ASSERT_EQ(table.Line(150).size(), 2u);
+        EXPECT_EQ(table.Line(150)[0], 33);
+        EXPECT_EQ(table.Line(150)[1], MES_CODE_END);
+        EXPECT_TRUE(table.Line(7039).empty());
+
+        source.push_back(34);
+        EXPECT_FALSE(dc2::text::MessageTable::Parse(std::as_bytes(std::span(source))));
+        source.back() = MES_CODE_PAGE;
+        EXPECT_FALSE(dc2::text::MessageTable::Parse(std::as_bytes(std::span(source))));
+    }
+}
+
+TEST(MessageTableRetail, DungeonMedalsAndControlsRemainPresentInEveryPalLanguage) {
+    const auto *data_path = std::getenv("DC2_DATA");
+    if (!data_path || !*data_path) {
+        GTEST_SKIP() << "DC2_DATA selects the published retail asset root";
+    }
+    const auto root = std::filesystem::u8path(data_path);
+    const auto archive = root.parent_path() / "data.zip";
+    const auto mount = std::filesystem::is_regular_file(archive) ? ArchiveMountOpen(archive) : vfs::OpenDirectory(root);
+    for (int language = 0; language < 6; ++language) {
+        for (int dungeon = 0; dungeon < 7; ++dungeon) {
+            const auto path = std::format("menu/{}/dmap{}.pac/systree.mes", language, dungeon);
+            SCOPED_TRACE(path);
+            const auto file = vfs::Find(mount, path);
+            ASSERT_TRUE(file);
+            std::vector<std::uint8_t> bytes;
+            ASSERT_TRUE(vfs::Read(file, bytes));
+            const auto table = dc2::text::MessageTable::Parse(std::as_bytes(std::span(bytes)));
+            ASSERT_TRUE(table);
+            for (int id : {80, 81, 90, 91, 108, 150, 154, 155, 300}) {
+                EXPECT_FALSE(table.Line(id).empty()) << id;
+            }
+            EXPECT_TRUE(table.Line(7039).empty());
+        }
+    }
+    for (std::size_t index = 0; index < mount->Count(); ++index) {
+        const auto name = mount->Name(index);
+        if (name.ends_with(".mes")) {
+            SCOPED_TRACE(name);
+            std::vector<std::uint8_t> bytes;
+            ASSERT_TRUE(vfs::Read(vfs::Ref(mount, index), bytes));
+            EXPECT_TRUE(dc2::text::MessageTable::Parse(std::as_bytes(std::span(bytes))));
+        }
+    }
 }
 
 TEST(MessageConstruction, PoisonedStorageStartsWithEmptyDocumentsAndCompleteLayoutDefaults) {

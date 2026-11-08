@@ -150,6 +150,11 @@ namespace dc2::character {
 void PrepareUnitReload(CScene &scene);
 
 /**
+ * Retires every party model before repartitioning the storage for a replacement unit.
+ */
+void RepartitionUnitStorage(CScene &scene, mgCMemory *memory, mgCMemory *stacks, int unit, bool town);
+
+/**
  * Attaches a unit's supplied parts and binds only its explicit persistent loop-sound owner.
  */
 void SetupUnit(std::span<CCharacter2 *const> parts, CUserDataManager *user_data, int unit,

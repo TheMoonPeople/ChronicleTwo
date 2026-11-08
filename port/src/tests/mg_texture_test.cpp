@@ -792,9 +792,10 @@ TEST(MgTexture, RetiredTableProducerIsRejectedBeforePoisonedListsAreTraversed) {
     ASSERT_EQ(manager.GetTexture(name, 0), texture);
     const auto used = std::span(memory.stack, static_cast<std::size_t>(memory.stack_used));
     memory.stClearUsed();
-    // Reused addresses are writable again, as a later allocation would make them.
-    dc2::memory::UnpoisonArenaBytes(used.data(), used.size_bytes());
-    std::ranges::fill(std::as_writable_bytes(used), std::byte{0xff});
+    auto *replacement = memory.Alloc(static_cast<int>(used.size()));
+    ASSERT_EQ(replacement, used.data());
+    const auto replacement_bytes = std::as_writable_bytes(std::span(replacement, used.size()));
+    std::ranges::fill(replacement_bytes, std::byte{0xff});
 
     manager.DeleteBlock(0);
     EXPECT_EQ(manager.blocks, nullptr);
@@ -807,6 +808,8 @@ TEST(MgTexture, RetiredTableProducerIsRejectedBeforePoisonedListsAreTraversed) {
     manager.DeleteTexture(texture);
     manager.Initialize(0x1000, -1);
 
+    EXPECT_TRUE(std::ranges::all_of(replacement_bytes, [](std::byte value) { return value == std::byte{0xff}; }));
+    memory.stClearUsed();
     manager.SetTableBuffer(8, 2, &memory);
     manager.Initialize(0x1000, -1);
     EXPECT_EQ(manager.GetTexture(name, 0), nullptr);

@@ -1503,7 +1503,7 @@ void MenuRoboPartsLightOff(mgCFrame *frame);
 
 /**
  *
- * Starts reading a monster's model; returns the size read.
+ * Queues a monster model read; returns non-zero when queued.
  *
  * @mangled MenuMonsterLoadBG__FP9mgCMemoryPP17MENU_BGREAD_INFO2ii
  * @address 0x2BF490

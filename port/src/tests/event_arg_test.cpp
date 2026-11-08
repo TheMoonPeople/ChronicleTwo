@@ -286,11 +286,14 @@ TEST_F(EventArgData, ReusingTheArenaDiscardsTheRetiredHeadBeforeFollowingAnyOldL
     arguments.BuildArgData(HandleBytes(handle));
     ASSERT_EQ(arguments.list_num, 2);
     const auto retired_head = arguments.list_storage;
+    const int  used = memory.stGetUsed();
     memory.stClearUsed();
-    // Reused addresses are writable again, as a later allocation would make them.
-    dc2::memory::UnpoisonArenaBytes(memory.stack, storage.size() * sizeof(u_long128));
-    std::memset(memory.stack, 0xA5, storage.size() * sizeof(u_long128));
+    auto *replacement = memory.Alloc(used);
+    ASSERT_EQ(replacement, memory.stack);
+    const std::vector<u8> poison(static_cast<std::size_t>(used) * sizeof(u_long128), 0xA5);
+    std::memset(replacement, 0xA5, poison.size());
     arguments.BuildArgData(HandleBytes(handle));
+    EXPECT_EQ(std::memcmp(replacement, poison.data(), poison.size()), 0);
     EXPECT_TRUE(retired_head.Bytes().empty());
     ASSERT_EQ(arguments.list_num, 2);
     ASSERT_NE(arguments.list, nullptr);

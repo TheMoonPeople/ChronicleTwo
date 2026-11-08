@@ -182,11 +182,14 @@ TEST(MgDataset, BuilderRejectsResetOrInterveningAllocation) {
     builder.Begin(&memory);
     builder.BeginData(MG_MDT_DATA_VERTEX);
     memory.stReset();
-    std::memset(storage, 0xD3, 32 * sizeof(u_long128));
+    const int replacement_quads = memory.stGetSize() - 1;
+    auto     *replacement = memory.Alloc(replacement_quads);
+    ASSERT_EQ(replacement, storage);
+    std::memset(replacement, 0xD3, static_cast<std::size_t>(replacement_quads) * sizeof(u_long128));
     builder.SetData(1.0f, 2.0f, 3.0f, 1.0f);
     EXPECT_TRUE(builder.failed);
     EXPECT_EQ(builder.End(), nullptr);
-    for (const auto byte : std::as_bytes(std::span(storage, 32))) {
+    for (const auto byte : std::as_bytes(std::span(replacement, static_cast<std::size_t>(replacement_quads)))) {
         EXPECT_EQ(byte, std::byte{0xD3});
     }
 }

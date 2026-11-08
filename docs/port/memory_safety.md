@@ -56,6 +56,34 @@ invalid counts, invalid indices and invalid step types without publishing partia
 two-argument rejection is explicitly preserved by the converted script catalog and is unrelated to the
 battle-exit crash.
 
+## Issues 174–180
+
+The reviewed issue range contains six reports: 174, 175, 176, 178, 179 and 180; 177 is a pull request.
+The attached reports are retained as diagnostic evidence rather than treated as proof of a current failure.
+Game-code fixes stay in the native port tree; the PS2 tree is unchanged.
+
+| Issue | Root cause and corrective contract | Regression coverage |
+| --- | --- | --- |
+| [174](https://github.com/TheMoonPeople/ChronicleTwo/issues/174) | The report aborts in shop initialization while binding an unallocated sound-workspace tail as an owned arena. The existing reserved sound child and persistent shop-bank owner address both the invalid binding and delayed playback lifetime. The allocator continues to reject unreserved child bindings. | The real-data shop replay enters the shop, completes transactions and requires delayed effect and music sample dispatch after initialization. |
+| [175](https://github.com/TheMoonPeople/ChronicleTwo/issues/175) | The eleven reports split into six missing-body skin loads, three old-player accesses after party repartitioning, one unresolved Ridepod body damage cleanup, and one monster-action lookup after the player model had retired. Existing body admission and pre-reset actor retirement address the first two groups. Ridepod completion now resolves explicit scene-mode targets independently of the background-update flag, rejects absent or retired roots and cleans live damage before resetting storage. Party retirement includes the sixth slot holding the Ridepod hat, while preserving the following non-party slot. Monster selection also requires retirement before repartitioning; a shared transition helper applies the same ordering to each menu entry point. Completion requires a live replacement body before its phase advances or gameplay resumes. | Synthetic completion tests cover absent, live and retired roots and attachments with either update flag; the party-retirement test covers all six slots. Real-data replays cover town and dungeon party menus, quick changes through all four playable forms and the monster-badge Transform action, followed by movement and attacks. |
+| [176](https://github.com/TheMoonPeople/ChronicleTwo/issues/176) | The Georama menu report aborts when its character cursor binds an unallocated menu tail as owned storage. Its existing explicit shared cursor is the correct contract for overlapping scratch memory. | The real-data Georama replay requires ready, closed and ready lifecycle events at distinct logical frames, then a rendered capture of the reopened menu. |
+| [178](https://github.com/TheMoonPeople/ChronicleTwo/issues/178) | Retail message tables can end with a boundary entry pointing to trailing newline separators rather than a terminated message. Rejecting that entry discarded the entire table, including medal conditions and menu controls. The parser accepts only a newline-only suffix as boundary data; unterminated glyphs and other controls still invalidate the document. | Always-on tests distinguish separator boundaries from malformed content. Optional retail coverage validates all 42 dungeon/language tables, requires the medal/help message IDs, and parses every published message file. |
+| [179](https://github.com/TheMoonPeople/ChronicleTwo/issues/179) | The old report follows a corrupt linked motion-channel pointer while blending the Adel preview. It does not identify the writer. Motion registration now captures the exact anchor allocation; lookup rejects a retired allocation before reading its stamp, closing the reset-before-reuse lifetime gap. Sanitizer execution of the current path exposed an unreserved read into reset scratch memory. Menu inputs now use owned file reads, while archive copies and effect workspaces reserve their destination extents before writing. Background reads retain their input ownership through completion. | Reset, parent retirement and freed heap-block cases reject motion sets before dereferencing retired storage; retained allocations still resolve. Real-data Adel/Cedric preview cycles exercise native actions and the actual removal-menu preview states. The actual Adel preview cycles pass ASan/UBSan with the corrected input staging. These checks do not reconstruct the original unidentified write. |
+| [180](https://github.com/TheMoonPeople/ChronicleTwo/issues/180) | Independent packet roots were rebound through their previous logical extent. After a larger mode had run, switching through a smaller bootstrap or map mode and growing again reused the physical mapping but failed the smaller binding proof. Packet layout changes explicitly retire the old logical binding before adopting the owned root's requested extent; ordinary child/view extent checks remain strict. | A regression reproduces the abort without the fix, then cycles Georama, map and bootstrap sizes repeatedly, checks both full writable extents, rejects old packet leases and preserves character storage and its lock. |
+
+The six `MenuReplay` cases require current published data through `DC2_DATA`;
+without it they report a skip. Their fresh run directories retain binary hashes, input commands, lifecycle
+transitions, logs and screenshots. The message and NPC retail tests also skip explicitly when their data
+is absent. Synthetic lifetime and parser regressions run without disc data.
+
+Validation for this issue batch includes 121 focused tests on Windows and Linux ASan/UBSan, all passing,
+and six menu/character plus three audio replays against published data. The final Windows CPU suite selects
+2,349 tests with zero failures, 15 skipped and one disabled. The final Linux ASan/UBSan CPU suite selects
+2,339 tests with zero failures, 17 skipped and one disabled, with leak detection enabled. Seven older arena-retirement fixtures now allocate
+live replacement storage before writing reuse markers; they retain stale-lease rejection checks without
+manually unpoisoning retired bytes. Formatting and clang-tidy ran on changed native sources; the existing
+warning backlog remains. Reports and replay receipts are retained under the local issue-batch workspace.
+
 ## Current modernization checkpoint
 
 The `current-map-construction` source manifest has fingerprint `0be6e49be9ef8a7af54fdb5a104af25b9da15a2134e27bf420ed417abf18320d`. Its Linux normal, Linux ASan/UBSan, and Windows builds compile the game, GoogleTest executable, and data bridge. Each Linux CPU run selects 2,134 cases and reports zero failures and errors, with one disabled case. The Windows CPU run selects 2,140 cases with zero failures and errors, one disabled case, and 21 skips; its executable hash is unchanged during the run. Subsequent scene and monster assignment changes require their own integrated validation; these results do not cover those changes.
@@ -138,6 +166,27 @@ Character stack partitions reserve their parent allocations before creating expl
 Screen-effect captures keep explicit arena image leases, including bounded subviews when monochrome images share the global read buffer. Capture and draw paths reject retired storage before touching pixels. Screen byte arithmetic and texture-block offsets are checked, and the CPU tint loops operate only on verified RGBA extents. Photo capture passes actual array byte spans to the color and depth readback APIs.
 
 Script byte readers check the source end before reading or comparing delimiters. Numeric tokens and converted command operands are range-checked before conversion; malformed or truncated binary tags cannot reuse retained arguments as a successful invocation. The unchecked pointer-only run/tag getters have no remaining callers and are removed. Native model-profile branches use the same checked argument and text views as registered handlers.
+
+### Owned and borrowed character resources
+
+A character's resource snapshot lists each producer arena it retains. Owned channels (its model, motions, images,
+skins and so on) are lifetime dependencies: resetting their arena retires the character. Borrowed channels
+(`BorrowedChannel`, currently `ParentOutline`) only record what the character took from another one: an attached
+weapon, second weapon or hat uses its body's outline texture. Retiring a borrowed producer invalidates the borrow, not
+the borrower; `CCharacter2::DrawDirect` draws the part without its outline until `CopyOutLine` re-binds it, which
+`SetupUnit` does after every body reload, as retail does.
+
+Treating the borrow as owned made equipment vanish. Equipping a weapon with a different stance (the Big Bucks Hammer and
+later wrenches) makes the item menu's exit reload Max's body into its arena. Every attached part then counted as
+retired, `CScene::GetSceneCharacter` cleared their slots, and `SetupMints` found nothing to attach, so the weapons and
+cap stopped drawing with no error.
+
+Silent loss of this kind is now reported in three places. `CScene::GetSceneCharacter` warns when it drops a character
+that nothing released. `SetupUnit` logs an error for every equipped part it cannot attach, except the weapons a town
+body leaves unloaded. Every `MenuReplay` case fails on either message. `MenuReplay.EquipBodyReload` equips the spawned
+hammer, closes the menu and requires the reloaded body to keep its three parts.
+`NativeRecords.AttachedPartsSurviveTheReloadOfTheBodyWhoseOutlineTheyBorrow` resets a body arena under an attached
+part and checks that the part stays in the scene with only its borrow retired, then re-attaches it.
 
 A focused core/unix/C++ Clang analyzer pass over the changed character, dynamic-animation, event, and monster-opcode units reported no diagnostics after the null, bounds, and vector-alias fixes. This is source-analysis evidence only; the final linked, optimized, and instrumented runtime gates below remain required.
 
