@@ -1,0 +1,41 @@
+--!strict
+-- Shared event helper used by 6 scripts, translated by tools/luau/stb2luau.
+
+--- Helper function.
+local function helper_482d9cfc()
+	event.initialize_event()
+	event.set_message_window_mode(0, 7)
+	event.assign_memory_stack(5)
+	event.clear_memory_stack(5)
+	event.change_directory("event/e200/e204/")
+	event.load_character(5, "e204_buggy.gltf", "info", 33)
+	event.set_character_active(0, 33)
+	event.attach_object_handle_to_character(1, 33)
+	event.clear_object_sequence(1)
+	event.set_object_sequence_object(1, 1)
+	event.load_character(5, "e204_polcurse.gltf", "info", 32)
+	event.set_character_active(0, 32)
+	event.attach_object_handle_to_character(0, 32)
+	event.clear_object_sequence(0)
+	event.set_object_sequence_object(0, 0)
+	event.attach_character_to_frame(33, "polcurse_chair", 32)
+	event.load_character(5, "e204_macho.gltf", "info", 34)
+	event.set_character_active(0, 34)
+	event.attach_character_to_frame(33, "macho_chair", 34)
+	event.change_directory("")
+	event.load_character(5, "event/e200/e206/e206_bbaku.gltf", "info", 36)
+	event.set_character_active(0, 36)
+	event.load_character(5, "event/e200/e205/e205_hibana.gltf", "info", 35)
+	event.set_character_active(0, 35)
+	event.set_object_sequence_position(1, 215.71, 0.0, -731.44)
+	event.set_object_sequence_rotation(1, 0.0, 0.0, 0.0)
+	event.initialize_effect_manager(5)
+	event.load_effect_base("列車煙")
+	event.create_effect_work_buffer(5)
+	event.attach_object_handle_to_map_part_2(4, "p01_train01")
+	event.create_effect("列車煙")
+	event.set_effect_value(0, 4)
+	event.set_map_piece_character_motion("p01_s03t", "kikan-m", "機関")
+end
+
+return helper_482d9cfc

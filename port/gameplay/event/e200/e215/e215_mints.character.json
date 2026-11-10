@@ -1,0 +1,285 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "wait_up": {
+      "type": "string",
+      "value": "待って"
+    },
+    "wait_up_loop": {
+      "type": "string",
+      "value": "待ってL"
+    },
+    "wait_up_return": {
+      "type": "string",
+      "value": "待って戻り"
+    },
+    "walk_looking_around": {
+      "type": "string",
+      "value": "キョロキョロ歩き"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e215_ミンツ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_looking_around"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wait_up"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wait_up_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wait_up_return"
+            },
+            {
+              "type": "float",
+              "value": 0.25
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 6
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_looking_around"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_looking_around"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.25
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_looking_around"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.75
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_looking_around"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wait_up"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.47099998593330383
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wait_up_return"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.949999988079071
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,151 @@
+{
+  "entries": [
+    {
+      "index": 0,
+      "volume": 48
+    },
+    {
+      "index": 1,
+      "volume": 84
+    },
+    {
+      "index": 2,
+      "volume": 42
+    },
+    {
+      "index": 3,
+      "volume": 64
+    },
+    {
+      "index": 4,
+      "volume": 54
+    },
+    {
+      "index": 5,
+      "volume": 52
+    },
+    {
+      "index": 6,
+      "volume": 40
+    },
+    {
+      "index": 7,
+      "volume": 53
+    },
+    {
+      "index": 8,
+      "volume": 50
+    },
+    {
+      "index": 9,
+      "volume": 48
+    },
+    {
+      "index": 10,
+      "volume": 90
+    },
+    {
+      "index": 11,
+      "volume": 47
+    },
+    {
+      "index": 12,
+      "volume": 50
+    },
+    {
+      "index": 13,
+      "volume": 52
+    },
+    {
+      "index": 14,
+      "volume": 80
+    },
+    {
+      "index": 15,
+      "volume": 31
+    },
+    {
+      "index": 16,
+      "volume": 62
+    },
+    {
+      "index": 17,
+      "volume": 50
+    },
+    {
+      "index": 18,
+      "volume": 40
+    },
+    {
+      "index": 19,
+      "volume": 79
+    },
+    {
+      "index": 20,
+      "volume": 78
+    },
+    {
+      "index": 21,
+      "volume": 75
+    },
+    {
+      "index": 22,
+      "volume": 56
+    },
+    {
+      "index": 23,
+      "volume": 60
+    },
+    {
+      "index": 24,
+      "volume": 70
+    },
+    {
+      "index": 25,
+      "volume": 45
+    },
+    {
+      "index": 26,
+      "volume": 70
+    },
+    {
+      "index": 27,
+      "volume": 40
+    },
+    {
+      "index": 28,
+      "volume": 72
+    },
+    {
+      "index": 29,
+      "volume": 65
+    },
+    {
+      "index": 30,
+      "volume": 84
+    },
+    {
+      "index": 31,
+      "volume": 46
+    },
+    {
+      "index": 32,
+      "volume": 93
+    },
+    {
+      "index": 33,
+      "volume": 86
+    },
+    {
+      "index": 34,
+      "volume": 70
+    },
+    {
+      "index": 35,
+      "volume": 0
+    }
+  ],
+  "kind": "sound_volume",
+  "reverb": [],
+  "schema_version": 1
+}

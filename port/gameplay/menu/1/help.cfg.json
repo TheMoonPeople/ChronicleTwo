@@ -1,0 +1,1595 @@
+{
+  "chapters": [
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.55,
+          "start_seconds": 1.65,
+          "text": "You're about to embark on a wonderful adventure.\nLet me give you a few tips before you start.\r"
+        },
+        {
+          "clear_seconds": 20.87,
+          "start_seconds": 9.55,
+          "text": "First off, let's talk about moving around.\nTo walk, push the left analog stick a little.\nPush it all the way to run.\r"
+        },
+        {
+          "clear_seconds": 33.63,
+          "start_seconds": 20.87,
+          "text": "The right analog stick controls the camera.\nYou can turn the camera with the\n[l1] and [r1] buttons, too, except in dungeons.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.63,
+          "text": "When you're on the move,\npressing the (O) button or the [l2] button\nbrings the camera around behind your character.\nThis is handy when you want to look in\nthe direction your character is facing.\r"
+        }
+      ],
+      "id": 901
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.28,
+          "start_seconds": 3.27,
+          "text": "When you approach an object and press the (X) button,\nthe character takes a particular action according to the situation.\r"
+        },
+        {
+          "clear_seconds": 17.49,
+          "start_seconds": 10.28,
+          "text": "For example, if the object is a door, it will open.\nIf it's a person, you can chat.\r"
+        },
+        {
+          "clear_seconds": 23.47,
+          "start_seconds": 17.49,
+          "text": "If you press the (A) button while operating your character,\na screen of commands will appear.\r"
+        },
+        {
+          "clear_seconds": 37.52,
+          "start_seconds": 23.47,
+          "text": "This screen is called the \"Main Menu.\"\nOn the Main Menu, you can use all kinds of\ncommands to help you along in the game.\nFor example, you can use items or equip weapons.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 37.52,
+          "text": "Remember! On the Main Menu, you normally use\nthe (X) button to enter, and the (O) button to cancel.\r"
+        }
+      ],
+      "id": 902
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.31,
+          "start_seconds": 3.55,
+          "text": "In some situations, you must press the (#) button\nto bring up an Item Selection Window.\r"
+        },
+        {
+          "clear_seconds": 20.18,
+          "start_seconds": 10.31,
+          "text": "Choose the item that fits your needs in that particular situation.\nIf you pick the right item, you get to continue with your adventure!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.18,
+          "text": "If you don't have the item you need in inventory,\npress the (O) button to cancel.\nThen you've got to go out and look for that item you need!\r"
+        }
+      ],
+      "id": 903
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.09,
+          "start_seconds": 4.61,
+          "text": "Now I'm going to explain about using normal items.\nOn the Main Menu, select \"Items.\"\nThis brings you to the Item Window.\r"
+        },
+        {
+          "clear_seconds": 20.8,
+          "start_seconds": 13.09,
+          "text": "Move the cursor to the item you want to use\nwith the directional buttons or with the left analog stick.\nThen press the (X) button.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.8,
+          "text": "A list of commands you can use on that item will appear.\nJust pick the command you want to perform.\nAnd that's how you use items!\r"
+        }
+      ],
+      "id": 904
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.71,
+          "start_seconds": 4.33,
+          "text": "In the Item Window, using the (#) button to select an item\nlets you \"pick up\" that item.\nOnce you've got ahold of it, you can move it somewhere else.\r"
+        },
+        {
+          "clear_seconds": 25.91,
+          "start_seconds": 14.71,
+          "text": "Pressing the (#) button again drops the item into the place the cursor is pointing.\nMove things around any way you want\nto make them easier to use!\r"
+        },
+        {
+          "clear_seconds": 35.84,
+          "start_seconds": 25.91,
+          "text": "You can move items with the (A) button, too.\nBut with the (A) button, you can\ncontrol the amount of that item that you move.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.84,
+          "text": "Finally, pressing the SELECT button automatically organises your items.\nPressing the SELECT button again\nsorts your items into different orders.\r"
+        }
+      ],
+      "id": 905
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.97,
+          "start_seconds": 1.36,
+          "text": "Hey, I'm Donny and I'm going to explain the basic controls\nin the dungeons.\nThe (X) button is for using the weapon\nin your right hand.\r"
+        },
+        {
+          "clear_seconds": 20.83,
+          "start_seconds": 11.97,
+          "text": "If you press the (X) button while holding down the [l1] button down, \nyou'll attack with the projectile weapon in your left hand.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.83,
+          "text": "If you hold down the (X) button for a long time, \nwhen you release it, you'll do a \"Charge Attack\"\nUse it at critical moments.\r"
+        }
+      ],
+      "id": 906
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.75,
+          "start_seconds": 2.73,
+          "text": "Pressing the [r1] button will defend you against the enemy's\nattack.\r"
+        },
+        {
+          "clear_seconds": 21.18,
+          "start_seconds": 8.75,
+          "text": "And if you press the (X) button while holdin' down the [r1] button, \nyou can pick up a monster close to you, and then\nthrow him by pressing the (X) button again. Cool!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.18,
+          "text": "In the same way, you can pick up and throw things like\nthe big rocks that are in the dungeons. Try chucking  'em at\nthe monsters!\r"
+        }
+      ],
+      "id": 907
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.53,
+          "start_seconds": 2.49,
+          "text": "To advance to the next floor in the dungeons, you need\nthe \"Gate Key\" item.\r"
+        },
+        {
+          "clear_seconds": 15.49,
+          "start_seconds": 8.53,
+          "text": "One of the monsters will have the Gate Key hidden on him,\nso if you defeat him you'll get the key!\r"
+        },
+        {
+          "clear_seconds": 20.78,
+          "start_seconds": 15.49,
+          "text": "But of course you won't know if he has the key or not\nuntil you defeat him.\r"
+        },
+        {
+          "clear_seconds": 28.3,
+          "start_seconds": 20.78,
+          "text": "And the Gate Key for each dungeon is a different item.\nTry not to get them mixed up!\r"
+        },
+        {
+          "clear_seconds": 34.06,
+          "start_seconds": 28.3,
+          "text": "When exploring the dungeons, you can switch to the map view\nby pressing the SELECT button.\r"
+        },
+        {
+          "clear_seconds": 42.39,
+          "start_seconds": 34.06,
+          "text": "Pressing the button will switch between \"OFF\", \"Small Display\"\nand \"Large Display\", so pick which one you want.\r"
+        },
+        {
+          "clear_seconds": 48.93,
+          "start_seconds": 42.39,
+          "text": "You can also find \"Floor Maps\" and \"Magic Crystals\" down in\nthe dungeons.\r"
+        },
+        {
+          "clear_seconds": 58.61,
+          "start_seconds": 48.93,
+          "text": "With a \"Floor Map\" you can see the whole layout of the floor you're on.\nA \"Magic Crystal\" will show you the positions of monsters 'n treasure.\r"
+        },
+        {
+          "clear_seconds": 64.62,
+          "start_seconds": 58.61,
+          "text": "The map view'll be useful for finding both\nof them.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 64.62,
+          "text": "The \"Floor Map\" and the \"Magic Crystal\" won't work\nanymore when you go to another floor, so you'll have\nto look for new ones.\r"
+        }
+      ],
+      "id": 908
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.97,
+          "start_seconds": 2.68,
+          "text": "If you get near a monster and press the (O) button when the \nmarker is displayed, you will go into \"Lock On\" mode, which\nmeans that wherever you move you will always turn to be facing\nyour enemy head-on.\r"
+        },
+        {
+          "clear_seconds": 20.39,
+          "start_seconds": 13.97,
+          "text": "Remember this! It'll make it a lot easier to fight.\r"
+        },
+        {
+          "clear_seconds": 33.5,
+          "start_seconds": 20.39,
+          "text": "If you want to change the target you've locked on,\ntap the (O) button.\nEach time you tap it, you'll lock onto a different monster\nnearby.\r"
+        },
+        {
+          "clear_seconds": 47.92,
+          "start_seconds": 33.5,
+          "text": "When you're locked on, moving the left analog stick away from\nyour target and pressing the (X) button will make you  \n\"Evade\" to avoid the monster's attack.\nThis is another cool move so don't forget it!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 47.92,
+          "text": "And finally here's how to get out of Lock On mode.\nMove the left joystick away from your target and press the\n(O) button. That'll do it.\r"
+        }
+      ],
+      "id": 909
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.6,
+          "start_seconds": 2.43,
+          "text": "When the fight's lookin' bad, all you can do is run !\nBut when the enemy's too close, you can't run very fast, so\nyou should try to get away as soon as you can.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 13.6,
+          "text": "And when the enemy's nearby you can't open treasure chests.\nSo either drag the chest away from your enemy, or defeat your \nenemy first and then open it.\r"
+        }
+      ],
+      "id": 910
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.19,
+          "start_seconds": 2.96,
+          "text": "In the dungeons, you can use items even during a \nbattle.\r"
+        },
+        {
+          "clear_seconds": 14.27,
+          "start_seconds": 8.19,
+          "text": "But to do that you need to set the item you want to use \nas an Active Item first.\r"
+        },
+        {
+          "clear_seconds": 21.47,
+          "start_seconds": 14.27,
+          "text": "The item that you select will be displayed in the Active Item frame at the\ntop left of the screen even when you're moving around.\r"
+        },
+        {
+          "clear_seconds": 29.24,
+          "start_seconds": 21.47,
+          "text": "Select the Active Item you want to use by pressing  left and right on the\ndirectional button and press the (#) button to use it.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 29.24,
+          "text": "Items which you can throw, will be thrown as soon as\nyou hit the (#) button.\nIf you throw them once you're locked on to the enemy,\nyou'll be fairly sure of a hit.\r"
+        }
+      ],
+      "id": 911
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.32,
+          "start_seconds": 2.77,
+          "text": "There are loads of treasure chests scattered around the dungeons, \nso you're sure to come across a few.\r"
+        },
+        {
+          "clear_seconds": 14.74,
+          "start_seconds": 9.32,
+          "text": "But be careful, cos' some of them are booby-trapped.\r"
+        },
+        {
+          "clear_seconds": 25.25,
+          "start_seconds": 14.74,
+          "text": "If you guess the kind of trap and disarm it you'll be able to\nopen the chest without anything happening.\nBut if you fail to spot a trap, it'll get you!\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.25,
+          "text": "There are also some treasure chests that are locked.\nIf you have the \"Treasure Chest Key\", that won't be a problem.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "But if you don't have the key and you force a chest open, \nyou run the risk of setting off a booby-trap.\r"
+        }
+      ],
+      "id": 912
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.37,
+          "start_seconds": 2.95,
+          "text": "Do you know what the red bit is above the monster's\nHP bar?\nIt's called the \"Rage Counter\", and each time you\nattack a monster, it decreases\nby one.\r"
+        },
+        {
+          "clear_seconds": 21.93,
+          "start_seconds": 15.37,
+          "text": "If you don't defeat the monster before it runs out,\nthe monster will go into \"Rage Mode\"\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.93,
+          "text": "If that happens, the monster will get a lot stronger,\nso you'd better not attack it half-heartedly\nwith a weak weapon.\r"
+        }
+      ],
+      "id": 913
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.97,
+          "start_seconds": 3.46,
+          "text": "In a fight, you could be attacked by things like poison, which\nwill put you in \"Abnormal Status\".\r"
+        },
+        {
+          "clear_seconds": 19.99,
+          "start_seconds": 9.97,
+          "text": "When you go into Abnormal Status, using normal recovery \nitems like fluffy \"Bread\" won't work.\nThe only thing that'll work for poison is the \"Antidote Drink.\"\r"
+        },
+        {
+          "clear_seconds": 26.16,
+          "start_seconds": 19.99,
+          "text": "When you're in a particular Abnormal Status, you'll need the right item\nto let you to recover.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 26.16,
+          "text": "When fighting a monster that uses Abnormal Status attacks ,\nyou'd better get yourself the status recovery item\nbefore you go in guns blazing.\r"
+        }
+      ],
+      "id": 914
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.24,
+          "start_seconds": 1.95,
+          "text": "I know enough about weapons not to have to\nask anyone about them...\nBut, it can't hurt to review.\r"
+        },
+        {
+          "clear_seconds": 16.66,
+          "start_seconds": 9.24,
+          "text": "Changing equipment takes place within the Item Menu,\nwhich is reached by choosing Item from the Command Menu.\r"
+        },
+        {
+          "clear_seconds": 25.56,
+          "start_seconds": 16.66,
+          "text": "Grab the item you want to equip with the (#) button,\nplace it above a character and press the\n(#) button again to complete the equipment change.\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.56,
+          "text": "If you press (X) button on top of a weapon, you can select the\n\"Equip\" command, which will then equip that weapon.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "You can change equipment for five separate locations -\nRight Hand Weapon, Left Hand Weapon, Shoes,\nBody and Head.\r"
+        }
+      ],
+      "id": 915
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.65,
+          "start_seconds": 2.86,
+          "text": "If you defeat an enemy with a weapon, then their magic power will\ntumble out of them, in the form of tiny blue grains.\nIf you pick these up, then the weapon which delivered\nthe final blow will absorb the magic from them.\r"
+        },
+        {
+          "clear_seconds": 22.71,
+          "start_seconds": 15.65,
+          "text": "The parameter which shows how much a weapon has absorbed\nis the Magic Absorb Status or ABS.\r"
+        },
+        {
+          "clear_seconds": 28.16,
+          "start_seconds": 22.71,
+          "text": "The blue bar at the side of the weapon's icon\nrepresents it's current ABS.\r"
+        },
+        {
+          "clear_seconds": 38.27,
+          "start_seconds": 28.16,
+          "text": "If the ABS bar fills up, then the weapon \ngoes up a level, and it's stats improve.\nThis is called Weapon Growth.\r"
+        },
+        {
+          "clear_seconds": 49.97,
+          "start_seconds": 38.27,
+          "text": "Weapons also have a stat called WHP,\nwhich displays the weapon's durability.\nThis is the orange bar at the side\nof a weapon's icon.\r"
+        },
+        {
+          "clear_seconds": 57.49,
+          "start_seconds": 49.97,
+          "text": "If this falls to zero then the weapon breaks,\nand it's attacks will no longer affect enemies.\r"
+        },
+        {
+          "clear_seconds": 65.19,
+          "start_seconds": 57.49,
+          "text": "You can return a broken weapon to normal by\nrepairing it, using Repair Powder.\r"
+        },
+        {
+          "clear_seconds": 75.77,
+          "start_seconds": 65.19,
+          "text": "However, if a weapon gets broken then it's ABS\nwill decrease slightly. So, if possible, it's better\nto fix a weapon before it breaks completely.\r"
+        },
+        {
+          "clear_seconds": 86.19,
+          "start_seconds": 75.77,
+          "text": "What's more, some weapons need items other than Repair Powder\nto fix them. For instance, Guns need a Gun Repair Powder and \nArmbands need a Armband Repair Powder.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 86.19,
+          "text": "So to fix the gun I got from Donny, I don't need \nRepair Powder, but Gun Repair Powder.\r"
+        }
+      ],
+      "id": 916
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 1.46,
+          "text": "An effective way to make a weapon stronger\nis to combine an item with it.\r"
+        },
+        {
+          "clear_seconds": 18.77,
+          "start_seconds": 7.94,
+          "text": "If you move the cursor to a weapon on the Item Menu and\npress the (X) button, the Weapon Menu opens.\nSelect Status and information on the weapon is displayed.\r"
+        },
+        {
+          "clear_seconds": 27.35,
+          "start_seconds": 18.77,
+          "text": "The \"Synthesis Points\" at the bottom of the Status Window \ndisplay what kind of items this weapon can be\ncombined with.\r"
+        },
+        {
+          "clear_seconds": 33.83,
+          "start_seconds": 27.35,
+          "text": "As a weapon gains levels, it's\nnumber of Synthesis Points increases.\r"
+        },
+        {
+          "clear_seconds": 41.78,
+          "start_seconds": 33.83,
+          "text": "If you place the cursor over the item you\nwant to combine next and press the (X) button,\nthe commands for that item appear.\r"
+        },
+        {
+          "clear_seconds": 50.21,
+          "start_seconds": 41.78,
+          "text": "Items which display the command \n\"Spectrumise\" can be combined\nwith a weapon.\r"
+        },
+        {
+          "clear_seconds": 59.19,
+          "start_seconds": 50.21,
+          "text": "Selecting Spectrumise breaks down the item,\nand creates a \"Synth Sphere\" that\ncontains the properties of that item.\r"
+        },
+        {
+          "clear_seconds": 70.64,
+          "start_seconds": 59.19,
+          "text": "By taking the Synth Sphere, placing it over the weapon\nwith which you wish to combine and pressing\nthe (X) button, you can add the powers within it\nto those of the weapon.\r"
+        },
+        {
+          "clear_seconds": 87.62,
+          "start_seconds": 70.64,
+          "text": "When you find a new, stronger weapon, you can use\nSpectrumise on your old weapon, and then add \nit's abilities to the new one. This is the key to making even\nstronger weapons, faster.\r"
+        },
+        {
+          "clear_seconds": 100.65,
+          "start_seconds": 87.62,
+          "text": "However, when turned into a Synth Sphere, a weapon's stats\ndecrease somewhat. So without a weapon with high stats to\ncombine it with, the weapon could start out weaker than before.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 100.65,
+          "text": "What's more, if you Spectrumise with a weapon that is less \nthan +5, it will become an Unstable Synth Sphere,\nand will hardly alter any stats when combined. \nBetter be careful of that.\r"
+        }
+      ],
+      "id": 917
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.28,
+          "start_seconds": 4.11,
+          "text": "Weapons have various attributes.\nYou can check them by pressing the (X) button\nover a weapon and then selecting Status.\r"
+        },
+        {
+          "clear_seconds": 24.71,
+          "start_seconds": 14.28,
+          "text": "The weapons stats are shown as . attributes.\nOnce each attribute goes over a set level,\nit is possible to evolve the weapon to a stronger one.\r"
+        },
+        {
+          "clear_seconds": 34.97,
+          "start_seconds": 24.71,
+          "text": "Each weapon has a maximum limit to each attribute,\nso making stronger weapons is tough if you don't\nuse Build Up to advance to a new weapon.\r"
+        },
+        {
+          "clear_seconds": 42.27,
+          "start_seconds": 34.97,
+          "text": "Also, in addition to the . attributes, weapons can\nsometimes have other special abilities.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 42.27,
+          "text": "The finer points of this are still a little unclear,\nso let's go over it more closely.\r"
+        }
+      ],
+      "id": 918
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.44,
+          "start_seconds": 2.67,
+          "text": "As you raise each weapon and certain conditions are\nmet, it can advance to the next weapon rank.\nThis is called weapon \"Build Up.\"\r"
+        },
+        {
+          "clear_seconds": 23.39,
+          "start_seconds": 11.44,
+          "text": "If you build a weapon up, not only does it's appearance change,\nbut the limit on it's parameters also increases, making\nit possible to aim for even higher stats.\r"
+        },
+        {
+          "clear_seconds": 35.31,
+          "start_seconds": 23.39,
+          "text": "If you select the Build Up command and then\n click on the \"???\" mark under the next weapon, you \ncan find out exactly which stats need to be improved\nin order to build up your weapon.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.31,
+          "text": "Use this information to help you plan \nhow best to raise up each weapon.\r"
+        }
+      ],
+      "id": 919
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 5.93,
+          "start_seconds": 0.92,
+          "text": "Hey, Borneo here.\nI'll be explaining how to move around.\r"
+        },
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 5.93,
+          "text": "To go to a different area, select \"Move\" from\nthe Main Menu.\nYou can ride on the train to the area you choose.\r"
+        },
+        {
+          "clear_seconds": 22.63,
+          "start_seconds": 14.15,
+          "text": "All you have to do is choose a place on the area map, and\nleave the driving of the train to Cedric and me.\r"
+        },
+        {
+          "clear_seconds": 40.36,
+          "start_seconds": 22.63,
+          "text": "If you use the \"Move\" command in the dungeons, \nyou can check the dungeon info.\nIf you then press the (#) button, you can get out of the \ndungeons whenever you like. But if you escape before completing \na floor, you'll lose half your money. But, it's up to you.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 40.36,
+          "text": "If you want to get out of the dungeons, the best way to do it is\nwait until you've completed a floor, and then choose \"Leave \nDungeons\" from the menu that appears. This way, you won't be \nwasting your money.\nThe conquest of a dungeon is not a thing to be rushed.\r"
+        }
+      ],
+      "id": 920
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 3.81,
+          "start_seconds": 0.74,
+          "text": "Lemme tell ya about the Ridepod.\r"
+        },
+        {
+          "clear_seconds": 11.95,
+          "start_seconds": 3.81,
+          "text": "When you're up against a big, tall baddie, \nor facing a nasty opponent that isn't phased by\nnormal attacks, that's when you call on the Ridepod.\r"
+        },
+        {
+          "clear_seconds": 17.84,
+          "start_seconds": 11.95,
+          "text": "To switch over, all you gotta do is go to the \nCharacter Menu and select the Ridepod.\r"
+        },
+        {
+          "clear_seconds": 27.87,
+          "start_seconds": 17.84,
+          "text": "The green bar on the Status Screen shows how much\nenergy you got left. But, be careful, 'cause when this hits zero,\nyou won't be able to maneuver it in the dungeons anymore.\r"
+        },
+        {
+          "clear_seconds": 35.5,
+          "start_seconds": 27.87,
+          "text": "By defeatin' an enemy with the Ridepod, the Core at  \nthe heart of the machine builds up experience points or EXP.\r"
+        },
+        {
+          "clear_seconds": 41.21,
+          "start_seconds": 35.5,
+          "text": "And by buildin' up its EXP, you can upgrade the Core\nand raise its Capacity.\r"
+        },
+        {
+          "clear_seconds": 50.25,
+          "start_seconds": 41.21,
+          "text": "The Capacity tells you what parts the Core\ncan handle, and the higher the Capacity, \nthe better parts you can install.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 50.25,
+          "text": "Once you start rackin' up the EXP just lemme know and\nI can upgrade your Core for ya.\r"
+        }
+      ],
+      "id": 921
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.06,
+          "start_seconds": 1.55,
+          "text": "When you get a Monster Change badge,\nyou can transform into that monster.\r"
+        },
+        {
+          "clear_seconds": 20.74,
+          "start_seconds": 11.06,
+          "text": "Use the main menu's Character command\nto select a character, then Monster Transform.\r"
+        },
+        {
+          "clear_seconds": 35.34,
+          "start_seconds": 20.74,
+          "text": "If you have a badge, you will be taken to the\nBadge Select screen to select the monster\nyou'd like to change into.\r"
+        },
+        {
+          "clear_seconds": 45.27,
+          "start_seconds": 35.34,
+          "text": "You'll be able to speak with other monsters\nof your own kind.  Who knows what secrets\nyou'll uncover?\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 45.27,
+          "text": "You can't get badges that easily!\nYou have to figure out a way to\ndefeat the right monster first.\r"
+        }
+      ],
+      "id": 922
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.87,
+          "start_seconds": 0.46,
+          "text": "Defeat enemies while changed into a monster,\nand the badge's skill level will increase! \nIt goes up when you talk to friendly\nmonsters, to.\r"
+        },
+        {
+          "clear_seconds": 24.08,
+          "start_seconds": 9.87,
+          "text": "When the experience bar is full, the badge's level\ngoes up. At a certain point, you'll be able\nto change into the next grade of monster!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 24.08,
+          "text": "Plus, when you've reached the Master Level,\nyou'll get a reward item from the badge.\nThe reward depends on the badge.\r"
+        }
+      ],
+      "id": 923
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.47,
+          "start_seconds": 2.96,
+          "text": "Inventing starts with collecting ideas, and all you need to do \nto collect ideas is take pictures with the Camera.\r"
+        },
+        {
+          "clear_seconds": 25.7,
+          "start_seconds": 11.47,
+          "text": "If you press the (#) button with \nyour Camera set to the Active Item,\nthe screen will switch over to the viewfinder.\nMove the viewfinder with the left analog stick\nand press the (#) button again\nto take the picture.\r"
+        },
+        {
+          "clear_seconds": 32.12,
+          "start_seconds": 25.7,
+          "text": "On the viewfinder screen, you can view \nall the pictures you've taken so far with the (A) button.\r"
+        },
+        {
+          "clear_seconds": 41.39,
+          "start_seconds": 32.12,
+          "text": "To find out if the pictures can be used for an invention, \njust look for little light bulb marks next to the picture's name.\nThat's how you know what you can use.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.39,
+          "text": "Now, here's something to keep in mind about the Camera.\nIn non-dungeon areas, the Camera can be\nset anywhere you like. But when you're\nin the dungeons, if the Camera isn't set to an \nActive Item and the marker isn't on the Camera, \nyou won't be able to use it.\nDon't forget, alright?\r"
+        }
+      ],
+      "id": 924
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.3,
+          "start_seconds": 3.02,
+          "text": "When you get everything together, then comes the actual inventin'.\nYou can do this from the \"Invent\" command on the Main Menu.\r"
+        },
+        {
+          "clear_seconds": 15.44,
+          "start_seconds": 11.3,
+          "text": "The Invention Cards will be lined up on the left.\r"
+        },
+        {
+          "clear_seconds": 23.75,
+          "start_seconds": 15.44,
+          "text": "Now, in order to invent something,\nselect \"New Invention\" at the very top,\nand then choose the three items you wanna use.\r"
+        },
+        {
+          "clear_seconds": 32.21,
+          "start_seconds": 23.75,
+          "text": "If the items are matched up correctly,\nyou're invention is a success.\nThe item you invent will be registered as a card.\r"
+        },
+        {
+          "clear_seconds": 38.5,
+          "start_seconds": 32.21,
+          "text": "Just remember, just 'cause you get this far,\nit doesn't mean you're finished, no sirree.\r"
+        },
+        {
+          "clear_seconds": 43.58,
+          "start_seconds": 38.5,
+          "text": "All you'll have at this stage are plans for\nactually making the invention.\r"
+        },
+        {
+          "clear_seconds": 47.69,
+          "start_seconds": 43.58,
+          "text": "So next I'll tell you how to actually make your new gadget.\r"
+        },
+        {
+          "clear_seconds": 52.99,
+          "start_seconds": 47.69,
+          "text": "Select the Invention Card for your new item\nfrom the Create menu.\r"
+        },
+        {
+          "clear_seconds": 62.38,
+          "start_seconds": 52.99,
+          "text": "Decide how many you want to make by pressing left or right on the directional button,\nand finish up by selecting O.K. with the directional button.\r"
+        },
+        {
+          "clear_seconds": 67.93,
+          "start_seconds": 62.38,
+          "text": "If you don't have enough supplies to create your item,\nyou can pick them up at a shop or some other place.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 67.93,
+          "text": "So, you think you got that down?\nGo on and make new items to your heart's con.t.\r"
+        }
+      ],
+      "id": 925
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.32,
+          "start_seconds": 0.96,
+          "text": "Max, changin' the ravaged world back to normal\nis a pretty hefty job.\r"
+        },
+        {
+          "clear_seconds": 13.58,
+          "start_seconds": 6.32,
+          "text": "You have to \"Move\" people from Palm Brinks \nall around in order to help the world of the future grow.\r"
+        },
+        {
+          "clear_seconds": 20.72,
+          "start_seconds": 13.58,
+          "text": "To move people, first you have to get them on the train \nas part of your party and take them with you on your journey.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.72,
+          "text": "Everyone has their own problems, sonny, so if you can\nhelp them out first, I'm sure they'll join us in our quest\nto bring the world back to life.\r"
+        }
+      ],
+      "id": 926
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.99,
+          "start_seconds": 1.49,
+          "text": "You can even take the people from the train\ninto the dungeons with you to help you fight monsters.\r"
+        },
+        {
+          "clear_seconds": 15.53,
+          "start_seconds": 7.99,
+          "text": "If you talk to them inside the train and choose\n\"Add To Party\", you can make them a third party member.\r"
+        },
+        {
+          "clear_seconds": 23.36,
+          "start_seconds": 15.53,
+          "text": "Now, the third party member won't actually be able to fight,\nbut they can sure back you up with \ntheir different support abilities.\r"
+        },
+        {
+          "clear_seconds": 28.43,
+          "start_seconds": 23.36,
+          "text": "Choose your third party member from the Character\npart of the Main Menu.\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 28.43,
+          "text": "On the Support Character screen,\nyou can choose the ability you want them to use.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 34.52,
+          "text": "Using the third party member's ability to your advantage\ncan really help you fight your way through the dungeons.\r"
+        }
+      ],
+      "id": 927
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 2.99,
+          "text": "The further you get into dungeons,\nthe more dangerous it gets.\r"
+        },
+        {
+          "clear_seconds": 13.37,
+          "start_seconds": 7.94,
+          "text": "Depending on the situation, Max, sometimes\nit's better for ME to take over the fighting.\r"
+        },
+        {
+          "clear_seconds": 18.81,
+          "start_seconds": 13.37,
+          "text": "In situations like that, choose me\nfrom \"Characters\" on the Main Menu.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 18.81,
+          "text": "With my sword and my magic, I can take\non even the toughest monsters!\r"
+        }
+      ],
+      "id": 928
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.25,
+          "start_seconds": 2.27,
+          "text": "Sometimes, there's more than one exit to a dungeon.\r"
+        },
+        {
+          "clear_seconds": 11.27,
+          "start_seconds": 6.25,
+          "text": "When there's more than one, you'll see an emblem on each exit.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 11.27,
+          "text": "Find the emblems of the exit routes you haven't tried yet\non the Dungeon Tree Map. Use the \"Move\" command to view.\nThat way, you can be sure to try all the exits!\r"
+        }
+      ],
+      "id": 929
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.57,
+          "start_seconds": 1.84,
+          "text": "Hey there--do you fish?\nI'm gonna tell you how it's done.\r"
+        },
+        {
+          "clear_seconds": 15.74,
+          "start_seconds": 7.57,
+          "text": "You can fish in two different places:\non the normal map and in dungeons.\r"
+        },
+        {
+          "clear_seconds": 24.75,
+          "start_seconds": 15.74,
+          "text": "First you gotta equip a \"Fishing Rod\".\nJust use the item menu like you would\nfor a weapon.\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 24.75,
+          "text": "Then you bait the hook.\nYou're not gonna catch a thing if you\ndon't have any bait on there!\r"
+        },
+        {
+          "clear_seconds": 45.47,
+          "start_seconds": 34.52,
+          "text": "With the rod equipped in your right hand,\nselect your bait with the (X) button\nand choose \"Put on fishing hook\" from the\nitem commands.\r"
+        },
+        {
+          "clear_seconds": 54.33,
+          "start_seconds": 45.47,
+          "text": "When you wanna switch bait, select\nthe new bait in the same way to\nautomatically replace the old stuff.\r"
+        },
+        {
+          "clear_seconds": 63.84,
+          "start_seconds": 54.33,
+          "text": "Now you're ready to fish.\nWalk along the water and find a good spot.\nA prime location is key!\r"
+        },
+        {
+          "clear_seconds": 69.87,
+          "start_seconds": 63.84,
+          "text": "After you've settled on a place to fish,\npress the (X) button to confirm your choice.\r"
+        },
+        {
+          "clear_seconds": 81.19,
+          "start_seconds": 69.87,
+          "text": "Use the left analog stick to move the cursor\nand select your casting spot. Press the (X) button \nagain to confirm the casting spot.\r"
+        },
+        {
+          "clear_seconds": 89.27,
+          "start_seconds": 81.19,
+          "text": "That's where you're gonna cast your hook.\nNow you have to watch the bobber.\r"
+        },
+        {
+          "clear_seconds": 98.59,
+          "start_seconds": 89.27,
+          "text": "If the bobber sinks into the water, quickly\npull the left analog stick down toward you.\nIf your timing's good, you'll catch a fish!\r"
+        },
+        {
+          "clear_seconds": 104.08,
+          "start_seconds": 98.59,
+          "text": "Now you've got one on the line. Keep pressing\nthe (X) button to reel it in.\r"
+        },
+        {
+          "clear_seconds": 112.47,
+          "start_seconds": 104.08,
+          "text": "Now pay at.tion to the bar on screen.\nThis shows the current .sion of your\nfishing line.\r"
+        },
+        {
+          "clear_seconds": 117.86,
+          "start_seconds": 112.47,
+          "text": "If it goes too far, the line will snap,\nand your catch is history.\r"
+        },
+        {
+          "clear_seconds": 124.59,
+          "start_seconds": 117.86,
+          "text": "Adjust your reel timing so the .sion\nbar doesn't get too high.\r"
+        },
+        {
+          "clear_seconds": 131.24,
+          "start_seconds": 124.59,
+          "text": "Get your fish onto the banks and\nit's yours to keep.\r"
+        },
+        {
+          "clear_seconds": 137.75,
+          "start_seconds": 131.24,
+          "text": "The rules are the same inside a dungeon,\nbut you gotta kill off all the enemies first.\r"
+        },
+        {
+          "clear_seconds": 145.49,
+          "start_seconds": 137.75,
+          "text": "You'll catch different fish depending on the\nplace, the time, and your bait, so keep trying.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 145.49,
+          "text": "Fishing is a deep sport. Enjoy!\r"
+        }
+      ],
+      "id": 930
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.37,
+          "start_seconds": 1.3,
+          "text": "Oho, looks like you found a lure!\nLemme tell you how to fish with one of those.\r"
+        },
+        {
+          "clear_seconds": 15.45,
+          "start_seconds": 8.37,
+          "text": "First you put the lure on the rod\njust like you do with regular bait.\r"
+        },
+        {
+          "clear_seconds": 21.75,
+          "start_seconds": 15.45,
+          "text": "Choose \"Put on fishing hook\" from the\nlure commands and you're good.\r"
+        },
+        {
+          "clear_seconds": 30.77,
+          "start_seconds": 21.75,
+          "text": "Just like bobber fishing, pick a choice\nlocation. Then you gotta choose your\ncasting point with the left analog stick.\r"
+        },
+        {
+          "clear_seconds": 34.5,
+          "start_seconds": 30.77,
+          "text": "When you've decided, press the (X) button to cast.\r"
+        },
+        {
+          "clear_seconds": 41.99,
+          "start_seconds": 34.5,
+          "text": "Use the left analog stick to move the rod when the\nlure hits the water and the (X) button to reel it in.\r"
+        },
+        {
+          "clear_seconds": 51.97,
+          "start_seconds": 41.99,
+          "text": "Lure fishing relies on rod movement and\nline reeling to attract fish. Try a\nlot of different combinations.\r"
+        },
+        {
+          "clear_seconds": 59.39,
+          "start_seconds": 51.97,
+          "text": "When you've pulled the lure all the way in,\ncast it out again. Repeat as necessary!\r"
+        },
+        {
+          "clear_seconds": 70.96,
+          "start_seconds": 59.39,
+          "text": "If a fish approaches as you're reeling in your\nline, your hands will feel it bump against you.\nQuickly pull the stick toward you.\nIf your timing's good, you'll hook the fish!\r"
+        },
+        {
+          "clear_seconds": 78.54,
+          "start_seconds": 70.96,
+          "text": "If you can't feel it, use the mark on the lure's\nhead to judge when to pull it in.\r"
+        },
+        {
+          "clear_seconds": 85.87,
+          "start_seconds": 78.54,
+          "text": "Now that you've got one, keep pressing the (X)\nbutton to reel it in. Watch the line .sion!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 85.87,
+          "text": "Lure fishing is challenging, so make sure you\nget some practice in.\r"
+        }
+      ],
+      "id": 931
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.07,
+          "start_seconds": 1.02,
+          "text": "Hey Max, it's Need here. How ya doing?\nI've decided to hold a \"Fishing Contest\" from \ntime to time in Palm Brinks.\r"
+        },
+        {
+          "clear_seconds": 18.46,
+          "start_seconds": 10.07,
+          "text": "During a fishing contest, if you catch a big fish,\nbring it to the weighing .t which you'll find in the Palm\nBrinks town square.\r"
+        },
+        {
+          "clear_seconds": 24.78,
+          "start_seconds": 18.46,
+          "text": "But bear in mind that fish you've been feeding and \nkeeping as pets don't count.\r"
+        },
+        {
+          "clear_seconds": 31.99,
+          "start_seconds": 24.78,
+          "text": "While we're weighing fish for the contest, the message \n\"Fishing Contest In Progress\" will appear on the main\nmenu screen.\r"
+        },
+        {
+          "clear_seconds": 37.34,
+          "start_seconds": 31.99,
+          "text": "You can weigh up to 10 fish in each contest, and you'll\nget points for the best 2.\r"
+        },
+        {
+          "clear_seconds": 51.05,
+          "start_seconds": 37.34,
+          "text": "If win, you will be\nhonored with a prize.\nIf you weigh in 3 or more fish and go to the Race Master\nafter the race and select \"Total up\" the your top 3 fish will be totalled and the race results displayed.\r"
+        },
+        {
+          "clear_seconds": 179.0,
+          "start_seconds": 51.05,
+          "text": "There are loads of great prizes to be won, so go for it,\nand catch a whopper!\r"
+        }
+      ],
+      "id": 932
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.02,
+          "start_seconds": 2.49,
+          "text": "The world has been driven crazy by Emperor Griffon \nwho everyone calls the dark ruler.\r"
+        },
+        {
+          "clear_seconds": 17.44,
+          "start_seconds": 9.02,
+          "text": "This has caused a lot of peculiarities. \nSpheda is a sport which makes use of these\npeculiarities.\r"
+        },
+        {
+          "clear_seconds": 23.13,
+          "start_seconds": 17.44,
+          "text": "All over the world there are holes in time\ncalled \"Time Distortions\".\r"
+        },
+        {
+          "clear_seconds": 31.89,
+          "start_seconds": 23.13,
+          "text": "Fragments of time called \"Spheres\" have been knocked\nout of the time distortions. In order to block the holes,\nyou need to put the spheres back in.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.89,
+          "text": "You can't touch the spheres, so you'll need to use a \nSpheda Rod to aim at the time distortion, and then \ntake a shot.\r"
+        }
+      ],
+      "id": 933
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.38,
+          "start_seconds": 2.62,
+          "text": "The spheres and the distortions can be red or blue.\r"
+        },
+        {
+          "clear_seconds": 15.68,
+          "start_seconds": 7.38,
+          "text": "Red ones repel each other and blue ones repel each other, so if a\nsphere hits a distortion of the same color, it won't go in.\r"
+        },
+        {
+          "clear_seconds": 23.3,
+          "start_seconds": 15.68,
+          "text": "If a sphere hits the floor or a wall, it changes colour.\nUse your skill to change a sphere to the \nright color before aiming for a distortion.\r"
+        },
+        {
+          "clear_seconds": 30.31,
+          "start_seconds": 23.3,
+          "text": "When a sphere goes into a distortion, the distortion will\ndisappear, and the treasure hidden inside will come out.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 30.31,
+          "text": "Collecting treasure is well and good, but the\nmain goal is to eliminate as many distortions as \npossible to help put the world right.\n\r"
+        }
+      ],
+      "id": 934
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.19,
+          "start_seconds": 1.58,
+          "text": "Howdy there.\nPuttin' our magnum opus, Carpenterion\nto good use, are ya?\r"
+        },
+        {
+          "clear_seconds": 14.34,
+          "start_seconds": 7.19,
+          "text": "Alrighty then, why don't I just explain how you\nuse Carpenterion to build up your towns.\r"
+        },
+        {
+          "clear_seconds": 22.72,
+          "start_seconds": 14.34,
+          "text": "By pressing the Select button in\nareas where you can build towns,\nyou can switch over to the Carpenterion Control Mode.\r"
+        },
+        {
+          "clear_seconds": 34.58,
+          "start_seconds": 22.72,
+          "text": "It'll switch to an aerial view, so you'll be able to tell you're there.\nIf you press the (A) button in this mode,\nyou can access the Georama Menu.\r"
+        },
+        {
+          "clear_seconds": 45.1,
+          "start_seconds": 34.58,
+          "text": "Now then, here's how you go about building stuff.\nThere are a tons of things you can do, so it's best to\nplay around and learn as you go.\r"
+        },
+        {
+          "clear_seconds": 52.05,
+          "start_seconds": 45.1,
+          "text": "First, you have to build your Georama Parts\nbefore you can place anything on the ground.\r"
+        },
+        {
+          "clear_seconds": 64.34,
+          "start_seconds": 52.05,
+          "text": "Once you have the necessary materials, make the parts\nwith the Create command. Then, with the Place command,\nchoose where on the ground to put stuff.\r"
+        },
+        {
+          "clear_seconds": 78.95,
+          "start_seconds": 64.34,
+          "text": "Before you start, you'll have to collect Geostones, stones\n filled with the wisdom of the ancients. They're scattered all over \nthe dungeons. Then put them into the Carpenterion's\nreactor and you can build up your library of available parts.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 78.95,
+          "text": "Well, we'll be the ones actually puttin' the Geostones \ninto the reactor. All you gotta do is go find 'em.\r"
+        }
+      ],
+      "id": 935
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.03,
+          "start_seconds": 1.83,
+          "text": "Okay. Now I'll tell you how exactly to go about \nplacing your parts on the map.\r"
+        },
+        {
+          "clear_seconds": 14.12,
+          "start_seconds": 8.03,
+          "text": "Choose \"Place\" and then choose your part,\nand then you'll arrive at the placement screen.\r"
+        },
+        {
+          "clear_seconds": 26.13,
+          "start_seconds": 14.12,
+          "text": "Decide the spot you want to put it with the left analog stick,\nand rotate the part with the [l2] and [r2] buttons to choose\nthe angle you want to place it in.\r"
+        },
+        {
+          "clear_seconds": 34.61,
+          "start_seconds": 26.13,
+          "text": "When you've found a good spot and angle for it,\njust press the (X) button to set the part down there.\r"
+        },
+        {
+          "clear_seconds": 43.12,
+          "start_seconds": 34.61,
+          "text": "Depending on the part, you can stack them,\nor attach them to the roofs of houses, and so on.\nJust have fun and experiment with it.\r"
+        },
+        {
+          "clear_seconds": 51.95,
+          "start_seconds": 43.12,
+          "text": "For lamps and items that attach to the sides of walls\nfirst take the part to the top of the building\nand then press the (X) button.\r"
+        },
+        {
+          "clear_seconds": 62.78,
+          "start_seconds": 51.95,
+          "text": "Then attach it to the building and choose the wall\nwith the [l2] and [r2] buttons, and decide it's position\non the wall with the left analog stick.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 62.78,
+          "text": "All these steps might be a little confusing,\nbut I'm sure you'll get the hang of it in no time, lad.\r"
+        }
+      ],
+      "id": 936
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.03,
+          "start_seconds": 2.24,
+          "text": "Now Max, let me tell you how to populate \nthese areas you'll be restoring from here on out.\r"
+        },
+        {
+          "clear_seconds": 15.46,
+          "start_seconds": 10.03,
+          "text": "In order to move people, first you have to have \npeople on the train with ya, see.\r"
+        },
+        {
+          "clear_seconds": 21.22,
+          "start_seconds": 15.46,
+          "text": "If there's no one on board, just go back to your own\ntown and find some people to recruit.\r"
+        },
+        {
+          "clear_seconds": 32.24,
+          "start_seconds": 21.22,
+          "text": "So, when you have people with you,\nyou press the (X) button in front of \nthe door of one of your new houses to select \nwhether to go inside or to move people there.\r"
+        },
+        {
+          "clear_seconds": 51.35,
+          "start_seconds": 32.24,
+          "text": "Here, you select \"Move Person\" ,\nand next you choose the person you want to move\nfrom among the people inside the train. Once you do this, \nthey'll start a new life in their brand new home.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 51.35,
+          "text": "We need people for the world of the future to grow, right?\nSo don't be lazy about gathering people, now.\r"
+        }
+      ],
+      "id": 937
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.03,
+          "start_seconds": 2.86,
+          "text": "Once you've reworked the land and started your town, \nyou should try taking the red Time Gate\nto the future.\r"
+        },
+        {
+          "clear_seconds": 17.24,
+          "start_seconds": 11.03,
+          "text": "If you've fulfilled all the conditions, the future\nshould be developing differently than it was before.\r"
+        },
+        {
+          "clear_seconds": 23.82,
+          "start_seconds": 17.24,
+          "text": "When you wanna come back to the present,\njust jump through the blue Time Gate\r"
+        },
+        {
+          "clear_seconds": 33.89,
+          "start_seconds": 23.82,
+          "text": "The things you'll get by helping the future develop\nwill in turn help you solve the problems of the present.\nAnd again, that will have an effect on the future as well.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.89,
+          "text": "If you try hard and keep this up, I know\nyou'll be able to restore the future to its true form, lad.\r"
+        }
+      ],
+      "id": 938
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.16,
+          "start_seconds": 0.96,
+          "text": "What's this? Don't understand how to develop the future, you say?\r"
+        },
+        {
+          "clear_seconds": 16.33,
+          "start_seconds": 7.16,
+          "text": "Okay, okay. There's a command called \"Analyse\"\non the Georama Menu, so just select that.\r"
+        },
+        {
+          "clear_seconds": 22.25,
+          "start_seconds": 16.33,
+          "text": "You should be able to find the conditions for\ndeveloping the future writ. out there.\r"
+        },
+        {
+          "clear_seconds": 31.61,
+          "start_seconds": 22.25,
+          "text": "Future developments are writ. on large lamps on the left.\nIf you fulfill all the conditions for that development,\nthe lamp will light up.\r"
+        },
+        {
+          "clear_seconds": 37.81,
+          "start_seconds": 31.61,
+          "text": "For each lamp you light up,\nsomething in the future will be changed.\r"
+        },
+        {
+          "clear_seconds": 42.93,
+          "start_seconds": 37.81,
+          "text": "You just keep working at it, help develop the future.\r"
+        },
+        {
+          "clear_seconds": 55.25,
+          "start_seconds": 42.93,
+          "text": "Conditions marked with question marks\nwill open up as you obtain more Geostones.\nSo if you get stuck, just go explore \ndeeper into the dungeons.\r"
+        },
+        {
+          "clear_seconds": 61.73,
+          "start_seconds": 55.25,
+          "text": "You can check your total progress with\nat the \"Completed\" section of the Georama Analysis.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 61.73,
+          "text": "You can still move forward even if you're not at 100%,\nbut there's a surprise waiting for you if you get all the way to 100%,\nso you might want to try and find out what\nit is, eh.\r"
+        }
+      ],
+      "id": 939
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.47,
+          "start_seconds": 1.2,
+          "text": "Among the conditions for developing the Georama\nis one that requires you to obtain at least\na certain number of Culture Points, or CP.\r"
+        },
+        {
+          "clear_seconds": 16.48,
+          "start_seconds": 10.47,
+          "text": "The Culture Points shows the level of \nthe culture in that area.\r"
+        },
+        {
+          "clear_seconds": 22.53,
+          "start_seconds": 16.48,
+          "text": "You can check the Culture Points with \"Culture\"\non the Georama Menu\r"
+        },
+        {
+          "clear_seconds": 30.68,
+          "start_seconds": 22.53,
+          "text": "To raise your Culture Points, the best thing to do is build more buildings.\nBut just building them won't get you that far...\r"
+        },
+        {
+          "clear_seconds": 41.32,
+          "start_seconds": 30.68,
+          "text": "To milk more points out of the buildings, \ntry doing different stuff, like adding chimneys \nand lamps. You know, make it nice and fancy.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.32,
+          "text": "For example, rather than building two houses,\nyou might be able to get more Culture Points out of one house\nwith a lamp and a chimney, ya know?\r"
+        }
+      ],
+      "id": 940
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.4,
+          "start_seconds": 2.39,
+          "text": "Hey, great timing.\nI've decided to hold a new event... The Finny Frenzy!!\r"
+        },
+        {
+          "clear_seconds": 15.8,
+          "start_seconds": 8.4,
+          "text": "Contestants make their fish race each other.\nI've got a lot of major prizes up my sleeve, so make sure\nyou take part.\r"
+        },
+        {
+          "clear_seconds": 25.62,
+          "start_seconds": 15.8,
+          "text": "While the fish race is being held, the message, \"Fish Race\nIn Progress\" will appear on the main menu, so bring\nalong the fish you want to participate when you see it.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 25.62,
+          "text": "Obviously it all takes place in Palm Brinks town square.\r"
+        }
+      ],
+      "id": 941
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.65,
+          "start_seconds": 1.05,
+          "text": "Seeing as you're a novice fish racer, let me give you a \nfew pointers on how to raise the fish.\r"
+        },
+        {
+          "clear_seconds": 15.39,
+          "start_seconds": 7.65,
+          "text": "Naturally, you'll need an aquarium. \nPut fish you catch into the aquarium which you'll \nfind on the Item screen.\r"
+        },
+        {
+          "clear_seconds": 24.41,
+          "start_seconds": 15.39,
+          "text": "Use the Aquarium command, to see\nthe fish that you've already put in.\nThere are 3 tanks for training your fish.\r"
+        },
+        {
+          "clear_seconds": 31.52,
+          "start_seconds": 24.41,
+          "text": "The first tank is the \"Living Tank\".\nThis is where your fish usually live and eat.\r"
+        },
+        {
+          "clear_seconds": 38.12,
+          "start_seconds": 31.52,
+          "text": "How strong they get depends on the type of food \nyou give them, so choose wisely.\r"
+        },
+        {
+          "clear_seconds": 46.46,
+          "start_seconds": 38.12,
+          "text": "The second tank is the \"Battle Tank\".\nIt's for improving your fish's toughness for when\nthey collide during a race.\r"
+        },
+        {
+          "clear_seconds": 56.5,
+          "start_seconds": 46.46,
+          "text": "If you put two or more fish into this tank, \nthey'll fight each other and improve their skills.\nSo there's no point in just having one fish in there.\r"
+        },
+        {
+          "clear_seconds": 63.11,
+          "start_seconds": 56.5,
+          "text": "One thing! If you don't remove a fish before its \nHP runs out, it'll die. So watch out!\r"
+        },
+        {
+          "clear_seconds": 73.19,
+          "start_seconds": 63.11,
+          "text": "And now for the last of the three tanks.\nThis third tank is the \"Breeding Tank\".\nYou can combine two different fish to make \nstronger fish.\r"
+        },
+        {
+          "clear_seconds": 77.95,
+          "start_seconds": 73.19,
+          "text": "There's no point in just having one fish in this tank either.\r"
+        },
+        {
+          "clear_seconds": 86.93,
+          "start_seconds": 77.95,
+          "text": "As time passes, and if the breeding is successful,\nthe two breeding fish will die, but in their place\ntwo new fish will be born. \r"
+        },
+        {
+          "clear_seconds": 95.86,
+          "start_seconds": 86.93,
+          "text": "Even though the 2 new fish inherit their parents'\nabilities, if the parents weren't strong, then their\nchildren won't be either. So bear this in mind.\r"
+        },
+        {
+          "clear_seconds": 103.25,
+          "start_seconds": 95.86,
+          "text": "It can take a long time to improve your fishes' skills in the\nbattle tank, and achieve success in the Breeding Tank.\r"
+        },
+        {
+          "clear_seconds": 111.24,
+          "start_seconds": 103.25,
+          "text": "If you want to spend all your time watching the fish,\nthat's fine, but it's probably better to take care of other\nthings at the same time.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 111.24,
+          "text": "Time will pass just as real time does, so you just need\nto keep an eye on the fish every now and then.\r"
+        }
+      ],
+      "id": 942
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.68,
+          "start_seconds": 2.89,
+          "text": "Right, now I'll tell you how to enter the Finny Frenzy.\r"
+        },
+        {
+          "clear_seconds": 14.3,
+          "start_seconds": 7.68,
+          "text": "Go to the .t in Palm Brinks town square, and\nspeak to the Race Master if you want to take part.\r"
+        },
+        {
+          "clear_seconds": 23.83,
+          "start_seconds": 14.3,
+          "text": "You can enter three races at a time. It's up to you whether\nyou enter the same fish three times, or a different fish\nfor each race.\r"
+        },
+        {
+          "clear_seconds": 29.85,
+          "start_seconds": 23.83,
+          "text": "Fish get tired, so entering the same fish\nfor three races isn't such a good idea.\r"
+        },
+        {
+          "clear_seconds": 41.84,
+          "start_seconds": 29.85,
+          "text": "If you leave the .t before all three races are completed,\nthat will be the end of the whole fish racing competition.\nSo remain in the .t for the duration of the entire\ncompetition.\r"
+        },
+        {
+          "clear_seconds": 50.15,
+          "start_seconds": 41.84,
+          "text": "Okay, so you've told the Race Master that you want to participate.\nNow you have to choose the fish you're entering from the aquarium.\r"
+        },
+        {
+          "clear_seconds": 55.5,
+          "start_seconds": 50.15,
+          "text": "At this stage, you can only choose a fish from the Living Tank.\r"
+        },
+        {
+          "clear_seconds": 65.24,
+          "start_seconds": 55.5,
+          "text": "Then you must choose the class you want to enter.\nTry to choose the most appropriate class to match your\nfish's level.\r"
+        },
+        {
+          "clear_seconds": 78.0,
+          "start_seconds": 65.24,
+          "text": "Lastly, choose the tank you would like to use to make your\nfinal, pre-race preparations. Think carefully about the fish's\ncharacter, as the tank that you choose will have an effect on their\nperformance.\r"
+        },
+        {
+          "clear_seconds": 88.52,
+          "start_seconds": 78.0,
+          "text": "After all that, the race will start.\nNow all you can do is watch. Keep a close\neye on the race and root hard for your fish\nto win!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 88.52,
+          "text": "There are some great prizes to be won, so go for it.\nRaise a champion!\r"
+        }
+      ],
+      "id": 943
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 2.86,
+          "text": "The road to adventure\nis long and perilous!\nWhen you want to take a break in your\nadventuring, be sure to record the\nprogress you've made so far.\r"
+        },
+        {
+          "clear_seconds": 26.9,
+          "start_seconds": 14.15,
+          "text": "Here and there along your travels, you'll find a mysterious, glowing book.\nApproaching this book and pressing the (X) button will bring you\nto a screen where you can record your adventure's progress.\r"
+        },
+        {
+          "clear_seconds": 31.41,
+          "start_seconds": 26.9,
+          "text": "The next time you play,\nyou can pick up your adventure\nwhere you left off.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.41,
+          "text": "Always remember to record your progress!\nDon't let any of your hard adventuring go to waste.\r"
+        }
+      ],
+      "id": 944
+    },
+    {
+      "entries": [],
+      "id": 999
+    }
+  ],
+  "kind": "movie_subtitles",
+  "schema_version": 2
+}

@@ -1,0 +1,769 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "climb_pole": {
+      "type": "string",
+      "value": "柱･登り"
+    },
+    "cling_to_pole": {
+      "type": "string",
+      "value": "柱･しがみつき"
+    },
+    "gaze_up": {
+      "type": "string",
+      "value": "見上げる"
+    },
+    "gaze_up_loop_2": {
+      "type": "string",
+      "value": "見上げるL"
+    },
+    "idle_2": {
+      "type": "string",
+      "value": "立ち2"
+    },
+    "idle_looking_around": {
+      "type": "string",
+      "value": "キョロキョロ立ち"
+    },
+    "idle_looking_down": {
+      "type": "string",
+      "value": "下見立ち"
+    },
+    "idle_on_stage": {
+      "type": "string",
+      "value": "舞台上立ち"
+    },
+    "jump_off": {
+      "type": "string",
+      "value": "飛び降りる"
+    },
+    "jump_off_loop": {
+      "type": "string",
+      "value": "飛び降りるL"
+    },
+    "land": {
+      "type": "string",
+      "value": "着地"
+    },
+    "land_from_light": {
+      "type": "string",
+      "value": "ライトから着地"
+    },
+    "leap_over_audience": {
+      "type": "string",
+      "value": "客を飛び超える"
+    },
+    "leap_to_light": {
+      "type": "string",
+      "value": "ライトに飛ぶ"
+    },
+    "leap_to_light_loop": {
+      "type": "string",
+      "value": "ライトに飛ぶL"
+    },
+    "look_around_on_stage": {
+      "type": "string",
+      "value": "舞台上キョロキョロ"
+    },
+    "look_at_clown": {
+      "type": "string",
+      "value": "ピエロを見る"
+    },
+    "look_at_clown_loop": {
+      "type": "string",
+      "value": "ピエロを見るL"
+    },
+    "look_at_pole_tip": {
+      "type": "string",
+      "value": "棒の先を見る"
+    },
+    "look_up": {
+      "type": "string",
+      "value": "上を見る"
+    },
+    "look_up_loop": {
+      "type": "string",
+      "value": "上を見るL"
+    },
+    "run_2": {
+      "type": "string",
+      "value": "走り2"
+    },
+    "stand_on_pole": {
+      "type": "string",
+      "value": "柱･棒に立つ"
+    },
+    "step_out": {
+      "type": "string",
+      "value": "踏み出す"
+    },
+    "take_out_wrench": {
+      "type": "string",
+      "value": "レンチを取り出す"
+    },
+    "take_out_wrench_loop": {
+      "type": "string",
+      "value": "レンチを取り出すL"
+    },
+    "take_stance": {
+      "type": "string",
+      "value": "かまえる"
+    },
+    "take_stance_loop": {
+      "type": "string",
+      "value": "かまえるL"
+    },
+    "tightrope_run": {
+      "type": "string",
+      "value": "綱走り"
+    },
+    "tightrope_walk": {
+      "type": "string",
+      "value": "綱渡り"
+    },
+    "walk_2": {
+      "type": "string",
+      "value": "歩き2"
+    },
+    "wave": {
+      "type": "string",
+      "value": "手を振る"
+    },
+    "wobbly": {
+      "type": "string",
+      "value": "ぐらぐら"
+    },
+    "wobbly_loop": {
+      "type": "string",
+      "value": "ぐらぐらL"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "p4_ミンツ3"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "cling_to_pole"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "climb_pole"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "stand_on_pole"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_looking_down"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_pole_tip"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "tightrope_walk"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "tightrope_run"
+            },
+            {
+              "type": "float",
+              "value": 0.6499999761581421
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wobbly"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wobbly_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "leap_to_light"
+            },
+            {
+              "type": "float",
+              "value": 0.6499999761581421
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "leap_to_light_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.15000000596046448
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "gaze_up"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "gaze_up_loop_2"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump_off"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump_off_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.10000000149011612
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land_from_light"
+            },
+            {
+              "type": "float",
+              "value": 0.550000011920929
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_on_stage"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_around_on_stage"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wave"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_clown"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_clown_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "step_out"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_looking_around"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_up"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_up_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "take_out_wrench"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "take_out_wrench_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "take_stance"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "take_stance_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_2"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_2"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run_2"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 6
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.2540000081062317
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "leap_over_audience"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8159999847412109
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_2"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.550000011920929
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_2"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.05000000074505806
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run_2"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8999999761581421
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run_2"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

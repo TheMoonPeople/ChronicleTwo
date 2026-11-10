@@ -1,0 +1,536 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "embrace_each_other": {
+      "type": "string",
+      "value": "抱き合う"
+    },
+    "embrace_each_other_loop": {
+      "type": "string",
+      "value": "抱き合うL"
+    },
+    "gaze_at_each_other": {
+      "type": "string",
+      "value": "見つめ合う"
+    },
+    "gaze_at_each_other_loop": {
+      "type": "string",
+      "value": "見つめ合うL"
+    },
+    "idle_looking_at_eina": {
+      "type": "string",
+      "value": "エイナ見立ち"
+    },
+    "idle_looking_at_eina_2": {
+      "type": "string",
+      "value": "エイナ見立ち2"
+    },
+    "idle_looking_at_horn_king": {
+      "type": "string",
+      "value": "ホーン王見立ち"
+    },
+    "look_at_eina_2": {
+      "type": "string",
+      "value": "エイナ見る"
+    },
+    "look_at_eina_2_loop": {
+      "type": "string",
+      "value": "エイナ見るL"
+    },
+    "look_down_sadly": {
+      "type": "string",
+      "value": "うつむく"
+    },
+    "look_down_sadly_2": {
+      "type": "string",
+      "value": "うつむく2"
+    },
+    "look_down_sadly_2_loop": {
+      "type": "string",
+      "value": "うつむく2L"
+    },
+    "look_down_sadly_loop": {
+      "type": "string",
+      "value": "うつむくL"
+    },
+    "so_selfish": {
+      "type": "string",
+      "value": "勝手だよ！！"
+    },
+    "so_selfish_loop": {
+      "type": "string",
+      "value": "勝手だよ！！L"
+    },
+    "turn_around_left": {
+      "type": "string",
+      "value": "左・振り返る"
+    },
+    "turn_around_left_loop": {
+      "type": "string",
+      "value": "左・振り返るL"
+    },
+    "understand_max": {
+      "type": "string",
+      "value": "わかって、ユリス"
+    },
+    "whole_body": {
+      "type": "string",
+      "value": "体ごと"
+    },
+    "whole_body_loop": {
+      "type": "string",
+      "value": "体ごとL"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e540_ミンツ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_looking_at_horn_king"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_around_left"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_around_left_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "embrace_each_other"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "embrace_each_other_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "gaze_at_each_other"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "gaze_at_each_other_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_eina_2"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_eina_2_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "whole_body"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "whole_body_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_looking_at_eina"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_looking_at_eina_2"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "understand_max"
+            },
+            {
+              "type": "float",
+              "value": 0.25
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "so_selfish"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "so_selfish_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_down_sadly"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_down_sadly_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_down_sadly_2"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_down_sadly_2_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 5
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_around_left"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.550000011920929
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_around_left"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.9750000238418579
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "embrace_each_other"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.21799999475479126
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "embrace_each_other"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "whole_body"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.9750000238418579
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

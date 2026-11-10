@@ -1,0 +1,197 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "clatter": {
+      "type": "string",
+      "value": "カチャカチャ"
+    },
+    "hand_over": {
+      "type": "string",
+      "value": "渡す"
+    },
+    "hand_over_loop_2": {
+      "type": "string",
+      "value": "渡すL"
+    },
+    "raise_finger": {
+      "type": "string",
+      "value": "指立て"
+    },
+    "raise_finger_loop": {
+      "type": "string",
+      "value": "指立てL"
+    },
+    "raise_finger_talk": {
+      "type": "string",
+      "value": "指立て会話"
+    },
+    "return": {
+      "type": "string",
+      "value": "戻り"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e212_モニカ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "raise_finger"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "raise_finger_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "raise_finger_talk"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "return"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "clatter"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "hand_over"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "hand_over_loop_2"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

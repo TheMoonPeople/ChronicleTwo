@@ -1,0 +1,362 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "approach": {
+      "type": "string",
+      "value": "来る"
+    },
+    "fist_pump": {
+      "type": "string",
+      "value": "がっつ"
+    },
+    "fist_pump_loop": {
+      "type": "string",
+      "value": "がっつL"
+    },
+    "look_at_donna": {
+      "type": "string",
+      "value": "ドナ見"
+    },
+    "look_at_donna_left": {
+      "type": "string",
+      "value": "ドナ見左"
+    },
+    "look_at_donna_left_loop": {
+      "type": "string",
+      "value": "ドナ見左L"
+    },
+    "look_at_donna_talk": {
+      "type": "string",
+      "value": "ドナ見会話"
+    },
+    "look_back_left_2": {
+      "type": "string",
+      "value": "振り返り左"
+    },
+    "look_back_left_2_loop": {
+      "type": "string",
+      "value": "振り返り左L"
+    },
+    "look_back_right_2": {
+      "type": "string",
+      "value": "振り返り右"
+    },
+    "look_back_right_2_loop": {
+      "type": "string",
+      "value": "振り返り右L"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e540_モニカ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_donna"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_right_2"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_right_2_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_2"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_2_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_donna_left"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_donna_left_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.029999999329447746
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "approach"
+            },
+            {
+              "type": "float",
+              "value": 0.12999999523162842
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_donna_talk"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "fist_pump"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "fist_pump_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_right_2"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.5249999761581421
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_right_2"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.9649999737739563
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_2"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.5249999761581421
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_2"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.9649999737739563
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

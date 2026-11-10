@@ -1,0 +1,432 @@
+{
+  "default_profile": "e223b",
+  "game_names": {
+    "attack_1": {
+      "type": "string",
+      "value": "攻撃１"
+    },
+    "attack_2": {
+      "type": "string",
+      "value": "攻撃２"
+    },
+    "damage": {
+      "type": "string",
+      "value": "ダメージ"
+    },
+    "death": {
+      "type": "string",
+      "value": "死に"
+    },
+    "idle": {
+      "type": "string",
+      "value": "立ち"
+    },
+    "knockback": {
+      "type": "string",
+      "value": "吹っ飛び"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "e223b": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "スピリットサム"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "cube4_19--m2"
+            },
+            {
+              "type": "string",
+              "value": "cube4_20--m2"
+            },
+            {
+              "type": "string",
+              "value": "obj19a--m2"
+            },
+            {
+              "type": "string",
+              "value": "obj19b"
+            }
+          ],
+          "command": "VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 17.0
+            },
+            {
+              "type": "float",
+              "value": 5.0
+            },
+            {
+              "type": "float",
+              "value": 80.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 625
+            },
+            {
+              "type": "int",
+              "value": -1
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SCALE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "string",
+              "value": "bcol"
+            },
+            {
+              "type": "float",
+              "value": 1.600000023841858
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "string",
+              "value": "null27"
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "string",
+              "value": "bcol"
+            },
+            {
+              "type": "float",
+              "value": 8.300000190734863
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "string",
+              "value": "dcol_l"
+            },
+            {
+              "type": "float",
+              "value": 3.5
+            },
+            {
+              "type": "string",
+              "value": "dcol_r"
+            },
+            {
+              "type": "float",
+              "value": 3.5
+            },
+            {
+              "type": "string",
+              "value": "face"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "string",
+              "value": "bcol"
+            },
+            {
+              "type": "float",
+              "value": 7.800000190734863
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle"
+            },
+            {
+              "type": "float",
+              "value": 0.029999999329447746
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 5
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_1"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_2"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 5
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "damage"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 11
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "knockback"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 12
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "death"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 23
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

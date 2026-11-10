@@ -1,0 +1,2067 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "from": 170,
+      "op": "clear_textures"
+    },
+    {
+      "index": 170,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "mosbg",
+      "textures": [
+        {
+          "name": "mosbg",
+          "rect": [
+            0,
+            0,
+            256,
+            256
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "mosbox",
+      "textures": [
+        {
+          "name": "箱枠上",
+          "rect": [
+            30,
+            0,
+            176,
+            32
+          ]
+        },
+        {
+          "name": "箱枠下",
+          "rect": [
+            30,
+            274,
+            176,
+            32
+          ]
+        },
+        {
+          "name": "箱枠左",
+          "rect": [
+            0,
+            0,
+            30,
+            306
+          ]
+        },
+        {
+          "name": "箱枠右",
+          "rect": [
+            206,
+            0,
+            48,
+            306
+          ]
+        },
+        {
+          "name": "箱下地",
+          "rect": [
+            190,
+            318,
+            66,
+            66
+          ]
+        },
+        {
+          "name": "モスへんげ",
+          "rect": [
+            0,
+            306,
+            98,
+            24
+          ]
+        },
+        {
+          "name": "モスへんげ2",
+          "rect": [
+            0,
+            344,
+            122,
+            22
+          ]
+        },
+        {
+          "name": "へんげパワー",
+          "rect": [
+            80,
+            366,
+            110,
+            18
+          ]
+        },
+        {
+          "name": "熟練度",
+          "rect": [
+            0,
+            366,
+            80,
+            18
+          ]
+        },
+        {
+          "name": "ポリ枠0",
+          "rect": [
+            30,
+            165,
+            50,
+            54
+          ]
+        },
+        {
+          "name": "ポリ枠1",
+          "rect": [
+            80,
+            165,
+            2,
+            54
+          ]
+        },
+        {
+          "name": "ポリ枠2",
+          "rect": [
+            84,
+            165,
+            34,
+            54
+          ]
+        },
+        {
+          "name": "ポリ枠3",
+          "rect": [
+            30,
+            218,
+            50,
+            4
+          ]
+        },
+        {
+          "name": "ポリ枠4",
+          "rect": [
+            80,
+            218,
+            2,
+            4
+          ]
+        },
+        {
+          "name": "ポリ枠5",
+          "rect": [
+            84,
+            218,
+            34,
+            4
+          ]
+        },
+        {
+          "name": "ポリ枠6",
+          "rect": [
+            30,
+            223,
+            50,
+            50
+          ]
+        },
+        {
+          "name": "ポリ枠7",
+          "rect": [
+            80,
+            223,
+            2,
+            50
+          ]
+        },
+        {
+          "name": "ポリ枠8",
+          "rect": [
+            84,
+            223,
+            34,
+            50
+          ]
+        },
+        {
+          "name": "mosstatus枠0",
+          "rect": [
+            32,
+            32,
+            56,
+            64
+          ]
+        },
+        {
+          "name": "mosstatus枠1",
+          "rect": [
+            88,
+            32,
+            2,
+            64
+          ]
+        },
+        {
+          "name": "mosstatus枠2",
+          "rect": [
+            92,
+            32,
+            56,
+            64
+          ]
+        },
+        {
+          "name": "mosstatus枠3",
+          "rect": [
+            32,
+            97,
+            56,
+            4
+          ]
+        },
+        {
+          "name": "mosstatus枠4",
+          "rect": [
+            88,
+            97,
+            2,
+            4
+          ]
+        },
+        {
+          "name": "mosstatus枠5",
+          "rect": [
+            92,
+            97,
+            56,
+            4
+          ]
+        },
+        {
+          "name": "mosstatus枠6",
+          "rect": [
+            32,
+            101,
+            56,
+            64
+          ]
+        },
+        {
+          "name": "mosstatus枠7",
+          "rect": [
+            88,
+            101,
+            2,
+            64
+          ]
+        },
+        {
+          "name": "mosstatus枠8",
+          "rect": [
+            92,
+            101,
+            56,
+            64
+          ]
+        },
+        {
+          "name": "モス技下地0",
+          "rect": [
+            147,
+            45,
+            10,
+            32
+          ]
+        },
+        {
+          "name": "モス技下地1",
+          "rect": [
+            157,
+            45,
+            2,
+            32
+          ]
+        },
+        {
+          "name": "モス技下地2",
+          "rect": [
+            161,
+            45,
+            10,
+            32
+          ]
+        },
+        {
+          "name": "バッジlife0",
+          "rect": [
+            147,
+            33,
+            12,
+            12
+          ]
+        },
+        {
+          "name": "バッジlife1",
+          "rect": [
+            160,
+            33,
+            12,
+            12
+          ]
+        },
+        {
+          "name": "バッジlife2",
+          "rect": [
+            191,
+            33,
+            12,
+            12
+          ]
+        },
+        {
+          "name": "モスlifebar0",
+          "rect": [
+            171,
+            45,
+            6,
+            14
+          ]
+        },
+        {
+          "name": "モスlifebar1",
+          "rect": [
+            178,
+            45,
+            2,
+            14
+          ]
+        },
+        {
+          "name": "モスlifebar2",
+          "rect": [
+            181,
+            45,
+            6,
+            14
+          ]
+        },
+        {
+          "name": "モスabsbar0",
+          "rect": [
+            171,
+            59,
+            6,
+            14
+          ]
+        },
+        {
+          "name": "モスabsbar1",
+          "rect": [
+            178,
+            59,
+            2,
+            14
+          ]
+        },
+        {
+          "name": "モスabsbar2",
+          "rect": [
+            181,
+            59,
+            6,
+            14
+          ]
+        },
+        {
+          "name": "モスlife",
+          "rect": [
+            188,
+            46,
+            8,
+            8
+          ]
+        },
+        {
+          "name": "モスabs",
+          "rect": [
+            188,
+            56,
+            8,
+            8
+          ]
+        },
+        {
+          "name": "モスline0",
+          "rect": [
+            147,
+            77,
+            20,
+            12
+          ]
+        },
+        {
+          "name": "モスline1",
+          "rect": [
+            167,
+            77,
+            2,
+            12
+          ]
+        },
+        {
+          "name": "モスline2",
+          "rect": [
+            171,
+            77,
+            20,
+            12
+          ]
+        },
+        {
+          "name": "モス防",
+          "rect": [
+            167,
+            89,
+            20,
+            22
+          ]
+        },
+        {
+          "name": "モス攻",
+          "rect": [
+            147,
+            89,
+            20,
+            22
+          ]
+        },
+        {
+          "name": "モス数",
+          "rect": [
+            0,
+            330,
+            12,
+            12
+          ]
+        },
+        {
+          "name": "モスslush",
+          "rect": [
+            120,
+            330,
+            12,
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "mosbag0",
+      "textures": [
+        {
+          "name": "バッジ0",
+          "rect": [
+            0,
+            0,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ1",
+          "rect": [
+            64,
+            0,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ2",
+          "rect": [
+            128,
+            0,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ3",
+          "rect": [
+            192,
+            0,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ4",
+          "rect": [
+            0,
+            64,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ5",
+          "rect": [
+            64,
+            64,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ6",
+          "rect": [
+            128,
+            64,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ7",
+          "rect": [
+            192,
+            64,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ8",
+          "rect": [
+            0,
+            128,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ9",
+          "rect": [
+            64,
+            128,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ10",
+          "rect": [
+            128,
+            128,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "バッジ11",
+          "rect": [
+            192,
+            128,
+            64,
+            64
+          ]
+        }
+      ]
+    },
+    {
+      "index": 60,
+      "op": "form_offset"
+    },
+    {
+      "name": "モンスターBG",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": 1
+                },
+                {
+                  "index": 1,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "mosbg",
+          "part": "normal",
+          "texture": "mosbg",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "bg_tile"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "モンスターバッジ箱",
+      "op": "form",
+      "parts": [
+        {
+          "name": "下0",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            20,
+            20
+          ]
+        },
+        {
+          "name": "下1",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            86,
+            20
+          ]
+        },
+        {
+          "name": "下2",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            152,
+            20
+          ]
+        },
+        {
+          "name": "下3",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            20,
+            86
+          ]
+        },
+        {
+          "name": "下4",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            86,
+            86
+          ]
+        },
+        {
+          "name": "下5",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            152,
+            86
+          ]
+        },
+        {
+          "name": "下6",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            20,
+            152
+          ]
+        },
+        {
+          "name": "下7",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            86,
+            152
+          ]
+        },
+        {
+          "name": "下8",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            152,
+            152
+          ]
+        },
+        {
+          "name": "下9",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            20,
+            218
+          ]
+        },
+        {
+          "name": "下10",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            86,
+            218
+          ]
+        },
+        {
+          "name": "下11",
+          "part": "normal",
+          "texture": "箱下地",
+          "xy": [
+            152,
+            218
+          ]
+        },
+        {
+          "name": "B0",
+          "part": "normal",
+          "texture": "バッジ0",
+          "xy": [
+            20,
+            20
+          ]
+        },
+        {
+          "name": "B1",
+          "part": "normal",
+          "texture": "バッジ1",
+          "xy": [
+            86,
+            20
+          ]
+        },
+        {
+          "name": "B2",
+          "part": "normal",
+          "texture": "バッジ2",
+          "xy": [
+            152,
+            20
+          ]
+        },
+        {
+          "name": "B3",
+          "part": "normal",
+          "texture": "バッジ3",
+          "xy": [
+            20,
+            86
+          ]
+        },
+        {
+          "name": "B4",
+          "part": "normal",
+          "texture": "バッジ4",
+          "xy": [
+            86,
+            86
+          ]
+        },
+        {
+          "name": "B5",
+          "part": "normal",
+          "texture": "バッジ5",
+          "xy": [
+            152,
+            86
+          ]
+        },
+        {
+          "name": "B6",
+          "part": "normal",
+          "texture": "バッジ6",
+          "xy": [
+            20,
+            152
+          ]
+        },
+        {
+          "name": "B7",
+          "part": "normal",
+          "texture": "バッジ7",
+          "xy": [
+            86,
+            152
+          ]
+        },
+        {
+          "name": "B8",
+          "part": "normal",
+          "texture": "バッジ8",
+          "xy": [
+            152,
+            152
+          ]
+        },
+        {
+          "name": "B9",
+          "part": "normal",
+          "texture": "バッジ9",
+          "xy": [
+            20,
+            218
+          ]
+        },
+        {
+          "name": "B10",
+          "part": "normal",
+          "texture": "バッジ10",
+          "xy": [
+            86,
+            218
+          ]
+        },
+        {
+          "name": "B11",
+          "part": "normal",
+          "texture": "バッジ11",
+          "xy": [
+            152,
+            218
+          ]
+        },
+        {
+          "name": "上",
+          "part": "normal",
+          "texture": "箱枠上",
+          "xy": [
+            30,
+            0
+          ]
+        },
+        {
+          "name": "下",
+          "part": "normal",
+          "texture": "箱枠下",
+          "xy": [
+            30,
+            272
+          ]
+        },
+        {
+          "name": "左",
+          "part": "normal",
+          "size": [
+            30,
+            304
+          ],
+          "texture": "箱枠左",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "右",
+          "part": "normal",
+          "size": [
+            48,
+            304
+          ],
+          "texture": "箱枠右",
+          "xy": [
+            206,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            20,
+            70
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -340.0,
+                62.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                20.0,
+                62.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        },
+        {
+          "count": 28,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "モンスターポリ後ろ",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                26,
+                26,
+                26,
+                128
+              ]
+            }
+          ],
+          "name": "bg",
+          "part": "fillbox",
+          "size": [
+            174,
+            256
+          ],
+          "style": 0,
+          "xy": [
+            24,
+            22
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            270,
+            60
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "左へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                30.0,
+                60.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "右へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                276.0,
+                60.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "右へ",
+          "set": "action"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "mosclip10",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            280,
+            78
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "左へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                50.0,
+                78.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "右へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                292.0,
+                78.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "右へ",
+          "set": "action"
+        },
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "clip",
+          "size": [
+            178,
+            252
+          ]
+        }
+      ]
+    },
+    {
+      "name": "モンスターポリ",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "左へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                30.0,
+                60.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "右へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                276.0,
+                60.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "右へ",
+          "set": "action"
+        },
+        {
+          "set": "draw_type",
+          "type": "poly"
+        }
+      ]
+    },
+    {
+      "name": "mosclip11",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "clip"
+        }
+      ]
+    },
+    {
+      "name": "モンスターポリ枠",
+      "op": "form",
+      "parts": [
+        {
+          "name": "0",
+          "part": "normal",
+          "texture": "ポリ枠0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "1",
+          "part": "normal",
+          "size": [
+            124,
+            54
+          ],
+          "texture": "ポリ枠1",
+          "xy": [
+            50,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "2",
+          "part": "normal",
+          "texture": "ポリ枠2",
+          "xy": [
+            174,
+            0
+          ]
+        },
+        {
+          "name": "3",
+          "part": "normal",
+          "size": [
+            50,
+            196
+          ],
+          "texture": "ポリ枠3",
+          "xy": [
+            0,
+            54
+          ]
+        },
+        {
+          "name": "4",
+          "part": "normal",
+          "size": [
+            124,
+            196
+          ],
+          "texture": "ポリ枠4",
+          "xy": [
+            50,
+            54
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "5",
+          "part": "normal",
+          "size": [
+            34,
+            196
+          ],
+          "texture": "ポリ枠5",
+          "xy": [
+            174,
+            54
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "6",
+          "part": "normal",
+          "texture": "ポリ枠6",
+          "xy": [
+            0,
+            250
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "7",
+          "part": "normal",
+          "size": [
+            124,
+            50
+          ],
+          "texture": "ポリ枠7",
+          "xy": [
+            50,
+            250
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "8",
+          "part": "normal",
+          "texture": "ポリ枠8",
+          "xy": [
+            174,
+            250
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "左へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                30.0,
+                60.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "右へ",
+              "rate": [
+                4.0,
+                1.0
+              ],
+              "xy": [
+                276.0,
+                60.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "右へ",
+          "set": "action"
+        },
+        {
+          "set": "position",
+          "xy": [
+            270,
+            60
+          ]
+        },
+        {
+          "count": 10,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "モンスターステータス",
+      "op": "form",
+      "parts": [
+        {
+          "name": "名前",
+          "part": "funcinfo",
+          "xy": [
+            84,
+            18
+          ]
+        },
+        {
+          "name": "称号",
+          "part": "funcinfo",
+          "xy": [
+            114,
+            54
+          ]
+        },
+        {
+          "name": "○",
+          "part": "funcinfo",
+          "xy": [
+            20,
+            214
+          ]
+        },
+        {
+          "name": "■",
+          "part": "funcinfo",
+          "xy": [
+            20,
+            252
+          ]
+        },
+        {
+          "name": "技1",
+          "part": "funcinfo",
+          "xy": [
+            56,
+            216
+          ]
+        },
+        {
+          "name": "技2",
+          "part": "funcinfo",
+          "xy": [
+            56,
+            254
+          ]
+        },
+        {
+          "name": "説明",
+          "part": "funcinfo",
+          "xy": [
+            -138,
+            324
+          ]
+        },
+        {
+          "name": "0",
+          "part": "normal",
+          "texture": "mosstatus枠0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "1",
+          "part": "normal",
+          "size": [
+            128,
+            64
+          ],
+          "texture": "mosstatus枠1",
+          "xy": [
+            56,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "2",
+          "part": "normal",
+          "texture": "mosstatus枠2",
+          "xy": [
+            184,
+            0
+          ]
+        },
+        {
+          "name": "3",
+          "part": "normal",
+          "size": [
+            56,
+            174
+          ],
+          "texture": "mosstatus枠3",
+          "xy": [
+            0,
+            64
+          ]
+        },
+        {
+          "name": "4",
+          "part": "normal",
+          "size": [
+            128,
+            174
+          ],
+          "texture": "mosstatus枠4",
+          "xy": [
+            56,
+            64
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "5",
+          "part": "normal",
+          "size": [
+            56,
+            174
+          ],
+          "texture": "mosstatus枠5",
+          "xy": [
+            184,
+            64
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "6",
+          "part": "normal",
+          "texture": "mosstatus枠6",
+          "xy": [
+            0,
+            238
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "7",
+          "part": "normal",
+          "size": [
+            128,
+            64
+          ],
+          "texture": "mosstatus枠7",
+          "xy": [
+            56,
+            238
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "8",
+          "part": "normal",
+          "texture": "mosstatus枠8",
+          "xy": [
+            184,
+            238
+          ]
+        },
+        {
+          "name": "下地13",
+          "part": "normal",
+          "texture": "モス技下地0",
+          "xy": [
+            34,
+            88
+          ]
+        },
+        {
+          "name": "下地14",
+          "part": "normal",
+          "size": [
+            60,
+            32
+          ],
+          "texture": "モス技下地1",
+          "xy": [
+            44,
+            88
+          ]
+        },
+        {
+          "name": "下地15",
+          "part": "normal",
+          "texture": "モス技下地2",
+          "xy": [
+            104,
+            88
+          ]
+        },
+        {
+          "name": "下地23",
+          "part": "normal",
+          "texture": "モス技下地0",
+          "xy": [
+            124,
+            88
+          ]
+        },
+        {
+          "name": "下地24",
+          "part": "normal",
+          "size": [
+            60,
+            32
+          ],
+          "texture": "モス技下地1",
+          "xy": [
+            134,
+            88
+          ]
+        },
+        {
+          "name": "下地25",
+          "part": "normal",
+          "texture": "モス技下地2",
+          "xy": [
+            194,
+            88
+          ]
+        },
+        {
+          "name": "攻",
+          "part": "normal",
+          "texture": "モス攻",
+          "xy": [
+            44,
+            92
+          ]
+        },
+        {
+          "name": "攻数",
+          "part": "number1",
+          "texture": "モス数",
+          "value": 1,
+          "xy": [
+            90,
+            98
+          ]
+        },
+        {
+          "name": "防",
+          "part": "normal",
+          "texture": "モス防",
+          "xy": [
+            134,
+            92
+          ]
+        },
+        {
+          "name": "防数",
+          "part": "number1",
+          "texture": "モス数",
+          "value": 1,
+          "xy": [
+            180,
+            98
+          ]
+        },
+        {
+          "name": "へんげ今",
+          "part": "number1",
+          "size": [
+            0,
+            0
+          ],
+          "texture": "モス数",
+          "value": 0,
+          "xy": [
+            160,
+            122
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 1,
+                  "value": 100
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "へんげ最大",
+          "part": "number1",
+          "size": [
+            0,
+            0
+          ],
+          "texture": "モス数",
+          "value": 2,
+          "xy": [
+            182,
+            122
+          ]
+        },
+        {
+          "name": "へんげslu",
+          "part": "normal",
+          "texture": "モスslush",
+          "xy": [
+            160,
+            122
+          ]
+        },
+        {
+          "name": "熟練今",
+          "part": "number1",
+          "size": [
+            0,
+            0
+          ],
+          "texture": "モス数",
+          "value": 0,
+          "xy": [
+            160,
+            162
+          ]
+        },
+        {
+          "name": "熟練最大",
+          "part": "number1",
+          "size": [
+            0,
+            0
+          ],
+          "texture": "モス数",
+          "value": 2,
+          "xy": [
+            182,
+            162
+          ]
+        },
+        {
+          "name": "熟練slu",
+          "part": "normal",
+          "texture": "モスslush",
+          "xy": [
+            160,
+            162
+          ]
+        },
+        {
+          "name": "line0",
+          "part": "normal",
+          "texture": "モスline0",
+          "xy": [
+            14,
+            74
+          ]
+        },
+        {
+          "name": "line1",
+          "part": "normal",
+          "size": [
+            168,
+            12
+          ],
+          "texture": "モスline1",
+          "xy": [
+            34,
+            74
+          ]
+        },
+        {
+          "name": "line2",
+          "part": "normal",
+          "texture": "モスline2",
+          "xy": [
+            202,
+            74
+          ]
+        },
+        {
+          "name": "へんげパワー",
+          "part": "normal",
+          "texture": "へんげパワー",
+          "xy": [
+            18,
+            120
+          ]
+        },
+        {
+          "name": "hengebar0",
+          "part": "normal",
+          "texture": "モスlifebar0",
+          "xy": [
+            30,
+            138
+          ]
+        },
+        {
+          "name": "hengebar1",
+          "part": "normal",
+          "size": [
+            166,
+            14
+          ],
+          "texture": "モスlifebar1",
+          "xy": [
+            36,
+            138
+          ]
+        },
+        {
+          "name": "hengebar2",
+          "part": "normal",
+          "texture": "モスlifebar2",
+          "xy": [
+            198,
+            138
+          ]
+        },
+        {
+          "name": "life",
+          "part": "normal",
+          "texture": "モスlife",
+          "xy": [
+            34,
+            142
+          ]
+        },
+        {
+          "name": "熟練度",
+          "part": "normal",
+          "texture": "熟練度",
+          "xy": [
+            18,
+            158
+          ]
+        },
+        {
+          "name": "absbar0",
+          "part": "normal",
+          "texture": "モスabsbar0",
+          "xy": [
+            30,
+            176
+          ]
+        },
+        {
+          "name": "absbar1",
+          "part": "normal",
+          "size": [
+            166,
+            14
+          ],
+          "texture": "モスabsbar1",
+          "xy": [
+            36,
+            176
+          ]
+        },
+        {
+          "name": "absbar2",
+          "part": "normal",
+          "texture": "モスabsbar2",
+          "xy": [
+            198,
+            176
+          ]
+        },
+        {
+          "name": "abs",
+          "part": "normal",
+          "texture": "モスabs",
+          "xy": [
+            34,
+            180
+          ]
+        },
+        {
+          "name": "line3",
+          "part": "normal",
+          "texture": "モスline0",
+          "xy": [
+            14,
+            196
+          ]
+        },
+        {
+          "name": "line4",
+          "part": "normal",
+          "size": [
+            168,
+            12
+          ],
+          "texture": "モスline1",
+          "xy": [
+            34,
+            196
+          ]
+        },
+        {
+          "name": "line5",
+          "part": "normal",
+          "texture": "モスline2",
+          "xy": [
+            202,
+            196
+          ]
+        },
+        {
+          "name": "下地3",
+          "part": "normal",
+          "texture": "モス技下地0",
+          "xy": [
+            44,
+            210
+          ]
+        },
+        {
+          "name": "下地4",
+          "part": "normal",
+          "size": [
+            150,
+            32
+          ],
+          "texture": "モス技下地1",
+          "xy": [
+            54,
+            210
+          ]
+        },
+        {
+          "name": "下地5",
+          "part": "normal",
+          "texture": "モス技下地2",
+          "xy": [
+            204,
+            210
+          ]
+        },
+        {
+          "name": "下地0",
+          "part": "normal",
+          "texture": "モス技下地0",
+          "xy": [
+            44,
+            248
+          ]
+        },
+        {
+          "name": "下地1",
+          "part": "normal",
+          "size": [
+            150,
+            32
+          ],
+          "texture": "モス技下地1",
+          "xy": [
+            54,
+            248
+          ]
+        },
+        {
+          "name": "下地2",
+          "part": "normal",
+          "texture": "モス技下地2",
+          "xy": [
+            204,
+            248
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            540,
+            60
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                60.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                250.0,
+                60.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "count": 63,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "BUILDUP",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "buildup"
+        }
+      ]
+    },
+    {
+      "name": "モスダミーフォーム",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "msg_mosdmy",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "tempdmy000",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "tempdmy111",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "msg_mosdmy2",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "tempdmy222",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "tempdmy333",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "msg_mosdmy3",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "モンスターへんげ",
+      "op": "form",
+      "parts": [
+        {
+          "name": "モンスターへんげ",
+          "part": "normal",
+          "texture": "モスへんげ",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "モンスターへんげ2",
+          "part": "normal",
+          "texture": "モスへんげ2",
+          "xy": [
+            100,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            20,
+            10
+          ]
+        },
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "op": "reset_texinfo"
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,401 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "look_at_clock": {
+      "type": "string",
+      "value": "時計を見る"
+    },
+    "look_at_clock_loop": {
+      "type": "string",
+      "value": "時計を見るL"
+    },
+    "run_facing_right": {
+      "type": "string",
+      "value": "右向き走り"
+    },
+    "sleep_loop": {
+      "type": "string",
+      "value": "眠りL"
+    },
+    "stand_up": {
+      "type": "string",
+      "value": "立ち上がる"
+    },
+    "wake_up": {
+      "type": "string",
+      "value": "起きる"
+    },
+    "wake_up_loop": {
+      "type": "string",
+      "value": "起きるL"
+    },
+    "wake_up_s": {
+      "type": "string",
+      "value": "起きる_s"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "p1_3_ミンツ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "sleep_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wake_up"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wake_up_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.03999999910593033
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_clock"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_clock_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "stand_up"
+            },
+            {
+              "type": "float",
+              "value": 0.6499999761581421
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run_facing_right"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wake_up_s"
+            }
+          ],
+          "command": "SEQ_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "sleep_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wake_up"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wake_up_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_clock"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_at_clock_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "stand_up"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [],
+          "command": "SEQ_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "stand_up"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.5720000267028809
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "stand_up"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8320000171661377
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run_facing_right"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run_facing_right"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8999999761581421
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,435 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "idle": {
+      "type": "string",
+      "value": "立ち"
+    },
+    "jump": {
+      "type": "string",
+      "value": "ジャンプ"
+    },
+    "jump_loop": {
+      "type": "string",
+      "value": "ジャンプL"
+    },
+    "jump_s": {
+      "type": "string",
+      "value": "ジャンプ_s"
+    },
+    "land": {
+      "type": "string",
+      "value": "着地"
+    },
+    "walk": {
+      "type": "string",
+      "value": "歩き"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "p3_ピエロ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin"
+            },
+            {
+              "type": "string",
+              "value": "skin2"
+            },
+            {
+              "type": "string",
+              "value": "skin3"
+            }
+          ],
+          "command": "VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin2"
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin3"
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "kao"
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "index": 1,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "index": 1,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 1,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle"
+            },
+            {
+              "type": "float",
+              "value": 0.03999999910593033
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump_s"
+            }
+          ],
+          "command": "SEQ_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [],
+          "command": "SEQ_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.029999999329447746
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.47999998927116394
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.11999999731779099
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

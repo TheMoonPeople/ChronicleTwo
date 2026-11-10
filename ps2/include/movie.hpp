@@ -207,12 +207,12 @@ struct AudioDec {
     int     count;            /**< Bytes held in the EE ring. */
     int     size;             /**< Capacity of the EE ring in bytes. */
     int     total_bytes;      /**< Body bytes received since the last reset. */
-    int     iop_buff;         /**< IOP address of the SPU's ring buffer. */
+    uptr    iop_buff;         /**< IOP address of the SPU's ring buffer. */
     int     iop_buff_size;    /**< Size of the IOP ring buffer in bytes. */
     int     iop_last_pos;     /**< Next byte of the IOP ring to write. */
     int     iop_pause_pos;    /**< Playback position within the IOP ring when paused. */
     int     total_bytes_sent; /**< Bytes sent to the IOP since the last reset. */
-    int     iop_zero;         /**< IOP address of a block of silence played while paused. */
+    uptr    iop_zero;         /**< IOP address of a block of silence played while paused. */
 };
 
 STATIC_ASSERT(sizeof(AudioDec) == 0x5C);

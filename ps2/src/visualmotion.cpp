@@ -198,7 +198,7 @@ int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *
     int        part_count;
     FACES_ID  *source;
     int        i;
-    int        address;
+    uptr       address;
     int        size;
     MDT_FACES *section;
 
@@ -243,7 +243,7 @@ int mgCVisualMotionMDT::DataAssignMotionMDT(MDT_HEADER *header, mgCVMotionData *
         scratch.stack_used = 0;
         scratch.lock = 0;
         source = CreateFace(source, memory, &scratch, &packet);
-        address = (int) memory->stGetTop();
+        address = (uptr) memory->stGetTop();
         size = CreateFaceMotionPacket((u_int *) address, packet, data);
         packet->packet_tag_word[0] = size | MG_DMA_REF;
         packet->packet_tag_word[1] = address;
@@ -555,7 +555,7 @@ int mgCVisualMotionMDT::CreateFaceMotionPacket(u_int *packet, mgCFace *face, mgC
 
     use_scratchpad = false;
 
-    if (((u_int) packet & 0xF0000000) == MG_UNCACHED) {
+    if (((uptr) packet & 0xF0000000) == MG_UNCACHED) {
         use_scratchpad = true;
     }
 

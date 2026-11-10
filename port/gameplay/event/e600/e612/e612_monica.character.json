@@ -1,0 +1,443 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "brace": {
+      "type": "string",
+      "value": "身構え"
+    },
+    "brace_loop": {
+      "type": "string",
+      "value": "身構えL"
+    },
+    "dazzled": {
+      "type": "string",
+      "value": "まぶしい"
+    },
+    "dazzled_loop": {
+      "type": "string",
+      "value": "まぶしいL"
+    },
+    "follow_with_eyes": {
+      "type": "string",
+      "value": "目で追う"
+    },
+    "follow_with_eyes_loop": {
+      "type": "string",
+      "value": "目で追うL"
+    },
+    "glance_around": {
+      "type": "string",
+      "value": "きょろきょろ"
+    },
+    "idle_facing_down": {
+      "type": "string",
+      "value": "下向き立ち"
+    },
+    "recoil": {
+      "type": "string",
+      "value": "のけぞり"
+    },
+    "recoil_loop": {
+      "type": "string",
+      "value": "のけぞりL"
+    },
+    "startled": {
+      "type": "string",
+      "value": "はっとする"
+    },
+    "startled_loop": {
+      "type": "string",
+      "value": "はっとするL"
+    },
+    "sword_stance": {
+      "type": "string",
+      "value": "剣構え"
+    },
+    "totter": {
+      "type": "string",
+      "value": "ぐらり"
+    },
+    "totter_loop": {
+      "type": "string",
+      "value": "ぐらりL"
+    },
+    "what_are_you_saying": {
+      "type": "string",
+      "value": "なに言ってるの？"
+    },
+    "what_did_you_do": {
+      "type": "string",
+      "value": "何をした？"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e612_モニカ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "sword_stance"
+            },
+            {
+              "type": "float",
+              "value": 0.029999999329447746
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_facing_down"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "recoil"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "recoil_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "follow_with_eyes"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "follow_with_eyes_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "dazzled"
+            },
+            {
+              "type": "float",
+              "value": 0.699999988079071
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "dazzled_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "what_are_you_saying"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "brace"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "brace_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "totter"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "totter_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "what_did_you_do"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "glance_around"
+            },
+            {
+              "type": "float",
+              "value": 0.44999998807907104
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "startled"
+            },
+            {
+              "type": "float",
+              "value": 0.44999998807907104
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "startled_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "recoil"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.6669999957084656
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "dazzled"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.32899999618530273
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "brace"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.9900000095367432
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

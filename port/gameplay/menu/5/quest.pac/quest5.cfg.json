@@ -1,0 +1,187 @@
+{
+  "count": 20,
+  "kind": "quests",
+  "quests": [
+    {
+      "comment": "A Gordon le encanta cuidar las plantas.\\nQuiere curar su [UNI00e1]rbol\\ncon Agua bendita del Padre Bruno.",
+      "id": 0,
+      "name": "Preocupaciones de Gordon",
+      "reactions": [
+        "[UNI00a1]Vamos a ver al Padre Bruno!\\n[UNI00bf]Est[UNI00e1] en la iglesia?",
+        "A Gordon le encanta cuidar las\\nplantas, [UNI00bf]eh?"
+      ]
+    },
+    {
+      "comment": "Cuadro de la mujer de los sue[UNI00f1]os de Parn,\\nJulia. Dice que podr[UNI00ed]a cobrar\\nvida si tuviera Pintura dorada.",
+      "id": 1,
+      "name": "Retrato de una Novia",
+      "reactions": [
+        "[UNI00bf]Pero d[UNI00f3]nde puedes conseguir Pintura dorada?",
+        "Yo no me creo que un cuadro\\npueda cobrar vida."
+      ]
+    },
+    {
+      "comment": "Donny quiere completar su colecci[UNI00f3]n de\\nmonedas. S[UNI00f3]lo necesita la Moneda protectora\\ny la Moneda negra...",
+      "id": 2,
+      "name": "La Marca del Negocio",
+      "reactions": [
+        "Necesitamos conseguir monedas.",
+        "Yo digo que Donny puede hacerlo solito."
+      ]
+    },
+    {
+      "comment": "Castagnaccio, el aperitivo misterioso.\\nSabemos que lleva casta[UNI00f1]as,\\npero ni idea del resto.",
+      "id": 3,
+      "name": "Castagnaccio",
+      "reactions": [
+        "Tenemos que conseguir casta[UNI00f1]as.",
+        "[UNI00bf]Est[UNI00e1] bueno el castagnaccio?"
+      ]
+    },
+    {
+      "comment": "Claire no quiere salir.\\nEns[UNI00e9][UNI00f1]ale algo para que cambie de opini[UNI00f3]n\\ny salga.",
+      "id": 4,
+      "name": "Curiosidad",
+      "reactions": [
+        "Tenemos que hacer fotos de\\nflores raras.",
+        "Claire es s[UNI00fa]per curiosa,\\n[UNI00bf]verdad?"
+      ]
+    },
+    {
+      "comment": "Creo que Pau quiere ayudarnos.\\nAhora tendr[UNI00ed]amos que encontrar\\nalimentos para animarle...",
+      "id": 5,
+      "name": "Bonita Comida Naranja",
+      "reactions": [
+        "Comida naranja, [UNI00bf]eh? [UNI00bf]Zanahorias, quiz[UNI00e1]s?",
+        "[UNI00a1]Odio las zanahorias!\\n[UNI00a1]Y tambi[UNI00e9]n los pimientos verdes!"
+      ]
+    },
+    {
+      "comment": "El hobby de Stewart es leer.\\nQuiere pujar por un libro de subasta\\npero no tiene dinero.",
+      "id": 6,
+      "name": "La Subasta",
+      "reactions": [
+        "Tenemos que reunir dinero.",
+        "[UNI00bf]Ni ha le[UNI00ed]do el libro por el que\\ntrabajamos tanto?"
+      ]
+    },
+    {
+      "comment": "Adel ha perdido la confianza en s[UNI00ed] misma\\nporque no puede hacer ropa. Necesita piel\\ngruesa, un cacho de cobre y tela resistente.",
+      "id": 7,
+      "name": "Sue[UNI00f1]os de mis Sue[UNI00f1]os",
+      "reactions": [
+        "Acabar[UNI00e9] con esto de una vez por todas\\ny le ayudar[UNI00e9] a recuperar su confianza.",
+        "Ver las cosas desde otro punto de vista\\nhace sentirse segura a la gente."
+      ]
+    },
+    {
+      "comment": "[UNI00bf]Enviar Pan a Morton?\\nParece que est[UNI00e1] chupado, pero algo me dice\\nque hay m[UNI00e1]s.",
+      "id": 8,
+      "name": "Empleada de Polly",
+      "reactions": [
+        "Tenemos que hacer lo que nos han dicho.",
+        "[UNI00a1]Este Morton es tan egoc[UNI00e9]ntrico!"
+      ]
+    },
+    {
+      "comment": "El sheriff Blinkhorn duda de mi fuerza.\\nTengo que correr r[UNI00e1]pido\\ny demostrar que puedo reducirlo.",
+      "id": 9,
+      "name": "Palm Brinks: Carrera loca",
+      "reactions": [
+        "Corre la distancia m[UNI00e1]s corta para\\nconseguir un buen tiempo.",
+        "[UNI00bf]Crees que hasta Blinkhorn\\npodr[UNI00ed]a igualar este tiempo?"
+      ]
+    },
+    {
+      "comment": "Milane es una experta de la espada, as[UNI00ed]\\nque deber[UNI00ed]amos preocuparnos un poco.\\nTenemos que mostrar nuestra fuerza.",
+      "id": 10,
+      "name": "Milane ense[UNI00f1]a sus Cosas",
+      "reactions": [
+        "Perfeccionar nuestras espadas, [UNI00bf]eh?\\nNo s[UNI00e9] si puedo hacerlo.",
+        "Seguro que M[UNI00f3]nica y Milane se llevar[UNI00ed]an\\nmuy bien."
+      ]
+    },
+    {
+      "comment": "Odio pedirle favores a mi padre, pero\\nnecesito que me ayuden. Tendr[UNI00ed]a que\\nser f[UNI00e1]cil mejorar mis pistolas.",
+      "id": 11,
+      "name": "Permiso del Padre",
+      "reactions": [
+        "[UNI00a1]Trabajar[UNI00e9] duro para conseguir\\nel nivel de Pistola Campana!",
+        "Quiz[UNI00e1]s as[UNI00ed] mi padre me mire\\nde forma diferente."
+      ]
+    },
+    {
+      "comment": "El alcalde Need ha olvidado la combinaci[UNI00f3]n de\\nla caja. Si no hacemos algo, no\\npodr[UNI00e1] coger sus papeles.",
+      "id": 12,
+      "name": "La Caja imposible",
+      "reactions": [
+        "Tendr[UNI00ed]amos que poder averiguarlo con\\nlo que ha dicho el alcalde.",
+        "[UNI00bf]Seguro que es correcto dejar la ciudad\\nen manos de Morton?"
+      ]
+    },
+    {
+      "comment": "[UNI00bf]Por qu[UNI00e9] el sistema de la iglesia es as[UNI00ed]\\nsi cualquiera puede\\napagar todas las velas?",
+      "id": 13,
+      "name": "La Prueba del Padre",
+      "reactions": [
+        "La repuesta es muy pero que muy\\nsimple.",
+        "[UNI00a1]Es el sistema de la iglesia!"
+      ]
+    },
+    {
+      "comment": "Rufio ya vive en el parque.\\nDice que quiere estar siempre\\nviendo la luna.",
+      "id": 14,
+      "name": "La Luna Incansable",
+      "reactions": [
+        "S[UNI00f3]lo podemos hacer la foto\\nde la luna por la noche.",
+        "A ver si al final Rufio viene\\nde la luna."
+      ]
+    },
+    {
+      "comment": "A Fabio le encanta pescar.\\nComo pesque un pez enorme\\nlo va a estar predicando toda la vida.",
+      "id": 15,
+      "name": "Ponte al Nivel y G[UNI00e1]name",
+      "reactions": [
+        "Tienes que pescar un Nonky\\nque pase de 61cm.",
+        "[UNI00bf]Cu[UNI00e1]l es el secreto de la pesca?\\nMe encantar[UNI00ed]a saberlo."
+      ]
+    },
+    {
+      "comment": "La due[UNI00f1]a de peces, Olivia, sabe lo del\\nFinny Frenzy.\\n[UNI00a1]Hay que ganar!",
+      "id": 16,
+      "name": "El C[UNI00ed]rculo de Ganadores",
+      "reactions": [
+        "Tenemos que intentar ganar el Finny Frenzy.",
+        "Tienes que cuidar mucho\\nal pez."
+      ]
+    },
+    {
+      "comment": "Mena no se encuentra muy bien\\ny es por la Distorsi[UNI00f3]n temporal.\\nHabr[UNI00e1] que reducirlo como sea...",
+      "id": 17,
+      "name": "El Reto de Esfeda",
+      "reactions": [
+        "Es duro ganar 10 partidos de Esfeda.",
+        "No sab[UNI00ed]a que las Distorsiones temporales\\ntambi[UNI00e9]n pod[UNI00ed]an hacer esto."
+      ]
+    },
+    {
+      "comment": "Corinne se considera una chica con suerte.\\nQuiz[UNI00e1]s sea nuestra amiga si\\njugamos al escondite con ella.",
+      "id": 18,
+      "name": "El Escondite de Corinne",
+      "reactions": [
+        "[UNI00a1]Venga, Corinne! [UNI00bf]D[UNI00f3]nde narices\\nest[UNI00e1]s?",
+        "Tiene mucha cara, pero\\ntodav[UNI00ed]a es ni[UNI00f1]a."
+      ]
+    },
+    {
+      "comment": "Rosa est[UNI00e1] muy sorda.\\nQuiz[UNI00e1]s fuese nuestra aliada\\nsi nos pudiese o[UNI00ed]r.",
+      "id": 19,
+      "name": "Coraz[UNI00f3]n con Coraz[UNI00f3]n",
+      "reactions": [
+        "Si conseguimos explicar nuestros\\nsentimientos, todo nos ir[UNI00e1] bien.",
+        "Quiz[UNI00e1]s debamos conseguirle un\\naud[UNI00ed]fono la pr[UNI00f3]xima vez."
+      ]
+    }
+  ],
+  "schema_version": 2
+}

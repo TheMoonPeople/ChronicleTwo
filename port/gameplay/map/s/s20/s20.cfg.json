@@ -1,0 +1,62 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 550
+      },
+      "name": "entrance",
+      "transform": {
+        "position": [
+          -2081.39,
+          -24.13,
+          3300.07
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          300.0,
+          60.0,
+          60.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 551
+      },
+      "name": "dun_entrance",
+      "transform": {
+        "position": [
+          1671.73,
+          -277.5,
+          2142.61
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          150.0,
+          150.0,
+          150.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

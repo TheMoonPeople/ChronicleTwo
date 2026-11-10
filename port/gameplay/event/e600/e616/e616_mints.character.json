@@ -1,0 +1,409 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "device_activate": {
+      "type": "string",
+      "value": "装置作動"
+    },
+    "down_to_left": {
+      "type": "string",
+      "value": "下→左"
+    },
+    "face_up_nod": {
+      "type": "string",
+      "value": "上向くうなづき"
+    },
+    "idle_looking_down": {
+      "type": "string",
+      "value": "下見立ち"
+    },
+    "look_back_left_3": {
+      "type": "string",
+      "value": "左後ろ見る"
+    },
+    "look_back_left_3_loop": {
+      "type": "string",
+      "value": "左後ろ見るL"
+    },
+    "look_back_left_return": {
+      "type": "string",
+      "value": "左後ろ見る戻り"
+    },
+    "look_upward": {
+      "type": "string",
+      "value": "上見る"
+    },
+    "look_upward_loop": {
+      "type": "string",
+      "value": "上見るL"
+    },
+    "shocked": {
+      "type": "string",
+      "value": "びっくり"
+    },
+    "shocked_loop": {
+      "type": "string",
+      "value": "びっくりL"
+    },
+    "talk_looking_down_3": {
+      "type": "string",
+      "value": "下見会話"
+    },
+    "touch_pillar": {
+      "type": "string",
+      "value": "柱をさわる"
+    },
+    "touch_pillar_loop": {
+      "type": "string",
+      "value": "柱をさわるL"
+    },
+    "up_to_right": {
+      "type": "string",
+      "value": "上→右"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e616_ミンツ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_looking_down"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "talk_looking_down_3"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_upward"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_upward_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_3"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_3_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_return"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "device_activate"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "up_to_right"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "touch_pillar"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "touch_pillar_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "shocked"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "shocked_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_up_nod"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "down_to_left"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_3"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "look_back_left_return"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.9599999785423279
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "shocked"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.5450000166893005
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

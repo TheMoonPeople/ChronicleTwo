@@ -1,0 +1,43 @@
+{
+  "default_profile": "e245_mints",
+  "game_names": null,
+  "kind": "character_gameplay",
+  "profiles": {
+    "e245_mints": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e245_mints"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,54 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "battleship_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "battleship_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "battleship_2-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "battleship_3-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "battleship_5-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "battleship_6-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "battleship_7-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "battleship_8-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "battleship_9-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "tai-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "tbig-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,148 @@
+--!strict
+-- Shared event helper used by 21 scripts, translated by tools/luau/stb2luau.
+
+local vm = require("@lib/vm")
+local helper_536094dc = require("@lib/event/helper_536094dc")
+local helper_70e4ac93 = require("@lib/event/helper_70e4ac93")
+
+--- Helper function.
+local function helper_530276dc()
+	local var1: s32 = 0
+	local var2: s32 = 0
+	local var3: s32 = 0
+	local var4: s32 = 0
+	local var5: s32 = 0
+	local active_chr_no: s32 = 0
+	local var7: s32 = 0
+	local flag: s32 = 0
+	local flag_2: s32 = 0
+	local active_chr_no_2: s32 = 0
+	local active_chr_no_3: s32 = 0
+	event.get_player_character_slot()
+	var1 = event.get_triggered_event_data_2(13) or var1
+	var2 = event.get_triggered_event_data_2(14) or var2
+	print("talk_chara_id=", var1, "talk_chara=", var2, "\n")
+	do
+		local out1, out2 = event.get_message_window_option(0, 3, var2)
+		var3 = out1 or var3
+		var4 = out2 or var4
+	end
+	active_chr_no = event.get_playable_character() or active_chr_no
+	if active_chr_no == 1 then
+		var5 = 2
+	else
+		var5 = 1
+	end
+	event.stop_camera_control_movement()
+	event.set_villager_ai_enabled(0, var1)
+	event.set_message_bubble_tail(0, 1)
+	event.apply_message_window_preset(0, 0)
+	if var2 == 1012 or var2 == 1015 or var2 == 1018 then
+		helper_536094dc()
+		event.set_villager_ai_enabled(1, var1)
+		return
+	end
+	if var2 == 50 then
+		event.open_message_window_2(0, "Ehi! Non [UNI00e8] permesso\noltrepassare questo punto.")
+		helper_70e4ac93(var1, -1, 0, 0)
+		event.set_villager_ai_enabled(1, var1)
+		return
+	end
+	var7 = event.get_chapter() or var7
+	if var7 == 1 then
+		flag = event.get_save_flag(9) or flag
+		if var2 == 2 then
+			if flag == 0 then
+				event.open_message_window_2(
+					0,
+					"Dai un'occhiata qui! Difficile\ncredere che un tempo filava\nche era una bellezza, vero?<page>Proprio cos[UNI00ec]... molto tempo fa.<page>Il mio sogno [UNI00e8] di rifarci un bel\nviaggetto! Ecco perch[UNI00e9] cerco\ndi tenerlo in perfetta forma.<page>Cos[UNI00ec], appena possibile,\n"
+				)
+			else
+				event.open_message_window_2(
+					0,
+					"Sai che devi fare esercizio tutti\ni giorni per restare in forma, no?\nLo stesso vale con le macchine."
+				)
+			end
+			helper_70e4ac93(var1, -1, 0, 0)
+			event.set_villager_ai_enabled(1, var1)
+			return
+		end
+		if var2 == 63 then
+			if flag == 0 then
+				event.open_message_window_2(
+					0,
+					"Ehi salve, Max!\nLa ferrovia non funziona\nda parecchio tempo.<page>Ma io continuo a vigilare\nsulla stazione, tutti i giorni."
+				)
+			else
+				event.open_message_window_2(
+					0,
+					"Il Sindaco si [UNI00e8] finalmente mosso:\nha fatto ripartire i treni.\nMa non sono aperti al pubblico!<page>Cavoli, non vedo l'ora di farci\nsalire gli abitanti della citt[UNI00e0]..."
+				)
+			end
+			helper_70e4ac93(var1, -1, 0, 0)
+			event.set_villager_ai_enabled(1, var1)
+			return
+		end
+		if var2 == 65 then
+			if flag == 0 then
+				event.open_message_window_2(
+					0,
+					"Ciao, Max. Sapevi che il\ncapostazione [UNI00e8] il mio pap[UNI00e0]?\nSorvegliamo la stazione insieme.<page>Aspettiamo che questa ferrovia\nriprenda a funzionare..."
+				)
+			else
+				event.open_message_window_2(
+					0,
+					"Il treno funziona!\nMa ci vorr[UNI00e0] del tempo prima\nche la stazione torni com'era..."
+				)
+			end
+			helper_70e4ac93(var1, -1, 0, 0)
+			event.set_villager_ai_enabled(1, var1)
+			return
+		end
+	end
+	if var7 == 8 then
+		flag_2 = event.get_save_flag(804) or flag_2
+		if var2 == 61 then
+			if flag_2 == 0 then
+				event.open_message_window_2(
+					0,
+					"Sono un ammiratore segreto\ndi Monica da tempo, ma\nnon la vedo da un po'.<page>Per questo non riesco a\nconcentrarmi sul lavoro!"
+				)
+			else
+				active_chr_no_2 = event.get_playable_character() or active_chr_no_2
+				if active_chr_no_2 ~= 1 then
+					event.open_message_window_2(0, "Ehi, Max!\nSembra che Monica sia tornata.\nNe saranno tutti felici!")
+				else
+					event.open_message_window_2(0, "Monica! Dove sei stata?\nMi sei mancata tanto!")
+				end
+			end
+			helper_70e4ac93(var1, -1, 0, 0)
+			event.set_villager_ai_enabled(1, var1)
+			return
+		end
+		if var2 == 80 then
+			if flag_2 == 0 then
+				event.open_message_window_2(
+					0,
+					"Avevo appena trovato il coraggio\ndi parlare a Monica normalmente,\nquando [UNI00e8] scomparsa.<page>Dai, Max...\ndimmi dov'[UNI00e8]... ti prego!"
+				)
+			else
+				active_chr_no_3 = event.get_playable_character() or active_chr_no_3
+				if active_chr_no_3 ~= 1 then
+					event.open_message_window_2(0, "Monica [UNI00e8] tornata.\nCom'[UNI00e8] possibile?!?")
+				else
+					event.open_message_window_2(0, "Monica, sei tornata!\nCom'[UNI00e8] possibile?!?")
+				end
+			end
+			helper_70e4ac93(var1, -1, 0, 0)
+			event.set_villager_ai_enabled(1, var1)
+			return
+		end
+	end
+	event.open_message_window_2(0, "Salve.\nTempo stupendo, vero?")
+	event.open_message_window_2(0, vm.i32(vm.i32(vm.i32(var3 * 10000) + vm.i32(var4 * 10)) + var5))
+	helper_70e4ac93(var1, -1, 0, 0)
+	event.set_villager_ai_enabled(1, var1)
+end
+
+return helper_530276dc

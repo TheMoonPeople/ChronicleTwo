@@ -1,0 +1,12699 @@
+{
+ "comment": "Expected script_timing recipe counts per normalized script key; recipes are in Recipe order.",
+ "recipes": [
+  "event_assign",
+  "event_cue",
+  "event_inline",
+  "event_inline_float",
+  "event_inverse",
+  "event_inverse_float",
+  "monster_convert",
+  "integer_30_25"
+ ],
+ "scripts": {
+  "dungeon/eff_script/b02a_hibasira.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/b08a_hane_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/b10a_combo.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/b10a_shougekiha.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/b11a_beam_l.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/bara_hit.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/e10a_kabobomb_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/e10e_bomb_f_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/e49a_jibaku.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/g_shield.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/kai_bomb.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_cball_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_curse_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_dra_hibasira.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_exp.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_explosion.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_fball_f.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_fball_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_fballf_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_hball_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_hibasira.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_mahi_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_mball_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_mexp_b.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_sball_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_shockwave.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_shockwave2.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_wball_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/m_wball_h2.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/maseki_c.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/maseki_f.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/maseki_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/maseki_t.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/maseki_w.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/mj_beam_h.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/mpol_bomb.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/p00_23a_hibasira.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/p00_23a_msibuki.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/eff_script/tbox_exp.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b07a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b08a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b09a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b10a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b117a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b117b.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b117c.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b11a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b12a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b13b.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b14a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b205a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b214an.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b220a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b254a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b40a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/b54a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e01a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e03a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e05a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e06a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e101a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e108a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e10a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e116a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e118a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e119a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e11a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e12a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e14a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e201a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e203a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e206a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e211a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e212a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e214a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e214a2.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e217a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e218a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e220a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e220an.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e221a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 1,
+   "windows": 0
+  },
+  "dungeon/monster/e227a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e228a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e229a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e24a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e252a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e254a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e26a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e27a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e28a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e33a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e40a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e43a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e44a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e45a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e46a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e47a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e48a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e50a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e54a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e55a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e67a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e68a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e75a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e76a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/e77a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/ejema.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/p00_23a.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "dungeon/monster/rin.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "mainchr/c01.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 6
+  },
+  "mainchr/c02.stb": {
+   "recipes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 2
+  },
+  "map/d/d01/b01/d01b01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/b01/d01b01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/b01/d01b01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/b01/d01b01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/b01/d01b01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_1.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_2.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_3.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_4.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_5.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_sfida_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_sfida_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_sfida_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_sfida_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/d01_sfida_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/e01/d01e01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/e01/d01e01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/e01/d01e01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/e01/d01e01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d01/e01/d01e01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b01/d02b01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b01/d02b01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b01/d02b01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b01/d02b01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b01/d02b01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b02/d02b02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b02/d02b02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b02/d02b02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b02/d02b02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b02/d02b02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b03/d02b03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b03/d02b03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b03/d02b03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b03/d02b03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/b03/d02b03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_sfida_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_sfida_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_sfida_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_sfida_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d02/d02_sfida_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b01/d03b01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b01/d03b01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b01/d03b01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b01/d03b01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b01/d03b01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b02/d03b02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    13,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b02/d03b02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    13,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b02/d03b02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    13,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b02/d03b02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    13,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/b02/d03b02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    13,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/d03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/d/d03/d03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/d/d03/d03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/d/d03/d03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/d/d03/d03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/d/d03/d03_sfida_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/d03_sfida_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/d03_sfida_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/d03_sfida_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d03/d03_sfida_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/b01/d04b01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/b01/d04b01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/b01/d04b01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/b01/d04b01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/b01/d04b01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_sfida_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_sfida_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_sfida_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_sfida_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d04/d04_sfida_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/b01/d05b01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/b01/d05b01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/b01/d05b01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/b01/d05b01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/b01/d05b01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_1.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_2.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_3.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_4.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_5.stb": {
+   "recipes": [
+    4,
+    1,
+    4,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_sfida_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_sfida_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_sfida_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_sfida_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d05/d05_sfida_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b01/d06b01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b01/d06b01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b01/d06b01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b01/d06b01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b01/d06b01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b02/d06b02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b02/d06b02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b02/d06b02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b02/d06b02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b02/d06b02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b03/d06b03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b03/d06b03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b03/d06b03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b03/d06b03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/b03/d06b03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_sfida_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_sfida_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_sfida_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_sfida_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/d06_sfida_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/e01/d06e01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/e01/d06e01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/e01/d06e01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/e01/d06e01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d06/e01/d06e01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/b01/d07b01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/b01/d07b01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/b01/d07b01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/b01/d07b01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/b01/d07b01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_sfida_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_sfida_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_sfida_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_sfida_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/d/d07/d07_sfida_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f01/f01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f01/f01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f01/f01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f01/f01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f01/f01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/f02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/f02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/f02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/f02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/f02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i06/f02i06_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i06/f02i06_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i06/f02i06_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i06/f02i06_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i06/f02i06_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i07/f02i07_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i07/f02i07_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i07/f02i07_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i07/f02i07_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i07/f02i07_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i08/f02i08_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i08/f02i08_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i08/f02i08_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i08/f02i08_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f02/i08/f02i08_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/f03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/f03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/f03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/f03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/f03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0301_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0301_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0301_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0301_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0301_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0302_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0302_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0302_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0302_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0302_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0303_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0303_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0303_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0303_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0303_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0304_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0304_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0304_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0304_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i03/f03i0304_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i04/f03i04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i04/f03i04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i04/f03i04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i04/f03i04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f03/i04/f03i04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/f04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/f04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/f04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/f04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/f04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i03/f04i03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i03/f04i03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i03/f04i03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i03/f04i03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i03/f04i03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i04/f04i04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i04/f04i04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i04/f04i04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i04/f04i04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i04/f04i04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i05/f04i05_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i05/f04i05_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i05/f04i05_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i05/f04i05_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/f/f04/i05/f04i05_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g00/g00_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g00/g00_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g00/g00_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g00/g00_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g00/g00_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01c_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01c_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01c_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01c_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/g01c_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/i07/g01i07_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/i07/g01i07_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/i07/g01i07_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/i07/g01i07_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g01/i07/g01i07_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/g02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/g02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/g02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/g02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/g02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/i02/g02i02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/i02/g02i02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/i02/g02i02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/i02/g02i02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g02/i02/g02i02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g03/g03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    7,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g03/g03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    7,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g03/g03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    7,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g03/g03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    7,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g03/g03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    7,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g04/g04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g04/g04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g04/g04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g04/g04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g04/g04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g05/g05_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g05/g05_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g05/g05_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g05/g05_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/g/g05/g05_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01b_1.stb": {
+   "recipes": [
+    5,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01b_2.stb": {
+   "recipes": [
+    5,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01b_3.stb": {
+   "recipes": [
+    5,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01b_4.stb": {
+   "recipes": [
+    5,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01b_5.stb": {
+   "recipes": [
+    5,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01c_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01c_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01c_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01c_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h01/i01h01c_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h02/i01h02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h02/i01h02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h02/i01h02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h02/i01h02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h02/i01h02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h04/i01h04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h04/i01h04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h04/i01h04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h04/i01h04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h04/i01h04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h05/i01h05_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h05/i01h05_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h05/i01h05_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h05/i01h05_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h05/i01h05_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h06/i01h06_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h06/i01h06_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h06/i01h06_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h06/i01h06_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h06/i01h06_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h07/i01h07_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h07/i01h07_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h07/i01h07_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h07/i01h07_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i01/h07/i01h07_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h01/i02h01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h01/i02h01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h01/i02h01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h01/i02h01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h01/i02h01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h03/i02h03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h03/i02h03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h03/i02h03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h03/i02h03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i02/h03/i02h03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01a_1.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01a_2.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01a_3.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01a_4.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h01/i03h01a_5.stb": {
+   "recipes": [
+    5,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h02/i03h02b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h03/i03h03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h03/i03h03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h03/i03h03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h03/i03h03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h03/i03h03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h04/i03h04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h04/i03h04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h04/i03h04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h04/i03h04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h04/i03h04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h05/i03h05_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h05/i03h05_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h05/i03h05_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h05/i03h05_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i03/h05/i03h05_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01a_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01a_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01a_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01a_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01a_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01c_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01c_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01c_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01c_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01c_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01d_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01d_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01d_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01d_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01d_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01e_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01e_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01e_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01e_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01e_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01f_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01f_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01f_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01f_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h01/i04h01f_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02a_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02a_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02a_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02a_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02a_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h02/i04h02b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h03/i04h03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h03/i04h03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h03/i04h03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h03/i04h03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h03/i04h03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h05/i04h05_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h05/i04h05_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h05/i04h05_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h05/i04h05_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i04/h05/i04h05_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i05/h01/i05h01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i05/h01/i05h01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i05/h01/i05h01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i05/h01/i05h01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/i/i05/h01/i05h01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m01/m01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m01/m01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m01/m01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m01/m01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m01/m01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m03/m03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m03/m03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m03/m03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m03/m03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m03/m03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m06/m06_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m06/m06_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m06/m06_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m06/m06_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m06/m06_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m06/m06b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/m/m06/m06b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/m/m06/m06b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/m/m06/m06b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/m/m06/m06b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/m/m07/m07_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m07/m07_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m07/m07_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m07/m07_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m07/m07_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m08/m08_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m08/m08_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m08/m08_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m08/m08_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/m/m08/m08_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s01/s01_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s01/s01_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s01/s01_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s01/s01_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s01/s01_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s02/s02b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s03/s03_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/s/s03/s03_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/s/s03/s03_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/s/s03/s03_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/s/s03/s03_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 2,
+   "windows": 0
+  },
+  "map/s/s04/s04_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s04/s04_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s04/s04_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s04/s04_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s04/s04_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s05/s05b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06_1.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06_2.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06_3.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06_4.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06_5.stb": {
+   "recipes": [
+    4,
+    1,
+    3,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06b_1.stb": {
+   "recipes": [
+    5,
+    1,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06b_2.stb": {
+   "recipes": [
+    5,
+    1,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06b_3.stb": {
+   "recipes": [
+    5,
+    1,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06b_4.stb": {
+   "recipes": [
+    5,
+    1,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06b_5.stb": {
+   "recipes": [
+    5,
+    1,
+    6,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06c_1.stb": {
+   "recipes": [
+    7,
+    1,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06c_2.stb": {
+   "recipes": [
+    7,
+    1,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06c_3.stb": {
+   "recipes": [
+    7,
+    1,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06c_4.stb": {
+   "recipes": [
+    7,
+    1,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s06/s06c_5.stb": {
+   "recipes": [
+    7,
+    1,
+    5,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s07/s07_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s07/s07_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s07/s07_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s07/s07_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s07/s07_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s08/s08_1.stb": {
+   "recipes": [
+    5,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s08/s08_2.stb": {
+   "recipes": [
+    5,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s08/s08_3.stb": {
+   "recipes": [
+    5,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s08/s08_4.stb": {
+   "recipes": [
+    5,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s08/s08_5.stb": {
+   "recipes": [
+    5,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s09/s09_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s09/s09_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s09/s09_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s09/s09_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s09/s09_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s10/s10_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s10/s10_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s10/s10_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s10/s10_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s10/s10_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s11/s11_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s11/s11_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s11/s11_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s11/s11_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s11/s11_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s12/s12_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s12/s12_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s12/s12_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s12/s12_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s12/s12_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s13/s13_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s13/s13_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s13/s13_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s13/s13_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s13/s13_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s14/s14_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s14/s14_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s14/s14_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s14/s14_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s14/s14_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s15/s15_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s15/s15_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s15/s15_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s15/s15_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s15/s15_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s16/s16_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s16/s16_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s16/s16_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s16/s16_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s16/s16_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s17/s17_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s17/s17_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s17/s17_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s17/s17_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s17/s17_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s18/s18_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s18/s18_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s18/s18_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s18/s18_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s18/s18_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s19/s19_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s19/s19_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s19/s19_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s19/s19_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s19/s19_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s20/s20_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s20/s20_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s20/s20_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s20/s20_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s20/s20_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s21/s21_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s21/s21_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s21/s21_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s21/s21_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s21/s21_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s23/s23_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s23/s23_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s23/s23_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s23/s23_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s23/s23_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s26/s26_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s26/s26_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s26/s26_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s26/s26_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s26/s26_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s27/s27_1.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s27/s27_2.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s27/s27_3.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s27/s27_4.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s27/s27_5.stb": {
+   "recipes": [
+    4,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s29/s29_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s29/s29_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s29/s29_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s29/s29_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s29/s29_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s30/s30_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s30/s30_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s30/s30_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s30/s30_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s30/s30_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s31/s31_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s31/s31_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s31/s31_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s31/s31_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s31/s31_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s32/s32_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s32/s32_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s32/s32_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s32/s32_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s32/s32_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s33/s33_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s33/s33_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s33/s33_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s33/s33_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s33/s33_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s34/s34_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s34/s34_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s34/s34_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s34/s34_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s34/s34_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s35/s35_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s35/s35_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s35/s35_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s35/s35_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s35/s35_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s37/s37_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s37/s37_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s37/s37_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s37/s37_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s37/s37_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s38/s38_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s38/s38_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s38/s38_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s38/s38_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s38/s38_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s39/s39_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s39/s39_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s39/s39_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s39/s39_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s39/s39_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s40/s40_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s40/s40_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s40/s40_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s40/s40_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s40/s40_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s41/s41_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s41/s41_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s41/s41_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s41/s41_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s41/s41_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s42/s42_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s42/s42_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s42/s42_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s42/s42_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s42/s42_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43b_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43b_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43b_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43b_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s43/s43b_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s44/s44_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s44/s44_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s44/s44_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s44/s44_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s44/s44_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s45/s45_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s45/s45_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s45/s45_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s45/s45_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s45/s45_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s46/s46_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s46/s46_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s46/s46_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s46/s46_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s46/s46_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s47/s47_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s47/s47_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s47/s47_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s47/s47_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s47/s47_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s49/s49_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s49/s49_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s49/s49_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s49/s49_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s49/s49_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s50/s50_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s50/s50_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s50/s50_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s50/s50_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s50/s50_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s51/s51_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s51/s51_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s51/s51_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s51/s51_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s51/s51_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s52/s52_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s52/s52_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s52/s52_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s52/s52_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s52/s52_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s53/s53_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s53/s53_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s53/s53_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s53/s53_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s53/s53_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s54/s54_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s54/s54_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s54/s54_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s54/s54_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s54/s54_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s55/s55_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s55/s55_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s55/s55_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s55/s55_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s55/s55_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s56/s56_1.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s56/s56_2.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s56/s56_3.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s56/s56_4.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s56/s56_5.stb": {
+   "recipes": [
+    4,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s58/s58_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s58/s58_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s58/s58_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s58/s58_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s58/s58_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s59/s59_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s59/s59_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s59/s59_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s59/s59_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s59/s59_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s60/s60_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s60/s60_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s60/s60_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s60/s60_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s60/s60_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s61/s61_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s61/s61_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s61/s61_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s61/s61_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s61/s61_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s62/s62_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s62/s62_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s62/s62_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s62/s62_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s62/s62_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s63/s63_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s63/s63_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s63/s63_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s63/s63_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s63/s63_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s64/s64_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s64/s64_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s64/s64_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s64/s64_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s64/s64_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s65/s65_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s65/s65_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s65/s65_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s65/s65_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s65/s65_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s66/s66_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s66/s66_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s66/s66_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s66/s66_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s66/s66_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s67/s67_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s67/s67_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s67/s67_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s67/s67_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s67/s67_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s68/s68_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s68/s68_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s68/s68_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s68/s68_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s68/s68_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s69/s69_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s69/s69_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s69/s69_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s69/s69_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s69/s69_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s70/s70_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s70/s70_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s70/s70_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s70/s70_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s70/s70_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s71/s71_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s71/s71_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s71/s71_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s71/s71_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s71/s71_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s98/s98_1.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s98/s98_2.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s98/s98_3.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s98/s98_4.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  },
+  "map/s/s98/s98_5.stb": {
+   "recipes": [
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "anchors": 0,
+   "windows": 0
+  }
+ }
+}

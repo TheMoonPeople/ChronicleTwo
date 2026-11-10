@@ -1,0 +1,3653 @@
+{
+  "cameras": {
+    "cameras": [
+      {
+        "draw_groups": [
+          {
+            "group": "mado",
+            "index": 0,
+            "unk_4": 0
+          },
+          {
+            "group": "",
+            "index": 1,
+            "unk_4": 0
+          },
+          {
+            "group": "",
+            "index": 2,
+            "unk_4": 0
+          },
+          {
+            "group": "",
+            "index": 3,
+            "unk_4": 0
+          }
+        ],
+        "position": [
+          179.751,
+          53.8255,
+          59.8617
+        ],
+        "positions": [
+          {
+            "index": 0,
+            "position": [
+              179.751,
+              53.8255,
+              59.8617
+            ]
+          }
+        ],
+        "rects": [
+          {
+            "max": [
+              103.818,
+              125.569,
+              128.581
+            ],
+            "min": [
+              -103.818,
+              -20.0376,
+              -6.87092
+            ],
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "shape": "box"
+          }
+        ]
+      }
+    ],
+    "count": 1
+  },
+  "func_points": [
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 10.0,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p11_i05h01",
+        "piece_name": "i05h01_11-m0",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.5,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "une",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 1.0,
+        "end_y": 1.0,
+        "end_z": 1.0,
+        "frame_name": "cube257",
+        "kind": 3,
+        "mode": 4,
+        "param_x": 0.9,
+        "param_y": 0.9,
+        "param_z": 0.9,
+        "parts_name": "p11_i05h01",
+        "piece_name": "i05h01_11-m0",
+        "piece_space": 0,
+        "speed_x": 0.003,
+        "speed_y": 0.003,
+        "speed_z": 0.003,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "unee",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 3.0,
+        "end_z": 0.0,
+        "frame_name": "cube257",
+        "kind": 1,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p11_i05h01",
+        "piece_name": "i05h01_11-m0",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.02,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "uneee",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "enable": 1,
+      "event": {
+        "action": 1,
+        "arg1": 0,
+        "arg2": 0,
+        "arg3": 0,
+        "event_no": 0,
+        "item": 0,
+        "kind": "door",
+        "point_no": 0,
+        "target": "exit",
+        "unk_100": 1
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "func",
+      "transform": {
+        "position": [
+          79.2,
+          0.0,
+          3.0
+        ],
+        "rotation": [
+          0.0,
+          3.14,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "info": {
+    "active_light_set": 0,
+    "all_scissor": 0,
+    "chara_light_adjust": {
+      "mode": 0,
+      "value": [
+        0.3,
+        1.8,
+        0.44
+      ]
+    },
+    "chara_pos": [
+      65.0,
+      0.0,
+      10.0
+    ],
+    "def_foot": 3,
+    "floor": -10000.0,
+    "lens_flare": 1,
+    "light_sets": [
+      {
+        "ambient": [
+          45.0,
+          45.0,
+          35.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 0,
+        "lights": [
+          {
+            "color": [
+              100.0,
+              100.0,
+              85.0
+            ],
+            "direction": [
+              5.0,
+              10.0,
+              -20.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": [
+          {
+            "color": [
+              100.0,
+              95.0,
+              85.0
+            ],
+            "index": 0,
+            "position": [
+              -10.0,
+              60.0,
+              50.0
+            ],
+            "power": 50.0
+          }
+        ]
+      },
+      {
+        "ambient": [
+          45.0,
+          33.0,
+          20.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 1,
+        "lights": [
+          {
+            "color": [
+              100.0,
+              100.0,
+              85.0
+            ],
+            "direction": [
+              5.0,
+              10.0,
+              -20.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": [
+          {
+            "color": [
+              100.0,
+              95.0,
+              85.0
+            ],
+            "index": 0,
+            "position": [
+              -10.0,
+              60.0,
+              50.0
+            ],
+            "power": 50.0
+          }
+        ]
+      },
+      {
+        "ambient": [
+          25.0,
+          25.0,
+          40.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 2,
+        "lights": [
+          {
+            "color": [
+              100.0,
+              100.0,
+              85.0
+            ],
+            "direction": [
+              5.0,
+              10.0,
+              -20.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": [
+          {
+            "color": [
+              100.0,
+              95.0,
+              85.0
+            ],
+            "index": 0,
+            "position": [
+              -10.0,
+              60.0,
+              50.0
+            ],
+            "power": 50.0
+          }
+        ]
+      },
+      {
+        "ambient": [
+          33.0,
+          33.0,
+          33.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 3,
+        "lights": [
+          {
+            "color": [
+              100.0,
+              100.0,
+              85.0
+            ],
+            "direction": [
+              5.0,
+              10.0,
+              -20.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": [
+          {
+            "color": [
+              100.0,
+              95.0,
+              85.0
+            ],
+            "index": 0,
+            "position": [
+              -10.0,
+              60.0,
+              50.0
+            ],
+            "power": 50.0
+          }
+        ]
+      }
+    ],
+    "model_packs": [
+      "i05h01_0.pcp"
+    ],
+    "sky": {
+      "height": 0.0,
+      "info": 0,
+      "sun_angle_degrees": 0.0
+    },
+    "texture_packs": [
+      "i05h01.json"
+    ],
+    "time": {
+      "blend": 0,
+      "enable": 1,
+      "fixed_time": 12.0,
+      "fixed_time_enable": 0
+    },
+    "time_cfade": 1,
+    "time_light_num": 4
+  },
+  "kind": "scene_map",
+  "parts": [
+    {
+      "func_points": [
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.9
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-0",
+          "transform": {
+            "position": [
+              -31.7552,
+              73.5362,
+              42.2434
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.0,
+              2.0,
+              2.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.9
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-1",
+          "transform": {
+            "position": [
+              -32.3423,
+              68.2524,
+              70.9126
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.9
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-2",
+          "transform": {
+            "position": [
+              33.7369,
+              68.2524,
+              70.9126
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-4",
+          "transform": {
+            "position": [
+              -71.361,
+              45.6988,
+              85.0767
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-3",
+          "transform": {
+            "position": [
+              -71.361,
+              42.5676,
+              77.0014
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 7.03101,
+            "max_y": 18.8112,
+            "max_z": 5.96244,
+            "min_x": -7.03101,
+            "min_y": -18.8112,
+            "min_z": -5.96245,
+            "neta_no": 60,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_60-1",
+          "transform": {
+            "position": [
+              -32.3996,
+              18.5089,
+              13.7329
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 4.47767,
+            "max_y": 6.08587,
+            "max_z": 4.13057,
+            "min_x": -4.47766,
+            "min_y": -6.08587,
+            "min_z": -4.13057,
+            "neta_no": 61,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_61-1",
+          "transform": {
+            "position": [
+              -7.67033,
+              25.4141,
+              7.58381
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.2066,
+            "max_y": 6.15597,
+            "max_z": 12.477,
+            "min_x": -12.2066,
+            "min_y": -6.15597,
+            "min_z": -12.477,
+            "neta_no": 19,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_19-2",
+          "transform": {
+            "position": [
+              83.3314,
+              5.08335,
+              81.2674
+            ],
+            "rotation": [
+              0.0,
+              -2.76,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 21.7943,
+            "max_y": 7.9097,
+            "max_z": 9.39206,
+            "min_x": -21.7943,
+            "min_y": -9.56455,
+            "min_z": -9.39206,
+            "neta_no": 19,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_19-1",
+          "transform": {
+            "position": [
+              -73.7139,
+              8.49192,
+              11.9354
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 7.46064,
+            "max_y": 8.57308,
+            "max_z": 9.03083,
+            "min_x": -7.46063,
+            "min_y": -8.57308,
+            "min_z": -9.03083,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-6",
+          "transform": {
+            "position": [
+              -71.3943,
+              22.3063,
+              101.764
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 3.71357,
+            "max_y": 7.04916,
+            "max_z": 3.87873,
+            "min_x": -3.71357,
+            "min_y": -7.04916,
+            "min_z": -3.87872,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-5",
+          "transform": {
+            "position": [
+              -49.4578,
+              5.97653,
+              95.4184
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 3.58452,
+            "max_y": 7.04916,
+            "max_z": 3.74394,
+            "min_x": -3.58453,
+            "min_y": -7.04916,
+            "min_z": -3.74395,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-4",
+          "transform": {
+            "position": [
+              -71.3551,
+              5.97653,
+              53.4826
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 6.03986,
+            "max_y": 9.17682,
+            "max_z": 6.30848,
+            "min_x": -6.03986,
+            "min_y": -9.17682,
+            "min_z": -6.30847,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-3",
+          "transform": {
+            "position": [
+              -70.6013,
+              12.4777,
+              33.1034
+            ],
+            "rotation": [
+              0.0,
+              1.35157,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 36.7436,
+            "max_y": 14.9155,
+            "max_z": 7.65196,
+            "min_x": -33.1879,
+            "min_y": -8.69651,
+            "min_z": -12.6695,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-2",
+          "transform": {
+            "position": [
+              66.6381,
+              7.62389,
+              108.267
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 35.5412,
+            "max_y": 14.8862,
+            "max_z": 9.25686,
+            "min_x": -29.0625,
+            "min_y": -8.69651,
+            "min_z": -10.1505,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-1",
+          "transform": {
+            "position": [
+              32.148,
+              7.62389,
+              86.9403
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 7.22274,
+            "max_y": 7.76859,
+            "max_z": 6.08428,
+            "min_x": -7.22274,
+            "min_y": -7.76859,
+            "min_z": -6.08429,
+            "neta_no": 63,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_63-4",
+          "transform": {
+            "position": [
+              0.151714,
+              63.4311,
+              10.3608
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 10.789,
+            "max_y": 6.46034,
+            "max_z": 6.11478,
+            "min_x": -10.789,
+            "min_y": -6.46034,
+            "min_z": -6.11478,
+            "neta_no": 63,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_63-3",
+          "transform": {
+            "position": [
+              49.0207,
+              60.6072,
+              8.11192
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 7.98949,
+            "max_y": 3.88879,
+            "max_z": 5.62308,
+            "min_x": -7.98949,
+            "min_y": -3.88879,
+            "min_z": -5.62308,
+            "neta_no": 63,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_63-2",
+          "transform": {
+            "position": [
+              8.99347,
+              16.5181,
+              7.62023
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.6982,
+            "max_y": 22.2935,
+            "max_z": 4.53296,
+            "min_x": -12.6982,
+            "min_y": -22.2935,
+            "min_z": -4.53296,
+            "neta_no": 63,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_63-1",
+          "transform": {
+            "position": [
+              -95.8785,
+              27.2738,
+              40.9411
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 6.90237,
+            "max_y": 5.87106,
+            "max_z": 6.72073,
+            "min_x": -6.90238,
+            "min_y": -5.87106,
+            "min_z": -6.72072,
+            "neta_no": 49,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_49-2",
+          "transform": {
+            "position": [
+              80.5917,
+              28.0807,
+              77.22
+            ],
+            "rotation": [
+              0.0,
+              -2.66159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 3.36094,
+            "max_y": 9.76999,
+            "max_z": 3.36865,
+            "min_x": -3.36094,
+            "min_y": -9.76999,
+            "min_z": -3.36865,
+            "neta_no": 49,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_49-1",
+          "transform": {
+            "position": [
+              -32.8263,
+              28.8112,
+              111.89
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 15.9495,
+            "max_y": 27.3992,
+            "max_z": 3.37339,
+            "min_x": -15.9495,
+            "min_y": -27.3992,
+            "min_z": -3.37339,
+            "neta_no": 11,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_11-7",
+          "transform": {
+            "position": [
+              -64.216,
+              87.4281,
+              118.31
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 15.9495,
+            "max_y": 27.3992,
+            "max_z": 3.37339,
+            "min_x": -15.9495,
+            "min_y": -27.3992,
+            "min_z": -3.37339,
+            "neta_no": 11,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_11-6",
+          "transform": {
+            "position": [
+              0.30982,
+              87.4281,
+              118.31
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 15.9495,
+            "max_y": 27.3992,
+            "max_z": 3.3734,
+            "min_x": -15.9495,
+            "min_y": -27.3992,
+            "min_z": -3.37339,
+            "neta_no": 11,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_11-5",
+          "transform": {
+            "position": [
+              66.0211,
+              87.4281,
+              118.31
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.6984,
+            "max_y": 13.44,
+            "max_z": 3.37339,
+            "min_x": -12.6985,
+            "min_y": -13.44,
+            "min_z": -3.37339,
+            "neta_no": 11,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_11-4",
+          "transform": {
+            "position": [
+              99.9551,
+              37.6564,
+              89.9481
+            ],
+            "rotation": [
+              0.0,
+              -1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.6985,
+            "max_y": 13.44,
+            "max_z": 3.37339,
+            "min_x": -12.6985,
+            "min_y": -13.44,
+            "min_z": -3.37339,
+            "neta_no": 11,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_11-3",
+          "transform": {
+            "position": [
+              99.9551,
+              37.6564,
+              30.3697
+            ],
+            "rotation": [
+              0.0,
+              -1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.6985,
+            "max_y": 13.44,
+            "max_z": 3.37339,
+            "min_x": -12.6985,
+            "min_y": -13.44,
+            "min_z": -3.37339,
+            "neta_no": 11,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_11-2",
+          "transform": {
+            "position": [
+              0.0642335,
+              37.6564,
+              -0.0212463
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.6985,
+            "max_y": 13.44,
+            "max_z": 3.37339,
+            "min_x": -12.6985,
+            "min_y": -13.44,
+            "min_z": -3.37339,
+            "neta_no": 11,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_11-1",
+          "transform": {
+            "position": [
+              -66.8882,
+              37.6564,
+              -0.0212463
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 11.1601,
+            "max_y": 4.77785,
+            "max_z": 10.2406,
+            "min_x": -11.16,
+            "min_y": -4.77786,
+            "min_z": -10.2406,
+            "neta_no": 6,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_6-1",
+          "transform": {
+            "position": [
+              -31.683,
+              75.2666,
+              42.1713
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 2.82023,
+            "max_y": 5.31491,
+            "max_z": 2.73521,
+            "min_x": -2.82023,
+            "min_y": -5.31491,
+            "min_z": -2.73521,
+            "neta_no": 6,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_6-2",
+          "transform": {
+            "position": [
+              -32.5948,
+              70.6315,
+              70.7784
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 2.82023,
+            "max_y": 5.31491,
+            "max_z": 2.73521,
+            "min_x": -2.82023,
+            "min_y": -5.31491,
+            "min_z": -2.73521,
+            "neta_no": 6,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_6-3",
+          "transform": {
+            "position": [
+              33.8264,
+              70.6315,
+              70.7784
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 5.75991,
+            "max_y": 4.96491,
+            "max_z": 4.85203,
+            "min_x": -5.75991,
+            "min_y": -4.96492,
+            "min_z": -4.85203,
+            "neta_no": 54,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_54-1",
+          "transform": {
+            "position": [
+              19.8199,
+              60.1012,
+              10.8467
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 13.657,
+            "max_y": 6.61523,
+            "max_z": 4.68391,
+            "min_x": -13.657,
+            "min_y": -6.61523,
+            "min_z": -4.68391,
+            "neta_no": 71,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_71-1",
+          "transform": {
+            "position": [
+              30.7319,
+              41.3341,
+              4.72198
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 6.11545,
+            "max_y": 8.29152,
+            "max_z": 4.5516,
+            "min_x": -6.11545,
+            "min_y": -8.29152,
+            "min_z": -4.55161,
+            "neta_no": 71,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_71-2",
+          "transform": {
+            "position": [
+              91.9889,
+              11.6474,
+              50.5166
+            ],
+            "rotation": [
+              0.0,
+              -1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 17.2306,
+            "max_y": 9.01809,
+            "max_z": 32.1104,
+            "min_x": -17.2306,
+            "min_y": -5.05035,
+            "min_z": -32.1104,
+            "neta_no": 74,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_74-1",
+          "transform": {
+            "position": [
+              2.56109,
+              6.26591,
+              87.513
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.5175,
+            "max_y": 12.4274,
+            "max_z": 0.383367,
+            "min_x": -12.5175,
+            "min_y": -12.4274,
+            "min_z": -0.383372,
+            "neta_no": 78,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_78-1",
+          "transform": {
+            "position": [
+              -99.8994,
+              52.034,
+              78.0132
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.5175,
+            "max_y": 12.4274,
+            "max_z": 0.383369,
+            "min_x": -12.5175,
+            "min_y": -12.4274,
+            "min_z": -0.38337,
+            "neta_no": 78,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_78-2",
+          "transform": {
+            "position": [
+              -99.8994,
+              88.1904,
+              36.1762
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 12.5175,
+            "max_y": 12.4274,
+            "max_z": 0.383369,
+            "min_x": -12.5175,
+            "min_y": -12.4274,
+            "min_z": -0.38337,
+            "neta_no": 78,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_78-3",
+          "transform": {
+            "position": [
+              -55.9901,
+              69.2893,
+              0.00624128
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 3.69636,
+            "max_y": 12.4672,
+            "max_z": 2.07811,
+            "min_x": -3.69636,
+            "min_y": -12.4672,
+            "min_z": -2.07813,
+            "neta_no": 138,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_138-1",
+          "transform": {
+            "position": [
+              -58.136,
+              11.3945,
+              117.505
+            ],
+            "rotation": [
+              0.0,
+              3.14159,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 7.65893,
+            "max_y": 8.57308,
+            "max_z": 12.0411,
+            "min_x": -7.65892,
+            "min_y": -8.57308,
+            "min_z": -12.0411,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-7",
+          "transform": {
+            "position": [
+              -71.3421,
+              9.21898,
+              88.8744
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "invent": {
+            "angle_degrees": 0.0,
+            "max_x": 7.65892,
+            "max_y": 1.69892,
+            "max_z": 7.6148,
+            "min_x": -7.65892,
+            "min_y": -1.69892,
+            "min_z": -7.61479,
+            "neta_no": 62,
+            "range": 0.0,
+            "unk_24": 0
+          },
+          "name": "invent_62-8",
+          "transform": {
+            "position": [
+              -71.4189,
+              15.5644,
+              76.8447
+            ],
+            "rotation": [
+              0.0,
+              1.5708,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "invent"
+        },
+        {
+          "enable": 1,
+          "event": {
+            "action": 1,
+            "arg1": 2,
+            "arg2": 275,
+            "arg3": -1,
+            "event_no": 1,
+            "item": 0,
+            "kind": "book",
+            "point_no": 0,
+            "target": "",
+            "unk_100": 1
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "paper01",
+          "transform": {
+            "position": [
+              -53.6685,
+              0.0,
+              27.7067
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "event"
+        },
+        {
+          "enable": 1,
+          "event": {
+            "action": 1,
+            "arg1": 0,
+            "arg2": 257,
+            "arg3": -1,
+            "event_no": 1,
+            "item": 0,
+            "kind": "book",
+            "point_no": 0,
+            "target": "",
+            "unk_100": 1
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "book01",
+          "transform": {
+            "position": [
+              30.3063,
+              0.0,
+              6.88552
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "event"
+        },
+        {
+          "enable": 1,
+          "event": {
+            "action": 1,
+            "arg1": 0,
+            "arg2": 159,
+            "arg3": -1,
+            "event_no": 1,
+            "item": 0,
+            "kind": "book",
+            "point_no": 0,
+            "target": "",
+            "unk_100": 1
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "book02",
+          "transform": {
+            "position": [
+              -31.5687,
+              0.0,
+              104.338
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "event"
+        },
+        {
+          "enable": 1,
+          "event": {
+            "action": 1,
+            "arg1": 0,
+            "arg2": 253,
+            "arg3": -1,
+            "event_no": 1,
+            "item": 0,
+            "kind": "book",
+            "point_no": 0,
+            "target": "",
+            "unk_100": 1
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "book03",
+          "transform": {
+            "position": [
+              84.4031,
+              0.0,
+              50.8876
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "type": "event"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p01_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_01-a.gltf",
+          "name": "i05h01_01-a0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_01-m.gltf",
+          "name": "i05h01_01-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_13-m.gltf",
+          "name": "i05h01_13-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            9.0,
+            17.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_14-m.gltf",
+          "name": "i05h01_14-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            17.0,
+            21.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_15-m.gltf",
+          "name": "i05h01_15-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            21.0,
+            6.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_16-m.gltf",
+          "name": "i05h01_16-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            6.0,
+            9.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p02_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_02-m.gltf",
+          "name": "i05h01_02-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p03_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_03-m.gltf",
+          "name": "i05h01_03-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p09_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_09-m.gltf",
+          "name": "i05h01_09-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_09-m.gltf",
+          "name": "i05h01_09-m1",
+          "position": [
+            66.1307,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p05_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_05-m.gltf",
+          "name": "i05h01_05-m4",
+          "position": [
+            2.25049,
+            17.6125,
+            6.26223
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_05-m.gltf",
+          "name": "i05h01_05-m3",
+          "position": [
+            -93.6272,
+            26.6918,
+            31.7854
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_05-m.gltf",
+          "name": "i05h01_05-m2",
+          "position": [
+            -93.6272,
+            32.1713,
+            46.0711
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_05-m.gltf",
+          "name": "i05h01_05-m1",
+          "position": [
+            -93.6272,
+            9.86206,
+            46.0711
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_05-m.gltf",
+          "name": "i05h01_05-m0",
+          "position": [
+            -93.6272,
+            42.9345,
+            53.4096
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p06_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_06-m.gltf",
+          "name": "i05h01_06-m3",
+          "position": [
+            8.17927,
+            17.5641,
+            3.66318
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_06-m.gltf",
+          "name": "i05h01_06-m2",
+          "position": [
+            -96.8872,
+            9.83414,
+            51.0649
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_06-m.gltf",
+          "name": "i05h01_06-m1",
+          "position": [
+            -96.4066,
+            27.0553,
+            26.5294
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_06-m.gltf",
+          "name": "i05h01_06-m0",
+          "position": [
+            -96.4066,
+            48.5817,
+            29.6605
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p07_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_07-m.gltf",
+          "name": "i05h01_07-m2",
+          "position": [
+            15.4313,
+            17.5147,
+            8.73383
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_07-m.gltf",
+          "name": "i05h01_07-m1",
+          "position": [
+            -92.9346,
+            9.68689,
+            55.0156
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_07-m.gltf",
+          "name": "i05h01_07-m0",
+          "position": [
+            -92.9346,
+            32.1918,
+            51.8844
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_07-m.gltf",
+          "name": "i05h01_07-m3",
+          "position": [
+            58.0803,
+            60.6749,
+            4.06678
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p08_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_08-m.gltf",
+          "name": "i05h01_08-m4",
+          "position": [
+            5.84727,
+            17.4704,
+            11.6112
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_08-m.gltf",
+          "name": "i05h01_08-m3",
+          "position": [
+            -93.4514,
+            9.74044,
+            36.7434
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_08-m.gltf",
+          "name": "i05h01_08-m2",
+          "position": [
+            -96.3868,
+            9.74044,
+            30.6769
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_08-m.gltf",
+          "name": "i05h01_08-m1",
+          "position": [
+            -95.8976,
+            26.7659,
+            36.5478
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_08-m.gltf",
+          "name": "i05h01_08-m0",
+          "position": [
+            -95.8976,
+            43.0085,
+            46.626
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_08-m.gltf",
+          "name": "i05h01_08-m5",
+          "position": [
+            50.1951,
+            60.6708,
+            11.6218
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p04_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_04-m.gltf",
+          "name": "i05h01_04-m1",
+          "position": [
+            -49.5814,
+            0.0,
+            95.3667
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_04-m.gltf",
+          "name": "i05h01_04-m0",
+          "position": [
+            -71.3325,
+            0.0,
+            53.4826
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p11_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_11-m.gltf",
+          "name": "i05h01_11-m0",
+          "position": [
+            40.5088,
+            65.9491,
+            9.58904
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p12_i05h01",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "i05h01_12-m.gltf",
+          "name": "i05h01_12-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "definition": "p01_i05h01",
+      "group": "",
+      "name": "p01_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p02_i05h01",
+      "group": "",
+      "name": "p02_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p03_i05h01",
+      "group": "",
+      "name": "p03_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p11_i05h01",
+      "group": "",
+      "name": "p11_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p09_i05h01",
+      "group": "",
+      "name": "p09_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p05_i05h01",
+      "group": "",
+      "name": "p05_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p06_i05h01",
+      "group": "",
+      "name": "p06_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p07_i05h01",
+      "group": "",
+      "name": "p07_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p08_i05h01",
+      "group": "",
+      "name": "p08_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p04_i05h01",
+      "group": "",
+      "name": "p04_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p12_i05h01",
+      "group": "mado",
+      "name": "p12_i05h01",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    }
+  ],
+  "schema_version": 2
+}

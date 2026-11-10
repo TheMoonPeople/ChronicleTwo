@@ -1,0 +1,47 @@
+{
+  "entries": [
+    {
+      "index": 0,
+      "volume": 61
+    },
+    {
+      "index": 1,
+      "volume": 54
+    },
+    {
+      "index": 2,
+      "volume": 56
+    },
+    {
+      "index": 3,
+      "volume": 59
+    },
+    {
+      "index": 4,
+      "volume": 60
+    },
+    {
+      "index": 5,
+      "volume": 61
+    },
+    {
+      "index": 6,
+      "volume": 36
+    },
+    {
+      "index": 7,
+      "volume": 39
+    },
+    {
+      "index": 8,
+      "volume": 41
+    },
+    {
+      "index": 9,
+      "volume": 0
+    }
+  ],
+  "kind": "sound_volume",
+  "reverb": [],
+  "schema_version": 1
+}

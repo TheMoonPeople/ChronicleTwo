@@ -1,0 +1,431 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "exchange_glances": {
+      "type": "string",
+      "value": "見合わせる"
+    },
+    "exchange_glances_loop": {
+      "type": "string",
+      "value": "見合わせるループ"
+    },
+    "exchange_glances_return": {
+      "type": "string",
+      "value": "見合わせ戻り"
+    },
+    "idle": {
+      "type": "string",
+      "value": "立ち"
+    },
+    "talk_1": {
+      "type": "string",
+      "value": "会話１"
+    },
+    "talk_2": {
+      "type": "string",
+      "value": "会話２"
+    },
+    "turn_head": {
+      "type": "string",
+      "value": "振り向く"
+    },
+    "turn_head_loop_2": {
+      "type": "string",
+      "value": "振り向くループ"
+    },
+    "turn_head_return": {
+      "type": "string",
+      "value": "振り向く戻り"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "ジャミング孫"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 1,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "body"
+            },
+            {
+              "type": "string",
+              "value": "parts"
+            },
+            {
+              "type": "string",
+              "value": "ha"
+            },
+            {
+              "type": "string",
+              "value": "kao"
+            },
+            {
+              "type": "string",
+              "value": "skin2"
+            }
+          ],
+          "command": "VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "kage"
+            }
+          ],
+          "command": "SHADOW_VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "kao"
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin2"
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "index": 1,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 18.0
+            },
+            {
+              "type": "float",
+              "value": 4.0
+            },
+            {
+              "type": "float",
+              "value": 50.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1762
+            },
+            {
+              "type": "int",
+              "value": 105
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SCALE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "string",
+              "value": "chn17"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "string",
+              "value": "ground"
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 1,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "index": 1,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_head"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_head_loop_2"
+            },
+            {
+              "type": "float",
+              "value": 0.05000000074505806
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_head_return"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "talk_1"
+            },
+            {
+              "type": "float",
+              "value": 0.44999998807907104
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "talk_2"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "exchange_glances"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "exchange_glances_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.05000000074505806
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "exchange_glances_return"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

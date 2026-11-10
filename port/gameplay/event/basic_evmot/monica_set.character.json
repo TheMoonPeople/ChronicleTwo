@@ -1,0 +1,315 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "face_left": {
+      "type": "string",
+      "value": "左向く"
+    },
+    "face_left_loop": {
+      "type": "string",
+      "value": "左向くL"
+    },
+    "face_left_nod": {
+      "type": "string",
+      "value": "左向くうなづき"
+    },
+    "face_left_return": {
+      "type": "string",
+      "value": "左向く戻り"
+    },
+    "face_left_talk": {
+      "type": "string",
+      "value": "左向く会話"
+    },
+    "face_right": {
+      "type": "string",
+      "value": "右向く"
+    },
+    "face_right_loop": {
+      "type": "string",
+      "value": "右向くL"
+    },
+    "face_right_nod": {
+      "type": "string",
+      "value": "右向くうなづき"
+    },
+    "face_right_return": {
+      "type": "string",
+      "value": "右向く戻り"
+    },
+    "face_right_talk": {
+      "type": "string",
+      "value": "右向く会話"
+    },
+    "face_up": {
+      "type": "string",
+      "value": "上向く"
+    },
+    "face_up_loop": {
+      "type": "string",
+      "value": "上向くL"
+    },
+    "face_up_return": {
+      "type": "string",
+      "value": "上向く戻り"
+    },
+    "nod": {
+      "type": "string",
+      "value": "うなづく"
+    },
+    "talk_facing_up": {
+      "type": "string",
+      "value": "上向く会話"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "モニカイベントセット"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 7
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "nod"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_right"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_right_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.029999999329447746
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_right_talk"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_right_nod"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_right_return"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_left"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_left_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.029999999329447746
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_left_talk"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_left_nod"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_left_return"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_up"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_up_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.029999999329447746
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "talk_facing_up"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face_up_return"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

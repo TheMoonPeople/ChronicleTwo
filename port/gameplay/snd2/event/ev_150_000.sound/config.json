@@ -1,0 +1,62 @@
+{
+  "entries": [
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    }
+  ],
+  "entry_count": 10,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

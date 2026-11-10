@@ -1,0 +1,2983 @@
+{
+  "func_points": [
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-10",
+      "transform": {
+        "position": [
+          76.6444,
+          84.0,
+          116.0
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 3,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-9",
+      "transform": {
+        "position": [
+          76.6444,
+          84.0,
+          60.0
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 3,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-8",
+      "transform": {
+        "position": [
+          76.6444,
+          84.0,
+          172.0
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 3,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-6",
+      "transform": {
+        "position": [
+          -76.6444,
+          84.0,
+          116.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-5",
+      "transform": {
+        "position": [
+          -76.6444,
+          84.0,
+          60.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-4",
+      "transform": {
+        "position": [
+          -76.6444,
+          84.0,
+          172.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-7",
+      "transform": {
+        "position": [
+          -27.0,
+          101.318,
+          242.244
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-11",
+      "transform": {
+        "position": [
+          27.0,
+          100.489,
+          242.244
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-17",
+      "transform": {
+        "position": [
+          -76.6444,
+          84.0,
+          -116.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-18",
+      "transform": {
+        "position": [
+          -76.6444,
+          84.0,
+          -60.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-19",
+      "transform": {
+        "position": [
+          -76.6444,
+          84.0,
+          -172.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-14",
+      "transform": {
+        "position": [
+          76.6444,
+          84.0,
+          -60.0
+        ],
+        "rotation": [
+          0.0,
+          -3.14159,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": -3,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-15",
+      "transform": {
+        "position": [
+          76.6444,
+          84.0,
+          -172.0
+        ],
+        "rotation": [
+          0.0,
+          -3.14159,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": -3,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-13",
+      "transform": {
+        "position": [
+          76.6444,
+          84.0,
+          -116.0
+        ],
+        "rotation": [
+          0.0,
+          -3.14159,
+          0.0
+        ],
+        "scale": [
+          0.950223,
+          0.950223,
+          0.950223
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-21",
+      "transform": {
+        "position": [
+          -52.0,
+          128.15,
+          250.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.45154,
+          1.45154,
+          1.45154
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.4,
+        "cast_light": 0,
+        "effect": 1,
+        "green": 0.6,
+        "heat_haze": 0,
+        "red": 0.8
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flare-20",
+      "transform": {
+        "position": [
+          52.0,
+          128.15,
+          250.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.45154,
+          1.45154,
+          1.45154
+        ]
+      },
+      "type": "flare"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 9.0,
+        "flag_no": 0,
+        "start": 6.0,
+        "unk_8": 0
+      },
+      "name": "func11",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 9.0,
+        "flag_no": 0,
+        "start": 6.0,
+        "unk_8": 0
+      },
+      "name": "func0",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 9.0,
+        "flag_no": 0,
+        "start": 6.0,
+        "unk_8": 0
+      },
+      "name": "func1",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          -115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 17.0,
+        "flag_no": 0,
+        "start": 9.0,
+        "unk_8": 0
+      },
+      "name": "func2",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 17.0,
+        "flag_no": 0,
+        "start": 9.0,
+        "unk_8": 0
+      },
+      "name": "func3",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 17.0,
+        "flag_no": 0,
+        "start": 9.0,
+        "unk_8": 0
+      },
+      "name": "func4",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          -115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 21.0,
+        "flag_no": 0,
+        "start": 17.0,
+        "unk_8": 0
+      },
+      "name": "func5",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 21.0,
+        "flag_no": 0,
+        "start": 17.0,
+        "unk_8": 0
+      },
+      "name": "func6",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 21.0,
+        "flag_no": 0,
+        "start": 17.0,
+        "unk_8": 0
+      },
+      "name": "func7",
+      "plight": {
+        "blue": 189.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 199.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 40.0,
+        "red": 209.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          -115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 6.0,
+        "flag_no": 0,
+        "start": 21.0,
+        "unk_8": 0
+      },
+      "name": "func8",
+      "plight": {
+        "blue": 180.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 190.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 50.0,
+        "red": 230.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 6.0,
+        "flag_no": 0,
+        "start": 21.0,
+        "unk_8": 0
+      },
+      "name": "func9",
+      "plight": {
+        "blue": 180.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 190.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 50.0,
+        "red": 230.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 6.0,
+        "flag_no": 0,
+        "start": 21.0,
+        "unk_8": 0
+      },
+      "name": "func10",
+      "plight": {
+        "blue": 180.0,
+        "flicker_depth": 0.0,
+        "flicker_period": 0.0,
+        "flicker_type": 0,
+        "green": 190.0,
+        "light_chara": 1,
+        "light_type": 2,
+        "no_map_light": 0,
+        "power": 50.0,
+        "red": 230.0,
+        "unk_40": 1,
+        "unk_44": 0
+      },
+      "transform": {
+        "position": [
+          0.0,
+          100.0,
+          -115.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "plight"
+    },
+    {
+      "enable": 1,
+      "event": {
+        "action": 1,
+        "arg1": 0,
+        "arg2": 23,
+        "arg3": 207,
+        "event_no": 1,
+        "item": 0,
+        "kind": "door",
+        "point_no": 202,
+        "target": "",
+        "unk_100": 1
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "door04",
+      "transform": {
+        "position": [
+          -4.0,
+          36.0,
+          252.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "enable": 1,
+      "event": {
+        "action": 1,
+        "arg1": 0,
+        "arg2": 23,
+        "arg3": 208,
+        "event_no": 1,
+        "item": 0,
+        "kind": "door",
+        "point_no": 203,
+        "target": "",
+        "unk_100": 1
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "door03",
+      "transform": {
+        "position": [
+          3.84,
+          36.0,
+          -252.0
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "enable": 1,
+      "event": {
+        "action": 1,
+        "arg1": 0,
+        "arg2": 3,
+        "arg3": 205,
+        "event_no": 1,
+        "item": 0,
+        "kind": "door",
+        "point_no": 200,
+        "target": "exit",
+        "unk_100": 1
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "door02",
+      "transform": {
+        "position": [
+          -79.0,
+          36.0,
+          -3.2
+        ],
+        "rotation": [
+          0.0,
+          -1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "enable": 1,
+      "event": {
+        "action": 1,
+        "arg1": 0,
+        "arg2": 3,
+        "arg3": 206,
+        "event_no": 1,
+        "item": 0,
+        "kind": "door",
+        "point_no": 201,
+        "target": "exit",
+        "unk_100": 1
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "door01",
+      "transform": {
+        "position": [
+          79.0,
+          36.0,
+          3.2
+        ],
+        "rotation": [
+          0.0,
+          1.5708,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "info": {
+    "active_light_set": 1,
+    "all_scissor": 0,
+    "chara_light_adjust": {
+      "mode": 0,
+      "value": [
+        0.3,
+        1.8,
+        0.44
+      ]
+    },
+    "chara_pos": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "def_foot": 4,
+    "floor": -10000.0,
+    "lens_flare": 1,
+    "light_sets": [
+      {
+        "ambient": [
+          40.0,
+          35.0,
+          25.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 0,
+        "lights": [],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          33.0,
+          18.0,
+          15.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 1,
+        "lights": [],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          23.0,
+          23.0,
+          28.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 2,
+        "lights": [],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          30.0,
+          25.0,
+          25.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 3,
+        "lights": [],
+        "point_lights": []
+      }
+    ],
+    "model_packs": [
+      "s07_0.pcp"
+    ],
+    "sky": {
+      "height": 0.0,
+      "info": 0,
+      "sun_angle_degrees": 0.0
+    },
+    "texture_packs": [
+      "train_in_01.json"
+    ],
+    "time": {
+      "blend": 0,
+      "enable": 1,
+      "fixed_time": 12.0,
+      "fixed_time_enable": 0
+    },
+    "time_cfade": 1,
+    "time_light_num": 4
+  },
+  "kind": "scene_map",
+  "parts": [
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p02_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_02-m.gltf",
+          "name": "train_in_02-m3",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            -3.14159,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_02-m.gltf",
+          "name": "train_in_02-m2",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_02-m.gltf",
+          "name": "train_in_02-m1",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            -3.14159,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_02-m.gltf",
+          "name": "train_in_02-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "func_points": [
+        {
+          "anime": {
+            "end_x": 128.0,
+            "end_y": 128.0,
+            "end_z": 128.0,
+            "frame_name": "yajirusi",
+            "kind": 4,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p01_train_in",
+            "piece_name": "train_in_01-m",
+            "piece_space": 0,
+            "speed_x": 6.0,
+            "speed_y": 6.0,
+            "speed_z": 6.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 0.0,
+            "frame_name": "hariL",
+            "kind": 2,
+            "mode": 8,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p01_train_in",
+            "piece_name": "hari01-m",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func0",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 0.0,
+            "frame_name": "hariS",
+            "kind": 2,
+            "mode": 9,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p01_train_in",
+            "piece_name": "hari01-m",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func1",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p01_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_01-m.gltf",
+          "name": "train_in_01-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_01-a.gltf",
+          "name": "train_in_01-a",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "hari01-m.gltf",
+          "name": "hari01-m",
+          "position": [
+            0.0,
+            116.04,
+            243.911
+          ],
+          "rotation": [
+            1.5708,
+            -3.14159,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "func_points": [
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.4,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.8
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-2",
+          "transform": {
+            "position": [
+              0.0,
+              116.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.69803,
+              2.69803,
+              2.69803
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.4,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.8
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-1",
+          "transform": {
+            "position": [
+              0.0,
+              116.0,
+              115.316
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.69803,
+              2.69803,
+              2.69803
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.4,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.8
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-3",
+          "transform": {
+            "position": [
+              0.0,
+              116.0,
+              -115.316
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.69803,
+              2.69803,
+              2.69803
+            ]
+          },
+          "type": "flare"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p03_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_03-m.gltf",
+          "name": "train_in_03-m",
+          "position": [
+            0.0,
+            128.854,
+            -115.316
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_03-m.gltf",
+          "name": "train_in_03-m2",
+          "position": [
+            0.0,
+            128.854,
+            115.316
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_03-m.gltf",
+          "name": "train_in_03-m1",
+          "position": [
+            0.0,
+            128.854,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p04_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_04-m.gltf",
+          "name": "train_in_04-m",
+          "position": [
+            52.0,
+            56.0,
+            250.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_04-m.gltf",
+          "name": "train_in_04-m1",
+          "position": [
+            -52.0,
+            56.0,
+            250.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p05_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_05-m.gltf",
+          "name": "train_in_05-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_05-m.gltf",
+          "name": "train_in_05-m3",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_05-m.gltf",
+          "name": "train_in_05-m2",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            -3.14159,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_05-m.gltf",
+          "name": "train_in_05-m1",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            3.14159,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "func_points": [
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.4,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.8
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-22",
+          "transform": {
+            "position": [
+              -52.0,
+              128.15,
+              -250.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.45154,
+              1.45154,
+              1.45154
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.4,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.8
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-23",
+          "transform": {
+            "position": [
+              52.0,
+              128.15,
+              -250.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.45154,
+              1.45154,
+              1.45154
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.4,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.8
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-12",
+          "transform": {
+            "position": [
+              27.0,
+              100.489,
+              -242.244
+            ],
+            "rotation": [
+              0.0,
+              -3.14159,
+              0.0
+            ],
+            "scale": [
+              0.950223,
+              0.950223,
+              0.950223
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.4,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.6,
+            "heat_haze": 0,
+            "red": 0.8
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-16",
+          "transform": {
+            "position": [
+              -27.0,
+              100.489,
+              -242.244
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.950223,
+              0.950223,
+              0.950223
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 0.0,
+            "frame_name": "hariL",
+            "kind": 2,
+            "mode": 8,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_train_in",
+            "piece_name": "hari01-m1",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 0.0,
+            "frame_name": "hariS",
+            "kind": 2,
+            "mode": 9,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_train_in",
+            "piece_name": "hari01-m1",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func0",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p06_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_12-m.gltf",
+          "name": "train_in_12-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            -3.14159,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_12-m.gltf",
+          "name": "train_in_12-m1",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            3.14159,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_13-m.gltf",
+          "name": "train_in_13-m",
+          "position": [
+            -52.0,
+            56.0,
+            -250.0
+          ],
+          "rotation": [
+            0.0,
+            3.14159,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_13-m.gltf",
+          "name": "train_in_13-m1",
+          "position": [
+            52.0,
+            56.0,
+            -250.0
+          ],
+          "rotation": [
+            0.0,
+            3.14159,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_06-m.gltf",
+          "name": "train_in_06-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "hari01-m.gltf",
+          "name": "hari01-m1",
+          "position": [
+            0.0,
+            116.04,
+            -243.912
+          ],
+          "rotation": [
+            1.5708,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p07_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_07-m.gltf",
+          "name": "train_in_07-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            6.0,
+            9.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_10-m.gltf",
+          "name": "train_in_10-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            21.0,
+            6.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_09-m.gltf",
+          "name": "train_in_09-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            17.0,
+            21.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_08-m.gltf",
+          "name": "train_in_08-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            9.0,
+            17.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p08_train_in",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_11-m.gltf",
+          "name": "train_in_11-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "train_in_11-m.gltf",
+          "name": "train_in_11-m1",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "definition": "p01_train_in",
+      "group": "",
+      "name": "p01_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p02_train_in",
+      "group": "",
+      "name": "p02_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p05_train_in",
+      "group": "",
+      "name": "p05_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p04_train_in",
+      "group": "",
+      "name": "p04_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p03_train_in",
+      "group": "eyeview_on",
+      "name": "p03_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p06_train_in",
+      "group": "eyeview_on",
+      "name": "p06_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p07_train_in",
+      "group": "",
+      "name": "p07_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p08_train_in",
+      "group": "",
+      "name": "p08_train_in",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    }
+  ],
+  "schema_version": 2
+}

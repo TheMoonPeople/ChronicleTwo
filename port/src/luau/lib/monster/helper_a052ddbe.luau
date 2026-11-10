@@ -1,0 +1,21 @@
+--!strict
+-- Shared monster helper used by 2 scripts, translated by tools/luau/stb2luau.
+
+local helper_442b9962 = require("@lib/monster/helper_442b9962")
+local helper_787df986 = require("@lib/monster/helper_787df986")
+local helper_bee0409d = require("@lib/monster/helper_bee0409d")
+
+--- Helper function.
+local function helper_a052ddbe(rot_speed: f32, arg1: s32)
+	local var2: f32 = 0
+	local _ = helper_787df986(rot_speed)
+	for var4 = 0, arg1 - 1 do
+		var2 = monster.get_target_angle() or var2
+		monster.turn_toward_angle(var2, rot_speed)
+		helper_bee0409d()
+	end
+	helper_442b9962()
+	return 0
+end
+
+return helper_a052ddbe

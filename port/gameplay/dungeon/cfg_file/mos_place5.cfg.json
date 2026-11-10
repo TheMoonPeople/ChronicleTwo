@@ -1,0 +1,1982 @@
+{
+  "floors": [
+    {
+      "floor": 1,
+      "monsters": [
+        {
+          "monster_id": 2,
+          "param": 205
+        },
+        {
+          "monster_id": 2,
+          "param": 200
+        },
+        {
+          "monster_id": 2,
+          "param": 201
+        },
+        {
+          "monster_id": 2,
+          "param": 202
+        },
+        {
+          "monster_id": 2,
+          "param": 204
+        },
+        {
+          "monster_id": 2,
+          "param": 203
+        },
+        {
+          "monster_id": 26,
+          "param": 2603
+        },
+        {
+          "monster_id": 26,
+          "param": 2602
+        },
+        {
+          "monster_id": 26,
+          "param": 2605
+        },
+        {
+          "monster_id": 26,
+          "param": 2604
+        },
+        {
+          "monster_id": 26,
+          "param": 2600
+        },
+        {
+          "monster_id": 26,
+          "param": 2601
+        },
+        {
+          "monster_id": 105,
+          "param": 10504
+        },
+        {
+          "monster_id": 105,
+          "param": 10505
+        },
+        {
+          "monster_id": 105,
+          "param": 10500
+        },
+        {
+          "monster_id": 105,
+          "param": 10501
+        },
+        {
+          "monster_id": 105,
+          "param": 10502
+        },
+        {
+          "monster_id": 105,
+          "param": 10503
+        },
+        {
+          "monster_id": 178,
+          "param": 17805
+        },
+        {
+          "monster_id": 178,
+          "param": 17804
+        },
+        {
+          "monster_id": 178,
+          "param": 17803
+        },
+        {
+          "monster_id": 178,
+          "param": 17802
+        },
+        {
+          "monster_id": 178,
+          "param": 17801
+        },
+        {
+          "monster_id": 178,
+          "param": 17800
+        }
+      ]
+    },
+    {
+      "floor": 2,
+      "monsters": [
+        {
+          "monster_id": 224,
+          "param": 22402
+        },
+        {
+          "monster_id": 224,
+          "param": 22403
+        },
+        {
+          "monster_id": 224,
+          "param": 22401
+        },
+        {
+          "monster_id": 224,
+          "param": 22400
+        },
+        {
+          "monster_id": 224,
+          "param": 22404
+        },
+        {
+          "monster_id": 228,
+          "param": 22804
+        },
+        {
+          "monster_id": 228,
+          "param": 22803
+        },
+        {
+          "monster_id": 228,
+          "param": 22800
+        },
+        {
+          "monster_id": 228,
+          "param": 22802
+        },
+        {
+          "monster_id": 228,
+          "param": 22801
+        },
+        {
+          "monster_id": 232,
+          "param": 23204
+        },
+        {
+          "monster_id": 232,
+          "param": 23203
+        },
+        {
+          "monster_id": 232,
+          "param": 23202
+        },
+        {
+          "monster_id": 232,
+          "param": 23201
+        },
+        {
+          "monster_id": 232,
+          "param": 23200
+        },
+        {
+          "monster_id": 236,
+          "param": 23603
+        },
+        {
+          "monster_id": 236,
+          "param": 23602
+        },
+        {
+          "monster_id": 236,
+          "param": 23601
+        },
+        {
+          "monster_id": 236,
+          "param": 23600
+        },
+        {
+          "monster_id": 236,
+          "param": 23604
+        },
+        {
+          "monster_id": 240,
+          "param": 24000
+        },
+        {
+          "monster_id": 240,
+          "param": 24001
+        }
+      ]
+    },
+    {
+      "floor": 3,
+      "monsters": [
+        {
+          "monster_id": 38,
+          "param": 3804
+        },
+        {
+          "monster_id": 38,
+          "param": 3803
+        },
+        {
+          "monster_id": 38,
+          "param": 3801
+        },
+        {
+          "monster_id": 38,
+          "param": 3800
+        },
+        {
+          "monster_id": 38,
+          "param": 3805
+        },
+        {
+          "monster_id": 38,
+          "param": 3802
+        },
+        {
+          "monster_id": 261,
+          "param": 26101
+        },
+        {
+          "monster_id": 261,
+          "param": 26100
+        },
+        {
+          "monster_id": 261,
+          "param": 26102
+        },
+        {
+          "monster_id": 261,
+          "param": 26103
+        },
+        {
+          "monster_id": 261,
+          "param": 26104
+        },
+        {
+          "monster_id": 261,
+          "param": 26105
+        },
+        {
+          "monster_id": 261,
+          "param": 26106
+        },
+        {
+          "monster_id": 261,
+          "param": 26109
+        },
+        {
+          "monster_id": 261,
+          "param": 26108
+        },
+        {
+          "monster_id": 261,
+          "param": 26107
+        }
+      ]
+    },
+    {
+      "floor": 4,
+      "monsters": [
+        {
+          "monster_id": 2,
+          "param": 208
+        },
+        {
+          "monster_id": 2,
+          "param": 211
+        },
+        {
+          "monster_id": 2,
+          "param": 206
+        },
+        {
+          "monster_id": 2,
+          "param": 209
+        },
+        {
+          "monster_id": 2,
+          "param": 207
+        },
+        {
+          "monster_id": 2,
+          "param": 210
+        },
+        {
+          "monster_id": 105,
+          "param": 10511
+        },
+        {
+          "monster_id": 105,
+          "param": 10506
+        },
+        {
+          "monster_id": 105,
+          "param": 10507
+        },
+        {
+          "monster_id": 105,
+          "param": 10508
+        },
+        {
+          "monster_id": 105,
+          "param": 10510
+        },
+        {
+          "monster_id": 105,
+          "param": 10509
+        },
+        {
+          "monster_id": 114,
+          "param": 11401
+        },
+        {
+          "monster_id": 114,
+          "param": 11400
+        },
+        {
+          "monster_id": 178,
+          "param": 17811
+        },
+        {
+          "monster_id": 178,
+          "param": 17806
+        },
+        {
+          "monster_id": 178,
+          "param": 17807
+        },
+        {
+          "monster_id": 178,
+          "param": 17808
+        },
+        {
+          "monster_id": 178,
+          "param": 17809
+        },
+        {
+          "monster_id": 178,
+          "param": 17810
+        },
+        {
+          "monster_id": 210,
+          "param": 21001
+        },
+        {
+          "monster_id": 210,
+          "param": 21000
+        }
+      ]
+    },
+    {
+      "floor": 5,
+      "monsters": [
+        {
+          "monster_id": 38,
+          "param": 3811
+        },
+        {
+          "monster_id": 38,
+          "param": 3810
+        },
+        {
+          "monster_id": 38,
+          "param": 3809
+        },
+        {
+          "monster_id": 38,
+          "param": 3808
+        },
+        {
+          "monster_id": 38,
+          "param": 3807
+        },
+        {
+          "monster_id": 38,
+          "param": 3806
+        },
+        {
+          "monster_id": 150,
+          "param": 15000
+        },
+        {
+          "monster_id": 150,
+          "param": 15001
+        },
+        {
+          "monster_id": 228,
+          "param": 22809
+        },
+        {
+          "monster_id": 228,
+          "param": 22806
+        },
+        {
+          "monster_id": 228,
+          "param": 22805
+        },
+        {
+          "monster_id": 228,
+          "param": 22808
+        },
+        {
+          "monster_id": 228,
+          "param": 22807
+        },
+        {
+          "monster_id": 228,
+          "param": 22810
+        },
+        {
+          "monster_id": 236,
+          "param": 23609
+        },
+        {
+          "monster_id": 236,
+          "param": 23605
+        },
+        {
+          "monster_id": 236,
+          "param": 23606
+        },
+        {
+          "monster_id": 236,
+          "param": 23607
+        },
+        {
+          "monster_id": 236,
+          "param": 23608
+        },
+        {
+          "monster_id": 236,
+          "param": 23610
+        }
+      ]
+    },
+    {
+      "floor": 6,
+      "monsters": [
+        {
+          "monster_id": 150,
+          "param": 15005
+        },
+        {
+          "monster_id": 150,
+          "param": 15003
+        },
+        {
+          "monster_id": 150,
+          "param": 15004
+        },
+        {
+          "monster_id": 150,
+          "param": 15006
+        },
+        {
+          "monster_id": 150,
+          "param": 15007
+        },
+        {
+          "monster_id": 150,
+          "param": 15002
+        },
+        {
+          "monster_id": 166,
+          "param": 16605
+        },
+        {
+          "monster_id": 166,
+          "param": 16602
+        },
+        {
+          "monster_id": 166,
+          "param": 16601
+        },
+        {
+          "monster_id": 166,
+          "param": 16603
+        },
+        {
+          "monster_id": 166,
+          "param": 16600
+        },
+        {
+          "monster_id": 166,
+          "param": 16608
+        },
+        {
+          "monster_id": 166,
+          "param": 16604
+        },
+        {
+          "monster_id": 166,
+          "param": 16607
+        },
+        {
+          "monster_id": 166,
+          "param": 16606
+        },
+        {
+          "monster_id": 224,
+          "param": 22406
+        },
+        {
+          "monster_id": 224,
+          "param": 22405
+        },
+        {
+          "monster_id": 224,
+          "param": 22407
+        },
+        {
+          "monster_id": 232,
+          "param": 23207
+        },
+        {
+          "monster_id": 232,
+          "param": 23206
+        },
+        {
+          "monster_id": 232,
+          "param": 23205
+        }
+      ]
+    },
+    {
+      "floor": 7,
+      "monsters": [
+        {
+          "monster_id": 70,
+          "param": 7000
+        },
+        {
+          "monster_id": 70,
+          "param": 7001
+        },
+        {
+          "monster_id": 114,
+          "param": 11405
+        },
+        {
+          "monster_id": 114,
+          "param": 11403
+        },
+        {
+          "monster_id": 114,
+          "param": 11402
+        },
+        {
+          "monster_id": 114,
+          "param": 11404
+        },
+        {
+          "monster_id": 114,
+          "param": 11406
+        },
+        {
+          "monster_id": 114,
+          "param": 11407
+        },
+        {
+          "monster_id": 118,
+          "param": 11801
+        },
+        {
+          "monster_id": 118,
+          "param": 11805
+        },
+        {
+          "monster_id": 118,
+          "param": 11804
+        },
+        {
+          "monster_id": 118,
+          "param": 11803
+        },
+        {
+          "monster_id": 118,
+          "param": 11802
+        },
+        {
+          "monster_id": 118,
+          "param": 11800
+        },
+        {
+          "monster_id": 240,
+          "param": 24002
+        },
+        {
+          "monster_id": 240,
+          "param": 24006
+        },
+        {
+          "monster_id": 240,
+          "param": 24005
+        },
+        {
+          "monster_id": 240,
+          "param": 24004
+        },
+        {
+          "monster_id": 240,
+          "param": 24003
+        },
+        {
+          "monster_id": 240,
+          "param": 24007
+        }
+      ]
+    },
+    {
+      "floor": 8,
+      "monsters": [
+        {
+          "monster_id": 150,
+          "param": 15009
+        },
+        {
+          "monster_id": 150,
+          "param": 15008
+        },
+        {
+          "monster_id": 150,
+          "param": 15011
+        },
+        {
+          "monster_id": 150,
+          "param": 15013
+        },
+        {
+          "monster_id": 150,
+          "param": 15010
+        },
+        {
+          "monster_id": 150,
+          "param": 15012
+        },
+        {
+          "monster_id": 154,
+          "param": 15402
+        },
+        {
+          "monster_id": 154,
+          "param": 15403
+        },
+        {
+          "monster_id": 154,
+          "param": 15401
+        },
+        {
+          "monster_id": 154,
+          "param": 15400
+        },
+        {
+          "monster_id": 170,
+          "param": 17000
+        },
+        {
+          "monster_id": 170,
+          "param": 17001
+        },
+        {
+          "monster_id": 210,
+          "param": 21002
+        },
+        {
+          "monster_id": 210,
+          "param": 21003
+        },
+        {
+          "monster_id": 210,
+          "param": 21004
+        },
+        {
+          "monster_id": 210,
+          "param": 21005
+        },
+        {
+          "monster_id": 210,
+          "param": 21007
+        },
+        {
+          "monster_id": 210,
+          "param": 21006
+        }
+      ]
+    },
+    {
+      "floor": 9,
+      "monsters": [
+        {
+          "monster_id": 50,
+          "param": 5000
+        },
+        {
+          "monster_id": 114,
+          "param": 11408
+        },
+        {
+          "monster_id": 114,
+          "param": 11411
+        },
+        {
+          "monster_id": 114,
+          "param": 11413
+        },
+        {
+          "monster_id": 114,
+          "param": 11412
+        },
+        {
+          "monster_id": 114,
+          "param": 11409
+        },
+        {
+          "monster_id": 114,
+          "param": 11410
+        },
+        {
+          "monster_id": 118,
+          "param": 11807
+        },
+        {
+          "monster_id": 118,
+          "param": 11809
+        },
+        {
+          "monster_id": 118,
+          "param": 11806
+        },
+        {
+          "monster_id": 118,
+          "param": 11808
+        },
+        {
+          "monster_id": 118,
+          "param": 11811
+        },
+        {
+          "monster_id": 118,
+          "param": 11810
+        }
+      ]
+    },
+    {
+      "floor": 10,
+      "monsters": [
+        {
+          "monster_id": 38,
+          "param": 3816
+        },
+        {
+          "monster_id": 38,
+          "param": 3817
+        },
+        {
+          "monster_id": 38,
+          "param": 3814
+        },
+        {
+          "monster_id": 38,
+          "param": 3815
+        },
+        {
+          "monster_id": 38,
+          "param": 3813
+        },
+        {
+          "monster_id": 38,
+          "param": 3812
+        },
+        {
+          "monster_id": 154,
+          "param": 15408
+        },
+        {
+          "monster_id": 154,
+          "param": 15407
+        },
+        {
+          "monster_id": 154,
+          "param": 15409
+        },
+        {
+          "monster_id": 154,
+          "param": 15404
+        },
+        {
+          "monster_id": 154,
+          "param": 15405
+        },
+        {
+          "monster_id": 154,
+          "param": 15406
+        },
+        {
+          "monster_id": 178,
+          "param": 17817
+        },
+        {
+          "monster_id": 178,
+          "param": 17812
+        },
+        {
+          "monster_id": 178,
+          "param": 17818
+        },
+        {
+          "monster_id": 178,
+          "param": 17819
+        },
+        {
+          "monster_id": 178,
+          "param": 17816
+        },
+        {
+          "monster_id": 178,
+          "param": 17815
+        },
+        {
+          "monster_id": 178,
+          "param": 17814
+        },
+        {
+          "monster_id": 178,
+          "param": 17813
+        },
+        {
+          "monster_id": 182,
+          "param": 18200
+        },
+        {
+          "monster_id": 182,
+          "param": 18201
+        },
+        {
+          "monster_id": 261,
+          "param": 26110
+        },
+        {
+          "monster_id": 261,
+          "param": 26111
+        }
+      ]
+    },
+    {
+      "floor": 12,
+      "monsters": [
+        {
+          "monster_id": 70,
+          "param": 7002
+        },
+        {
+          "monster_id": 166,
+          "param": 16613
+        },
+        {
+          "monster_id": 166,
+          "param": 16610
+        },
+        {
+          "monster_id": 166,
+          "param": 16611
+        },
+        {
+          "monster_id": 166,
+          "param": 16614
+        },
+        {
+          "monster_id": 166,
+          "param": 16612
+        },
+        {
+          "monster_id": 166,
+          "param": 16609
+        },
+        {
+          "monster_id": 170,
+          "param": 17002
+        },
+        {
+          "monster_id": 170,
+          "param": 17003
+        },
+        {
+          "monster_id": 170,
+          "param": 17004
+        },
+        {
+          "monster_id": 170,
+          "param": 17005
+        },
+        {
+          "monster_id": 170,
+          "param": 17006
+        },
+        {
+          "monster_id": 170,
+          "param": 17007
+        },
+        {
+          "monster_id": 240,
+          "param": 24008
+        },
+        {
+          "monster_id": 240,
+          "param": 24009
+        },
+        {
+          "monster_id": 261,
+          "param": 26113
+        },
+        {
+          "monster_id": 261,
+          "param": 26112
+        }
+      ]
+    },
+    {
+      "floor": 13,
+      "monsters": [
+        {
+          "monster_id": 114,
+          "param": 11416
+        },
+        {
+          "monster_id": 114,
+          "param": 11414
+        },
+        {
+          "monster_id": 114,
+          "param": 11417
+        },
+        {
+          "monster_id": 114,
+          "param": 11415
+        },
+        {
+          "monster_id": 118,
+          "param": 11813
+        },
+        {
+          "monster_id": 118,
+          "param": 11812
+        },
+        {
+          "monster_id": 118,
+          "param": 11814
+        },
+        {
+          "monster_id": 118,
+          "param": 11815
+        },
+        {
+          "monster_id": 224,
+          "param": 22409
+        },
+        {
+          "monster_id": 224,
+          "param": 22411
+        },
+        {
+          "monster_id": 224,
+          "param": 22410
+        },
+        {
+          "monster_id": 224,
+          "param": 22408
+        },
+        {
+          "monster_id": 232,
+          "param": 23208
+        },
+        {
+          "monster_id": 232,
+          "param": 23209
+        },
+        {
+          "monster_id": 232,
+          "param": 23210
+        },
+        {
+          "monster_id": 232,
+          "param": 23211
+        },
+        {
+          "monster_id": 240,
+          "param": 24012
+        },
+        {
+          "monster_id": 240,
+          "param": 24011
+        },
+        {
+          "monster_id": 240,
+          "param": 24010
+        },
+        {
+          "monster_id": 240,
+          "param": 24013
+        }
+      ]
+    },
+    {
+      "floor": 14,
+      "monsters": [
+        {
+          "monster_id": 50,
+          "param": 5001
+        },
+        {
+          "monster_id": 50,
+          "param": 5002
+        },
+        {
+          "monster_id": 70,
+          "param": 7003
+        },
+        {
+          "monster_id": 70,
+          "param": 7004
+        },
+        {
+          "monster_id": 170,
+          "param": 17009
+        },
+        {
+          "monster_id": 170,
+          "param": 17008
+        },
+        {
+          "monster_id": 170,
+          "param": 17010
+        },
+        {
+          "monster_id": 170,
+          "param": 17011
+        },
+        {
+          "monster_id": 182,
+          "param": 18206
+        },
+        {
+          "monster_id": 182,
+          "param": 18207
+        },
+        {
+          "monster_id": 182,
+          "param": 18205
+        },
+        {
+          "monster_id": 182,
+          "param": 18204
+        },
+        {
+          "monster_id": 182,
+          "param": 18203
+        },
+        {
+          "monster_id": 182,
+          "param": 18202
+        }
+      ]
+    },
+    {
+      "floor": 15,
+      "monsters": [
+        {
+          "monster_id": 166,
+          "param": 16616
+        },
+        {
+          "monster_id": 166,
+          "param": 16618
+        },
+        {
+          "monster_id": 166,
+          "param": 16615
+        },
+        {
+          "monster_id": 166,
+          "param": 16617
+        },
+        {
+          "monster_id": 228,
+          "param": 22814
+        },
+        {
+          "monster_id": 228,
+          "param": 22813
+        },
+        {
+          "monster_id": 228,
+          "param": 22811
+        },
+        {
+          "monster_id": 228,
+          "param": 22812
+        },
+        {
+          "monster_id": 236,
+          "param": 23614
+        },
+        {
+          "monster_id": 236,
+          "param": 23613
+        },
+        {
+          "monster_id": 236,
+          "param": 23611
+        },
+        {
+          "monster_id": 236,
+          "param": 23612
+        },
+        {
+          "monster_id": 240,
+          "param": 24018
+        },
+        {
+          "monster_id": 240,
+          "param": 24016
+        },
+        {
+          "monster_id": 240,
+          "param": 24017
+        },
+        {
+          "monster_id": 240,
+          "param": 24015
+        },
+        {
+          "monster_id": 240,
+          "param": 24014
+        },
+        {
+          "monster_id": 240,
+          "param": 24019
+        },
+        {
+          "monster_id": 262,
+          "param": 26200
+        }
+      ]
+    },
+    {
+      "floor": 16,
+      "monsters": [
+        {
+          "monster_id": 86,
+          "param": 8602
+        },
+        {
+          "monster_id": 86,
+          "param": 8601
+        },
+        {
+          "monster_id": 86,
+          "param": 8600
+        },
+        {
+          "monster_id": 86,
+          "param": 8603
+        },
+        {
+          "monster_id": 90,
+          "param": 9001
+        },
+        {
+          "monster_id": 90,
+          "param": 9002
+        },
+        {
+          "monster_id": 90,
+          "param": 9003
+        },
+        {
+          "monster_id": 90,
+          "param": 9000
+        },
+        {
+          "monster_id": 94,
+          "param": 9400
+        },
+        {
+          "monster_id": 94,
+          "param": 9401
+        },
+        {
+          "monster_id": 94,
+          "param": 9402
+        },
+        {
+          "monster_id": 94,
+          "param": 9403
+        },
+        {
+          "monster_id": 154,
+          "param": 15415
+        },
+        {
+          "monster_id": 154,
+          "param": 15411
+        },
+        {
+          "monster_id": 154,
+          "param": 15412
+        },
+        {
+          "monster_id": 154,
+          "param": 15414
+        },
+        {
+          "monster_id": 154,
+          "param": 15413
+        },
+        {
+          "monster_id": 154,
+          "param": 15410
+        },
+        {
+          "monster_id": 261,
+          "param": 26115
+        },
+        {
+          "monster_id": 261,
+          "param": 26114
+        }
+      ]
+    },
+    {
+      "floor": 17,
+      "monsters": [
+        {
+          "monster_id": 6,
+          "param": 601
+        },
+        {
+          "monster_id": 6,
+          "param": 600
+        },
+        {
+          "monster_id": 42,
+          "param": 4202
+        },
+        {
+          "monster_id": 42,
+          "param": 4201
+        },
+        {
+          "monster_id": 42,
+          "param": 4203
+        },
+        {
+          "monster_id": 42,
+          "param": 4200
+        },
+        {
+          "monster_id": 50,
+          "param": 5003
+        },
+        {
+          "monster_id": 50,
+          "param": 5006
+        },
+        {
+          "monster_id": 50,
+          "param": 5005
+        },
+        {
+          "monster_id": 50,
+          "param": 5004
+        },
+        {
+          "monster_id": 182,
+          "param": 18209
+        },
+        {
+          "monster_id": 182,
+          "param": 18210
+        },
+        {
+          "monster_id": 182,
+          "param": 18211
+        },
+        {
+          "monster_id": 182,
+          "param": 18212
+        },
+        {
+          "monster_id": 182,
+          "param": 18208
+        },
+        {
+          "monster_id": 182,
+          "param": 18213
+        },
+        {
+          "monster_id": 262,
+          "param": 26201
+        }
+      ]
+    },
+    {
+      "floor": 18,
+      "monsters": [
+        {
+          "monster_id": 70,
+          "param": 7006
+        },
+        {
+          "monster_id": 70,
+          "param": 7005
+        },
+        {
+          "monster_id": 86,
+          "param": 8606
+        },
+        {
+          "monster_id": 86,
+          "param": 8605
+        },
+        {
+          "monster_id": 86,
+          "param": 8604
+        },
+        {
+          "monster_id": 86,
+          "param": 8608
+        },
+        {
+          "monster_id": 86,
+          "param": 8607
+        },
+        {
+          "monster_id": 86,
+          "param": 8609
+        },
+        {
+          "monster_id": 90,
+          "param": 9004
+        },
+        {
+          "monster_id": 90,
+          "param": 9006
+        },
+        {
+          "monster_id": 90,
+          "param": 9007
+        },
+        {
+          "monster_id": 90,
+          "param": 9008
+        },
+        {
+          "monster_id": 90,
+          "param": 9009
+        },
+        {
+          "monster_id": 90,
+          "param": 9005
+        },
+        {
+          "monster_id": 202,
+          "param": 20200
+        },
+        {
+          "monster_id": 202,
+          "param": 20201
+        },
+        {
+          "monster_id": 202,
+          "param": 20202
+        },
+        {
+          "monster_id": 202,
+          "param": 20203
+        }
+      ]
+    },
+    {
+      "floor": 19,
+      "monsters": [
+        {
+          "monster_id": 6,
+          "param": 602
+        },
+        {
+          "monster_id": 6,
+          "param": 603
+        },
+        {
+          "monster_id": 6,
+          "param": 604
+        },
+        {
+          "monster_id": 6,
+          "param": 605
+        },
+        {
+          "monster_id": 6,
+          "param": 606
+        },
+        {
+          "monster_id": 6,
+          "param": 607
+        },
+        {
+          "monster_id": 86,
+          "param": 8610
+        },
+        {
+          "monster_id": 158,
+          "param": 15800
+        },
+        {
+          "monster_id": 158,
+          "param": 15807
+        },
+        {
+          "monster_id": 158,
+          "param": 15801
+        },
+        {
+          "monster_id": 158,
+          "param": 15802
+        },
+        {
+          "monster_id": 158,
+          "param": 15803
+        },
+        {
+          "monster_id": 158,
+          "param": 15806
+        },
+        {
+          "monster_id": 158,
+          "param": 15805
+        },
+        {
+          "monster_id": 158,
+          "param": 15804
+        },
+        {
+          "monster_id": 261,
+          "param": 26117
+        },
+        {
+          "monster_id": 261,
+          "param": 26116
+        },
+        {
+          "monster_id": 275,
+          "param": 27500
+        }
+      ]
+    },
+    {
+      "floor": 20,
+      "monsters": [
+        {
+          "monster_id": 42,
+          "param": 4204
+        },
+        {
+          "monster_id": 42,
+          "param": 4205
+        },
+        {
+          "monster_id": 94,
+          "param": 9404
+        },
+        {
+          "monster_id": 94,
+          "param": 9408
+        },
+        {
+          "monster_id": 94,
+          "param": 9407
+        },
+        {
+          "monster_id": 94,
+          "param": 9405
+        },
+        {
+          "monster_id": 94,
+          "param": 9406
+        },
+        {
+          "monster_id": 182,
+          "param": 18217
+        },
+        {
+          "monster_id": 182,
+          "param": 18214
+        },
+        {
+          "monster_id": 182,
+          "param": 18215
+        },
+        {
+          "monster_id": 182,
+          "param": 18216
+        },
+        {
+          "monster_id": 182,
+          "param": 18218
+        },
+        {
+          "monster_id": 182,
+          "param": 18219
+        },
+        {
+          "monster_id": 202,
+          "param": 20204
+        },
+        {
+          "monster_id": 202,
+          "param": 20209
+        },
+        {
+          "monster_id": 202,
+          "param": 20207
+        },
+        {
+          "monster_id": 202,
+          "param": 20208
+        },
+        {
+          "monster_id": 202,
+          "param": 20205
+        },
+        {
+          "monster_id": 202,
+          "param": 20206
+        },
+        {
+          "monster_id": 262,
+          "param": 26203
+        },
+        {
+          "monster_id": 262,
+          "param": 26202
+        }
+      ]
+    },
+    {
+      "floor": 22,
+      "monsters": [
+        {
+          "monster_id": 225,
+          "param": 22503
+        },
+        {
+          "monster_id": 225,
+          "param": 22502
+        },
+        {
+          "monster_id": 225,
+          "param": 22501
+        },
+        {
+          "monster_id": 225,
+          "param": 22500
+        },
+        {
+          "monster_id": 229,
+          "param": 22901
+        },
+        {
+          "monster_id": 229,
+          "param": 22902
+        },
+        {
+          "monster_id": 229,
+          "param": 22900
+        },
+        {
+          "monster_id": 229,
+          "param": 22903
+        },
+        {
+          "monster_id": 233,
+          "param": 23303
+        },
+        {
+          "monster_id": 233,
+          "param": 23302
+        },
+        {
+          "monster_id": 233,
+          "param": 23301
+        },
+        {
+          "monster_id": 233,
+          "param": 23300
+        },
+        {
+          "monster_id": 237,
+          "param": 23702
+        },
+        {
+          "monster_id": 237,
+          "param": 23703
+        },
+        {
+          "monster_id": 237,
+          "param": 23701
+        },
+        {
+          "monster_id": 237,
+          "param": 23700
+        },
+        {
+          "monster_id": 241,
+          "param": 24101
+        },
+        {
+          "monster_id": 241,
+          "param": 24100
+        },
+        {
+          "monster_id": 261,
+          "param": 26119
+        },
+        {
+          "monster_id": 261,
+          "param": 26121
+        },
+        {
+          "monster_id": 261,
+          "param": 26120
+        },
+        {
+          "monster_id": 261,
+          "param": 26118
+        }
+      ]
+    },
+    {
+      "floor": 23,
+      "monsters": [
+        {
+          "monster_id": 6,
+          "param": 613
+        },
+        {
+          "monster_id": 6,
+          "param": 610
+        },
+        {
+          "monster_id": 6,
+          "param": 611
+        },
+        {
+          "monster_id": 6,
+          "param": 609
+        },
+        {
+          "monster_id": 6,
+          "param": 612
+        },
+        {
+          "monster_id": 6,
+          "param": 608
+        },
+        {
+          "monster_id": 86,
+          "param": 8613
+        },
+        {
+          "monster_id": 86,
+          "param": 8612
+        },
+        {
+          "monster_id": 86,
+          "param": 8611
+        },
+        {
+          "monster_id": 86,
+          "param": 8614
+        },
+        {
+          "monster_id": 90,
+          "param": 9013
+        },
+        {
+          "monster_id": 90,
+          "param": 9012
+        },
+        {
+          "monster_id": 90,
+          "param": 9010
+        },
+        {
+          "monster_id": 90,
+          "param": 9011
+        },
+        {
+          "monster_id": 94,
+          "param": 9411
+        },
+        {
+          "monster_id": 94,
+          "param": 9409
+        },
+        {
+          "monster_id": 94,
+          "param": 9410
+        },
+        {
+          "monster_id": 94,
+          "param": 9412
+        },
+        {
+          "monster_id": 275,
+          "param": 27501
+        },
+        {
+          "monster_id": 275,
+          "param": 27502
+        }
+      ]
+    },
+    {
+      "floor": 24,
+      "monsters": [
+        {
+          "monster_id": 62,
+          "param": 6201
+        },
+        {
+          "monster_id": 62,
+          "param": 6202
+        },
+        {
+          "monster_id": 62,
+          "param": 6203
+        },
+        {
+          "monster_id": 62,
+          "param": 6200
+        },
+        {
+          "monster_id": 158,
+          "param": 15810
+        },
+        {
+          "monster_id": 158,
+          "param": 15809
+        },
+        {
+          "monster_id": 158,
+          "param": 15811
+        },
+        {
+          "monster_id": 158,
+          "param": 15808
+        },
+        {
+          "monster_id": 202,
+          "param": 20212
+        },
+        {
+          "monster_id": 202,
+          "param": 20211
+        },
+        {
+          "monster_id": 202,
+          "param": 20214
+        },
+        {
+          "monster_id": 202,
+          "param": 20213
+        },
+        {
+          "monster_id": 202,
+          "param": 20215
+        },
+        {
+          "monster_id": 202,
+          "param": 20210
+        },
+        {
+          "monster_id": 213,
+          "param": 21300
+        },
+        {
+          "monster_id": 213,
+          "param": 21301
+        },
+        {
+          "monster_id": 262,
+          "param": 26204
+        },
+        {
+          "monster_id": 262,
+          "param": 26205
+        }
+      ]
+    },
+    {
+      "floor": 25,
+      "monsters": [
+        {
+          "monster_id": 6,
+          "param": 614
+        },
+        {
+          "monster_id": 6,
+          "param": 617
+        },
+        {
+          "monster_id": 6,
+          "param": 615
+        },
+        {
+          "monster_id": 6,
+          "param": 616
+        },
+        {
+          "monster_id": 62,
+          "param": 6204
+        },
+        {
+          "monster_id": 62,
+          "param": 6206
+        },
+        {
+          "monster_id": 62,
+          "param": 6207
+        },
+        {
+          "monster_id": 62,
+          "param": 6208
+        },
+        {
+          "monster_id": 62,
+          "param": 6205
+        },
+        {
+          "monster_id": 66,
+          "param": 6600
+        },
+        {
+          "monster_id": 213,
+          "param": 21302
+        },
+        {
+          "monster_id": 213,
+          "param": 21307
+        },
+        {
+          "monster_id": 213,
+          "param": 21306
+        },
+        {
+          "monster_id": 213,
+          "param": 21305
+        },
+        {
+          "monster_id": 213,
+          "param": 21303
+        },
+        {
+          "monster_id": 213,
+          "param": 21304
+        },
+        {
+          "monster_id": 261,
+          "param": 26123
+        },
+        {
+          "monster_id": 261,
+          "param": 26124
+        },
+        {
+          "monster_id": 261,
+          "param": 26125
+        },
+        {
+          "monster_id": 261,
+          "param": 26122
+        },
+        {
+          "monster_id": 261,
+          "param": 26126
+        },
+        {
+          "monster_id": 261,
+          "param": 26127
+        }
+      ]
+    },
+    {
+      "floor": 26,
+      "monsters": [
+        {
+          "monster_id": 66,
+          "param": 6604
+        },
+        {
+          "monster_id": 66,
+          "param": 6603
+        },
+        {
+          "monster_id": 66,
+          "param": 6601
+        },
+        {
+          "monster_id": 66,
+          "param": 6602
+        },
+        {
+          "monster_id": 174,
+          "param": 17403
+        },
+        {
+          "monster_id": 174,
+          "param": 17402
+        },
+        {
+          "monster_id": 174,
+          "param": 17401
+        },
+        {
+          "monster_id": 174,
+          "param": 17400
+        },
+        {
+          "monster_id": 213,
+          "param": 21311
+        },
+        {
+          "monster_id": 213,
+          "param": 21310
+        },
+        {
+          "monster_id": 213,
+          "param": 21308
+        },
+        {
+          "monster_id": 213,
+          "param": 21309
+        },
+        {
+          "monster_id": 262,
+          "param": 26206
+        },
+        {
+          "monster_id": 262,
+          "param": 26207
+        },
+        {
+          "monster_id": 275,
+          "param": 27503
+        },
+        {
+          "monster_id": 275,
+          "param": 27506
+        },
+        {
+          "monster_id": 275,
+          "param": 27505
+        },
+        {
+          "monster_id": 275,
+          "param": 27504
+        }
+      ]
+    }
+  ],
+  "kind": "monster_floors",
+  "schema_version": 2
+}

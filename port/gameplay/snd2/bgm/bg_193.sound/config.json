@@ -1,0 +1,20 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/bgm/bg_193.sound/sequences/bg_193_000.json",
+      "flag": true,
+      "key": 0,
+      "program": 0
+    },
+    {
+      "filename": "snd2/bgm/bg_193.sound/sequences/bg_193_001.json",
+      "flag": true,
+      "key": 0,
+      "program": 0
+    }
+  ],
+  "entry_count": 3,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

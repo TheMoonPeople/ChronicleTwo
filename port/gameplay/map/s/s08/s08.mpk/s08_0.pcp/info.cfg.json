@@ -1,0 +1,78 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "kikan_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "kikan_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "kikan_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_15-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kikan_16-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

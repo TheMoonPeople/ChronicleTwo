@@ -1,0 +1,499 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "control": {
+      "type": "string",
+      "value": "コントロール"
+    },
+    "control_loop": {
+      "type": "string",
+      "value": "コントロールＬ"
+    },
+    "idle_wings_closed": {
+      "type": "string",
+      "value": "立ち翼閉じ"
+    },
+    "spread": {
+      "type": "string",
+      "value": "広げ"
+    },
+    "spread_loop": {
+      "type": "string",
+      "value": "広げＬ"
+    },
+    "spread_talk": {
+      "type": "string",
+      "value": "広げ会話"
+    },
+    "talk_wings_closed": {
+      "type": "string",
+      "value": "会話翼閉じ"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "グリフォン"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin1"
+            },
+            {
+              "type": "string",
+              "value": "skin2"
+            },
+            {
+              "type": "string",
+              "value": "skin3"
+            },
+            {
+              "type": "string",
+              "value": "skin4"
+            },
+            {
+              "type": "string",
+              "value": "kami1"
+            },
+            {
+              "type": "string",
+              "value": "kami2"
+            },
+            {
+              "type": "string",
+              "value": "face"
+            },
+            {
+              "type": "string",
+              "value": "skin"
+            },
+            {
+              "type": "string",
+              "value": "hl"
+            },
+            {
+              "type": "string",
+              "value": "hr"
+            },
+            {
+              "type": "string",
+              "value": "skin9"
+            }
+          ],
+          "command": "VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "k_1"
+            },
+            {
+              "type": "string",
+              "value": "k_2"
+            }
+          ],
+          "command": "SHADOW_VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "kami1"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "kami2"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "cube1_9"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "cube1_10"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "cyl3_2_1"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "cyl3_2"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "obj25"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "obj26"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin4"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "face"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "index": 1,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 33.0
+            },
+            {
+              "type": "float",
+              "value": 15.0
+            },
+            {
+              "type": "float",
+              "value": 200.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 5965
+            },
+            {
+              "type": "int",
+              "value": 212
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SCALE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "index": 1,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 1,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_wings_closed"
+            },
+            {
+              "type": "float",
+              "value": 0.05000000074505806
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "talk_wings_closed"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "spread"
+            },
+            {
+              "type": "float",
+              "value": 0.800000011920929
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "spread_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.10000000149011612
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "spread_talk"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "control"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "control_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

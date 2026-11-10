@@ -1,0 +1,1096 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "attack_1": {
+      "type": "string",
+      "value": "攻撃１"
+    },
+    "attack_2": {
+      "type": "string",
+      "value": "攻撃２"
+    },
+    "damage": {
+      "type": "string",
+      "value": "ダメージ"
+    },
+    "damage_back": {
+      "type": "string",
+      "value": "ダメージ後"
+    },
+    "damage_left": {
+      "type": "string",
+      "value": "ダメージ左"
+    },
+    "damage_right": {
+      "type": "string",
+      "value": "ダメージ右"
+    },
+    "death": {
+      "type": "string",
+      "value": "死に"
+    },
+    "get_up": {
+      "type": "string",
+      "value": "起き上がり"
+    },
+    "guard": {
+      "type": "string",
+      "value": "ガード"
+    },
+    "idle": {
+      "type": "string",
+      "value": "立ち"
+    },
+    "knockback": {
+      "type": "string",
+      "value": "吹っ飛び"
+    },
+    "land": {
+      "type": "string",
+      "value": "着地"
+    },
+    "leap": {
+      "type": "string",
+      "value": "飛び"
+    },
+    "run": {
+      "type": "string",
+      "value": "走り"
+    },
+    "step_back": {
+      "type": "string",
+      "value": "ステップ後"
+    },
+    "struggle": {
+      "type": "string",
+      "value": "じたばた"
+    },
+    "stunned": {
+      "type": "string",
+      "value": "気絶"
+    },
+    "walk": {
+      "type": "string",
+      "value": "歩き"
+    },
+    "walk_left": {
+      "type": "string",
+      "value": "歩き左"
+    },
+    "walk_right": {
+      "type": "string",
+      "value": "歩き右"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "グリ兵"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "body1"
+            },
+            {
+              "type": "string",
+              "value": "body2"
+            }
+          ],
+          "command": "VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "kage"
+            }
+          ],
+          "command": "SHADOW_VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 1,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 21.0
+            },
+            {
+              "type": "float",
+              "value": 6.0
+            },
+            {
+              "type": "float",
+              "value": 45.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1014
+            },
+            {
+              "type": "int",
+              "value": 216
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SCALE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "string",
+              "value": "chn27"
+            },
+            {
+              "type": "float",
+              "value": 1.600000023841858
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "string",
+              "value": "foot_center"
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "string",
+              "value": "eff2"
+            },
+            {
+              "type": "float",
+              "value": 5.400000095367432
+            },
+            {
+              "type": "string",
+              "value": "center"
+            },
+            {
+              "type": "float",
+              "value": 6.599999904632568
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "string",
+              "value": "bl1"
+            },
+            {
+              "type": "float",
+              "value": 3.0
+            },
+            {
+              "type": "string",
+              "value": "bl2"
+            },
+            {
+              "type": "float",
+              "value": 3.0
+            },
+            {
+              "type": "string",
+              "value": "bl3"
+            },
+            {
+              "type": "float",
+              "value": 3.0
+            },
+            {
+              "type": "string",
+              "value": "bl4"
+            },
+            {
+              "type": "float",
+              "value": 3.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "string",
+              "value": "center"
+            },
+            {
+              "type": "float",
+              "value": 6.400000095367432
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "index": 1,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 1,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run"
+            },
+            {
+              "type": "float",
+              "value": 0.800000011920929
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_right"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_left"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "step_back"
+            },
+            {
+              "type": "float",
+              "value": 0.550000011920929
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "guard"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "damage"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "damage_back"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "damage_right"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "damage_left"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "knockback"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "get_up"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "death"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "stunned"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "struggle"
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_1"
+            },
+            {
+              "type": "float",
+              "value": 0.800000011920929
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_2"
+            },
+            {
+              "type": "float",
+              "value": 0.699999988079071
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "leap"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 20
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8500000238418579
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "run"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8999999761581421
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_right"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_right"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8500000238418579
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_left"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.3499999940395355
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk_left"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.8500000238418579
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "step_back"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.699999988079071
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "step_back"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.699999988079071
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "get_up"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.6520000100135803
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "get_up"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.6520000100135803
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_1"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.1120000034570694
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_1"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.39100000262260437
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_1"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.5950000286102295
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_1"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.8560000061988831
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_2"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.5640000104904175
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_2"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.5640000104904175
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "float",
+              "value": 0.1940000057220459
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "land"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.1940000057220459
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

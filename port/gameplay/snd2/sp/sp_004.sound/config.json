@@ -1,0 +1,38 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/sp/sp_004.sound/effects/sp_004_000.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    }
+  ],
+  "entry_count": 6,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

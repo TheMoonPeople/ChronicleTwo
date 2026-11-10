@@ -31,6 +31,7 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "nameregi.hpp"
+#include "pal_timing.hpp"
 #include "password.hpp"
 #include "prespr.hpp"
 #include "savedata.hpp"
@@ -954,7 +955,7 @@ static inline T Ident(T v) { return v; }
 
 int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
     CGameDataUsed    *used_data = MenuUserParam.used_data;
-    u_long            target;
+    u_long            target[(sizeof(CItemUseTarget) + sizeof(u_long) - 1) / sizeof(u_long)];
     CUserDataManager *user = GetUserDataMan();
     MenuItemCmdRet.se_no = -1;
     int      decided = false;
@@ -971,7 +972,7 @@ int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
             static s8 cmd_counter = 0;
             cmd_counter++;
 
-            if (cmd_counter >= 50) {
+            if (cmd_counter >= PAL_TIMING(50, 60)) {
                 cmd_counter = 0;
             }
 
@@ -981,7 +982,7 @@ int CBaseMenuClass::MenuItemCommandSelect(int select_key, int push_button) {
                         mes->line_color[i] = 0x80DC4848;
                     }
 
-                    if (cmd_counter > 25 && i >= 0 && i < MES_LINE_MAX) {
+                    if (cmd_counter > PAL_TIMING(25, 30) && i >= 0 && i < MES_LINE_MAX) {
                         mes->line_color[i] = 0x80686A6B;
                     }
                 }
@@ -4940,8 +4941,8 @@ void MenuPosFormValueSetWeapon(CGameDataUsed *item) {
             form = CMenuItemInfoPt->view_form[2];
             float rates[2] = {0.0f, 0.0f};
             s16   values[12] = {0};
-            float max;
-            float now;
+            float max PORT_INIT(0.0f);
+            float now PORT_INIT(0.0f);
 
             if (type == USED_ITEM_TYPE_WEAPON) {
                 WEAPON_USED *weapon = &item->data.weapon;
@@ -5035,7 +5036,7 @@ void MenuFormUpdataAttachInfo(CMenuPosDataForm *form, CGameDataUsed *item, int i
                     raised[i] = 1;
                 }
 
-                if (count_time >= 25) {
+                if (count_time >= PAL_TIMING(25, 30)) {
                     raised[i] = 0;
                 }
             }
@@ -5526,7 +5527,7 @@ int CMenuItemInfo::EquipDirect(int chara, CGameDataUsed *item, int &slot) {
     int            status;
     int            robo_slot2;
     int            data_type = GetItemDataType(item_no);
-    CGameDataUsed *target;
+    CGameDataUsed *target PORT_INIT(NULL);
     int            chara_no = chara;
 
     if (item->IsFishingRod() && !CheckFishCondition()) {
@@ -9782,7 +9783,7 @@ int CMenuItemInfo::PushKey(int pad, int trigger) {
                         MENUFORMPARTS_TYPE *volume_part;
                         blink_on = true;
 
-                        if (fusion_blinkcnt > MENU_FUSION_BLINK_LAST_ON) {
+                        if (fusion_blinkcnt > PAL_TIMING(MENU_FUSION_BLINK_LAST_ON, 30)) {
                             blink_on = false;
                         }
 
@@ -10627,11 +10628,11 @@ void MenuWeaponStatusInfoFormSet(CGameDataUsed *item, CDataWeapon *data) {
     count++;
     bool blink = false;
 
-    if (count > 25) {
+    if (count > PAL_TIMING(25, 30)) {
         blink = true;
     }
 
-    if (count > 50) {
+    if (count > PAL_TIMING(50, 60)) {
         count = 0;
     }
 
@@ -11563,7 +11564,7 @@ void MenuItemInfoCursorDraw(int &tex_block) {
         return;
     }
 
-    float wave = sinf(0.12566371f * MenuItemCursorInfo.counter);
+    float wave = sinf(PAL_TIMING(0.12566371f, 0.10471976f) * MenuItemCursorInfo.counter);
     MenuReloadTexture(tex_block, texture->block);
     mgRect<int> up_rect;
     mgRect<int> down_rect;
@@ -11911,7 +11912,7 @@ int CMenuItemInfo::KeyStep() {
 
     MenuItemCursorInfo.counter++;
 
-    if (MenuItemCursorInfo.counter >= 25) {
+    if (MenuItemCursorInfo.counter >= PAL_TIMING(25, 30)) {
         MenuItemCursorInfo.counter = 0;
     }
 

@@ -1,0 +1,761 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "fall_over": {
+      "type": "string",
+      "value": "倒れる"
+    },
+    "fall_over_loop": {
+      "type": "string",
+      "value": "倒れるＬ"
+    },
+    "fearless_smile": {
+      "type": "string",
+      "value": "不敵に笑う"
+    },
+    "fearless_smile_loop": {
+      "type": "string",
+      "value": "不敵に笑うＬ"
+    },
+    "fearless_smile_return": {
+      "type": "string",
+      "value": "不敵に笑う戻り"
+    },
+    "get_up_6": {
+      "type": "string",
+      "value": "起き上がる"
+    },
+    "hold_stone_talk": {
+      "type": "string",
+      "value": "石持ち会話"
+    },
+    "idle_holding_stone": {
+      "type": "string",
+      "value": "石持ち立ち"
+    },
+    "idle_unsteady": {
+      "type": "string",
+      "value": "よろよろ立ち"
+    },
+    "jump": {
+      "type": "string",
+      "value": "ジャンプ"
+    },
+    "lean_forward_posture": {
+      "type": "string",
+      "value": "前傾姿勢"
+    },
+    "lean_forward_posture_loop": {
+      "type": "string",
+      "value": "前傾姿勢Ｌ"
+    },
+    "power_up": {
+      "type": "string",
+      "value": "力を込める"
+    },
+    "power_up_loop": {
+      "type": "string",
+      "value": "力を込めるＬ"
+    },
+    "snatch_from_monica": {
+      "type": "string",
+      "value": "モニカから奪う"
+    },
+    "turn_around": {
+      "type": "string",
+      "value": "振り返る"
+    },
+    "unsteady_talk": {
+      "type": "string",
+      "value": "よろよろ会話"
+    },
+    "walk": {
+      "type": "string",
+      "value": "歩き"
+    },
+    "wrest_from_max": {
+      "type": "string",
+      "value": "ユリスからもぎ取る"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "e612サン"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 1,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin"
+            },
+            {
+              "type": "string",
+              "value": "skin2"
+            },
+            {
+              "type": "string",
+              "value": "skin3"
+            },
+            {
+              "type": "string",
+              "value": "skin4"
+            },
+            {
+              "type": "string",
+              "value": "skin5"
+            },
+            {
+              "type": "string",
+              "value": "te_l"
+            },
+            {
+              "type": "string",
+              "value": "te_r"
+            },
+            {
+              "type": "string",
+              "value": "kao"
+            }
+          ],
+          "command": "VERTEX_ANIME"
+        },
+        {
+          "args": [],
+          "command": "SHADOW_VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "skin"
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "kao"
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "index": 1,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 12.0
+            },
+            {
+              "type": "float",
+              "value": 4.0
+            },
+            {
+              "type": "float",
+              "value": 40.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2067
+            },
+            {
+              "type": "int",
+              "value": 116
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SCALE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "string",
+              "value": "null53"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "string",
+              "value": "null54"
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "index": 1,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 1,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_holding_stone"
+            },
+            {
+              "type": "float",
+              "value": 0.05000000074505806
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "idle_unsteady"
+            },
+            {
+              "type": "float",
+              "value": 0.05000000074505806
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "hold_stone_talk"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "unsteady_talk"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "fall_over"
+            },
+            {
+              "type": "float",
+              "value": 0.44999998807907104
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "fall_over_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "get_up_6"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "wrest_from_max"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "snatch_from_monica"
+            },
+            {
+              "type": "float",
+              "value": 0.6000000238418579
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump"
+            },
+            {
+              "type": "float",
+              "value": 0.3799999952316284
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_around"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "fearless_smile"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "fearless_smile_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "fearless_smile_return"
+            },
+            {
+              "type": "float",
+              "value": 0.4000000059604645
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "power_up"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "power_up_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.03999999910593033
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "lean_forward_posture"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "lean_forward_posture_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.699999988079071
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 6
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.22499999403953552
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "walk"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.699999988079071
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.6489999890327454
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.6489999890327454
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_around"
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "turn_around"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "float",
+              "value": 0.9900000095367432
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

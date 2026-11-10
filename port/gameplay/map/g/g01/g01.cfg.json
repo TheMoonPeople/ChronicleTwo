@@ -1,0 +1,265 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 201
+      },
+      "name": "event_201",
+      "transform": {
+        "position": [
+          420.0,
+          43.37,
+          1300.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          150.0,
+          150.0,
+          150.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "georama": {
+    "fixed_parts": {
+      "count": 1,
+      "parts": [
+        {
+          "angle": 0,
+          "id": 48,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "initial_parts": {
+      "count": 14,
+      "parts": [
+        {
+          "angle": 0,
+          "id": 47,
+          "position": [
+            300.0,
+            0.0,
+            400.0
+          ]
+        },
+        {
+          "angle": 3,
+          "id": 70,
+          "position": [
+            694.0,
+            0.0,
+            435.0
+          ]
+        },
+        {
+          "angle": 21,
+          "id": 70,
+          "position": [
+            -765.0,
+            0.0,
+            178.0
+          ]
+        },
+        {
+          "angle": 21,
+          "id": 70,
+          "position": [
+            -141.0,
+            0.0,
+            -627.0
+          ]
+        },
+        {
+          "angle": 12,
+          "id": 70,
+          "position": [
+            520.0,
+            0.0,
+            -330.0
+          ]
+        },
+        {
+          "angle": 21,
+          "id": 71,
+          "position": [
+            574.0,
+            0.0,
+            704.0
+          ]
+        },
+        {
+          "angle": 15,
+          "id": 71,
+          "position": [
+            827.0,
+            0.0,
+            -596.0
+          ]
+        },
+        {
+          "angle": 7,
+          "id": 71,
+          "position": [
+            -440.0,
+            0.0,
+            -56.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 71,
+          "position": [
+            -520.0,
+            0.0,
+            -742.0
+          ]
+        },
+        {
+          "angle": 5,
+          "id": 72,
+          "position": [
+            164.0,
+            0.0,
+            670.0
+          ]
+        },
+        {
+          "angle": 2,
+          "id": 72,
+          "position": [
+            -400.0,
+            0.0,
+            397.0
+          ]
+        },
+        {
+          "angle": 7,
+          "id": 72,
+          "position": [
+            -654.0,
+            0.0,
+            -374.0
+          ]
+        },
+        {
+          "angle": 13,
+          "id": 72,
+          "position": [
+            18.0,
+            0.0,
+            -211.0
+          ]
+        },
+        {
+          "angle": 16,
+          "id": 72,
+          "position": [
+            693.0,
+            0.0,
+            50.0
+          ]
+        }
+      ]
+    },
+    "mask_parts": [],
+    "river_parts": [
+      {
+        "index": 0,
+        "model": "g010504_r-m.gltf",
+        "parts": "p04_g0105"
+      },
+      {
+        "index": 1,
+        "model": "g010501_r-m.gltf",
+        "parts": "p01_g0105"
+      },
+      {
+        "index": 2,
+        "model": "g010503_r-m.gltf",
+        "parts": "p03_g0105"
+      },
+      {
+        "index": 3,
+        "model": "g010502_r-m.gltf",
+        "parts": "p02_g0105"
+      },
+      {
+        "index": 4,
+        "model": "g010508_r-m.gltf",
+        "parts": "p08_g0105"
+      },
+      {
+        "index": 5,
+        "model": "g010505_r-m.gltf",
+        "parts": "p05_g0105"
+      },
+      {
+        "index": 6,
+        "model": "g010507_r-m.gltf",
+        "parts": "p07_g0105"
+      },
+      {
+        "index": 7,
+        "model": "g010506_r-m.gltf",
+        "parts": "p06_g0105"
+      }
+    ],
+    "water_parts_models": [
+      "g010509-m.gltf"
+    ]
+  },
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draw_count": 1,
+    "draws": [
+      {
+        "position": [
+          0.0,
+          -19.0,
+          0.0
+        ],
+        "surface": 0,
+        "target": "#follow101"
+      }
+    ],
+    "surface_count": 1,
+    "surfaces": [
+      {
+        "param": [
+          0.15,
+          0.0045,
+          0.0,
+          16.0
+        ],
+        "vertex": {
+          "corner0": [
+            -500.0,
+            0.0,
+            -500.0
+          ],
+          "corner1": [
+            500.0,
+            0.0,
+            500.0
+          ],
+          "count_x": 48,
+          "count_z": 48
+        }
+      }
+    ]
+  }
+}

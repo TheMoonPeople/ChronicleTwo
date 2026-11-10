@@ -1,0 +1,50 @@
+name: Switch
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-switch
+  cancel-in-progress: true
+jobs:
+  # docs/SWITCH.md: the libnx homebrew build, in the toolchain image Kazarov's tools/switch/Containerfile describes.
+  build:
+    name: Build (Nintendo Switch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: true
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      # The context is tools/switch with the FFmpeg configuration script beside it, as tools/switch/build.sh prepares it.
+      - name: Prepare the toolchain image context
+        run: |
+          mkdir -p "$RUNNER_TEMP/switch-context"
+          cp -a tools/kazarov/tools/switch/. "$RUNNER_TEMP/switch-context/"
+          cp tools/kazarov/tools/ffmpeg/kz-ffmpeg "$RUNNER_TEMP/switch-context/kz-ffmpeg"
+      - name: Build the toolchain image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: ${{ runner.temp }}/switch-context
+          file: ${{ runner.temp }}/switch-context/Containerfile
+          build-args: BUILD_JOBS=4
+          load: true
+          tags: kazarov-switch:ci
+          cache-from: type=gha,scope=ci-switch
+          cache-to: type=gha,mode=max,scope=ci-switch,ignore-error=true
+      - name: Build
+        env:
+          KZ_SWITCH_IMAGE: kazarov-switch:ci
+          JOBS: 4
+        run: bash port/switch-build.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: chronicletwo-switch-${{ github.sha }}
+          path: |
+            port/build/switch/darkchronicle.nro
+            port/build/switch/darkchronicle.elf
+          if-no-files-found: error

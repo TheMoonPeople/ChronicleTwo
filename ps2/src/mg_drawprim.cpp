@@ -134,7 +134,7 @@ void mgCDrawPrim::Begin2() {
             sceVif1PkCall(vif_packet, packet_start, 0);
         }
 
-        packet_start = (u_long128 *) ((u_int) packet_start | MG_UNCACHED);
+        packet_start = (u_long128 *) ((uptr) packet_start | MG_UNCACHED);
 
         if (packet_top == NULL) {
             packet_top = packet_start;
@@ -690,7 +690,7 @@ int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
 
             if (common != (*entry)->common) {
                 tag[0] = MG_DMA_CALL;
-                tag[1] = (u_int) (*entry)->common;
+                tag[1] = (uptr) (*entry)->common;
                 tag[2] = 0;
                 tag[3] = 0;
                 tag += 4;
@@ -698,7 +698,7 @@ int mgCDrawManager::Draw(int group, sceVif1Packet *vif_packet) {
             }
 
             tag[0] = MG_DMA_CALL;
-            tag[1] = (u_int) (*entry)->packet;
+            tag[1] = (uptr) (*entry)->packet;
             tag[2] = 0;
             tag[3] = 0;
             tag += 4;
@@ -748,7 +748,7 @@ void mgCDrawManager::AddPacket(int group, u_long128 *common, u_long128 *packet, 
             }
         }
 
-        node = (mgSORT_PACKET *) memory->Alloc(1);
+        node = (mgSORT_PACKET *) memory->Alloc((sizeof(mgSORT_PACKET) + 15) / 16);
         node->next = *sort_table;
         *sort_table = node;
         node->common = common;

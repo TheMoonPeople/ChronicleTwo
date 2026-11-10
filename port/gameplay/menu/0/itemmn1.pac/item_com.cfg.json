@@ -1,0 +1,332 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "system",
+          "window": 0
+        },
+        {
+          "message": 0,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 3
+        },
+        {
+          "message": 43,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "itemcmd",
+          "window": 5
+        },
+        {
+          "message": 0,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "op": "message_env",
+          "preset": "name_black",
+          "window": 6
+        }
+      ],
+      "name": "MSGINIT"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 7
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 7
+        },
+        {
+          "message": 178,
+          "op": "make_message",
+          "window": 7
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "ビルドアップ？"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 7
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 7
+        },
+        {
+          "message": 179,
+          "op": "make_message",
+          "window": 7
+        }
+      ],
+      "name": "ビルドアップ終了"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 7
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 7
+        },
+        {
+          "message": 180,
+          "op": "make_message",
+          "window": 7
+        }
+      ],
+      "name": "キャパ足りない"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 7
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 7
+        },
+        {
+          "message": 183,
+          "op": "make_message",
+          "window": 7
+        }
+      ],
+      "name": "パーツ壊"
+    },
+    {
+      "commands": [
+        {
+          "action": "外へ",
+          "form": "itembrd",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "moneybrd",
+          "op": "form_set_action"
+        },
+        {
+          "channel": 3,
+          "form": "mainform_fill",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "mainform_filldmy",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 12
+        }
+      ],
+      "name": "前終了処理"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "forms": [
+            "main_form_dmy1",
+            "poly_chr0"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "form": "msg0",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "mainform_fill"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "mainform_fill",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "mainform_fill",
+          "op": "form_calc_rgba",
+          "step": 12,
+          "target": 128
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "mainform_filldmy"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "ITEMINIT"
+    },
+    {
+      "commands": [
+        {
+          "fade_in": 1,
+          "op": "cursor_fade",
+          "speed": 20
+        },
+        {
+          "forms": [
+            "msg0",
+            "msg5"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "mainform_filldmy"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "INITEND"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "mainform_fill",
+            "mainform_filldmy"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "EXITEND"
+    },
+    {
+      "commands": [
+        {
+          "form": "mainform_filldmy",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "mainform_filldmy",
+          "op": "form_calc_rgba",
+          "step": 128,
+          "target": 128
+        }
+      ],
+      "name": "ITEMCHRFADEIN"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "mainform_filldmy",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        }
+      ],
+      "name": "ITEMCHRFADEOUT"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

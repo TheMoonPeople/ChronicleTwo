@@ -1,0 +1,275 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "attack_both_hands": {
+      "type": "string",
+      "value": "両手攻撃"
+    },
+    "attack_left_hand": {
+      "type": "string",
+      "value": "左手攻撃"
+    },
+    "attack_right_hand": {
+      "type": "string",
+      "value": "右手攻撃"
+    },
+    "left": {
+      "type": "string",
+      "value": "左"
+    },
+    "right": {
+      "type": "string",
+      "value": "右"
+    },
+    "triple_attack": {
+      "type": "string",
+      "value": "三連続攻撃"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "arm01_m"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 648
+            },
+            {
+              "type": "int",
+              "value": -1
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SCALE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "triple_attack"
+            }
+          ],
+          "command": "SEQ_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "right"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "left"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_both_hands"
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [],
+          "command": "SEQ_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SE_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_right_hand"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 6
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_left_hand"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 7
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_both_hands"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 8
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "SE"
+        },
+        {
+          "args": [],
+          "command": "SE_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

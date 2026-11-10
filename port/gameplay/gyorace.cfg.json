@@ -1,0 +1,78 @@
+{
+  "fish": [
+    {
+      "battle": 50,
+      "boost": 50,
+      "color": 8,
+      "endurance": 50,
+      "item": 328,
+      "kind": 0,
+      "name": "あああ",
+      "stamina": 50,
+      "tactics": 0,
+      "tenacity": 50
+    },
+    {
+      "battle": 50,
+      "boost": 50,
+      "color": 8,
+      "endurance": 50,
+      "item": 329,
+      "kind": 1,
+      "name": "いいい",
+      "stamina": 50,
+      "tactics": 1,
+      "tenacity": 50
+    },
+    {
+      "battle": 50,
+      "boost": 50,
+      "color": 8,
+      "endurance": 50,
+      "item": 330,
+      "kind": 2,
+      "name": "う",
+      "stamina": 50,
+      "tactics": 2,
+      "tenacity": 50
+    },
+    {
+      "battle": 50,
+      "boost": 50,
+      "color": 8,
+      "endurance": 50,
+      "item": 331,
+      "kind": 3,
+      "name": "えええ",
+      "stamina": 50,
+      "tactics": 3,
+      "tenacity": 50
+    },
+    {
+      "battle": 50,
+      "boost": 50,
+      "color": 8,
+      "endurance": 50,
+      "item": 332,
+      "kind": 0,
+      "name": "おお",
+      "stamina": 50,
+      "tactics": 4,
+      "tenacity": 50
+    },
+    {
+      "battle": 50,
+      "boost": 50,
+      "color": 8,
+      "endurance": 50,
+      "item": 333,
+      "kind": 1,
+      "name": "かかか",
+      "stamina": 50,
+      "tactics": 0,
+      "tenacity": 50
+    }
+  ],
+  "kind": "debug_race_fish",
+  "schema_version": 2
+}

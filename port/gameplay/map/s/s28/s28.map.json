@@ -1,0 +1,1368 @@
+{
+  "info": {
+    "active_light_set": 0,
+    "all_scissor": 0,
+    "chara_light_adjust": {
+      "mode": 0,
+      "value": [
+        0.3,
+        1.8,
+        0.44
+      ]
+    },
+    "chara_pos": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "def_foot": 0,
+    "floor": -10000.0,
+    "lens_flare": 1,
+    "light_sets": [
+      {
+        "ambient": [
+          32.0,
+          32.0,
+          32.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "near": 0.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 0,
+        "lights": [
+          {
+            "color": [
+              128.0,
+              128.0,
+              128.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      }
+    ],
+    "model_packs": [
+      "s28_0.pcp"
+    ],
+    "sky": {
+      "height": 0.0,
+      "info": 0,
+      "sun_angle_degrees": 0.0
+    },
+    "texture_packs": [
+      "s28.json"
+    ],
+    "time": {
+      "blend": 0,
+      "enable": 0,
+      "fixed_time": 12.0,
+      "fixed_time_enable": 0
+    },
+    "time_cfade": 0,
+    "time_light_num": 4
+  },
+  "kind": "scene_map",
+  "parts": [
+    {
+      "func_points": [
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-0",
+          "transform": {
+            "position": [
+              -236.858,
+              679.757,
+              279.724
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              20.0,
+              20.0,
+              20.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-1",
+          "transform": {
+            "position": [
+              237.031,
+              679.757,
+              279.724
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              20.0,
+              20.0,
+              20.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-2",
+          "transform": {
+            "position": [
+              350.617,
+              884.405,
+              -122.147
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-3",
+          "transform": {
+            "position": [
+              490.469,
+              884.405,
+              -180.096
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-4",
+          "transform": {
+            "position": [
+              498.885,
+              884.405,
+              -270.746
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-6",
+          "transform": {
+            "position": [
+              350.68,
+              884.405,
+              -349.511
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-5",
+          "transform": {
+            "position": [
+              420.331,
+              884.405,
+              -349.862
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-7",
+          "transform": {
+            "position": [
+              -350.593,
+              884.405,
+              -122.556
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-8",
+          "transform": {
+            "position": [
+              -490.712,
+              884.405,
+              -180.013
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-9",
+          "transform": {
+            "position": [
+              -499.105,
+              884.405,
+              -270.693
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-10",
+          "transform": {
+            "position": [
+              -420.637,
+              884.405,
+              -349.322
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-11",
+          "transform": {
+            "position": [
+              -350.606,
+              884.405,
+              -349.653
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              12.0,
+              12.0,
+              12.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-12",
+          "transform": {
+            "position": [
+              -385.598,
+              1440.02,
+              -218.444
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              15.0,
+              20.0,
+              15.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-13",
+          "transform": {
+            "position": [
+              385.598,
+              1440.02,
+              -218.444
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              15.0,
+              20.0,
+              15.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-14",
+          "transform": {
+            "position": [
+              146.3,
+              1547.13,
+              13.4479
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              15.0,
+              20.0,
+              15.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-15",
+          "transform": {
+            "position": [
+              -146.3,
+              1547.13,
+              13.4479
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              15.0,
+              20.0,
+              15.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 255.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 255.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-16",
+          "transform": {
+            "position": [
+              0.0,
+              1547.13,
+              30.8503
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              15.0,
+              20.0,
+              15.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-17",
+          "transform": {
+            "position": [
+              -145.928,
+              1398.68,
+              90.0124
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-18",
+          "transform": {
+            "position": [
+              -238.155,
+              1398.68,
+              -0.0278477
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-19",
+          "transform": {
+            "position": [
+              -146.27,
+              1398.68,
+              -88.3011
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-20",
+          "transform": {
+            "position": [
+              146.391,
+              1398.68,
+              -88.9044
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-21",
+          "transform": {
+            "position": [
+              238.233,
+              1398.68,
+              0.0923267
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-22",
+          "transform": {
+            "position": [
+              146.046,
+              1398.68,
+              89.5497
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-23",
+          "transform": {
+            "position": [
+              -385.696,
+              1247.09,
+              -144.543
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-24",
+          "transform": {
+            "position": [
+              -477.056,
+              1247.09,
+              -235.816
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-25",
+          "transform": {
+            "position": [
+              -385.684,
+              1247.09,
+              -327.547
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-26",
+          "transform": {
+            "position": [
+              -293.768,
+              1247.09,
+              -235.756
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-27",
+          "transform": {
+            "position": [
+              294.157,
+              1247.09,
+              -235.805
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-28",
+          "transform": {
+            "position": [
+              385.569,
+              1247.09,
+              -144.59
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-29",
+          "transform": {
+            "position": [
+              476.456,
+              1247.09,
+              -235.842
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-30",
+          "transform": {
+            "position": [
+              385.479,
+              1247.09,
+              -327.261
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              10.0,
+              10.0,
+              10.0
+            ]
+          },
+          "type": "flare"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p20_f0401",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "f0401_20-m.gltf",
+          "name": "f0401_20-m2",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "f0401_20-a.gltf",
+          "name": "f0401_20-a",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p24_f0401",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "f0401_21-m.gltf",
+          "name": "f0401_21-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "definition": "p24_f0401",
+      "group": "",
+      "name": "p24_f0401",
+      "position": [
+        0.0,
+        0.0,
+        1157.31
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p20_f0401",
+      "group": "",
+      "name": "p20_f0401",
+      "position": [
+        0.0,
+        0.0,
+        -1168.44
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    }
+  ],
+  "schema_version": 2
+}

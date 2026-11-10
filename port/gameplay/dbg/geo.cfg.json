@@ -1,0 +1,31 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 1
+    },
+    {
+      "action": "bit_flags_on",
+      "flags": [
+        34
+      ]
+    },
+    {
+      "action": "bit_flags_on",
+      "flags": [
+        254
+      ]
+    },
+    {
+      "action": "bit_flags_on",
+      "flags": [
+        250
+      ]
+    },
+    {
+      "action": "all_georama_parts"
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

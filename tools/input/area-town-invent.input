@@ -1,0 +1,9 @@
+# --jump town:10 --fast-load: Make / invention menu.
+300 triangle
+301
+400 down
+401
+420 down
+421
+500 cross
+501

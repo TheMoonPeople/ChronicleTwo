@@ -1,0 +1,24 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 4
+    },
+    {
+      "action": "item_set",
+      "set": 8
+    },
+    {
+      "action": "defense",
+      "chara": 0,
+      "value": 8
+    },
+    {
+      "action": "hp",
+      "chara": 0,
+      "value": 48
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

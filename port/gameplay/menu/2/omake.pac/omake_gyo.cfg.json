@@ -1,0 +1,202 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 5014,
+          "op": "make_message",
+          "window": 0
+        }
+      ],
+      "name": "登録不可"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 5010,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 0
+        }
+      ],
+      "name": "参加取消？"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 5016,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 0
+        }
+      ],
+      "name": "競技開始？"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 5013,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "魚消せない"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 5105,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "魚消す？"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 1
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 1
+        },
+        {
+          "message": 5019,
+          "op": "make_message",
+          "window": 1
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 1
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "作戦選択"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 1
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 1
+        },
+        {
+          "message": 5015,
+          "op": "make_message",
+          "window": 1
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "作戦決定"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 4114,
+          "op": "make_message",
+          "window": 0
+        }
+      ],
+      "name": "魚登録終了"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

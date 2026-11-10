@@ -1,0 +1,224 @@
+{
+  "info": {
+    "active_light_set": 0,
+    "chara_pos": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "def_foot": 0,
+    "floor": -10000.0,
+    "light_sets": [
+      {
+        "ambient": [
+          41.0,
+          39.0,
+          22.0
+        ],
+        "bg_color": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 0,
+        "lights": [
+          {
+            "color": [
+              128.0,
+              128.0,
+              128.0
+            ],
+            "direction": [
+              5.0,
+              20.0,
+              6.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": [
+          {
+            "color": [
+              128.0,
+              64.0,
+              0.0
+            ],
+            "index": 0,
+            "position": [
+              0.0,
+              50.0,
+              0.0
+            ],
+            "power": 700.0
+          }
+        ]
+      }
+    ],
+    "model_packs": [
+      "i03h07_0.pcp"
+    ],
+    "sky": {
+      "height": 0.0,
+      "info": 0,
+      "sun_angle_degrees": 0.0
+    },
+    "texture_packs": [
+      "i03h07.json"
+    ],
+    "time": {
+      "blend": 0,
+      "enable": 0
+    },
+    "time_light_num": 4
+  },
+  "kind": "scene_map",
+  "parts": [
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "name": "p01_i03h07",
+      "pieces": [
+        {
+          "model": "",
+          "name": "i03h07_01-c",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "i03h07_01-m.gltf",
+          "name": "i03h07_01-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "i03h07_01-a.gltf",
+          "name": "i03h07_01-a",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "",
+          "name": "i03h07_02-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "definition": "p01_i03h07",
+      "group": "",
+      "name": "p01_i03h07",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    }
+  ],
+  "schema_version": 2
+}

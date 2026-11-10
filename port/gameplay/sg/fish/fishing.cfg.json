@@ -1,0 +1,911 @@
+{
+  "count": 22,
+  "kind": "fishing_places",
+  "maps": [
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 3,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 4,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 17,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": -1,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 1,
+          "rate": 3.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 4,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 6,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 15,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 65,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "exclusive": 1,
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 6,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 7,
+          "rate": 0.2,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 15,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 65,
+      "place": {
+        "area_type": 2,
+        "name": "",
+        "params": [
+          184.0,
+          -1083.0,
+          1200.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 4,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 6,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 12,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 10,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "exclusive": 1,
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 3,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 16,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 17,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 10,
+      "place": {
+        "area_type": 2,
+        "name": "",
+        "params": [
+          -867.0,
+          158.0,
+          700.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 12,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 15,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 9,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 0,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.8,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 2,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 5,
+          "rate": 0.2,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 13,
+          "rate": 1.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 14,
+          "rate": 0.1,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 2,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 18,
+          "rate": 0.2,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 16,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 1,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 3,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 17,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 4,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 54,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 1,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 3,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 9,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 57,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 1,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 3,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 9,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 157,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 4,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 3,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 59,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 4,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 3,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 10,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 164,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 10,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 6,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 12,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 9,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 60,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 10,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 6,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 12,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 9,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 165,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 5,
+          "rate": 0.2,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 2,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 13,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 14,
+          "rate": 0.1,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 111,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 5,
+          "rate": 0.4,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 14,
+          "rate": 0.1,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 2,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 13,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 80,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 5,
+          "rate": 0.2,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 14,
+          "rate": 0.4,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 2,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 13,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 166,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 17,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 16,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 7,
+          "rate": 0.1,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 84,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 8,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 15,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 1,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 7,
+          "rate": 0.3,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 98,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 0,
+          "rate": 0.5,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 147,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "fish": [
+        {
+          "fish": 5,
+          "rate": 0.3,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 11,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 14,
+          "rate": 0.3,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 2,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 13,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        },
+        {
+          "fish": 0,
+          "rate": 1.0,
+          "wait_bias": 0.0
+        }
+      ],
+      "map": 90,
+      "place": {
+        "area_type": 0,
+        "name": "",
+        "params": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "schema_version": 2
+}

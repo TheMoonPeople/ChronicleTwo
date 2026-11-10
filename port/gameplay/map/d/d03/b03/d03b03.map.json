@@ -1,0 +1,1329 @@
+{
+  "func_points": [
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.0,
+        "cast_light": 0,
+        "effect": 0,
+        "green": 0.0,
+        "heat_haze": 0,
+        "red": 0.0
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flame-0",
+      "transform": {
+        "position": [
+          112.048,
+          33.0262,
+          517.283
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          2.5,
+          2.5,
+          2.5
+        ]
+      },
+      "type": "fire"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.0,
+        "cast_light": 0,
+        "effect": 0,
+        "green": 0.0,
+        "heat_haze": 0,
+        "red": 0.0
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flame-1",
+      "transform": {
+        "position": [
+          112.048,
+          33.0262,
+          674.453
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          2.5,
+          2.5,
+          2.5
+        ]
+      },
+      "type": "fire"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.0,
+        "cast_light": 0,
+        "effect": 0,
+        "green": 0.0,
+        "heat_haze": 0,
+        "red": 0.0
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flame-2",
+      "transform": {
+        "position": [
+          112.048,
+          41.0463,
+          808.636
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          2.5,
+          2.5,
+          2.5
+        ]
+      },
+      "type": "fire"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.0,
+        "cast_light": 0,
+        "effect": 0,
+        "green": 0.0,
+        "heat_haze": 0,
+        "red": 0.0
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flame-3",
+      "transform": {
+        "position": [
+          -112.048,
+          33.0262,
+          517.283
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          2.5,
+          2.5,
+          2.5
+        ]
+      },
+      "type": "fire"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.0,
+        "cast_light": 0,
+        "effect": 0,
+        "green": 0.0,
+        "heat_haze": 0,
+        "red": 0.0
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flame-4",
+      "transform": {
+        "position": [
+          -112.048,
+          33.0262,
+          674.453
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          2.5,
+          2.5,
+          2.5
+        ]
+      },
+      "type": "fire"
+    },
+    {
+      "enable": 1,
+      "fire": {
+        "blue": 0.0,
+        "cast_light": 0,
+        "effect": 0,
+        "green": 0.0,
+        "heat_haze": 0,
+        "red": 0.0
+      },
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "flame-5",
+      "transform": {
+        "position": [
+          -112.048,
+          41.0463,
+          808.636
+        ],
+        "rotation": [
+          0.0,
+          3.14159,
+          0.0
+        ],
+        "scale": [
+          2.5,
+          2.5,
+          2.5
+        ]
+      },
+      "type": "fire"
+    }
+  ],
+  "info": {
+    "active_light_set": 0,
+    "chara_pos": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "def_foot": 0,
+    "floor": -10000.0,
+    "light_sets": [
+      {
+        "ambient": [
+          65.0,
+          65.0,
+          60.0
+        ],
+        "bg_color": [
+          60.0,
+          140.0,
+          230.0
+        ],
+        "bg_color2": [
+          180.0,
+          200.0,
+          220.0
+        ],
+        "fog": {
+          "color": [
+            220,
+            200,
+            180
+          ],
+          "far": 3000.0,
+          "far_value": 175.0,
+          "near": 500.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 0,
+        "lights": [
+          {
+            "color": [
+              200.0,
+              190.0,
+              185.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          65.0,
+          65.0,
+          60.0
+        ],
+        "bg_color": [
+          80.0,
+          160.0,
+          250.0
+        ],
+        "bg_color2": [
+          220.0,
+          240.0,
+          250.0
+        ],
+        "fog": {
+          "color": [
+            250,
+            200,
+            180
+          ],
+          "far": 3000.0,
+          "far_value": 175.0,
+          "near": 500.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 1,
+        "lights": [
+          {
+            "color": [
+              225.0,
+              215.0,
+              210.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          65.0,
+          65.0,
+          60.0
+        ],
+        "bg_color": [
+          60.0,
+          120.0,
+          250.0
+        ],
+        "bg_color2": [
+          180.0,
+          200.0,
+          240.0
+        ],
+        "fog": {
+          "color": [
+            250,
+            200,
+            180
+          ],
+          "far": 3000.0,
+          "far_value": 175.0,
+          "near": 500.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 2,
+        "lights": [
+          {
+            "color": [
+              170.0,
+              165.0,
+              160.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              10.0,
+              10.0,
+              30.0
+            ],
+            "direction": [
+              -1.0,
+              -1.0,
+              -1.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          95.0,
+          85.0,
+          60.0
+        ],
+        "bg_color": [
+          10.0,
+          50.0,
+          100.0
+        ],
+        "bg_color2": [
+          255.0,
+          180.0,
+          80.0
+        ],
+        "fog": {
+          "color": [
+            250,
+            200,
+            80
+          ],
+          "far": 3000.0,
+          "far_value": 205.0,
+          "near": 500.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 3,
+        "lights": [
+          {
+            "color": [
+              125.0,
+              95.0,
+              75.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          65.0,
+          65.0,
+          90.0
+        ],
+        "bg_color": [
+          10.0,
+          50.0,
+          100.0
+        ],
+        "bg_color2": [
+          150.0,
+          160.0,
+          255.0
+        ],
+        "fog": {
+          "color": [
+            30,
+            20,
+            100
+          ],
+          "far": 3000.0,
+          "far_value": 205.0,
+          "near": 500.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 4,
+        "lights": [
+          {
+            "color": [
+              40.0,
+              40.0,
+              20.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          40.0,
+          40.0,
+          65.0
+        ],
+        "bg_color": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "bg_color2": [
+          100.0,
+          110.0,
+          190.0
+        ],
+        "fog": {
+          "color": [
+            30,
+            20,
+            100
+          ],
+          "far": 3000.0,
+          "far_value": 205.0,
+          "near": 500.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 5,
+        "lights": [
+          {
+            "color": [
+              40.0,
+              40.0,
+              10.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          50.0,
+          50.0,
+          75.0
+        ],
+        "bg_color": [
+          20.0,
+          20.0,
+          50.0
+        ],
+        "bg_color2": [
+          130.0,
+          90.0,
+          200.0
+        ],
+        "fog": {
+          "color": [
+            70,
+            50,
+            60
+          ],
+          "far": 2500.0,
+          "far_value": 155.0,
+          "near": 500.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 6,
+        "lights": [
+          {
+            "color": [
+              40.0,
+              40.0,
+              10.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          80.0,
+          80.0,
+          80.0
+        ],
+        "bg_color": [
+          50.0,
+          60.0,
+          150.0
+        ],
+        "bg_color2": [
+          190.0,
+          160.0,
+          80.0
+        ],
+        "fog": {
+          "color": [
+            180,
+            170,
+            175
+          ],
+          "far": 3000.0,
+          "far_value": 155.0,
+          "near": 300.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 7,
+        "lights": [
+          {
+            "color": [
+              75.0,
+              65.0,
+              40.0
+            ],
+            "direction": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      }
+    ],
+    "model_packs": [
+      "d03b03_0.pcp"
+    ],
+    "sky": {
+      "height": -1000.0,
+      "info": 1,
+      "sun_angle_degrees": 0.0
+    },
+    "texture_packs": [
+      "battleship.json"
+    ],
+    "time": {
+      "blend": 1,
+      "enable": 1
+    },
+    "time_light_num": 8
+  },
+  "kind": "scene_map",
+  "parts": [
+    {
+      "func_points": [
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 0,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func",
+          "transform": {
+            "position": [
+              112.048,
+              33.0262,
+              517.283
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.5,
+              2.5,
+              2.5
+            ]
+          },
+          "type": "fire"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 0,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func0",
+          "transform": {
+            "position": [
+              112.048,
+              33.0262,
+              674.453
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.5,
+              2.5,
+              2.5
+            ]
+          },
+          "type": "fire"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 0,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func1",
+          "transform": {
+            "position": [
+              112.048,
+              41.0463,
+              808.636
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "fire"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 0,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func2",
+          "transform": {
+            "position": [
+              -112.048,
+              33.0262,
+              674.453
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.5,
+              2.5,
+              2.5
+            ]
+          },
+          "type": "fire"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 0,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func3",
+          "transform": {
+            "position": [
+              -112.048,
+              33.0262,
+              808.636
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.5,
+              2.5,
+              2.5
+            ]
+          },
+          "type": "fire"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 0,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func4",
+          "transform": {
+            "position": [
+              -112.048,
+              41.0463,
+              674.453
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              2.5,
+              2.5,
+              2.5
+            ]
+          },
+          "type": "fire"
+        },
+        {
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "light",
+          "plight": {
+            "blue": 0.0,
+            "flicker_depth": 0.0,
+            "flicker_period": 0.0,
+            "flicker_type": 0,
+            "green": 0.0,
+            "light_chara": 0,
+            "light_type": 2,
+            "no_map_light": 0,
+            "power": 800.0,
+            "red": 180.0,
+            "unk_40": 1,
+            "unk_44": 0
+          },
+          "transform": {
+            "position": [
+              0.0,
+              50.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "plight"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 1.2,
+            "frame_name": "",
+            "kind": 1,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": -1.2,
+            "parts_name": "p01_battleship",
+            "piece_name": "battleship_2-m0",
+            "piece_space": 1,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 0.02,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "enjin01",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": -1.2,
+            "frame_name": "",
+            "kind": 1,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 1.2,
+            "parts_name": "p01_battleship",
+            "piece_name": "battleship_2-m1",
+            "piece_space": 1,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": -0.02,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "enjin02",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 30.0,
+            "end_z": 0.0,
+            "frame_name": "cube57_1",
+            "kind": 2,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": -30.0,
+            "param_z": 0.0,
+            "parts_name": "p01_battleship",
+            "piece_name": "battleship_3-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.1,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "hire01",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": -40.0,
+            "end_z": 0.0,
+            "frame_name": "cube122",
+            "kind": 2,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": 40.0,
+            "param_z": 0.0,
+            "parts_name": "p01_battleship",
+            "piece_name": "battleship_3-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": -0.2,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "hire02",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 36.0,
+            "end_z": 0.0,
+            "frame_name": "cube123",
+            "kind": 2,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": -36.0,
+            "param_z": 0.0,
+            "parts_name": "p01_battleship",
+            "piece_name": "battleship_3-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.1,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "hire03",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 40.0,
+            "end_y": 0.0,
+            "end_z": 0.0,
+            "frame_name": "cyl41",
+            "kind": 2,
+            "mode": 4,
+            "param_x": -40.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p01_battleship",
+            "piece_name": "battleship_3-m0",
+            "piece_space": 0,
+            "speed_x": 0.5,
+            "speed_y": 0.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "hire04",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "name": "p01_battleship",
+      "pieces": [
+        {
+          "model": "battleship_1-m.gltf",
+          "name": "battleship_1-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "battleship_2-m.gltf",
+          "name": "battleship_2-m0",
+          "position": [
+            0.0,
+            138.454,
+            -266.256
+          ],
+          "rotation": [
+            0.0,
+            0.55,
+            1.5708
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "battleship_3-m.gltf",
+          "name": "battleship_3-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "battleship_1-m.gltf",
+          "name": "battleship_1-m1",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "battleship_2-m.gltf",
+          "name": "battleship_2-m1",
+          "position": [
+            0.0,
+            138.454,
+            -266.256
+          ],
+          "rotation": [
+            0.0,
+            0.55,
+            1.5708
+          ],
+          "scale": [
+            1.0,
+            -1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "definition": "p01_battleship",
+      "group": "",
+      "name": "p01_battleship",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    }
+  ],
+  "schema_version": 2
+}

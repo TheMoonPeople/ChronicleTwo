@@ -1,0 +1,5 @@
+# --jump town:10 --fast-load: walk forward, then turn.
+300 128 0 128 128
+340
+400 255 128 128 128
+420

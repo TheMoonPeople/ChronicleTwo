@@ -1,0 +1,135 @@
+# Requires game.debug_mode=true in the replay save root config.json.
+# Retail debug event select, then dialogue and short movement probes.
+300 circle
+306
+320 cross
+326
+500 l1 l2 r1 r2 r3
+506
+520 start select
+526
+900 pad1 circle
+902 pad1
+940 pad1 down
+942 pad1
+952 pad1 down
+954 pad1
+964 pad1 down
+966 pad1
+976 pad1 down
+978 pad1
+988 pad1 down
+990 pad1
+1000 pad1 down
+1002 pad1
+1032 pad1 circle
+1034 pad1
+1092 pad1 right
+1094 pad1
+1152 pad1 down
+1154 pad1
+1212 pad1 down
+1214 pad1
+1272 pad1 down
+1274 pad1
+1332 pad1 down
+1334 pad1
+1392 pad1 circle
+1394 pad1
+1472 pad1
+1532 pad1 cross
+1535 pad1
+1562 pad1 circle
+1565 pad1
+1592 pad1 170 64 128 128
+1632 pad1
+1652 pad1 86 192 128 128
+1692 pad1
+1772 pad1 cross
+1775 pad1
+1802 pad1 circle
+1805 pad1
+1832 pad1 170 64 128 128
+1872 pad1
+1892 pad1 86 192 128 128
+1932 pad1
+2012 pad1 cross
+2015 pad1
+2042 pad1 circle
+2045 pad1
+2072 pad1 170 64 128 128
+2112 pad1
+2132 pad1 86 192 128 128
+2172 pad1
+2252 pad1 cross
+2255 pad1
+2282 pad1 circle
+2285 pad1
+2312 pad1 170 64 128 128
+2352 pad1
+2372 pad1 86 192 128 128
+2412 pad1
+2492 pad1 cross
+2495 pad1
+2522 pad1 circle
+2525 pad1
+2552 pad1 170 64 128 128
+2592 pad1
+2612 pad1 86 192 128 128
+2652 pad1
+2732 pad1 cross
+2735 pad1
+2762 pad1 circle
+2765 pad1
+2792 pad1 170 64 128 128
+2832 pad1
+2852 pad1 86 192 128 128
+2892 pad1
+2972 pad1 cross
+2975 pad1
+3002 pad1 circle
+3005 pad1
+3032 pad1 170 64 128 128
+3072 pad1
+3092 pad1 86 192 128 128
+3132 pad1
+3212 pad1 cross
+3215 pad1
+3242 pad1 circle
+3245 pad1
+3272 pad1 170 64 128 128
+3312 pad1
+3332 pad1 86 192 128 128
+3372 pad1
+3452 pad1 cross
+3455 pad1
+3482 pad1 circle
+3485 pad1
+3512 pad1 170 64 128 128
+3552 pad1
+3572 pad1 86 192 128 128
+3612 pad1
+3692 pad1 cross
+3695 pad1
+3722 pad1 circle
+3725 pad1
+3752 pad1 170 64 128 128
+3792 pad1
+3812 pad1 86 192 128 128
+3852 pad1
+3932 pad1 cross
+3935 pad1
+3962 pad1 circle
+3965 pad1
+3992 pad1 170 64 128 128
+4032 pad1
+4052 pad1 86 192 128 128
+4092 pad1
+4172 pad1 cross
+4175 pad1
+4202 pad1 circle
+4205 pad1
+4232 pad1 170 64 128 128
+4272 pad1
+4292 pad1 86 192 128 128
+4332 pad1

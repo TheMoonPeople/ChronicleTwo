@@ -1,0 +1,146 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "d06w00_3-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w01_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w03_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w05_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w06_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w08_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w09_2-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w09_3-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w09_4-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w09_5-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w09_6-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06wa01_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d06wa03_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d06wa05_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d06wa08_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d06wa09_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d06wa09_2-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d06wa09_3-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d06wv01_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d06wv03_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d06wv05_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d06wv08_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d06wv09_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d06wv09_2-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d06wv09_3-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w09_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w00_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06w00_2-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d06wv06_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d06wa06_1-a.gltf",
+      "type": 1
+    }
+  ],
+  "schema_version": 2
+}

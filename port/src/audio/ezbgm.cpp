@@ -1,0 +1,209 @@
+#include "common.h"
+
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <cstdio>
+#include <filesystem>
+#include <mutex>
+#include <string>
+
+#include "assets/data_registry.hpp"
+#include "audio/mixer.hpp"
+#include "audio/sound_runtime.hpp"
+#include "audio/stream.hpp"
+#include "audio_assets.hpp"
+#include "audio_init.hpp"
+#include "controller_speaker.hpp"
+#include "ezbgm.hpp"
+#include "log/log.hpp"
+#include "platform/audio.hpp"
+#include "platform/clock.hpp"
+#include "platform/config.hpp"
+#include "platform/paths.hpp"
+#include "sound.hpp"
+
+namespace {
+
+constexpr int kChannelCount = 16;
+
+// The IOP holds the end bit while its buffers drain and the game's waits poll it for several frames;
+// one second of output stands in for that drain.
+constexpr std::int64_t kEndHoldFrames = audio::kSpuRate;
+
+enum Command : int {
+    kQuit = 0x10,
+    kClose = 0x30,
+    kStart = 0x50,
+    kStop = 0x60,
+    kSeek = 0x70,
+    kVolume = 0x80,
+    kSetMode = 0x80C0,
+    kState = 0x80B0,
+    kInfo = 0x80D0,
+    kLevel = 0x80E0,
+};
+
+struct StreamSlot {
+    audio::StreamChannel stream;
+    int                  mode = 0;
+    int                  stereo = 0;
+};
+
+std::array<StreamSlot, kChannelCount> &Slots() {
+    static std::array<StreamSlot, kChannelCount> slots;
+    return slots;
+}
+
+void AttachChannels() {
+    static std::once_flag attached;
+    std::call_once(attached, [] {
+        for (StreamSlot &slot : Slots()) {
+            audio::DefaultMixer().AddStreamChannel(&slot.stream);
+        }
+    });
+}
+
+StreamSlot &Slot(int channel) {
+    AttachChannels();
+    return Slots()[std::clamp(channel, 0, kChannelCount - 1)];
+}
+
+void CloseSlot(StreamSlot &slot) {
+    slot.stream.Close();
+    slot.mode = 0;
+    slot.stereo = 0;
+}
+
+// The Ridepod's lines are 852000.wav onward (CDngObject's ROBO_VOICE_OPEN); their channel is shared
+// with other voices, so the name decides.
+bool IsRobotVoice(const char *name) {
+    return std::filesystem::path(name).filename().string().starts_with("8520");
+}
+
+void RouteSlot(StreamSlot &slot, const char *name) {
+    ControllerSpeakerRelease(&slot.stream);
+    if (ConfigGet().dualsense_speaker && IsRobotVoice(name)) {
+        ControllerSpeakerRoute(&slot.stream);
+    }
+}
+
+} // namespace
+
+int ezBgmInit() {
+    AttachChannels();
+    return 1;
+}
+
+int ezBgm(int command, int argument) {
+    StreamSlot           &slot = Slot(command & EZBGM_CHANNEL_MASK);
+    audio::StreamChannel &stream = slot.stream;
+
+    switch (command & EZBGM_COMMAND_MASK) {
+        case EZBGM_OPEN:
+        case EZBGM_OPEN_FROM_PACK:
+        case EZBGM_UNK_8A00:
+            CT_LOG_ERROR(Audio, "ezbgm: open command 0x{:04x} carries an address, use EzBgmOpen", command & EZBGM_COMMAND_MASK);
+            return 0;
+        case EZBGM_PRELOAD:
+            return 0;
+        case kStart:
+            if (stream.IsOpen()) {
+                stream.Play();
+            }
+            return 0;
+        case kStop:
+            stream.Stop();
+            return 0;
+        case kSeek:
+            stream.Seek(0);
+            return 0;
+        case kClose:
+            stream.Close();
+            return 0;
+        case kQuit:
+        case 0x90:
+        case 0xA0:
+        case 0xD0:
+            return 0;
+        case kVolume: {
+            const int left = (argument >> 16) & 0x7FFF;
+            const int right = argument & 0x7FFF;
+            stream.SetVolume(left / 32767.0f, right / 32767.0f);
+            return 0;
+        }
+        case kSetMode:
+            if (stream.IsOpen()) {
+                slot.mode = argument & 0xFF;
+                stream.SetLoop((argument & 0x0F) != 0);
+            }
+            return 0;
+        case kState: {
+            int state = slot.mode;
+            if (stream.State() == audio::StreamState::Playing) {
+                state |= 0x1000;
+            }
+            if (stream.State() == audio::StreamState::Ended && stream.FramesSinceEnd() < kEndHoldFrames) {
+                state |= 0x8000;
+            }
+            return state;
+        }
+        case kInfo:
+            return slot.stereo;
+        case kLevel:
+            return static_cast<int>(stream.Level());
+        default:
+            return 0;
+    }
+}
+
+int CSound::StreamOpenState() {
+    return 0;
+}
+
+int EzBgmOpen(int channel, const char *name) {
+    StreamSlot &slot = Slot(channel);
+    CloseSlot(slot);
+
+    std::string error;
+    auto        track = LoadAudioTrack(name, error);
+    if (!track) {
+        CT_LOG_ERROR(Audio, "ezbgm: {}: {}", name, error);
+        return 0;
+    }
+    const bool stereo = track->source_channels == 2;
+    slot.stream.SetSourceChannels(stereo ? 2 : 1);
+    slot.stream.Open(track);
+    slot.stream.SetLoop(false);
+    slot.stereo = stereo ? 1 : 0;
+    RouteSlot(slot, name);
+    return 1;
+}
+
+int EzBgmOpenFromPack(int channel, const char *name, const char *pack_name) {
+    CloseSlot(Slot(channel));
+    CT_LOG_WARN(Audio, "ezbgm: {} (pack {}): voice packs are not on the disc", name, pack_name);
+    return 0;
+}
+
+void EzBgmStep() {
+    if (AudioOutputRunning() || AudioUsesTickClock()) {
+        return;
+    }
+
+    // The clock keeps the session's rate while a config change awaits restart, and is available
+    // even when retail global constructors step sound before startup.
+    const double tick_rate = ClockTickRate();
+    if (!(tick_rate > 0.0)) {
+        return;
+    }
+
+    const auto frames = static_cast<std::int64_t>(audio::kSpuRate / tick_rate);
+    for (int channel = 0; channel < kChannelCount; channel++) {
+        Slot(channel).stream.Advance(frames, audio::kSpuRate);
+    }
+}
+
+audio::StreamChannel &EzBgmChannel(int channel) {
+    return Slot(channel).stream;
+}

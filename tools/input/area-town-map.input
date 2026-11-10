@@ -1,0 +1,87 @@
+# --jump town:10 --fast-load: enable world map through retail save-data editor.
+300 start select
+301
+320 up
+321
+340 up
+341
+360 up
+361
+380 circle
+381
+400 down
+401
+420 down
+421
+440 r1
+441
+460 r1
+461
+480 r1
+481
+500 r1
+501
+520 r1
+521
+540 right
+541
+560 right
+561
+580 right
+581
+600 right
+601
+620 circle
+621
+640 cross
+641
+660 up
+661
+680 up
+681
+700 up
+701
+720 up
+721
+740 up
+741
+760 up
+761
+780 up
+781
+800 up
+801
+820 up
+821
+840 up
+841
+860 r1
+861
+880 circle
+881
+1100 triangle
+1101
+1200 down
+1201
+1220 down
+1221
+1240 down
+1241
+1300 cross
+1301
+1800 r3
+1801
+1820 circle
+1821
+1840 r3
+1841
+
+1920 up
+1921
+1960 cross
+1961
+
+2180 cross
+2181
+2300 cross
+2301

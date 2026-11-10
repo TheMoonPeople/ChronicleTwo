@@ -1,0 +1,9 @@
+# --jump dungeon:0:1 --fast-load --window 1280x720
+300 mouse:-160,-60
+301
+400 mouse:195,0
+401
+450 mouse1
+451
+600 mouse2
+601

@@ -1,0 +1,14 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 2
+    },
+    {
+      "action": "item_set",
+      "set": 0
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

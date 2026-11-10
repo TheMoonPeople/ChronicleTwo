@@ -1,0 +1,62 @@
+{
+  "entries": [
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    }
+  ],
+  "entry_count": 10,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

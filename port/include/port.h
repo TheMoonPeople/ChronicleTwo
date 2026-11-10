@@ -1,73 +1,36 @@
 #pragma once
 
 #include <strings.h>
+#include <sys/types.h>
 
-#include <cassert>
 #include <cstddef>
+#include <cstdio>
 #include <new>
 
-#ifdef _WIN32
-#include <cstring>
-// mingw's <strings.h> has no BSD index(); the PS2 libc's index() is strchr().
-inline char *index(const char *s, int c) {
-    return const_cast<char *>(strchr(s, c));
-}
-#endif
-
-#ifdef __APPLE__
-#undef __assert
-#define section(name)
-#endif
-
-#define PORT_STRINGIFY2(x) #x
-#define PORT_STRINGIFY(x) PORT_STRINGIFY2(x)
-#define PORT_ASM_NAME(name) PORT_STRINGIFY(__USER_LABEL_PREFIX__) #name
-
-// PORT_OVERRIDE, Ps2Unimplemented and PS2_UNIMPLEMENTED.
-#include "kazarov/port.h"
-
 /**
- * The Metrowerks runtime's assertion failure.
+ *
+ * Stops execution when a native game routine has no implementation.
+ *
  */
-extern "C" [[noreturn]] void __assert(const char *file, int line, const char *expression);
+[[noreturn]] void Ps2Unimplemented(const char *function, const char *file, int line);
+#define PS2_UNIMPLEMENTED() Ps2Unimplemented(__func__, __FILE__, __LINE__)
 
-/**
- * The Metrowerks runtime's exit.
- */
-extern "C" [[noreturn]] void exit__2(int status);
-
-/**
- * Makes a temporary an lvalue, for the non-const reference parameters MWCC binds temporaries to.
- */
-template <class T> T &Ps2Lvalue(T &&value) {
-    return static_cast<T &>(value);
-}
-
-// types.h gives the PS2's size_t and NULL. Included here under another name,
-// the host's stay in force, and #pragma once keeps the game from including it again.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmacro-redefined"
-#pragma push_macro("NULL")
-#define size_t ps2_size_t
-#ifdef _WIN32
-// Windows is LLP64; the GS register bitfields and packets need the PS2's 64-bit u_long.
+// Keep the SDK's u_long distinct from the host typedef while the native game aliases are read.
+// The host's <sys/types.h> declares its own u_long. It is read above, so its include guard stops a later read
+// from expanding the alias below; the PS2 typedef is renamed while types.h is read.
 #define u_long ps2_native_u_long
-#endif
 #include "types.h"
-#ifdef _WIN32
 #undef u_long
 #define u_long u64
-#endif
-#undef size_t
-#pragma pop_macro("NULL")
-#pragma clang diagnostic pop
 
-// The layouts STATIC_ASSERT checks are the PS2's: 32-bit pointers and longs as
-// MWCC lays them out. Once common.h is in, it checks nothing, unless the build asks
-// for them (PORT_STATIC_ASSERT): every struct holding a pointer then fails by design,
-// so that is a way to audit integer widths, not a default.
+// The PS2 layouts (32-bit pointers, 64-bit long) are what STATIC_ASSERT checks against; on the host
+// every check would fail, so it checks nothing.
 #include "common.h"
-#ifndef PORT_STATIC_ASSERT
 #undef STATIC_ASSERT
 #define STATIC_ASSERT(expr)
-#endif
+
+// Records keep the disc's layout on PC too, so their size checks stay on.
+#undef PORT_RECORD_ASSERT
+#define PORT_RECORD_ASSERT(expr) static_assert(expr)
+
+#include "../src/asset_directory.hpp"

@@ -1,0 +1,2705 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "つくれるもの",
+          "values": [
+            54,
+            0
+          ]
+        },
+        {
+          "name": "建てれるもの",
+          "values": [
+            52,
+            0
+          ]
+        },
+        {
+          "name": "ペイントできるもの",
+          "values": [
+            84,
+            0
+          ]
+        },
+        {
+          "name": "ペイントの色",
+          "values": [
+            78,
+            0
+          ]
+        },
+        {
+          "name": "配置しているもの",
+          "values": [
+            58,
+            0
+          ]
+        },
+        {
+          "name": "チェックポイント",
+          "values": [
+            68,
+            11
+          ]
+        }
+      ],
+      "op": "etc_info"
+    },
+    {
+      "entries": [
+        {
+          "name": "つくれるもの",
+          "values": [
+            96.0,
+            692.0,
+            130.0,
+            18.0
+          ]
+        },
+        {
+          "name": "建てれるもの",
+          "values": [
+            0.0,
+            674.0,
+            138.0,
+            18.0
+          ]
+        },
+        {
+          "name": "ペイントできるもの",
+          "values": [
+            140.0,
+            674.0,
+            80.0,
+            18.0
+          ]
+        },
+        {
+          "name": "ペイントの色",
+          "values": [
+            232.0,
+            692.0,
+            94.0,
+            18.0
+          ]
+        },
+        {
+          "name": "配置しているもの",
+          "values": [
+            382.0,
+            632.0,
+            130.0,
+            18.0
+          ]
+        },
+        {
+          "name": "チェックポイント",
+          "values": [
+            0.0,
+            692.0,
+            96.0,
+            18.0
+          ]
+        }
+      ],
+      "op": "etc_info2"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "geobg3",
+      "textures": [
+        {
+          "name": "geobg",
+          "rect": [
+            0,
+            0,
+            128,
+            128
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "geo",
+      "textures": [
+        {
+          "name": "polywin0",
+          "rect": [
+            434,
+            366,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin1",
+          "rect": [
+            460,
+            366,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin2",
+          "rect": [
+            486,
+            366,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin3",
+          "rect": [
+            434,
+            392,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin4",
+          "rect": [
+            460,
+            392,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin5",
+          "rect": [
+            486,
+            392,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin6",
+          "rect": [
+            434,
+            418,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin7",
+          "rect": [
+            460,
+            418,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polywin8",
+          "rect": [
+            486,
+            418,
+            26,
+            26
+          ]
+        },
+        {
+          "name": "polybacktile",
+          "rect": [
+            266,
+            236,
+            24,
+            24
+          ]
+        },
+        {
+          "name": "ポリン",
+          "rect": [
+            0,
+            586,
+            46,
+            20
+          ]
+        },
+        {
+          "name": "ポリン数",
+          "rect": [
+            0,
+            626,
+            12,
+            20
+          ]
+        },
+        {
+          "name": "残り",
+          "rect": [
+            46,
+            586,
+            74,
+            20
+          ]
+        },
+        {
+          "name": "タイトルバー",
+          "rect": [
+            0,
+            0,
+            512,
+            114
+          ]
+        },
+        {
+          "name": "暗板",
+          "rect": [
+            352,
+            366,
+            82,
+            36
+          ]
+        },
+        {
+          "name": "明板",
+          "rect": [
+            352,
+            402,
+            82,
+            36
+          ]
+        },
+        {
+          "name": "ListLine",
+          "rect": [
+            0,
+            553,
+            192,
+            6
+          ]
+        },
+        {
+          "name": "つくる",
+          "rect": [
+            72,
+            744,
+            72,
+            24
+          ]
+        },
+        {
+          "name": "はいち",
+          "rect": [
+            0,
+            744,
+            72,
+            24
+          ]
+        },
+        {
+          "name": "ペイント",
+          "rect": [
+            144,
+            744,
+            72,
+            24
+          ]
+        },
+        {
+          "name": "かたづけ",
+          "rect": [
+            216,
+            744,
+            72,
+            24
+          ]
+        },
+        {
+          "name": "チェック",
+          "rect": [
+            360,
+            744,
+            72,
+            24
+          ]
+        },
+        {
+          "name": "分析",
+          "rect": [
+            288,
+            744,
+            72,
+            24
+          ]
+        },
+        {
+          "name": "えをみる",
+          "rect": [
+            388,
+            650,
+            72,
+            24
+          ]
+        },
+        {
+          "name": "建物情報",
+          "rect": [
+            280,
+            674,
+            100,
+            18
+          ]
+        },
+        {
+          "name": "住人",
+          "rect": [
+            400,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "カルチャーＰ",
+          "rect": [
+            326,
+            692,
+            138,
+            18
+          ]
+        },
+        {
+          "name": "完成度",
+          "rect": [
+            460,
+            656,
+            52,
+            18
+          ]
+        },
+        {
+          "name": "分析バー上",
+          "rect": [
+            357,
+            207,
+            32,
+            1
+          ]
+        },
+        {
+          "name": "分析バー下",
+          "rect": [
+            357,
+            208,
+            32,
+            13
+          ]
+        },
+        {
+          "name": "分析板0",
+          "rect": [
+            390,
+            114,
+            122,
+            94
+          ]
+        },
+        {
+          "name": "分析板1",
+          "rect": [
+            390,
+            208,
+            122,
+            64
+          ]
+        },
+        {
+          "name": "分析板2",
+          "rect": [
+            390,
+            272,
+            122,
+            94
+          ]
+        },
+        {
+          "name": "メモリ大左",
+          "rect": [
+            356,
+            222,
+            12,
+            6
+          ]
+        },
+        {
+          "name": "メモリ大右",
+          "rect": [
+            368,
+            222,
+            12,
+            6
+          ]
+        },
+        {
+          "name": "メモリ小左",
+          "rect": [
+            356,
+            228,
+            10,
+            6
+          ]
+        },
+        {
+          "name": "メモリ小右",
+          "rect": [
+            366,
+            228,
+            10,
+            6
+          ]
+        },
+        {
+          "name": "％",
+          "rect": [
+            448,
+            746,
+            18,
+            22
+          ]
+        },
+        {
+          "name": "％数字",
+          "rect": [
+            0,
+            710,
+            26,
+            34
+          ]
+        },
+        {
+          "name": "CP数字",
+          "rect": [
+            260,
+            716,
+            20,
+            28
+          ]
+        },
+        {
+          "name": "建物窓0",
+          "rect": [
+            242,
+            306,
+            36,
+            224
+          ]
+        },
+        {
+          "name": "建物窓1",
+          "rect": [
+            278,
+            306,
+            36,
+            224
+          ]
+        },
+        {
+          "name": "建物窓2",
+          "rect": [
+            314,
+            306,
+            36,
+            224
+          ]
+        },
+        {
+          "name": "CP窓0",
+          "rect": [
+            404,
+            444,
+            36,
+            28
+          ]
+        },
+        {
+          "name": "CP窓1",
+          "rect": [
+            440,
+            444,
+            36,
+            28
+          ]
+        },
+        {
+          "name": "CP窓2",
+          "rect": [
+            476,
+            444,
+            36,
+            28
+          ]
+        },
+        {
+          "name": "CP窓3",
+          "rect": [
+            404,
+            472,
+            36,
+            20
+          ]
+        },
+        {
+          "name": "CP窓4",
+          "rect": [
+            440,
+            472,
+            36,
+            20
+          ]
+        },
+        {
+          "name": "CP窓5",
+          "rect": [
+            476,
+            472,
+            36,
+            20
+          ]
+        },
+        {
+          "name": "CP窓6",
+          "rect": [
+            404,
+            492,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "CP窓7",
+          "rect": [
+            440,
+            492,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "CP窓8",
+          "rect": [
+            476,
+            492,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "①",
+          "rect": [
+            0,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "②",
+          "rect": [
+            20,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "③",
+          "rect": [
+            40,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "④",
+          "rect": [
+            60,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "⑤",
+          "rect": [
+            80,
+            606,
+            20,
+            20
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "geoname",
+      "textures": [
+        {
+          "name": "シャーロット",
+          "rect": [
+            0,
+            0,
+            248,
+            28
+          ]
+        },
+        {
+          "name": "ステラ渓谷",
+          "rect": [
+            0,
+            28,
+            248,
+            28
+          ]
+        },
+        {
+          "name": "ベニーティオ",
+          "rect": [
+            0,
+            56,
+            248,
+            28
+          ]
+        },
+        {
+          "name": "ヘイムラダ",
+          "rect": [
+            0,
+            84,
+            248,
+            28
+          ]
+        },
+        {
+          "name": "月花宮殿",
+          "rect": [
+            0,
+            112,
+            248,
+            28
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mnmain",
+      "textures": [
+        {
+          "name": "waku_orange",
+          "rect": [
+            0,
+            162,
+            16,
+            16
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 0,
+      "op": "texture_sheet",
+      "sheet": "gaiji",
+      "textures": [
+        {
+          "name": "g_L1",
+          "rect": [
+            32,
+            132,
+            32,
+            23
+          ]
+        },
+        {
+          "name": "g_R1",
+          "rect": [
+            64,
+            132,
+            32,
+            23
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 0,
+      "op": "texture_sheet",
+      "sheet": "menuwork2",
+      "textures": [
+        {
+          "name": "menuwork2",
+          "rect": [
+            0,
+            0,
+            256,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "ジオラマ終了図",
+      "op": "form",
+      "parts": [
+        {
+          "name": "work",
+          "part": "normal",
+          "size": [
+            512,
+            480
+          ],
+          "texture": "menuwork2",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "bg",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": 1
+                },
+                {
+                  "index": 1,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "geobg",
+          "part": "normal",
+          "texture": "geobg",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "bg_tile"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "list_data0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -300,
+            108
+          ]
+        },
+        {
+          "list": 0,
+          "set": "draw_type",
+          "type": "geolist"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -320.0,
+                108.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                18.0,
+                108.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        }
+      ]
+    },
+    {
+      "name": "list_data1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -300,
+            108
+          ]
+        },
+        {
+          "list": 1,
+          "set": "draw_type",
+          "type": "geolist"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -320.0,
+                108.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                18.0,
+                108.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "1",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "list_data2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -300,
+            108
+          ]
+        },
+        {
+          "list": 2,
+          "set": "draw_type",
+          "type": "geolist"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -320.0,
+                88.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                18.0,
+                88.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        }
+      ]
+    },
+    {
+      "name": "list_data4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -300,
+            108
+          ]
+        },
+        {
+          "list": 4,
+          "set": "draw_type",
+          "type": "geolist"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -320.0,
+                108.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                14.0,
+                108.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        }
+      ]
+    },
+    {
+      "name": "analyze0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "geoana"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -360,
+            114
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -360.0,
+                114.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                16.0,
+                114.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        }
+      ]
+    },
+    {
+      "name": "analyze1",
+      "op": "form",
+      "parts": [
+        {
+          "name": "bg",
+          "part": "normal",
+          "size": [
+            38,
+            166
+          ],
+          "texture": "polybacktile",
+          "xy": [
+            46,
+            54
+          ]
+        },
+        {
+          "name": "base",
+          "part": "funcinfo",
+          "xy": [
+            0,
+            215
+          ]
+        },
+        {
+          "name": "bar0",
+          "part": "normal",
+          "texture": "分析バー上",
+          "xy": [
+            45,
+            0
+          ]
+        },
+        {
+          "name": "bar1",
+          "part": "normal",
+          "texture": "分析バー下",
+          "xy": [
+            45,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b0",
+          "part": "normal",
+          "texture": "分析板0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b1",
+          "part": "normal",
+          "size": [
+            122,
+            118
+          ],
+          "texture": "分析板1",
+          "xy": [
+            0,
+            94
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b2",
+          "part": "normal",
+          "texture": "分析板2",
+          "xy": [
+            0,
+            212
+          ]
+        },
+        {
+          "name": "mb0",
+          "part": "normal",
+          "texture": "メモリ大左",
+          "xy": [
+            34,
+            52
+          ]
+        },
+        {
+          "name": "mb1",
+          "part": "normal",
+          "texture": "メモリ大右",
+          "xy": [
+            80,
+            52
+          ]
+        },
+        {
+          "name": "mb2",
+          "part": "normal",
+          "texture": "メモリ大左",
+          "xy": [
+            34,
+            133
+          ]
+        },
+        {
+          "name": "mb3",
+          "part": "normal",
+          "texture": "メモリ大右",
+          "xy": [
+            80,
+            133
+          ]
+        },
+        {
+          "name": "mb4",
+          "part": "normal",
+          "texture": "メモリ大左",
+          "xy": [
+            34,
+            214
+          ]
+        },
+        {
+          "name": "mb5",
+          "part": "normal",
+          "texture": "メモリ大右",
+          "xy": [
+            80,
+            214
+          ]
+        },
+        {
+          "name": "ms0",
+          "part": "normal",
+          "texture": "メモリ小左",
+          "xy": [
+            37,
+            92
+          ]
+        },
+        {
+          "name": "ms1",
+          "part": "normal",
+          "texture": "メモリ小右",
+          "xy": [
+            80,
+            92
+          ]
+        },
+        {
+          "name": "ms2",
+          "part": "normal",
+          "texture": "メモリ小左",
+          "xy": [
+            37,
+            172
+          ]
+        },
+        {
+          "name": "ms3",
+          "part": "normal",
+          "texture": "メモリ小右",
+          "xy": [
+            80,
+            172
+          ]
+        },
+        {
+          "name": "％",
+          "part": "normal",
+          "texture": "％",
+          "xy": [
+            87,
+            264
+          ]
+        },
+        {
+          "name": "完成度",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "％数字",
+          "value": 1,
+          "xy": [
+            65,
+            242
+          ]
+        },
+        {
+          "name": "完成度1",
+          "part": "normal",
+          "texture": "完成度",
+          "xy": [
+            37,
+            12
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            520,
+            112
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                520.0,
+                112.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                368.0,
+                112.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "count": 20,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "家情報",
+      "op": "form",
+      "parts": [
+        {
+          "name": "Name",
+          "part": "funcinfo",
+          "xy": [
+            110,
+            44
+          ]
+        },
+        {
+          "name": "F0",
+          "part": "funcinfo",
+          "xy": [
+            68,
+            68
+          ]
+        },
+        {
+          "name": "F1",
+          "part": "funcinfo",
+          "xy": [
+            68,
+            92
+          ]
+        },
+        {
+          "name": "F2",
+          "part": "funcinfo",
+          "xy": [
+            68,
+            116
+          ]
+        },
+        {
+          "name": "F3",
+          "part": "funcinfo",
+          "xy": [
+            68,
+            140
+          ]
+        },
+        {
+          "name": "F4",
+          "part": "funcinfo",
+          "xy": [
+            68,
+            164
+          ]
+        },
+        {
+          "name": "F5",
+          "part": "funcinfo",
+          "xy": [
+            68,
+            188
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "窓0",
+          "part": "normal",
+          "texture": "建物窓0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "窓1",
+          "part": "normal",
+          "size": [
+            160,
+            224
+          ],
+          "texture": "建物窓1",
+          "xy": [
+            36,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "窓2",
+          "part": "normal",
+          "texture": "建物窓2",
+          "xy": [
+            196,
+            0
+          ]
+        },
+        {
+          "name": "index",
+          "part": "normal",
+          "texture": "建物情報",
+          "xy": [
+            82,
+            14
+          ]
+        },
+        {
+          "name": "住人",
+          "part": "normal",
+          "texture": "住人",
+          "xy": [
+            20,
+            68
+          ]
+        },
+        {
+          "name": "①",
+          "part": "normal",
+          "texture": "①",
+          "xy": [
+            26,
+            92
+          ]
+        },
+        {
+          "name": "②",
+          "part": "normal",
+          "texture": "②",
+          "xy": [
+            26,
+            116
+          ]
+        },
+        {
+          "name": "③",
+          "part": "normal",
+          "texture": "③",
+          "xy": [
+            26,
+            140
+          ]
+        },
+        {
+          "name": "④",
+          "part": "normal",
+          "texture": "④",
+          "xy": [
+            26,
+            164
+          ]
+        },
+        {
+          "name": "⑤",
+          "part": "normal",
+          "texture": "⑤",
+          "xy": [
+            26,
+            188
+          ]
+        },
+        {
+          "name": "ULine00",
+          "part": "normal",
+          "texture": "ListLine",
+          "xy": [
+            20,
+            62
+          ]
+        },
+        {
+          "name": "ULine0",
+          "part": "normal",
+          "texture": "ListLine",
+          "xy": [
+            20,
+            86
+          ]
+        },
+        {
+          "name": "ULine1",
+          "part": "normal",
+          "texture": "ListLine",
+          "xy": [
+            20,
+            110
+          ]
+        },
+        {
+          "name": "ULine2",
+          "part": "normal",
+          "texture": "ListLine",
+          "xy": [
+            20,
+            134
+          ]
+        },
+        {
+          "name": "ULine3",
+          "part": "normal",
+          "texture": "ListLine",
+          "xy": [
+            20,
+            158
+          ]
+        },
+        {
+          "name": "ULine4",
+          "part": "normal",
+          "texture": "ListLine",
+          "xy": [
+            20,
+            182
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            540,
+            110
+          ]
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                110.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                264.0,
+                110.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "set": "draw_type",
+          "type": "house"
+        },
+        {
+          "count": 26,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "list_data6",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -320,
+            108
+          ]
+        },
+        {
+          "list": 6,
+          "set": "draw_type",
+          "type": "geolist"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -320.0,
+                108.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                18.0,
+                108.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        }
+      ]
+    },
+    {
+      "name": "poly_view",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                10,
+                10,
+                10,
+                128
+              ]
+            }
+          ],
+          "name": "bg",
+          "part": "normal",
+          "size": [
+            200,
+            210
+          ],
+          "texture": "polybacktile",
+          "xy": [
+            12,
+            12
+          ]
+        },
+        {
+          "name": "0",
+          "part": "normal",
+          "texture": "polywin0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "1",
+          "part": "normal",
+          "size": [
+            164,
+            26
+          ],
+          "texture": "polywin1",
+          "xy": [
+            26,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "2",
+          "part": "normal",
+          "texture": "polywin2",
+          "xy": [
+            190,
+            0
+          ]
+        },
+        {
+          "name": "3",
+          "part": "normal",
+          "size": [
+            26,
+            174
+          ],
+          "texture": "polywin3",
+          "xy": [
+            0,
+            26
+          ]
+        },
+        {
+          "name": "4",
+          "part": "normal",
+          "size": [
+            164,
+            174
+          ],
+          "texture": "polywin4",
+          "xy": [
+            26,
+            26
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "5",
+          "part": "normal",
+          "size": [
+            26,
+            174
+          ],
+          "texture": "polywin5",
+          "xy": [
+            190,
+            26
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "6",
+          "part": "normal",
+          "size": [
+            26,
+            26
+          ],
+          "texture": "polywin6",
+          "xy": [
+            0,
+            200
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "7",
+          "part": "normal",
+          "size": [
+            164,
+            26
+          ],
+          "texture": "polywin7",
+          "xy": [
+            26,
+            200
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "8",
+          "part": "normal",
+          "size": [
+            26,
+            26
+          ],
+          "texture": "polywin8",
+          "xy": [
+            190,
+            200
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            280,
+            122
+          ]
+        },
+        {
+          "count": 11,
+          "set": "parts_capacity"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                122.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                280.0,
+                122.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "1",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "poly0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "set": "draw_type",
+          "type": "mappart"
+        }
+      ]
+    },
+    {
+      "name": "CPVIEW",
+      "op": "form",
+      "parts": [
+        {
+          "name": "win0",
+          "part": "normal",
+          "texture": "CP窓0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "win1",
+          "part": "normal",
+          "size": [
+            170,
+            28
+          ],
+          "texture": "CP窓1",
+          "xy": [
+            36,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win2",
+          "part": "normal",
+          "texture": "CP窓2",
+          "xy": [
+            206,
+            0
+          ]
+        },
+        {
+          "name": "win3",
+          "part": "normal",
+          "size": [
+            36,
+            30
+          ],
+          "texture": "CP窓3",
+          "xy": [
+            0,
+            28
+          ]
+        },
+        {
+          "name": "win4",
+          "part": "normal",
+          "size": [
+            170,
+            30
+          ],
+          "texture": "CP窓4",
+          "xy": [
+            36,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win5",
+          "part": "normal",
+          "size": [
+            36,
+            30
+          ],
+          "texture": "CP窓5",
+          "xy": [
+            206,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win6",
+          "part": "normal",
+          "size": [
+            36,
+            26
+          ],
+          "texture": "CP窓6",
+          "xy": [
+            0,
+            58
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win7",
+          "part": "normal",
+          "size": [
+            170,
+            26
+          ],
+          "texture": "CP窓7",
+          "xy": [
+            36,
+            58
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win8",
+          "part": "normal",
+          "size": [
+            36,
+            26
+          ],
+          "texture": "CP窓8",
+          "xy": [
+            206,
+            58
+          ]
+        },
+        {
+          "name": "CPINDEX",
+          "part": "normal",
+          "texture": "カルチャーＰ",
+          "xy": [
+            20,
+            30
+          ]
+        },
+        {
+          "name": "CP",
+          "part": "number1",
+          "texture": "CP数字",
+          "value": 0,
+          "xy": [
+            220,
+            28
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            540,
+            348
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                348.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                261.0,
+                348.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "count": 12,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "field_title",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "タイトルバー",
+          "part": "normal",
+          "texture": "タイトルバー",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Title0",
+          "part": "normal",
+          "texture": "シャーロット",
+          "xy": [
+            52,
+            10
+          ]
+        },
+        {
+          "name": "Title1",
+          "part": "normal",
+          "texture": "ステラ渓谷",
+          "xy": [
+            52,
+            10
+          ]
+        },
+        {
+          "name": "Title2",
+          "part": "normal",
+          "texture": "ベニーティオ",
+          "xy": [
+            52,
+            10
+          ]
+        },
+        {
+          "name": "Title3",
+          "part": "normal",
+          "texture": "ヘイムラダ",
+          "xy": [
+            52,
+            10
+          ]
+        },
+        {
+          "name": "Title4",
+          "part": "normal",
+          "texture": "月花宮殿",
+          "xy": [
+            42,
+            10
+          ]
+        },
+        {
+          "name": "残り",
+          "part": "normal",
+          "texture": "残り",
+          "xy": [
+            408,
+            14
+          ]
+        },
+        {
+          "name": "ポリン",
+          "part": "normal",
+          "texture": "ポリン",
+          "xy": [
+            362,
+            14
+          ]
+        },
+        {
+          "name": "ポリン数",
+          "part": "number1",
+          "texture": "ポリン数",
+          "value": 1,
+          "xy": [
+            340,
+            14
+          ]
+        },
+        {
+          "name": "d0",
+          "part": "normal",
+          "texture": "暗板",
+          "xy": [
+            16,
+            42
+          ]
+        },
+        {
+          "name": "d1",
+          "part": "normal",
+          "texture": "暗板",
+          "xy": [
+            96,
+            42
+          ]
+        },
+        {
+          "name": "d2",
+          "part": "normal",
+          "texture": "暗板",
+          "xy": [
+            176,
+            42
+          ]
+        },
+        {
+          "name": "d3",
+          "part": "normal",
+          "texture": "暗板",
+          "xy": [
+            256,
+            42
+          ]
+        },
+        {
+          "name": "d4",
+          "part": "normal",
+          "texture": "暗板",
+          "xy": [
+            336,
+            42
+          ]
+        },
+        {
+          "name": "d5",
+          "part": "normal",
+          "texture": "暗板",
+          "xy": [
+            416,
+            42
+          ]
+        },
+        {
+          "name": "b0",
+          "part": "normal",
+          "texture": "明板",
+          "xy": [
+            16,
+            42
+          ]
+        },
+        {
+          "name": "b1",
+          "part": "normal",
+          "texture": "明板",
+          "xy": [
+            96,
+            42
+          ]
+        },
+        {
+          "name": "b2",
+          "part": "normal",
+          "texture": "明板",
+          "xy": [
+            176,
+            42
+          ]
+        },
+        {
+          "name": "b3",
+          "part": "normal",
+          "texture": "明板",
+          "xy": [
+            256,
+            42
+          ]
+        },
+        {
+          "name": "b4",
+          "part": "normal",
+          "texture": "明板",
+          "xy": [
+            336,
+            42
+          ]
+        },
+        {
+          "name": "b5",
+          "part": "normal",
+          "texture": "明板",
+          "xy": [
+            416,
+            42
+          ]
+        },
+        {
+          "name": "index0",
+          "part": "normal",
+          "texture": "つくる",
+          "xy": [
+            22,
+            48
+          ]
+        },
+        {
+          "name": "index1",
+          "part": "normal",
+          "texture": "はいち",
+          "xy": [
+            102,
+            48
+          ]
+        },
+        {
+          "name": "index2",
+          "part": "normal",
+          "texture": "ペイント",
+          "xy": [
+            182,
+            48
+          ]
+        },
+        {
+          "name": "index3",
+          "part": "normal",
+          "texture": "かたづけ",
+          "xy": [
+            262,
+            48
+          ]
+        },
+        {
+          "name": "index4",
+          "part": "normal",
+          "texture": "チェック",
+          "xy": [
+            342,
+            48
+          ]
+        },
+        {
+          "name": "index5",
+          "part": "normal",
+          "texture": "分析",
+          "xy": [
+            422,
+            48
+          ]
+        },
+        {
+          "name": "index14",
+          "part": "normal",
+          "texture": "えをみる",
+          "xy": [
+            342,
+            48
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            6
+          ]
+        },
+        {
+          "count": 29,
+          "set": "parts_capacity"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        }
+      ]
+    },
+    {
+      "name": "field_title2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "draw_type",
+          "type": "geotitle"
+        }
+      ]
+    },
+    {
+      "name": "fade_black",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                0,
+                0,
+                0,
+                32
+              ]
+            }
+          ],
+          "name": "fill0",
+          "part": "fillbox",
+          "size": [
+            512,
+            480
+          ],
+          "style": 0,
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "makebrd",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            100,
+            40
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "createbrd"
+        }
+      ]
+    },
+    {
+      "name": "free_color",
+      "op": "form",
+      "parts": [
+        {
+          "name": "num0",
+          "part": "number1",
+          "texture": "num2",
+          "value": 0,
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num1",
+          "part": "number1",
+          "texture": "num2",
+          "value": 0,
+          "xy": [
+            0,
+            20
+          ]
+        },
+        {
+          "name": "num2",
+          "part": "number1",
+          "texture": "num2",
+          "value": 0,
+          "xy": [
+            0,
+            40
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            240,
+            200
+          ]
+        },
+        {
+          "count": 3,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "DLOAD",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "dload"
+        },
+        {
+          "set": "position",
+          "xy": [
+            312,
+            114
+          ]
+        }
+      ]
+    },
+    {
+      "name": "GUIDE_LR",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "L1",
+          "part": "normal",
+          "texture": "g_L1",
+          "xy": [
+            0,
+            120
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "R1",
+          "part": "normal",
+          "texture": "g_R1",
+          "xy": [
+            0,
+            352
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            10,
+            0
+          ]
+        },
+        {
+          "count": 3,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "rate": [
+            1.1,
+            1.1
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "msg5",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            136
+          ]
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    }
+  ],
+  "schema_version": 2
+}

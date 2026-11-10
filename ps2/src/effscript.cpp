@@ -360,8 +360,8 @@ int CEffectScriptMan::LoadBaseEffSpt(int base_no, mgCMemory *memory, int level) 
     char pack[0x80];
     int  path_size;
     int  pack_size;
-    int  path_buffer;
-    int  pack_buffer;
+    uptr path_buffer;
+    uptr pack_buffer;
 
     for (int i = 0; i < EFF_SPT_BASE_MAX; i++) {
         if (base[i] != 0 && base[i]->base_no == base_no) {
@@ -369,7 +369,7 @@ int CEffectScriptMan::LoadBaseEffSpt(int base_no, mgCMemory *memory, int level) 
         }
     }
 
-    path_buffer = (int) load_buffer;
+    path_buffer = (uptr) load_buffer;
 
     if (path_buffer == 0) {
         return -1;
@@ -381,7 +381,7 @@ int CEffectScriptMan::LoadBaseEffSpt(int base_no, mgCMemory *memory, int level) 
 
     if (LoadFile2(path, (void *) path_buffer, &path_size, 0) == 0) {
         path_size = 0;
-        pack_buffer = (int) load_buffer;
+        pack_buffer = (uptr) load_buffer;
         path_buffer = 0;
     } else {
         int rest = path_size & 0x3F;
@@ -2089,7 +2089,7 @@ static int _DIV_VECTOR(RS_STACKDATA *stack, int argument_count) {
  *
  */
 static int _DIST_VECTOR(RS_STACKDATA *stack, int argument_count) {
-    float vector[3];
+    float vector[4];
 
     if (argument_count != 4) {
         return 0;
@@ -2107,8 +2107,8 @@ static int _DIST_VECTOR(RS_STACKDATA *stack, int argument_count) {
  *
  */
 static int _DIST_VECTOR2(RS_STACKDATA *stack, int argument_count) {
-    float from[3];
-    float to[3];
+    float from[4];
+    float to[4];
 
     if (argument_count != 7) {
         return 0;
@@ -4480,7 +4480,7 @@ int _SPT_COLOR_CONV(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SCN_GET_CHR_POS(RS_STACKDATA *stack, int argc) {
-    float        pos[3];
+    float        pos[4];
     CCharacter2 *chara;
 
     if (argc != 4) {
@@ -4506,7 +4506,7 @@ int _SCN_GET_CHR_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SCN_GET_CHR_ROT(RS_STACKDATA *stack, int argc) {
-    float        rot[3];
+    float        rot[4];
     CCharacter2 *chara;
 
     if (argc != 2 && argc != 4) {
@@ -4676,7 +4676,7 @@ int _SCN_GET_CHR_FRM_ROT(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SCN_GET_ENTRY_OBJ_POS(RS_STACKDATA *stack, int argc) {
-    float pos[3];
+    float pos[4];
     int   chara_slot;
     int   entry_index;
 
@@ -5043,7 +5043,7 @@ int _SET_LIGHT_FLAG(RS_STACKDATA *stack, int argc) {
  *
  */
 int _SCN_GET_CHR_ENTOBJ_POS(RS_STACKDATA *stack, int argc) {
-    float        pos[3];
+    float        pos[4];
     int          chara_slot;
     int          entry_index;
     CCharacter2 *chara;
@@ -5541,7 +5541,7 @@ int _ES_SET_COLPRIM(RS_STACKDATA *stack, int argc) {
  *
  */
 int _GET_EOH_POS(RS_STACKDATA *stack, int argc) {
-    float pos[3];
+    float pos[4];
 
     if (argc != 4) {
         return 0;
@@ -5560,8 +5560,9 @@ int _GET_EOH_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 int SetEffectScript(CRunScript *script, char *program, mgCMemory *memory) {
-    RS_STACKDATA *stack = (RS_STACKDATA *) memory->Alloc(0x20);
-    RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(1);
+    RS_STACKDATA *stack = (RS_STACKDATA *) memory->Alloc((sizeof(RS_STACKDATA) * 0x40 + 15) / 16);
+    // Retail's one quadword for two 12-byte frames is the floor of the pair's size; with 8-byte pointers the pair fills 3 exactly.
+    RS_CALLDATA  *call_data = (RS_CALLDATA *) memory->Alloc(sizeof(RS_CALLDATA) * 2 / 16);
     script->load((RS_PROG_HEADER *) program, stack, 0x40, call_data, 2);
     script->ext_func(ext_func, 0x100);
     return 1;

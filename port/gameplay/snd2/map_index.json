@@ -1,0 +1,9462 @@
+{
+  "kind": "scene_sound_routes",
+  "rows": [
+    {
+      "bgm_no": 1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 0,
+      "reverb_id": 999,
+      "se_base": 999,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        600,
+        0
+      ],
+      "id": 500,
+      "reverb_id": 600,
+      "se_base": -1,
+      "se_battle": -1,
+      "se_env": 600,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 55,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 510,
+      "reverb_id": 300,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 300,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 46,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 511,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": -2,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 60,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 512,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": -2,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 55,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 513,
+      "reverb_id": 310,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 310,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 55,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 514,
+      "reverb_id": 310,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 310,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 55,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 516,
+      "reverb_id": 300,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 300,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 193,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 517,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": -2,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 193,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 518,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": -2,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 54,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 519,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": 320,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 54,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 520,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": -2,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -2,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 521,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": -2,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 47,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 522,
+      "reverb_id": -1,
+      "se_base": -2,
+      "se_battle": -2,
+      "se_env": -2,
+      "se_src": [
+        -2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        130
+      ],
+      "id": 800,
+      "reverb_id": 51,
+      "se_base": 51,
+      "se_battle": 0,
+      "se_env": 51,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        130
+      ],
+      "id": 801,
+      "reverb_id": 51,
+      "se_base": 51,
+      "se_battle": 0,
+      "se_env": 51,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        130
+      ],
+      "id": 802,
+      "reverb_id": 51,
+      "se_base": 51,
+      "se_battle": 0,
+      "se_env": 51,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 0,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1000,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        5,
+        7,
+        9,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 56,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1080,
+      "reverb_id": 10,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 9,
+      "se_src": [
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 46,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1081,
+      "reverb_id": 12,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        5,
+        7,
+        9,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 47,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1082,
+      "reverb_id": 11,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 193,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1083,
+      "reverb_id": 13,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 10,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 193,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1084,
+      "reverb_id": 13,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 11,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 46,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1085,
+      "reverb_id": 500,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        5,
+        7,
+        17,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 100,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1200,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 1,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 101,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1201,
+      "reverb_id": 12,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 1,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 46,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1202,
+      "reverb_id": 12,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 1,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 101,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1203,
+      "reverb_id": 12,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 1,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 102,
+      "env_bgm": 3,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1204,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 1,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 2,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1205,
+      "reverb_id": 12,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 1,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 109,
+      "env_bgm": 3,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1206,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 1,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 102,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        100
+      ],
+      "id": 1207,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 2,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 102,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        105
+      ],
+      "id": 1208,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 2,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 102,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        105
+      ],
+      "id": 1209,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 2,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 102,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        105
+      ],
+      "id": 1210,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 2,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 104,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        105
+      ],
+      "id": 1211,
+      "reverb_id": 2,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 2,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 102,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        105
+      ],
+      "id": 1212,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 2,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 103,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        106
+      ],
+      "id": 1213,
+      "reverb_id": 3,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 3,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 103,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        110
+      ],
+      "id": 1214,
+      "reverb_id": 3,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 3,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 105,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        115
+      ],
+      "id": 1215,
+      "reverb_id": 3,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 3,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 106,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        120
+      ],
+      "id": 1216,
+      "reverb_id": 3,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 3,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 106,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        120
+      ],
+      "id": 1217,
+      "reverb_id": 3,
+      "se_base": 1,
+      "se_battle": 0,
+      "se_env": 3,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 106,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        120
+      ],
+      "id": 1218,
+      "reverb_id": 3,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 3,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 107,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        125
+      ],
+      "id": 1219,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 5,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 110,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        0,
+        125
+      ],
+      "id": 1220,
+      "reverb_id": 0,
+      "se_base": 1,
+      "se_battle": -1,
+      "se_env": 5,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        0,
+        135
+      ],
+      "id": 1222,
+      "reverb_id": 12,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        0,
+        140
+      ],
+      "id": 1225,
+      "reverb_id": 12,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        0,
+        145
+      ],
+      "id": 1228,
+      "reverb_id": 12,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        0,
+        150
+      ],
+      "id": 1231,
+      "reverb_id": 12,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        100,
+        136
+      ],
+      "id": 1234,
+      "reverb_id": 12,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        100,
+        137
+      ],
+      "id": 1237,
+      "reverb_id": 12,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        0,
+        155
+      ],
+      "id": 1240,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        0,
+        160
+      ],
+      "id": 1243,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        0,
+        160
+      ],
+      "id": 1246,
+      "reverb_id": 10,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 9,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        0,
+        200
+      ],
+      "id": 1247,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        5,
+        7,
+        9,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        0,
+        165
+      ],
+      "id": 1249,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        0,
+        170
+      ],
+      "id": 1251,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        0,
+        175
+      ],
+      "id": 1253,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1256,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1259,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        0,
+        190
+      ],
+      "id": 1261,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        7,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        50,
+        100
+      ],
+      "id": 1264,
+      "reverb_id": 50,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 50,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 15,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 1600,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        0,
+        5,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 15,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1601,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 15,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 1602,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        1,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 37,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 1603,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        0,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 193,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 1682,
+      "reverb_id": 113,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 113,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 15,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1683,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 111,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 15,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1684,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1690,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 111,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 1693,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 108,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        100,
+        100
+      ],
+      "id": 1800,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        1,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 108,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        100,
+        100
+      ],
+      "id": 1801,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        1,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 108,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        100,
+        100
+      ],
+      "id": 1802,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        1,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        105
+      ],
+      "id": 1803,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        0,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        100,
+        110
+      ],
+      "id": 1804,
+      "reverb_id": 0,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        100,
+        115
+      ],
+      "id": 1807,
+      "reverb_id": 0,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        115
+      ],
+      "id": 1808,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 110,
+      "se_src": [
+        0,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        120
+      ],
+      "id": 1810,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        125
+      ],
+      "id": 1813,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        130
+      ],
+      "id": 1816,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        135
+      ],
+      "id": 1819,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        136
+      ],
+      "id": 1822,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        137
+      ],
+      "id": 1825,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 112,
+      "se_src": [
+        10,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        140
+      ],
+      "id": 1828,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 111,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        145
+      ],
+      "id": 1831,
+      "reverb_id": 110,
+      "se_base": 110,
+      "se_battle": 0,
+      "se_env": 111,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        150
+      ],
+      "id": 1834,
+      "reverb_id": 113,
+      "se_base": 0,
+      "se_battle": 0,
+      "se_env": 113,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        100,
+        155
+      ],
+      "id": 1837,
+      "reverb_id": 113,
+      "se_base": 0,
+      "se_battle": 0,
+      "se_env": 113,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2000,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        12,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2080,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        15,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 57,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2081,
+      "reverb_id": 500,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        300,
+        100
+      ],
+      "id": 2200,
+      "reverb_id": 300,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 300,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        10,
+        100
+      ],
+      "id": 2203,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": 0,
+      "se_env": 222,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        10,
+        105
+      ],
+      "id": 2206,
+      "reverb_id": 300,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 300,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        10,
+        110
+      ],
+      "id": 2209,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 222,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        115
+      ],
+      "id": 2211,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        120
+      ],
+      "id": 2214,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        125
+      ],
+      "id": 2217,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        10,
+        125
+      ],
+      "id": 2220,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        125
+      ],
+      "id": 2223,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        10,
+        135
+      ],
+      "id": 2226,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        135
+      ],
+      "id": 2229,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        135
+      ],
+      "id": 2231,
+      "reverb_id": 223,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 223,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        135
+      ],
+      "id": 2234,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        170
+      ],
+      "id": 2237,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        141
+      ],
+      "id": 2238,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        141
+      ],
+      "id": 2239,
+      "reverb_id": 223,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 223,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        142
+      ],
+      "id": 2240,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        5,
+        2,
+        6,
+        12,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 151,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2300,
+      "reverb_id": 225,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 225,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        145
+      ],
+      "id": 2500,
+      "reverb_id": 225,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 225,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        150
+      ],
+      "id": 2503,
+      "reverb_id": 225,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 225,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        155
+      ],
+      "id": 2506,
+      "reverb_id": 225,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 225,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        160
+      ],
+      "id": 2509,
+      "reverb_id": 225,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 225,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        165
+      ],
+      "id": 2511,
+      "reverb_id": 225,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 225,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        165
+      ],
+      "id": 2514,
+      "reverb_id": 223,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 223,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        165
+      ],
+      "id": 2515,
+      "reverb_id": 220,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 220,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        180
+      ],
+      "id": 2517,
+      "reverb_id": 225,
+      "se_base": 220,
+      "se_battle": -1,
+      "se_env": 225,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 16,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 2600,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 120,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 16,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2601,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 16,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 2602,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 120,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 37,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 2603,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 120,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2683,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 121,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2684,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2690,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 121,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2693,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 2694,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 123,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        100
+      ],
+      "id": 2800,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        101
+      ],
+      "id": 2801,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 120,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        105
+      ],
+      "id": 2803,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        110
+      ],
+      "id": 2806,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        115
+      ],
+      "id": 2809,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        120
+      ],
+      "id": 2812,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        125
+      ],
+      "id": 2815,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        130
+      ],
+      "id": 2818,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        10,
+        140
+      ],
+      "id": 2821,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": -1,
+      "se_env": 122,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        130
+      ],
+      "id": 2824,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 121,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        135
+      ],
+      "id": 2827,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 121,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        140
+      ],
+      "id": 2830,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 121,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        145
+      ],
+      "id": 2833,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 121,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        150
+      ],
+      "id": 2836,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 121,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        110,
+        160
+      ],
+      "id": 2841,
+      "reverb_id": 120,
+      "se_base": 120,
+      "se_battle": 0,
+      "se_env": 123,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 2,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3000,
+      "reverb_id": 230,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 230,
+      "se_src": [
+        2,
+        12,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 108,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3080,
+      "reverb_id": 231,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 231,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        100
+      ],
+      "id": 3200,
+      "reverb_id": 231,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 231,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        105
+      ],
+      "id": 3203,
+      "reverb_id": 230,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 230,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        15,
+        110
+      ],
+      "id": 3206,
+      "reverb_id": 230,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 230,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        15,
+        115
+      ],
+      "id": 3209,
+      "reverb_id": 230,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 230,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        115
+      ],
+      "id": 3211,
+      "reverb_id": 230,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 230,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        15,
+        130
+      ],
+      "id": 3214,
+      "reverb_id": 230,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 230,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        15,
+        135
+      ],
+      "id": 3217,
+      "reverb_id": 230,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 230,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        155
+      ],
+      "id": 3220,
+      "reverb_id": 231,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 231,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        140
+      ],
+      "id": 3223,
+      "reverb_id": 231,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 231,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 152,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3300,
+      "reverb_id": 235,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 54,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3381,
+      "reverb_id": 500,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        15,
+        120
+      ],
+      "id": 3500,
+      "reverb_id": 500,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        15,
+        125
+      ],
+      "id": 3503,
+      "reverb_id": 500,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        145
+      ],
+      "id": 3506,
+      "reverb_id": 235,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        15,
+        150
+      ],
+      "id": 3509,
+      "reverb_id": 235,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        155
+      ],
+      "id": 3511,
+      "reverb_id": 235,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        15,
+        160
+      ],
+      "id": 3514,
+      "reverb_id": 235,
+      "se_base": 230,
+      "se_battle": -1,
+      "se_env": 235,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 3600,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        8,
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3601,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 3602,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        8,
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 37,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 3603,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        8,
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3682,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 131,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3683,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 132,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3684,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 133,
+      "se_src": [
+        22,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 193,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3685,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3686,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 135,
+      "se_src": [
+        20,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 3687,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        8,
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 17,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 3688,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 138,
+      "se_src": [
+        8,
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3690,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 139,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3691,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 133,
+      "se_src": [
+        22,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3693,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 135,
+      "se_src": [
+        8,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 3694,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 136,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        100
+      ],
+      "id": 3800,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        8,
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        115,
+        100
+      ],
+      "id": 3801,
+      "reverb_id": 0,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        105
+      ],
+      "id": 3803,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        110
+      ],
+      "id": 3806,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        115
+      ],
+      "id": 3809,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        120
+      ],
+      "id": 3811,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        125
+      ],
+      "id": 3814,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        130
+      ],
+      "id": 3817,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 130,
+      "se_src": [
+        20,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        135
+      ],
+      "id": 3820,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 135,
+      "se_src": [
+        20,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        140
+      ],
+      "id": 3823,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 135,
+      "se_src": [
+        20,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        145
+      ],
+      "id": 3826,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 135,
+      "se_src": [
+        20,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        150
+      ],
+      "id": 3829,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 131,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        155
+      ],
+      "id": 3831,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 131,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        156
+      ],
+      "id": 3833,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 132,
+      "se_src": [
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        157
+      ],
+      "id": 3836,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 131,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        158
+      ],
+      "id": 3839,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 132,
+      "se_src": [
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        160
+      ],
+      "id": 3841,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": -1,
+      "se_env": 132,
+      "se_src": [
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        160
+      ],
+      "id": 3847,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": -1,
+      "se_env": 131,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        115,
+        165
+      ],
+      "id": 3850,
+      "reverb_id": 130,
+      "se_base": 130,
+      "se_battle": 0,
+      "se_env": 136,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 3,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4000,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 240,
+      "se_src": [
+        2,
+        6,
+        12,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 3,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4080,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 241,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 46,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4082,
+      "reverb_id": 242,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 242,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        100
+      ],
+      "id": 4200,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 241,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        105
+      ],
+      "id": 4203,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 240,
+      "se_src": [
+        2,
+        12,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        110
+      ],
+      "id": 4206,
+      "reverb_id": 242,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 242,
+      "se_src": [
+        2,
+        12,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        110
+      ],
+      "id": 4207,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 240,
+      "se_src": [
+        2,
+        12,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        105
+      ],
+      "id": 4209,
+      "reverb_id": 242,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 242,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        120
+      ],
+      "id": 4211,
+      "reverb_id": 242,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 242,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        140
+      ],
+      "id": 4214,
+      "reverb_id": 242,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 242,
+      "se_src": [
+        2,
+        22,
+        12,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        140
+      ],
+      "id": 4215,
+      "reverb_id": 242,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 242,
+      "se_src": [
+        2,
+        12,
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        140
+      ],
+      "id": 4216,
+      "reverb_id": 242,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 242,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        140
+      ],
+      "id": 4217,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 240,
+      "se_src": [
+        2,
+        12,
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        130
+      ],
+      "id": 4220,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 241,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        135
+      ],
+      "id": 4223,
+      "reverb_id": 240,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 241,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 153,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4300,
+      "reverb_id": 245,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 153,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4382,
+      "reverb_id": 246,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 246,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 153,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4383,
+      "reverb_id": 247,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 247,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        115
+      ],
+      "id": 4500,
+      "reverb_id": 246,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 246,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        120
+      ],
+      "id": 4503,
+      "reverb_id": 246,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 246,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        125
+      ],
+      "id": 4506,
+      "reverb_id": 246,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 246,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        130
+      ],
+      "id": 4509,
+      "reverb_id": 247,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 247,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        140
+      ],
+      "id": 4511,
+      "reverb_id": 245,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        145
+      ],
+      "id": 4514,
+      "reverb_id": 245,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        150
+      ],
+      "id": 4517,
+      "reverb_id": 247,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 247,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        155
+      ],
+      "id": 4520,
+      "reverb_id": 246,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 246,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        160
+      ],
+      "id": 4523,
+      "reverb_id": 247,
+      "se_base": 240,
+      "se_battle": -1,
+      "se_env": 248,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        20,
+        160
+      ],
+      "id": 4524,
+      "reverb_id": 310,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 310,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        161
+      ],
+      "id": 4525,
+      "reverb_id": 245,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        20,
+        162
+      ],
+      "id": 4526,
+      "reverb_id": 310,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 310,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        20,
+        162
+      ],
+      "id": 4527,
+      "reverb_id": 311,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 311,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 18,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 4600,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 140,
+      "se_src": [
+        2,
+        5,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 18,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4601,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 18,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 4602,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 140,
+      "se_src": [
+        2,
+        5,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 37,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 4603,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 140,
+      "se_src": [
+        2,
+        5,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 18,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 4682,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 141,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 4683,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 167,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 4684,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 142,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4690,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 4693,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 142,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 4694,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 144,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        100
+      ],
+      "id": 4800,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 140,
+      "se_src": [
+        2,
+        5,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        120,
+        100
+      ],
+      "id": 4801,
+      "reverb_id": 0,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        105
+      ],
+      "id": 4803,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 142,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        110
+      ],
+      "id": 4806,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 142,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        115
+      ],
+      "id": 4809,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 142,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        120
+      ],
+      "id": 4811,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 142,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        125
+      ],
+      "id": 4814,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        130
+      ],
+      "id": 4817,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        135
+      ],
+      "id": 4820,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        135
+      ],
+      "id": 4821,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        135
+      ],
+      "id": 4822,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        145
+      ],
+      "id": 4826,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        2,
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        150
+      ],
+      "id": 4829,
+      "reverb_id": 245,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 245,
+      "se_src": [
+        22,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        120,
+        155
+      ],
+      "id": 4831,
+      "reverb_id": 140,
+      "se_base": 140,
+      "se_battle": 0,
+      "se_env": 144,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 4,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5000,
+      "reverb_id": 250,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 250,
+      "se_src": [
+        2,
+        10,
+        12,
+        14,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 4,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5080,
+      "reverb_id": 250,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 250,
+      "se_src": [
+        15,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        100
+      ],
+      "id": 5200,
+      "reverb_id": 250,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 250,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        105
+      ],
+      "id": 5203,
+      "reverb_id": 250,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 250,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 154,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5300,
+      "reverb_id": 255,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 255,
+      "se_src": [
+        3,
+        19,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 154,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5382,
+      "reverb_id": 256,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 256,
+      "se_src": [
+        11,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 154,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5383,
+      "reverb_id": 257,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 257,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 154,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5384,
+      "reverb_id": 258,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 258,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        110
+      ],
+      "id": 5500,
+      "reverb_id": 255,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 255,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        115
+      ],
+      "id": 5503,
+      "reverb_id": 255,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 255,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5506,
+      "reverb_id": 255,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 255,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        115
+      ],
+      "id": 5509,
+      "reverb_id": 256,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 256,
+      "se_src": [
+        2,
+        11,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        25,
+        120
+      ],
+      "id": 5511,
+      "reverb_id": 258,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 260,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        25,
+        120
+      ],
+      "id": 5513,
+      "reverb_id": 258,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 260,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 2,
+      "env_vol": 0,
+      "event_se": [
+        25,
+        120
+      ],
+      "id": 5514,
+      "reverb_id": 258,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 260,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        120
+      ],
+      "id": 5516,
+      "reverb_id": 257,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 257,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        125
+      ],
+      "id": 5519,
+      "reverb_id": 255,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 255,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        130
+      ],
+      "id": 5521,
+      "reverb_id": 256,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 256,
+      "se_src": [
+        11,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        135
+      ],
+      "id": 5524,
+      "reverb_id": 255,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 255,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        25,
+        140
+      ],
+      "id": 5527,
+      "reverb_id": 258,
+      "se_base": 250,
+      "se_battle": -1,
+      "se_env": 258,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 19,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 5600,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 150,
+      "se_src": [
+        4,
+        6,
+        14,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 19,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5601,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 19,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 5602,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 150,
+      "se_src": [
+        4,
+        6,
+        14,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 37,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 5603,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 151,
+      "se_src": [
+        4,
+        6,
+        14,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 19,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 5682,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 151,
+      "se_src": [
+        4,
+        6,
+        13,
+        2,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5683,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5684,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 152,
+      "se_src": [
+        22,
+        18,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5690,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5691,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5693,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 152,
+      "se_src": [
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 5694,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 154,
+      "se_src": [
+        14,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        100
+      ],
+      "id": 5800,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 152,
+      "se_src": [
+        22,
+        18,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        105
+      ],
+      "id": 5803,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 152,
+      "se_src": [
+        22,
+        18,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        110
+      ],
+      "id": 5806,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 152,
+      "se_src": [
+        22,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        125
+      ],
+      "id": 5814,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        130
+      ],
+      "id": 5817,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        135
+      ],
+      "id": 5820,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        125,
+        135
+      ],
+      "id": 5821,
+      "reverb_id": 550,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 52,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        135
+      ],
+      "id": 5822,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        140
+      ],
+      "id": 5823,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        125,
+        140
+      ],
+      "id": 5824,
+      "reverb_id": 550,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 52,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        140
+      ],
+      "id": 5825,
+      "reverb_id": 151,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 153,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        125,
+        145
+      ],
+      "id": 5826,
+      "reverb_id": 150,
+      "se_base": 150,
+      "se_battle": 0,
+      "se_env": 154,
+      "se_src": [
+        14,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 5,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 6000,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        15,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        40,
+        102
+      ],
+      "id": 6201,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        102
+      ],
+      "id": 6203,
+      "reverb_id": 310,
+      "se_base": 310,
+      "se_battle": -1,
+      "se_env": 310,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        105
+      ],
+      "id": 6206,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 6207,
+      "reverb_id": 258,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 259,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        40,
+        106
+      ],
+      "id": 6208,
+      "reverb_id": 175,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 172,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        106
+      ],
+      "id": 6209,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 2,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 6210,
+      "reverb_id": 258,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 259,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        107
+      ],
+      "id": 6211,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        107
+      ],
+      "id": 6212,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 2,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        107
+      ],
+      "id": 6213,
+      "reverb_id": 258,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 259,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        108
+      ],
+      "id": 6214,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        108
+      ],
+      "id": 6215,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 2,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        108
+      ],
+      "id": 6216,
+      "reverb_id": 258,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 259,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        109
+      ],
+      "id": 6217,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        109
+      ],
+      "id": 6218,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        109
+      ],
+      "id": 6219,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        109
+      ],
+      "id": 6220,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 2,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 6221,
+      "reverb_id": 258,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 259,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        200
+      ],
+      "id": 6222,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        200
+      ],
+      "id": 6223,
+      "reverb_id": 160,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        110
+      ],
+      "id": 6234,
+      "reverb_id": 310,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 310,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        40,
+        110
+      ],
+      "id": 6237,
+      "reverb_id": 160,
+      "se_base": 300,
+      "se_battle": -1,
+      "se_env": 160,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        160
+      ],
+      "id": 6243,
+      "reverb_id": 178,
+      "se_base": 160,
+      "se_battle": -1,
+      "se_env": 178,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 12,
+      "event_se": [
+        130,
+        161
+      ],
+      "id": 6244,
+      "reverb_id": 0,
+      "se_base": 0,
+      "se_battle": -1,
+      "se_env": 0,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 6,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7000,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 270,
+      "se_src": [
+        2,
+        7,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7080,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 271,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -2,
+      "env_bgm": 4,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7081,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 272,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 4,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        100
+      ],
+      "id": 7200,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 272,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        100
+      ],
+      "id": 7201,
+      "reverb_id": 223,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 223,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 4,
+      "env_vol": 0,
+      "event_se": [
+        40,
+        101
+      ],
+      "id": 7202,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 272,
+      "se_src": [
+        15,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 4,
+      "env_vol": 0,
+      "event_se": [
+        30,
+        105
+      ],
+      "id": 7203,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 272,
+      "se_src": [
+        2,
+        7,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        30,
+        105
+      ],
+      "id": 7204,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 270,
+      "se_src": [
+        2,
+        7,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        30,
+        110
+      ],
+      "id": 7206,
+      "reverb_id": 274,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 274,
+      "se_src": [
+        2,
+        7,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        30,
+        110
+      ],
+      "id": 7207,
+      "reverb_id": 550,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 274,
+      "se_src": [
+        2,
+        7,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        30,
+        110
+      ],
+      "id": 7208,
+      "reverb_id": 274,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 274,
+      "se_src": [
+        2,
+        7,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        30,
+        115
+      ],
+      "id": 7209,
+      "reverb_id": 550,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 270,
+      "se_src": [
+        2,
+        7,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        30,
+        120
+      ],
+      "id": 7211,
+      "reverb_id": 550,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 270,
+      "se_src": [
+        2,
+        7,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        10
+      ],
+      "id": 7600,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 170,
+      "se_src": [
+        2,
+        3,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7601,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        10
+      ],
+      "id": 7602,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 170,
+      "se_src": [
+        2,
+        3,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 37,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        170
+      ],
+      "id": 7603,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7680,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 272,
+      "se_src": [
+        15,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7681,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 271,
+      "se_src": [
+        15,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7682,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 273,
+      "se_src": [
+        15,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        10
+      ],
+      "id": 7683,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 170,
+      "se_src": [
+        2,
+        3,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        10
+      ],
+      "id": 7684,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 170,
+      "se_src": [
+        2,
+        3,
+        6,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 21,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        125
+      ],
+      "id": 7685,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 170,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        200,
+        10
+      ],
+      "id": 7686,
+      "reverb_id": 173,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 173,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7687,
+      "reverb_id": 175,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 175,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 51,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7688,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 179,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7689,
+      "reverb_id": 274,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 274,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7690,
+      "reverb_id": 175,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 175,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7691,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7692,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7693,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7694,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7695,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7696,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7697,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 179,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        20,
+        163
+      ],
+      "id": 7800,
+      "reverb_id": 271,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 271,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        30,
+        100
+      ],
+      "id": 7803,
+      "reverb_id": 271,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 271,
+      "se_src": [
+        2,
+        7,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        100
+      ],
+      "id": 7806,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 179,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        105
+      ],
+      "id": 7809,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 179,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        110
+      ],
+      "id": 7810,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 179,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        111
+      ],
+      "id": 7811,
+      "reverb_id": 273,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 273,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        112
+      ],
+      "id": 7812,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 179,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        113
+      ],
+      "id": 7813,
+      "reverb_id": 273,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 273,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        114
+      ],
+      "id": 7814,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 179,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        40,
+        111
+      ],
+      "id": 7815,
+      "reverb_id": 270,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 272,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        115
+      ],
+      "id": 7816,
+      "reverb_id": 179,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 179,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        120
+      ],
+      "id": 7817,
+      "reverb_id": 173,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 173,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        120
+      ],
+      "id": 7818,
+      "reverb_id": 550,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 173,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        120
+      ],
+      "id": 7819,
+      "reverb_id": 173,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 173,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7820,
+      "reverb_id": 170,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 170,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        130
+      ],
+      "id": 7823,
+      "reverb_id": 175,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 175,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 1,
+      "env_vol": 0,
+      "event_se": [
+        130,
+        135
+      ],
+      "id": 7826,
+      "reverb_id": 550,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 51,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        135
+      ],
+      "id": 7827,
+      "reverb_id": 175,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 175,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        140
+      ],
+      "id": 7829,
+      "reverb_id": 550,
+      "se_base": 270,
+      "se_battle": 0,
+      "se_env": 271,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        140
+      ],
+      "id": 7830,
+      "reverb_id": 175,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 175,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        145
+      ],
+      "id": 7831,
+      "reverb_id": 175,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 175,
+      "se_src": [
+        3,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        145
+      ],
+      "id": 7832,
+      "reverb_id": 550,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 270,
+      "se_src": [
+        7,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        146
+      ],
+      "id": 7833,
+      "reverb_id": 175,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 175,
+      "se_src": [
+        3,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        147
+      ],
+      "id": 7835,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 176,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        148
+      ],
+      "id": 7836,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": 0,
+      "se_env": 176,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        130,
+        150
+      ],
+      "id": 7839,
+      "reverb_id": 176,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 176,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 5,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7840,
+      "reverb_id": 550,
+      "se_base": 270,
+      "se_battle": -1,
+      "se_env": 270,
+      "se_src": [
+        7,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 7841,
+      "reverb_id": 270,
+      "se_base": 170,
+      "se_battle": -1,
+      "se_env": 177,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 22,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 8600,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 22,
+      "env_bgm": 0,
+      "env_vol": 0,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 8601,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": -1,
+      "se_src": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 22,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 8602,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 37,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        200,
+        0
+      ],
+      "id": 8603,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": 22,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 8683,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 181,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 8684,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 8690,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 8693,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 181,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        -1,
+        -1
+      ],
+      "id": 8694,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        6,
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        0,
+        195
+      ],
+      "id": 8800,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        150,
+        100
+      ],
+      "id": 8803,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        150,
+        105
+      ],
+      "id": 8806,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 180,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        150,
+        110
+      ],
+      "id": 8809,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 181,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    },
+    {
+      "bgm_no": -1,
+      "env_bgm": -1,
+      "env_vol": 127,
+      "event_se": [
+        150,
+        115
+      ],
+      "id": 8811,
+      "reverb_id": 180,
+      "se_base": 180,
+      "se_battle": 0,
+      "se_env": 181,
+      "se_src": [
+        2,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ]
+    }
+  ],
+  "schema_version": 1
+}

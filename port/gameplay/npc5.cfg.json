@@ -1,0 +1,2661 @@
+{
+  "characters": [
+    {
+      "ability_cost": [
+        12,
+        18,
+        64,
+        0
+      ],
+      "ability_num": 3,
+      "debug_flag": 1,
+      "id": 1,
+      "max_npc_point": 64,
+      "model": "p01_03a",
+      "name": "Cedric",
+      "unk_31": 2
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        4
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 2,
+      "max_npc_point": 0,
+      "model": "p01_06a",
+      "name": "Borneo",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 3,
+      "max_npc_point": 0,
+      "model": "p01_18a",
+      "name": "Gordon",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 4,
+      "max_npc_point": 0,
+      "model": "p01_04a",
+      "name": "Donny",
+      "unk_31": 2
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 5,
+      "max_npc_point": 72,
+      "model": "p01_10a",
+      "name": "Parn",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 6,
+      "max_npc_point": 96,
+      "model": "p01_17a",
+      "name": "Dr.Dell",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        24,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 7,
+      "max_npc_point": 64,
+      "model": "p01_15a",
+      "name": "Ferdinand",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 8,
+      "max_npc_point": 0,
+      "model": "p01_16a",
+      "name": "Claire",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 9,
+      "max_npc_point": 0,
+      "model": "p00_13a",
+      "name": "Pau",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 10,
+      "max_npc_point": 52,
+      "model": "p01_08a",
+      "name": "Stewart",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 11,
+      "max_npc_point": 48,
+      "model": "p01_09a",
+      "name": "Adel",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        12,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 12,
+      "max_npc_point": 64,
+      "model": "p01_02a",
+      "name": "T[UNI00ed]a Polly",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 13,
+      "max_npc_point": 64,
+      "model": "p01_07a",
+      "name": "Erik",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 14,
+      "max_npc_point": 0,
+      "model": "p01_05a",
+      "name": "Sheriff Blinkhorn",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 15,
+      "max_npc_point": 0,
+      "model": "p01_14a",
+      "name": "Milane",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 16,
+      "max_npc_point": 0,
+      "model": "p01_11a",
+      "name": "Gerald",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 17,
+      "max_npc_point": 0,
+      "model": "p01_01a",
+      "name": "Alcalde Need",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        48,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 18,
+      "max_npc_point": 72,
+      "model": "p01_27a",
+      "name": "Padre Bruno",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 19,
+      "max_npc_point": 0,
+      "model": "p01_32a",
+      "name": "Rufio",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        18,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 20,
+      "max_npc_point": 64,
+      "model": "p01_30a",
+      "name": "Fabio",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 21,
+      "max_npc_point": 64,
+      "model": "p01_31a",
+      "name": "Olivia",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        21,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 22,
+      "max_npc_point": 48,
+      "model": "p01_25a",
+      "name": "Julia",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        64,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 23,
+      "max_npc_point": 64,
+      "model": "p01_12a",
+      "name": "Mina",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 24,
+      "max_npc_point": 0,
+      "model": "p01_13a",
+      "name": "Corinne",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        24,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 25,
+      "max_npc_point": 72,
+      "model": "p01_29a",
+      "name": "Abuelita Rosa",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 26,
+      "max_npc_point": 0,
+      "model": "p00_28a",
+      "name": "Lin",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 32,
+      "max_npc_point": 0,
+      "model": "e105_steve",
+      "name": "Steve",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 33,
+      "max_npc_point": 0,
+      "model": "p01_26a",
+      "name": "Morton",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 34,
+      "max_npc_point": 0,
+      "model": "p02_01a",
+      "name": "Conda",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 39,
+      "max_npc_point": 0,
+      "model": "p03_33a",
+      "name": "Camarero",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 40,
+      "max_npc_point": 0,
+      "model": "p03_26a",
+      "name": "Puno",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 41,
+      "max_npc_point": 0,
+      "model": "p03_27a",
+      "name": "Addis",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 42,
+      "max_npc_point": 0,
+      "model": "p03_28a",
+      "name": "Uftah",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 50,
+      "max_npc_point": 0,
+      "model": "p00_03a",
+      "name": "Payaso",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 51,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Giles",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 52,
+      "max_npc_point": 0,
+      "model": "p01_21a",
+      "name": "Dyne",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 53,
+      "max_npc_point": 0,
+      "model": "p01_23a",
+      "name": "Ongul",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 54,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Aegira",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 55,
+      "max_npc_point": 0,
+      "model": "p01_22a",
+      "name": "Fournet",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 56,
+      "max_npc_point": 0,
+      "model": "p01_24a",
+      "name": "Magenne",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 57,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Apia",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 58,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Cocos",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 59,
+      "max_npc_point": 0,
+      "model": "p01_21a",
+      "name": "Cosent",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 60,
+      "max_npc_point": 0,
+      "model": "p01_22a",
+      "name": "Stara",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 61,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "Eisen",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 62,
+      "max_npc_point": 0,
+      "model": "p01_24a",
+      "name": "Tiki",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 63,
+      "max_npc_point": 0,
+      "model": "p03_32a",
+      "name": "Aswan",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 64,
+      "max_npc_point": 0,
+      "model": "p03_20a",
+      "name": "Drini",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 65,
+      "max_npc_point": 0,
+      "model": "p03_30a",
+      "name": "Lucca",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 66,
+      "max_npc_point": 0,
+      "model": "p03_33a",
+      "name": "Camarero",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 67,
+      "max_npc_point": 0,
+      "model": "p03_30a",
+      "name": "Quetta",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 68,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Biserte",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 69,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Pachuca",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 70,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Lal",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 71,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Elc",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 72,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "Moock",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 73,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Arvad",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 74,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Telmo",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 75,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Herault",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 76,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Avaluah",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 77,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Annan",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 78,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "Ipri",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 79,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Cyrene",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 80,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Geoffrey",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 81,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Thebes",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 82,
+      "max_npc_point": 0,
+      "model": "p03_40a",
+      "name": "Brind",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 83,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Luanne",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 84,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Alucia",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 85,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "Echuca",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 86,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Delon",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 87,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Narvak",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 88,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Peche",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 89,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Calonne",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 90,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Albehr",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 91,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Kiev",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 92,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "Basak",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 93,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Keisel",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 94,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Myitikyna",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 95,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Phoenon",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 96,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "Makria",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 97,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Tedea",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 98,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Katoni",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 99,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Pisco",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 100,
+      "max_npc_point": 0,
+      "model": "p03_01a",
+      "name": "Yuran",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 101,
+      "max_npc_point": 0,
+      "model": "p03_02a",
+      "name": "Luseh",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 102,
+      "max_npc_point": 0,
+      "model": "p03_03a",
+      "name": "Raulah",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 103,
+      "max_npc_point": 0,
+      "model": "p03_04a",
+      "name": "Falujn",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 104,
+      "max_npc_point": 0,
+      "model": "p03_02a",
+      "name": "Estof",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 105,
+      "max_npc_point": 0,
+      "model": "p03_03a",
+      "name": "Perille",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 150,
+      "max_npc_point": 0,
+      "model": "p02_02a",
+      "name": "Moglin",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 151,
+      "max_npc_point": 0,
+      "model": "p02_03a",
+      "name": "Rococo",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 152,
+      "max_npc_point": 0,
+      "model": "p02_04a",
+      "name": "Wicky",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 153,
+      "max_npc_point": 0,
+      "model": "p02_05a",
+      "name": "Norm",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 154,
+      "max_npc_point": 0,
+      "model": "p02_06a",
+      "name": "Tobo",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 155,
+      "max_npc_point": 0,
+      "model": "p02_07a",
+      "name": "Zach",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 156,
+      "max_npc_point": 0,
+      "model": "p01_28a",
+      "name": "Amo de la Carrera",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 157,
+      "max_npc_point": 0,
+      "model": "p03_20a",
+      "name": "Elc",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 158,
+      "max_npc_point": 0,
+      "model": "p03_20a",
+      "name": "Roy",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 159,
+      "max_npc_point": 0,
+      "model": "p01_23a",
+      "name": "Bop",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 160,
+      "max_npc_point": 0,
+      "model": "p03_40a",
+      "name": "Bri",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 161,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "Ben",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 162,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "Vic",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 163,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "Gordon",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 164,
+      "max_npc_point": 0,
+      "model": "p03_24a",
+      "name": "Gable",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 165,
+      "max_npc_point": 0,
+      "model": "p03_24a",
+      "name": "Cod",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 166,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Dieck",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 167,
+      "max_npc_point": 0,
+      "model": "p03_22a",
+      "name": "Ida",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 168,
+      "max_npc_point": 0,
+      "model": "p01_22a",
+      "name": "Renita",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 169,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Winsor",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 170,
+      "max_npc_point": 0,
+      "model": "p03_38a",
+      "name": "Natasia",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 171,
+      "max_npc_point": 0,
+      "model": "p03_38a",
+      "name": "Soti",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 172,
+      "max_npc_point": 0,
+      "model": "p01_24a",
+      "name": "Leona",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 200,
+      "max_npc_point": 0,
+      "model": "p00_19a",
+      "name": "Lao Chao",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 201,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "Pyrion",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 202,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "Quilpue",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 203,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "Otti",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 204,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "Arnhem",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 205,
+      "max_npc_point": 0,
+      "model": "p00_16a",
+      "name": "Gran Sabio Crest",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 206,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "Kelme",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 207,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "Rohn",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 208,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Marie",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 209,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "Alen",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 210,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "Cole",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 211,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "Ruta",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 212,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "Tem",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 213,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "Jille",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 214,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "Mitta",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 250,
+      "max_npc_point": 0,
+      "model": "p00_25a",
+      "name": "Argo",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 251,
+      "max_npc_point": 0,
+      "model": "p00_28a",
+      "name": "Lin",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 260,
+      "max_npc_point": 0,
+      "model": "dmy",
+      "name": "M[UNI00f3]nica",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 300,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Alec",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 301,
+      "max_npc_point": 0,
+      "model": "p00_31a",
+      "name": "Osmond",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 302,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Rigare",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 303,
+      "max_npc_point": 0,
+      "model": "p00_32a",
+      "name": "Dr. Nobb",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 304,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "Farley",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 305,
+      "max_npc_point": 0,
+      "model": "p03_35a",
+      "name": "Ian",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 306,
+      "max_npc_point": 0,
+      "model": "p03_36a",
+      "name": "Batra",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 307,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "Logis",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 308,
+      "max_npc_point": 0,
+      "model": "p03_35a",
+      "name": "Polaris",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 309,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Vilna",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 310,
+      "max_npc_point": 0,
+      "model": "p03_36a",
+      "name": "Atall",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 311,
+      "max_npc_point": 0,
+      "model": "p03_36a",
+      "name": "Coral",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 312,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Ocht",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 313,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Morsam",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 314,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "Plum",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 315,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "Latic",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 316,
+      "max_npc_point": 0,
+      "model": "p03_35a",
+      "name": "Lune",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 317,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Liard",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 318,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "Jeebhus",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 319,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Marcon",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 320,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Hibes",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 321,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Tracey",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 322,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Norn",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 323,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Jayta",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 324,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Lias",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 325,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Rahs",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 326,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Peckel",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 327,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Beck",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 328,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "Maht",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 329,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "R[UNI00ed]os",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 400,
+      "max_npc_point": 0,
+      "model": "p00_05a",
+      "name": "Galen Agaris",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 401,
+      "max_npc_point": 0,
+      "model": "p00_29a",
+      "name": "Garek",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 402,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "Nithe",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 403,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "Nuwara",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 404,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "Nevel",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 405,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "Volga",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 406,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "Kain",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 407,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "Baio",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 408,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "Ecran",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 409,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "Parna",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 410,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "Acrei",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 411,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "Vahan",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 412,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "Edge",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 413,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "Clark",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 1012,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Valle",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 1015,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "Chitral",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 1018,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "Lawtin",
+      "unk_31": 0
+    }
+  ],
+  "kind": "party_characters",
+  "schema_version": 2
+}

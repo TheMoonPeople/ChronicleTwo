@@ -1,0 +1,68 @@
+# Open floor 1, pause Donny's introduction, then choose Skip.
+300 cross
+306
+520 cross
+526
+650 start
+656
+690 triangle
+696
+# Aim immediately; Cross dismisses the medal tutorial and fires as soon as control returns.
+730 l1 cross
+740 l1
+750 l1 cross
+760 l1
+770 l1 cross
+780 l1
+790 l1 cross
+800 l1
+810 l1 cross
+820 l1
+830 l1 cross
+840 l1
+850 l1 cross
+860 l1
+870 l1 cross
+880 l1
+890 l1 cross
+900 l1
+910 l1 cross
+920 l1
+930 l1 cross
+940 l1
+950 l1 cross
+960 l1
+970 l1 cross
+980 l1
+990 l1 cross
+1000 l1
+1010 l1 cross
+1020 l1
+1030 l1 cross
+1040 l1
+1050 l1 cross
+1060 l1
+1070 l1 cross
+1080 l1
+1090 l1 cross
+1100 l1
+1110 l1 cross
+1120 l1
+1130 l1 cross
+1140 l1
+1150 l1 cross
+1160 l1
+1170 l1 cross
+1180 l1
+1190 l1 cross
+1200 l1
+1210 l1 cross
+1220 l1
+1230 l1 cross
+1240 l1
+1250 l1 cross
+1260 l1
+1270 l1 cross
+1280 l1
+1290 l1 cross
+1300

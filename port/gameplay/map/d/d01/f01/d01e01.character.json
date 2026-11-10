@@ -1,0 +1,61 @@
+{
+  "default_profile": "info",
+  "game_names": null,
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 7
+            },
+            {
+              "type": "int",
+              "value": 60
+            },
+            {
+              "type": "string",
+              "value": "d01e01.mot"
+            },
+            {
+              "type": "string",
+              "value": "d01e01.bbp"
+            },
+            {
+              "type": "string",
+              "value": "d01e01.wgt\"\r\nSHADOW_MOTION \""
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 30
+            },
+            {
+              "type": "int",
+              "value": 2
+            }
+          ],
+          "command": "IMG"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

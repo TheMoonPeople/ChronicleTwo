@@ -1,0 +1,186 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "f020102-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020101-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020101-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020201-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020202-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020203-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020203-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020201-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020201-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020203-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020301-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "f020302-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020303-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020301-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020301-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020401-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "f020402-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020403-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020401-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020401-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020501-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020502-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020502-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020501-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020901-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020902-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020901-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020901-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020701-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020701-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020701-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020601-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020601-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020601-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f020801-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f020801-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f020801-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f021101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f021102-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f021101-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f021101-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "moon_crystal_m.gltf",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

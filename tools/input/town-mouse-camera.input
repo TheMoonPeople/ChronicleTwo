@@ -1,0 +1,15 @@
+# With --jump town:10 --fast-load. Mouse counts per logical update.
+0
+1800 mouse:100,0
+1812
+1860 mouse:0,60
+1872
+1920 mouse:0,-60
+1932
+# Menu ownership: motion here must not queue a gameplay turn.
+2000 key:Tab
+2006
+2020 mouse:100,60
+2032
+2060 key:Escape
+2066

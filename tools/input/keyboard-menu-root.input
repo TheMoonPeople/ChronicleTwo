@@ -1,0 +1,20 @@
+# Open the root menu and move to Character with the keyboard stick.
+180 key:Tab
+186
+300 key:S
+306
+# Return to Item with W, then select Character again and open it.
+400 key:W
+406
+500 key:S
+506
+600 key:Space
+606
+750 key:S
+756
+850 key:W
+856
+950 key:D
+956
+1050 key:A
+1056

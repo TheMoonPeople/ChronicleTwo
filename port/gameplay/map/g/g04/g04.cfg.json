@@ -1,0 +1,221 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 551
+      },
+      "name": "to_s10",
+      "transform": {
+        "position": [
+          2200.0,
+          0.0,
+          -160.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          150.0,
+          150.0,
+          150.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 552
+      },
+      "name": "to_dun5",
+      "transform": {
+        "position": [
+          -1679.03,
+          0.0,
+          -1433.74
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          200.0,
+          160.0,
+          160.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "georama": {
+    "fixed_parts": {
+      "count": 1,
+      "parts": [
+        {
+          "angle": 0,
+          "id": 54,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "initial_parts": {
+      "count": 15,
+      "parts": [
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            -1133.0,
+            0.0,
+            -752.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            -871.0,
+            0.0,
+            -236.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            -218.0,
+            0.0,
+            -953.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            403.0,
+            0.0,
+            -547.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            987.0,
+            0.0,
+            -691.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            704.0,
+            0.0,
+            916.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            -426.0,
+            0.0,
+            841.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            -1037.0,
+            0.0,
+            576.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            -534.0,
+            0.0,
+            244.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            98.0,
+            0.0,
+            52.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            832.0,
+            0.0,
+            48.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            510.0,
+            0.0,
+            427.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            30.5,
+            0.0,
+            736.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            -385.0,
+            0.0,
+            -242.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 76,
+          "position": [
+            104.0,
+            0.0,
+            -277.0
+          ]
+        }
+      ]
+    },
+    "mask_parts": [],
+    "river_parts": [],
+    "water_parts_models": []
+  },
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

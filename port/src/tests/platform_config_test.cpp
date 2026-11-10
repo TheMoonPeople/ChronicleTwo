@@ -1,180 +1,537 @@
 #include <gtest/gtest.h>
-#include <unistd.h>
+#include <nlohmann/json.hpp>
 
-#include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <fstream>
+#include <iterator>
 #include <string>
-#include <vector>
+#include <string_view>
 
-#include "../platform/config.hpp"
+#include "platform/config.hpp"
+#include "platform/config_io.hpp"
 #include "platform/paths.hpp"
+#include "platform/settings.hpp"
+#include "platform_fixture.hpp"
+#include "scoped_global_object.hpp"
 
-TEST(PlatformConfig, Defaults) {
-    Config config = ConfigParse("");
-    ASSERT_TRUE(config.tick_rate == 50.0);
-    ASSERT_TRUE(config.present_mode == ConfigPresentMode::Fifo);
-    ASSERT_TRUE(!config.fullscreen);
-    ASSERT_TRUE(config.master_volume == 1.0f);
-    ASSERT_TRUE(config.key_bindings.empty());
-    ASSERT_TRUE(config.detail_distance == 0.0f);
-    ASSERT_TRUE(config.shadow_distance == 0.0f);
+namespace fs = std::filesystem;
+
+namespace {
+
+// Each case gets an empty run directory: SettingsChange on a window-affecting field would open a window,
+// so the cases that need one write the file and load it.
+class PlatformConfig : public testing::Test {
+protected:
+    void SetUp() override {
+        root_ = fs::temp_directory_path() / std::format("dc2_config_{}", dc::test::ProcessId());
+        fs::remove_all(root_);
+        fs::create_directories(root_);
+        PathsSetSaveRoot(root_ / "saves");
+    }
+
+    void TearDown() override {
+        ConfigSetReadHook(nullptr);
+        std::error_code error;
+        fs::remove_all(root_, error);
+    }
+
+    [[nodiscard]] fs::path Path() const { return root_ / "config.json"; }
+
+    void Write(std::string_view text) const { std::ofstream(Path(), std::ios::binary) << text; }
+
+    [[nodiscard]] std::string Read() const {
+        std::ifstream file(Path(), std::ios::binary);
+        return {std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+    }
+
+private:
+    fs::path root_;
+};
+
+int          g_hook_calls = 0;
+HostSettings g_hook_before;
+HostSettings g_hook_after;
+
+void CaptureChange(const HostSettings &before, const HostSettings &after) {
+    ++g_hook_calls;
+    g_hook_before = before;
+    g_hook_after = after;
 }
 
-TEST(PlatformConfig, DetailDistance) {
-    ASSERT_TRUE(ConfigParse(R"({"video": {"detail_distance": 450}})").detail_distance == 450.0f);
-    ASSERT_TRUE(ConfigParse(R"({"video": {"detail_distance": -1}})").detail_distance == 0.0f);
-    ASSERT_TRUE(ConfigParse(R"({"video": {"detail_distance": "far"}})").detail_distance == 0.0f);
-    Config config;
-    config.detail_distance = 450.0f;
-    ASSERT_TRUE(ConfigParse(ConfigSerialize(config)).detail_distance == 450.0f);
+} // namespace
+
+TEST_F(PlatformConfig, DefaultsAreWrittenWhenAbsent) {
+    ASSERT_FALSE(ConfigLoad());
+    ASSERT_TRUE(fs::exists(Path()));
+    EXPECT_FALSE(fs::exists(PathsSaveRoot() / "config.json"));
+    ASSERT_TRUE(ConfigParse(Read()) == Config{});
+    ASSERT_TRUE(SettingsGet().tick_rate == kConfigTickRateDefault);
+    ASSERT_TRUE(ConfigLoad());
+    ASSERT_TRUE(SettingsGet() == static_cast<const HostSettings &>(Config{}));
 }
 
-TEST(PlatformConfig, ShadowDistance) {
-    ASSERT_TRUE(ConfigParse(R"({"video": {"shadow_distance": 320}})").shadow_distance == 320.0f);
-    ASSERT_TRUE(ConfigParse(R"({"video": {"shadow_distance": -1}})").shadow_distance == 0.0f);
-    ASSERT_TRUE(ConfigParse(R"({"video": {"shadow_distance": "far"}})").shadow_distance == 0.0f);
-    Config config;
-    config.shadow_distance = 320.0f;
-    ASSERT_TRUE(ConfigParse(ConfigSerialize(config)).shadow_distance == 320.0f);
+TEST_F(PlatformConfig, TrailingSaveSeparatorKeepsConfigInParentDirectory) {
+    PathsSetSaveRoot(PathsSaveRoot() / "");
+    ASSERT_FALSE(ConfigLoad());
+    EXPECT_TRUE(fs::exists(Path()));
+    EXPECT_FALSE(fs::exists(PathsSaveRoot() / "config.json"));
 }
 
-TEST(PlatformConfig, ParsesJson) {
+TEST_F(PlatformConfig, TinyFrameCapsClampButZeroRemainsUncapped) {
+    EXPECT_DOUBLE_EQ(ConfigParse(R"({"video":{"max_fps":1e-12}})").max_fps, 1.0);
+    EXPECT_DOUBLE_EQ(ConfigParse(R"({"video":{"max_fps":0.5}})").max_fps, 1.0);
+    EXPECT_DOUBLE_EQ(ConfigParse(R"({"video":{"max_fps":0}})").max_fps, 0.0);
+}
+
+TEST_F(PlatformConfig, FullFileRoundTrips) {
+    Config full;
+    full.present_mode = ConfigPresentMode::Immediate;
+    full.render_thread = ConfigRenderThread::Async;
+    full.max_fps = 144.0;
+    full.window_width = 1920;
+    full.window_height = 1080;
+    full.fullscreen = true;
+    full.show_fps = false;
+    full.fps_detail = ConfigFpsDetail::Ticks;
+    full.master_volume = 0.5f;
+    full.surround = true;
+    full.soundtrack = true;
+    full.key_bindings = {
+        ConfigKeyBinding{.action = "cross", .keys = {"Space", "Z"}},
+        ConfigKeyBinding{.action = "start", .keys = {"Return"}    }
+    };
+    full.pad_bindings = {
+        ConfigKeyBinding{.action = "cross",         .keys = {"b"}},
+        ConfigKeyBinding{.action = "quick_loadout", .keys = {}   }
+    };
+    full.mouse_sensitivity = 0.25f;
+    full.stick_sensitivity = 1.5f;
+    full.stick_invert_x = true;
+    full.stick_invert_y = true;
+    full.gyro = ConfigGyro::FirstPerson;
+    full.gyro_sensitivity = 1.25f;
+    full.gyro_invert_x = true;
+    full.gyro_invert_y = true;
+    full.mouse_invert_y = true;
+    full.mouse_capture = false;
+    full.mouse_zoom = true;
+    full.mouse_fixed_look = false;
+    full.touchpad = false;
+    full.touchpad_sensitivity = 2.0f;
+    full.lightbar = false;
+    full.rumble_strength = 0.5f;
+    full.glyphs_new = false;
+    full.glyph_device = ConfigGlyphDevice::Ps5Color;
+    full.mouse_release_keys = {"F12", "Pause"};
+    full.font_sharp = false;
+    full.dualsense_speaker = false;
+    full.controller_volume = 1.5f;
+    full.dualsense_haptics = ConfigHaptics::Vibration;
+    full.haptics_strength = 0.75f;
+
+    ASSERT_TRUE(ConfigParse(ConfigSerialize(full)) == full);
+
+    Write(ConfigSerialize(full));
+    ASSERT_TRUE(ConfigLoad());
+    const HostSettings &expected = full;
+    ASSERT_TRUE(SettingsGet() == expected);
+}
+
+TEST_F(PlatformConfig, TextFontIsSharpByDefaultAndRoundTrips) {
+    EXPECT_TRUE(ConfigParse("").font_sharp);
+    const Config original = ConfigParse(R"({"video":{"text_font":"original"}})");
+    EXPECT_FALSE(original.font_sharp);
+    EXPECT_FALSE(ConfigParse(ConfigSerialize(original)).font_sharp);
+    EXPECT_TRUE(ConfigParse(R"({"video":{"text_font":"sharp"}})").font_sharp);
+    for (const char *value : {"null", "false", "0", "\"blurry\""}) {
+        EXPECT_TRUE(ConfigParse(std::string("{\"video\":{\"text_font\":") + value + "}}").font_sharp);
+    }
+}
+
+TEST_F(PlatformConfig, DualSenseSpeakerIsOnByDefaultAndRoundTrips) {
+    EXPECT_TRUE(ConfigParse("").dualsense_speaker);
+    const Config off = ConfigParse(R"({"audio":{"dualsense_speaker":false,"controller_volume":0.5}})");
+    EXPECT_FALSE(off.dualsense_speaker);
+    EXPECT_EQ(off.controller_volume, 0.5f);
+    EXPECT_TRUE(ConfigParse(ConfigSerialize(off)) == off);
+    for (const char *value : {"null", "1", "\"off\""}) {
+        EXPECT_TRUE(ConfigParse(std::string("{\"audio\":{\"dualsense_speaker\":") + value + "}}").dualsense_speaker);
+    }
+    // Either value of the legacy audio.robot_voice key leaves the speaker on.
+    for (const char *value : {"\"tv\"", "\"controller\""}) {
+        EXPECT_TRUE(ConfigParse(std::string("{\"audio\":{\"robot_voice\":") + value + "}}").dualsense_speaker);
+    }
+    EXPECT_FALSE(ConfigParse(R"({"audio":{"robot_voice":"controller","dualsense_speaker":false}})").dualsense_speaker);
+    for (const char *value : {"-0.1", "2.1", "\"loud\""}) {
+        EXPECT_EQ(ConfigParse(std::string("{\"audio\":{\"controller_volume\":") + value + "}}").controller_volume, 1.0f);
+    }
+}
+
+TEST_F(PlatformConfig, LegacyTickRatesNeverOverrideSixty) {
+    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 25}})").tick_rate == 60.0);
+    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 240}})").tick_rate == 60.0);
+    for (const char *value : {"0", "-3", "24.9", "240.1", "1e9", "\"fast\"", "null", "true"}) {
+        std::string json = std::string(R"({"game": {"tick_rate": )") + value + "}}";
+        ASSERT_TRUE(ConfigParse(json).tick_rate == kConfigTickRateDefault) << value;
+    }
+    Write(R"({"game": {"tick_rate": 1000}})");
+    ASSERT_TRUE(ConfigLoad());
+    ASSERT_TRUE(SettingsGet().tick_rate == kConfigTickRateDefault);
+}
+
+TEST_F(PlatformConfig, UnknownKeysAndSectionsAreIgnored) {
     Config config = ConfigParse(R"({
         // comment
-        "game": {"tick_rate": 59.94},
-        "video": {"vsync": false, "width": 1920, "height": 1080, "fullscreen": true},
-        "audio": {"master_volume": 1.5},
-        "input": {"bindings": {"cross": ["Space", "Z"], "Start": "Return", "circle": 3}},
-        "extra": {"tick_rate": -3},
+        "game": {"tick_rate": 60, "debug_menu": true, "unknown": 1},
+        "video": {"unknown": false, "width": 1280},
+        "audio": {"master_volume": 0.5},
+        "extra": {"tick_rate": 30},
         "stray": 1
     })");
-    ASSERT_TRUE(config.tick_rate == 59.94);
-    ASSERT_TRUE(config.present_mode == ConfigPresentMode::Immediate);
-    ASSERT_TRUE(config.window_width == 1920 && config.window_height == 1080);
-    ASSERT_TRUE(config.fullscreen);
-    ASSERT_TRUE(config.master_volume == 1.0f);
-    ASSERT_TRUE(config.key_bindings.size() == 2);
-    ASSERT_TRUE(config.key_bindings[0].action == "cross");
-    ASSERT_TRUE(config.key_bindings[0].keys.size() == 2);
-    ASSERT_TRUE(config.key_bindings[0].keys[0] == "Space" && config.key_bindings[0].keys[1] == "Z");
-    ASSERT_TRUE(config.key_bindings[1].action == "start" && config.key_bindings[1].keys[0] == "Return");
-
-    Config bad = ConfigParse(R"({"game": {"tick_rate": -3, "unknown": 1}, "video": {"width": 1.5, "height": "tall"}})");
-    ASSERT_TRUE(bad.tick_rate == 50.0 && bad.window_width == 0 && bad.window_height == 0);
-
-    ASSERT_TRUE(ConfigParse(R"({"video": {"present_mode": "Mailbox"}})").present_mode == ConfigPresentMode::Mailbox);
+    ASSERT_TRUE(config.tick_rate == 60.0);
+    ASSERT_TRUE(config.window_width == 1280 && config.window_height == 0);
+    ASSERT_TRUE(config.master_volume == 0.5f);
+    ASSERT_TRUE(config.present_mode == ConfigPresentMode::Fifo);
+    ASSERT_TRUE(ConfigParse(R"({"game": {"debug_menu": false}, "stray": 1})") == Config{});
 }
 
-TEST(PlatformConfig, InvalidJsonKeepsTheDefaults) {
-    ASSERT_TRUE(ConfigParse("[game]\ntick_rate = 60\n").tick_rate == 50.0);
-    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 60})").tick_rate == 50.0);
-    ASSERT_TRUE(ConfigParse("[1, 2]").tick_rate == 50.0);
-    ASSERT_TRUE(ConfigParse(" \n").tick_rate == 50.0);
+TEST_F(PlatformConfig, VSyncIsOnByDefaultAndLegacyPresentModesMapToIt) {
+    EXPECT_EQ(ConfigParse("{}").present_mode, ConfigPresentMode::Fifo);
+    EXPECT_EQ(ConfigParse(R"({"video":{"vsync":false}})").present_mode, ConfigPresentMode::Immediate);
+    EXPECT_EQ(ConfigParse(R"({"video":{"vsync":true}})").present_mode, ConfigPresentMode::Fifo);
+    EXPECT_EQ(ConfigParse(R"({"video":{"present_mode":"mailbox"}})").present_mode, ConfigPresentMode::Immediate);
+    EXPECT_EQ(ConfigParse(R"({"video":{"present_mode":"fifo"}})").present_mode, ConfigPresentMode::Fifo);
 }
 
-TEST(PlatformConfig, LoadsFromSaveRoot) {
-    std::filesystem::path root = std::filesystem::temp_directory_path() / ("dc_config_test_" + std::to_string(getpid()));
-    std::filesystem::create_directories(root);
-    PathsSetSaveRoot(root);
-    ASSERT_TRUE(PathsSaveRoot() == root);
-    // A missing file is created with the defaults, and read from then on.
-    ASSERT_TRUE(!ConfigLoad());
-    ASSERT_TRUE(std::filesystem::exists(root / "config.json"));
-    ASSERT_TRUE(ConfigLoad());
-    ASSERT_TRUE(ConfigGet().tick_rate == 50.0 && ConfigGet().debug_mode);
-    std::ofstream(root / "config.json") << R"({"game": {"tick_rate": 60}})";
-    ASSERT_TRUE(ConfigLoad());
-    ASSERT_TRUE(ConfigGet().tick_rate == 60.0);
-    std::filesystem::remove_all(root);
-}
-
-TEST(PlatformConfig, ParsesMouseSettingsAndBindings) {
-    Config defaults = ConfigParse("");
-    ASSERT_TRUE(defaults.mouse_sensitivity == 0.1f && !defaults.mouse_invert_y && defaults.mouse_capture);
-    ASSERT_TRUE(defaults.mouse_release_keys.size() == 1 && defaults.mouse_release_keys[0] == "Escape");
-
-    Config config = ConfigParse(R"({"input": {
-        "mouse_sensitivity": 0.25,
-        "mouse_invert_y": true,
-        "mouse_capture": false,
-        "mouse_release": ["F12", "Pause"],
-        "bindings": {"rx": "MouseX*2", "ry": ["-MouseY"], "r1": ["Mouse2", "X"]}
-    }})");
-    ASSERT_TRUE(config.mouse_sensitivity == 0.25f);
-    ASSERT_TRUE(config.mouse_invert_y && !config.mouse_capture);
-    ASSERT_TRUE(config.mouse_release_keys.size() == 2 && config.mouse_release_keys[1] == "Pause");
-    ASSERT_TRUE(config.key_bindings.size() == 3);
-    ASSERT_TRUE(config.key_bindings[0].action == "rx" && config.key_bindings[0].keys[0] == "MouseX*2");
-    ASSERT_TRUE(config.key_bindings[1].keys[0] == "-MouseY");
-    ASSERT_TRUE(config.key_bindings[2].keys.size() == 2 && config.key_bindings[2].keys[0] == "Mouse2");
-
-    Config bad = ConfigParse(R"({"input": {"mouse_sensitivity": -1, "mouse_capture": "maybe"}})");
-    ASSERT_TRUE(bad.mouse_sensitivity == 0.1f && bad.mouse_capture);
-    ASSERT_TRUE(ConfigParse(R"({"input": {"mouse_release": []}})").mouse_release_keys.empty());
-}
-
-TEST(PlatformConfig, DebugModeDefaultsOn) {
-    ASSERT_TRUE(ConfigParse("").debug_mode);
+TEST_F(PlatformConfig, DebugModeParsesBoolsAndDefaultsToOff) {
+    ASSERT_FALSE(Config{}.debug_mode);
+    ASSERT_FALSE(ConfigParse("").debug_mode);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"debug_mode": false}})").debug_mode);
     ASSERT_TRUE(ConfigParse(R"({"game": {"debug_mode": true}})").debug_mode);
-    ASSERT_TRUE(!ConfigParse(R"({"game": {"debug_mode": false}})").debug_mode);
-    ASSERT_TRUE(ConfigParse(R"({"game": {"debug_mode": "off"}})").debug_mode);
 }
 
-TEST(PlatformConfig, ShowFpsAndTheHostKeys) {
-    ASSERT_TRUE(ConfigParse("").show_fps);
-    ASSERT_TRUE(!ConfigParse(R"({"video": {"show_fps": false}})").show_fps);
-    ASSERT_TRUE(ConfigParse(R"({"video": {"show_fps": "maybe"}})").show_fps);
-
-    // The toggle is a binding like the pad's; its default (F3) is input's.
-    Config config = ConfigParse(R"({"input": {"bindings": {"fps_toggle": ["F4", "Gamepad:guide"], "start": "Return"}}})");
-    ASSERT_TRUE(config.key_bindings.size() == 2);
-    ASSERT_TRUE(config.key_bindings[0].action == "fps_toggle");
-    ASSERT_TRUE((config.key_bindings[0].keys == std::vector<std::string>{"F4", "Gamepad:guide"}));
-    ASSERT_TRUE(config.key_bindings[1].action == "start" && config.key_bindings[1].keys.size() == 1);
+TEST_F(PlatformConfig, DebugModeInvalidValuesKeepTheDefault) {
+    for (const char *value : {"\"yes\"", "1", "null", "\"off\""}) {
+        std::string json = std::string(R"({"game": {"debug_mode": )") + value + "}}";
+        ASSERT_FALSE(ConfigParse(json).debug_mode) << json;
+    }
 }
 
-TEST(PlatformConfig, SerializeRoundTrips) {
-    Config config = ConfigParse(R"({
-        "game": {"tick_rate": 60, "debug_mode": false},
-        "video": {"present_mode": "mailbox", "aspect": "4:3", "ui_scale": 1.5, "width": 1920, "max_fps": 144},
-        "audio": {"master_volume": 0.5},
-        "input": {"mouse_release": [], "bindings": {"cross": ["Space", "Z"], "start": "Return"}}
-    })");
-    Config again = ConfigParse(ConfigSerialize(config));
-    ASSERT_TRUE(again.tick_rate == 60.0 && !again.debug_mode);
-    ASSERT_TRUE(again.present_mode == ConfigPresentMode::Mailbox && again.aspect == ConfigAspect::FourThree);
-    ASSERT_TRUE(again.ui_scale == 1.5f && again.window_width == 1920 && again.window_height == 0);
-    ASSERT_TRUE(again.max_fps == 144.0 && again.master_volume == 0.5f);
-    ASSERT_TRUE(again.mouse_release_keys.empty());
-    ASSERT_TRUE(again.key_bindings.size() == 2 && again.key_bindings[0].action == "cross");
-    ASSERT_TRUE((again.key_bindings[0].keys == std::vector<std::string>{"Space", "Z"}));
-    ASSERT_TRUE(again.key_bindings[1].keys.size() == 1 && again.key_bindings[1].keys[0] == "Return");
+TEST_F(PlatformConfig, RenderThreadDefaultsToAsyncAndRoundTrips) {
+    ASSERT_TRUE(Config{}.render_thread == ConfigRenderThread::Async);
+    ASSERT_TRUE(ConfigParse(R"({"video": {"render_thread": "sideways"}})").render_thread == ConfigRenderThread::Async);
+    Config config;
+    config.render_thread = ConfigRenderThread::Off;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.render_thread == ConfigRenderThread::Off);
+    ASSERT_TRUE(parsed == config);
 }
 
-// The host layer reads the settings through SettingsGet: the stick and mouse defaults here are this
-// game's, in the host layer's units.
-TEST(PlatformConfig, HostViewKeepsPalRateAndSharedInputDefaults) {
-    const HostSettings &host = SettingsGet();
-    ASSERT_DOUBLE_EQ(host.tick_rate, 50.0);
-    ASSERT_FLOAT_EQ(host.stick_sensitivity, HostSettings{}.stick_sensitivity);
-    ASSERT_TRUE(host.mouse_sensitivity > 0.229f && host.mouse_sensitivity < 0.2293f);
-    ASSERT_TRUE(host.key_bindings.empty());
-    ASSERT_TRUE(ConfigGet().key_bindings.empty() && ConfigGet().mouse_sensitivity == 0.1f);
+TEST_F(PlatformConfig, SkipIntroDefaultsToOffAndRoundTrips) {
+    ASSERT_FALSE(Config{}.skip_intro);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"skip_intro": "yes"}})").skip_intro);
+    Config config;
+    config.skip_intro = true;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.skip_intro);
+    ASSERT_TRUE(parsed == config);
 }
 
-TEST(PlatformConfig, SettingsChangeWithTheViewUnchangedChangesNothing) {
-    std::string directory = (std::filesystem::temp_directory_path() / "dc_config_XXXXXX").string();
-    ASSERT_TRUE(mkdtemp(directory.data()) != nullptr);
-    PathsSetSaveRoot(directory);
-    HostSettings same = SettingsGet();
-    ASSERT_TRUE(SettingsChange(same));
-    ASSERT_TRUE(ConfigGet().key_bindings.empty() && ConfigGet().mouse_sensitivity == 0.1f);
-    HostSettings changed = same;
-    changed.soundtrack = true;
-    changed.max_fps = 90.0;
+TEST_F(PlatformConfig, AutoUseEventItemDefaultsToOffAndRoundTrips) {
+    ASSERT_FALSE(Config{}.auto_use_event_item);
+    ASSERT_FALSE(ConfigParse(R"({"game": {"auto_use_event_item": 1}})").auto_use_event_item);
+    Config config;
+    config.auto_use_event_item = true;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.auto_use_event_item);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, SphedaHandicapDefaultsToOffTakesZeroToFiveAndRoundTrips) {
+    ASSERT_EQ(Config{}.spheda_handicap, 0);
+    EXPECT_EQ(ConfigParse(R"({"game": {"spheda_handicap": 3}})").spheda_handicap, 3);
+    for (const char *bad : {R"({"game": {"spheda_handicap": -1}})", R"({"game": {"spheda_handicap": 6}})",
+                            R"({"game": {"spheda_handicap": "3"}})", R"({"game": {"spheda_handicap": true}})"}) {
+        EXPECT_EQ(ConfigParse(bad).spheda_handicap, 0) << bad;
+    }
+    Config config;
+    config.spheda_handicap = kSphedaHandicapMax;
+    const Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_EQ(parsed.spheda_handicap, kSphedaHandicapMax);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, DebugModeRoundTripsThroughSerialize) {
+    Config config;
+    config.debug_mode = true;
+    Config parsed = ConfigParse(ConfigSerialize(config));
+    ASSERT_TRUE(parsed.debug_mode);
+    ASSERT_TRUE(parsed == config);
+}
+
+TEST_F(PlatformConfig, WrongTypesKeepTheDefaults) {
+    ASSERT_TRUE(ConfigParse(R"({
+        "game": {"tick_rate": "50"},
+        "video": {"width": 1.5, "height": "tall", "fullscreen": "yes", "present_mode": 3,
+                  "fps_detail": true, "max_fps": -1},
+        "audio": {"master_volume": 1.5, "sound": "mono", "soundtrack": 1},
+        "input": {"mouse_sensitivity": 0, "gyro": true, "glyphs": 0, "glyph_device": "xbox360",
+                  "rumble_strength": 2, "mouse_release": 4, "bindings": "cross"}
+    })") == Config{});
+}
+
+TEST_F(PlatformConfig, MalformedFileKeepsTheDefaults) {
+    ASSERT_TRUE(ConfigParse("[game]\ntick_rate = 50\n") == Config{});
+    ASSERT_TRUE(ConfigParse(R"({"game": {"tick_rate": 50})") == Config{});
+    ASSERT_TRUE(ConfigParse("[1, 2]") == Config{});
+    ASSERT_TRUE(ConfigParse(" \n") == Config{});
+}
+
+TEST_F(PlatformConfig, SettingsChangeStoresAndNormalises) {
+    ASSERT_FALSE(ConfigLoad());
+    HostSettings changed = SettingsGet();
+    changed.tick_rate = 120.0;
+    changed.rumble_strength = 2.0f;
     ASSERT_TRUE(SettingsChange(changed));
-    ASSERT_TRUE(SettingsGet().soundtrack && ConfigGet().max_fps == 90.0);
-    ASSERT_TRUE(ConfigGet().key_bindings.empty());
-    std::filesystem::remove_all(directory);
+    ASSERT_TRUE(SettingsGet().tick_rate == 60.0);
+    ASSERT_TRUE(SettingsGet().rumble_strength == 1.0f);
+    ASSERT_TRUE(ConfigParse(Read()).tick_rate == 60.0);
+}
+
+TEST_F(PlatformConfig, InvalidFilesAreBackedUpAndReplacedOnChange) {
+    int backup_number = 0;
+    for (const std::string text : {"", " \r\n\t", "{broken", "[]", "null", "42"}) {
+        SCOPED_TRACE(text);
+        Write(text);
+        ASSERT_TRUE(ConfigLoad());
+        EXPECT_EQ(Read(), text);
+        Config changed = ConfigGet();
+        changed.master_volume = 0.25f;
+        ASSERT_TRUE(ConfigChange(changed));
+        EXPECT_EQ(ConfigParse(Read()), changed);
+        EXPECT_TRUE(nlohmann::json::parse(Read()).contains("game"));
+        auto backup = Path();
+        backup += ".bad";
+        if (backup_number) {
+            backup += "." + std::to_string(backup_number);
+        }
+        std::ifstream file(backup, std::ios::binary);
+        ASSERT_TRUE(file);
+        EXPECT_EQ(std::string(std::istreambuf_iterator<char>(file), {}), text);
+        ++backup_number;
+    }
+    std::ifstream first(Path().string() + ".bad", std::ios::binary);
+    EXPECT_EQ(std::string(std::istreambuf_iterator<char>(first), {}), "");
+}
+
+TEST_F(PlatformConfig, DirectoryCreatedAfterLoadIsNeverReplaced) {
+    ASSERT_FALSE(ConfigLoad());
+    fs::remove(Path());
+    fs::create_directory(Path());
+    Config changed = ConfigGet();
+    changed.master_volume = 0.25f;
+    EXPECT_FALSE(ConfigChange(changed));
+    EXPECT_TRUE(fs::is_directory(Path()));
+    EXPECT_FALSE(fs::exists(Path().string() + ".bad"));
+}
+
+TEST_F(PlatformConfig, ExistingUnreadableFileIsNeverOverwritten) {
+    fs::create_directory(Path());
+    ASSERT_FALSE(ConfigLoad());
+    ASSERT_TRUE(SettingsGet() == static_cast<const HostSettings &>(Config{}));
+    HostSettings changed = SettingsGet();
+    changed.master_volume = 0.5f;
+    ASSERT_FALSE(SettingsChange(changed));
+    ASSERT_TRUE(SettingsGet().master_volume == 0.5f);
+    ASSERT_FALSE(ConfigSave());
+    ASSERT_TRUE(fs::is_directory(Path()));
+    ASSERT_FALSE(fs::is_regular_file(Path()));
+}
+
+TEST_F(PlatformConfig, ChangeHookSeesBeforeAndAfter) {
+    ASSERT_FALSE(ConfigLoad());
+    g_hook_calls = 0;
+    ConfigSetChangeHook(CaptureChange);
+    HostSettings changed = SettingsGet();
+    changed.master_volume = 0.5f;
+    ASSERT_TRUE(SettingsChange(changed));
+    ASSERT_TRUE(g_hook_calls == 1);
+    ASSERT_TRUE(g_hook_before.master_volume == 1.0f);
+    ASSERT_TRUE(g_hook_after.master_volume == 0.5f);
+    ASSERT_TRUE(SettingsChange(SettingsGet()));
+    ASSERT_TRUE(g_hook_calls == 1);
+    ConfigSetChangeHook(nullptr);
+}
+
+TEST_F(PlatformConfig, ConfigChangeStoresPortFieldsAndNotifiesTheLiveHook) {
+    ConfigLoad();
+    g_hook_calls = 0;
+    ConfigSetChangeHook(CaptureChange);
+    Config config = ConfigGet();
+    config.interpolation = false;
+    config.aspect = ConfigAspect::FourThree;
+    config.ui_scale = 0.75f;
+    EXPECT_TRUE(ConfigChange(config));
+    EXPECT_EQ(ConfigGet(), config);
+    EXPECT_EQ(ConfigParse(Read()), config);
+    EXPECT_EQ(g_hook_calls, 1);
+    EXPECT_TRUE(ConfigChange(config));
+    EXPECT_EQ(g_hook_calls, 1);
+    // A later host-only change must retain the port-owned fields.
+    HostSettings host = SettingsGet();
+    host.show_fps = false;
+    EXPECT_TRUE(SettingsChange(host));
+    EXPECT_FALSE(ConfigGet().interpolation);
+    EXPECT_EQ(ConfigGet().aspect, ConfigAspect::FourThree);
+    EXPECT_FLOAT_EQ(ConfigGet().ui_scale, .75f);
+    ConfigSetChangeHook(nullptr);
+}
+
+TEST_F(PlatformConfig, FailedPortChangeKeepsLiveValuesAndRetriesTheSave) {
+    ConfigLoad();
+    fs::remove(Path());
+    fs::create_directory(Path());
+    Config config = ConfigGet();
+    config.interpolation = false;
+    EXPECT_FALSE(ConfigChange(config));
+    EXPECT_FALSE(ConfigGet().interpolation);
+    fs::remove(Path());
+    EXPECT_TRUE(ConfigChange(config));
+    EXPECT_FALSE(ConfigParse(Read()).interpolation);
+}
+
+TEST_F(PlatformConfig, ChangeMergesOnlyEditedFieldsIntoExternallyUpdatedJson) {
+    Write(R"({"audio":{"master_volume":0.5},"input":{"bindings":{"cross":["K"]}},"extra":{"old":1}})");
+    ASSERT_TRUE(ConfigLoad());
+    Write(R"({"audio":{"master_volume":0.25,"future_mode":"custom"},"input":{"bindings":{"cross":["Z"],"future_action":["J"]}},"extra":{"old":2,"new":[1,2]},"stray":7})");
+    Config changed = ConfigGet();
+    changed.font_sharp = false;
+    ASSERT_TRUE(ConfigChange(changed));
+    auto json = nlohmann::json::parse(Read());
+    EXPECT_EQ(json["audio"]["master_volume"], 0.25);
+    EXPECT_EQ(json["audio"]["future_mode"], "custom");
+    EXPECT_EQ(json["input"]["bindings"]["cross"][0], "Z");
+    EXPECT_EQ(json["input"]["bindings"]["future_action"][0], "J");
+    EXPECT_EQ(json["extra"]["old"], 2);
+    EXPECT_EQ(json["extra"]["new"].size(), 2);
+    EXPECT_EQ(json["stray"], 7);
+    EXPECT_EQ(json["video"]["text_font"], "original");
+    const auto before = Read();
+    ASSERT_TRUE(ConfigChange(changed));
+    EXPECT_EQ(Read(), before);
+}
+
+TEST_F(PlatformConfig, BindingResetPreservesUnrelatedExternalBindings) {
+    Write(R"({"input":{"bindings":{"cross":["K"],"circle":["Q"]}}})");
+    ASSERT_TRUE(ConfigLoad());
+    Write(R"({"input":{"bindings":{"cross":["K"],"circle":["Z"],"future":["J"]}}})");
+    Config changed = ConfigGet();
+    changed.key_bindings.erase(changed.key_bindings.begin());
+    ASSERT_TRUE(ConfigChange(changed));
+    auto json = nlohmann::json::parse(Read());
+    EXPECT_FALSE(json["input"]["bindings"].contains("cross"));
+    EXPECT_EQ(json["input"]["bindings"]["circle"][0], "Z");
+    EXPECT_EQ(json["input"]["bindings"]["future"][0], "J");
+}
+
+TEST_F(PlatformConfig, BindingEditsAndResetMergeCaseInsensitiveNames) {
+    Write(R"({"input":{"bindings":{"Cross":["K"],"CiRcLe":["Q"]}}})");
+    ASSERT_TRUE(ConfigLoad());
+    Write(R"({"input":{"bindings":{"Cross":["K"],"CROSS":["X"],"CiRcLe":["Z"],"Future":["J"]}},"extra":{"Cross":42}})");
+    Config changed = ConfigGet();
+    changed.key_bindings[0].keys = {"V"};
+    ASSERT_TRUE(ConfigChange(changed));
+    auto json = nlohmann::json::parse(Read());
+    EXPECT_EQ(json["input"]["bindings"].size(), 3);
+    EXPECT_EQ(json["input"]["bindings"]["cross"][0], "V");
+    EXPECT_FALSE(json["input"]["bindings"].contains("Cross"));
+    EXPECT_FALSE(json["input"]["bindings"].contains("CROSS"));
+    EXPECT_EQ(json["input"]["bindings"]["CiRcLe"][0], "Z");
+    EXPECT_EQ(json["input"]["bindings"]["Future"][0], "J");
+    EXPECT_EQ(json["extra"]["Cross"], 42);
+    Write(R"({"input":{"bindings":{"CrOsS":["V"],"CiRcLe":["Z"],"Future":["J"]}}})");
+    changed.key_bindings.erase(changed.key_bindings.begin());
+    ASSERT_TRUE(ConfigChange(changed));
+    json = nlohmann::json::parse(Read());
+    EXPECT_FALSE(json["input"]["bindings"].contains("CrOsS"));
+    EXPECT_EQ(json["input"]["bindings"].size(), 2);
+}
+
+namespace {
+class FailingConfigBuffer : public std::streambuf {
+public:
+    std::string prefix;
+
+    explicit FailingConfigBuffer(std::size_t bytes) : prefix(bytes, 'x') {
+        setg(prefix.data(), prefix.data(), prefix.data() + prefix.size());
+    }
+
+    int_type underflow() override { throw std::ios_base::failure("injected read error"); }
+};
+
+std::streambuf *failing_config_buffer;
+
+void InjectConfigReadFailure(std::istream &file) { file.rdbuf(failing_config_buffer); }
+} // namespace
+
+TEST_F(PlatformConfig, ReadErrorsNeverReplaceOriginalOrPublishPartialBackup) {
+    const std::string original = "{broken but all original bytes must survive}";
+    for (bool loading : {false, true}) {
+        for (std::size_t bytes : {0u, 9000u}) {
+            SCOPED_TRACE(loading);
+            SCOPED_TRACE(bytes);
+            ConfigSetReadHook(nullptr);
+            Write(original);
+            ASSERT_TRUE(ConfigLoad());
+            dc2::test::ScopedGlobalObject<failing_config_buffer, FailingConfigBuffer> buffer_owner(bytes);
+            ConfigSetReadHook(InjectConfigReadFailure);
+            if (loading) {
+                EXPECT_FALSE(ConfigLoad());
+                EXPECT_FALSE(ConfigSave());
+            } else {
+                EXPECT_FALSE(ConfigSave());
+            }
+            EXPECT_FALSE(ConfigSaved());
+            EXPECT_EQ(Read(), original);
+            EXPECT_FALSE(fs::exists(Path().string() + ".bad"));
+            ConfigSetReadHook(nullptr);
+            // A failed load protects this session even after the I/O recovers.
+            if (loading) {
+                EXPECT_FALSE(ConfigSave());
+            }
+        }
+    }
+}
+
+TEST_F(PlatformConfig, NativeTimingDefaultsToSixtyAndIgnoresLegacyKeys) {
+    EXPECT_DOUBLE_EQ(ConfigParse("").tick_rate, 60);
+    for (const char *json : {R"({"game":{"timing":"pal","tick_rate":50}})",
+                             R"({"game":{"timing":"ntsc","tick_rate":60}})",
+                             R"({"game":{"timing":false,"tick_rate":"slow"}})"}) {
+        EXPECT_DOUBLE_EQ(ConfigParse(json).tick_rate, 60) << json;
+    }
+    EXPECT_FALSE(ConfigLoad());
+    EXPECT_DOUBLE_EQ(SettingsGet().tick_rate, 60);
+    const auto defaults = nlohmann::json::parse(Read());
+    EXPECT_FALSE(defaults["game"].contains("timing"));
+    EXPECT_FALSE(defaults["game"].contains("tick_rate"));
+}
+
+TEST_F(PlatformConfig, LegacyTimingSurvivesUnrelatedSettingsWithoutControllingRuntime) {
+    const std::string legacy = R"({"game":{"timing":"pal","tick_rate":50},"audio":{"master_volume":0.75}})";
+    Write(legacy);
+    ASSERT_TRUE(ConfigLoad());
+    EXPECT_EQ(Read(), legacy);
+    EXPECT_DOUBLE_EQ(ConfigGet().tick_rate, 60);
+    Config changed = ConfigGet();
+    changed.master_volume = 0.25f;
+    ASSERT_TRUE(ConfigChange(changed));
+    ASSERT_TRUE(ConfigLoad());
+    EXPECT_DOUBLE_EQ(ConfigGet().tick_rate, 60);
+    EXPECT_FLOAT_EQ(ConfigGet().master_volume, 0.25f);
+    const auto saved = nlohmann::json::parse(Read());
+    EXPECT_EQ(saved["game"]["timing"], "pal");
+    EXPECT_EQ(saved["game"]["tick_rate"], 50);
+    EXPECT_EQ(saved["audio"]["master_volume"], 0.25f);
 }

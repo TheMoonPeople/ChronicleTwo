@@ -1,0 +1,143 @@
+{
+  "count": 34,
+  "guards": [
+    {
+      "item_no": 111,
+      "value": 3
+    },
+    {
+      "item_no": 112,
+      "value": 2
+    },
+    {
+      "item_no": 113,
+      "value": 1
+    },
+    {
+      "item_no": 114,
+      "value": 3
+    },
+    {
+      "item_no": 115,
+      "value": 1
+    },
+    {
+      "item_no": 116,
+      "value": 2
+    },
+    {
+      "item_no": 117,
+      "value": 3
+    },
+    {
+      "item_no": 118,
+      "value": 1
+    },
+    {
+      "item_no": 119,
+      "value": 2
+    },
+    {
+      "item_no": 120,
+      "value": 3
+    },
+    {
+      "item_no": 121,
+      "value": 4
+    },
+    {
+      "item_no": 122,
+      "value": 5
+    },
+    {
+      "item_no": 123,
+      "value": 1
+    },
+    {
+      "item_no": 124,
+      "value": 1
+    },
+    {
+      "item_no": 125,
+      "value": 1
+    },
+    {
+      "item_no": 126,
+      "value": 1
+    },
+    {
+      "item_no": 127,
+      "value": 1
+    },
+    {
+      "item_no": 128,
+      "value": 1
+    },
+    {
+      "item_no": 129,
+      "value": 1
+    },
+    {
+      "item_no": 130,
+      "value": 1
+    },
+    {
+      "item_no": 131,
+      "value": 2
+    },
+    {
+      "item_no": 132,
+      "value": 3
+    },
+    {
+      "item_no": 133,
+      "value": 4
+    },
+    {
+      "item_no": 134,
+      "value": 5
+    },
+    {
+      "item_no": 258,
+      "value": 0
+    },
+    {
+      "item_no": 259,
+      "value": 0
+    },
+    {
+      "item_no": 260,
+      "value": 0
+    },
+    {
+      "item_no": 261,
+      "value": 0
+    },
+    {
+      "item_no": 262,
+      "value": 0
+    },
+    {
+      "item_no": 263,
+      "value": 0
+    },
+    {
+      "item_no": 264,
+      "value": 0
+    },
+    {
+      "item_no": 265,
+      "value": 0
+    },
+    {
+      "item_no": 266,
+      "value": 0
+    },
+    {
+      "item_no": 267,
+      "value": 0
+    }
+  ],
+  "kind": "guards",
+  "schema_version": 2
+}

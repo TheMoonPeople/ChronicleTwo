@@ -1,0 +1,41 @@
+# Requires game.debug_mode=true in the replay save root config.json.
+# Retail chapter 1 normal start, enter the first floor, dismiss tutorials, walk.
+# Replay through frame 4400.
+300 circle
+306
+320 cross
+326
+500 l1 l2 r1 r2 r3
+506
+520 start select
+526
+900 pad1 circle
+902 pad1
+940 pad1 down
+942 pad1
+972 pad1 circle
+974 pad1
+1300 cross
+1306
+1520 cross
+1526
+1900 start
+1906
+1940 triangle
+1946
+2100 cross
+2106
+2250 cross
+2256
+2400 cross
+2406
+2550 cross
+2556
+2700 cross
+2706
+2850 cross
+2856
+3000 cross
+3006
+3200 128 0 128 128
+3260

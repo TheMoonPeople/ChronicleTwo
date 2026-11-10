@@ -1,0 +1,1865 @@
+{
+  "kind": "villager_schedule",
+  "progress_info": [
+    {
+      "chapter": 0,
+      "name": "ゲーム開始前・デフォルト",
+      "order": 0,
+      "progress": 1,
+      "section": 0
+    },
+    {
+      "chapter": 1,
+      "name": "１章オープニング",
+      "order": 1,
+      "progress": 2,
+      "section": 0
+    },
+    {
+      "chapter": 1,
+      "name": "１章E104発生後（象に負ける）",
+      "order": 2,
+      "progress": 3,
+      "section": 1
+    },
+    {
+      "chapter": 2,
+      "name": "2章",
+      "order": 3,
+      "progress": 4,
+      "section": 0
+    },
+    {
+      "chapter": 3,
+      "name": "3章",
+      "order": 4,
+      "progress": 5,
+      "section": 0
+    },
+    {
+      "chapter": 4,
+      "name": "4章",
+      "order": 5,
+      "progress": 6,
+      "section": 0
+    },
+    {
+      "chapter": 5,
+      "name": "5章",
+      "order": 6,
+      "progress": 7,
+      "section": 0
+    },
+    {
+      "chapter": 6,
+      "name": "6章",
+      "order": 7,
+      "progress": 8,
+      "section": 0
+    },
+    {
+      "chapter": 7,
+      "name": "7章",
+      "order": 8,
+      "progress": 9,
+      "section": 0
+    },
+    {
+      "chapter": 8,
+      "name": "8章",
+      "order": 9,
+      "progress": 10,
+      "section": 0
+    },
+    {
+      "chapter": 99,
+      "name": "体験版",
+      "order": 10,
+      "progress": 100,
+      "section": 0
+    }
+  ],
+  "schema_version": 2,
+  "villager_info": {
+    "count": 103,
+    "villagers": [
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1,
+        "model": "p01_03a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 2,
+        "model": "p01_06a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 3,
+        "model": "p01_18a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 2,
+        "id": 4,
+        "model": "p01_04a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 2,
+        "id": 5,
+        "model": "p01_10a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 6,
+        "model": "p01_17a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 2,
+        "id": 7,
+        "model": "p01_15a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 3,
+        "id": 8,
+        "model": "p01_16a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 2,
+        "id": 9,
+        "model": "p01_03a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 10,
+        "model": "p01_08a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 3,
+        "id": 11,
+        "model": "p01_09a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 1,
+        "id": 12,
+        "model": "p01_02a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 2,
+        "id": 13,
+        "model": "p01_07a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 14,
+        "model": "p01_05a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 3,
+        "id": 15,
+        "model": "p01_14a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 16,
+        "model": "p01_11a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 17,
+        "model": "p01_01a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 18,
+        "model": "p01_27a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 2,
+        "id": 19,
+        "model": "p01_32a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 2,
+        "id": 20,
+        "model": "p01_30a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 3,
+        "id": 21,
+        "model": "p01_31a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 1,
+        "id": 22,
+        "model": "p01_25a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 1,
+        "id": 23,
+        "model": "p01_12a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 3,
+        "id": 24,
+        "model": "p01_13a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 1,
+        "id": 25,
+        "model": "p01_29a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 32,
+        "model": "e105_steve",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 33,
+        "model": "p01_26a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 34,
+        "model": "p02_01a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 50,
+        "model": "p00_03a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 51,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 52,
+        "model": "p01_21a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 53,
+        "model": "p01_23a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 54,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 55,
+        "model": "p01_22a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 56,
+        "model": "p01_24a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 57,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 58,
+        "model": "p03_30a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 59,
+        "model": "p01_21a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 60,
+        "model": "p01_22a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 61,
+        "model": "p01_23a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 62,
+        "model": "p01_24a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 63,
+        "model": "p03_32a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 64,
+        "model": "p03_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 65,
+        "model": "p03_30a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 66,
+        "model": "p03_33a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 100,
+        "model": "p03_01a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 101,
+        "model": "p03_02a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 102,
+        "model": "p03_03a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 103,
+        "model": "p03_04a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 200,
+        "model": "p00_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 201,
+        "model": "p03_07a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 202,
+        "model": "p03_08a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 203,
+        "model": "p03_07a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 204,
+        "model": "p03_07a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 205,
+        "model": "p00_16a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 206,
+        "model": "p03_08a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "met;ramp",
+        "house_type": -1,
+        "id": 300,
+        "model": "p03_11a",
+        "show_frames": "face1"
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 301,
+        "model": "p00_31a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "face1",
+        "house_type": -1,
+        "id": 302,
+        "model": "p03_11a",
+        "show_frames": "met;ramp"
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 303,
+        "model": "p00_32a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "face1",
+        "house_type": -1,
+        "id": 304,
+        "model": "p03_11a",
+        "show_frames": "met;ramp"
+      },
+      {
+        "hide_frames": "met;ramp",
+        "house_type": -1,
+        "id": 305,
+        "model": "p03_11a",
+        "show_frames": "face1"
+      },
+      {
+        "hide_frames": "face1",
+        "house_type": -1,
+        "id": 306,
+        "model": "p03_11a",
+        "show_frames": "met;ramp"
+      },
+      {
+        "hide_frames": "face1",
+        "house_type": -1,
+        "id": 307,
+        "model": "p03_11a",
+        "show_frames": "met;ramp"
+      },
+      {
+        "hide_frames": "met;ramp",
+        "house_type": -1,
+        "id": 308,
+        "model": "p03_11a",
+        "show_frames": "face1"
+      },
+      {
+        "hide_frames": "face1",
+        "house_type": -1,
+        "id": 309,
+        "model": "p03_11a",
+        "show_frames": "met;ramp"
+      },
+      {
+        "hide_frames": "met;ramp",
+        "house_type": -1,
+        "id": 310,
+        "model": "p03_11a",
+        "show_frames": "face1"
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 400,
+        "model": "p00_05a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": -1,
+        "id": 401,
+        "model": "p00_29a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "face02;helmet;hair02;hanmer;gogule2;gogule",
+        "house_type": -1,
+        "id": 402,
+        "model": "p03_05a",
+        "show_frames": "face01;hair01;supana"
+      },
+      {
+        "hide_frames": "face01;hair01;hanmer;gogule",
+        "house_type": -1,
+        "id": 403,
+        "model": "p03_06a",
+        "show_frames": "face02;helmet;hair02;supana;gogule2"
+      },
+      {
+        "hide_frames": "face01;hair01;hanmer;gogule",
+        "house_type": -1,
+        "id": 404,
+        "model": "p03_05a",
+        "show_frames": "face02;helmet;hair02;supana;gogule2"
+      },
+      {
+        "hide_frames": "face02;helmet;hair02;supana;gogule2",
+        "house_type": -1,
+        "id": 405,
+        "model": "p03_05a",
+        "show_frames": "face01;hair01;hanmer;gogule"
+      },
+      {
+        "hide_frames": "face02;helmet;hair02;supana;gogule;gogule2",
+        "house_type": -1,
+        "id": 406,
+        "model": "p03_06a",
+        "show_frames": "face01;hair01;hanmer"
+      },
+      {
+        "hide_frames": "face01;hair01;supana;gogule",
+        "house_type": -1,
+        "id": 407,
+        "model": "p03_05a",
+        "show_frames": "face02;helmet;hair02;hanmer;gogule2"
+      },
+      {
+        "hide_frames": "face01;hair01;supana;gogule",
+        "house_type": -1,
+        "id": 408,
+        "model": "p03_06a",
+        "show_frames": "face02;helmet;hair02;hanmer;gogule2"
+      },
+      {
+        "hide_frames": "face02;helmet;hair02;hanmer;gogule",
+        "house_type": -1,
+        "id": 409,
+        "model": "p03_05a",
+        "show_frames": "face01;hair01;supana;gogule2"
+      },
+      {
+        "hide_frames": "face01;hair01;hanmer;gogule",
+        "house_type": -1,
+        "id": 410,
+        "model": "p03_05a",
+        "show_frames": "face02;helmet;hair02;supana;gogule2"
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1001,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1002,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1003,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1004,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1005,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1006,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1007,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1008,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1009,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1010,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1011,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1012,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1013,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1014,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1015,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1016,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1017,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1018,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1019,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1020,
+        "model": "p01_19a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1021,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1022,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1023,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1024,
+        "model": "p01_20a",
+        "show_frames": ""
+      },
+      {
+        "hide_frames": "",
+        "house_type": 0,
+        "id": 1025,
+        "model": "p01_20a",
+        "show_frames": ""
+      }
+    ]
+  },
+  "villagers": [
+    {
+      "id": 1,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 1,
+          "noon_place": 1,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 1,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 42,
+          "noon_place": 42,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 3,
+          "noon_place": 3,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 43,
+          "noon_place": 43,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 43,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 10,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 9,
+          "noon_place": 9,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 59,
+          "noon_place": 59,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 50,
+          "noon_place": 50,
+          "progress": 4
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 62,
+          "noon_place": 62,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 19,
+          "noon_place": 19,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 19,
+          "progress": 2
+        },
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "night_place": 19,
+          "noon_place": 19,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 38,
+          "noon_place": 38,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 51,
+          "noon_place": 51,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "noon_place": 13,
+          "progress": 3
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 52,
+          "noon_place": 52,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 36,
+          "noon_place": 8,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 61,
+          "noon_place": 61,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 53,
+          "noon_place": 53,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 54,
+          "noon_place": 54,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 10,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "noon_place": 10,
+          "progress": 4
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 40,
+          "noon_place": 40,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "progress": [
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "night_place": 96,
+          "noon_place": 96,
+          "progress": 7
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 39,
+          "noon_place": 39,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 64,
+          "noon_place": 64,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 55,
+          "noon_place": 55,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 27,
+          "noon_place": 27,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 2,
+          "noon_place": 2,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 4,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 8,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 9,
+          "noon_place": 36,
+          "progress": 3
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 33,
+          "noon_place": 33,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 5,
+          "progress": 2
+        },
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "night_place": 5,
+          "noon_place": 5,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "noon_place": 5,
+          "progress": 4
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 5,
+          "noon_place": 5,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 32,
+          "noon_place": 32,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 56,
+          "noon_place": 56,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 57,
+          "noon_place": 57,
+          "progress": 1
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 6,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 58,
+          "noon_place": 58,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "progress": [
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "night_place": 29,
+          "noon_place": 28,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "progress": [
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "noon_place": 99,
+          "progress": 3
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "progress": [
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "noon_place": 59,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 31,
+          "noon_place": 31,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 6,
+          "noon_place": 6,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 1,
+          "night_place": 7,
+          "noon_place": 7,
+          "progress": 3
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 13,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 37,
+          "noon_place": 11,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 15,
+          "noon_place": 14,
+          "progress": 4
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 17,
+          "noon_place": 17,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 11,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "noon_place": 43,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 27,
+          "noon_place": 27,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 15,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 16,
+          "noon_place": 37,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 17,
+          "noon_place": 18,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 37,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 45,
+          "noon_place": 14,
+          "progress": 3
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 60,
+          "noon_place": 60,
+          "progress": 100
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 9,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 43,
+          "noon_place": 35,
+          "progress": 3
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 36,
+          "progress": 2
+        },
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 44,
+          "noon_place": 16,
+          "progress": 3
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 100,
+          "noon_place": 100,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "progress": [
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "night_place": 101,
+          "noon_place": 44,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "progress": [
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "noon_place": 104,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 65,
+      "progress": [
+        {
+          "condition": "以後",
+          "duplicate_id": 0,
+          "noon_place": 102,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 66,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 105,
+          "noon_place": 105,
+          "progress": 1
+        },
+        {
+          "condition": "以後",
+          "duplicate_id": 1,
+          "night_place": 103,
+          "noon_place": 103,
+          "progress": 4
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 48,
+          "noon_place": 48,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 49,
+          "noon_place": 49,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 46,
+          "noon_place": 46,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 47,
+          "noon_place": 47,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 200,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 66,
+          "noon_place": 66,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 201,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 67,
+          "noon_place": 67,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 202,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 69,
+          "noon_place": 69,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 203,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 68,
+          "noon_place": 68,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 204,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 72,
+          "noon_place": 72,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 205,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 71,
+          "noon_place": 71,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 206,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 70,
+          "noon_place": 70,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 300,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 73,
+          "noon_place": 73,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 301,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 74,
+          "noon_place": 74,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 302,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 75,
+          "noon_place": 75,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 303,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 76,
+          "noon_place": 76,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 304,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 77,
+          "noon_place": 77,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 305,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 78,
+          "noon_place": 78,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 306,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 79,
+          "noon_place": 79,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 307,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 80,
+          "noon_place": 80,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 308,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 81,
+          "noon_place": 81,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 309,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 94,
+          "noon_place": 94,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 310,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 95,
+          "noon_place": 95,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 400,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 83,
+          "noon_place": 83,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 401,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 89,
+          "noon_place": 89,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 402,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 86,
+          "noon_place": 86,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 403,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 87,
+          "noon_place": 87,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 404,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 88,
+          "noon_place": 88,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 405,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 90,
+          "noon_place": 90,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 406,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 92,
+          "noon_place": 92,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 407,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 93,
+          "noon_place": 93,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 408,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 91,
+          "noon_place": 91,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 409,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 84,
+          "noon_place": 84,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 410,
+      "progress": [
+        {
+          "condition": "中",
+          "duplicate_id": 0,
+          "night_place": 85,
+          "noon_place": 85,
+          "progress": 1
+        }
+      ]
+    }
+  ]
+}

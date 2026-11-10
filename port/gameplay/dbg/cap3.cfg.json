@@ -1,0 +1,42 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 4
+    },
+    {
+      "action": "item_set",
+      "set": 9
+    },
+    {
+      "action": "bit_flags_on",
+      "flags": [
+        208,
+        207,
+        209
+      ]
+    },
+    {
+      "action": "defense",
+      "chara": 0,
+      "value": 16
+    },
+    {
+      "action": "defense",
+      "chara": 1,
+      "value": 16
+    },
+    {
+      "action": "hp",
+      "chara": 0,
+      "value": 64
+    },
+    {
+      "action": "hp",
+      "chara": 1,
+      "value": 64
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

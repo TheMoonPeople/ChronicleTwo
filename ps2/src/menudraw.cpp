@@ -6261,10 +6261,10 @@ void CRepairManager::Initialize() {
 
 void CRepairManager::SetStack(mgCMemory *memory, int mode) {
     int i;
-    int top;
+    uptr top;
     int used = memory->stack_used;
     int end = memory->stack_size;
-    int base = *(int *) &memory->stack;
+    uptr base = *(uptr *) &memory->stack;
 
     i = 0;
     top = base + (used << 4) + ((end - used) << 4);
@@ -6276,7 +6276,7 @@ void CRepairManager::SetStack(mgCMemory *memory, int mode) {
         }
 
         if (mode == 1) {
-            top = *(int *) &memory->stack + (memory->stack_used << 4);
+            top = *(uptr *) &memory->stack + (memory->stack_used << 4);
             effect_stack[i].stSetBuffer((u_long128 *) top, 0x500);
             memory->Alloc(0x501);
         }
@@ -6394,7 +6394,7 @@ void CRepairManager::Generate(int x, int y) {
     }
 
     if (0 <= slot) {
-        entry = (u8 *) (slot * sizeof(mgCMemory)) + (int) this;
+        entry = (u8 *) (slot * sizeof(mgCMemory)) + (uptr) this;
 
         memory = (mgCMemory *) (entry + offsetof(CRepairManager, effect_stack));
         memory->stack_used = 0;

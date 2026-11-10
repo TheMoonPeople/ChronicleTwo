@@ -1,0 +1,62 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "check",
+        "point_no": 550
+      },
+      "name": "event_550",
+      "transform": {
+        "position": [
+          20.0,
+          0.0,
+          -90.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          20.0,
+          20.0,
+          20.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "check",
+        "point_no": 551
+      },
+      "name": "event_551",
+      "transform": {
+        "position": [
+          -10.0,
+          0.0,
+          -133.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          30.0,
+          30.0,
+          30.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

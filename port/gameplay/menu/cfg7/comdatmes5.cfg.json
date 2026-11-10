@@ -1,0 +1,1702 @@
+{
+  "kind": "item_messages",
+  "messages": [
+    {
+      "item_no": 26,
+      "name": "Pistola M[UNI00e1]gica"
+    },
+    {
+      "item_no": 27,
+      "name": "Destructor de almas"
+    },
+    {
+      "item_no": 28,
+      "name": "Lanzador de granadas"
+    },
+    {
+      "item_no": 29,
+      "name": "V[UNI00ed]bora oscura"
+    },
+    {
+      "item_no": 30,
+      "name": "Doble pistola"
+    },
+    {
+      "item_no": 31,
+      "name": "Pistola Jurak"
+    },
+    {
+      "item_no": 32,
+      "name": "Pistola Preguntas"
+    },
+    {
+      "item_no": 33,
+      "name": "Pistola Ladrona"
+    },
+    {
+      "item_no": 34,
+      "name": "Supernova"
+    },
+    {
+      "item_no": 35,
+      "name": "Destructor estrella"
+    },
+    {
+      "item_no": 36,
+      "name": "Gato salvaje"
+    },
+    {
+      "item_no": 37,
+      "name": "Pantera sexy"
+    },
+    {
+      "item_no": 38,
+      "name": "Forajido"
+    },
+    {
+      "item_no": 39,
+      "name": "Bazuka Sigma"
+    },
+    {
+      "item_no": 40,
+      "name": "El fin"
+    },
+    {
+      "item_no": 41,
+      "name": "Espada larga"
+    },
+    {
+      "item_no": 42,
+      "name": "Espada ancha"
+    },
+    {
+      "item_no": 43,
+      "name": "Escurridiza"
+    },
+    {
+      "item_no": 44,
+      "name": "Gladius"
+    },
+    {
+      "item_no": 45,
+      "name": "Espada del Sabio"
+    },
+    {
+      "item_no": 46,
+      "name": "Cuchillo misterioso"
+    },
+    {
+      "item_no": 47,
+      "name": "Espada antigua"
+    },
+    {
+      "item_no": 48,
+      "name": "Espada bastarda"
+    },
+    {
+      "item_no": 49,
+      "name": "Cuchillo de cocina"
+    },
+    {
+      "item_no": 50,
+      "name": "Tsukikage"
+    },
+    {
+      "item_no": 51,
+      "name": "Espada del Sol"
+    },
+    {
+      "item_no": 52,
+      "name": "Hoja de serpientes"
+    },
+    {
+      "item_no": 53,
+      "name": "Espad[UNI00f3]n"
+    },
+    {
+      "item_no": 54,
+      "name": "Shamshir"
+    },
+    {
+      "item_no": 55,
+      "name": "Ama no Murakumo"
+    },
+    {
+      "item_no": 56,
+      "name": "Espada cordero"
+    },
+    {
+      "item_no": 57,
+      "name": "Nube de penumbra"
+    },
+    {
+      "item_no": 58,
+      "name": "Arca valiente"
+    },
+    {
+      "item_no": 59,
+      "name": "Big Bang"
+    },
+    {
+      "item_no": 60,
+      "name": "Espada Atlamilia"
+    },
+    {
+      "item_no": 61,
+      "name": "Espada Mardan"
+    },
+    {
+      "item_no": 62,
+      "name": "Espada Garayan"
+    },
+    {
+      "item_no": 63,
+      "name": "Mardan Garayan"
+    },
+    {
+      "item_no": 64,
+      "name": "Espada del Dios"
+    },
+    {
+      "item_no": 65,
+      "name": "Endemoniada"
+    },
+    {
+      "item_no": 66,
+      "name": "Espada peque[UNI00f1]a"
+    },
+    {
+      "item_no": 67,
+      "name": "Destructora arenosa"
+    },
+    {
+      "item_no": 68,
+      "name": "Absorbe poder"
+    },
+    {
+      "item_no": 69,
+      "name": "Cortadora"
+    },
+    {
+      "item_no": 70,
+      "name": "Choora"
+    },
+    {
+      "item_no": 71,
+      "name": "Espada escocesa"
+    },
+    {
+      "item_no": 72,
+      "name": "Devora-hombres"
+    },
+    {
+      "item_no": 73,
+      "name": "Estoque de hueso"
+    },
+    {
+      "item_no": 74,
+      "name": "Sajona"
+    },
+    {
+      "item_no": 75,
+      "name": "Espada de 7 filos"
+    },
+    {
+      "item_no": 76,
+      "name": "Dusack"
+    },
+    {
+      "item_no": 77,
+      "name": "Cruz Heinder"
+    },
+    {
+      "item_no": 78,
+      "name": "S[UNI00e9]ptimo cielo"
+    },
+    {
+      "item_no": 79,
+      "name": "Espada de Zeus"
+    },
+    {
+      "item_no": 80,
+      "name": "Espada cr[UNI00f3]nica"
+    },
+    {
+      "item_no": 81,
+      "name": "Cr[UNI00f3]nica 2"
+    },
+    {
+      "item_no": 82,
+      "name": "Hoja santa Daedalus"
+    },
+    {
+      "item_no": 83,
+      "name": "Muramasa"
+    },
+    {
+      "item_no": 84,
+      "name": "Excalibur oscura"
+    },
+    {
+      "item_no": 85,
+      "name": "Sargatanas"
+    },
+    {
+      "item_no": 86,
+      "name": "Hoja de Halloween"
+    },
+    {
+      "item_no": 87,
+      "name": "Bravata de destellos"
+    },
+    {
+      "item_no": 88,
+      "name": "Rey de la isla"
+    },
+    {
+      "item_no": 89,
+      "name": "Horca de Griffon"
+    },
+    {
+      "item_no": 90,
+      "name": "Llave real combate"
+    },
+    {
+      "item_no": 91,
+      "name": "Brazalete m[UNI00e1]gico"
+    },
+    {
+      "item_no": 92,
+      "name": "Brazalete de oro"
+    },
+    {
+      "item_no": 93,
+      "name": "Brazalete bandido"
+    },
+    {
+      "item_no": 94,
+      "name": "Brazalete de cristal"
+    },
+    {
+      "item_no": 95,
+      "name": "Brazalete de platino"
+    },
+    {
+      "item_no": 96,
+      "name": "Brazalete de diosa"
+    },
+    {
+      "item_no": 97,
+      "name": "Brazalete fantasma"
+    },
+    {
+      "item_no": 98,
+      "name": "Brazalete destructor"
+    },
+    {
+      "item_no": 99,
+      "name": "Brazalete de Sat[UNI00e1]n"
+    },
+    {
+      "item_no": 100,
+      "name": "Brazalete Atenea"
+    },
+    {
+      "item_no": 101,
+      "name": "Brazalete Mobius"
+    },
+    {
+      "item_no": 102,
+      "name": "Disparador ben[UNI00e9]volo"
+    },
+    {
+      "item_no": 103,
+      "name": "Enanus"
+    },
+    {
+      "item_no": 104,
+      "name": "Brazalete espinoso"
+    },
+    {
+      "item_no": 105,
+      "name": "Brazalete estrella"
+    },
+    {
+      "item_no": 1,
+      "name": "Llave combate"
+    },
+    {
+      "item_no": 2,
+      "name": "Llave taladro"
+    },
+    {
+      "item_no": 3,
+      "name": "Llave aplastante"
+    },
+    {
+      "item_no": 4,
+      "name": "Llave timo"
+    },
+    {
+      "item_no": 5,
+      "name": "Llave venenosa"
+    },
+    {
+      "item_no": 6,
+      "name": "Martillo c[UNI00fa]bico"
+    },
+    {
+      "item_no": 7,
+      "name": "Martillo excavador"
+    },
+    {
+      "item_no": 8,
+      "name": "Martillo pesado"
+    },
+    {
+      "item_no": 9,
+      "name": "Bast[UNI00f3]n Multiusos"
+    },
+    {
+      "item_no": 10,
+      "name": "Pavo"
+    },
+    {
+      "item_no": 11,
+      "name": "Cisne"
+    },
+    {
+      "item_no": 12,
+      "name": "Flamenco"
+    },
+    {
+      "item_no": 13,
+      "name": "Halc[UNI00f3]n"
+    },
+    {
+      "item_no": 14,
+      "name": "Albatros"
+    },
+    {
+      "item_no": 15,
+      "name": "Martillo de Tortuga"
+    },
+    {
+      "item_no": 16,
+      "name": "Martillo del dinero"
+    },
+    {
+      "item_no": 17,
+      "name": "At[UNI00fa]n congelado"
+    },
+    {
+      "item_no": 18,
+      "name": "Mano de Kubera"
+    },
+    {
+      "item_no": 19,
+      "name": "Destructor Sigma"
+    },
+    {
+      "item_no": 20,
+      "name": "Grado cero"
+    },
+    {
+      "item_no": 21,
+      "name": "LEYENDA"
+    },
+    {
+      "item_no": 22,
+      "name": "Pistola Cl[UNI00e1]sica"
+    },
+    {
+      "item_no": 23,
+      "name": "Pistola Secadora"
+    },
+    {
+      "item_no": 24,
+      "name": "Pistola Trompeta"
+    },
+    {
+      "item_no": 25,
+      "name": "Pistola Campana"
+    },
+    {
+      "item_no": 106,
+      "name": "Brazalete lunar"
+    },
+    {
+      "item_no": 107,
+      "name": "Brazalete del Sol"
+    },
+    {
+      "item_no": 108,
+      "name": "Brazalete 5 estrellas"
+    },
+    {
+      "item_no": 109,
+      "name": "Amor"
+    },
+    {
+      "item_no": 110,
+      "name": "Espada real"
+    },
+    {
+      "item_no": 111,
+      "name": "Gorra de caza"
+    },
+    {
+      "item_no": 112,
+      "name": "Gorra moderna"
+    },
+    {
+      "item_no": 113,
+      "name": "Boina de dos tonos"
+    },
+    {
+      "item_no": 114,
+      "name": "Gorra de trabajo"
+    },
+    {
+      "item_no": 115,
+      "name": "Casco de explorador"
+    },
+    {
+      "item_no": 116,
+      "name": "Gorro de payaso"
+    },
+    {
+      "item_no": 117,
+      "name": "Zapatos de cuero"
+    },
+    {
+      "item_no": 118,
+      "name": "Zapatos de cordones"
+    },
+    {
+      "item_no": 119,
+      "name": "Zapatos de trabajo"
+    },
+    {
+      "item_no": 120,
+      "name": "Zapatos de drag[UNI00f3]n"
+    },
+    {
+      "item_no": 121,
+      "name": "Zapatos de payaso"
+    },
+    {
+      "item_no": 122,
+      "name": "Zapatos explorador"
+    },
+    {
+      "item_no": 123,
+      "name": "Cinta amarilla"
+    },
+    {
+      "item_no": 124,
+      "name": "Cinta de rayas"
+    },
+    {
+      "item_no": 125,
+      "name": "Peine de Zipangu"
+    },
+    {
+      "item_no": 126,
+      "name": "Horquilla"
+    },
+    {
+      "item_no": 127,
+      "name": "Lucero de princesa"
+    },
+    {
+      "item_no": 128,
+      "name": "Campana gatuna"
+    },
+    {
+      "item_no": 129,
+      "name": "Botas de caballeras"
+    },
+    {
+      "item_no": 130,
+      "name": "Botas de metal"
+    },
+    {
+      "item_no": 131,
+      "name": "Botas de aire"
+    },
+    {
+      "item_no": 132,
+      "name": "Botas de pinchos"
+    },
+    {
+      "item_no": 133,
+      "name": "Botas de princesa"
+    },
+    {
+      "item_no": 134,
+      "name": "Botas de pantera"
+    },
+    {
+      "item_no": 135,
+      "name": "Cuerpo de bid[UNI00f3]n"
+    },
+    {
+      "item_no": 136,
+      "name": "Cuerpo bote de leche"
+    },
+    {
+      "item_no": 137,
+      "name": "Cuerpo frigor[UNI00ed]fico"
+    },
+    {
+      "item_no": 138,
+      "name": "Cuerpo caja de madera"
+    },
+    {
+      "item_no": 139,
+      "name": "Cuerpo de payaso"
+    },
+    {
+      "item_no": 140,
+      "name": "Cuerpo de samurai"
+    },
+    {
+      "item_no": 141,
+      "name": "S[UNI00fa]per cuerpo"
+    },
+    {
+      "item_no": 142,
+      "name": "Armadura Sol y Luna"
+    },
+    {
+      "item_no": 145,
+      "name": "Brazo bala de ca[UNI00f1][UNI00f3]n"
+    },
+    {
+      "item_no": 146,
+      "name": "Ca[UNI00f1][UNI00f3]n barril"
+    },
+    {
+      "item_no": 147,
+      "name": "Brazo taladro"
+    },
+    {
+      "item_no": 148,
+      "name": "Brazo lanzamisil"
+    },
+    {
+      "item_no": 149,
+      "name": "Brazo martillo"
+    },
+    {
+      "item_no": 150,
+      "name": "Brazo ametralladora"
+    },
+    {
+      "item_no": 151,
+      "name": "Mano de payaso"
+    },
+    {
+      "item_no": 152,
+      "name": "Brazo Samurai"
+    },
+    {
+      "item_no": 153,
+      "name": "Brazo l[UNI00e1]ser"
+    },
+    {
+      "item_no": 154,
+      "name": "Ca[UNI00f1][UNI00f3]n nova"
+    },
+    {
+      "item_no": 155,
+      "name": "Pierna de hierro"
+    },
+    {
+      "item_no": 156,
+      "name": "Cami[UNI00f3]n oruga"
+    },
+    {
+      "item_no": 157,
+      "name": "Pierna cubo"
+    },
+    {
+      "item_no": 158,
+      "name": "Pie rodador"
+    },
+    {
+      "item_no": 159,
+      "name": "Buggy"
+    },
+    {
+      "item_no": 160,
+      "name": "Pierna propulsora"
+    },
+    {
+      "item_no": 161,
+      "name": "Mutipi[UNI00e9]s"
+    },
+    {
+      "item_no": 162,
+      "name": "Volador"
+    },
+    {
+      "item_no": 163,
+      "name": "Pie de payaso"
+    },
+    {
+      "item_no": 165,
+      "name": "Paquete de energ[UNI00ed]a"
+    },
+    {
+      "item_no": 166,
+      "name": "Barril de energ[UNI00ed]a"
+    },
+    {
+      "item_no": 167,
+      "name": "Paquete cubo"
+    },
+    {
+      "item_no": 168,
+      "name": "Paquete aspiradora"
+    },
+    {
+      "item_no": 169,
+      "name": "Urna de energ[UNI00ed]a"
+    },
+    {
+      "item_no": 170,
+      "name": "Paquete urna triple"
+    },
+    {
+      "item_no": 172,
+      "name": "Notas sobre monstruos"
+    },
+    {
+      "item_no": 173,
+      "name": "Dinamita"
+    },
+    {
+      "item_no": 174,
+      "name": "Rompe-sellos"
+    },
+    {
+      "item_no": 175,
+      "name": "Cristal Llama"
+    },
+    {
+      "item_no": 176,
+      "name": "Cristal Hielo"
+    },
+    {
+      "item_no": 177,
+      "name": "Cristal Rayo"
+    },
+    {
+      "item_no": 178,
+      "name": "Cristal de cazador"
+    },
+    {
+      "item_no": 179,
+      "name": "Cristal sagrado"
+    },
+    {
+      "item_no": 180,
+      "name": "Cristal Destructor"
+    },
+    {
+      "item_no": 181,
+      "name": "Cristal de viento"
+    },
+    {
+      "item_no": 182,
+      "name": "Cristal drag[UNI00f3]n marino"
+    },
+    {
+      "item_no": 183,
+      "name": "Cristal de poder"
+    },
+    {
+      "item_no": 184,
+      "name": "Cristal protector"
+    },
+    {
+      "item_no": 185,
+      "name": "[line1]"
+    },
+    {
+      "item_no": 186,
+      "name": "Granate"
+    },
+    {
+      "item_no": 187,
+      "name": "Amatista"
+    },
+    {
+      "item_no": 188,
+      "name": "Aguamarina"
+    },
+    {
+      "item_no": 189,
+      "name": "Diamante"
+    },
+    {
+      "item_no": 190,
+      "name": "Esmeralda"
+    },
+    {
+      "item_no": 191,
+      "name": "Perla"
+    },
+    {
+      "item_no": 192,
+      "name": "Rub[UNI00ed]"
+    },
+    {
+      "item_no": 193,
+      "name": "Peridot"
+    },
+    {
+      "item_no": 194,
+      "name": "Zafiro"
+    },
+    {
+      "item_no": 195,
+      "name": "[UNI00d3]palo"
+    },
+    {
+      "item_no": 196,
+      "name": "Topacio"
+    },
+    {
+      "item_no": 197,
+      "name": "Turquesa"
+    },
+    {
+      "item_no": 198,
+      "name": "Piedra del Sol"
+    },
+    {
+      "item_no": 199,
+      "name": "Piedra de la Luna"
+    },
+    {
+      "item_no": 200,
+      "name": "Moneda de riqueza"
+    },
+    {
+      "item_no": 201,
+      "name": "Moneda negra"
+    },
+    {
+      "item_no": 202,
+      "name": "Moneda indestructible"
+    },
+    {
+      "item_no": 203,
+      "name": "Moneda venenosa"
+    },
+    {
+      "item_no": 204,
+      "name": "Moneda del tiempo"
+    },
+    {
+      "item_no": 205,
+      "name": "Moneda bandida"
+    },
+    {
+      "item_no": 206,
+      "name": "Moneda de absorci[UNI00f3]n"
+    },
+    {
+      "item_no": 207,
+      "name": "Moneda sanadora"
+    },
+    {
+      "item_no": 208,
+      "name": "Moneda diana"
+    },
+    {
+      "item_no": 209,
+      "name": "Moneda experiencia"
+    },
+    {
+      "item_no": 210,
+      "name": "Tronco rodillo"
+    },
+    {
+      "item_no": 211,
+      "name": "Roca resistente"
+    },
+    {
+      "item_no": 212,
+      "name": "Roca dura"
+    },
+    {
+      "item_no": 213,
+      "name": "Mont[UNI00f3]n de heno"
+    },
+    {
+      "item_no": 214,
+      "name": "Tela resistente"
+    },
+    {
+      "item_no": 215,
+      "name": "P[UNI00f3]lvora"
+    },
+    {
+      "item_no": 216,
+      "name": "Vidrio"
+    },
+    {
+      "item_no": 217,
+      "name": "Hueso desconocido"
+    },
+    {
+      "item_no": 218,
+      "name": "Barro pegajoso"
+    },
+    {
+      "item_no": 219,
+      "name": "Harina"
+    },
+    {
+      "item_no": 220,
+      "name": "Ca[UNI00f1]a de az[UNI00fa]car"
+    },
+    {
+      "item_no": 221,
+      "name": "Pimiento muy picante"
+    },
+    {
+      "item_no": 222,
+      "name": "Veneno"
+    },
+    {
+      "item_no": 223,
+      "name": "Roc[UNI00ed]o del bosque"
+    },
+    {
+      "item_no": 224,
+      "name": "Trozo de metal"
+    },
+    {
+      "item_no": 225,
+      "name": "Barra de oro"
+    },
+    {
+      "item_no": 226,
+      "name": "Pelota plateada"
+    },
+    {
+      "item_no": 227,
+      "name": "Cacho de cobre"
+    },
+    {
+      "item_no": 228,
+      "name": "Elemento Luz"
+    },
+    {
+      "item_no": 229,
+      "name": "Elemento Santo"
+    },
+    {
+      "item_no": 230,
+      "name": "Elemento Tierra"
+    },
+    {
+      "item_no": 231,
+      "name": "Elemento Agua"
+    },
+    {
+      "item_no": 232,
+      "name": "Elemento Hielo"
+    },
+    {
+      "item_no": 233,
+      "name": "Elemento Trueno"
+    },
+    {
+      "item_no": 234,
+      "name": "Elemento Viento"
+    },
+    {
+      "item_no": 235,
+      "name": "Elemento Fuego"
+    },
+    {
+      "item_no": 236,
+      "name": "Elemento Vida"
+    },
+    {
+      "item_no": 237,
+      "name": "Pintura (Roja)"
+    },
+    {
+      "item_no": 238,
+      "name": "Pintura (Azul)"
+    },
+    {
+      "item_no": 239,
+      "name": "Pintura (Negra)"
+    },
+    {
+      "item_no": 240,
+      "name": "Pintura (Verde)"
+    },
+    {
+      "item_no": 241,
+      "name": "Pintura (Naranja)"
+    },
+    {
+      "item_no": 242,
+      "name": "Pintura (Amarilla)"
+    },
+    {
+      "item_no": 243,
+      "name": "Pintura (Morada)"
+    },
+    {
+      "item_no": 244,
+      "name": "Pintura (Rosa)"
+    },
+    {
+      "item_no": 245,
+      "name": "Piel gruesa"
+    },
+    {
+      "item_no": 246,
+      "name": "N[UNI00fa]cleo"
+    },
+    {
+      "item_no": 247,
+      "name": "N[UNI00fa]cleo mejorado"
+    },
+    {
+      "item_no": 248,
+      "name": "N[UNI00fa]cleo II"
+    },
+    {
+      "item_no": 249,
+      "name": "N[UNI00fa]cleo III"
+    },
+    {
+      "item_no": 250,
+      "name": "S[UNI00fa]per N[UNI00fa]cleo"
+    },
+    {
+      "item_no": 251,
+      "name": "Hipern[UNI00fa]cleo"
+    },
+    {
+      "item_no": 252,
+      "name": "N[UNI00fa]cleo maestro"
+    },
+    {
+      "item_no": 253,
+      "name": "Am. antipetrificaci[UNI00f3]n"
+    },
+    {
+      "item_no": 254,
+      "name": "Amuleto antiparada"
+    },
+    {
+      "item_no": 255,
+      "name": "Amuleto antimaldici[UNI00f3]n"
+    },
+    {
+      "item_no": 256,
+      "name": "Amuleto antipegajoso"
+    },
+    {
+      "item_no": 257,
+      "name": "Amuleto ant[UNI00ed]doto"
+    },
+    {
+      "item_no": 258,
+      "name": "Peto verde"
+    },
+    {
+      "item_no": 259,
+      "name": "Chaleco rojo"
+    },
+    {
+      "item_no": 260,
+      "name": "Peto vaquero"
+    },
+    {
+      "item_no": 261,
+      "name": "Equipo de explorador"
+    },
+    {
+      "item_no": 262,
+      "name": "Traje de payaso"
+    },
+    {
+      "item_no": 263,
+      "name": "Bermudas calabaza"
+    },
+    {
+      "item_no": 264,
+      "name": "Vestido de rayas"
+    },
+    {
+      "item_no": 265,
+      "name": "Malla de estrellas"
+    },
+    {
+      "item_no": 266,
+      "name": "Vestido de princesa"
+    },
+    {
+      "item_no": 267,
+      "name": "Conjunto de pantera"
+    },
+    {
+      "item_no": 268,
+      "name": "Pan"
+    },
+    {
+      "item_no": 269,
+      "name": "Queso"
+    },
+    {
+      "item_no": 270,
+      "name": "Pollo a la suprema"
+    },
+    {
+      "item_no": 271,
+      "name": "Doble pastel"
+    },
+    {
+      "item_no": 272,
+      "name": "Bola de arroz ciruela"
+    },
+    {
+      "item_no": 273,
+      "name": "Polvo de vida"
+    },
+    {
+      "item_no": 274,
+      "name": "Bebida de fuerza"
+    },
+    {
+      "item_no": 275,
+      "name": "Ant[UNI00ed]doto"
+    },
+    {
+      "item_no": 276,
+      "name": "Agua bendita"
+    },
+    {
+      "item_no": 277,
+      "name": "Jab[UNI00f3]n"
+    },
+    {
+      "item_no": 278,
+      "name": "L[UNI00e1]grima de medusa"
+    },
+    {
+      "item_no": 279,
+      "name": "Curaci[UNI00f3]n milagrosa"
+    },
+    {
+      "item_no": 280,
+      "name": "Bomba"
+    },
+    {
+      "item_no": 281,
+      "name": "Piedra"
+    },
+    {
+      "item_no": 282,
+      "name": "Piedra Llama"
+    },
+    {
+      "item_no": 283,
+      "name": "Piedra Hielo"
+    },
+    {
+      "item_no": 284,
+      "name": "Piedra Rayo"
+    },
+    {
+      "item_no": 285,
+      "name": "Piedra de viento"
+    },
+    {
+      "item_no": 286,
+      "name": "Piedra sagrada"
+    },
+    {
+      "item_no": 287,
+      "name": "Coraz[UNI00f3]n de cereza"
+    },
+    {
+      "item_no": 288,
+      "name": "Piedra Mora"
+    },
+    {
+      "item_no": 289,
+      "name": "Melocot[UNI00f3]n pegajoso"
+    },
+    {
+      "item_no": 290,
+      "name": "Bomba Nuez"
+    },
+    {
+      "item_no": 291,
+      "name": "Manzana envenenada"
+    },
+    {
+      "item_no": 292,
+      "name": "Pl[UNI00e1]tano maduro"
+    },
+    {
+      "item_no": 293,
+      "name": "Polvo de fuga"
+    },
+    {
+      "item_no": 294,
+      "name": "Polvo reparador"
+    },
+    {
+      "item_no": 295,
+      "name": "Polvo ascendente"
+    },
+    {
+      "item_no": 296,
+      "name": "Fruta del Ed[UNI00e9]n"
+    },
+    {
+      "item_no": 297,
+      "name": "Llave del Cofre"
+    },
+    {
+      "item_no": 298,
+      "name": "P[UNI00f3]lvora reparadora"
+    },
+    {
+      "item_no": 299,
+      "name": "Pan crujiente"
+    },
+    {
+      "item_no": 300,
+      "name": "Pan crujiente"
+    },
+    {
+      "item_no": 301,
+      "name": "Casta[UNI00f1]a asada"
+    },
+    {
+      "item_no": 302,
+      "name": "Ca[UNI00f1]a de pescar"
+    },
+    {
+      "item_no": 303,
+      "name": "Ca[UNI00f1]a de se[UNI00f1]uelo"
+    },
+    {
+      "item_no": 304,
+      "name": "C[UNI00e1]psula Regalo"
+    },
+    {
+      "item_no": 305,
+      "name": "Mapa"
+    },
+    {
+      "item_no": 306,
+      "name": "Cristal m[UNI00e1]gico"
+    },
+    {
+      "item_no": 307,
+      "name": "Ultras[UNI00f3]nico"
+    },
+    {
+      "item_no": 308,
+      "name": "Caja de insignias"
+    },
+    {
+      "item_no": 309,
+      "name": "Acuario"
+    },
+    {
+      "item_no": 310,
+      "name": "Priscleen"
+    },
+    {
+      "item_no": 311,
+      "name": "Medallero"
+    },
+    {
+      "item_no": 312,
+      "name": "Espinoso"
+    },
+    {
+      "item_no": 313,
+      "name": "Mim[UNI00ed]n"
+    },
+    {
+      "item_no": 314,
+      "name": "Mal[UNI00ed]n"
+    },
+    {
+      "item_no": 315,
+      "name": "Zanahoria"
+    },
+    {
+      "item_no": 316,
+      "name": "Pastel de patata"
+    },
+    {
+      "item_no": 317,
+      "name": "Chiquil[UNI00ed]n"
+    },
+    {
+      "item_no": 318,
+      "name": "Saltamontes"
+    },
+    {
+      "item_no": 319,
+      "name": "Pecec[UNI00ed]n"
+    },
+    {
+      "item_no": 320,
+      "name": "Bobo"
+    },
+    {
+      "item_no": 321,
+      "name": "Gobbler"
+    },
+    {
+      "item_no": 322,
+      "name": "Nonky"
+    },
+    {
+      "item_no": 323,
+      "name": "Kaji"
+    },
+    {
+      "item_no": 324,
+      "name": "Baku Baku"
+    },
+    {
+      "item_no": 325,
+      "name": "Mardan Garayan"
+    },
+    {
+      "item_no": 326,
+      "name": "Gomi"
+    },
+    {
+      "item_no": 327,
+      "name": "Niler"
+    },
+    {
+      "item_no": 328,
+      "name": "Umadakara"
+    },
+    {
+      "item_no": 329,
+      "name": "Tarton"
+    },
+    {
+      "item_no": 330,
+      "name": "Piccolito"
+    },
+    {
+      "item_no": 331,
+      "name": "Bon"
+    },
+    {
+      "item_no": 332,
+      "name": "Hama Hama"
+    },
+    {
+      "item_no": 333,
+      "name": "Negie"
+    },
+    {
+      "item_no": 334,
+      "name": "Den"
+    },
+    {
+      "item_no": 335,
+      "name": "Heela"
+    },
+    {
+      "item_no": 336,
+      "name": "Bar[UNI00f3]n Garayan"
+    },
+    {
+      "item_no": 337,
+      "name": "Manivela"
+    },
+    {
+      "item_no": 338,
+      "name": "Llave del canal"
+    },
+    {
+      "item_no": 339,
+      "name": "Sierra encantada"
+    },
+    {
+      "item_no": 340,
+      "name": "Rama cortante"
+    },
+    {
+      "item_no": 341,
+      "name": "Carnaza"
+    },
+    {
+      "item_no": 342,
+      "name": "Piedra lunar"
+    },
+    {
+      "item_no": 343,
+      "name": "Trozo de Piedra lunar"
+    },
+    {
+      "item_no": 344,
+      "name": "Roca magma"
+    },
+    {
+      "item_no": 345,
+      "name": "Cuerda"
+    },
+    {
+      "item_no": 346,
+      "name": "Piedra T"
+    },
+    {
+      "item_no": 347,
+      "name": "Jarr[UNI00f3]n del viento"
+    },
+    {
+      "item_no": 348,
+      "name": "Regadera real"
+    },
+    {
+      "item_no": 349,
+      "name": "Manilla Reloj Luna"
+    },
+    {
+      "item_no": 350,
+      "name": "Aceite de carro"
+    },
+    {
+      "item_no": 351,
+      "name": "Llave oxidada"
+    },
+    {
+      "item_no": 352,
+      "name": "Reparador brazalete"
+    },
+    {
+      "item_no": 353,
+      "name": "Entrada del circo"
+    },
+    {
+      "item_no": 354,
+      "name": "Cuerno de Fuego"
+    },
+    {
+      "item_no": 355,
+      "name": "Memoria de logros"
+    },
+    {
+      "item_no": 356,
+      "name": "Gota de Sol"
+    },
+    {
+      "item_no": 357,
+      "name": "[UNI00c1]lbum de fotos"
+    },
+    {
+      "item_no": 358,
+      "name": "Cocina"
+    },
+    {
+      "item_no": 359,
+      "name": "Walkie-talkie"
+    },
+    {
+      "item_no": 360,
+      "name": "Gusano el[UNI00e9]ctrico"
+    },
+    {
+      "item_no": 361,
+      "name": "Semilla de Lafrescia"
+    },
+    {
+      "item_no": 362,
+      "name": "Llave de estrellas"
+    },
+    {
+      "item_no": 363,
+      "name": "Flor del viento"
+    },
+    {
+      "item_no": 364,
+      "name": "Empanadillas milagro"
+    },
+    {
+      "item_no": 365,
+      "name": "Gema de Tierra"
+    },
+    {
+      "item_no": 366,
+      "name": "Gema de Agua"
+    },
+    {
+      "item_no": 367,
+      "name": "Gema de Viento"
+    },
+    {
+      "item_no": 368,
+      "name": "Gema de Fuego"
+    },
+    {
+      "item_no": 369,
+      "name": "C[UNI00e1]mara"
+    },
+    {
+      "item_no": 370,
+      "name": "Zumo de uvas"
+    },
+    {
+      "item_no": 371,
+      "name": "Reloj de estrellas"
+    },
+    {
+      "item_no": 372,
+      "name": "Bomba de tiempo"
+    },
+    {
+      "item_no": 373,
+      "name": "Tradu-talkie"
+    },
+    {
+      "item_no": 374,
+      "name": "Flor de Sol"
+    },
+    {
+      "item_no": 375,
+      "name": "Remedio de drag[UNI00f3]n"
+    },
+    {
+      "item_no": 376,
+      "name": "Pintura dorada"
+    },
+    {
+      "item_no": 377,
+      "name": "Cucharilla"
+    },
+    {
+      "item_no": 378,
+      "name": "Rana"
+    },
+    {
+      "item_no": 379,
+      "name": "Pececillo"
+    },
+    {
+      "item_no": 380,
+      "name": "Tenedor"
+    },
+    {
+      "item_no": 381,
+      "name": "Combustible Ridepod"
+    },
+    {
+      "item_no": 382,
+      "name": "Llave inglesa"
+    },
+    {
+      "item_no": 383,
+      "name": "Gota de Monstruo"
+    },
+    {
+      "item_no": 384,
+      "name": "Vale cambio de nombre"
+    },
+    {
+      "item_no": 385,
+      "name": "Sobre azul"
+    },
+    {
+      "item_no": 386,
+      "name": "Libreta"
+    },
+    {
+      "item_no": 387,
+      "name": "Llave inglesa"
+    },
+    {
+      "item_no": 388,
+      "name": "Pastel de patata"
+    },
+    {
+      "item_no": 389,
+      "name": "Postre de bruja"
+    },
+    {
+      "item_no": 390,
+      "name": "Bomba mejorada"
+    },
+    {
+      "item_no": 391,
+      "name": "Bomba final"
+    },
+    {
+      "item_no": 392,
+      "name": "Brazo bala ca[UNI00f1][UNI00f3]n II"
+    },
+    {
+      "item_no": 393,
+      "name": "Brazo bala ca[UNI00f1][UNI00f3]n III"
+    },
+    {
+      "item_no": 394,
+      "name": "Brazo bala ca[UNI00f1][UNI00f3]n IV"
+    },
+    {
+      "item_no": 395,
+      "name": "Ca[UNI00f1][UNI00f3]n barril II"
+    },
+    {
+      "item_no": 396,
+      "name": "Ca[UNI00f1][UNI00f3]n barril III"
+    },
+    {
+      "item_no": 397,
+      "name": "Ca[UNI00f1][UNI00f3]n barril IV"
+    },
+    {
+      "item_no": 398,
+      "name": "Brazo taladro II"
+    },
+    {
+      "item_no": 399,
+      "name": "Brazo taladro III"
+    },
+    {
+      "item_no": 400,
+      "name": "Brazo taladro IV"
+    },
+    {
+      "item_no": 401,
+      "name": "Brazo lanzamisil II"
+    },
+    {
+      "item_no": 402,
+      "name": "Brazo lanzamisil III"
+    },
+    {
+      "item_no": 403,
+      "name": "Brazo lanzamisil IV"
+    },
+    {
+      "item_no": 404,
+      "name": "Brazo martillo II"
+    },
+    {
+      "item_no": 405,
+      "name": "Brazo martillo III"
+    },
+    {
+      "item_no": 406,
+      "name": "Brazo martillo IV"
+    },
+    {
+      "item_no": 407,
+      "name": "Br. ametralladora II"
+    },
+    {
+      "item_no": 408,
+      "name": "Br. ametralladora III"
+    },
+    {
+      "item_no": 409,
+      "name": "Br. ametralladora IV"
+    },
+    {
+      "item_no": 410,
+      "name": "Mano de payaso II"
+    },
+    {
+      "item_no": 411,
+      "name": "Mano de payaso III"
+    },
+    {
+      "item_no": 412,
+      "name": "Mano de payaso IV"
+    },
+    {
+      "item_no": 413,
+      "name": "Brazo Samurai II"
+    },
+    {
+      "item_no": 414,
+      "name": "Brazo Samurai III"
+    },
+    {
+      "item_no": 415,
+      "name": "Brazo Samurai IV"
+    },
+    {
+      "item_no": 416,
+      "name": "Brazo l[UNI00e1]ser II"
+    },
+    {
+      "item_no": 417,
+      "name": "Brazo l[UNI00e1]ser III"
+    },
+    {
+      "item_no": 418,
+      "name": "Brazo l[UNI00e1]ser IV"
+    },
+    {
+      "item_no": 419,
+      "name": "Ca[UNI00f1][UNI00f3]n nova II"
+    },
+    {
+      "item_no": 420,
+      "name": "Ca[UNI00f1][UNI00f3]n nova III"
+    },
+    {
+      "item_no": 421,
+      "name": "Ca[UNI00f1][UNI00f3]n nova IV"
+    },
+    {
+      "item_no": 422,
+      "name": "Unidad de voz"
+    },
+    {
+      "item_no": 423,
+      "name": "Kit escudo"
+    },
+    {
+      "item_no": 424,
+      "name": "Insignia Himarra"
+    },
+    {
+      "item_no": 425,
+      "name": "Agua fresca"
+    },
+    {
+      "item_no": 426,
+      "name": "[line1] asado"
+    },
+    {
+      "item_no": 427,
+      "name": "Insignia del Sol"
+    },
+    {
+      "item_no": 428,
+      "name": "Insignia de la Luna"
+    }
+  ],
+  "schema_version": 2
+}

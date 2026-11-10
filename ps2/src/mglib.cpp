@@ -560,13 +560,13 @@ void mgInit(int screen_mode, int video_mode) {
 void mgInitVif1Packet(u_long128 *buffer_a, u_long128 *buffer_b, int size) {
     packetbuf[0] = (u_int *) buffer_a;
     packetbuf[1] = (u_int *) buffer_b;
-    int misalign = (int) packetbuf[0] % 4;
+    int misalign = (sptr) packetbuf[0] % 4;
 
     if (misalign != 0) {
         packetbuf[0] += 4 - misalign;
     }
 
-    misalign = (int) packetbuf[1] % 4;
+    misalign = (sptr) packetbuf[1] % 4;
 
     if (misalign != 0) {
         packetbuf[1] += 4 - misalign;
@@ -1907,7 +1907,7 @@ int mgSendVuProg(u_int *tag, int id) {
     if (id != now_prog_id) {
         void *packet = mgGetVuProgPacket(id);
         tag[0] = MG_DMA_CALL;
-        tag[1] = (u_int) packet;
+        tag[1] = (uptr) packet;
         tag[2] = 0;
         tag[3] = 0;
         now_prog_id = id;

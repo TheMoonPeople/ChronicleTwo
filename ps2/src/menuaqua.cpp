@@ -29,6 +29,7 @@ extern float MenuItemBrdUnderBrdPosXY[];
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "nameregi.hpp"
+#include "pal_timing.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
@@ -1992,7 +1993,7 @@ void CAquaFish::MoveActionRound() {
     } else if (col_flags & AQUA_FISH_COL_WALL) {
         wall_time += 1;
 
-        if (wall_time > 200) {
+        if (wall_time > PAL_TIMING(200, 240)) {
             if ((round.dir == 0 && 0.0f <= pos[2]) || (round.dir == 1 && pos[2] < 0.0f)) {
                 yaw = -HALF_PI;
             } else {
@@ -2225,7 +2226,7 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
             break;
         case AQUA_FISH_THINK_FOOD_LOOK:
             *(u_long128 *) target_pos = *(u_long128 *) param->pos;
-            action.timer = (GetRandI(4) + 4) * 25;
+            action.timer = (GetRandI(4) + 4) * PAL_TIMING(25, 30);
             action.decel = 0.7f;
             turn[1] = 15.0f;
             break;
@@ -2248,10 +2249,10 @@ void CAquaFish::NextThink(int think, NEXT_THINK_PARAM *param) {
             if (param == NULL || action.target_no < 0) {
                 swim_mode = AQUA_FISH_SWIM_POINT;
                 think = AQUA_FISH_THINK_BATTLE_REST;
-                think_timer = GetRandI(250) + 250;
+                think_timer = GetRandI(PAL_TIMING(250, 300)) + PAL_TIMING(250, 300);
             } else {
                 swim_mode = AQUA_FISH_SWIM_POINT;
-                think_timer = GetRandI(175) + 125;
+                think_timer = GetRandI(PAL_TIMING(175, 210)) + PAL_TIMING(125, 150);
             }
 
             break;
@@ -2403,7 +2404,7 @@ int CAquaFish::ParamStep() {
 
     flash_count++;
 
-    if (flash_count >= 25) {
+    if (flash_count >= PAL_TIMING(25, 30)) {
         flash_count = 0;
     }
 
@@ -2418,7 +2419,7 @@ void CAquaFish::FishDraw() {
         mgGetAmbient(saved);
         float bright[4] = {140.0f, 64.0f, 64.0f, 128.0f};
 
-        if (hp < 30 && flash_count < 11) {
+        if (hp < 30 && flash_count < PAL_TIMING(11, 14)) {
             bright[0] = 172.0f;
             mgSetAmbient(bright);
         }
@@ -2444,7 +2445,7 @@ void CAquaFishEff::StartFishEffect(int effect_kind) {
     static int max_tbl[6] = {0, 250, 250, 25000, 250, 0};
 
     type = effect_kind;
-    timer = max_tbl[type];
+    timer = PAL_TIMING(max_tbl[type], max_tbl[type] * 6 / 5);
 }
 
 void CAquaFishEff::Step() {
@@ -3099,7 +3100,7 @@ void CAquaMes::EatMessage(int id, CAquaFish *fish) {
 
     fish_mes->mes_no = -1;
     fish_mes->MakeMesWin(id);
-    fish_mes_time = 250;
+    fish_mes_time = PAL_TIMING(250, 300);
     fish->GetPosition2D(pos);
     AquaMesDispAdjustPos(fish_mes, pos);
 }
@@ -3132,7 +3133,7 @@ void CAquaMes::ChangeManMessage(CAquaFish *fish) {
         fish_mes->MakeMesWin(AQUA_MES_BECAME_FEMALE);
     }
 
-    fish_mes_time = 250;
+    fish_mes_time = PAL_TIMING(250, 300);
     fish->GetPosition2D(pos);
     AquaMesDispAdjustPos(fish_mes, pos);
 }
@@ -3147,7 +3148,7 @@ void CAquaMes::DeadMessage(CAquaFish *fish) {
         copy_name(fish_mes, 0, name);
         fish_mes->MakeMesWin(AQUA_MES_DEAD);
         fish_mes->Step();
-        fish_mes_time = 250;
+        fish_mes_time = PAL_TIMING(250, 300);
         fish->GetPosition2D(pos);
         AquaMesDispAdjustPos(fish_mes, pos);
     }
@@ -4517,7 +4518,7 @@ void CAquarium::Thinking(int no) {
 
             me->think_timer++;
 
-            if (me->think_timer >= 500) {
+            if (me->think_timer >= PAL_TIMING(500, 600)) {
                 if (GetRandI(101) < 90) {
                     next = AQUA_FISH_THINK_SWIM;
                 } else {
@@ -5912,7 +5913,7 @@ int CAquarium::Step() {
         if (next == AQUARIUM_MODE_FOOD_WAIT) {
             menu->help_draw = false;
             food->Drop();
-            food_time = 250;
+            food_time = PAL_TIMING(250, 300);
             AquaCameraCtrlMode = AQUA_CAMERA_CTRL_FREE;
             drop_root_draw = false;
         }

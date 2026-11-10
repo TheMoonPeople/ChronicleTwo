@@ -1,0 +1,50 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s320101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320101-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s320204-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320104-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320208-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320203-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320201-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320207-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320205-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320202-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s320102-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

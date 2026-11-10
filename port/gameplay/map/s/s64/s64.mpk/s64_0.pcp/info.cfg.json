@@ -1,0 +1,30 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s640101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s640101-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s640102-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s640103-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s640104-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s640105-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

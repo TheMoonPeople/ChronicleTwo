@@ -1,0 +1,187 @@
+{
+  "count": 20,
+  "kind": "quests",
+  "quests": [
+    {
+      "comment": "Gordon ama occuparsi delle piante.\\nVuole curare il suo albero con\\nl'Acqua Sacra di don Bruno.",
+      "id": 0,
+      "name": "Le ansie di Gordon",
+      "reactions": [
+        "Andiamo da don Bruno!\\nSar[UNI00e0] in chiesa?",
+        "Gordon adora prendersi cura\\ndelle piante, eh?"
+      ]
+    },
+    {
+      "comment": "Il ritratto fatto da Parn della sua\\ndonna ideale, Julia. Dice che, se avesse\\ndella Vernice oro, prenderebbe vita.",
+      "id": 1,
+      "name": "Ritratto di una sposa",
+      "reactions": [
+        "Ma dove si pu[UNI00f2] trovare la Vernice oro?",
+        "Non posso credere che un quadro\\npossa prendere vita."
+      ]
+    },
+    {
+      "comment": "Donny vuole completare la sua collezione\\ndi monete. Gli mancano solo la Moneta\\nprotettiva e la Moneta oscura...",
+      "id": 2,
+      "name": "Il pallino per gli affari",
+      "reactions": [
+        "Dobbiamo trovare delle monete.",
+        "Io dico che Donny pu[UNI00f2] cavarsela da solo."
+      ]
+    },
+    {
+      "comment": "Castagnaccio, il dolce del mistero.\\nSappiamo solo che servono le castagne,\\nma niente di pi[UNI00f9].",
+      "id": 3,
+      "name": "Castagnaccio",
+      "reactions": [
+        "Dobbiamo trovare delle castagne.",
+        "Chiss[UNI00e0] se il castagnaccio [UNI00e8] buono?"
+      ]
+    },
+    {
+      "comment": "Claire si rifiuta di uscire.\\nMostrale qualcosa che le piace\\ne forse cambier[UNI00e0] idea.",
+      "id": 4,
+      "name": "Curiosit[UNI00e0]",
+      "reactions": [
+        "Dobbiamo fare una foto\\na dei fiori rari.",
+        "Claire [UNI00e8] curiosissima,\\nvero?"
+      ]
+    },
+    {
+      "comment": "Penso che Pau voglia collaborare con\\nnoi. Forse dovremmo trovare del cibo\\nper tirargli su il morale...",
+      "id": 5,
+      "name": "Cibo color arancio",
+      "reactions": [
+        "Cibo color arancio, eh? Forse carote?",
+        "Odio le carote! Anche i peperoni verdi!"
+      ]
+    },
+    {
+      "comment": "L'hobby di Stewart [UNI00e8] la lettura.\\nVuole comprare un libro all'asta,\\nma non gli bastano i soldi.",
+      "id": 6,
+      "name": "L'asta",
+      "reactions": [
+        "Dobbiamo raccogliere un po' di soldi.",
+        "Ma almeno lo legge il libro per\\ncui abbiamo faticato tanto?"
+      ]
+    },
+    {
+      "comment": "Adel si [UNI00e8] scoraggiata perch[UNI00e9] non\\npu[UNI00f2] cucire. Le serve Cuoio spesso,\\nun Pezzo di Rame e Stoffa robusta.",
+      "id": 7,
+      "name": "Sognavo di sognare",
+      "reactions": [
+        "Questa volta mi impegno e l'aiuto\\na ritrovare fiducia in se stessa.",
+        "Riuscire a portare a termine qualcosa\\naiuta ad avere fiducia in se stessi."
+      ]
+    },
+    {
+      "comment": "Mandare del pane a Morton?\\nSembra facile, ma qualcosa\\nmi dice che non sar[UNI00e0] cos[UNI00ec].",
+      "id": 8,
+      "name": "La Domestica di Polly",
+      "reactions": [
+        "Dobbiamo fare quello che ci hanno detto.",
+        "Quel Morton [UNI00e8] cos[UNI00ec] egocentrico!"
+      ]
+    },
+    {
+      "comment": "Lo sceriffo Blinkhorn dubita della mia\\nforza. Devo correre a tutta birra per\\ndimostrargli che posso farcela.",
+      "id": 9,
+      "name": "Vallecatini: corsa folle!",
+      "reactions": [
+        "Per fare un buon tempo, bisogna\\nfare il percorso pi[UNI00f9] breve.",
+        "Blinkhorn sapr[UNI00e0] battere questo tempo?"
+      ]
+    },
+    {
+      "comment": "Milane [UNI00e8] una spadaccina, quindi dobbiamo\\naffinare le nostre abilit[UNI00e0].\\nDobbiamo dimostrare che siamo forti.",
+      "id": 10,
+      "name": "Ora te la faccio vedere io",
+      "reactions": [
+        "Potenziare le spade, eh?\\nNon so se lo posso fare.",
+        "Scommetto che Monica e Milane\\nandrebbero d'accordo."
+      ]
+    },
+    {
+      "comment": "Odio chiedere favori a mio padre, ma mi\\nserve aiuto. Potenziare la mia pistola\\nNon dev'essere difficile.",
+      "id": 11,
+      "name": "L'approvazione del padre",
+      "reactions": [
+        "Ce la metter[UNI00f2] tutta per arrivare\\nal livello di Pistola-campana!",
+        "Chiss[UNI00e0] se pap[UNI00e0] ora mi vedr[UNI00e0]\\nsotto una luce diversa."
+      ]
+    },
+    {
+      "comment": "Il Sindaco Need non ricorda pi[UNI00f9] la\\ncombinazione della cassaforte dove tiene\\ni suoi documenti. Dobbiamo fare qualcosa.",
+      "id": 12,
+      "name": "La cassaforte impossibile",
+      "reactions": [
+        "Forse, se ripensiamo alle parole\\ndel Sindaco, ci verr[UNI00e0] in mente qualcosa.",
+        "Sar[UNI00e0] una buona idea lasciare la\\ncitt[UNI00e0] nelle mani di Morton?"
+      ]
+    },
+    {
+      "comment": "Ma come [UNI00e8] stata fatta questa chiesa?\\nNon sarebbe pi[UNI00f9] semplice spegnere\\ntutte le candele normalmente?",
+      "id": 13,
+      "name": "Le pene di un prete",
+      "reactions": [
+        "La risposta [UNI00e8] incredibilmente\\nsemplice.",
+        "Che razza di chiesa!"
+      ]
+    },
+    {
+      "comment": "Rufio [UNI00e8] andato a vivere nel parco.\\nDice che vuole stare sempre\\nad ammirare la luna.",
+      "id": 14,
+      "name": "L'intramontabile luna",
+      "reactions": [
+        "La luna si pu[UNI00f2] fotografare\\nsolo di notte.",
+        "Rufio, in fondo, potrebbe davvero\\nprovenire dalla luna."
+      ]
+    },
+    {
+      "comment": "Fabio adora pescare. Non la\\nfarebbe pi[UNI00f9] finita, se ne\\nprendesse uno veramente grosso!",
+      "id": 15,
+      "name": "Prova a battermi",
+      "reactions": [
+        "Direi che ne basterebbe un\\nNonky di 60 cm.",
+        "Quale sar[UNI00e0] il segreto della pesca?\\nVorrei proprio saperlo!"
+      ]
+    },
+    {
+      "comment": "Olivie, l'allevatrice di pesci,\\nha sentito parlare del Pinna Sprint.\\nVinciamo per lei!",
+      "id": 16,
+      "name": "Nel circolo del vincitore",
+      "reactions": [
+        "Cerchiamo di vincere il Pinna Sprint.",
+        "I pesci vanno curati con\\nmoltissima attenzione."
+      ]
+    },
+    {
+      "comment": "Mena non si sente molto bene\\nper via della distorsione temporale.\\nMeglio ridurla un po'...",
+      "id": 17,
+      "name": "Partita a Spheda",
+      "reactions": [
+        "[UNI00c8] dura giocare dieci partite di Spheda.",
+        "Non sapevo che le distorsioni\\ntemporali avessero anche questo effetto."
+      ]
+    },
+    {
+      "comment": "Corinne si ritiene fortunata.\\nPotrebbe diventare amica nostra,\\nse giocassimo a nascondino con lei.",
+      "id": 18,
+      "name": "A nascondino con Corinne",
+      "reactions": [
+        "Dai, Corinne! Dove\\nti sei cacciata?",
+        "S[UNI00ec], [UNI00e8] un po' insolente,\\nma [UNI00e8] solo una ragazzina!"
+      ]
+    },
+    {
+      "comment": "Rosa [UNI00e8] quasi completamente sorda.\\nPotrebbe essere nostra alleata,\\nse ci potesse sentire.",
+      "id": 19,
+      "name": "Con la forza della mente",
+      "reactions": [
+        "Finch[UNI00e9] riusciremo a comunicare i nostri\\nsentimenti, andr[UNI00e0] tutto bene.",
+        "Penso che la prossima volta dovremmo\\nprocurarle un apparecchio acustico."
+      ]
+    }
+  ],
+  "schema_version": 2
+}

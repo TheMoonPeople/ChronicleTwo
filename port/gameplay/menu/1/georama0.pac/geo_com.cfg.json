@@ -1,0 +1,1687 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "main_bg_img",
+            "main_bg_frm"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "fade_black",
+            "makebrd",
+            "free_color"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "action": "geo",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "form": "GUIDE_LR",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "bg",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "bg",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data0",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data0",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data1",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data1",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data2",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data3",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data3",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data4",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data4",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data5",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data5",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data6",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data6",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "list_data7",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "list_data7",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "poly_view",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "poly_view",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "field_title",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "field_title",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "field_title2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "field_title2",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "msg0",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "msg0",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "analyze0",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "analyze0",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "analyze1",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "analyze1",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "form": "家情報",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "家情報",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "forms": [
+            "msg0",
+            "msg2"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "forms": [
+            "timeboard",
+            "makebrd"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "draw": 0,
+          "form": "field_title",
+          "op": "part_draw_flag",
+          "part": "Title0"
+        },
+        {
+          "draw": 0,
+          "form": "field_title",
+          "op": "part_draw_flag",
+          "part": "Title1"
+        },
+        {
+          "draw": 0,
+          "form": "field_title",
+          "op": "part_draw_flag",
+          "part": "Title2"
+        },
+        {
+          "draw": 0,
+          "form": "field_title",
+          "op": "part_draw_flag",
+          "part": "Title3"
+        },
+        {
+          "draw": 0,
+          "form": "field_title",
+          "op": "part_draw_flag",
+          "part": "Title4"
+        },
+        {
+          "enable": 1,
+          "op": "input_key"
+        }
+      ],
+      "name": "INIT_END"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "geo",
+          "window": 0
+        },
+        {
+          "message": 1610,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "default",
+          "window": 1
+        },
+        {
+          "message": 0,
+          "op": "make_message",
+          "window": 1
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg0"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg2",
+            "msg1",
+            "msg3",
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 4
+        },
+        {
+          "message": 2421,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "no_win",
+          "window": 5
+        },
+        {
+          "message": 1500,
+          "op": "make_message",
+          "window": 5
+        }
+      ],
+      "name": "MSG_初期化"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 1
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 1
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 5
+        }
+      ],
+      "name": "MSG_BUFF"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        }
+      ],
+      "name": "PLACE_INIT"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "action": "0",
+          "form": "list_data0",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "list_data1",
+          "op": "form_set_action"
+        },
+        {
+          "action": "1",
+          "form": "list_data2",
+          "op": "form_set_action"
+        },
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        }
+      ],
+      "name": "PAINT_INIT"
+    },
+    {
+      "commands": [
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "fade_black",
+            "makebrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "message": 1656,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        }
+      ],
+      "name": "MAKE_GEOPARTS"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "RETURN_SELMODE"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "RETURN_SELMODE2"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "RETURN_CMD"
+    },
+    {
+      "commands": [
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "fade_black",
+            "makebrd",
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "NOT_MAKE_GEOPARTS"
+    },
+    {
+      "commands": [
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "makebrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 2
+        },
+        {
+          "message": 1657,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "cursor": 0,
+          "op": "message_cursor",
+          "window": 2
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 10
+        }
+      ],
+      "name": "MAKE_GEOPARTS確認"
+    },
+    {
+      "commands": [
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "makebrd",
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "makebrd",
+          "window": 2
+        },
+        {
+          "fade_in": 1,
+          "op": "cursor_fade",
+          "speed": 4
+        }
+      ],
+      "name": "MAKE_GEOPARTS?"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "fade_in": 1,
+          "op": "cursor_fade",
+          "speed": 10
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "MAKEMODE終了"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "COL_END"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "fade_black"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "action": "0",
+          "form": "list_data6",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "COL_SELEND"
+    },
+    {
+      "commands": [
+        {
+          "action": "1",
+          "form": "analyze0",
+          "op": "form_set_action"
+        },
+        {
+          "action": "1",
+          "form": "analyze1",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "poly_view",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "家情報",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "CPVIEW",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "VIEW_ANALYZE"
+    },
+    {
+      "commands": [
+        {
+          "action": "0",
+          "form": "analyze0",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "analyze1",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "poly_view",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "家情報",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "CPVIEW",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "VIEW_C_POINT"
+    },
+    {
+      "commands": [
+        {
+          "action": "0",
+          "form": "analyze0",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "analyze1",
+          "op": "form_set_action"
+        },
+        {
+          "action": "1",
+          "form": "poly_view",
+          "op": "form_set_action"
+        },
+        {
+          "action": "geo",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "家情報",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "CPVIEW",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "EXCEPT_ANALYZE"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "bg",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data0",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data1",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data2",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data3",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data4",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data5",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data6",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "list_data7",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "poly_view",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "field_title",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "field_title2",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg0",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "analyze0",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "analyze1",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "家情報",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "CPVIEW",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "mainpureimage"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 0,
+          "form": "mainpureimage",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "channel": 1,
+          "form": "mainpureimage",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "channel": 2,
+          "form": "mainpureimage",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        }
+      ],
+      "name": "終了処理"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "GO_分析"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "GO_分析以外"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 1654,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "パーツ1つだけ"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "パーツ1つだけOFF"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 1655,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "限界数作成"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2",
+            "makebrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 128,
+          "target": 128
+        },
+        {
+          "form": "msg5",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 610,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "材料不足"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg2",
+            "makebrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "製作ERROR_OFF"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "message": 1658,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "配置ERROR"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "配置ERROROFF"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "DLOAD"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "DL_ON"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "DLOAD"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "DL_OFF"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "form": "DLOAD",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        }
+      ],
+      "name": "DL_END"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 3
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 3
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 3
+        },
+        {
+          "message": 1652,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "こわす？"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "壊END"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 1663,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "材料BACK"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "message": 1659,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "ポリン不足"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "fade_in": 0,
+          "op": "scene_fade"
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "GO_月花"
+    },
+    {
+      "commands": [
+        {
+          "action": "0",
+          "form": "list_data5",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "CPVIEW",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "家情報",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "月花処理"
+    },
+    {
+      "commands": [
+        {
+          "action": "1",
+          "form": "list_data2",
+          "op": "form_set_action"
+        },
+        {
+          "action": "0",
+          "form": "list_data4",
+          "op": "form_set_action"
+        },
+        {
+          "action": "1",
+          "form": "poly_view",
+          "op": "form_set_action"
+        },
+        {
+          "action": "geo",
+          "form": "msg0",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "月花処理2"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg",
+          "window": 2
+        },
+        {
+          "message": 1662,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "form": "msg2",
+          "language": 0,
+          "op": "form_set_pos",
+          "xy": [
+            20,
+            380
+          ]
+        },
+        {
+          "form": "msg2",
+          "language": 1,
+          "op": "form_set_pos",
+          "xy": [
+            20,
+            444
+          ]
+        },
+        {
+          "form": "msg2",
+          "language": 2,
+          "op": "form_set_pos",
+          "xy": [
+            20,
+            444
+          ]
+        },
+        {
+          "form": "msg2",
+          "language": 3,
+          "op": "form_set_pos",
+          "xy": [
+            20,
+            444
+          ]
+        },
+        {
+          "form": "msg2",
+          "language": 4,
+          "op": "form_set_pos",
+          "xy": [
+            20,
+            444
+          ]
+        },
+        {
+          "form": "msg2",
+          "language": 5,
+          "op": "form_set_pos",
+          "xy": [
+            20,
+            444
+          ]
+        },
+        {
+          "fade_in": 1,
+          "op": "scene_fade"
+        }
+      ],
+      "name": "月花絵"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "fade_in": 1,
+          "op": "scene_fade"
+        }
+      ],
+      "name": "月花絵END"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "form": "field_title",
+          "op": "parts_draw_flag",
+          "parts": [
+            "残り",
+            "ポリン",
+            "ポリン数"
+          ],
+          "spelling": "FRM_PARTSONOFFG"
+        }
+      ],
+      "name": "POLYOF"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": 16,
+          "target": 128
+        },
+        {
+          "fade_in": 1,
+          "op": "cursor_fade",
+          "speed": 10
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "GUIDELRIN"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": -16,
+          "target": 0
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 10
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "GUIDELROUT"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

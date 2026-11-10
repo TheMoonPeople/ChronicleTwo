@@ -1,0 +1,126 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "i03h02_21-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "i03h02_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_17-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_18-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_19-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "i03h02a_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h02a_15-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

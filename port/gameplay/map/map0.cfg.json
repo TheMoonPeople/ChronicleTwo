@@ -1,0 +1,1700 @@
+{
+  "count": 189,
+  "kind": "map_names",
+  "maps": [
+    {
+      "add_path": "g00/g00",
+      "area_no": 2,
+      "name": "g01",
+      "sel_type": 1,
+      "snd_data_id": 2000,
+      "title": "シャーロット",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 3,
+      "name": "g02",
+      "sel_type": 1,
+      "snd_data_id": 3000,
+      "title": "てんびん谷",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 4,
+      "name": "g03",
+      "sel_type": 1,
+      "snd_data_id": 4000,
+      "title": "ベニーティオ",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 5,
+      "name": "g04",
+      "sel_type": 1,
+      "snd_data_id": 5000,
+      "title": "ヘイム・ラダ",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "g05",
+      "sel_type": 1,
+      "snd_data_id": 7000,
+      "title": "月花宮殿庭園",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "s40",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "ベニーティオ",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m01",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "パームブリンクス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m02",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "パームブリンクス駅前",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m03",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "パームブリンクス広場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m04",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "パームブリンクス住居",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m05",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "パームブリンクス公園",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "s01",
+      "sel_type": 3,
+      "snd_data_id": 1682,
+      "title": "地下水道出口",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 2,
+      "name": "s02",
+      "sel_type": 3,
+      "snd_data_id": 2080,
+      "title": "シャーロット停車場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "m06",
+      "sel_type": 6,
+      "snd_data_id": 1208,
+      "title": "パームブリンクス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s07",
+      "sel_type": 7,
+      "snd_data_id": 510,
+      "title": "列車の中",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m07",
+      "sel_type": 6,
+      "snd_data_id": 1200,
+      "title": "パームブリンクス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m08",
+      "sel_type": 6,
+      "snd_data_id": 1206,
+      "title": "パームブリンクス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01b01",
+      "sel_type": 5,
+      "snd_data_id": 1683,
+      "title": "地下水道貯水池",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01e01",
+      "sel_type": 5,
+      "snd_data_id": 1602,
+      "title": "地下水道入り口",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s08",
+      "sel_type": 7,
+      "snd_data_id": 516,
+      "title": "機関車の中",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b01",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "七色の滝",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "f01",
+      "sel_type": 4,
+      "snd_data_id": 2300,
+      "title": "ジュラクモール",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02",
+      "sel_type": 4,
+      "snd_data_id": 3300,
+      "title": "ステラ・ポト",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h01",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "メンテナンスショップ",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "ポリーズブレッド",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "貸し倉庫",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h04",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "武器屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "アイテム屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h06",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "保安官オフィス",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h07",
+      "sel_type": 2,
+      "snd_data_id": 1082,
+      "title": "教会",
+      "type": 4
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "i02h01",
+      "sel_type": 2,
+      "snd_data_id": 1080,
+      "title": "駅",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "コーヒーショップ",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "バー",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "役場ロビー",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "役場町長室",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02",
+      "sel_type": 2,
+      "snd_data_id": 1213,
+      "title": "サーカステント",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02a",
+      "sel_type": 2,
+      "snd_data_id": -1,
+      "title": "サーカステント",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "ユリスの部屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "ユリスの家",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "食堂",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01c",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "キッチン",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01d",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "ジラードの部屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01e",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "使用人の部屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01f",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "通路部屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "クレアの家",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "クレアの部屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "クレアの父の部屋",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i05h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "ダック医院",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "パトリの家",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s03",
+      "sel_type": 3,
+      "snd_data_id": 2203,
+      "title": "森のトンネル",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 3,
+      "name": "s04",
+      "sel_type": 3,
+      "snd_data_id": 3080,
+      "title": "てんびん谷停車場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f01",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "地下水道",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b02",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "七色の滝",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02f01",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "七色蝶の森",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f01",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "ステラ渓谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f02",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "ステラ渓谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f03",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "ステラ渓谷",
+      "type": 7
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 3,
+      "name": "d03b01",
+      "sel_type": 5,
+      "snd_data_id": 3683,
+      "title": "岬の灯台",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship02",
+      "area_no": 3,
+      "name": "d03b02",
+      "sel_type": 5,
+      "snd_data_id": 3684,
+      "title": "岬の灯台",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f02",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "地下水道",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f01",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "潮騒の洞窟",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s05",
+      "sel_type": 5,
+      "snd_data_id": 2684,
+      "title": "怪魚の沼",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "s06",
+      "sel_type": 5,
+      "snd_data_id": 1684,
+      "title": "地下水道・ポンプ室",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "木の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "木の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "木の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "木の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "g01i07",
+      "sel_type": 1,
+      "snd_data_id": 2081,
+      "title": "小人の家",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 7,
+      "name": "s12",
+      "sel_type": 3,
+      "snd_data_id": 7680,
+      "title": "月花宮殿停車場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s25",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "カーペントリオン（外観）",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s26",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "カーペントリオン（内観）",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s27",
+      "sel_type": 3,
+      "snd_data_id": 4082,
+      "title": "パウの家",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s31",
+      "sel_type": 3,
+      "snd_data_id": 7681,
+      "title": "月花宮殿停車場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s33",
+      "sel_type": 3,
+      "snd_data_id": 7080,
+      "title": "月花宮殿",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s35",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "月花宮殿浮上シーン",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f01",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "ガンドール火山",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f02",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "潮騒の洞窟",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s17",
+      "sel_type": 5,
+      "snd_data_id": 3685,
+      "title": "ボスの谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03",
+      "sel_type": 4,
+      "snd_data_id": 4300,
+      "title": "ルナ研",
+      "type": 5
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 4,
+      "name": "s09",
+      "sel_type": 3,
+      "snd_data_id": 4080,
+      "title": "ベニーティオ停車場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s19",
+      "sel_type": 3,
+      "snd_data_id": 4684,
+      "title": "古代壁画の洞窟",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s41",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "ヘイムラダイベント",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s42",
+      "sel_type": 6,
+      "snd_data_id": 1081,
+      "title": "メンテナンスショップ",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 5,
+      "name": "s10",
+      "sel_type": 3,
+      "snd_data_id": 5080,
+      "title": "ヘイム・ラダ停車場",
+      "type": 3
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s20",
+      "sel_type": 5,
+      "snd_data_id": 5684,
+      "title": "ガンドール火山頂上",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "モートンの家",
+      "type": 4
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "d04b01",
+      "sel_type": 5,
+      "snd_data_id": 4683,
+      "title": "シーグラたちの村",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b03",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "七色の滝",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05b01",
+      "sel_type": 5,
+      "snd_data_id": 5683,
+      "title": "ガンドール火山　火口",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f02",
+      "sel_type": 5,
+      "snd_data_id": 5682,
+      "title": "ガンドール火山",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s43",
+      "sel_type": 5,
+      "snd_data_id": -1,
+      "title": "サーカステント",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h04",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "ギョレース会場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h05",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "ギョレース会場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06f01",
+      "sel_type": 5,
+      "snd_data_id": 7600,
+      "title": "月花宮殿",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s18",
+      "sel_type": 5,
+      "snd_data_id": 3686,
+      "title": "ヨルダの谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h03",
+      "sel_type": 7,
+      "snd_data_id": 1084,
+      "title": "魚釣り大会会場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "g02i02",
+      "sel_type": 1,
+      "snd_data_id": 511,
+      "title": "リンの家",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i08",
+      "sel_type": 4,
+      "snd_data_id": 3381,
+      "title": "ラオチャオ飯店",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "f04",
+      "sel_type": 4,
+      "snd_data_id": 5300,
+      "title": "ガンドラダ大工房",
+      "type": 5
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 6,
+      "name": "s11",
+      "sel_type": 3,
+      "snd_data_id": 6000,
+      "title": "カザロフストーンヘンジ",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s29",
+      "sel_type": 3,
+      "snd_data_id": 5383,
+      "title": "パズノス（展望台）",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s30",
+      "sel_type": 3,
+      "snd_data_id": 5384,
+      "title": "パズノス（ブリッジ）",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s36",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "イクシオン（外観）共有",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s39",
+      "sel_type": 4,
+      "snd_data_id": 5382,
+      "title": "オペレーションルーム",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s37",
+      "sel_type": 3,
+      "snd_data_id": 514,
+      "title": "イクシオン（機関室）",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06e01",
+      "sel_type": 5,
+      "snd_data_id": 7688,
+      "title": "月花宮殿エントランス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i04",
+      "sel_type": 4,
+      "snd_data_id": 4383,
+      "title": "センターラボ",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f00",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "潮騒の洞窟",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i06",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "スターアイテムズ",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0301",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "第1ラボ",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0304",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "第4ラボ",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s47",
+      "sel_type": 6,
+      "snd_data_id": 2000,
+      "title": "シャーロット（イベント）",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "わらの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "わらの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "わらの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "わらの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s38",
+      "sel_type": 7,
+      "snd_data_id": 513,
+      "title": "イクシオン（客室）",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s45",
+      "sel_type": 7,
+      "snd_data_id": 1000,
+      "title": "パームブリンクス広場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s46",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "回想用ユリスの部屋",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s49",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "ギルトーニ回想シーン",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b01",
+      "sel_type": 5,
+      "snd_data_id": 7687,
+      "title": "太陽の間",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b02",
+      "sel_type": 5,
+      "snd_data_id": 7603,
+      "title": "夢のらせん",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s44",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "月花宮殿回想シーン",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s21",
+      "sel_type": 3,
+      "snd_data_id": 7689,
+      "title": "栽培園",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s23",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "グリフォンの部屋前通路",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s50",
+      "sel_type": 3,
+      "snd_data_id": 7686,
+      "title": "アンドレアの部屋",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s51",
+      "sel_type": 6,
+      "snd_data_id": 520,
+      "title": "レイブラント城",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s53",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "センターラボ（イベント）",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "レンガの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "レンガの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "レンガの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "レンガの家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ia",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "鉄の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ib",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "鉄の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ic",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "鉄の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05id",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "鉄の家室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f02i07",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "ステラポト武器屋",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0302",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "第2ラボ",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0303",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "第3ラボ",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i03",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-WEAPONS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i04",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-PARTS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s13",
+      "sel_type": 5,
+      "snd_data_id": 2694,
+      "title": "大地に眠りし宝珠の間",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s14",
+      "sel_type": 5,
+      "snd_data_id": 3694,
+      "title": "風に守られし宝珠の間",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s15",
+      "sel_type": 5,
+      "snd_data_id": 4694,
+      "title": "海に眠りし宝珠の間",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s16",
+      "sel_type": 5,
+      "snd_data_id": 5694,
+      "title": "炎につつまれし宝珠の間",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s28",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "パズノス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s32",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "月花宮殿vsパズノス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s48",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "パズノス（ロボット）",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s54",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "ゼルマイト鉱山洞",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s55",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "パズノスイベント（戦闘）",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s56",
+      "sel_type": 5,
+      "snd_data_id": 3682,
+      "title": "壊れた灯台",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s34",
+      "sel_type": 3,
+      "snd_data_id": 7682,
+      "title": "月花宮殿停車場",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i05",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-TOOLS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01r",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "七色蝶の森",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s58",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "亜空間",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s59",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "ルナ研(イベント)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07f01",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "ゼルマイト鉱山洞",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07b01",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "ゼルマイト鉱山洞",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a20i01",
+      "sel_type": 1,
+      "snd_data_id": 522,
+      "title": "教会室内",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f01r",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "ステラ渓谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02r",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "ステラ渓谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f03r",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "ステラ渓谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f02r",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "潮騒の洞窟",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01r",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "ガンドール火山",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f02",
+      "sel_type": 5,
+      "snd_data_id": 7683,
+      "title": "月花宮殿",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f03",
+      "sel_type": 5,
+      "snd_data_id": 7684,
+      "title": "月花宮殿",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b03",
+      "sel_type": 5,
+      "snd_data_id": 7692,
+      "title": "宮殿テラス",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s52",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "ゼルマイト鉱山洞",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s60",
+      "sel_type": 6,
+      "snd_data_id": 1264,
+      "title": "パームブリンクス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s61",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "ゼルマイト鉱山洞",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s62",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "ゼルマイト鉱山洞",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s63",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "ゼルマイト鉱山洞",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s64",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "月花宮殿回想シーン2",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s65",
+      "sel_type": 3,
+      "snd_data_id": 7000,
+      "title": "月花宮殿",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s98",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "カザロフストーンヘンジ",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s66",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "カザロフストーンヘンジ",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s67",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "宮殿テラス",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01s",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "七色蝶の森",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02s",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "ステラ渓谷",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f01s",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "潮騒の洞窟",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01s",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "ガンドール火山",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s69",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "ゼルマイト鉱山洞",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s68",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "月花宮殿",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s70",
+      "sel_type": 6,
+      "snd_data_id": 7081,
+      "title": "月花宮殿",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s71",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "月花宮殿停車場",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

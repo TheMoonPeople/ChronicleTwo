@@ -1,0 +1,131 @@
+# --jump town:10 --fast-load --frames 1850 --screenshot-display 2
+# Opens retail Options, visits all six PC SETTINGS tabs, edits values, captures a key, cancels a
+# second capture with Escape, binds D-pad Up/Down to K/L, then returns to retail Options.
+# Useful screenshots: Display 1070, Audio 1180, Controls 1450, Bind prompt 1750,
+# bound keys 1790, retail Options restored 1850. Use a fresh save root.
+300 triangle
+301
+400 down
+401
+420 down
+421
+440 down
+441
+460 down
+461
+500 cross
+501
+700 select
+701
+730 down
+731
+750 down
+751
+770 right
+771
+790 down
+791
+810 right
+811
+830 down
+831
+850 left
+851
+870 right
+871
+890 down
+891
+910 right
+911
+930 left
+931
+950 down
+951
+970 left
+971
+990 right
+991
+1010 down
+1011
+1030 left
+1031
+1050 right
+1051
+1090 r1
+1091
+1110 left
+1111
+1130 down
+1131
+1150 right
+1151
+1170 left
+1171
+1200 r1
+1201
+1220 right
+1221
+1240 down
+1241
+1260 right
+1261
+1280 down
+1281
+1300 right
+1301
+1320 down
+1321
+1340 right
+1341
+1360 down
+1361
+1380 right
+1381
+1400 down
+1401
+1420 right
+1421
+1430 down
+1431
+1434 right
+1435
+1440 down
+1441
+1452 right
+1453
+1460 down
+1461
+1470 down
+1471
+1480 down
+1481
+1490 down
+1491
+1494 right
+1495
+1500 r1
+1501
+1520 r1
+1521
+1540 r1
+1541
+1560 l1
+1561
+1580
+1581
+1600 cross
+1601
+1620 key:K
+1630
+1660 cross
+1661
+1680 key:Escape
+1690
+1720 down
+1721
+1740 cross
+1741
+1760 key:L
+1770
+1820 circle
+1821

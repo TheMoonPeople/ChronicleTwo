@@ -1,0 +1,2780 @@
+{
+  "func_points": [
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": -1600.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen1",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": -3200.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": -1600.0,
+        "parts_name": "p01_s03-1",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen2",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": -4800.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": -3200.0,
+        "parts_name": "p01_s03-2",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen3",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": -6400.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": -4800.0,
+        "parts_name": "p01_s03-3",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen4",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": -8000.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": -6400.0,
+        "parts_name": "p01_s03-4",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen5",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 1600.0,
+        "parts_name": "p01_s03-5",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen6",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 1600.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 3200.0,
+        "parts_name": "p01_s03-6",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen7",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 3200.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 4800.0,
+        "parts_name": "p01_s03-7",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "train05",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 4800.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 6400.0,
+        "parts_name": "p01_s03-8",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen09",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 6400.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 8000.0,
+        "parts_name": "p01_s03-9",
+        "piece_name": "",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": -50.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "jimen10",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s5",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya1",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s6",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya2",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s7",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya3",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s8",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya4",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s9",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya5",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s10",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya6",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s7",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m0",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya7",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s8",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m0",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya8",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s9",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m0",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya9",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 25.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "s10",
+        "kind": 2,
+        "mode": 1,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m0",
+        "piece_space": 0,
+        "speed_x": 20.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "sya10",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": -0.7,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": -0.07,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "t01",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": -547.548,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": -547.548,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m0",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "t02",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": -0.8,
+        "end_z": -1065.19,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": -1065.19,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m1",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": -0.06,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "t03",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": -0.6,
+        "end_z": -1581.92,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": -1581.92,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m2",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": -0.07,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "t04",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.4,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 2,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": -0.4,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t01-m",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.04,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "tr01",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": -0.2,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 2,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": 0.2,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m0",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": -0.02,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "tr02",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.5,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 2,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": -0.5,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m1",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.05,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "tr03",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.3,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 2,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": 0.3,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "s03t02-m2",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": -0.03,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "tr04",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": -0.7,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 1,
+        "mode": 3,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "kikan-m",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": -0.07,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "t05",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.4,
+        "end_z": 0.0,
+        "frame_name": "",
+        "kind": 2,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": -0.4,
+        "param_z": 0.0,
+        "parts_name": "p01_s03t",
+        "piece_name": "kikan-m",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.04,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "tr05",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    }
+  ],
+  "info": {
+    "active_light_set": 0,
+    "all_scissor": 0,
+    "chara_light_adjust": {
+      "mode": 0,
+      "value": [
+        0.3,
+        1.8,
+        0.44
+      ]
+    },
+    "chara_pos": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "def_foot": 6,
+    "floor": -10000.0,
+    "lens_flare": 1,
+    "light_sets": [
+      {
+        "ambient": [
+          80.0,
+          80.0,
+          80.0
+        ],
+        "bg_color": [
+          35.0,
+          40.0,
+          35.0
+        ],
+        "bg_color2": [
+          35.0,
+          40.0,
+          35.0
+        ],
+        "fog": {
+          "color": [
+            35,
+            40,
+            35
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 0,
+        "lights": [
+          {
+            "color": [
+              110.0,
+              108.0,
+              105.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              80.0,
+              80.0,
+              80.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          88.0,
+          88.0,
+          88.0
+        ],
+        "bg_color": [
+          20.0,
+          40.0,
+          20.0
+        ],
+        "bg_color2": [
+          20.0,
+          40.0,
+          20.0
+        ],
+        "fog": {
+          "color": [
+            20,
+            40,
+            20
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 1,
+        "lights": [
+          {
+            "color": [
+              125.0,
+              123.0,
+              120.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              100.0,
+              100.0,
+              100.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          86.0,
+          86.0,
+          86.0
+        ],
+        "bg_color": [
+          20.0,
+          40.0,
+          20.0
+        ],
+        "bg_color2": [
+          20.0,
+          40.0,
+          20.0
+        ],
+        "fog": {
+          "color": [
+            20,
+            40,
+            20
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 2,
+        "lights": [
+          {
+            "color": [
+              110.0,
+              108.0,
+              105.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              80.0,
+              75.0,
+              70.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          101.0,
+          96.0,
+          50.0
+        ],
+        "bg_color": [
+          40.0,
+          40.0,
+          0.0
+        ],
+        "bg_color2": [
+          20.0,
+          40.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            40,
+            40,
+            0
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 3,
+        "lights": [
+          {
+            "color": [
+              125.0,
+              95.0,
+              75.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              80.0,
+              30.0,
+              20.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          70.0,
+          70.0,
+          131.0
+        ],
+        "bg_color": [
+          20.0,
+          35.0,
+          20.0
+        ],
+        "bg_color2": [
+          20.0,
+          35.0,
+          20.0
+        ],
+        "fog": {
+          "color": [
+            20,
+            35,
+            20
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 4,
+        "lights": [
+          {
+            "color": [
+              40.0,
+              40.0,
+              20.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              30.0,
+              30.0,
+              30.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          15.0,
+          30.0,
+          80.0
+        ],
+        "bg_color": [
+          10.0,
+          10.0,
+          15.0
+        ],
+        "bg_color2": [
+          10.0,
+          10.0,
+          15.0
+        ],
+        "fog": {
+          "color": [
+            10,
+            10,
+            15
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 5,
+        "lights": [
+          {
+            "color": [
+              40.0,
+              40.0,
+              10.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          40.0,
+          40.0,
+          70.0
+        ],
+        "bg_color": [
+          15.0,
+          20.0,
+          15.0
+        ],
+        "bg_color2": [
+          15.0,
+          20.0,
+          15.0
+        ],
+        "fog": {
+          "color": [
+            15,
+            20,
+            15
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 6,
+        "lights": [
+          {
+            "color": [
+              40.0,
+              40.0,
+              10.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              20.0,
+              20.0,
+              20.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          80.0,
+          80.0,
+          80.0
+        ],
+        "bg_color": [
+          20.0,
+          25.0,
+          20.0
+        ],
+        "bg_color2": [
+          20.0,
+          25.0,
+          20.0
+        ],
+        "fog": {
+          "color": [
+            20,
+            25,
+            20
+          ],
+          "far": 7000.0,
+          "far_value": 0.0,
+          "near": 2000.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 7,
+        "lights": [
+          {
+            "color": [
+              75.0,
+              65.0,
+              40.0
+            ],
+            "direction": [
+              0.57735,
+              0.57735,
+              0.57735
+            ],
+            "index": 0
+          },
+          {
+            "color": [
+              10.0,
+              30.0,
+              30.0
+            ],
+            "direction": [
+              -0.707107,
+              -0.707107,
+              0.0
+            ],
+            "index": 1
+          }
+        ],
+        "point_lights": []
+      },
+      {
+        "ambient": [
+          56.0,
+          71.0,
+          66.0
+        ],
+        "bg_color": [
+          20.0,
+          40.0,
+          20.0
+        ],
+        "bg_color2": [
+          20.0,
+          40.0,
+          20.0
+        ],
+        "fog": {
+          "color": [
+            21,
+            41,
+            71
+          ],
+          "far": 1400.0,
+          "far_value": 0.0,
+          "near": 700.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 1,
+        "fov": true,
+        "index": 8,
+        "lights": [
+          {
+            "color": [
+              31.0,
+              51.0,
+              91.0
+            ],
+            "direction": [
+              0.0,
+              -1.0,
+              0.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": []
+      }
+    ],
+    "model_packs": [
+      "s03_0.pcp"
+    ],
+    "sky": {
+      "height": 0.0,
+      "info": 0,
+      "sun_angle_degrees": 0.0
+    },
+    "texture_packs": [
+      "s03.json",
+      "train01.json"
+    ],
+    "time": {
+      "blend": 1,
+      "enable": 1,
+      "fixed_time": 12.0,
+      "fixed_time_enable": 0
+    },
+    "time_cfade": 0,
+    "time_light_num": 8
+  },
+  "kind": "scene_map",
+  "parts": [
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p01_s03",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0301-m.gltf",
+          "name": "s0301-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0301-a.gltf",
+          "name": "s0301-a",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p02_s03",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0302-a.gltf",
+          "name": "s0302-a",
+          "position": [
+            0.0,
+            -3.23162,
+            -547.548
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0303-a.gltf",
+          "name": "s0303-a",
+          "position": [
+            0.0,
+            -3.23162,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0304-a.gltf",
+          "name": "s0304-a",
+          "position": [
+            0.0,
+            -3.23162,
+            -1095.1
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0305-a.gltf",
+          "name": "s0305-a",
+          "position": [
+            0.0,
+            -3.23162,
+            -1642.64
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0306-a.gltf",
+          "name": "s0306-a",
+          "position": [
+            0.0,
+            -3.23162,
+            -547.548
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s0302-c.gltf",
+          "name": "s0302-c",
+          "position": [
+            0.0,
+            -3.23162,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "func_points": [
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": -90.0,
+            "end_z": 0.0,
+            "frame_name": "door01-",
+            "kind": 2,
+            "mode": 2,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p01_s03t",
+            "piece_name": "s03t01-m",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": -4.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 0,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "door",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p01_s03t",
+      "pieces": [
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t01-m.gltf",
+          "name": "s03t01-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t02-m.gltf",
+          "name": "s03t02-m0",
+          "position": [
+            0.0,
+            0.0,
+            -547.548
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t02-m.gltf",
+          "name": "s03t02-m1",
+          "position": [
+            0.0,
+            0.0,
+            -1065.19
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t02-m.gltf",
+          "name": "s03t02-m2",
+          "position": [
+            0.0,
+            0.0,
+            -1581.92
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t03-m.gltf",
+          "name": "s03t03-m0",
+          "position": [
+            0.0,
+            0.0,
+            -806.106
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t03-m.gltf",
+          "name": "s03t03-m1",
+          "position": [
+            0.0,
+            0.0,
+            -1323.57
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t04-m.gltf",
+          "name": "s03t04-m0",
+          "position": [
+            0.0,
+            0.0,
+            -1822.59
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "s03t03-m.gltf",
+          "name": "s03t03-m2",
+          "position": [
+            0.0,
+            0.0,
+            -288.75
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "collision": {
+            "param": 0,
+            "type": 0
+          },
+          "model": "kikan-m.gltf",
+          "name": "kikan-m",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            20.0,
+            20.0,
+            20.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p02_s03",
+      "group": "",
+      "name": "p02_s03",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-1",
+      "position": [
+        0.0,
+        0.0,
+        -1600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-2",
+      "position": [
+        0.0,
+        0.0,
+        -3200.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-3",
+      "position": [
+        0.0,
+        0.0,
+        -4800.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-4",
+      "position": [
+        0.0,
+        0.0,
+        -6400.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-5",
+      "position": [
+        0.0,
+        0.0,
+        1600.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-6",
+      "position": [
+        0.0,
+        0.0,
+        3200.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-7",
+      "position": [
+        0.0,
+        0.0,
+        4800.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-8",
+      "position": [
+        0.0,
+        0.0,
+        6400.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03",
+      "group": "",
+      "name": "p01_s03-9",
+      "position": [
+        0.0,
+        0.0,
+        8000.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p01_s03t",
+      "group": "",
+      "name": "p01_s03t",
+      "position": [
+        0.0,
+        -4.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    }
+  ],
+  "schema_version": 2
+}

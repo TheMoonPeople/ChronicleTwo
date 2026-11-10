@@ -1,0 +1,593 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "from": 30,
+      "op": "clear_etc_info"
+    },
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "manualbarwh",
+          "values": [
+            6,
+            258
+          ]
+        }
+      ],
+      "op": "etc_info"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "op_bg",
+      "textures": [
+        {
+          "name": "op_bg",
+          "rect": [
+            0,
+            46,
+            512,
+            448
+          ],
+          "spelling": "TEXDATA"
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "mn",
+      "textures": [
+        {
+          "name": "mnwin0",
+          "rect": [
+            0,
+            0,
+            24,
+            26
+          ]
+        },
+        {
+          "name": "mnwin1",
+          "rect": [
+            24,
+            0,
+            2,
+            26
+          ]
+        },
+        {
+          "name": "mnwin2",
+          "rect": [
+            26,
+            0,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "mnwin3",
+          "rect": [
+            0,
+            52,
+            24,
+            1
+          ]
+        },
+        {
+          "name": "mnwin4",
+          "rect": [
+            24,
+            52,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "mnwin5",
+          "rect": [
+            26,
+            52,
+            36,
+            1
+          ]
+        },
+        {
+          "name": "mnwin6",
+          "rect": [
+            0,
+            96,
+            24,
+            26
+          ]
+        },
+        {
+          "name": "mnwin7",
+          "rect": [
+            24,
+            96,
+            2,
+            26
+          ]
+        },
+        {
+          "name": "mnwin8",
+          "rect": [
+            26,
+            96,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "scrlbar",
+          "rect": [
+            62,
+            0,
+            6,
+            30
+          ]
+        },
+        {
+          "name": "scrlbar_mn0",
+          "rect": [
+            62,
+            0,
+            6,
+            10
+          ]
+        },
+        {
+          "name": "scrlbar_mn1",
+          "rect": [
+            62,
+            10,
+            6,
+            10
+          ]
+        },
+        {
+          "name": "scrlbar_mn2",
+          "rect": [
+            62,
+            20,
+            6,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "from": 10,
+      "op": "clear_forms",
+      "to": 59
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "op_bg",
+      "op": "form",
+      "parts": [
+        {
+          "name": "op_bg",
+          "part": "normal",
+          "size": [
+            512,
+            502
+          ],
+          "texture": "op_bg",
+          "xy": [
+            0,
+            -8
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                40,
+                36,
+                35,
+                128
+              ]
+            }
+          ],
+          "name": "mnwinback",
+          "part": "fillbox",
+          "size": [
+            428,
+            272
+          ],
+          "style": 0,
+          "xy": [
+            42,
+            86
+          ]
+        },
+        {
+          "name": "mnwin0",
+          "part": "normal",
+          "texture": "mnwin0",
+          "xy": [
+            32,
+            82
+          ]
+        },
+        {
+          "name": "mnwin1",
+          "part": "normal",
+          "size": [
+            410,
+            26
+          ],
+          "texture": "mnwin1",
+          "xy": [
+            46,
+            82
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "mnwin2",
+          "part": "normal",
+          "texture": "mnwin2",
+          "xy": [
+            456,
+            82
+          ]
+        },
+        {
+          "name": "mnwin3",
+          "part": "normal",
+          "size": [
+            24,
+            230
+          ],
+          "texture": "mnwin3",
+          "xy": [
+            32,
+            108
+          ]
+        },
+        {
+          "name": "mnwin4",
+          "part": "normal",
+          "size": [
+            410,
+            230
+          ],
+          "texture": "mnwin4",
+          "xy": [
+            46,
+            108
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "mnwin5",
+          "part": "normal",
+          "size": [
+            36,
+            230
+          ],
+          "texture": "mnwin5",
+          "xy": [
+            456,
+            108
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "mnwin6",
+          "part": "normal",
+          "texture": "mnwin6",
+          "xy": [
+            32,
+            338
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "mnwin7",
+          "part": "normal",
+          "size": [
+            410,
+            26
+          ],
+          "texture": "mnwin7",
+          "xy": [
+            46,
+            338
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "mnwin8",
+          "part": "normal",
+          "texture": "mnwin8",
+          "xy": [
+            456,
+            338
+          ]
+        },
+        {
+          "name": "scrlbase",
+          "part": "funcinfo",
+          "xy": [
+            436,
+            112
+          ]
+        },
+        {
+          "name": "bar0",
+          "part": "normal",
+          "texture": "scrlbar_mn0",
+          "xy": [
+            474,
+            92
+          ]
+        },
+        {
+          "name": "bar1",
+          "part": "normal",
+          "size": [
+            6,
+            70
+          ],
+          "texture": "scrlbar_mn1",
+          "xy": [
+            474,
+            92
+          ]
+        },
+        {
+          "name": "bar2",
+          "part": "normal",
+          "texture": "scrlbar_mn2",
+          "xy": [
+            474,
+            92
+          ]
+        },
+        {
+          "name": "base_msg",
+          "part": "funcinfo",
+          "xy": [
+            56,
+            106
+          ]
+        },
+        {
+          "name": "info_msg",
+          "part": "funcinfo",
+          "xy": [
+            82,
+            392
+          ]
+        },
+        {
+          "name": "msg_clip",
+          "part": "funcinfo",
+          "xy": [
+            50,
+            105
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 20,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            480
+          ]
+        }
+      ]
+    },
+    {
+      "name": "clip0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "clip",
+          "size": [
+            418,
+            239
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "set": "position",
+          "xy": [
+            120,
+            500
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "set": "position",
+          "xy": [
+            120,
+            500
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg5",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "set": "position",
+          "xy": [
+            120,
+            500
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg6",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "set": "position",
+          "xy": [
+            120,
+            500
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg8",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "set": "position",
+          "xy": [
+            120,
+            500
+          ]
+        }
+      ]
+    },
+    {
+      "name": "clip1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "clip"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            200,
+            500
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "op": "reset_texinfo"
+    }
+  ],
+  "schema_version": 2
+}

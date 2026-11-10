@@ -1,0 +1,21 @@
+300 128 0 128 128
+365 cross 128 0 128 128
+366
+600 255 128 128 128
+618
+650 cross
+656
+800 cross
+806
+# --jump town:10 --fast-load --window 512x480; mouse scrolls both panes, then right-click closes.
+# Capture at 1030: goods list scrolled; at 1200: inventory scrolled; at 1400: back in town.
+950 mouse:-196,-72
+951
+1000 wheel:-1
+1008
+1100 mouse:240,16
+1101
+1150 wheel:-1
+1155
+1250 mouse2
+1251

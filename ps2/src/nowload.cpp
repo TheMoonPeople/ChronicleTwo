@@ -296,11 +296,11 @@ void CancelNowLoading() {
 
 /**
  *
- * Twelve words of loading screen data copied as floats.
+ * Memory-manager storage copied as words.
  *
  */
 struct LoadingMemoryWords {
-    float words[12]; /**< Loading screen words. */
+    float words[sizeof(mgCMemory) / sizeof(float)]; /**< Memory-manager words. */
 };
 
 void CreateNowLoading(NowLoadingInfo *info) {

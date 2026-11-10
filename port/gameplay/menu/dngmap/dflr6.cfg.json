@@ -1,0 +1,981 @@
+{
+  "floors": [
+    {
+      "floor": 0,
+      "info": {
+        "fast_destroy_time": 33000,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          0,
+          0,
+          0
+        ],
+        "spheda_prize_num": [
+          0,
+          0,
+          0
+        ]
+      },
+      "practice": {
+        "param": 1,
+        "type": 2
+      }
+    },
+    {
+      "floor": 1,
+      "info": {
+        "fast_destroy_time": 33600,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          207,
+          200,
+          276
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          5
+        ]
+      },
+      "practice": {
+        "param": 2,
+        "type": 2
+      }
+    },
+    {
+      "floor": 2,
+      "info": {
+        "fast_destroy_time": 32400,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          208,
+          209,
+          257
+        ],
+        "spheda_prize_num": [
+          1,
+          1,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 5
+      }
+    },
+    {
+      "floor": 3,
+      "info": {
+        "fast_destroy_time": 31800,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          388,
+          297,
+          256
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 4,
+      "info": {
+        "fast_destroy_time": 35100,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          279,
+          297,
+          255
+        ],
+        "spheda_prize_num": [
+          10,
+          4,
+          1
+        ]
+      },
+      "practice": {
+        "param": 5,
+        "type": 3
+      }
+    },
+    {
+      "floor": 5,
+      "info": {
+        "fast_destroy_time": 0,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          0,
+          0,
+          0
+        ],
+        "spheda_prize_num": [
+          0,
+          0,
+          0
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 6,
+      "info": {
+        "fast_destroy_time": 35160,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          186,
+          290,
+          270
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          2
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 7,
+      "info": {
+        "fast_destroy_time": 31200,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          187,
+          287,
+          291
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 5
+      }
+    },
+    {
+      "floor": 8,
+      "info": {
+        "fast_destroy_time": 33600,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          188,
+          270,
+          290
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          2
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 9,
+      "info": {
+        "fast_destroy_time": 35400,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 3,
+        "spheda": 1,
+        "spheda_prize_item": [
+          388,
+          189,
+          285
+        ],
+        "spheda_prize_num": [
+          1,
+          1,
+          1
+        ]
+      },
+      "practice": {
+        "param": 5,
+        "type": 3
+      }
+    },
+    {
+      "floor": 10,
+      "info": {
+        "fast_destroy_time": 0,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          190,
+          283,
+          291
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          3
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 0
+      }
+    },
+    {
+      "floor": 11,
+      "info": {
+        "fast_destroy_time": 31800,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          191,
+          284,
+          271
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 3,
+        "type": 2
+      }
+    },
+    {
+      "floor": 12,
+      "info": {
+        "fast_destroy_time": 32400,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          296,
+          192,
+          256
+        ],
+        "spheda_prize_num": [
+          1,
+          1,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 5
+      }
+    },
+    {
+      "floor": 13,
+      "info": {
+        "fast_destroy_time": 33900,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          193,
+          286,
+          287
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          3
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 14,
+      "info": {
+        "fast_destroy_time": 34800,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          194,
+          282,
+          253
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 5,
+        "type": 3
+      }
+    },
+    {
+      "floor": 15,
+      "info": {
+        "fast_destroy_time": 35400,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          389,
+          196,
+          269
+        ],
+        "spheda_prize_num": [
+          1,
+          1,
+          2
+        ]
+      },
+      "practice": {
+        "param": 2,
+        "type": 2
+      }
+    },
+    {
+      "floor": 16,
+      "info": {
+        "fast_destroy_time": 0,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          197,
+          287,
+          292
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 0
+      }
+    },
+    {
+      "floor": 17,
+      "info": {
+        "fast_destroy_time": 37800,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          389,
+          198,
+          289
+        ],
+        "spheda_prize_num": [
+          1,
+          1,
+          2
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 18,
+      "info": {
+        "fast_destroy_time": 39000,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          199,
+          280,
+          285
+        ],
+        "spheda_prize_num": [
+          1,
+          4,
+          1
+        ]
+      },
+      "practice": {
+        "param": 1,
+        "type": 2
+      }
+    },
+    {
+      "floor": 19,
+      "info": {
+        "fast_destroy_time": 40800,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          295,
+          283,
+          301
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 5,
+        "type": 3
+      }
+    },
+    {
+      "floor": 20,
+      "info": {
+        "fast_destroy_time": 41700,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          297,
+          284,
+          276
+        ],
+        "spheda_prize_num": [
+          8,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 21,
+      "info": {
+        "fast_destroy_time": 0,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          279,
+          286,
+          257
+        ],
+        "spheda_prize_num": [
+          2,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 0
+      }
+    },
+    {
+      "floor": 22,
+      "info": {
+        "fast_destroy_time": 42000,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          295,
+          290,
+          269
+        ],
+        "spheda_prize_num": [
+          2,
+          3,
+          2
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 5
+      }
+    },
+    {
+      "floor": 23,
+      "info": {
+        "fast_destroy_time": 43200,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          296,
+          273,
+          291
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          3
+        ]
+      },
+      "practice": {
+        "param": 4,
+        "type": 2
+      }
+    },
+    {
+      "floor": 24,
+      "info": {
+        "fast_destroy_time": 42900,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          295,
+          270,
+          288
+        ],
+        "spheda_prize_num": [
+          2,
+          2,
+          2
+        ]
+      },
+      "practice": {
+        "param": 5,
+        "type": 3
+      }
+    },
+    {
+      "floor": 25,
+      "info": {
+        "fast_destroy_time": 45600,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          274,
+          280,
+          286
+        ],
+        "spheda_prize_num": [
+          2,
+          4,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 26,
+      "info": {
+        "fast_destroy_time": 0,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          0,
+          0,
+          0
+        ],
+        "spheda_prize_num": [
+          0,
+          0,
+          0
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 0
+      }
+    },
+    {
+      "floor": 27,
+      "info": {
+        "fast_destroy_time": 0,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          0,
+          0,
+          0
+        ],
+        "spheda_prize_num": [
+          0,
+          0,
+          0
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 0
+      }
+    },
+    {
+      "floor": 28,
+      "info": {
+        "fast_destroy_time": 45000,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          186,
+          270,
+          256
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 29,
+      "info": {
+        "fast_destroy_time": 45600,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          187,
+          279,
+          287
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          3
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 5
+      }
+    },
+    {
+      "floor": 30,
+      "info": {
+        "fast_destroy_time": 46800,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          188,
+          273,
+          253
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          1
+        ]
+      },
+      "practice": {
+        "param": 5,
+        "type": 3
+      }
+    },
+    {
+      "floor": 31,
+      "info": {
+        "fast_destroy_time": 47400,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          189,
+          297,
+          269
+        ],
+        "spheda_prize_num": [
+          1,
+          5,
+          3
+        ]
+      },
+      "practice": {
+        "param": 2,
+        "type": 2
+      }
+    },
+    {
+      "floor": 32,
+      "info": {
+        "fast_destroy_time": 48000,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          190,
+          295,
+          292
+        ],
+        "spheda_prize_num": [
+          1,
+          1,
+          3
+        ]
+      },
+      "practice": {
+        "param": 3,
+        "type": 2
+      }
+    },
+    {
+      "floor": 33,
+      "info": {
+        "fast_destroy_time": 45000,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          191,
+          297,
+          289
+        ],
+        "spheda_prize_num": [
+          1,
+          5,
+          4
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 34,
+      "info": {
+        "fast_destroy_time": 39000,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 3,
+        "spheda": 1,
+        "spheda_prize_item": [
+          192,
+          279,
+          285
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          2
+        ]
+      },
+      "practice": {
+        "param": 1,
+        "type": 2
+      }
+    },
+    {
+      "floor": 35,
+      "info": {
+        "fast_destroy_time": 45480,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          193,
+          270,
+          301
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          3
+        ]
+      },
+      "practice": {
+        "param": 4,
+        "type": 2
+      }
+    },
+    {
+      "floor": 36,
+      "info": {
+        "fast_destroy_time": 41400,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          194,
+          271,
+          276
+        ],
+        "spheda_prize_num": [
+          1,
+          3,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 1
+      }
+    },
+    {
+      "floor": 37,
+      "info": {
+        "fast_destroy_time": 42300,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          196,
+          225,
+          257
+        ],
+        "spheda_prize_num": [
+          1,
+          2,
+          1
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 5
+      }
+    },
+    {
+      "floor": 38,
+      "info": {
+        "fast_destroy_time": 0,
+        "fishing": 0,
+        "fishing_record": 0,
+        "geostone": 0,
+        "seal": 0,
+        "spheda": 1,
+        "spheda_prize_item": [
+          0,
+          0,
+          0
+        ],
+        "spheda_prize_num": [
+          0,
+          0,
+          0
+        ]
+      },
+      "practice": {
+        "param": 0,
+        "type": 0
+      }
+    }
+  ],
+  "kind": "dungeon_floors",
+  "schema_version": 2
+}

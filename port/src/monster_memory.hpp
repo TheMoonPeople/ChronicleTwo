@@ -1,20 +1,20 @@
 #pragma once
 
-#include "mg_memory.hpp"
+#include "monster.hpp"
+#include "runscript.hpp"
 
-#include <cstdio>
-#include <cstdlib>
+/** Quadwords reserved for a monster's two native interpreter stacks and the strict arena end. */
+inline constexpr int kMonsterScriptQuadwords = (128 * sizeof(RS_STACKDATA) + 15) / 16 +
+                                               (512 * sizeof(RS_CALLDATA) + 15) / 16 + 1;
 
-inline void PortSetMonsterBuffers(mgCMemory *slots, int count, mgCMemory &source) {
-    for (int i = 0; i < count; ++i) {
-        u_long128 *buffer = source.stAlloc64(4000);
-        if (buffer == nullptr) {
-            std::fprintf(stderr, "monster arena setup failed: slot=%d source=%p used=%d capacity=%d\n",
-                         i, static_cast<void *>(&source), source.stack_used, source.stack_size);
-            std::abort();
-        }
-        slots[i].stSetBuffer(buffer, 4000);
-        slots[i].stack_used = 0;
-        slots[i].lock = 0;
-    }
-}
+/**
+ *
+ * Gives every active monster slot its own native arena for model and script copies.
+ */
+void PrepareMonsterMemory(CMonsterMan &manager);
+
+// Reads game.more_monsters for the floor being set up, and returns the priority limit: how many of the nearest
+// monsters show and act.
+int PortMonsterLatchLimits();
+// Monster slots the current floor uses: retail's 24, or MONSTER_ACTIVE_MAX with game.more_monsters.
+int PortMonsterActiveLimit();

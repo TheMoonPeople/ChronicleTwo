@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ELF = ROOT / "rom/pal/extracted/iso/SCES_511.90"
 DEFAULT_SYMBOLS = ROOT / "ps2/config/pal/main.symbols.txt"
 DEFAULT_OUT = ROOT / "port/build/vu1"
-KAZAROV_PYTHON = ROOT / "tools/kazarov/python"
+KAZAROV_PYTHON = ROOT / "tools/kazarov/scripts"
 
 # Address order: a program runs until the next one's start unless it has an explicit end.
 PROGRAMS = [
@@ -440,7 +440,7 @@ def load_image(elf_path):
     raw = Path(elf_path).read_bytes()
     try:
         segments = _segments_from_sections(raw)
-        how = "section headers (tools/kazarov/python kazarov_elf)"
+        how = "section headers (tools/kazarov/scripts kazarov_elf)"
     except (ImportError, ValueError, IndexError, struct.error):
         segments = []
     if not segments:

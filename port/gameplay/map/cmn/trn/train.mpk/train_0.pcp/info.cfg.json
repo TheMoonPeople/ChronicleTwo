@@ -1,0 +1,82 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "train02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "train02-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "train08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train15-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "kikan-m.gltf",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

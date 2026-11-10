@@ -55,6 +55,7 @@ struct sceMcColor {
 };
 
 STATIC_ASSERT(sizeof(sceMcColor) == 0x10);
+PORT_RECORD_ASSERT(sizeof(sceMcColor) == 0x10);
 
 /**
  * One colour of an icon.sys's lighting, held as floats.
@@ -87,6 +88,7 @@ struct sceMcIconSys {
 };
 
 STATIC_ASSERT(sizeof(sceMcIconSys) == 0x3C4);
+PORT_RECORD_ASSERT(sizeof(sceMcIconSys) == 0x3C4);
 
 /**
  * Date and time a memory card file was created or changed.
@@ -102,6 +104,7 @@ struct sceMcStDateTime {
 };
 
 STATIC_ASSERT(sizeof(sceMcStDateTime) == 0x8);
+PORT_RECORD_ASSERT(sizeof(sceMcStDateTime) == 0x8);
 
 /**
  * One directory entry that sceMcGetDir writes.
@@ -118,6 +121,7 @@ struct sceMcTblGetDir {
 };
 
 STATIC_ASSERT(sizeof(sceMcTblGetDir) == 0x40);
+PORT_RECORD_ASSERT(sizeof(sceMcTblGetDir) == 0x40);
 
 #ifdef __cplusplus
 extern "C" {

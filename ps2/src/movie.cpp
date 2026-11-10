@@ -183,11 +183,11 @@ static u_int at_1276__2[4] __attribute__((aligned(16))) = {0, 0x10000000, 0xE, 0
 static u_int at_1287__2[4] __attribute__((aligned(16))) = {0x8000, 0x10000000, 0xE, 0};
 
 static inline void *DmaAddr(void *addr) {
-    return (void *) ((u32) addr & 0xFFFFFFF);
+    return (void *) ((uptr) addr & 0xFFFFFFF);
 }
 
 static inline void *UncAddr(void *addr) {
-    return (void *) (((u32) addr & 0xFFFFFFF) | 0x20000000);
+    return (void *) (((uptr) addr & 0xFFFFFFF) | 0x20000000);
 }
 
 void CMovie::Load(char *name, mgCMemory **memory, int width, int height, bool with_audio, bool loop,
@@ -756,11 +756,11 @@ void voBufDecCount(VoBuf *buf) {
 }
 
 static u32 getFIFOindex(ViBuf *buf, void *addr) {
-    if (addr == (void *) (((u32) buf->tag + (buf->n + 1) * 0x10) & 0xFFFFFFF)) {
+    if (addr == (void *) (((uptr) buf->tag + (buf->n + 1) * 0x10) & 0xFFFFFFF)) {
         return 0;
     }
 
-    return ((u32) addr - (u32) buf->data) >> 11;
+    return ((uptr) addr - (uptr) buf->data) >> 11;
 }
 
 void setD3_CHCR(u32 chcr) {
@@ -782,12 +782,12 @@ void setD4_CHCR(u32 chcr) {
 }
 
 static void scTag2(QWORD *tag, void *addr, u32 id, u32 count) {
-    tag->l[0] = ((u64) (u32) addr << 32) | ((u64) id << 28) | (u64) count;
+    tag->l[0] = ((u64) (uptr) addr << 32) | ((u64) id << 28) | (u64) count;
 }
 
 int viBufCreate(ViBuf *buf, u_long128 *data, u_long128 *tags, int sectors, TimeStamp *ts, int ts_count) {
     buf->data = data;
-    buf->tag = (u_long128 *) (((u32) tags & 0xFFFFFFF) | 0x20000000);
+    buf->tag = (u_long128 *) (((uptr) tags & 0xFFFFFFF) | 0x20000000);
     buf->n = sectors;
     buf->buff_size = sectors << 11;
     buf->ts = ts;
@@ -824,8 +824,8 @@ int viBufReset(ViBuf *buf) {
 
     scTag2((QWORD *) (buf->tag + i), DmaAddr(buf->tag), 2, 0);
     *(int *) 0x1000B420 = 0;
-    *(int *) 0x1000B410 = (u32) buf->data & 0xFFFFFFF;
-    *(int *) 0x1000B430 = (u32) buf->tag & 0xFFFFFFF;
+    *(int *) 0x1000B410 = (uptr) buf->data & 0xFFFFFFF;
+    *(int *) 0x1000B430 = (uptr) buf->tag & 0xFFFFFFF;
     setD4_CHCR(5U);
     return 1;
 }
@@ -959,7 +959,7 @@ static inline void viBufRestartD3(const ViBuf *buf) {
 
 int viBufRestartDMA(ViBuf *buf) {
     int fifo_bits;
-    u32 tag_addr;
+    uptr tag_addr;
     u32 madr;
     int mode;
     u32 qwc;
@@ -979,12 +979,12 @@ int viBufRestartDMA(ViBuf *buf) {
     chcr = buf->env.d4chcr | 0x100;
 
     WaitSema(buf->sema);
-    if (madr < (u32) buf->data) {
+    if (madr < (uptr) buf->data) {
         size = buf->n << 11;
-        qwc = ((u32) buf->data - madr) >> 4;
-        tag_addr = (u32) DmaAddr(buf->tag);
+        qwc = ((uptr) buf->data - madr) >> 4;
+        tag_addr = (uptr) DmaAddr(buf->tag);
         madr += size;
-        mode = (buf->env.d4madr == (u32) buf->data || buf->env.d4madr == (u32) buf->data + size) ? 0 : 3;
+        mode = (buf->env.d4madr == (uptr) buf->data || buf->env.d4madr == (uptr) buf->data + size) ? 0 : 3;
         chcr = (buf->env.d4chcr & MOVIE_CHCR_LOW_MASK) | (mode << 28) | 0x100;
         if (0 > (buf->n - buf->dma_start) % buf->n || (buf->n - buf->dma_start) % buf->n >= buf->dma_n) {
             buf->dma_start = buf->n - 1;
@@ -994,10 +994,10 @@ int viBufRestartDMA(ViBuf *buf) {
         index = getFIFOindex(buf, (void *) buf->env.d4madr);
         fifo_index = getFIFOindex(buf, (void *) madr);
         if (index != fifo_index) {
-            tag_addr = (u32) DmaAddr(&buf->tag[index]);
-            qwc = ((u32) &buf->data_bytes[index << 11] - madr) >> 4;
-            mode = ((u32) buf->data + (buf->env.d4madr - (u32) buf->data) % (buf->n << 11) ==
-                    (u32) buf->data + ((buf->dma_start + buf->dma_n) % buf->n << 11))
+            tag_addr = (uptr) DmaAddr(&buf->tag[index]);
+            qwc = ((uptr) &buf->data_bytes[index << 11] - madr) >> 4;
+            mode = ((uptr) buf->data + (buf->env.d4madr - (uptr) buf->data) % (buf->n << 11) ==
+                    (uptr) buf->data + ((buf->dma_start + buf->dma_n) % buf->n << 11))
                        ? 0
                        : 3;
             chcr = (buf->env.d4chcr & MOVIE_CHCR_LOW_MASK) | (mode << 28) | 0x100;
@@ -1156,7 +1156,7 @@ int viBufGetTs(ViBuf *buf, TimeStamp *ts) {
     WaitSema(buf->sema);
     ts->pts = -1;
     ts->dts = -1;
-    read_pos = (size + (dma_addr + (fifo_bits >> 3)) - (u32) buf->data) % size;
+    read_pos = (size + (dma_addr + (fifo_bits >> 3)) - (uptr) buf->data) % size;
     count = buf->count_ts;
     base = TsWritePos(buf->wt_ts) - count;
 
@@ -1184,7 +1184,7 @@ int strFileOpen(StrFile *file, char *path) {
     char       full_path[0x100];
     char       device[0x4C];
     sceCdRMode cd_mode;
-    int        leftover;
+    int        leftover PORT_INIT(0);
     char      *colon = index(path, ':');
 
     if (colon != NULL) {
@@ -1231,7 +1231,7 @@ int strFileOpen(StrFile *file, char *path) {
         }
 
         file->iop_buf = iop_bd_addr;
-        sceCdStInit(0x50, 5, (void *) (((u32) file->iop_buf + 0xF) & ~0xF));
+        sceCdStInit(0x50, 5, (void *) (((uptr) file->iop_buf + 0xF) & ~0xF));
 
         if (sceCdSearchFile(&file->fp, full_path) == 0) {
             printf("Cannot open '%s'(sceCdSearchFile)\n", full_path);
@@ -1340,8 +1340,8 @@ int readBufEndGet(ReadBuf *buf, int count) {
 }
 
 int audioDecCreate(AudioDec *dec, u8 *ring_buf, int ring_size, int iop_size) {
-    int iop_buf;
-    int iop_stub;
+    sptr iop_buf;
+    sptr iop_stub;
 
     dec->state = 0;
     dec->hdr_count = 0;
@@ -1354,7 +1354,7 @@ int audioDecCreate(AudioDec *dec, u8 *ring_buf, int ring_size, int iop_size) {
     dec->iop_buff_size = iop_size;
     dec->iop_last_pos = 0;
     dec->iop_pause_pos = 0;
-    dec->iop_buff = (int) sceSifAllocIopHeap(iop_size);
+    dec->iop_buff = (uptr) sceSifAllocIopHeap(iop_size);
     iop_buf = dec->iop_buff;
 
     if (iop_buf < 0) {
@@ -1363,7 +1363,7 @@ int audioDecCreate(AudioDec *dec, u8 *ring_buf, int ring_size, int iop_size) {
     }
 
     printf("IOP memory 0x%08x(size:%d) is allocated\n", iop_buf, iop_size);
-    dec->iop_zero = (int) sceSifAllocIopHeap(0x800);
+    dec->iop_zero = (uptr) sceSifAllocIopHeap(0x800);
     iop_stub = dec->iop_zero;
 
     if (iop_stub < 0) {
@@ -1701,7 +1701,7 @@ int cpy2area(u8 *destination1, int capacity1, u8 *destination2, int capacity2,
 
 void audioDecBeginPut(AudioDec *dec, u8 **area1, int *size1, u8 **area2, int *size2) {
     if (dec->state == 0) {
-        *area1 = (u8 *) ((int) dec->hdr + dec->hdr_count);
+        *area1 = (u8 *) ((uptr) dec->hdr + dec->hdr_count);
         *size1 = sizeof(dec->hdr) - dec->hdr_count;
         *area2 = dec->data;
         *size2 = dec->size;

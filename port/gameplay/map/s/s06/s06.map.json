@@ -1,0 +1,3126 @@
+{
+  "func_points": [
+    {
+      "anime": {
+        "end_x": 1.0,
+        "end_y": 1.1,
+        "end_z": 1.0,
+        "frame_name": "e",
+        "kind": 3,
+        "mode": 4,
+        "param_x": 1.0,
+        "param_y": 0.3,
+        "param_z": 1.0,
+        "parts_name": "p07_s06",
+        "piece_name": "s06_07-m0",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 0.06,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "func",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "frame_name": "n",
+        "kind": 1,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": -40.0,
+        "param_z": 0.0,
+        "parts_name": "p07_s06",
+        "piece_name": "s06_07-m0",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": 3.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "func0",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "anime": {
+        "end_x": 0.0,
+        "end_y": -2.0,
+        "end_z": 0.0,
+        "frame_name": "rr",
+        "kind": 1,
+        "mode": 4,
+        "param_x": 0.0,
+        "param_y": 0.0,
+        "param_z": 0.0,
+        "parts_name": "p07_s06",
+        "piece_name": "s06_07-m0",
+        "piece_space": 0,
+        "speed_x": 0.0,
+        "speed_y": -2.0,
+        "speed_z": 0.0,
+        "uniform": 0
+      },
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "func1",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "anime"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "func2",
+      "sound": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "far_dist": 2580.0,
+        "near_dist": 80.0,
+        "se_no": 10,
+        "shape": 0,
+        "start_x": 0.0,
+        "start_y": 0.0,
+        "start_z": 0.0,
+        "unk_2c": 1
+      },
+      "transform": {
+        "position": [
+          185.0,
+          90.0,
+          -714.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "sound"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "func3",
+      "sound": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "far_dist": 2580.0,
+        "near_dist": 80.0,
+        "se_no": 10,
+        "shape": 0,
+        "start_x": 0.0,
+        "start_y": 0.0,
+        "start_z": 0.0,
+        "unk_2c": 1
+      },
+      "transform": {
+        "position": [
+          -185.0,
+          90.0,
+          -715.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "sound"
+    },
+    {
+      "enable": 1,
+      "flag": {
+        "end": 0.0,
+        "flag_no": 0,
+        "start": 0.0,
+        "unk_8": 0
+      },
+      "name": "func4",
+      "sound": {
+        "end_x": 0.0,
+        "end_y": 0.0,
+        "end_z": 0.0,
+        "far_dist": 2580.0,
+        "near_dist": 80.0,
+        "se_no": 10,
+        "shape": 0,
+        "start_x": 0.0,
+        "start_y": 0.0,
+        "start_z": 0.0,
+        "unk_2c": 1
+      },
+      "transform": {
+        "position": [
+          190.0,
+          90.0,
+          -600.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "type": "sound"
+    }
+  ],
+  "info": {
+    "active_light_set": 0,
+    "all_scissor": 1,
+    "chara_light_adjust": {
+      "mode": 0,
+      "value": [
+        0.3,
+        1.8,
+        0.44
+      ]
+    },
+    "chara_pos": [
+      0.0,
+      51.0,
+      0.0
+    ],
+    "def_foot": 2,
+    "floor": -10000.0,
+    "lens_flare": 1,
+    "light_sets": [
+      {
+        "ambient": [
+          20.0,
+          40.0,
+          25.0
+        ],
+        "bg_color": [
+          0.0,
+          100.0,
+          30.0
+        ],
+        "bg_color2": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fog": {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "far": 0.0,
+          "far_value": 0.0,
+          "near": 0.0,
+          "near_value": 255.0
+        },
+        "fog_enable": 0,
+        "fov": true,
+        "index": 0,
+        "lights": [
+          {
+            "color": [
+              0.0,
+              75.0,
+              50.0
+            ],
+            "direction": [
+              0.0,
+              -1.0,
+              0.0
+            ],
+            "index": 0
+          }
+        ],
+        "point_lights": [
+          {
+            "color": [
+              105.0,
+              80.0,
+              55.0
+            ],
+            "index": 0,
+            "position": [
+              0.0,
+              120.0,
+              0.0
+            ],
+            "power": 800.0
+          }
+        ]
+      }
+    ],
+    "model_packs": [
+      "s06_0.pcp"
+    ],
+    "sky": {
+      "height": 0.0,
+      "info": 0,
+      "sun_angle_degrees": 0.0
+    },
+    "texture_packs": [
+      "s06.json"
+    ],
+    "time": {
+      "blend": 0,
+      "enable": 0,
+      "fixed_time": 12.0,
+      "fixed_time_enable": 0
+    },
+    "time_cfade": 0,
+    "time_light_num": 4
+  },
+  "kind": "scene_map",
+  "parts": [
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p03_s06",
+      "pieces": [
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m24",
+          "position": [
+            -316.636,
+            221.182,
+            -785.609
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0400003
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m23",
+          "position": [
+            -316.636,
+            221.182,
+            -471.497
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0400003
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m22",
+          "position": [
+            -316.636,
+            221.182,
+            -1099.72
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0400003
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m21",
+          "position": [
+            321.428,
+            219.998,
+            -1099.72
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.13
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m20",
+          "position": [
+            321.428,
+            219.998,
+            -785.609
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.13
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m19",
+          "position": [
+            321.428,
+            219.998,
+            470.856
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.13
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m18",
+          "position": [
+            321.428,
+            219.998,
+            -471.497
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.13
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m17",
+          "position": [
+            321.428,
+            219.998,
+            784.975
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.13
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m16",
+          "position": [
+            321.428,
+            219.998,
+            1099.09
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.13
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m15",
+          "position": [
+            251.436,
+            564.488,
+            1099.09
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m14",
+          "position": [
+            251.436,
+            564.488,
+            784.975
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m13",
+          "position": [
+            251.436,
+            564.488,
+            470.856
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m12",
+          "position": [
+            251.436,
+            564.488,
+            -471.497
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m11",
+          "position": [
+            251.436,
+            564.488,
+            -157.378
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m10",
+          "position": [
+            251.436,
+            564.488,
+            156.738
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m9",
+          "position": [
+            251.436,
+            564.488,
+            -785.609
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m8",
+          "position": [
+            251.436,
+            564.488,
+            -1099.72
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m7",
+          "position": [
+            -245.642,
+            564.488,
+            -1099.72
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m6",
+          "position": [
+            -245.642,
+            564.488,
+            -785.609
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m5",
+          "position": [
+            -245.642,
+            564.488,
+            156.738
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m4",
+          "position": [
+            -245.642,
+            564.488,
+            -157.378
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m3",
+          "position": [
+            -245.642,
+            564.488,
+            -471.497
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m2",
+          "position": [
+            -245.642,
+            564.488,
+            470.856
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m1",
+          "position": [
+            -245.642,
+            564.488,
+            784.975
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m0",
+          "position": [
+            -245.642,
+            564.488,
+            1099.09
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -0.66
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m25",
+          "position": [
+            -316.636,
+            221.182,
+            470.856
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0400003
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m26",
+          "position": [
+            -316.636,
+            221.182,
+            784.975
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0400003
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-m.gltf",
+          "name": "s06_03-m27",
+          "position": [
+            -316.636,
+            221.182,
+            1099.09
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0400003
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p04_s06",
+      "pieces": [
+        {
+          "model": "s06_04-m.gltf",
+          "name": "s06_04-m3",
+          "position": [
+            415.371,
+            222.731,
+            -289.907
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            -1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_04-m.gltf",
+          "name": "s06_04-m0",
+          "position": [
+            414.403,
+            222.761,
+            283.622
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_04-m.gltf",
+          "name": "s06_04-m2",
+          "position": [
+            -415.212,
+            222.731,
+            -290.006
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            -1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_04-m.gltf",
+          "name": "s06_04-m1",
+          "position": [
+            -414.912,
+            222.761,
+            283.622
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p05_s06",
+      "pieces": [
+        {
+          "model": "s06_05-m.gltf",
+          "name": "s06_05-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "func_points": [
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": -2.0,
+            "frame_name": "d",
+            "kind": 2,
+            "mode": 1,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": -2.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func0",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": -2.0,
+            "frame_name": "a",
+            "kind": 2,
+            "mode": 1,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": -2.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 2.0,
+            "frame_name": "b",
+            "kind": 2,
+            "mode": 1,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 2.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func1",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 2.0,
+            "frame_name": "c",
+            "kind": 2,
+            "mode": 1,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 2.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func2",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 1.0,
+            "end_y": 1.1,
+            "end_z": 1.0,
+            "frame_name": "f",
+            "kind": 3,
+            "mode": 4,
+            "param_x": 1.0,
+            "param_y": 0.3,
+            "param_z": 1.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.06,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func3",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 1.0,
+            "end_y": 0.3,
+            "end_z": 1.0,
+            "frame_name": "g",
+            "kind": 3,
+            "mode": 4,
+            "param_x": 1.0,
+            "param_y": 1.1,
+            "param_z": 1.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": -0.06,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func4",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 1.0,
+            "end_y": 0.3,
+            "end_z": 1.0,
+            "frame_name": "h",
+            "kind": 3,
+            "mode": 4,
+            "param_x": 1.0,
+            "param_y": 1.1,
+            "param_z": 1.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": -0.06,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func5",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 1.0,
+            "end_y": 1.1,
+            "end_z": 1.0,
+            "frame_name": "i",
+            "kind": 3,
+            "mode": 4,
+            "param_x": 1.0,
+            "param_y": 0.3,
+            "param_z": 1.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.06,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func6",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 0.0,
+            "frame_name": "j",
+            "kind": 1,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": -40.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 3.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func7",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": -40.0,
+            "end_z": 0.0,
+            "frame_name": "k",
+            "kind": 1,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": -3.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func8",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": -40.0,
+            "end_z": 0.0,
+            "frame_name": "l",
+            "kind": 1,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": -3.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func9",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 0.0,
+            "frame_name": "m",
+            "kind": 1,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": -40.0,
+            "param_z": 0.0,
+            "parts_name": "p06_s06",
+            "piece_name": "s06_06-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 3.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func10",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p06_s06",
+      "pieces": [
+        {
+          "model": "s06_06-m.gltf",
+          "name": "s06_06-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "func_points": [
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-0",
+          "transform": {
+            "position": [
+              -545.664,
+              80.0328,
+              100.615
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-9",
+          "transform": {
+            "position": [
+              -319.887,
+              80.0328,
+              330.116
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-8",
+          "transform": {
+            "position": [
+              -110.919,
+              80.0328,
+              545.164
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-6",
+          "transform": {
+            "position": [
+              -546.002,
+              80.0328,
+              -98.2796
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-5",
+          "transform": {
+            "position": [
+              -319.837,
+              80.0328,
+              -331.471
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-7",
+          "transform": {
+            "position": [
+              -110.304,
+              80.0328,
+              -543.96
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-4",
+          "transform": {
+            "position": [
+              111.281,
+              80.0328,
+              -543.333
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-2",
+          "transform": {
+            "position": [
+              319.042,
+              80.0328,
+              -331.355
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-1",
+          "transform": {
+            "position": [
+              547.196,
+              80.0328,
+              -100.206
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-3",
+          "transform": {
+            "position": [
+              547.929,
+              80.0328,
+              100.446
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-10",
+          "transform": {
+            "position": [
+              111.442,
+              80.0328,
+              545.601
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.3,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.5,
+            "heat_haze": 0,
+            "red": 0.7
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-11",
+          "transform": {
+            "position": [
+              318.589,
+              80.0328,
+              331.917
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-12",
+          "transform": {
+            "position": [
+              253.127,
+              766.819,
+              723.416
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-13",
+          "transform": {
+            "position": [
+              -248.265,
+              766.819,
+              723.416
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-15",
+          "transform": {
+            "position": [
+              253.127,
+              766.819,
+              -651.268
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "enable": 1,
+          "fire": {
+            "blue": 0.0,
+            "cast_light": 0,
+            "effect": 1,
+            "green": 0.0,
+            "heat_haze": 0,
+            "red": 0.0
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "flare-14",
+          "transform": {
+            "position": [
+              -248.265,
+              766.819,
+              -651.268
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              4.5,
+              4.5,
+              4.5
+            ]
+          },
+          "type": "flare"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": 0.0,
+            "end_z": 2.0,
+            "frame_name": "grid1",
+            "kind": 2,
+            "mode": 1,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p01_s06",
+            "piece_name": "s06_01-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": 0.0,
+            "speed_z": 2.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "anime": {
+            "end_x": 0.0,
+            "end_y": -2.0,
+            "end_z": 0.0,
+            "frame_name": "x",
+            "kind": 1,
+            "mode": 4,
+            "param_x": 0.0,
+            "param_y": 0.0,
+            "param_z": 0.0,
+            "parts_name": "p01_s06",
+            "piece_name": "s06_01-m0",
+            "piece_space": 0,
+            "speed_x": 0.0,
+            "speed_y": -2.0,
+            "speed_z": 0.0,
+            "uniform": 0
+          },
+          "enable": 1,
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "func0",
+          "transform": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "type": "anime"
+        },
+        {
+          "enable": 1,
+          "event": {
+            "action": 1,
+            "arg1": 0,
+            "arg2": 0,
+            "arg3": 0,
+            "event_no": 1,
+            "item": 0,
+            "kind": "door",
+            "point_no": 300,
+            "target": "s06",
+            "unk_100": 1
+          },
+          "flag": {
+            "end": 0.0,
+            "flag_no": 0,
+            "start": 0.0,
+            "unk_8": 0
+          },
+          "name": "doa0",
+          "transform": {
+            "position": [
+              -0.000950154,
+              50.0,
+              -1204.23
+            ],
+            "rotation": [
+              0.0,
+              -3.14159,
+              0.0
+            ],
+            "scale": [
+              30.0,
+              30.0,
+              30.0
+            ]
+          },
+          "type": "event"
+        }
+      ],
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p01_s06",
+      "pieces": [
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m0",
+          "position": [
+            -500.843,
+            568.517,
+            -743.559
+          ],
+          "rotation": [
+            3.14159,
+            0.0,
+            -1.5708
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m1",
+          "position": [
+            -500.842,
+            568.517,
+            713.555
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m2",
+          "position": [
+            -500.464,
+            49.4398,
+            891.388
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            3.14159
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m3",
+          "position": [
+            507.472,
+            49.4366,
+            891.387
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            3.14159
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m4",
+          "position": [
+            507.472,
+            568.517,
+            713.555
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            -1.5708
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m5",
+          "position": [
+            507.471,
+            568.517,
+            -743.644
+          ],
+          "rotation": [
+            0.0,
+            -3.14159,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m6",
+          "position": [
+            507.471,
+            49.4366,
+            -882.544
+          ],
+          "rotation": [
+            -3.14159,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            -1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-m.gltf",
+          "name": "s06_01-m7",
+          "position": [
+            -500.466,
+            49.4398,
+            -882.367
+          ],
+          "rotation": [
+            3.14159,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-a.gltf",
+          "name": "s06_01-a0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_01-c.gltf",
+          "name": "s06_01-c0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_02-a.gltf",
+          "name": "s06_02-a0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 0,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_03-a.gltf",
+          "name": "s06_03-a0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 0,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p02_s06",
+      "pieces": [
+        {
+          "model": "s06_02-m.gltf",
+          "name": "s06_02-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p07_s06",
+      "pieces": [
+        {
+          "model": "s06_07-m.gltf",
+          "name": "s06_07-m0",
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "light_flag": {
+        "no_light": 0,
+        "no_plight": 0
+      },
+      "move_flag": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "name": "p08_s06",
+      "pieces": [
+        {
+          "model": "s06_08-m.gltf",
+          "name": "s06_08-m0",
+          "position": [
+            1.42048,
+            99.3561,
+            -1212.86
+          ],
+          "rotation": [
+            0.0,
+            -0.00159061,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "model": "s06_08-m.gltf",
+          "name": "s06_08-m1",
+          "position": [
+            2.90684,
+            312.375,
+            1188.04
+          ],
+          "rotation": [
+            0.0,
+            -0.00159061,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "show": 1,
+          "time": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "definition": "p01_s06",
+      "group": "",
+      "name": "p01_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p03_s06",
+      "group": "",
+      "name": "p03_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p02_s06",
+      "group": "",
+      "name": "p02_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p04_s06",
+      "group": "",
+      "name": "p04_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p05_s06",
+      "group": "",
+      "name": "p05_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p06_s06",
+      "group": "",
+      "name": "p06_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p07_s06",
+      "group": "",
+      "name": "p07_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    },
+    {
+      "definition": "p08_s06",
+      "group": "",
+      "name": "p08_s06",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "show": 1
+    }
+  ],
+  "schema_version": 2
+}

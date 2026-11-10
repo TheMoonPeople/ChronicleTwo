@@ -1,0 +1,17 @@
+# Item grid hover then open the second item's commands, 1280x720.
+300 triangle
+301
+420 cross
+421
+600 mouse:75,0
+601
+625 mouse1
+626
+# Capture 700: second item's commands. Hover Status, then click it.
+710 mouse:0,126
+711
+730 mouse1
+731
+# Capture 800: weapon status. Mouse2 returns to the character page.
+900 mouse2
+901

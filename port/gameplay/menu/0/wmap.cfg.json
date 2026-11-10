@@ -1,0 +1,320 @@
+{
+  "areas": [
+    {
+      "area": 0,
+      "map": 0,
+      "name_side": 0,
+      "name_x": 0,
+      "name_y": 0,
+      "title": null,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "area": 1,
+      "map": 10,
+      "name_side": 0,
+      "name_x": 350,
+      "name_y": 347,
+      "title": null,
+      "x": 350,
+      "y": 347
+    },
+    {
+      "area": 2,
+      "map": 0,
+      "name_side": 0,
+      "name_x": 250,
+      "name_y": 229,
+      "title": null,
+      "x": 250,
+      "y": 229
+    },
+    {
+      "area": 3,
+      "map": 1,
+      "name_side": 1,
+      "name_x": 150,
+      "name_y": 331,
+      "title": null,
+      "x": 150,
+      "y": 331
+    },
+    {
+      "area": 4,
+      "map": 2,
+      "name_side": 0,
+      "name_x": 135,
+      "name_y": 206,
+      "title": null,
+      "x": 135,
+      "y": 206
+    },
+    {
+      "area": 5,
+      "map": 3,
+      "name_side": 1,
+      "name_x": 210,
+      "name_y": 91,
+      "title": null,
+      "x": 210,
+      "y": 91
+    },
+    {
+      "area": 6,
+      "map": 103,
+      "name_side": 0,
+      "name_x": 305,
+      "name_y": 135,
+      "title": null,
+      "x": 305,
+      "y": 130
+    },
+    {
+      "area": 7,
+      "map": 4,
+      "name_side": 0,
+      "name_x": 370,
+      "name_y": 160,
+      "title": null,
+      "x": 370,
+      "y": 160
+    }
+  ],
+  "areas_capacity": 8,
+  "kind": "world_map",
+  "positions": [
+    {
+      "area": 1,
+      "dungeon": -1,
+      "flag": 100,
+      "floor": 0,
+      "index": 0,
+      "loop": 1,
+      "map": 10,
+      "type": 0
+    },
+    {
+      "area": 1,
+      "dungeon": -1,
+      "flag": 207,
+      "floor": 0,
+      "index": 1,
+      "loop": 1,
+      "map": 34,
+      "type": 0
+    },
+    {
+      "area": 1,
+      "dungeon": 0,
+      "flag": 100,
+      "floor": -1,
+      "index": 2,
+      "loop": 2,
+      "map": 55,
+      "type": 0
+    },
+    {
+      "area": 2,
+      "dungeon": -1,
+      "flag": 208,
+      "floor": 0,
+      "index": 3,
+      "loop": 1,
+      "map": 0,
+      "type": 0
+    },
+    {
+      "area": 2,
+      "dungeon": -1,
+      "flag": 207,
+      "floor": 0,
+      "index": 4,
+      "loop": 1,
+      "map": 16,
+      "type": 0
+    },
+    {
+      "area": 2,
+      "dungeon": 1,
+      "flag": 209,
+      "floor": -1,
+      "index": 5,
+      "loop": 2,
+      "map": 57,
+      "type": 0
+    },
+    {
+      "area": 2,
+      "dungeon": -1,
+      "flag": 215,
+      "floor": 0,
+      "index": 6,
+      "loop": 1,
+      "map": 65,
+      "type": 0
+    },
+    {
+      "area": 3,
+      "dungeon": -1,
+      "flag": 302,
+      "floor": 0,
+      "index": 7,
+      "loop": 1,
+      "map": 1,
+      "type": 0
+    },
+    {
+      "area": 3,
+      "dungeon": -1,
+      "flag": 300,
+      "floor": 0,
+      "index": 8,
+      "loop": 1,
+      "map": 54,
+      "type": 0
+    },
+    {
+      "area": 3,
+      "dungeon": 2,
+      "flag": 306,
+      "floor": -1,
+      "index": 9,
+      "loop": 2,
+      "map": 58,
+      "type": 0
+    },
+    {
+      "area": 3,
+      "dungeon": 2,
+      "flag": 332,
+      "floor": 18,
+      "index": 10,
+      "loop": 2,
+      "map": 98,
+      "type": 0
+    },
+    {
+      "area": 3,
+      "dungeon": 2,
+      "flag": -1,
+      "floor": 8,
+      "index": 11,
+      "loop": 1,
+      "map": 81,
+      "type": 0
+    },
+    {
+      "area": 4,
+      "dungeon": -1,
+      "flag": 402,
+      "floor": 0,
+      "index": 12,
+      "loop": 1,
+      "map": 2,
+      "type": 0
+    },
+    {
+      "area": 4,
+      "dungeon": -1,
+      "flag": 400,
+      "floor": 0,
+      "index": 13,
+      "loop": 1,
+      "map": 83,
+      "type": 0
+    },
+    {
+      "area": 4,
+      "dungeon": 3,
+      "flag": 404,
+      "floor": -1,
+      "index": 14,
+      "loop": 2,
+      "map": 64,
+      "type": 0
+    },
+    {
+      "area": 4,
+      "dungeon": 3,
+      "flag": -1,
+      "floor": 9,
+      "index": 15,
+      "loop": 1,
+      "map": 84,
+      "type": 0
+    },
+    {
+      "area": 5,
+      "dungeon": -1,
+      "flag": 504,
+      "floor": 0,
+      "index": 16,
+      "loop": 1,
+      "map": 3,
+      "type": 0
+    },
+    {
+      "area": 5,
+      "dungeon": -1,
+      "flag": 500,
+      "floor": 0,
+      "index": 17,
+      "loop": 1,
+      "map": 87,
+      "type": 0
+    },
+    {
+      "area": 5,
+      "dungeon": 4,
+      "flag": 504,
+      "floor": -1,
+      "index": 18,
+      "loop": 2,
+      "map": 79,
+      "type": 0
+    },
+    {
+      "area": 6,
+      "dungeon": -1,
+      "flag": 616,
+      "floor": 0,
+      "index": 19,
+      "loop": 1,
+      "map": 103,
+      "type": 0
+    },
+    {
+      "area": 7,
+      "dungeon": -1,
+      "flag": -1,
+      "floor": 0,
+      "index": 20,
+      "loop": 1,
+      "map": 4,
+      "type": 0
+    },
+    {
+      "area": 7,
+      "dungeon": -1,
+      "flag": 600,
+      "floor": 0,
+      "index": 21,
+      "loop": 1,
+      "map": 72,
+      "type": 0
+    },
+    {
+      "area": 7,
+      "dungeon": 5,
+      "flag": -1,
+      "floor": -1,
+      "index": 22,
+      "loop": 2,
+      "map": 97,
+      "type": 0
+    }
+  ],
+  "positions_capacity": 23,
+  "schema_version": 2
+}

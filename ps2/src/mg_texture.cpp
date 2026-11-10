@@ -536,14 +536,14 @@ void mgCTextureManager::Initialize(int start, int end) {
         for (i = 0; i < block_max; i++) {
             blocks[i].unk_0 = vram_top;
 
-            ((mgCTextureBlock *) ((i << 4) + (int) blocks))->unk_4 = vram_top;
+            ((mgCTextureBlock *) ((i << 4) + (uptr) blocks))->unk_4 = vram_top;
         }
 
         last_block = -1;
         name_suffix[0] = 0;
 
         for (bucket = 0; bucket < 101; bucket++) {
-            *(mgTEXTURE_HASH **) ((bucket << 2) + (int) this + offsetof(mgCTextureManager, hash_table)) = 0;
+            *(mgTEXTURE_HASH **) ((bucket << 2) + (uptr) this + offsetof(mgCTextureManager, hash_table)) = 0;
         }
 
         for (node = 0; node < hash_max; node++) {
@@ -641,7 +641,7 @@ mgCTexture *mgCTextureManager::SearchHash(char *name, int mode) {
     mgTEXTURE_HASH *node;
     int             bucket = hash(name);
 
-    for (node = *(mgTEXTURE_HASH **) ((bucket << 2) + (int) this + offsetof(mgCTextureManager, hash_table)); node != NULL;
+    for (node = hash_table[bucket]; node != NULL;
          node = node->next) {
         if (strcmp(name, node->texture->name) == 0) {
             if (mode < 0 || node->texture->block == mode) {
@@ -1414,7 +1414,7 @@ int mgLoadImage(u_int *packet, int base, int format, int width, u_long128 *image
         packet[6] = 0;
         packet[7] = 0;
         packet[8] = chunk | 0x30000000;
-        packet[9] = (u_int) image;
+        packet[9] = (uptr) image;
         packet[10] = 0;
         packet[11] = chunk | 0x50000000;
         packet += 12;
@@ -1471,7 +1471,7 @@ void mgCTextureManager::ReloadTexture(int index, sceVif1Packet *packet) {
 
     if (previous != index) {
         mgCTextureBlock *base = blocks;
-        anime = ((mgCTextureBlock *) ((index << 4) + (int) base))->anime;
+        anime = ((mgCTextureBlock *) ((index << 4) + (uptr) base))->anime;
 
         if (anime != NULL) {
             // An 8-bit texture in the Z buffer's VRAM sits in the upper byte of each 32-bit pixel.
@@ -1563,7 +1563,7 @@ int mgCTextureManager::ReloadTexture(int block, u_int *packet) {
             }
 
             for (level = 0; level < MG_TEXTURE_LEVEL_MAX; level++) {
-                u_long128 **image = ((mgCTexture *) ((level << 2) + (int) texture))->image;
+                u_long128 **image = ((mgCTexture *) ((level << 2) + (uptr) texture))->image;
 
                 if (*image == NULL) {
                     break;

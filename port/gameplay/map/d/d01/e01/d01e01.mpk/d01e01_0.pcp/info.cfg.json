@@ -1,0 +1,58 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "d01g01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d01g09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01g01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d01g10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01g01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "memo.gltf",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

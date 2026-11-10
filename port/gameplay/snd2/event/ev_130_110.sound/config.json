@@ -1,0 +1,110 @@
+{
+  "entries": [
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "snd2/event/ev_130_110.sound/effects/ev_130_110_007.json",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "snd2/event/ev_130_110.sound/effects/ev_130_110_008.json",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 10
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 11
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 12
+    },
+    {
+      "filename": "snd2/event/ev_130_110.sound/effects/ev_130_110_013.json",
+      "flag": false,
+      "key": 60,
+      "program": 13
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 14
+    },
+    {
+      "filename": "snd2/event/ev_130_110.sound/effects/ev_130_110_015.json",
+      "flag": true,
+      "key": 60,
+      "program": 15
+    },
+    {
+      "filename": "snd2/event/ev_130_110.sound/effects/ev_130_110_016.json",
+      "flag": true,
+      "key": 60,
+      "program": 16
+    }
+  ],
+  "entry_count": 18,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

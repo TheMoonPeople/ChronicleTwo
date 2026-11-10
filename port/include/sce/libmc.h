@@ -1,0 +1,224 @@
+#pragma once
+
+/**
+ * Marks bounded native SDK buffers for the shared runtime header adapters.
+ */
+#define KZ_LIBMC_BOUNDED_API 1
+
+#include <cstddef>
+#include <span>
+
+/**
+ * @file
+ * Declares memory card operations and result codes.
+ */
+
+#define MC_WAIT 0
+#define MC_NOWAIT 1
+
+#define sceMcIniSucceed 0
+#define sceMcIniErrKernel (-101)
+#define sceMcIniOldMcserv (-120)
+#define sceMcIniOldMcman (-121)
+
+#define sceMcResSucceed 0
+#define sceMcResChangedCard (-1)
+#define sceMcResNoFormat (-2)
+#define sceMcResFullDevice (-3)
+#define sceMcResNoEntry (-4)
+#define sceMcResDeniedPermit (-5)
+#define sceMcResFailReplace (-8)
+#define sceMcResFailDetect (-12)
+
+#define sceMcTypeNoCard 0
+#define sceMcTypePS1 1
+#define sceMcTypePS2 2
+#define sceMcTypePDA 3
+
+#define sceMcFuncNoCardInfo 1
+#define sceMcFuncNoOpen 2
+#define sceMcFuncNoClose 3
+#define sceMcFuncNoSeek 4
+#define sceMcFuncNoRead 5
+#define sceMcFuncNoWrite 6
+#define sceMcFuncNoFlush 10
+#define sceMcFuncNoMkdir 11
+#define sceMcFuncNoChDir 12
+#define sceMcFuncNoGetDir 13
+#define sceMcFuncNoFileInfo 14
+#define sceMcFuncNoDelete 15
+#define sceMcFuncNoFormat 16
+#define sceMcFuncNoUnformat 17
+
+#include "common.h"
+
+/**
+ * One colour of an icon.sys, held as four full words.
+ */
+struct sceMcColor {
+    u_int r; /**< Red the colour draws with. */
+    u_int g; /**< Green the colour draws with. */
+    u_int b; /**< Blue the colour draws with. */
+    u_int a; /**< Alpha the colour draws with. */
+};
+
+STATIC_ASSERT(sizeof(sceMcColor) == 0x10);
+PORT_RECORD_ASSERT(sizeof(sceMcColor) == 0x10);
+
+/**
+ * One colour of an icon.sys's lighting, held as floats.
+ */
+typedef float sceMcColorF[4];
+
+/**
+ * One direction of an icon.sys's lighting.
+ */
+typedef float sceMcVu0FVECTOR[4];
+
+/**
+ * The icon.sys the browser reads to draw one save, written alongside it.
+ */
+struct sceMcIconSys {
+    char            head[4];        /**< The "PS2D" file identifier. */
+    u_short         unknown1;       /**< Reserved. */
+    u_short         nl_offset;      /**< Byte the second line of the title starts at. */
+    u_int           unknown2;       /**< Reserved. */
+    u_int           trans_rate;     /**< How solid the icon draws. */
+    sceMcColor      bg_color[4];    /**< Colour each corner of the icon's background takes. */
+    sceMcVu0FVECTOR light_dir[3];   /**< Direction each of the icon's three lights points. */
+    sceMcColorF     light_color[3]; /**< Colour each of those lights takes. */
+    sceMcColorF     ambient;        /**< Ambient light the icon draws under. */
+    u_char          title_name[68]; /**< Title the browser shows the save under. */
+    char            fname_view[64]; /**< Icon file the browser draws while viewing the save. */
+    char            fname_copy[64]; /**< Icon file the browser draws while copying the save. */
+    char            fname_del[64];  /**< Icon file the browser draws while deleting the save. */
+    u_char          reserve[512];   /**< Reserved. */
+};
+
+STATIC_ASSERT(sizeof(sceMcIconSys) == 0x3C4);
+PORT_RECORD_ASSERT(sizeof(sceMcIconSys) == 0x3C4);
+
+/**
+ * Date and time a memory card file was created or changed.
+ */
+struct sceMcStDateTime {
+    u_char  resv2; /**< Reserved. */
+    u_char  sec;   /**< Second. */
+    u_char  min;   /**< Minute. */
+    u_char  hour;  /**< Hour. */
+    u_char  day;   /**< Day of the month. */
+    u_char  month; /**< Month. */
+    u_short year;  /**< Year. */
+};
+
+STATIC_ASSERT(sizeof(sceMcStDateTime) == 0x8);
+PORT_RECORD_ASSERT(sizeof(sceMcStDateTime) == 0x8);
+
+/**
+ * One directory entry that sceMcGetDir writes.
+ */
+struct sceMcTblGetDir {
+    sceMcStDateTime create;         /**< When the file was created. */
+    sceMcStDateTime modify;         /**< When the file was last changed. */
+    u_int           file_size_byte; /**< Size of the file in bytes. */
+    u_short         attr_file;      /**< Attribute bits of the file. */
+    u_short         reserve1;       /**< Reserved. */
+    u_int           reserve2;       /**< Reserved. */
+    u_int           pda_apl_no;     /**< PDA application number. */
+    char            entry_name[32]; /**< Name of the file or directory. */
+};
+
+STATIC_ASSERT(sizeof(sceMcTblGetDir) == 0x40);
+PORT_RECORD_ASSERT(sizeof(sceMcTblGetDir) == 0x40);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * Initializes the memory-card library and returns its status.
+ */
+int sceMcInit(void);
+
+/**
+ * Returns successful completion without closing open memory-card files.
+ */
+int sceMcEnd(void);
+
+/**
+ * Consumes the pending memory-card command result when one is available.
+ */
+int sceMcSync(int mode, int *cmd, int *result);
+
+/**
+ * Opens the named file on the card in the given port and returns a command id.
+ */
+int sceMcOpen(int port, int slot, const char *name, int flag);
+
+/**
+ * Closes the given file and returns a command id.
+ */
+int sceMcClose(int fd);
+
+/**
+ * Reads the requested bytes within the destination view and returns a command id.
+ */
+int sceMcRead(int fd, std::span<std::byte> buffer, int size);
+
+/**
+ * Writes the requested bytes within the read-only source view and returns a command id.
+ */
+int sceMcWrite(int fd, std::span<const std::byte> buffer, int size);
+
+/**
+ * Moves the read or write position of an open memory-card file.
+ */
+int sceMcSeek(int fd, int offset, int origin);
+
+/**
+ * Writes the buffered data of the given file to the card and returns a command id.
+ */
+int sceMcFlush(int fd);
+
+/**
+ * Enters the named card directory and optionally writes the prior path into a bounded output view.
+ */
+int sceMcChdir(int port, int slot, const char *name, std::span<char> current);
+
+/**
+ * Renames a file or directory on the selected memory card.
+ */
+int sceMcRename(int port, int slot, const char *old_name, const char *new_name);
+
+/**
+ * Creates the named directory on the card and returns a command id.
+ */
+int sceMcMkdir(int port, int slot, const char *name);
+
+/**
+ * Deletes the named file of the card and returns a command id.
+ */
+int sceMcDelete(int port, int slot, const char *name);
+
+/**
+ * Reads up to the given number of directory entries into the given table and returns a command id.
+ */
+int sceMcGetDir(int port, int slot, const char *name, int mode, int count, std::span<sceMcTblGetDir> table);
+
+/**
+ * Asks for the type, the free space and the format flag of the card in the given port.
+ */
+int sceMcGetInfo(int port, int slot, int *type, int *free_size, int *formatted);
+
+/**
+ * Formats the card in the given port and returns a command id.
+ */
+int sceMcFormat(int port, int slot);
+
+/**
+ * Unformats the card in the given port and returns a command id.
+ */
+int sceMcUnformat(int port, int slot);
+#ifdef __cplusplus
+}
+#endif

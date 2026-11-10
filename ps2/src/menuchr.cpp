@@ -35,6 +35,7 @@
 #include "mglib.hpp"
 #include "monster.hpp"
 #include "npccfg.hpp"
+#include "pal_timing.hpp"
 #include "prespr.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
@@ -2414,7 +2415,7 @@ int CMenuChrCngMenu::KeyChangeMain() {
                         for (int chara = 0; chara < 2; chara++) {
                             if (MenuUserDataManPtr->GetNowPartyMember() & (1 << chara) &&
                                 1.0f <= MenuUserDataManPtr->GetHp(chara)) {
-                                MenuUserDataManPtr->SetCharaStatusAttirbuteVol(chara, CHARA_STATUS_POWER, 750);
+                                MenuUserDataManPtr->SetCharaStatusAttirbuteVol(chara, CHARA_STATUS_POWER, PAL_TIMING(750, 900));
                                 used = true;
                             }
                         }
@@ -4534,13 +4535,13 @@ int CMenuMosSelect::KeyStep() {
                                 }
                             }
 
-                            if (change_wait < 100 && effect_show) {
+                            if (change_wait < PAL_TIMING(100, 120) && effect_show) {
                                 model_form->counter = 10;
                             }
 
                             effect.GetNowFrame(NULL);
 
-                            if (change_wait > 900 || (effect_show && effect.CheckMotionEnd(NULL))) {
+                            if (change_wait > PAL_TIMING(900, 1080) || (effect_show && effect.CheckMotionEnd(NULL))) {
                                 effect_show = false;
                                 effect.Initialize(NULL);
                                 step = MOS_SELECT_STEP_CLASS_DONE;
@@ -4847,7 +4848,7 @@ int CMenuMosSelect::KeyStep() {
     }
 
     if (pick_monster != view_monster) {
-        load_wait = 17;
+        load_wait = PAL_TIMING(17, 26);
         load_phase = MOS_SELECT_LOAD_WAIT;
         pick_monster = view_monster;
     }

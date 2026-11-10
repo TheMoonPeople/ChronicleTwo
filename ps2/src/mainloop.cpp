@@ -473,7 +473,7 @@ void MainLoop() {
     u_long128        *file_buffer;
     int               file_size;
     int               mode_finished;
-    int               buffer_address;
+    sptr              buffer_address;
     int               alignment;
 
     memory = GetMainStack();
@@ -553,7 +553,7 @@ void MainLoop() {
     SystemSeStack.stack_used = 0;
     SystemSeStack.lock = 0;
     read_memory = GetMainStack();
-    buffer_address = (int) (read_memory->stack + read_memory->stack_used);
+    buffer_address = (sptr) (read_memory->stack + read_memory->stack_used);
     alignment = buffer_address % 64;
 
     if (alignment != 0) {
@@ -1447,7 +1447,7 @@ void LoadFontTexture() {
 
     buffer = scratch;
     FontTex[0] = NULL;
-    misalign = (u32) buffer & 3;
+    misalign = (uptr) buffer & 3;
     FontDataAdr[0] = NULL;
 
     if (misalign != 0) {

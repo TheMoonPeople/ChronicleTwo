@@ -36,4 +36,14 @@ typedef unsigned __int128 u_long128;
 
 /** Size of an object in bytes on the PlayStation 2 target. */
 typedef unsigned int size_t;
+
+/** An address held in an integer: 32 bits on the PS2, pointer-wide on PC. */
+#ifdef PORT
+typedef __UINTPTR_TYPE__ uptr;
+typedef __INTPTR_TYPE__ sptr;
+#else
+typedef unsigned int uptr;
+typedef int sptr;
+#endif
+
 #define NULL 0

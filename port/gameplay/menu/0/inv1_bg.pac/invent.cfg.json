@@ -1,0 +1,2871 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "from": 30,
+      "op": "clear_etc_info"
+    },
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "wakuwh0",
+          "values": [
+            60,
+            39
+          ]
+        },
+        {
+          "name": "wakuwh1",
+          "values": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "wakuwh2",
+          "values": [
+            238,
+            50
+          ]
+        },
+        {
+          "name": "wakuwh3",
+          "values": [
+            36,
+            42
+          ]
+        },
+        {
+          "name": "wakuwh4",
+          "values": [
+            60,
+            39
+          ]
+        },
+        {
+          "name": "wakuwh5",
+          "values": [
+            60,
+            39
+          ]
+        },
+        {
+          "name": "c_of0",
+          "values": [
+            -40,
+            0
+          ]
+        },
+        {
+          "name": "c_of1",
+          "values": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "c_of2",
+          "values": [
+            10,
+            0
+          ]
+        },
+        {
+          "name": "c_of3",
+          "values": [
+            -46,
+            10
+          ]
+        },
+        {
+          "name": "c_of4",
+          "values": [
+            -40,
+            0
+          ]
+        },
+        {
+          "name": "c_of5",
+          "values": [
+            -40,
+            0
+          ]
+        },
+        {
+          "name": "c_of6",
+          "values": [
+            -40,
+            0
+          ]
+        },
+        {
+          "name": "c_of7",
+          "values": [
+            0,
+            0
+          ]
+        }
+      ],
+      "op": "etc_info"
+    },
+    {
+      "from": 10,
+      "op": "clear_etc_info2"
+    },
+    {
+      "index": 10,
+      "op": "etc_info2_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "eff_light",
+          "values": [
+            255.0,
+            255.0,
+            255.0,
+            128.0
+          ]
+        }
+      ],
+      "op": "etc_info2"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 6,
+      "op": "texture_sheet",
+      "sheet": "inv0",
+      "textures": [
+        {
+          "name": "コルクボード",
+          "rect": [
+            0,
+            0,
+            200,
+            320
+          ]
+        },
+        {
+          "name": "neattitle",
+          "rect": [
+            278,
+            442,
+            134,
+            24
+          ]
+        },
+        {
+          "name": "アルバム閉",
+          "rect": [
+            0,
+            356,
+            110,
+            156
+          ]
+        },
+        {
+          "name": "bookcur",
+          "rect": [
+            0,
+            324,
+            74,
+            32
+          ]
+        },
+        {
+          "name": "scrlbara",
+          "rect": [
+            504,
+            412,
+            8,
+            30
+          ]
+        },
+        {
+          "name": "scrlbar0",
+          "rect": [
+            504,
+            412,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "scrlbar1",
+          "rect": [
+            504,
+            418,
+            8,
+            14
+          ]
+        },
+        {
+          "name": "scrlbar2",
+          "rect": [
+            504,
+            436,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "numinfobrd",
+          "rect": [
+            436,
+            392,
+            46,
+            50
+          ]
+        },
+        {
+          "name": "つくれるもの",
+          "rect": [
+            412,
+            442,
+            100,
+            24
+          ]
+        },
+        {
+          "name": "発明カード",
+          "rect": [
+            412,
+            442,
+            100,
+            24
+          ]
+        },
+        {
+          "name": "発明ボード0",
+          "rect": [
+            397,
+            403,
+            9,
+            15
+          ]
+        },
+        {
+          "name": "発明ボード1",
+          "rect": [
+            406,
+            403,
+            8,
+            15
+          ]
+        },
+        {
+          "name": "発明ボード2",
+          "rect": [
+            414,
+            403,
+            22,
+            15
+          ]
+        },
+        {
+          "name": "発明ボード3",
+          "rect": [
+            397,
+            418,
+            9,
+            8
+          ]
+        },
+        {
+          "name": "発明ボード4",
+          "rect": [
+            406,
+            418,
+            8,
+            8
+          ]
+        },
+        {
+          "name": "発明ボード5",
+          "rect": [
+            414,
+            418,
+            22,
+            8
+          ]
+        },
+        {
+          "name": "発明ボード6",
+          "rect": [
+            397,
+            426,
+            9,
+            15
+          ]
+        },
+        {
+          "name": "発明ボード7",
+          "rect": [
+            406,
+            426,
+            8,
+            15
+          ]
+        },
+        {
+          "name": "発明ボード8",
+          "rect": [
+            414,
+            426,
+            22,
+            15
+          ]
+        },
+        {
+          "name": "写真の確認",
+          "rect": [
+            272,
+            390,
+            124,
+            26
+          ]
+        },
+        {
+          "name": "写真リストタイトル",
+          "rect": [
+            278,
+            416,
+            94,
+            26
+          ]
+        },
+        {
+          "name": "num_inv",
+          "rect": [
+            110,
+            498,
+            10,
+            13
+          ]
+        },
+        {
+          "name": "recbrd0",
+          "rect": [
+            240,
+            472,
+            16,
+            16
+          ]
+        },
+        {
+          "name": "recbrd1",
+          "rect": [
+            256,
+            472,
+            8,
+            16
+          ]
+        },
+        {
+          "name": "recbrd2",
+          "rect": [
+            264,
+            472,
+            16,
+            16
+          ]
+        },
+        {
+          "name": "recbrd3",
+          "rect": [
+            240,
+            488,
+            16,
+            8
+          ]
+        },
+        {
+          "name": "recbrd4",
+          "rect": [
+            256,
+            488,
+            8,
+            8
+          ]
+        },
+        {
+          "name": "recbrd5",
+          "rect": [
+            264,
+            488,
+            16,
+            8
+          ]
+        },
+        {
+          "name": "recbrd6",
+          "rect": [
+            240,
+            496,
+            16,
+            16
+          ]
+        },
+        {
+          "name": "recbrd7",
+          "rect": [
+            256,
+            496,
+            8,
+            16
+          ]
+        },
+        {
+          "name": "recbrd8",
+          "rect": [
+            264,
+            496,
+            16,
+            16
+          ]
+        },
+        {
+          "name": "recbar0",
+          "rect": [
+            416,
+            396,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "recbar1",
+          "rect": [
+            424,
+            396,
+            4,
+            6
+          ]
+        },
+        {
+          "name": "recbar2",
+          "rect": [
+            428,
+            396,
+            8,
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 6,
+      "op": "texture_sheet",
+      "sheet": "inv1",
+      "textures": [
+        {
+          "name": "アルバム開",
+          "rect": [
+            4,
+            0,
+            252,
+            322
+          ]
+        },
+        {
+          "name": "album_plate",
+          "rect": [
+            64,
+            322,
+            192,
+            24
+          ]
+        },
+        {
+          "name": "book_msg",
+          "rect": [
+            90,
+            346,
+            166,
+            36
+          ]
+        },
+        {
+          "name": "book_bar0",
+          "rect": [
+            78,
+            346,
+            12,
+            6
+          ]
+        },
+        {
+          "name": "book_bar1",
+          "rect": [
+            78,
+            352,
+            12,
+            6
+          ]
+        },
+        {
+          "name": "book_bar2",
+          "rect": [
+            78,
+            358,
+            12,
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 6,
+      "op": "texture_sheet",
+      "sheet": "inv_bg",
+      "textures": [
+        {
+          "name": "inv_bg",
+          "rect": [
+            0,
+            48,
+            512,
+            416
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 6,
+      "op": "texture_sheet",
+      "sheet": "fuki0",
+      "textures": [
+        {
+          "name": "大雲",
+          "rect": [
+            0,
+            0,
+            205,
+            256
+          ]
+        },
+        {
+          "name": "子雲0",
+          "rect": [
+            204,
+            0,
+            16,
+            16
+          ]
+        },
+        {
+          "name": "子雲1",
+          "rect": [
+            204,
+            16,
+            10,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 6,
+      "op": "texture_sheet",
+      "sheet": "fuki1",
+      "textures": [
+        {
+          "name": "光雲",
+          "rect": [
+            0,
+            0,
+            256,
+            256
+          ]
+        }
+      ]
+    },
+    {
+      "from": 10,
+      "op": "clear_forms",
+      "to": 60
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "inv_bg",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "0",
+          "part": "normal",
+          "size": [
+            522,
+            416
+          ],
+          "texture": "inv_bg",
+          "xy": [
+            1,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            -415
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invent_okeff",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                240,
+                140,
+                80,
+                0
+              ]
+            },
+            {
+              "mod": "fill",
+              "rgba": [
+                255,
+                255,
+                0,
+                128
+              ]
+            }
+          ],
+          "name": "f0",
+          "part": "fillbox",
+          "size": [
+            512,
+            0
+          ],
+          "style": 1,
+          "xy": [
+            0,
+            224
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                255,
+                255,
+                80,
+                128
+              ]
+            },
+            {
+              "mod": "fill",
+              "rgba": [
+                240,
+                140,
+                80,
+                0
+              ]
+            }
+          ],
+          "name": "f1",
+          "part": "fillbox",
+          "size": [
+            512,
+            0
+          ],
+          "style": 1,
+          "xy": [
+            0,
+            224
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "ネタ板",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                64
+              ]
+            }
+          ],
+          "name": "brdsh",
+          "part": "normal",
+          "texture": "コルクボード",
+          "xy": [
+            4,
+            4
+          ]
+        },
+        {
+          "name": "brd",
+          "part": "normal",
+          "texture": "コルクボード",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "pictTitle",
+          "part": "normal",
+          "texture": "写真リストタイトル",
+          "xy": [
+            38,
+            -18
+          ]
+        },
+        {
+          "name": "title",
+          "part": "normal",
+          "texture": "neattitle",
+          "xy": [
+            22,
+            -18
+          ]
+        },
+        {
+          "name": "numbrd",
+          "part": "normal",
+          "texture": "numinfobrd",
+          "xy": [
+            162,
+            -42
+          ]
+        },
+        {
+          "name": "maxnum",
+          "part": "number1",
+          "texture": "num_inv",
+          "value": 0,
+          "xy": [
+            202,
+            -22
+          ]
+        },
+        {
+          "name": "nownum",
+          "part": "number1",
+          "texture": "num_inv",
+          "value": 1,
+          "xy": [
+            182,
+            -36
+          ]
+        },
+        {
+          "name": "msgbrd",
+          "part": "funcinfo",
+          "xy": [
+            98,
+            280
+          ]
+        },
+        {
+          "name": "bar0",
+          "part": "normal",
+          "texture": "scrlbar0",
+          "xy": [
+            189,
+            0
+          ]
+        },
+        {
+          "name": "bar1",
+          "part": "normal",
+          "texture": "scrlbar1",
+          "xy": [
+            189,
+            0
+          ]
+        },
+        {
+          "name": "bar2",
+          "part": "normal",
+          "texture": "scrlbar2",
+          "xy": [
+            189,
+            0
+          ]
+        },
+        {
+          "kind": "発明ネタ",
+          "name": "写真リスト",
+          "part": "dtype"
+        },
+        {
+          "name": "cur0",
+          "part": "funcinfo",
+          "xy": [
+            26,
+            22
+          ]
+        },
+        {
+          "name": "cur1",
+          "part": "funcinfo",
+          "xy": [
+            104,
+            22
+          ]
+        },
+        {
+          "name": "cur2",
+          "part": "funcinfo",
+          "xy": [
+            26,
+            73
+          ]
+        },
+        {
+          "name": "cur3",
+          "part": "funcinfo",
+          "xy": [
+            104,
+            73
+          ]
+        },
+        {
+          "name": "cur4",
+          "part": "funcinfo",
+          "xy": [
+            26,
+            124
+          ]
+        },
+        {
+          "name": "cur5",
+          "part": "funcinfo",
+          "xy": [
+            104,
+            124
+          ]
+        },
+        {
+          "name": "cur6",
+          "part": "funcinfo",
+          "xy": [
+            26,
+            175
+          ]
+        },
+        {
+          "name": "cur7",
+          "part": "funcinfo",
+          "xy": [
+            104,
+            175
+          ]
+        },
+        {
+          "name": "cur8",
+          "part": "funcinfo",
+          "xy": [
+            26,
+            226
+          ]
+        },
+        {
+          "name": "cur9",
+          "part": "funcinfo",
+          "xy": [
+            104,
+            226
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 24,
+          "set": "parts_capacity"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            32,
+            70
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                3.0,
+                3.0
+              ],
+              "xy": [
+                26.0,
+                70.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                3.0,
+                3.0
+              ],
+              "xy": [
+                -210.0,
+                70.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "hukidashi0",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                30
+              ]
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                10,
+                8
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki0",
+          "part": "normal",
+          "texture": "大雲",
+          "xy": [
+            4,
+            4
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "viber",
+              "ranges": [
+                10,
+                8
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki0",
+          "part": "normal",
+          "texture": "大雲",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                30
+              ]
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                6,
+                5
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki1",
+          "part": "normal",
+          "texture": "子雲0",
+          "xy": [
+            187,
+            141
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "viber",
+              "ranges": [
+                6,
+                5
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki1",
+          "part": "normal",
+          "texture": "子雲0",
+          "xy": [
+            186,
+            140
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                30
+              ]
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                3,
+                2
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki2",
+          "part": "normal",
+          "texture": "子雲1",
+          "xy": [
+            195,
+            157
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "viber",
+              "ranges": [
+                3,
+                2
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki2",
+          "part": "normal",
+          "texture": "子雲1",
+          "xy": [
+            194,
+            156
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                10,
+                8
+              ]
+            }
+          ],
+          "name": "o",
+          "part": "funcinfo",
+          "xy": [
+            66,
+            70
+          ]
+        },
+        {
+          "name": "cursor",
+          "part": "funcinfo",
+          "xy": [
+            -20,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "rate": [
+            8.0,
+            8.0
+          ],
+          "set": "move_rate"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            234,
+            30
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "0",
+              "rate": [
+                8.0,
+                8.0
+              ],
+              "xy": [
+                230.0,
+                24.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "1",
+              "rate": [
+                8.0,
+                8.0
+              ],
+              "xy": [
+                154.0,
+                -40.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "count": 8,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "hukidashi1",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "count": 1,
+              "mod": "effect_capacity"
+            },
+            {
+              "mod": "effect",
+              "params": [
+                0,
+                60,
+                100,
+                100,
+                10,
+                10
+              ],
+              "type": "stretch_sin"
+            }
+          ],
+          "name": "huki0",
+          "part": "normal",
+          "texture": "光雲",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "o",
+          "part": "funcinfo",
+          "xy": [
+            70,
+            62
+          ]
+        },
+        {
+          "name": "cursor",
+          "part": "funcinfo",
+          "xy": [
+            -20,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            64,
+            84
+          ]
+        },
+        {
+          "count": 3,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "hukidashi2",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "viber",
+              "ranges": [
+                10,
+                8
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki0",
+          "part": "normal",
+          "texture": "大雲",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "viber",
+              "ranges": [
+                6,
+                5
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki1",
+          "part": "normal",
+          "texture": "子雲0",
+          "xy": [
+            186,
+            158
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "viber",
+              "ranges": [
+                3,
+                2
+              ]
+            },
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "huki2",
+          "part": "normal",
+          "texture": "子雲1",
+          "xy": [
+            204,
+            160
+          ]
+        },
+        {
+          "kind": "ごちゃ線",
+          "modifiers": [
+            {
+              "counts": [
+                52,
+                38
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                10,
+                8
+              ]
+            },
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                128
+              ]
+            }
+          ],
+          "name": "line",
+          "part": "dtype",
+          "size": [
+            106,
+            80
+          ],
+          "xy": [
+            96,
+            52
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            80,
+            64
+          ]
+        }
+      ]
+    },
+    {
+      "name": "netaman",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "moveneta"
+        }
+      ]
+    },
+    {
+      "name": "neta0",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "neta",
+          "name": "neta",
+          "part": "item",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "neta1",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "neta",
+          "name": "neta",
+          "part": "item",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "neta2",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "neta",
+          "name": "neta",
+          "part": "item",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "poly_chr1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "draw_type",
+          "type": "poly"
+        }
+      ]
+    },
+    {
+      "name": "Album_sw",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                36
+              ]
+            }
+          ],
+          "name": "00",
+          "part": "normal",
+          "texture": "アルバム閉",
+          "xy": [
+            4,
+            4
+          ]
+        },
+        {
+          "name": "0",
+          "part": "normal",
+          "texture": "アルバム閉",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "cur",
+          "part": "funcinfo",
+          "xy": [
+            -34,
+            30
+          ]
+        },
+        {
+          "name": "cur5",
+          "part": "normal",
+          "texture": "bookcur",
+          "xy": [
+            -56,
+            86
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            260,
+            230
+          ]
+        },
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "Album_Big",
+      "op": "form",
+      "parts": [
+        {
+          "name": "cur0",
+          "part": "funcinfo",
+          "xy": [
+            41,
+            5
+          ]
+        },
+        {
+          "name": "cur1",
+          "part": "funcinfo",
+          "xy": [
+            121,
+            5
+          ]
+        },
+        {
+          "name": "cur2",
+          "part": "funcinfo",
+          "xy": [
+            41,
+            59
+          ]
+        },
+        {
+          "name": "cur3",
+          "part": "funcinfo",
+          "xy": [
+            121,
+            59
+          ]
+        },
+        {
+          "name": "cur4",
+          "part": "funcinfo",
+          "xy": [
+            41,
+            113
+          ]
+        },
+        {
+          "name": "cur5",
+          "part": "funcinfo",
+          "xy": [
+            121,
+            113
+          ]
+        },
+        {
+          "name": "cur6",
+          "part": "funcinfo",
+          "xy": [
+            41,
+            167
+          ]
+        },
+        {
+          "name": "cur7",
+          "part": "funcinfo",
+          "xy": [
+            121,
+            167
+          ]
+        },
+        {
+          "name": "cur8",
+          "part": "funcinfo",
+          "xy": [
+            41,
+            221
+          ]
+        },
+        {
+          "name": "cur9",
+          "part": "funcinfo",
+          "xy": [
+            121,
+            221
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "book",
+          "part": "normal",
+          "texture": "アルバム開",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "plt",
+          "part": "normal",
+          "texture": "album_plate",
+          "xy": [
+            24,
+            -19
+          ]
+        },
+        {
+          "name": "b0",
+          "part": "normal",
+          "texture": "book_bar0",
+          "xy": [
+            210,
+            18
+          ]
+        },
+        {
+          "name": "b1",
+          "part": "normal",
+          "size": [
+            12,
+            248
+          ],
+          "texture": "book_bar1",
+          "xy": [
+            210,
+            24
+          ]
+        },
+        {
+          "name": "b2",
+          "part": "normal",
+          "texture": "book_bar2",
+          "xy": [
+            210,
+            272
+          ]
+        },
+        {
+          "name": "c0",
+          "part": "normal",
+          "texture": "scrlbar0",
+          "xy": [
+            212,
+            0
+          ]
+        },
+        {
+          "name": "c1",
+          "part": "normal",
+          "size": [
+            8,
+            20
+          ],
+          "texture": "scrlbar1",
+          "xy": [
+            212,
+            0
+          ]
+        },
+        {
+          "name": "c2",
+          "part": "normal",
+          "texture": "scrlbar2",
+          "xy": [
+            212,
+            0
+          ]
+        },
+        {
+          "kind": "アルバム",
+          "name": "アルバム",
+          "part": "dtype"
+        },
+        {
+          "name": "msg",
+          "part": "normal",
+          "texture": "book_msg",
+          "xy": [
+            40,
+            278
+          ]
+        },
+        {
+          "name": "msgpos",
+          "part": "funcinfo",
+          "xy": [
+            126,
+            282
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 22,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            260,
+            64
+          ]
+        }
+      ]
+    },
+    {
+      "name": "recbrd",
+      "op": "form",
+      "parts": [
+        {
+          "name": "n0",
+          "part": "funcinfo",
+          "xy": [
+            18,
+            18
+          ]
+        },
+        {
+          "name": "n1",
+          "part": "funcinfo",
+          "xy": [
+            18,
+            48
+          ]
+        },
+        {
+          "name": "n2",
+          "part": "funcinfo",
+          "xy": [
+            18,
+            78
+          ]
+        },
+        {
+          "name": "n3",
+          "part": "funcinfo",
+          "xy": [
+            18,
+            116
+          ]
+        },
+        {
+          "name": "n4",
+          "part": "funcinfo",
+          "xy": [
+            132,
+            18
+          ]
+        },
+        {
+          "name": "n5",
+          "part": "funcinfo",
+          "xy": [
+            132,
+            48
+          ]
+        },
+        {
+          "name": "n6",
+          "part": "funcinfo",
+          "xy": [
+            132,
+            78
+          ]
+        },
+        {
+          "name": "n7",
+          "part": "funcinfo",
+          "xy": [
+            162,
+            116
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "0",
+          "part": "normal",
+          "texture": "recbrd0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "1",
+          "part": "normal",
+          "size": [
+            174,
+            16
+          ],
+          "texture": "recbrd1",
+          "xy": [
+            16,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "2",
+          "part": "normal",
+          "texture": "recbrd2",
+          "xy": [
+            190,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "3",
+          "part": "normal",
+          "size": [
+            16,
+            120
+          ],
+          "texture": "recbrd3",
+          "xy": [
+            0,
+            16
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "4",
+          "part": "normal",
+          "size": [
+            174,
+            120
+          ],
+          "texture": "recbrd4",
+          "xy": [
+            16,
+            16
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "5",
+          "part": "normal",
+          "size": [
+            16,
+            120
+          ],
+          "texture": "recbrd5",
+          "xy": [
+            190,
+            16
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "6",
+          "part": "normal",
+          "texture": "recbrd6",
+          "xy": [
+            0,
+            136
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "7",
+          "part": "normal",
+          "size": [
+            174,
+            16
+          ],
+          "texture": "recbrd7",
+          "xy": [
+            16,
+            136
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "8",
+          "part": "normal",
+          "texture": "recbrd8",
+          "xy": [
+            190,
+            136
+          ]
+        },
+        {
+          "name": "50",
+          "part": "normal",
+          "texture": "recbar0",
+          "xy": [
+            14,
+            104
+          ]
+        },
+        {
+          "name": "51",
+          "part": "normal",
+          "size": [
+            160,
+            6
+          ],
+          "texture": "recbar1",
+          "xy": [
+            22,
+            104
+          ]
+        },
+        {
+          "name": "52",
+          "part": "normal",
+          "texture": "recbar2",
+          "xy": [
+            182,
+            104
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 21,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            260,
+            40
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg7",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "itembrd",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "itembrd"
+        },
+        {
+          "set": "position",
+          "xy": [
+            226,
+            -326
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                7.0
+              ],
+              "xy": [
+                226.0,
+                -326.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                7.0
+              ],
+              "xy": [
+                226.0,
+                24.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "giftview",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            200,
+            200
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "giftview"
+        }
+      ]
+    },
+    {
+      "name": "swap_dmy10",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "dmy_form10",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "カードリスト",
+      "op": "form",
+      "parts": [
+        {
+          "name": "basebar",
+          "part": "funcinfo",
+          "xy": [
+            247,
+            12
+          ]
+        },
+        {
+          "name": "basecard",
+          "part": "funcinfo",
+          "xy": [
+            10,
+            20
+          ]
+        },
+        {
+          "name": "barlong",
+          "part": "funcinfo",
+          "xy": [
+            0,
+            188
+          ]
+        },
+        {
+          "name": "b0",
+          "part": "normal",
+          "size": [
+            9,
+            15
+          ],
+          "texture": "発明ボード0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "b1",
+          "part": "normal",
+          "size": [
+            236,
+            15
+          ],
+          "texture": "発明ボード1",
+          "xy": [
+            9,
+            0
+          ]
+        },
+        {
+          "name": "b2",
+          "part": "normal",
+          "size": [
+            21,
+            15
+          ],
+          "texture": "発明ボード2",
+          "xy": [
+            245,
+            0
+          ]
+        },
+        {
+          "name": "b3",
+          "part": "normal",
+          "size": [
+            9,
+            230
+          ],
+          "texture": "発明ボード3",
+          "xy": [
+            0,
+            15
+          ]
+        },
+        {
+          "name": "b4",
+          "part": "normal",
+          "size": [
+            236,
+            230
+          ],
+          "texture": "発明ボード4",
+          "xy": [
+            9,
+            15
+          ]
+        },
+        {
+          "name": "b5",
+          "part": "normal",
+          "size": [
+            21,
+            230
+          ],
+          "texture": "発明ボード5",
+          "xy": [
+            245,
+            15
+          ]
+        },
+        {
+          "name": "b6",
+          "part": "normal",
+          "size": [
+            9,
+            15
+          ],
+          "texture": "発明ボード6",
+          "xy": [
+            0,
+            245
+          ]
+        },
+        {
+          "name": "b7",
+          "part": "normal",
+          "size": [
+            236,
+            15
+          ],
+          "texture": "発明ボード7",
+          "xy": [
+            9,
+            245
+          ]
+        },
+        {
+          "name": "b8",
+          "part": "normal",
+          "size": [
+            21,
+            15
+          ],
+          "texture": "発明ボード8",
+          "xy": [
+            245,
+            245
+          ]
+        },
+        {
+          "name": "index",
+          "part": "normal",
+          "texture": "つくれるもの",
+          "xy": [
+            70,
+            -8
+          ]
+        },
+        {
+          "name": "bar0",
+          "part": "normal",
+          "texture": "scrlbar0",
+          "xy": [
+            248,
+            0
+          ]
+        },
+        {
+          "name": "bar1",
+          "part": "normal",
+          "texture": "scrlbar1",
+          "xy": [
+            248,
+            8
+          ]
+        },
+        {
+          "name": "bar2",
+          "part": "normal",
+          "texture": "scrlbar2",
+          "xy": [
+            248,
+            30
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 16,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -210,
+            46
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                3.0,
+                1.0
+              ],
+              "xy": [
+                18.0,
+                50.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "終了",
+              "rate": [
+                3.0,
+                1.0
+              ],
+              "xy": [
+                -280.0,
+                50.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "発明カードクリップ1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            66
+          ]
+        },
+        {
+          "set": "clip",
+          "size": [
+            511,
+            248
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cardlist",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "inv_card"
+        }
+      ]
+    },
+    {
+      "name": "発明カードクリップ2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "clip",
+          "size": [
+            511,
+            415
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dic_msg0",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "swap_dmy20",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "thinkin_ef1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "poly"
+        }
+      ]
+    },
+    {
+      "name": "poly_chr0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "poly"
+        }
+      ]
+    },
+    {
+      "name": "写真の確認タイトル",
+      "op": "form",
+      "parts": [
+        {
+          "name": "写真の確認",
+          "part": "normal",
+          "texture": "写真の確認",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            20,
+            20
+          ]
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "moveitem0",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "moveitem1",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "clip1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            66
+          ]
+        },
+        {
+          "set": "clip",
+          "size": [
+            511,
+            235
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -20,
+            0
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -20,
+            0
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "clip2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "clip",
+          "size": [
+            511,
+            415
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DLOAD",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "dload"
+        },
+        {
+          "set": "position",
+          "xy": [
+            260,
+            124
+          ]
+        }
+      ]
+    },
+    {
+      "name": "kakudai_pic",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "neta",
+          "name": "pic",
+          "part": "item",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "msg5",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            40,
+            300
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg6",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "dmy_swap",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "makebrd",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            170,
+            40
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "createbrd"
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            40,
+            300
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "op": "reset_texinfo"
+    }
+  ],
+  "schema_version": 2
+}

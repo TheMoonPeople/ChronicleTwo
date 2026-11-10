@@ -1,0 +1,827 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "SCRLBAR",
+            "LIST",
+            "msg2",
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "SCRLBAR"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "INIT_END"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 4
+        }
+      ],
+      "name": "MSG_INIT"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 4
+        }
+      ],
+      "name": "MSG_END"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 3143,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "CLR_SV_INITMSG"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "CLR_SV_ENDMSG"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 3142,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 2
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "CURSOR"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "CLR_SV_CONFIRM"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 2
+        },
+        {
+          "message": 3041,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "cursor": -1,
+          "op": "message_cursor",
+          "window": 2
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "LOADSTART"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 3000,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "message": 3100,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg2",
+            "LIST",
+            "SCRLBAR"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "CURSOR"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "action": "中央",
+          "form": "SLOT1",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中央",
+          "form": "SLOT2",
+          "op": "form_set_action"
+        },
+        {
+          "channel": 3,
+          "form": "SLOT1",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "SLOT2",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg4",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        }
+      ],
+      "name": "NEXT_SLOT"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 3003,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "LIST",
+            "SCRLBAR",
+            "CURSOR"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "GET_CARDINFO"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 2
+        },
+        {
+          "message": 3051,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 2
+        }
+      ],
+      "name": "FORMAT"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 2
+        },
+        {
+          "message": 3048,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "FORMAT_BGN"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "CURSOR"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "MES2_CNL"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "CURSOR"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 5034,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "NOT_FISH"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "CURSOR",
+            "LIST",
+            "SCRLBAR"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "FILESEL"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 3014,
+          "op": "make_message",
+          "window": 2
+        }
+      ],
+      "name": "LOADERR"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 3004,
+          "op": "make_message",
+          "window": 2
+        }
+      ],
+      "name": "SIZE_NOT"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "CURSOR"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        }
+      ],
+      "name": "FILE_OKBTN"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "CURSOR"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "SAVEEND"
+    },
+    {
+      "commands": [
+        {
+          "message": 0,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "fade_in": 0,
+          "frames": 30,
+          "op": "scene_fade"
+        }
+      ],
+      "name": "LOADEND"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 3042,
+          "op": "make_message",
+          "window": 0
+        }
+      ],
+      "name": "OM_LOADEND"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 3159,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 0
+        }
+      ],
+      "name": "OM_ISLOAD"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 3158,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 0
+        }
+      ],
+      "name": "OM_ISSAVE"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 3008,
+          "op": "make_message",
+          "window": 0
+        }
+      ],
+      "name": "OM_SAVEEND"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 3164,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "cursor": -1,
+          "op": "message_cursor",
+          "window": 0
+        }
+      ],
+      "name": "OM_NEWSAVE"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 3153,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 0
+        }
+      ],
+      "name": "OM_ISNEWSAVE"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 0
+        },
+        {
+          "message": 3003,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        }
+      ],
+      "name": "OM_PH1"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 0
+        },
+        {
+          "message": 3048,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        }
+      ],
+      "name": "OM_FORMAT"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 0
+        },
+        {
+          "message": 3051,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 0
+        }
+      ],
+      "name": "OM_ISFORMAT"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 0
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 0
+        },
+        {
+          "message": 3050,
+          "op": "make_message",
+          "window": 0
+        }
+      ],
+      "name": "OM_NOTFORMAT"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

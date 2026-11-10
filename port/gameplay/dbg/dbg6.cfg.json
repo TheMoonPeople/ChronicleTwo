@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "action": "item_set",
+      "set": 6
+    },
+    {
+      "action": "get_items",
+      "items": [
+        302,
+        303,
+        309,
+        377
+      ]
+    },
+    {
+      "action": "get_items_counted",
+      "items": [
+        {
+          "count": 10,
+          "item": 312
+        },
+        {
+          "count": 10,
+          "item": 313
+        },
+        {
+          "count": 10,
+          "item": 314
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        }
+      ]
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

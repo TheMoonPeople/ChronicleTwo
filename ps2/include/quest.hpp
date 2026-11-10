@@ -111,6 +111,7 @@ struct QUEST_PLAY_DATA {
 };
 
 STATIC_ASSERT(sizeof(QUEST_PLAY_DATA) == 0x10);
+PORT_RECORD_ASSERT(sizeof(QUEST_PLAY_DATA) == 0x10);
 
 /**
  *
@@ -171,6 +172,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CQuestData) == 0x480);
+PORT_RECORD_ASSERT(sizeof(CQuestData) == 0x480);
 
 /**
  *
@@ -184,6 +186,7 @@ struct MONSTER_BOOK_ENTRY {
 };
 
 STATIC_ASSERT(sizeof(MONSTER_BOOK_ENTRY) == 0xC);
+PORT_RECORD_ASSERT(sizeof(MONSTER_BOOK_ENTRY) == 0xC);
 
 /**
  *
@@ -206,6 +209,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMonsterBook) == 0x1200);
+PORT_RECORD_ASSERT(sizeof(CMonsterBook) == 0x1200);
 
 /**
  *

@@ -1,0 +1,791 @@
+#pragma once
+
+#include "common.h"
+
+#include <cstring>
+#include <span>
+
+#include "font.hpp"
+#include "gamepad.hpp"
+#include "mg_memory.hpp"
+#include "mg_texture.hpp"
+#include "padcontrol.hpp"
+#include "savedata.hpp"
+#include "scenesnd.hpp"
+#include "sound.hpp"
+
+/**
+ * @file
+ * Declares the game's top-level loop, which switches between the title,
+ * the town editor, the dungeon and the debug modes, together with the
+ * shared state it owns: the main scene, the save data, the controller,
+ * the language, the debug menu settings and the pause menu.
+ */
+
+/**
+ *
+ * Modes the main loop can run, as LoopNo holds them and as they index
+ * LoopInit, LoopMain and LoopExit.
+ *
+ */
+// clang-format off
+enum MainLoopMode {
+    LOOP_MENU          = 0,  /**< Debug start menu. */
+    LOOP_EDIT          = 1,  /**< Town and georama editing. */
+    LOOP_DUNGEON       = 2,  /**< Dungeon exploration. */
+    LOOP_TITLE         = 3,  /**< Title screen, the mode the game boots into. */
+    LOOP_CHARA_VIEWER  = 4,  /**< Debug character viewer. */
+    LOOP_TEX_VIEWER    = 5,  /**< Debug texture viewer. */
+    LOOP_MAP_VIEW      = 6,  /**< Debug map viewer. */
+    LOOP_SOUND_VIEWER  = 7,  /**< Debug sound viewer. */
+    LOOP_MOVIE_VIEW    = 8,  /**< Debug movie viewer. */
+    LOOP_SV_CONV_VIEW  = 9,  /**< Save data conversion screen. */
+    LOOP_MODE_NUM      = 10, /**< Number of modes; any other LoopNo ends the game. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Languages the game can run in, as LanguageCode holds them.
+ *
+ */
+// clang-format off
+enum LanguageCodeNo {
+    LANG_JAPANESE = 0, /**< Japanese. */
+    LANG_ENGLISH  = 1, /**< English. */
+    LANG_FRENCH   = 2, /**< French, the language the game starts in. */
+    LANG_GERMAN   = 3, /**< German. */
+    LANG_ITALIAN  = 4, /**< Italian. */
+    LANG_SPANISH  = 5, /**< Spanish, the last language the debug menu offers. */
+    LANG_CHINESE  = 6, /**< Chinese, named by the debug menu only. */
+    LANG_KOREAN   = 7, /**< Korean, named by the debug menu only. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Controller input recording modes, as CaptureMode holds them.
+ *
+ */
+// clang-format off
+enum MainCaptureMode {
+    CAPTURE_OFF         = 0, /**< Input is neither recorded nor replayed. */
+    CAPTURE_RECORD      = 1, /**< Input is recorded while the mode runs. */
+    CAPTURE_PLAY        = 2, /**< The recorded input is replayed. */
+    CAPTURE_PLAY_SCREEN = 3, /**< The recorded input is replayed and the screen is captured. */
+    CAPTURE_MODE_NUM    = 4, /**< Number of modes the debug menu cycles through. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Screens of the debug start menu, as menu_mode holds them.
+ *
+ */
+// clang-format off
+enum DebugMenuMode {
+    DEBUG_MENU_TOP            = 0, /**< List of modes and debug settings. */
+    DEBUG_MENU_MAP_SELECT     = 1, /**< Map selection. */
+    DEBUG_MENU_EVENT_SELECT   = 2, /**< Chapter, event and extra selection, the only screen without DebugFlag. */
+    DEBUG_MENU_SAVE_DATA_EDIT = 3, /**< Save data editor. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Rows of the debug start menu's top screen; rows 1 to 8 are the MainLoopMode they start,
+ * and each row's value in SelectArg is the map, language, item set or cfg number it uses.
+ *
+ */
+// clang-format off
+enum DebugMenuRow {
+    DEBUG_ROW_EVENT_SELECT = 0,  /**< Opens the event selection. */
+    DEBUG_ROW_LANGUAGE     = 9,  /**< Language to switch to. */
+    DEBUG_ROW_ITEM_SET     = 10, /**< Item set handed to DebugGetItem. */
+    DEBUG_ROW_SAVE_DATA    = 11, /**< Opens the save data editor. */
+    DEBUG_ROW_LOAD_CFG     = 12, /**< Number of the dbg/game%d.cfg file to load. */
+    DEBUG_ROW_CONVERT_SAVE = 13, /**< Starts the save data conversion. */
+    DEBUG_ROW_NUM          = 14, /**< Number of rows. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Rows of the debug event selection screen, as EventSelect's select holds them.
+ *
+ */
+// clang-format off
+enum DebugEventRow {
+    DEBUG_EVENT_ROW_BEGINNING     = 0,  /**< Starts a new game from the title screen. */
+    DEBUG_EVENT_ROW_CHAPTER       = 1,  /**< Starts a chapter set up by its capN.cfg file. */
+    DEBUG_EVENT_ROW_CHAPTER_DEBUG = 2,  /**< Starts a chapter set up by its db_capN.cfg file. */
+    DEBUG_EVENT_ROW_SUB_GAME      = 3,  /**< Starts a mini-game set up by its sgN.cfg file. */
+    DEBUG_EVENT_ROW_PALM_BRINKS   = 4,  /**< Enters Palm Brinks set up by pb.cfg. */
+    DEBUG_EVENT_ROW_EVENT         = 5,  /**< Opens the event list. */
+    DEBUG_EVENT_ROW_BOSS_BATTLE   = 6,  /**< Opens the event list to start a boss battle. */
+    DEBUG_EVENT_ROW_FUTURE_MAP    = 7,  /**< Opens the future map selection. */
+    DEBUG_EVENT_ROW_DIORAMA_MAP   = 8,  /**< Enters a georama map set up by geo.cfg. */
+    DEBUG_EVENT_ROW_HDD           = 9,  /**< Opens the hard disk menu. */
+    DEBUG_EVENT_ROW_EXTRA         = 10, /**< Starts an extra (omake) mode. */
+    DEBUG_EVENT_ROW_NUM           = 11, /**< Number of rows. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Mini-games the debug event selection screen can start, as its sub game row holds them.
+ *
+ */
+// clang-format off
+enum DebugSubGame {
+    DEBUG_SUB_GAME_SPHEDA   = 0, /**< Spheda. */
+    DEBUG_SUB_GAME_GYORACE  = 1, /**< Fish racing (Gyorace). */
+    DEBUG_SUB_GAME_FISHING  = 2, /**< Fishing. */
+    DEBUG_SUB_GAME_NUM      = 3, /**< Number of mini-games. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Choices of the pause menu, as PauseSel holds them.
+ *
+ */
+// clang-format off
+enum PauseMenuChoice {
+    PAUSE_CHOICE_QUIT     = 0, /**< Leave the current mode. */
+    PAUSE_CHOICE_CONTINUE = 1, /**< Close the pause menu and carry on playing. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Steps of the pause menu, as PauseMenuMode holds them.
+ *
+ */
+// clang-format off
+enum PauseMenuStep {
+    PAUSE_MENU_OPEN     = 0, /**< Opening; becomes PAUSE_MENU_SELECT on the next frame. */
+    PAUSE_MENU_SELECT   = 1, /**< Choosing between continuing and quitting. */
+    PAUSE_MENU_FADE_OUT = 2, /**< Fading the screen to black after quitting was chosen. */
+    PAUSE_MENU_END      = 3, /**< Faded out; the mode is to be left. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Results of PauseMenu.
+ *
+ */
+// clang-format off
+enum PauseMenuResult {
+    PAUSE_MENU_STAY   = 0, /**< The pause menu stays open. */
+    PAUSE_MENU_RESUME = 1, /**< The pause menu closes and play resumes. */
+    PAUSE_MENU_QUIT   = 2, /**< The current mode is to be left. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Value MasterDebugCode takes when the four shoulder buttons are held at boot.
+ *
+ */
+// clang-format off
+enum MasterDebugCodeValue {
+    MASTER_DEBUG_CODE = 0x5D44, /**< Unlocks the debug options of the title screen. */
+};
+
+// clang-format on
+
+/**
+ *
+ * Parameters that the main loop hands to a mode when it enters it.
+ *
+ */
+struct INIT_LOOP_ARG {
+    int map_no{}; /**< Map or dungeon the mode starts in, or -1 for none. */
+    s8  unk_4[0x40]{};
+    int floor_no{}; /**< Dungeon floor to start on, or -1 for the saved one. */
+    int event_no{}; /**< Event to run on entry, or -1 for none. */
+    int mc_load{};  /**< Memory card load state passed to the entry event. */
+
+    INIT_LOOP_ARG() { memset(this, 0, sizeof(*this)); }
+};
+
+STATIC_ASSERT(sizeof(INIT_LOOP_ARG) == 0x50);
+
+/**
+ *
+ * Debug switches that the debug menus of the editor and the dungeon change.
+ *
+ */
+struct DEBUG_INFO {
+    int debug_camera{};  /**< Non-zero to move the camera freely. */
+    int chara_move{};    /**< Debug character movement level, from 0 to 2. */
+    int georama_debug{}; /**< Non-zero to lift the georama placement conditions. */
+    int param_off{};     /**< Non-zero to hide the parameter display. */
+    int invent_debug{};  /**< 1 to show the invention debug display. */
+
+    DEBUG_INFO() { memset(this, 0, sizeof(*this)); }
+};
+
+STATIC_ASSERT(sizeof(DEBUG_INFO) == 0x14);
+
+/**
+ *
+ * One row of the logical button table that InitPadTable registers with CPadControl.
+ *
+ */
+struct PAD_TABLE_ENTRY {
+    int no;      /**< Logical button number, a PadCtrlButton, or -1 to end the table. */
+    int trigger; /**< When the button reports, a PadCtrlTrigger. */
+    int button;  /**< Controller buttons the logical button reads. @see PadButton */
+};
+
+STATIC_ASSERT(sizeof(PAD_TABLE_ENTRY) == 0xC);
+
+/**
+ *
+ * One row of the logical stick axis table that InitPadTable registers with CPadControl.
+ *
+ */
+struct ANALOG_TABLE_ENTRY {
+    int no;   /**< Logical axis number, a PadCtrlAnalog, or -1 to end the table. */
+    int axis; /**< Stick axis read, a PadCtrlAxis. */
+};
+
+STATIC_ASSERT(sizeof(ANALOG_TABLE_ENTRY) == 0x8);
+
+/**
+ *
+ * Prepares a main loop mode when the main loop enters it.
+ *
+ */
+using LOOP_INIT_FUNC = void (*)(INIT_LOOP_ARG arg);
+
+/**
+ *
+ * Runs one frame of a main loop mode, returning non-zero to leave it.
+ *
+ */
+using LOOP_MAIN_FUNC = int (*)();
+
+/**
+ *
+ * Releases a main loop mode when the main loop leaves it.
+ *
+ */
+using LOOP_EXIT_FUNC = void (*)();
+
+/**
+ *
+ * Entry function of each main loop mode. @see MainLoopMode
+ *
+ */
+extern LOOP_INIT_FUNC LoopInit[LOOP_MODE_NUM];
+
+/**
+ *
+ * Per-frame function of each main loop mode. @see MainLoopMode
+ *
+ */
+extern LOOP_MAIN_FUNC LoopMain[LOOP_MODE_NUM];
+
+/**
+ *
+ * Exit function of each main loop mode. @see MainLoopMode
+ *
+ */
+extern LOOP_EXIT_FUNC LoopExit[LOOP_MODE_NUM];
+
+/**
+ *
+ * Priority the main thread runs at.
+ *
+ */
+extern int MainThreadPriority;
+
+/**
+ *
+ * Scratch buffer that the running mode reads files into.
+ *
+ */
+extern u_long128 *read_buffer;
+
+/**
+ *
+ * Binds the active file scratch buffer together with its actual byte extent.
+ *
+ */
+void BindReadBuffer(std::span<u8> storage, mgCMemory &owner, mgCMemory *backing = nullptr);
+
+/**
+ *
+ * Returns the active file scratch buffer only while its pointer matches the bound extent.
+ *
+ */
+std::span<u8> ReadBufferBytes();
+
+/**
+ *
+ * Returns the read buffer's coherent logical-owner and exact backing-allocation lease.
+ *
+ */
+dc2::memory::ArenaBuffer ReadBufferLease();
+
+/**
+ *
+ * Sound bank number of the system sound effects, or -1 when they failed to load.
+ *
+ */
+extern u32 SystemSND_ID;
+
+/**
+ *
+ * Sound controller shared by the game loops and chapter menu.
+ *
+ */
+extern CSound CSnd;
+
+/**
+ *
+ * Non-zero while the debug features are on.
+ *
+ */
+extern int DebugFlag;
+
+/**
+ *
+ * Event that the debug menu starts maps with, set by the START_EVENT tag of game.cfg.
+ *
+ */
+extern int DefStartEventNo;
+
+/**
+ *
+ * Language the game runs in. @see LanguageCodeNo
+ *
+ */
+extern int LanguageCode;
+
+/**
+ *
+ * Non-zero while an extra (omake) mode of the title screen is being played.
+ *
+ */
+extern int OmakeFlag;
+
+/**
+ *
+ * Debug unlock code entered at boot. @see MasterDebugCodeValue
+ *
+ */
+extern int MasterDebugCode;
+
+/**
+ *
+ * Controller the whole game reads.
+ *
+ */
+extern CGamePad GamePad;
+
+/**
+ *
+ * Controller the main loop, the debug menus and the pause menu read.
+ *
+ */
+extern CGamePad GamePad__2;
+
+/**
+ *
+ * Logical button and stick table built over GamePad__2.
+ *
+ */
+extern CPadControl PadCtrl;
+
+/**
+ *
+ * Debug switches shared by the editor and the dungeon.
+ *
+ */
+extern DEBUG_INFO DebugInfo;
+
+/**
+ *
+ * Initialization arguments for the current game mode.
+ *
+ */
+extern INIT_LOOP_ARG InitArg;
+
+/**
+ *
+ * Initialization arguments for the next game mode.
+ *
+ */
+extern INIT_LOOP_ARG NextInitArg;
+
+/**
+ *
+ * Initialization arguments for the previous game mode.
+ *
+ */
+extern INIT_LOOP_ARG PrevInitArg;
+
+/**
+ *
+ * Allocator for system sound-effect resources.
+ *
+ */
+extern mgCMemory SystemSeStack;
+
+/**
+ *
+ * Allocator for configuration and villager records.
+ *
+ */
+extern mgCMemory InfoStack;
+
+/**
+ *
+ * Main save-data object owned by the game loop.
+ *
+ */
+extern CSaveData SaveData;
+
+/**
+ *
+ * Allocator for the debug menu resources.
+ *
+ */
+extern mgCMemory MenuBuffer;
+
+/**
+ *
+ * Message window used by the pause menu.
+ *
+ */
+extern ClsMes PauseMes;
+
+/**
+ *
+ * Returns the font the debug menus draw with.
+ *
+ * @mangled GetDebugFont__Fv
+ * @address 0x191DF0
+ * @size 0x10
+ */
+CFont *GetDebugFont();
+
+/**
+ *
+ * Returns the controller input recording mode. @see MainCaptureMode
+ *
+ * @mangled GetCaptureMode__Fv
+ * @address 0x191E00
+ * @size 0x10
+ */
+int GetCaptureMode();
+
+/**
+ *
+ * Returns the sound bank number of the system sound effects.
+ *
+ * @mangled GetSystemSndID__Fv
+ * @address 0x191E10
+ * @size 0x10
+ */
+int GetSystemSndID();
+
+/**
+ *
+ * Returns the scene every mode draws and plays sound through.
+ *
+ * @mangled GetMainScene__Fv
+ * @address 0x191E20
+ * @size 0x10
+ */
+CScene *GetMainScene();
+
+/**
+ *
+ * Returns the save data the game is played with.
+ *
+ * @mangled GetSaveData__Fv
+ * @address 0x191E30
+ * @size 0x10
+ */
+CSaveData *GetSaveData();
+
+/**
+ *
+ * Returns the save data of the extra mini-games, or null when none is set up.
+ *
+ * @mangled GetSubGameSaveData__Fv
+ * @address 0x191E40
+ * @size 0x10
+ */
+CSubGameData *GetSubGameSaveData();
+
+/**
+ *
+ * Resets the save data to the state of a new game.
+ *
+ * @mangled InitSaveData__Fv
+ * @address 0x191E50
+ * @size 0x30
+ */
+void InitSaveData();
+
+/**
+ *
+ * Returns the VRAM address textures are placed from, 0x20 past the top address mglib reports.
+ *
+ * @mangled GetVramTopAddress__Fv
+ * @address 0x191E80
+ * @size 0x20
+ */
+int GetVramTopAddress();
+
+/**
+ *
+ * Returns the memory stack the modes allocate their working memory from.
+ *
+ * @mangled GetMainStack__Fv
+ * @address 0x191EA0
+ * @size 0x10
+ */
+mgCMemory *GetMainStack();
+
+/**
+ *
+ * Selects the mode the main loop switches to when the current one ends,
+ * and the parameters it is entered with.
+ *
+ * @mangled NextLoop__Fi13INIT_LOOP_ARG
+ * @address 0x191EB0
+ * @size 0xA0
+ */
+void NextLoop(int loop_no, INIT_LOOP_ARG arg);
+
+/**
+ *
+ * Returns the mode the main loop is running. @see MainLoopMode
+ *
+ * @mangled GetNowLoopNo__Fv
+ * @address 0x191F50
+ * @size 0x10
+ */
+int GetNowLoopNo();
+
+/**
+ *
+ * Returns the parameters the running mode was entered with.
+ *
+ * @mangled GetNowInitArg__Fv
+ * @address 0x191F60
+ * @size 0x10
+ */
+INIT_LOOP_ARG *GetNowInitArg();
+
+/**
+ *
+ * Hook for marking the start of a frame in an external profiler.
+ *
+ * @mangled cat_start__Fv
+ * @address 0x191F70
+ * @size 0x10
+ */
+void cat_start();
+
+/**
+ *
+ * Hook for marking the end of a frame in an external profiler.
+ *
+ * @mangled cat_end__Fv
+ * @address 0x191F80
+ * @size 0x10
+ */
+void cat_end();
+
+/**
+ *
+ * Sizes the texture manager's tables from a memory manager and resets it
+ * to place textures from the top of free VRAM.
+ *
+ * @mangled SetTextureTable__FiiP9mgCMemory
+ * @address 0x191F90
+ * @size 0x50
+ */
+void SetTextureTable(int table_size, int table_count, mgCMemory *memory);
+
+/**
+ *
+ * Turns counting of the play time on or off.
+ *
+ * @mangled PlayTimeCount__Fi
+ * @address 0x192190
+ * @size 0x10
+ */
+void PlayTimeCount(int enable);
+
+/**
+ *
+ * Returns non-zero while the play time is being counted.
+ *
+ * @mangled GetPlayTimeCountFlag__Fv
+ * @address 0x1921A0
+ * @size 0x10
+ */
+int GetPlayTimeCountFlag();
+
+/**
+ *
+ * Switches the game to another language, reloading every message, name
+ * and font that depends on it. @see LanguageCodeNo
+ *
+ * @mangled LanguageChange__FiP1
+ * @address 0x1921B0
+ * @size 0xC0
+ */
+void LanguageChange(int language, u_long128 *buffer);
+
+/**
+ *
+ * Sets up the hardware, the game data and the system sounds, then runs
+ * one mode after another until a mode selects a number past the last mode.
+ *
+ * @mangled MainLoop__Fv
+ * @address 0x192270
+ * @size 0xCC0
+ */
+void MainLoop();
+
+/**
+ *
+ * Returns the font texture with the given index, or null when the index is out of range.
+ *
+ * @mangled GetFontTexture__Fi
+ * @address 0x194210
+ * @size 0x30
+ */
+mgCTexture *GetFontTexture(int page);
+
+/**
+ *
+ * Loads the font texture image of the current language into the font buffer.
+ *
+ * @mangled LoadFontTexture__Fv
+ * @address 0x194240
+ * @size 0x170
+ */
+void LoadFontTexture();
+
+/**
+ *
+ * Enters the loaded font texture image into a block of the texture manager.
+ *
+ * @mangled ReLoadFontTexture__Fi
+ * @address 0x1943B0
+ * @size 0x110
+ */
+void ReLoadFontTexture(int texture_no);
+
+/**
+ *
+ * Hook for ending a kiosk demo when asked to quit.
+ *
+ * @mangled demQuit__Fv
+ * @address 0x1944C0
+ * @size 0x10
+ */
+void demQuit();
+
+/**
+ *
+ * Hook for ending a kiosk demo when its time runs out.
+ *
+ * @mangled demoQuitTimeOut__Fv
+ * @address 0x1944D0
+ * @size 0x10
+ */
+void demoQuitTimeOut();
+
+/**
+ *
+ * Hook for reporting an attract sequence interrupted by the player.
+ *
+ * @mangled demoAttractInterrupted__Fv
+ * @address 0x1944E0
+ * @size 0x10
+ */
+void demoAttractInterrupted();
+
+/**
+ *
+ * Hook for reporting an attract sequence played to its end.
+ *
+ * @mangled demoAttractComplete__Fv
+ * @address 0x1944F0
+ * @size 0x10
+ */
+void demoAttractComplete();
+
+/**
+ *
+ * Hook for fading out the E3 show demo when its time runs out.
+ *
+ * @mangled FadeOutForE3__Fv
+ * @address 0x194500
+ * @size 0x10
+ */
+void FadeOutForE3();
+
+/**
+ *
+ * Checks whether a show demo's time limit has run out.
+ *
+ * @mangled TimeLimitCheck__Fv
+ * @address 0x194510
+ * @size 0x10
+ */
+int TimeLimitCheck();
+
+/**
+ *
+ * Resets the pause menu's message window, drawn from a texture block, and state so that it opens afresh.
+ *
+ * @mangled InitPauseMenu__Fi
+ * @address 0x194520
+ * @size 0x400
+ */
+void InitPauseMenu(int texture_block);
+
+/**
+ *
+ * Runs and draws one frame of the pause menu. @see PauseMenuResult
+ *
+ * @mangled PauseMenu__Fv
+ * @address 0x194920
+ * @size 0x2B0
+ */
+int PauseMenu();
+
+/**
+ *
+ * Runs a debug configuration script, game.cfg from the root directory when
+ * no file is named, whose tags set up the save data and the debug settings.
+ *
+ * @mangled LoadGameConfig__FPc
+ * @address 0x194BD0
+ * @size 0xB0
+ */
+void LoadGameConfig(char *path);

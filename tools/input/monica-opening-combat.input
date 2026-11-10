@@ -1,0 +1,52 @@
+# --jump opening --fast-load. Replay endpoint: --frames 4200.
+# Monica dismisses the castle tutorial, locks on, attacks the Griffon Soldiers and moves.
+2700 cross
+2706
+2760 cross
+2766
+2820 cross
+2826
+2880 cross
+2886
+2940 cross
+2946
+3000 cross
+3006
+3060 cross
+3066
+3120 cross
+3126
+3180 cross
+3186
+3240 cross
+3246
+3300 cross
+3306
+3400 circle
+3406
+3450 cross
+3456
+3490 cross
+3496
+3530 cross
+3536
+3570 cross
+3576
+3610 cross
+3616
+3650 cross
+3656
+3690 cross
+3696
+3730 cross
+3736
+3770 cross
+3776
+3810 cross
+3816
+3850 cross
+3856
+3900 up
+4000
+4050 l1 cross
+4060

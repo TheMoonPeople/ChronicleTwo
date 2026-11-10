@@ -1,0 +1,1615 @@
+{
+  "chapters": [
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.55,
+          "start_seconds": 1.65,
+          "text": "Du stehst am Anfang eines gro[UNI00df]en Abenteuers.\nHier noch ein paar Tipps bevor es losgeht.\r"
+        },
+        {
+          "clear_seconds": 20.87,
+          "start_seconds": 9.55,
+          "text": "Sehen wir mal, wie du dich bewegen kannst.\nZum Laufen den linken Analog-Stick dr[UNI00fc]cken.\nZum Rennen fester dr[UNI00fc]cken.\r"
+        },
+        {
+          "clear_seconds": 33.63,
+          "start_seconds": 20.87,
+          "text": "Der rechte Analog-Stick steuert die Kamera.\nAu[UNI00df]erhalb der Verliese kannst du\nsie auch mit [l1] und [l2] drehen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.63,
+          "text": "Dr[UNI00fc]cke (X) oder [l2] \nw[UNI00e4]hrend du l[UNI00e4]ufst, um die Kamera\nhinter deinen Charakter zu bewegen. Das ist \npraktisch, wenn du in dieselbe Richtung \nwie dein Charakter schauen willst.\r"
+        }
+      ],
+      "id": 901
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.28,
+          "start_seconds": 3.27,
+          "text": "Gehst du zu einem Gegenstand und dr[UNI00fc]ckst (O),\nf[UNI00fc]hrt dein Charakter eine der Situation \ngem[UNI00e4][UNI00df]e Handlung aus.\r"
+        },
+        {
+          "clear_seconds": 17.49,
+          "start_seconds": 10.28,
+          "text": "So kannst du zum Beispiel T[UNI00fc]ren [UNI00f6]ffnen\nund mit Personen reden.\r"
+        },
+        {
+          "clear_seconds": 23.47,
+          "start_seconds": 17.49,
+          "text": "Dr[UNI00fc]ckst du beim Steuern deines Charakters (A),\nerscheint ein Befehle-Bildschirm.\r"
+        },
+        {
+          "clear_seconds": 37.52,
+          "start_seconds": 23.47,
+          "text": "Dieser Bildschirm ist das \"Hauptmen[UNI00fc]\".\nIm Hauptmen[UNI00fc] findest du alle m[UNI00f6]glichen\nBefehle, die dir im Spiel helfen.\nDu kannst Ggst. benutzen und Waffen ausr[UNI00fc]sten.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 37.52,
+          "text": "Nicht vergessen: Im Hauptmen[UNI00fc] best[UNI00e4]tigst du\nmit (O) und brichst mit (X) ab.\r"
+        }
+      ],
+      "id": 902
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.31,
+          "start_seconds": 3.55,
+          "text": "Manchmal musst du (#) dr[UNI00fc]cken, um ein\nGegenst[UNI00e4]nde-Wahl-Men[UNI00fc] aufzurufen.\r"
+        },
+        {
+          "clear_seconds": 20.18,
+          "start_seconds": 10.31,
+          "text": "W[UNI00e4]hle den Gegenstand, der deine aktuellen Anforderungen \nerf[UNI00fc]llt. W[UNI00e4]hlst du den richtigen, kannst du dein \nAbenteuer fortsetzen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.18,
+          "text": "Hast du den n[UNI00f6]tigen Gegenstand nicht im Inventar,\nbrichst du mit (X)ab.\nDann solltest du den ben[UNI00f6]tigten Gegenstand suchen gehen!\r"
+        }
+      ],
+      "id": 903
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.09,
+          "start_seconds": 4.61,
+          "text": "Jetzt erkl[UNI00e4]re ich den Gebrauch normaler Gegenst.\nW[UNI00e4]hle im Hauptmen[UNI00fc] \"Gegenstand\". \nSo [UNI00f6]ffnest du das Gegenstand-Men[UNI00fc].\r"
+        },
+        {
+          "clear_seconds": 20.8,
+          "start_seconds": 13.09,
+          "text": "Bewege den Cursor mit Richtungstasten oder\ndem linkem Analog-Stick auf den gew[UNI00fc]nschten Gegenstand.\nDr[UNI00fc]cke nun (O).\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.8,
+          "text": "Es erscheint eine Liste von Befehlen f[UNI00fc]r den Gegenstand.\nW[UNI00e4]hle einfach den gew[UNI00fc]nschten Befehl.\nUnd so benutzt du Gegenst[UNI00e4]nde!\r"
+        }
+      ],
+      "id": 904
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.71,
+          "start_seconds": 4.33,
+          "text": "Wenn du mit (#) im Gegenstand-Men[UNI00fc] einen Gegenstand\ngew[UNI00e4]hlt und \"aufgenommen\" \nhast, kannst du ihn an einen anderen Platz bewegen.\r"
+        },
+        {
+          "clear_seconds": 25.91,
+          "start_seconds": 14.71,
+          "text": "Mit (#) kannst du den Gegenstand an der vom Cursor\nmarkierten Stelle ablegen. Sortiere deine Gegenst.\nso, dass du sie leicht benutzen kannst.\r"
+        },
+        {
+          "clear_seconds": 35.84,
+          "start_seconds": 25.91,
+          "text": "Gegenst[UNI00e4]nde kann man auch mit (A)\nbewegen, aber mit (A) bestimmt\nman die gew[UNI00fc]nschte Menge eines Gegenstands.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.84,
+          "text": "Durch Dr[UNI00fc]cken von [select] sortierst du deine Gegenst. \nautomatisch. Erneutes Dr[UNI00fc]cken von [select]\nsortiert sie um.\r"
+        }
+      ],
+      "id": 905
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.97,
+          "start_seconds": 1.36,
+          "text": "Hallo, ich bin Donny und ich erkl[UNI00e4]re dir die Steuerung in\nden Verliesen.\n(O) steuert die Waffe in deiner\nrechten Hand.\r"
+        },
+        {
+          "clear_seconds": 20.83,
+          "start_seconds": 11.97,
+          "text": "Dr[UNI00fc]ckst du (O) und h[UNI00e4]ltst  [l1] gedr[UNI00fc]ckt, \ngreifst du mit der Schusswaffe in deiner linken Hand an.\r"
+        },
+        {
+          "clear_seconds": 30.79,
+          "start_seconds": 20.83,
+          "text": "H[UNI00e4]ltst du (O) lange gedr[UNI00fc]ckt, kannst du\nbeim Loslassen einen \"Sturmangriff\" starten.\nIdeal wenn's brenzlig wird.\r"
+        },
+        {
+          "clear_seconds": 37.28,
+          "start_seconds": 30.79,
+          "text": "Eine andere Angriffsart!\nGegenangriff!\r"
+        },
+        {
+          "clear_seconds": 40.81,
+          "start_seconds": 37.28,
+          "text": "Raub-Anzeige\nRaube den Angriff des Feindes ...\r"
+        },
+        {
+          "clear_seconds": 45.03,
+          "start_seconds": 40.81,
+          "text": "Und schicke ihn zur[UNI00fc]ck!\nMagie-Raub-Klinge!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 45.03,
+          "text": "Kannst du es rausfinden?\r"
+        }
+      ],
+      "id": 906
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.75,
+          "start_seconds": 2.73,
+          "text": "Um einen gegnerischen Angriff abzuwehren, dr[UNI00fc]cke [r1]\r"
+        },
+        {
+          "clear_seconds": 21.18,
+          "start_seconds": 8.75,
+          "text": "Dr[UNI00fc]cke (O) w[UNI00e4]hrend du [r1] gedr[UNI00fc]ckt \nh[UNI00e4]ltst, um ein Monster in deiner N[UNI00e4]he aufzuheben \nund durch erneutes Dr[UNI00fc]cken von (O) wegzuwerfen. Stark!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.18,
+          "text": "Genauso kannst du Dinge wie z. B. Felsbrocken in den\nVerliesen nehmen und werfen. Versuch doch mal, Monster damit\nzu treffen!\r"
+        }
+      ],
+      "id": 907
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.53,
+          "start_seconds": 2.49,
+          "text": "Zur n[UNI00e4]chsten Ebene eines Verlieses kommst du nur mit\ndem \"Tor-Schl[UNI00fc]ssel\".\r"
+        },
+        {
+          "clear_seconds": 15.49,
+          "start_seconds": 8.53,
+          "text": "Ein Monster hat den Tor-Schl[UNI00fc]ssel bei sich. Du musst es\nbesiegen, um an den Schl[UNI00fc]ssel zu kommen!\r"
+        },
+        {
+          "clear_seconds": 20.78,
+          "start_seconds": 15.49,
+          "text": "Ob es einen Schl[UNI00fc]ssel hat, wirst du erfahren nachdem\ndu es besiegt hast.\r"
+        },
+        {
+          "clear_seconds": 28.3,
+          "start_seconds": 20.78,
+          "text": "Jedes Verlies hat einen anderen Tor-Schl[UNI00fc]ssel. Du\ndarfst sie nicht verwechseln!\r"
+        },
+        {
+          "clear_seconds": 34.06,
+          "start_seconds": 28.3,
+          "text": "Beim Erforschen der Verliese [UNI00e4]nderst du die Kartenansicht\nmit [select]. \r"
+        },
+        {
+          "clear_seconds": 42.39,
+          "start_seconds": 34.06,
+          "text": "So kannst du zwischen \"Aus\", \"kleine Anzeige\"\nund \"gro[UNI00df]e Anzeige\" ausw[UNI00e4]hlen.\r"
+        },
+        {
+          "clear_seconds": 48.93,
+          "start_seconds": 42.39,
+          "text": "Au[UNI00df]erdem gibt es \"Karten\" und \"Zauberkristalle\" in den\nVerliesen.\r"
+        },
+        {
+          "clear_seconds": 58.61,
+          "start_seconds": 48.93,
+          "text": "Die \"Karte\" zeigt dir die gesamte Ebene,\nin der du dich befindest. Ein \"Zauberkristall\"\nzeigt die Positionen von Gegnern und Sch[UNI00e4]tzen.\r"
+        },
+        {
+          "clear_seconds": 64.62,
+          "start_seconds": 58.61,
+          "text": "Die Kartenansicht ist n[UNI00fc]tzlich, um sie zu\nfinden.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 64.62,
+          "text": "\"Karte\" und \"Zauberkristalle\" funktionieren nur\nin einer Ebene, also musst du neue finden, wenn du\neine Ebene verl[UNI00e4]sst.\r"
+        }
+      ],
+      "id": 908
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.97,
+          "start_seconds": 2.68,
+          "text": "N[UNI00e4]here dich einem Monster und dr[UNI00fc]cke (X), wenn \ndie Markierung erscheint. Jetzt bist du im \"Zielerfassung\"-\nModus. Nun drehst du dich bei jeder Bewegung in die Richtung \ndeines Gegners.\r"
+        },
+        {
+          "clear_seconds": 20.39,
+          "start_seconds": 13.97,
+          "text": "Merk dir dies! Es macht das K[UNI00e4]mpfen viel einfacher.\r"
+        },
+        {
+          "clear_seconds": 33.5,
+          "start_seconds": 20.39,
+          "text": "[UNI00c4]ndere das erfasste Ziel durch leichtes Dr[UNI00fc]cken\nvon (X).\nBei jedem Dr[UNI00fc]cken von (X) erfasst du ein neues Ziel.\r"
+        },
+        {
+          "clear_seconds": 47.92,
+          "start_seconds": 33.5,
+          "text": "Wenn du ein Ziel erfasst hast, den linken Analog-Stick von\ndiesem Ziel weg bewegst und (O) dr[UNI00fc]ckst, wirst du\ndem gegnerischen Angriff \"Ausweichen\".\nDies ist n[UNI00fc]tzlich, also vergiss es nicht!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 47.92,
+          "text": "Und so hebst du die Zielerfassung auf: Bewege den\nlinken Analog-Stick weg vom Ziel und dr[UNI00fc]cke (X).\nDamit w[UNI00e4]r's geschafft.\r"
+        }
+      ],
+      "id": 909
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.6,
+          "start_seconds": 2.43,
+          "text": "L[UNI00e4]uft der Kampf nicht gut, kannst du weglaufen! Doch\nje n[UNI00e4]her der Gegner ist, desto langsamer bist du, also hau\nso schnell w. m[UNI00f6]glich ab wenn's brenzlig wird.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 13.6,
+          "text": "Ist ein Gegner nah, kannst du keine Schatztruhen [UNI00f6]ffnen,\nalso besiege erst den\nGegner und [UNI00f6]ffne sie dann.\r"
+        }
+      ],
+      "id": 910
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.19,
+          "start_seconds": 2.96,
+          "text": "In Verliesen kannst du Ggst. auch im Kampf be- \nnutzen.\r"
+        },
+        {
+          "clear_seconds": 14.27,
+          "start_seconds": 8.19,
+          "text": "Dazu musst du den gew[UNI00fc]nschten Gegenstand als aktiven \nGegenstand ausr[UNI00fc]sten.\r"
+        },
+        {
+          "clear_seconds": 21.47,
+          "start_seconds": 14.27,
+          "text": "Der gew[UNI00e4]hlte Ggst. wird im Fenster f[UNI00fc]r aktive Ggst. \nlinks oben auf dem Bildschirm angezeigt, \nauch wenn du dich umherbewegst.\r"
+        },
+        {
+          "clear_seconds": 29.24,
+          "start_seconds": 21.47,
+          "text": "W[UNI00e4]hle den gew[UNI00fc]nschten aktiven Ggst. durch \nDr[UNI00fc]cken der Richtungstasten und best[UNI00e4]tige deine \nWahl mit (#).\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 29.24,
+          "text": "Gegenst[UNI00e4]nde, die geworfen werden k[UNI00f6]nnen, wirfst du \ndurch Dr[UNI00fc]cken von (#).\nWirfst du sie, nachdem du ein Ziel erfasst hast, \nsind die Trefferchancen hoch.\r"
+        }
+      ],
+      "id": 911
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.32,
+          "start_seconds": 2.77,
+          "text": "In den Verliesen sind viele Schatzkisten und du wirst bestimmt\neinige von ihnen finden.\r"
+        },
+        {
+          "clear_seconds": 14.74,
+          "start_seconds": 9.32,
+          "text": "Aber Vorsicht! Manche sind mit Fallen versehen.\r"
+        },
+        {
+          "clear_seconds": 25.25,
+          "start_seconds": 14.74,
+          "text": "Err[UNI00e4]tst du die Fallenart und entsch[UNI00e4]rfst sie, \nkannst du die Truhe problemlos [UNI00f6]ffnen. Erkennst du die\nFalle nicht, f[UNI00e4]llst du ihr zum Opfer!\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.25,
+          "text": "Es gibt auch verriegelte Schatztruhen. Wenn du den\nTruhen-Schl[UNI00fc]ssel hast, ist das kein Problem.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "Hast du keinen Schl[UNI00fc]ssel und brichst die Truhe auf, \nl[UNI00e4]ufst du Gefahr, eine Falle auszul[UNI00f6]sen.\r"
+        }
+      ],
+      "id": 912
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.37,
+          "start_seconds": 2.95,
+          "text": "Siehst du das Rote [UNI00fc]ber der Monster-GP-Anzeige?\nDas ist\ndie \"Zorn-Anzeige\". Immer wenn du ein Monster\nangreifst, nimmt sie ein wenig\nab.  \r"
+        },
+        {
+          "clear_seconds": 21.93,
+          "start_seconds": 15.37,
+          "text": "Besiegst du das Monster nicht bevor die Anzeige\nleer ist, verf[UNI00e4]llt es in \"Raserei\".\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.93,
+          "text": "Dadurch wird das Monster st[UNI00e4]rker, also solltest du\nhalbherzige Angriffe mit schwachen Waffen\nunterlassen.\r"
+        }
+      ],
+      "id": 913
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.97,
+          "start_seconds": 3.46,
+          "text": "Du kannst mit Gift und anderen Dingen angegriffen werden, die\nungew[UNI00f6]hnl. Status verursachen.\r"
+        },
+        {
+          "clear_seconds": 19.99,
+          "start_seconds": 9.97,
+          "text": "Bei ungew[UNI00f6]hnlichem Status helfen normale\nRettungsgegenst[UNI00e4]nde wie \"Brot\" nicht.\nAlles, was gegen Gift hilft, ist ein \"Gegengift\".\r"
+        },
+        {
+          "clear_seconds": 26.16,
+          "start_seconds": 19.99,
+          "text": "Ein bestimmter ungew[UNI00f6]hnl. Status erfordert einen bestimmten \nGegenstand, um ihn aufzuheben.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 26.16,
+          "text": "Bei K[UNI00e4]mpfen gegen Monster, die solche Angriffe verwenden,\nsolltest du den richtigen Rettungsgegenstand\ndabeihaben.\r"
+        }
+      ],
+      "id": 914
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.24,
+          "start_seconds": 1.95,
+          "text": "Ich wei[UNI00df] genug [UNI00fc]ber Waffen, um keinen mehr\nfragen zu m[UNI00fc]ssen. Aber\neine Wiederholung w[UNI00e4]re gut.\r"
+        },
+        {
+          "clear_seconds": 16.66,
+          "start_seconds": 9.24,
+          "text": "Der Wechsel von Ggst. findet im Ggst.-Men[UNI00fc] statt, \ndas [UNI00fc]ber \"Gegenstand\" im Hauptmen[UNI00fc] aufgerufen wird.\r"
+        },
+        {
+          "clear_seconds": 25.56,
+          "start_seconds": 16.66,
+          "text": "W[UNI00e4]hle den gew[UNI00fc]nschten Gegenstand mit (#),\nplatziere ihn [UNI00fc]ber einem Charakter und\ndr[UNI00fc]cke erneut (#). Fertig.\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.56,
+          "text": "Dr[UNI00fc]cken von (O) [UNI00fc]ber einer Waffe erm[UNI00f6]glicht \ndie Wahl des Ausr[UNI00fc]sten-Befehls, \nder diese Waffe ausr[UNI00fc]stet.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "F[UNI00fc]r die Ausr[UNI00fc]stung gibt es f[UNI00fc]nf \nPl[UNI00e4]tze: rechte Waffe, linke Waffe, Schuhe, \nK[UNI00f6]rper und Kopf.\r"
+        }
+      ],
+      "id": 915
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.65,
+          "start_seconds": 2.86,
+          "text": "Besiegst du einen Gegner mit einer Waffe, hinterl[UNI00e4]sst \ner kleine blaue Zauberkraft-K[UNI00f6]rner. Sammle diese \nK[UNI00f6]rner, damit die von dir eingesetzte Waffe die Zauberkraft\naufnehmen kann.\r"
+        },
+        {
+          "clear_seconds": 22.71,
+          "start_seconds": 15.65,
+          "text": "Wie viel Zauberkraft deine Waffe absorbiert hat, zeigt\ndir der Aufnahmestatus (ANS).\r"
+        },
+        {
+          "clear_seconds": 28.16,
+          "start_seconds": 22.71,
+          "text": "Der blaue Balken neben dem Waffensymbol zeigt\nden aktuellen ANS an.\r"
+        },
+        {
+          "clear_seconds": 38.27,
+          "start_seconds": 28.16,
+          "text": "Ist der ANS-Balken voll, steigt die Waffe\num eine Stufe und wird besser. Das \nnennt man \"Level hoch\".\r"
+        },
+        {
+          "clear_seconds": 49.97,
+          "start_seconds": 38.27,
+          "text": "Waffen haben auch eine WP-Anzeige,\ndie die Haltbarkeit der Waffe anzeigt.\nDies ist der orange Balken neben\ndem Waffensymbol.\r"
+        },
+        {
+          "clear_seconds": 57.49,
+          "start_seconds": 49.97,
+          "text": "F[UNI00e4]llt er auf Null, zerbricht die Waffe und\nkann keine effektiven Angriffe mehr ausf[UNI00fc]hren.\r"
+        },
+        {
+          "clear_seconds": 65.19,
+          "start_seconds": 57.49,
+          "text": "Zerbrochene Waffen k[UNI00f6]nnen mit Reparatur-\npulver repariert werden.\r"
+        },
+        {
+          "clear_seconds": 75.77,
+          "start_seconds": 65.19,
+          "text": "Zerbrochene Waffen verlieren aber etwas\nANS. Es ist also besser, eine Waffe zu reparieren,\nbevor sie ganz zerbricht.\r"
+        },
+        {
+          "clear_seconds": 86.19,
+          "start_seconds": 75.77,
+          "text": "Einige Waffen ben[UNI00f6]tigen andere Ggst. als Reparaturpulver zur\nReparatur.  Schusswaffen ben[UNI00f6]tigen Schussw.-Reparaturpulver,\nArmb[UNI00e4]nder Armband-Reparaturpulver.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 86.19,
+          "text": "Um Donnys Schusswaffe zu reparieren, brauche ich\nalso Schusswaffen-Reparaturpulver.\r"
+        }
+      ],
+      "id": 916
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 1.46,
+          "text": "Man kann eine Waffe durch Kombinieren mit\neinem Gegenstand verbessern.\r"
+        },
+        {
+          "clear_seconds": 18.77,
+          "start_seconds": 7.94,
+          "text": "Bewege den Cursor auf eine Waffe im Ggst.-Men[UNI00fc] und \n[UNI00f6]ffne mit (O) das Waffenmen[UNI00fc]. Wenn du\nStatus w[UNI00e4]hlst, erscheinen Angaben zur Waffe.\r"
+        },
+        {
+          "clear_seconds": 27.35,
+          "start_seconds": 18.77,
+          "text": "Die \"Synthese-Punkte\" unten im Status-Fenster zeigen an,\nmit welchen Gegenst. die Waffe kombiniert \nwerden kann.\r"
+        },
+        {
+          "clear_seconds": 33.83,
+          "start_seconds": 27.35,
+          "text": "Die Synthese-Punkte nehmen zu,\nwenn die Waffe um eine Stufe steigt.\r"
+        },
+        {
+          "clear_seconds": 41.78,
+          "start_seconds": 33.83,
+          "text": "Bewegst du d. Cursor [UNI00fc]ber den zu kombin.\nGegenstand und dr[UNI00fc]ckst (O), erscheinen \nBefehle f[UNI00fc]r diesen Gegenstand.\r"
+        },
+        {
+          "clear_seconds": 50.21,
+          "start_seconds": 41.78,
+          "text": "Ggst., die mit \"Spektrumieren\"\nversehen sind, k[UNI00f6]nnen kombi-\nniert werden.\r"
+        },
+        {
+          "clear_seconds": 59.19,
+          "start_seconds": 50.21,
+          "text": "Spektrumieren l[UNI00f6]st den Ggst. auf und\nerstellt eine \"Synth.-Kugel\", d. \ndie Eigenschaften des Ggst. enth[UNI00e4]lt.\r"
+        },
+        {
+          "clear_seconds": 70.64,
+          "start_seconds": 59.19,
+          "text": "Wird die Synth.-Kugel [UNI00fc]ber der gew[UNI00e4]hlten Waffe\nplatziert und dann (O) gedr[UNI00fc]ckt, geht die\nKraft des Gegenstandes auf die Waffe [UNI00fc]ber.\r"
+        },
+        {
+          "clear_seconds": 87.62,
+          "start_seconds": 70.64,
+          "text": "Findet man eine neue, st[UNI00e4]rkere Waffe, kann man \ndie alte Waffe spektrumieren und ihre Kraft\nauf die neue [UNI00fc]bertragen. So kommt man schnell an \nst[UNI00e4]rkere Waffen.\r"
+        },
+        {
+          "clear_seconds": 100.65,
+          "start_seconds": 87.62,
+          "text": "Als Synth.-Kugel sinkt jedoch die Kraft einer Waffe etwas.\nOhne eine starke Waffe, mit der sie kombiniert werden\nkann, kann eine Waffe also schw[UNI00e4]cher werden als zuvor.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 100.65,
+          "text": "Wird eine Waffe von weniger als +5 spektrumiert, wird sie\nzur instabilen Synth.-Kugel, die nach dem\nKombinieren kaum etwas beizutragen hat. Deshalb\nmuss man vorsichtig sein.\r"
+        }
+      ],
+      "id": 917
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.28,
+          "start_seconds": 4.11,
+          "text": "Waffen haben Attribute. Man\npr[UNI00fc]ft sie, indem man (O) [UNI00fc]ber\nder Waffe dr[UNI00fc]ckt und \"Status\" w[UNI00e4]hlt.\r"
+        },
+        {
+          "clear_seconds": 24.71,
+          "start_seconds": 14.28,
+          "text": "Es werden zehn Attribute angezeigt. [UNI00dc]bersteigt\njedes Attribut eine bestimmte Stufe, kann\ndie Waffe hochgestuft werden.\r"
+        },
+        {
+          "clear_seconds": 34.97,
+          "start_seconds": 24.71,
+          "text": "Jedes Waffenattribut hat einen Maximalwert, also\nist das Steigern von Waffen schwer, au[UNI00df]er man\ngewinnt neue Waffen durch Hochstufen.\r"
+        },
+        {
+          "clear_seconds": 42.27,
+          "start_seconds": 34.97,
+          "text": "Abgesehen von den Attributen haben Waffen manchmal\nbesondere F[UNI00e4]higkeiten. \r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 42.27,
+          "text": "Um d. Details etwas klarer zu definieren, betrachten\nwir uns das einmal n[UNI00e4]her.\r"
+        }
+      ],
+      "id": 918
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.44,
+          "start_seconds": 2.67,
+          "text": "Werden Waffen verbessert und bestimmte Bedingungen\nerf[UNI00fc]llt, steigt die Waffe um eine Waffen-\nstufe. Dies ist das \"Hochstufen\".\r"
+        },
+        {
+          "clear_seconds": 23.39,
+          "start_seconds": 11.44,
+          "text": "Beim Hochstufen ver[UNI00e4]ndert sich nicht nur das Aussehen, \nsondern auch die Eigenschaften der Waffe, was noch deutlichere\nVerbesserungen erm[UNI00f6]glicht.\r"
+        },
+        {
+          "clear_seconds": 35.31,
+          "start_seconds": 23.39,
+          "text": "W[UNI00e4]hlt man den Hochstufen-Befehl und klickt\ndann das \"???\"-Zeichen unter der n[UNI00e4]chsten Waffe an,\nsieht man, welche Werte verbessert werden m[UNI00fc]ssen,\num die Waffe hochzustufen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.31,
+          "text": "Mit d. Angaben kannst du planen, wie\ndu jede Waffe verbessern wirst.\r"
+        }
+      ],
+      "id": 919
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 5.93,
+          "start_seconds": 0.92,
+          "text": "Ich bin Borneo.\nIch erkl[UNI00e4]r dir, wie man sich bewegt.\r"
+        },
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 5.93,
+          "text": "Um dich zu bewegen, w[UNI00e4]hlst du \"Bewegen\" im\nHauptmen[UNI00fc]. Du\nkannst den Zug in ein Gebiet deiner Wahl nehmen.\r"
+        },
+        {
+          "clear_seconds": 22.63,
+          "start_seconds": 14.15,
+          "text": "W[UNI00e4]hle einen Ort auf der Karte und [UNI00fc]berlass Cedric \nund mir das Fahren des Zugs.\r"
+        },
+        {
+          "clear_seconds": 40.36,
+          "start_seconds": 22.63,
+          "text": "Im Verlies rufst du mit dem \"Bewegen\"- Befehl Infos zum\nVerlies auf. Du kannst durch Dr[UNI00fc]cken von (#) das Verlies\njeder Zeit verlassen. Fliehst du aber, bevor du die Ebene\nabgeschlossen hast, verlierst du die H[UNI00e4]lfte deines Geldes.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 40.36,
+          "text": "Am besten verl[UNI00e4]sst du ein Verlies, indem du die Ebene\nabschlie[UNI00df]t und \"Verlies verlassen\" im nun\nerscheinenden Men[UNI00fc] w[UNI00e4]hlst. So verlierst du kein Geld.\nDas Erkunden eines Verlieses darf man nicht [UNI00fc]berst[UNI00fc]rzen.\r"
+        }
+      ],
+      "id": 920
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 3.81,
+          "start_seconds": 0.74,
+          "text": "Ich erkl[UNI00e4]re dir jetzt den Ridepod.\r"
+        },
+        {
+          "clear_seconds": 11.95,
+          "start_seconds": 3.81,
+          "text": "Kriegst du's mit einem gro[UNI00df]en oder gegen\nnormale Angriffe immunen Gegner zu tun, kannst\ndu dich auf den Ridepod verlassen.\r"
+        },
+        {
+          "clear_seconds": 17.84,
+          "start_seconds": 11.95,
+          "text": "Um zu wechseln, [UNI00f6]ffnest du einfach das \nCharakter-Men[UNI00fc] und w[UNI00e4]hlst den Ridepod.\r"
+        },
+        {
+          "clear_seconds": 27.87,
+          "start_seconds": 17.84,
+          "text": "Der gr[UNI00fc]ne Balken auf dem Status-Bildschirm zeigt,\nwie viel Energie dir bleibt. Pass auf, denn wenn er auf Null \nsinkt, kannst du dich in d. Verliesen nicht mehr bewegen.\r"
+        },
+        {
+          "clear_seconds": 35.5,
+          "start_seconds": 27.87,
+          "text": "Besiegt der Ridepod einen Gegner, gewinnt der Kern\nim Herzen der Maschine Erfahrungspunkte (EP).\r"
+        },
+        {
+          "clear_seconds": 41.21,
+          "start_seconds": 35.5,
+          "text": "Mit steigenden EP kannst du den Kern verbessern und\ndie Kapazit[UNI00e4]t steigern.\r"
+        },
+        {
+          "clear_seconds": 50.25,
+          "start_seconds": 41.21,
+          "text": "Die Kapazit[UNI00e4]t bestimmt, mit welchen Teilen\nder Kern kompatibel ist. Wenn sie steigt,\nkannst du bessere Teile einbauen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 50.25,
+          "text": "Sag Bescheid, wenn die EP steigen, dann verbessere\nich dir den Kern.\r"
+        }
+      ],
+      "id": 921
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.06,
+          "start_seconds": 1.55,
+          "text": "Hast du eine Monsterwandel-Marke,\nkannst du zu diesem Monster werden.\r"
+        },
+        {
+          "clear_seconds": 20.74,
+          "start_seconds": 11.06,
+          "text": "Mit dem Charakter-Befehl im Hauptmen[UNI00fc]\nw[UNI00e4]hlst du \"Monsterwandler\".\r"
+        },
+        {
+          "clear_seconds": 35.34,
+          "start_seconds": 20.74,
+          "text": "Mit einer Marke gelangst du zur Marken-Wahl,\nwo du das Monster w[UNI00e4]hlen kannst, in das\ndu dich verwandeln willst.\r"
+        },
+        {
+          "clear_seconds": 45.27,
+          "start_seconds": 35.34,
+          "text": "Du kannst mit Monstern deiner Art sprechen.\nWer wei[UNI00df], welche Geheimnisse\ndu entdeckst?\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 45.27,
+          "text": "An Marken kommt man nicht leicht!\nZuerst musst du n[UNI00e4]mlich das\nrichtige Monster besiegen.\r"
+        }
+      ],
+      "id": 922
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.87,
+          "start_seconds": 0.46,
+          "text": "Besiegst du in Monsterform Gegner, gewinnt\ndie Marke Punkte!  \r"
+        },
+        {
+          "clear_seconds": 24.08,
+          "start_seconds": 9.87,
+          "text": "Ist der Erfahrungsbalken voll, steigt die Marke um\neine Stufe. Irgendwann kannst du dich dann\nin die n[UNI00e4]chste Monsterstufe verwandeln!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 24.08,
+          "text": "Hast du den Meistergrad erlangt, kriegst du\neine Belohnung von der Marke. Dabei \nkommt es auf die Marke an.\r"
+        }
+      ],
+      "id": 923
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.47,
+          "start_seconds": 2.96,
+          "text": "Erfindungen fangen mit Ideensammlungen an. Du musst nur Bilder\nmit deiner Kamera machen und diese Ideen sammeln.\r"
+        },
+        {
+          "clear_seconds": 25.7,
+          "start_seconds": 11.47,
+          "text": "W[UNI00e4]hle die Kamera als akt. Ggst.\nund bet[UNI00e4]tige den Sucher mit (#). Nun\nbewegst du den Sucher mit dem linken Analog-Stick\nund dr[UNI00fc]ckst erneut (#), um \nein Bild zu machen.\r"
+        },
+        {
+          "clear_seconds": 32.12,
+          "start_seconds": 25.7,
+          "text": "Im Sucher kannst du zuvor\ngemachte Bilder mit (A) ansehen.\r"
+        },
+        {
+          "clear_seconds": 41.39,
+          "start_seconds": 32.12,
+          "text": "Die kleinen Gl[UNI00fc]hbirnen neben den Namen der Bilder verraten\ndir, welche Bilder f[UNI00fc]r eine Erfindung benutzt werden \nk[UNI00f6]nnen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.39,
+          "text": "Du solltest dir etwas zur Kamera merken. Au[UNI00df]erhalb von\nVerliesen kann die Kamera beliebig be-\nnutzt werden. In Verliesen muss sie\nals akt. Ggst. gew[UNI00e4]hlt und markiert sein,\nsonst kannst du sie nicht benutzen.\nVergiss das nicht, ja?\r"
+        }
+      ],
+      "id": 924
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.3,
+          "start_seconds": 3.02,
+          "text": "Wenn du alles beisammen hast, geht's ans eigentliche Erfinden.\nDas machst du mit dem \"Bauen\"-Befehl im Hauptmen[UNI00fc].\r"
+        },
+        {
+          "clear_seconds": 15.44,
+          "start_seconds": 11.3,
+          "text": "Die Erfindungskarten sind links aufgereiht.\r"
+        },
+        {
+          "clear_seconds": 23.75,
+          "start_seconds": 15.44,
+          "text": "Um etwas zu erfinden, w[UNI00e4]hlst du\nNeue Erfindung ganz oben und suchst\ndann drei Ggst. aus, die du verwenden willst.\r"
+        },
+        {
+          "clear_seconds": 32.21,
+          "start_seconds": 23.75,
+          "text": "Passen die Ggst. zusammen, ist deine \nErfindung erfolgreich. Der\nerfundene Ggst. wird als Karte registriert.\r"
+        },
+        {
+          "clear_seconds": 38.5,
+          "start_seconds": 32.21,
+          "text": "Aber merk dir eins: Du bist noch\nlange nicht fertig!\r"
+        },
+        {
+          "clear_seconds": 43.58,
+          "start_seconds": 38.5,
+          "text": "Bisher hast du ja nur die Pl[UNI00e4]ne \nf[UNI00fc]r eine Erfindung.\r"
+        },
+        {
+          "clear_seconds": 47.69,
+          "start_seconds": 43.58,
+          "text": "Also sag ich dir, wie du das echte Ding baust.\r"
+        },
+        {
+          "clear_seconds": 52.99,
+          "start_seconds": 47.69,
+          "text": "W[UNI00e4]hle die Erfindungskarte des neuen Ggsts.\naus dem \"Bauen\"-Men[UNI00fc].\r"
+        },
+        {
+          "clear_seconds": 62.38,
+          "start_seconds": 52.99,
+          "text": "W[UNI00e4]hle die Anzahl der zu bauenden Ggst. durch Dr[UNI00fc]cken \nder Richtungstasten und vollende den Bau durch W[UNI00e4]hlen \nvon \"O. K.\" mit den Richtungstasten.\r"
+        },
+        {
+          "clear_seconds": 67.93,
+          "start_seconds": 62.38,
+          "text": "Wenn dir die Materialien fehlen, findest du sie in \neinem Laden oder an einem anderen Ort.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 67.93,
+          "text": "Und, hast du alles verstanden?\nDann kannst du jetzt ja nach Herzenslust bauen.\r"
+        }
+      ],
+      "id": 925
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.32,
+          "start_seconds": 0.96,
+          "text": "Die verw[UNI00fc]stete Welt wieder in Ordnung zu\nbringen ist schwer.\r"
+        },
+        {
+          "clear_seconds": 13.58,
+          "start_seconds": 6.32,
+          "text": "Du musst Leute aus Palm Brinks [UNI00fc]berallhin\nbewegen, um der Welt eine Zukunft zu geben.\r"
+        },
+        {
+          "clear_seconds": 20.72,
+          "start_seconds": 13.58,
+          "text": "Du bewegst Leute, indem du sie als Teil deiner Gruppe\nim Zug mit auf die Reise nimmst.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.72,
+          "text": "Jeder hat eigene Probleme, Kleiner. Wenn du jemandem\nhilfst, hilft dir derjenige bestimmt auch, die Welt\nwieder in Ordnung zu bringen.\r"
+        }
+      ],
+      "id": 926
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.99,
+          "start_seconds": 1.49,
+          "text": "Du kannst sogar Leute aus dem Zug mit ins\nVerlies nehmen, damit sie dir im Kampf beistehen.\r"
+        },
+        {
+          "clear_seconds": 15.53,
+          "start_seconds": 7.99,
+          "text": "Sprich sie im Zug an und w[UNI00e4]hle \"Mitnehmen\", um\nein drittes Gruppenmitglied zu bestimmen.\r"
+        },
+        {
+          "clear_seconds": 23.36,
+          "start_seconds": 15.53,
+          "text": "Das dritte Gruppenmitglied kann zwar nicht mitk[UNI00e4]mpfen,\naber dich mit seinen F[UNI00e4]higkeiten\ntatkr[UNI00e4]ftig unterst[UNI00fc]tzen.\r"
+        },
+        {
+          "clear_seconds": 28.43,
+          "start_seconds": 23.36,
+          "text": "W[UNI00e4]hle dein drittes Gruppenmitglied unter \"Cha-\nrakter\" im Hauptmen[UNI00fc].\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 28.43,
+          "text": "Im Gef[UNI00e4]hrten-Bildschirm kannst\ndu die F[UNI00e4]higkeit w[UNI00e4]hlen, die sie nutzen sollen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 34.52,
+          "text": "Der kluge Einsatz dieser Gef[UNI00e4]hrten-F[UNI00e4]higkeiten \nkann dir in den Verliesen eine gro[UNI00df]e Hilfe sein.\r"
+        }
+      ],
+      "id": 927
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 2.99,
+          "text": "Je tiefer du ins Verlies gehst,\ndesto gef[UNI00e4]hrlicher wird es.\r"
+        },
+        {
+          "clear_seconds": 13.37,
+          "start_seconds": 7.94,
+          "text": "Je nach Situation kann es besser sein,\nwenn du MIR das K[UNI00e4]mpfen [UNI00fc]berl[UNI00e4]sst, Max.\r"
+        },
+        {
+          "clear_seconds": 18.81,
+          "start_seconds": 13.37,
+          "text": "W[UNI00e4]hle mich in solchen F[UNI00e4]llen [UNI00fc]ber\nCharakter im Hauptmen[UNI00fc] an.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 18.81,
+          "text": "Mit dem Schwert und meiner Magie kann\nich's mit allem aufnehmen!\r"
+        }
+      ],
+      "id": 928
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.25,
+          "start_seconds": 2.27,
+          "text": "Manchmal haben Verliese mehrere Ausg[UNI00e4]nge.\r"
+        },
+        {
+          "clear_seconds": 11.27,
+          "start_seconds": 6.25,
+          "text": "Wenn es mehrere Ausg[UNI00e4]nge gibt, \nsiehst du ein Symbol f[UNI00fc]r jeden.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 11.27,
+          "text": "Probiere die Symbole der Ausg[UNI00e4]nge auf der Verlieskarte\naus, die du noch nicht kennst. Mit \"Bewegen\" siehst du\nsie dir an. So verpasst du keinen!\r"
+        }
+      ],
+      "id": 929
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.57,
+          "start_seconds": 1.84,
+          "text": "He - angelst du gern?\nIch erkl[UNI00e4]re dir, wie's geht.\r"
+        },
+        {
+          "clear_seconds": 15.74,
+          "start_seconds": 7.57,
+          "text": "Angeln kann man an zwei Orten: im\nnormalen Gel[UNI00e4]nde und in Verliesen.\r"
+        },
+        {
+          "clear_seconds": 24.75,
+          "start_seconds": 15.74,
+          "text": "Zuerst brauchst du eine \"Angel\".\nW[UNI00e4]hle sie [UNI00fc]ber das Ggst.-Men[UNI00fc] aus wie\neine Waffe.\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 24.75,
+          "text": "Dann kommt der K[UNI00f6]der.\nOhne den am Haken f[UNI00e4]ngst\ndu bestimmt nichts!\r"
+        },
+        {
+          "clear_seconds": 45.47,
+          "start_seconds": 34.52,
+          "text": "Nimm die Angel in die rechte Hand,\nw[UNI00e4]hle mit (O) den K[UNI00f6]der\nund w[UNI00e4]hle in der Befehlsliste \"An Haken\nanbringen\".\r"
+        },
+        {
+          "clear_seconds": 54.33,
+          "start_seconds": 45.47,
+          "text": "Willst du den K[UNI00f6]der wechseln,\nwiederhole diese Schritte. Der\nalte K[UNI00f6]der wird dann ersetzt.\r"
+        },
+        {
+          "clear_seconds": 63.84,
+          "start_seconds": 54.33,
+          "text": "Jetzt kannst du loslegen.\nSuche am Ufer die richtige Stelle.\nSie ist entscheidend!\r"
+        },
+        {
+          "clear_seconds": 69.87,
+          "start_seconds": 63.84,
+          "text": "Hast du eine Stelle gew[UNI00e4]hlt, best[UNI00e4]tige\ndeine Wahl mit (O).\r"
+        },
+        {
+          "clear_seconds": 81.19,
+          "start_seconds": 69.87,
+          "text": "Bewege den Cursor mit dem linken Analog-\nStick und w[UNI00e4]hle dein Wurfziel. Best[UNI00e4]tige deine\nAuswahl mit (O).\r"
+        },
+        {
+          "clear_seconds": 89.27,
+          "start_seconds": 81.19,
+          "text": "Dorthin wirfst du deine Angel aus. Achte\njetzt auf den Schwimmer.\r"
+        },
+        {
+          "clear_seconds": 98.59,
+          "start_seconds": 89.27,
+          "text": "Wenn der Schwimmer abtaucht, musst du rasch\nden linken Analog-Stick nach hinten ziehen.\nWenn das Timing stimmt, hast du den Fisch!\r"
+        },
+        {
+          "clear_seconds": 104.08,
+          "start_seconds": 98.59,
+          "text": "Jetzt ist einer am Haken. Dr[UNI00fc]cke zum Einholen\nmehrmals (O).\r"
+        },
+        {
+          "clear_seconds": 112.47,
+          "start_seconds": 104.08,
+          "text": "Achte nun auf den Balken im Bild. Er\nzeigt die aktuelle Spannung der\nAngelschnur.\r"
+        },
+        {
+          "clear_seconds": 117.86,
+          "start_seconds": 112.47,
+          "text": "Wird sie zu gro[UNI00df], rei[UNI00df]t die Schnur. Den\nFisch kannst du vergessen.\r"
+        },
+        {
+          "clear_seconds": 124.59,
+          "start_seconds": 117.86,
+          "text": "Hole die Schnur so ein, dass der Bal-\nken nicht zu voll wird.\r"
+        },
+        {
+          "clear_seconds": 131.24,
+          "start_seconds": 124.59,
+          "text": "Ziehst du den Fisch an Land,\ngeh[UNI00f6]rt er dir.\r"
+        },
+        {
+          "clear_seconds": 137.75,
+          "start_seconds": 131.24,
+          "text": "Im Verlies geht alles genauso, nur dass\ndu zuerst alle Feinde t[UNI00f6]ten musst.\r"
+        },
+        {
+          "clear_seconds": 145.49,
+          "start_seconds": 137.75,
+          "text": "Je nach Ort, Zeit und K[UNI00f6]der kannst du ver-\nschiedene Fische fangen. Probier's aus!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 145.49,
+          "text": "Angeln ist toll. Viel Spa[UNI00df]!\r"
+        }
+      ],
+      "id": 930
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.37,
+          "start_seconds": 1.3,
+          "text": "Oho! Ein Lockmittel!\nIch erkl[UNI00e4]re dir, wie man damit angelt.\r"
+        },
+        {
+          "clear_seconds": 15.45,
+          "start_seconds": 8.37,
+          "text": "Bringe zun[UNI00e4]chst das Lockmittel an\nwie einen normalen K[UNI00f6]der.\r"
+        },
+        {
+          "clear_seconds": 21.75,
+          "start_seconds": 15.45,
+          "text": "W[UNI00e4]hle den Befehl \"An Haken anbringen\"\nwie immer.\r"
+        },
+        {
+          "clear_seconds": 30.77,
+          "start_seconds": 21.75,
+          "text": "Wie beim Angeln mit Schwimmer brauchst\ndu eine gute Stelle. W[UNI00e4]hle dann dein\nWurfziel mit dem linken Analog-Stick.\r"
+        },
+        {
+          "clear_seconds": 34.5,
+          "start_seconds": 30.77,
+          "text": "Wirf nun mit (O) die Schnur aus.\r"
+        },
+        {
+          "clear_seconds": 41.99,
+          "start_seconds": 34.5,
+          "text": "Jetzt kannst du mit dem linken Analog-Stick die\nAngel bewegen und sie mit (O) einholen.\r"
+        },
+        {
+          "clear_seconds": 51.97,
+          "start_seconds": 41.99,
+          "text": "Beim Lockmittel-Angeln lockst du Fische\ndurch Bewegen und Einholen an.\nProbiere viele Kombinationen!\r"
+        },
+        {
+          "clear_seconds": 59.39,
+          "start_seconds": 51.97,
+          "text": "Hast du das Lockmittel ganz eingeholt,\nmusst du wieder auswerfen. Und nochmal!\r"
+        },
+        {
+          "clear_seconds": 70.96,
+          "start_seconds": 59.39,
+          "text": "Wenn du beim Einholen einen Fisch streifst,\nsp[UNI00fc]rst du einen Sto[UNI00df]. Zieh schnell den linken\nAnalog-Stick nach unten. Wenn dein\nTiming stimmt, hast du ihn am Haken!\r"
+        },
+        {
+          "clear_seconds": 78.54,
+          "start_seconds": 70.96,
+          "text": "Wenn du nichts sp[UNI00fc]rst, richte dich nach dem Zei-\nger an der Angel und hol sie ein.\r"
+        },
+        {
+          "clear_seconds": 85.87,
+          "start_seconds": 78.54,
+          "text": "Hast du einen erwischt, hole ihn mit (O)\nein. Achte auf die Schnur-Spannung!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 85.87,
+          "text": "Lockmittel-Angeln ist schwer, du musst also\nordentlich [UNI00fc]ben.\r"
+        }
+      ],
+      "id": 931
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.07,
+          "start_seconds": 1.02,
+          "text": "Hallo, Max - ich bin's, Need.\nIch werde von Zeit zu Zeit in Palm Brinks\nein \"Angelturnier\" abhalten.\r"
+        },
+        {
+          "clear_seconds": 18.46,
+          "start_seconds": 10.07,
+          "text": "Wenn du einen gro[UNI00df]en Fisch f[UNI00e4]ngst, solltest du ihn\nbeim Turnier zum Wiege-Zelt auf dem Marktplatz von Palm\nBrinks bringen.\r"
+        },
+        {
+          "clear_seconds": 24.78,
+          "start_seconds": 18.46,
+          "text": "Aber beachte, dass die Fische, die du dir zur Zucht\nh[UNI00e4]ltst, nicht gelten.\r"
+        },
+        {
+          "clear_seconds": 31.99,
+          "start_seconds": 24.78,
+          "text": "Wenn wir Fische f[UNI00fc]r das Turnier wiegen, wird im Haupt-\nmen[UNI00fc] \"Angelturnier\"  angezeigt. Du kannst\nin jedem\r"
+        },
+        {
+          "clear_seconds": 37.34,
+          "start_seconds": 31.99,
+          "text": "Turnier bis zu 10 Fische einwiegen. Die drei besten\nwerden gewertet.\r"
+        },
+        {
+          "clear_seconds": 51.05,
+          "start_seconds": 37.34,
+          "text": "Der Sieger erh[UNI00e4]lt einen Preis. Wenn du mehr als drei Fische \neinwiegst und dann Zusammenz[UNI00e4]hlen w[UNI00e4]hlst, werden \ndeine 3 gr[UNI00f6][UNI00df]ten Fische berechnet. Das beendet das \nTurnier.\r"
+        },
+        {
+          "clear_seconds": 179.0,
+          "start_seconds": 51.05,
+          "text": "Es gibt viele tolle Preise - mach mit und fang dir\neinen Riesenbrocken!\r"
+        }
+      ],
+      "id": 932
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.02,
+          "start_seconds": 2.49,
+          "text": "Kaiser Griffon, den alle den dunklen Herrscher\nnennen, sucht die Welt heim.\r"
+        },
+        {
+          "clear_seconds": 17.44,
+          "start_seconds": 9.02,
+          "text": "Dadurch ist vieles in Unordnung geraten.\nSpheda ist ein Sport, der diese Unordnung\nausnutzt.\r"
+        },
+        {
+          "clear_seconds": 23.13,
+          "start_seconds": 17.44,
+          "text": "[UNI00dc]berall auf der Welt gibt es so genannte\nZeitverzerrungen.\r"
+        },
+        {
+          "clear_seconds": 31.89,
+          "start_seconds": 23.13,
+          "text": "Zeitsplitter (\"Kugeln\") sind aus diesen\nZeitverzerrungen gefallen. Um die L[UNI00f6]cher zu stopfen,\nmusst du die Kugeln zur[UNI00fc]ckbringen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.89,
+          "text": "Man kann die Kugeln nicht anfassen und muss sie darum mit\neinem Spheda-Schl[UNI00e4]ger zur[UNI00fc]ck in die L[UNI00f6]cher schlagen.\r"
+        }
+      ],
+      "id": 933
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.38,
+          "start_seconds": 2.62,
+          "text": "Die Kugeln und Verzerrungen sind rot oder blau.\r"
+        },
+        {
+          "clear_seconds": 15.68,
+          "start_seconds": 7.38,
+          "text": "Gleiche Farben sto[UNI00df]en sich ab. Wenn eine Kugel eine \ngleichfarbige Verzerrung trifft, f[UNI00e4]llt sie nicht hinein.\r"
+        },
+        {
+          "clear_seconds": 23.3,
+          "start_seconds": 15.68,
+          "text": "Trifft eine Kugel den Boden oder die Wand, so [UNI00e4]ndert sie\ndie Farbe. Die Kunst besteht darin, die\nFarbe vor dem Einlochen richtig zu [UNI00e4]ndern.\r"
+        },
+        {
+          "clear_seconds": 30.31,
+          "start_seconds": 23.3,
+          "text": "Landet eine Kugel in der Verzerrung, schlie[UNI00df]t sich diese\nund gibt ihre Sch[UNI00e4]tze preis.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 30.31,
+          "text": "Sch[UNI00e4]tze sammeln ist sch[UNI00f6]n und gut, doch das\neigentliche Ziel ist es, die Verzerrungen zu\nbeseitigen und Ordnung zu schaffen.\r"
+        }
+      ],
+      "id": 934
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.19,
+          "start_seconds": 1.58,
+          "text": "Hallo.\nBenutzt du unser Meisterwerk, das\nSchreinerium?\r"
+        },
+        {
+          "clear_seconds": 14.34,
+          "start_seconds": 7.19,
+          "text": "Dann erkl[UNI00e4]re ich dir mal, wie man mit dem\nSchreinerium St[UNI00e4]dte aufbaut.\r"
+        },
+        {
+          "clear_seconds": 22.72,
+          "start_seconds": 14.34,
+          "text": "Wenn du in geeigneten Gebieten\n[select] dr[UNI00fc]ckst, wird\nder Schreinerium-Modus ge[UNI00f6]ffnet.\r"
+        },
+        {
+          "clear_seconds": 34.58,
+          "start_seconds": 22.72,
+          "text": "Du erh[UNI00e4]ltst eine Draufsicht, wenn er aktiviert ist. \nDr[UNI00fc]ckst du in diesem Modus (A),\n[UNI00f6]ffnet sich das Georama-Men[UNI00fc].\r"
+        },
+        {
+          "clear_seconds": 45.1,
+          "start_seconds": 34.58,
+          "text": "Tja, dann kommen wir zum Bauen. Du kannst sehr\nviel herumspielen, am besten probierst du einfach\nein bisschen aus.\r"
+        },
+        {
+          "clear_seconds": 52.05,
+          "start_seconds": 45.1,
+          "text": "Bevor du etwas platzierst, musst du\nGeorama-Teile bauen.\r"
+        },
+        {
+          "clear_seconds": 64.34,
+          "start_seconds": 52.05,
+          "text": "Hast du das n[UNI00f6]tige Material, fertigst du Teile\nmit dem \"Herstellen\"-Befehl an. Mit \"Platzieren\"\nw[UNI00e4]hlst du aus, wo sie stehen sollen.\r"
+        },
+        {
+          "clear_seconds": 78.95,
+          "start_seconds": 64.34,
+          "text": "Bevor es losgeht, brauchst du Geosteine, die mit dem\nWissen der Alten erf[UNI00fc]llt sind. Sie sind in den Verliesen\nverteilt. Wenn du sie ins Schreinerium bringst,\nstehen dir weitere Teile zur Verf[UNI00fc]gung.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 78.95,
+          "text": "Wir legen die Steine in den Reaktor. Du musst sie\neinfach nur finden.\r"
+        }
+      ],
+      "id": 935
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.03,
+          "start_seconds": 1.83,
+          "text": "Gut. Jetzt erkl[UNI00e4]re ich dir, wie du die Teile\nauf der Karte verteilst.\r"
+        },
+        {
+          "clear_seconds": 14.12,
+          "start_seconds": 8.03,
+          "text": "W[UNI00e4]hle \"Platzieren\" und ein Teil, um den\nPlatzieren-Bildschirm zu [UNI00f6]ffnen.\r"
+        },
+        {
+          "clear_seconds": 26.13,
+          "start_seconds": 14.12,
+          "text": "Bestimme den Zielort mit dem linken Analog-Stick und drehe das\nTeil mit [l2] und [r2] in die gew[UNI00fc]nschte\nAusrichtung.\r"
+        },
+        {
+          "clear_seconds": 34.61,
+          "start_seconds": 26.13,
+          "text": "Hast du Ort und Ausrichtung gefunden,\nplatzierst du das Teil mit (O).\r"
+        },
+        {
+          "clear_seconds": 43.12,
+          "start_seconds": 34.61,
+          "text": "Manche Teile kann man stapeln, an D[UNI00e4]chern\nanbringen und so weiter.\nProbier's einfach mal aus.\r"
+        },
+        {
+          "clear_seconds": 51.95,
+          "start_seconds": 43.12,
+          "text": "Lampen und Gegenst[UNI00e4]nde, die an W[UNI00e4]nden angebracht \nwerden k[UNI00f6]nnen, musst du erst auf das Haus \nbewegen und dann (O) dr[UNI00fc]cken.\r"
+        },
+        {
+          "clear_seconds": 62.78,
+          "start_seconds": 51.95,
+          "text": "Bringe das Teil an und w[UNI00e4]hle mit [l2] und [r2]\neine Wand aus. Mit dem linken Analog-Stick\nbestimmst du den genauen Zielort.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 62.78,
+          "text": "Es mag recht verwirrend klingen, aber du\nlernst es bestimmt schnell, glaub mir.\r"
+        }
+      ],
+      "id": 936
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.03,
+          "start_seconds": 2.24,
+          "text": "Jetzt erz[UNI00e4]hle ich dir noch, wie du diese\nGebiete besiedelst, Max.\r"
+        },
+        {
+          "clear_seconds": 15.46,
+          "start_seconds": 10.03,
+          "text": "Um Leute zu bewegen, musst du sie erst bei dir\nim Zug haben.\r"
+        },
+        {
+          "clear_seconds": 21.22,
+          "start_seconds": 15.46,
+          "text": "Wenn niemand bei dir ist, gehst du einfach in deine\nStadt und suchst ein paar Begleiter.\r"
+        },
+        {
+          "clear_seconds": 32.24,
+          "start_seconds": 21.22,
+          "text": "Wenn du Leute bei dir hast, dr[UNI00fc]cke\nvor der T[UNI00fc]r eines neuen Hauses \n(O). Damit betrittst du H[UNI00e4]user oder\nbelegst sie mit Einwohnern.\r"
+        },
+        {
+          "clear_seconds": 51.35,
+          "start_seconds": 32.24,
+          "text": "Hier w[UNI00e4]hlst du \"Belegen\" und\ndann aus dem Zug die Person, die in das Haus\neinziehen soll. Dann kann diese Person hier ein neues\nLeben beginnen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 51.35,
+          "text": "Wir brauchen Menschen, die an der Zukunft mitbauen, nicht?\nAlso sammle sch[UNI00f6]n flei[UNI00df]ig Leute ein.\r"
+        }
+      ],
+      "id": 937
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.03,
+          "start_seconds": 2.86,
+          "text": "Hast du das Land wiederhergestellt und eine Stadt ge-\ngr[UNI00fc]ndet, reise durchs rote Zeit-Tor in\ndie Zukunft.\r"
+        },
+        {
+          "clear_seconds": 17.24,
+          "start_seconds": 11.03,
+          "text": "Wenn du alle Bedingungen erf[UNI00fc]llst, m[UNI00fc]sste die \nZukunft sich anders entwickeln als vorher.\r"
+        },
+        {
+          "clear_seconds": 23.82,
+          "start_seconds": 17.24,
+          "text": "Um in die Gegenwart zur[UNI00fc]ckzukehren,\nnimmst du das blaue Zeit-Tor.\r"
+        },
+        {
+          "clear_seconds": 33.89,
+          "start_seconds": 23.82,
+          "text": "Die Belohnungen f[UNI00fc]r deine Hilfe in der Zukunft\nk[UNI00f6]nnen dir in der Gegenwart helfen. Und das hat\nwiederum Einfluss auf die Zukunft.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.89,
+          "text": "Wenn du das richtig ausnutzt, kannst du\ndie Zukunft bestimmt in Ordnung bringen, Kleiner.\r"
+        }
+      ],
+      "id": 938
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.16,
+          "start_seconds": 0.96,
+          "text": "Wie? Du wei[UNI00df]t nicht, wie man die Zukunft entwickelt, \nsagst du?\r"
+        },
+        {
+          "clear_seconds": 16.33,
+          "start_seconds": 7.16,
+          "text": "Na gut. Im Georama-Men[UNI00fc] gibt es den Befehl\nAnalyse. W[UNI00e4]hle ihn aus.\r"
+        },
+        {
+          "clear_seconds": 22.25,
+          "start_seconds": 16.33,
+          "text": "So findest du die Bedingungen f[UNI00fc]r die \nEntwicklung der Zukunft.\r"
+        },
+        {
+          "clear_seconds": 31.61,
+          "start_seconds": 22.25,
+          "text": "K[UNI00fc]nftige Entwicklungen stehen links auf gro[UNI00df]en \nLampen. Erf[UNI00fc]llst du alle Bedingungen f[UNI00fc]r diese \nEntwicklungen, leuchtet die Lampe auf.\r"
+        },
+        {
+          "clear_seconds": 37.81,
+          "start_seconds": 31.61,
+          "text": "Jede Lampe, die leuchtet,\nbedeutet eine [UNI00c4]nderung in der Zukunft.\r"
+        },
+        {
+          "clear_seconds": 42.93,
+          "start_seconds": 37.81,
+          "text": "Arbeite gut und hilf mit, die Zukunft zu entwickeln.\r"
+        },
+        {
+          "clear_seconds": 55.25,
+          "start_seconds": 42.93,
+          "text": "Bedingungen mit Fragezeichen werden\nzug[UNI00e4]nglich, wenn du Geosteine sammelst.\nWenn du nicht weiterwei[UNI00df]t, gehst du\nam besten ins Verlies.\r"
+        },
+        {
+          "clear_seconds": 61.73,
+          "start_seconds": 55.25,
+          "text": "Deinen aktuellen Stand kannst du in\nder Georama-Analyse unter \"Vollst[UNI00e4]ndig\" ansehen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 61.73,
+          "text": "Es geht auch weiter, wenn du nicht 100% erreicht hast,\naber wenn du 100% schaffst, gibt's eine [UNI00dc]berraschung. \nUnd die willst du dir doch nicht entgehen lassen, oder?\r"
+        }
+      ],
+      "id": 939
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.47,
+          "start_seconds": 1.2,
+          "text": "Es gibt Georama-Bedingungen, die verlangen,\ndass du eine gewisse Mindestzahl an\nKultur-Punkten (KP) sammelst.\r"
+        },
+        {
+          "clear_seconds": 16.48,
+          "start_seconds": 10.47,
+          "text": "Die KP geben an, wie weit die Kultur\ndes Gebiets gediehen ist.\r"
+        },
+        {
+          "clear_seconds": 22.53,
+          "start_seconds": 16.48,
+          "text": "Unter \"Kultur\" im Georama-Men[UNI00fc] siehst du, wie\nviele KP du hast.\r"
+        },
+        {
+          "clear_seconds": 30.68,
+          "start_seconds": 22.53,
+          "text": "KP steigerst du am besten, indem du weitere Geb[UNI00e4]ude \nerrichtest. Aber Bauen allein bringt dich nicht weit ...\r"
+        },
+        {
+          "clear_seconds": 41.32,
+          "start_seconds": 30.68,
+          "text": "Um mehr Punkte aus den Geb[UNI00e4]uden zu holen,\nmusst du z. B. Schornsteine u. Lampen anbringen.\nMach's den Leuten einfach gem[UNI00fc]tlich.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.32,
+          "text": "Es kann z. B. mehr KP bringen, statt zwei\nH[UNI00e4]usern ein Haus mit Lampe und Schornstein zu haben,\nverstehst du?\r"
+        }
+      ],
+      "id": 940
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.4,
+          "start_seconds": 2.39,
+          "text": "Hallo.\nIch veranstalte ein neues Turnier - das Flossen-Fieber!\r"
+        },
+        {
+          "clear_seconds": 15.8,
+          "start_seconds": 8.4,
+          "text": "Die Fische der Teilnehmer schwimmen um die\nWette. Es gibt tolle Preise - du solltest unbedingt\nmitmachen!\r"
+        },
+        {
+          "clear_seconds": 25.62,
+          "start_seconds": 15.8,
+          "text": "W[UNI00e4]hrend des Turniers erscheint im Hauptmen[UNI00fc] \nder Text Flossen-Fieber. Bringe dann die Fische,\ndie teilnehmen sollen, hierher.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 25.62,
+          "text": "Austragungsort ist der Marktplatz von Palm Brinks.\r"
+        }
+      ],
+      "id": 941
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.65,
+          "start_seconds": 1.05,
+          "text": "Da du noch nie teilgenommen hast, erkl[UNI00e4]re ich dir\nmal, wie man Fische z[UNI00fc]chtet.\r"
+        },
+        {
+          "clear_seconds": 15.39,
+          "start_seconds": 7.65,
+          "text": "Man braucht nat[UNI00fc]rlich ein Aquarium.\nGib gefangene Fische in das Aquarium im Gegen-\nst[UNI00e4]nde-Men[UNI00fc].\r"
+        },
+        {
+          "clear_seconds": 24.41,
+          "start_seconds": 15.39,
+          "text": "Mit dem Aquarium-Befehl siehst\ndu, welche Fische schon im Tank\nsind. Es gibt drei solcher Tanks.\r"
+        },
+        {
+          "clear_seconds": 31.52,
+          "start_seconds": 24.41,
+          "text": "Der erste ist der \"Erholungstank\". \nHier k[UNI00f6]nnen deine Fische wohnen und fressen.\r"
+        },
+        {
+          "clear_seconds": 38.12,
+          "start_seconds": 31.52,
+          "text": "Ihre Nahrung bestimmt, wie stark sie werden.\nW[UNI00e4]hle sie mit Bedacht.\r"
+        },
+        {
+          "clear_seconds": 46.46,
+          "start_seconds": 38.12,
+          "text": "Der zweite Tank ist der \"Kampftank\".\nHier trainieren die Fische, um Zusammenst[UNI00f6][UNI00df]e im\nRennen besser auszuhalten.\r"
+        },
+        {
+          "clear_seconds": 56.5,
+          "start_seconds": 46.46,
+          "text": "Gibst du zwei oder mehr Fische in den Tank,\nk[UNI00e4]mpfen sie miteinander und verbessern sich.\nEin Fisch allein kann hier nichts anfangen.\r"
+        },
+        {
+          "clear_seconds": 63.11,
+          "start_seconds": 56.5,
+          "text": "Eins noch! Nimm deinen Fisch heraus, bevor seine\nGP Null erreichen, sonst stirbt er.\r"
+        },
+        {
+          "clear_seconds": 73.19,
+          "start_seconds": 63.11,
+          "text": "Jetzt zum letzten der drei Tanks.\nEs ist der \"Zuchttank\". Hier kannst du\nFischsorten kreuzen, um st[UNI00e4]rkere Fische\nzu z[UNI00fc]chten.\r"
+        },
+        {
+          "clear_seconds": 77.95,
+          "start_seconds": 73.19,
+          "text": "Auch hier ist es nutzlos, nur einen Fisch zu halten.\r"
+        },
+        {
+          "clear_seconds": 86.93,
+          "start_seconds": 77.95,
+          "text": "Gelingt die Zucht, sterben die Fisch-Eltern,\naber daf[UNI00fc]r wird ein neuer\nFisch geboren.\r"
+        },
+        {
+          "clear_seconds": 95.86,
+          "start_seconds": 86.93,
+          "text": "Der neue Fisch erbt die Eigenschaften seiner\nEltern. Waren diese aber schwach, so ist es das\nKind auch. Vergiss das nicht.\r"
+        },
+        {
+          "clear_seconds": 103.25,
+          "start_seconds": 95.86,
+          "text": "Erfolg im Kampftank und im Zuchttank kann lang auf sich\nwarten lassen. \r"
+        },
+        {
+          "clear_seconds": 111.24,
+          "start_seconds": 103.25,
+          "text": "Wenn du deine Fische die ganze Zeit beobachten\nwillst, tu das ruhig. Besser ist es aber, die Zeit\nanders zu nutzen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 111.24,
+          "text": "Im Tank gilt die Echtzeit, und du musst deine Fische\nnur ab und zu besuchen.\r"
+        }
+      ],
+      "id": 942
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.68,
+          "start_seconds": 2.89,
+          "text": "Tja, jetzt also zum Flossen-Fieber.\r"
+        },
+        {
+          "clear_seconds": 14.3,
+          "start_seconds": 7.68,
+          "text": "Gehe zum Zelt auf dem Marktplatz und sprich\nmit dem Rennleiter, um teilzunehmen.\r"
+        },
+        {
+          "clear_seconds": 23.83,
+          "start_seconds": 14.3,
+          "text": "Du kannst an drei Rennen gleichzeitig teilnehmen -\nentweder mit demselben Fisch oder mit drei\nverschiedenen.\r"
+        },
+        {
+          "clear_seconds": 29.85,
+          "start_seconds": 23.83,
+          "text": "Fische erm[UNI00fc]den, darum solltest du keinen\nFisch f[UNI00fc]r drei Rennen melden.\r"
+        },
+        {
+          "clear_seconds": 41.84,
+          "start_seconds": 29.85,
+          "text": "Wenn du das Zelt verl[UNI00e4]sst, bevor die drei Rennen beendet\nsind, endet das ganze Turnier. Bleibe also f[UNI00fc]r alle drei\nRennen dort, um den gesamten Wettbewerb\nanzusehen.\r"
+        },
+        {
+          "clear_seconds": 50.15,
+          "start_seconds": 41.84,
+          "text": "Jetzt wei[UNI00df] der Leiter also, dass du mitmachst. Nun musst du\ndeine Rennfische aus dem Aquarium w[UNI00e4]hlen.\r"
+        },
+        {
+          "clear_seconds": 55.5,
+          "start_seconds": 50.15,
+          "text": "Du kannst nur Fische aus dem Erholungstank w[UNI00e4]hlen.\r"
+        },
+        {
+          "clear_seconds": 65.24,
+          "start_seconds": 55.5,
+          "text": "Dann w[UNI00e4]hlst du die Klasse, in der du antrittst.\nW[UNI00e4]hle die Klasse, die den F[UNI00e4]higkeiten deines Fischs\nentspricht.\r"
+        },
+        {
+          "clear_seconds": 78.0,
+          "start_seconds": 65.24,
+          "text": "Zuletzt bestimmst du, in welchem Tank der Fisch sich auf\ndas Rennen vorbereiten soll. Beachte dabei seinen Charakter,\ndenn deine Wahl beeinflusst sein Abschneiden im\nRennen.\r"
+        },
+        {
+          "clear_seconds": 88.52,
+          "start_seconds": 78.0,
+          "text": "Dann geht's los.\nJetzt kannst du nur noch zusehen\nund deinen Fisch ordentlich an-\nfeuern!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 88.52,
+          "text": "Es gibt tolle Preise, also gib dir M[UNI00fc]he, einen Sie-\nger zu z[UNI00fc]chten!\r"
+        }
+      ],
+      "id": 943
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 2.86,
+          "text": "Der Weg des Abenteu-\nrers ist lang.\nWenn du eine Pause brauchst, solltest\ndu nicht vergessen, deine Fort-\nschritte zu speichern.\r"
+        },
+        {
+          "clear_seconds": 26.9,
+          "start_seconds": 14.15,
+          "text": "Hier und da findest du unterwegs mysteri[UNI00f6]se, leuchtende \nB[UNI00fc]cher. N[UNI00e4]here dich ihnen und dr[UNI00fc]cke (O), \num den Stand deiner Erlebnisse aufzuzeichnen.\r"
+        },
+        {
+          "clear_seconds": 31.41,
+          "start_seconds": 26.9,
+          "text": "Beim n[UNI00e4]chsten Mal\nkannst du an dieser Stelle\nweiterspielen.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.41,
+          "text": "Vergiss nie den Spielstand zu speichern!\nDenn sonst waren all deine M[UNI00fc]hen umsonst.\r"
+        }
+      ],
+      "id": 944
+    },
+    {
+      "entries": [],
+      "id": 999
+    }
+  ],
+  "kind": "movie_subtitles",
+  "schema_version": 2
+}

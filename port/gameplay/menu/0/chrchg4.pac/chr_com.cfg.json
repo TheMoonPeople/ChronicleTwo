@@ -1,0 +1,765 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "polywin",
+            "polywin_bg",
+            "polywin_chrhide"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "polywin",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "polywin_bg",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "polywin_chrhide",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "polywin_chrhide",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "draw": 1,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "fc4namesh2"
+        },
+        {
+          "draw": 1,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "fc4name2"
+        },
+        {
+          "action": "up",
+          "form": "chr_bg",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg2",
+            "msg3",
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg5",
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg2",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg4",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "GOTONPCVIEW"
+    },
+    {
+      "commands": [
+        {
+          "action": "default",
+          "form": "chr_bg",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "fc4namesh2"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "fc4name2"
+        },
+        {
+          "channel": 3,
+          "form": "polywin",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "polywin_bg",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg2",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg4",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "RETURN_CHANGESELECT"
+    },
+    {
+      "commands": [
+        {
+          "action": "外へ",
+          "form": "itembrd",
+          "op": "form_set_action"
+        },
+        {
+          "channel": 3,
+          "form": "msg7",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "BACK_NPCVIEW"
+    },
+    {
+      "commands": [
+        {
+          "action": "中へ",
+          "form": "itembrd",
+          "op": "form_set_action"
+        },
+        {
+          "channel": 3,
+          "form": "msg7",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "fade_in": 1,
+          "op": "cursor_fade",
+          "speed": 14
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "スターブル修理"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg4",
+          "op": "form_calc_rgba",
+          "step": 18,
+          "target": 128
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "Change_ERR"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg4",
+          "op": "form_calc_rgba",
+          "step": 18,
+          "target": 128
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "キャラチェンジ確認"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 4
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "CHANGE_CANCEL"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2",
+            "msg3",
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "op": "reset_texinfo"
+        }
+      ],
+      "name": "NPCFACEEND"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2",
+            "msg3",
+            "msg4",
+            "msg5",
+            "msg6",
+            "polychr"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "fc4namesh2"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "fc4name2"
+        },
+        {
+          "op": "reset_texinfo"
+        },
+        {
+          "op": "message_env",
+          "preset": "system",
+          "window": 7
+        }
+      ],
+      "name": "INIT_FORM"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "fade_block"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "main_bg_img"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "JOININIT"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        }
+      ],
+      "name": "NPCCMDERR"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 4
+        }
+      ],
+      "name": "NPCSETBUF"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 5
+        }
+      ],
+      "name": "ENDSETBUF"
+    },
+    {
+      "commands": [
+        {
+          "form": "msg0",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 5
+        }
+      ],
+      "name": "終了処理"
+    },
+    {
+      "commands": [
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 16,
+          "steps": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "action": "外へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "PREEND"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 6
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 6
+        },
+        {
+          "message": 450,
+          "op": "make_message",
+          "window": 6
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "NPC_YESNO"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "polywin_chrhide"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "polywin_chrhide",
+          "op": "form_calc_rgba",
+          "step": 128,
+          "target": 128
+        }
+      ],
+      "name": "CHRFADEPRE"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "polywin_chrhide"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "polywin_chrhide",
+          "op": "form_calc_rgba",
+          "step": -2,
+          "target": 0
+        }
+      ],
+      "name": "CHRFADEIN"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hpbg0"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hpfill0"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hpbar0"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "slu0"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hp_now0"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hp_max0"
+        }
+      ],
+      "name": "YURIS_OFFLIFE"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hpbg1"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hpfill1"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hpbar1"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "slu1"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hp_now1"
+        },
+        {
+          "draw": 0,
+          "form": "chr_bg",
+          "op": "part_draw_flag",
+          "part": "hp_max1"
+        }
+      ],
+      "name": "MONICA_OFFLIFE"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

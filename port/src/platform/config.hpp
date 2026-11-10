@@ -1,81 +1,103 @@
 #pragma once
 
-#include <filesystem>
 #include <string>
 #include <string_view>
-#include <vector>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#include "log/log_config.hpp"
 #include "platform/settings.hpp"
+
+// Native gameplay always runs at the NTSC field rate, independently of configuration.
+inline constexpr double kConfigTickRateDefault = 60.0;
 
 enum class ConfigAspect {
     Auto,
     FourThree,
 };
 
-// The shared host layer's settings (platform/settings.hpp) with this game's own on top. config.json
-// holds the fields ConfigSerialize names; the host fields it leaves out keep Config()'s values.
+// input.dualsense_haptics: what a DualSense's actuators play (see dualsense_haptics.hpp).
+enum class ConfigHaptics {
+    Off,       // Classic rumble only.
+    Vibration, // The game's own vibration, played on the actuators.
+    Full,      // Also camera quakes and the effects of the player, battles and monsters.
+};
+
+// video.render_thread: which thread runs device work. The environment (DC2_RENDER_THREAD, KZ_RENDER_THREAD)
+// overrides it, and headless and screenshot runs always use off.
+enum class ConfigRenderThread {
+    Off,
+    Lockstep,
+    Async,
+};
+
+// video.interpolation's default. On iOS each interpolated display frame costs the render thread a full replay
+// through MoltenVK, which cannot keep up in a busy dungeon, so the game presents its logic frames directly by default.
+#if defined(__APPLE__) && TARGET_OS_IPHONE
+inline constexpr bool kConfigInterpolationDefault = false;
+#else
+inline constexpr bool kConfigInterpolationDefault = true;
+#endif
+
+/** Most extra shots game.spheda_handicap adds to a Spheda hole's par. */
+inline constexpr int kSphedaHandicapMax = 5;
+
 struct Config : HostSettings {
-    bool         debug_mode = true;
-    bool         interpolation = true;
+    bool               interpolation = kConfigInterpolationDefault;
+    ConfigRenderThread render_thread = ConfigRenderThread::Async;
+    bool               debug_mode = false;
+    bool               autosave = true;
+    // game.quick_loadout_title "plate": the quick loadout's title on a plate like the EXP gauge's, not on a bar.
+    bool quick_loadout_plate = false;
+    // game.skip_intro: boots past the Sony Computer Entertainment text, the copyright notice and the Level-5 logo.
+    bool skip_intro = false;
+    // game.auto_use_event_item: an event that asks for one item the bag holds is handed it without the item picker.
+    bool auto_use_event_item = false;
+    // game.spheda_handicap: extra shots, 0 to 5, added to every Spheda hole's par as it is laid out.
+    int spheda_handicap = 0;
+    // game.floor_info_monsters: Triangle on a dungeon floor's information lists its monsters and their drops.
+    bool floor_info_monsters = false;
+    // game.more_monsters: a dungeon floor holds up to 60 monsters instead of 24, and all of them in range show and act.
+    bool         more_monsters = false;
+    bool         transformation_stats = false; /**< Applies faster badge attack growth and Monica's defence when higher. */
+    bool         transformation_exp = false;   /**< Doubles absorption earned by the active transformation badge. */
+    bool         shared_badge_exp = false;     /**< Shares a quarter of Monica's absorption with other unlocked badges. */
     ConfigAspect aspect = ConfigAspect::Auto;
     float        ui_scale = 1.0f;
-    float        detail_distance = 0.0f;
-    float        shadow_distance = 0.0f;
-
-    // The host layer's defaults are another game's: this one ticks at the PAL field rate, reads the
-    // raw stick and lets Escape release the captured mouse.
-    Config();
+    bool         font_sharp = true;
+    bool         mouse_fixed_look = true;
+    float        menu_pointer_speed = 1.5f;        /**< Captured menu hand travel per mouse count in window pixels. */
+    bool         menu_pointer_acceleration = true; /**< Enables up to twice the menu hand gain for fast captured motion. */
+    // audio.dualsense_speaker: the Ridepod's lines, the treasure chests' opening and the menus' effects
+    // play on a DualSense speaker when one is found instead of the TV.
+    bool dualsense_speaker = true;
+    // audio.controller_volume: gain on the controller speaker, on top of the master volume.
+    float         controller_volume = 1.0f;
+    ConfigHaptics dualsense_haptics = ConfigHaptics::Full;
+    // input.haptics_strength: gain on the DualSense actuators.
+    float haptics_strength = 1.0f;
+    // log.*: the logger's level, file, retention, console and per-category levels (docs/LOGGING.md).
+    LogConfig log;
 
     bool operator==(const Config &) const = default;
 };
 
-const Config &ConfigGet();
-
-// How far from the player or the eye town houses, villagers and dungeon monsters keep their full
-// detail: video.detail_distance, or infinity where it is 0. Past it the game's own distances apply.
-float ConfigDetailDistance();
-
-// How far from the eye a town part casts its shadow at full strength: video.shadow_distance, or
-// infinity where it is 0. Past it the game's own distances apply.
-float ConfigShadowDistance();
-
-// Parses a JSON text (comments allowed) over the defaults: an object of the sections game, video,
-// audio and input. Unknown keys and bad values are reported on stderr and leave the default in
-// place, as does a text that is not JSON; an empty text is the defaults.
-Config ConfigParse(std::string_view text);
-
-// The JSON text ConfigParse reads back as the same settings.
-std::string ConfigSerialize(const Config &config);
-
-// Writes the current settings to <save root>/config.json, creating the save root if need be, and
-// says on stderr where it saved, or that it could not. Returns whether the file was written. The
-// text goes to config.json.tmp first and is renamed over config.json, so a crash leaves the old
-// file or the new one, never a part.
-bool ConfigSave();
-
-// Loads <save root>/config.json and says on stderr where it loaded from. With no file there, keeps
-// the defaults and saves them as a new config.json. Returns whether a file was read.
+// <save root>/../config.json. A missing file is written with the defaults. A file that exists but cannot
+// be read leaves the defaults in memory and is never written this session. Returns whether it was read.
 bool ConfigLoad();
-
-// Applies a change of settings to the running game; before is what ConfigChange replaced. Each part
-// of the game that holds a setting adds its own and looks only at its own keys.
-using ConfigChangeHook = void (*)(const Config &before, const Config &after);
-
-// Adding a hook twice runs it once. Hooks added or removed while a change is being applied take part
-// from the next change.
-void ConfigAddChangeHook(ConfigChangeHook hook);
-
-void ConfigRemoveChangeHook(ConfigChangeHook hook);
-
-// What a settings screen calls with the settings it edited. They are taken as config.json would read
-// them back (a bad value is reported and becomes its default), become ConfigGet(), are saved (comments
-// in the file are not kept), and reach the running game through the change hooks, in the order they
-// were added; ConfigAppliesOnRestart names the settings that wait for the next start instead. Settings
-// equal to the current ones change nothing, but are saved if the last save failed. Returns whether the
-// settings are saved. A call from a change hook is refused and returns false. Main thread only, as are
-// the hooks.
+bool ConfigSave();
+bool ConfigSaved();
+// Applies and saves both the host settings and the game's presentation fields.
 bool ConfigChange(const Config &config);
 
-// Whether a change to the setting, by its config.json name ("game.debug_mode"), reaches the running
-// game only at the next start.
-bool ConfigAppliesOnRestart(std::string_view key);
+// Called by SettingsChange once a changed value is stored, with the settings before and after it.
+using ConfigChangeHook = void (*)(const HostSettings &before, const HostSettings &after);
+void ConfigSetChangeHook(ConfigChangeHook hook);
+
+const Config &ConfigGet();
+
+// Unknown keys and values of the wrong type or range keep their defaults and are logged as warnings.
+Config      ConfigParse(std::string_view text);
+std::string ConfigSerialize(const Config &config);

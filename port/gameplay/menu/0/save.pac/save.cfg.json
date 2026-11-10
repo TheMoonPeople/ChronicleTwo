@@ -1,0 +1,763 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "count": 132,
+      "op": "allocate_etc_info"
+    },
+    {
+      "count": 60,
+      "op": "allocate_etc_info2"
+    },
+    {
+      "count": 255,
+      "op": "allocate_textures"
+    },
+    {
+      "count": 100,
+      "op": "allocate_forms"
+    },
+    {
+      "from": 0,
+      "op": "clear_textures",
+      "to": 255
+    },
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "index": 0,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "save",
+      "textures": [
+        {
+          "name": "save_bg",
+          "rect": [
+            256,
+            256,
+            256,
+            256
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "title_bar",
+          "rect": [
+            0,
+            0,
+            512,
+            64
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "underline",
+          "rect": [
+            0,
+            140,
+            234,
+            6
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "何から_s",
+          "rect": [
+            0,
+            310,
+            180,
+            48
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "何から_b",
+          "rect": [
+            0,
+            404,
+            210,
+            54
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "slot_s",
+          "rect": [
+            0,
+            358,
+            180,
+            48
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "slot_b",
+          "rect": [
+            0,
+            458,
+            210,
+            54
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "scrlbarbase",
+          "rect": [
+            234,
+            246,
+            22,
+            266
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "scrlbar0",
+          "rect": [
+            226,
+            482,
+            8,
+            10
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "scrlbar1",
+          "rect": [
+            226,
+            492,
+            8,
+            10
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "scrlbar2",
+          "rect": [
+            226,
+            502,
+            8,
+            10
+          ],
+          "spelling": "TEXDATA"
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mnmain",
+      "textures": []
+    },
+    {
+      "index": 0,
+      "op": "form_offset"
+    },
+    {
+      "name": "SAVE_BG",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": 1
+                },
+                {
+                  "index": 1,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "save_bg",
+          "part": "normal",
+          "texture": "save_bg",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "bg_tile"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "TITLE",
+      "op": "form",
+      "parts": [
+        {
+          "name": "msgpos",
+          "part": "funcinfo",
+          "xy": [
+            256,
+            93
+          ]
+        },
+        {
+          "name": "msgpos_sub0",
+          "part": "funcinfo",
+          "xy": [
+            106,
+            30
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "title_bar",
+          "part": "normal",
+          "texture": "title_bar",
+          "xy": [
+            0,
+            70
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "sub",
+          "part": "normal",
+          "texture": "slot_s",
+          "xy": [
+            18,
+            18
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "SLOT1",
+      "op": "form",
+      "parts": [
+        {
+          "name": "msg_s",
+          "part": "funcinfo",
+          "xy": [
+            90,
+            10
+          ]
+        },
+        {
+          "name": "msg_b",
+          "part": "funcinfo",
+          "xy": [
+            105,
+            16
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "big",
+          "part": "normal",
+          "texture": "slot_b",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            140,
+            176
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "上へ",
+              "rate": [
+                4.0,
+                4.0
+              ],
+              "xy": [
+                280.0,
+                12.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中央",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                140.0,
+                176.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中央",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "SLOT2",
+      "op": "form",
+      "parts": [
+        {
+          "name": "msg_s",
+          "part": "funcinfo",
+          "xy": [
+            90,
+            10
+          ]
+        },
+        {
+          "name": "msg_b",
+          "part": "funcinfo",
+          "xy": [
+            105,
+            16
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "big",
+          "part": "normal",
+          "texture": "slot_b",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            140,
+            256
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "上へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                280.0,
+                12.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中央",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                140.0,
+                256.0
+              ]
+            }
+          ],
+          "capacity": 4,
+          "set": "actions"
+        },
+        {
+          "name": "中央",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "CLIP1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            20,
+            142
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "clip",
+          "size": [
+            450,
+            238
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LIST",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "draw": 1,
+          "set": "draw_flag"
+        },
+        {
+          "set": "position",
+          "xy": [
+            76,
+            140
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "savelist"
+        }
+      ]
+    },
+    {
+      "name": "CLIP2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "clip"
+        }
+      ]
+    },
+    {
+      "name": "SCRLBAR",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "base",
+          "part": "normal",
+          "texture": "scrlbarbase",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "bar0",
+          "part": "normal",
+          "texture": "scrlbar0",
+          "xy": [
+            8,
+            0
+          ]
+        },
+        {
+          "name": "bar1",
+          "part": "normal",
+          "texture": "scrlbar1",
+          "xy": [
+            8,
+            40
+          ]
+        },
+        {
+          "name": "bar2",
+          "part": "normal",
+          "texture": "scrlbar2",
+          "xy": [
+            8,
+            50
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            454,
+            140
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CURSOR",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "counts": [
+                60,
+                30
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                8,
+                6
+              ]
+            }
+          ],
+          "name": "cursor",
+          "part": "cursor",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "slot1",
+              "rate": [
+                4.0,
+                4.0
+              ],
+              "xy": [
+                100.0,
+                190.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "slot2",
+              "rate": [
+                4.0,
+                4.0
+              ],
+              "xy": [
+                100.0,
+                270.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "list0",
+              "rate": [
+                4.0,
+                4.0
+              ],
+              "xy": [
+                30.0,
+                166.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "list1",
+              "rate": [
+                4.0,
+                4.0
+              ],
+              "xy": [
+                30.0,
+                246.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "list2",
+              "rate": [
+                4.0,
+                4.0
+              ],
+              "xy": [
+                30.0,
+                326.0
+              ]
+            }
+          ],
+          "capacity": 5,
+          "set": "actions"
+        },
+        {
+          "name": "slot1",
+          "set": "action"
+        },
+        {
+          "set": "position",
+          "xy": [
+            100,
+            188
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DLOAD",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "dload"
+        },
+        {
+          "set": "position",
+          "xy": [
+            260,
+            144
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg6",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg5",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg7",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "op": "reset_texinfo"
+    }
+  ],
+  "schema_version": 2
+}

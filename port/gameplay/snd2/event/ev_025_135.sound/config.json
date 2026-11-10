@@ -1,0 +1,62 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/event/ev_025_135.sound/effects/ev_025_135_000.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/event/ev_025_135.sound/effects/ev_025_135_001.json",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "snd2/event/ev_025_135.sound/effects/ev_025_135_002.json",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "snd2/event/ev_025_135.sound/effects/ev_025_135_003.json",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "snd2/event/ev_025_135.sound/effects/ev_025_135_004.json",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    }
+  ],
+  "entry_count": 10,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

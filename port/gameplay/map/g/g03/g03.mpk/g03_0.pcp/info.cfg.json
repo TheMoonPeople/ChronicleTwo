@@ -1,0 +1,138 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "g0301_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g0301_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_03-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g0301_03-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g0301_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g0301_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_13-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g0301_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0301_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0302_01-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g0302_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g0302_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g0305_01-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "check-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g030302-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g030301-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g030301-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g030301-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g030401-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g030401-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g030401-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g030401-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "check-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g0302_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g0301_14-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

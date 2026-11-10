@@ -1,0 +1,16 @@
+#pragma once
+
+/* Declarations only; reassembled from ref/asm/split/main/rand.s. */
+
+extern "C" {
+
+int abs(int);
+int rand(void);
+void srand(unsigned int seed);
+double atof(const char *text);
+int atoi(const char *text);
+void abort(void);
+void free(void *storage);
+void exit(int status);
+void exit__2(int status);
+}

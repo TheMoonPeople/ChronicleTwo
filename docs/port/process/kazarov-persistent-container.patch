@@ -1,0 +1,832 @@
+diff --git a/README.md b/README.md
+index 41a6d85..99b5367 100644
+--- a/README.md
++++ b/README.md
+@@ -115,9 +115,20 @@ Environment variables:
+ | `BUILDER=docker\|podman` | Container runtime. Podman is preferred when both are present, except on Apple silicon. |
+ | `REBUILD_IMAGE=1` | Rebuilds the image even when its tag exists. |
+ | `PCSX2=...` | Emulator command for `kz-pcsx2`. |
++| `KZ_PERSIST=1` | Starts this checkout's persistent container when it is missing or runs another image, then runs commands in it. |
+ 
+ Inside the container the driver also reads `KZ_PROJECT_ROOT`, `KZ_HOST_OS` and `KZ_RUN_OUT` (the descriptor path).
+ 
++### Persistent container and linked entries
++
++A container start costs seconds on Docker Desktop, so `kazarov up` starts one detached container for this checkout, running `sleep infinity` from the same image with the same mounts. Later `build`, `run` and `shell` commands `docker exec` into it when it runs the current image tag. A stale container (another tag) is not used, and the driver says so; `kazarov up` replaces it. `kazarov down` removes it. The name is `kz-<project>-<10 hex digits of the sha256 of the project root>`, so the Windows script finds the same container.
++
++- `kazarov up`: starts the container, or does nothing if it already runs the current tag.
++- `kazarov down`: removes it.
++- `KZ_PERSIST=1`: the driver starts it on first use, and replaces a stale one. Export it once to use the persistent container for every command.
++
++The container sees the project root at `/work/$KZ_PROJECT`. Each top-level symlink or junction in the root whose target is a directory outside the root is mounted at the same name under `/work`, so a worktree's `data` junction works inside the container. The mounts are fixed when the container starts: after adding or removing a linked entry, run `kazarov down` and then `kazarov up`.
++
+ ## Helper tools
+ 
+ All are Python 3 with the standard library, except `kazarov` and `kz-pcsx2`, which are bash.
+@@ -282,7 +293,7 @@ CMake entry points are in `cmake/KazarovPort.cmake`:
+ 
+ ## Windows
+ 
+-- `host/kazarov.cmd ROOT build|run [config] [args...]` is the Windows entry point. It is a thin shim: it runs `host/kazarov.ps1` with `pwsh`, or `powershell` when `pwsh` is not on PATH, and forwards the arguments as typed, so cmd never expands them a second time. `ROOT` is the project directory, and the script reads `KZ_PROJECT`, the default configurations and `KZ_WINDOWS_CONFIGS` from its `kazarov.conf`. A configuration listed in `KZ_WINDOWS_CONFIGS` runs through `KZ_WINDOWS_HOST_SCRIPT` with PowerShell. A configuration listed in `KZ_CONTAINER_CONFIGS` runs in the container. A first argument in neither list is a program argument, and the default configuration is used. Any other configuration runs in the container, through `docker` or `podman` (`BUILDER` picks one). `run` starts PCSX2 or the executable after the container exits.
++- `host/kazarov.cmd ROOT build|run [config] [args...]` is the Windows entry point. It is a thin shim: it runs `host/kazarov.ps1` with `pwsh`, or `powershell` when `pwsh` is not on PATH, and forwards the arguments as typed, so cmd never expands them a second time. `ROOT` is the project directory, and the script reads `KZ_PROJECT`, the default configurations and `KZ_WINDOWS_CONFIGS` from its `kazarov.conf`. A configuration listed in `KZ_WINDOWS_CONFIGS` runs through `KZ_WINDOWS_HOST_SCRIPT` with PowerShell. A configuration listed in `KZ_CONTAINER_CONFIGS` runs in the container. A first argument in neither list is a program argument, and the default configuration is used. Any other configuration runs in the container, through `docker` or `podman` (`BUILDER` picks one). `run` starts PCSX2 or the executable after the container exits. The script uses the persistent container of [Persistent container and linked entries](#persistent-container-and-linked-entries) when one runs the current image tag, and mounts linked entries the same way; `KZ_PERSIST=1` starts it on first use. It has no `up` or `down` of its own: use `kazarov up` and `kazarov down` from Git Bash.
+ - `.gitattributes` keeps scripts LF and `.cmd`/`.bat` files CRLF. `host/kazarov.cmd` must stay CRLF.
+ - Git Bash (MSYS) runs `bin/kazarov` directly. The driver sets `MSYS_NO_PATHCONV=1` and converts mounts with `cygpath -m`.
+ - Clone the project inside the WSL filesystem (`~/`), not under `/mnt/c`. Bind mounts of Windows drives are much slower for the many small reads of a build.
+@@ -291,8 +302,8 @@ CMake entry points are in `cmake/KazarovPort.cmake`:
+ 
+ ```bash
+ python -m pytest -q tests/test_kz_mwcc.py tests/test_kz_lock.py tests/test_kz_extract.py \
+-    tests/test_kz_split_stamp.py tests/test_kz_cached.py tests/test_kazarov_elf.py tests/cmake \
+-    tests/test_host_ps1.py
++    tests/test_kz_split_stamp.py tests/test_kz_cached.py tests/test_kz_container.py \
++    tests/test_kazarov_elf.py tests/cmake tests/test_host_ps1.py
+ shellcheck bin/kazarov bin/kz-pcsx2 lib/*.sh tests/port_h/run.sh
+ ```
+ 
+diff --git a/bin/kazarov b/bin/kazarov
+index e2e19bc..73877a3 100755
+--- a/bin/kazarov
++++ b/bin/kazarov
+@@ -4,14 +4,20 @@
+ #   kazarov [--inside|--locked] build [config] [targets…]
+ #   kazarov [--inside|--locked] run [config] [args…]
+ #   kazarov shell [cmd…]
++#   kazarov up | down
+ #   kazarov image
+ #   kazarov configs
+ #
+ # --inside means this is already in the container; --locked means the locks
+-# are already held. Environment: CLEAN, JOBS, BUILDER, REBUILD_IMAGE, PCSX2.
++# are already held. Environment: CLEAN, JOBS, BUILDER, REBUILD_IMAGE, PCSX2,
++# KZ_PERSIST.
+ set -eo pipefail
+ 
+-KZ_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
++kz_self_dir=${BASH_SOURCE[0]%/*}
++if [ "$kz_self_dir" = "${BASH_SOURCE[0]}" ]; then
++    kz_self_dir=.
++fi
++KZ_ROOT=$(cd "$kz_self_dir/.." && pwd)
+ KZ_SELF="$KZ_ROOT/bin/kazarov"
+ KZ_LOGICAL_PROJECT=$(cd "$KZ_ROOT/../.." && pwd)
+ export KZ_LOGICAL_PROJECT
+@@ -32,7 +38,7 @@ KZ_CALLER_OS=${KZ_HOST_OS:-}
+ 
+ usage() {
+     echo "usage: kazarov [--inside|--locked] build [config] [targets…] | run [config] [args…] |" >&2
+-    echo "       kazarov shell [cmd…] | image | configs" >&2
++    echo "       kazarov shell [cmd…] | up | down | image | configs" >&2
+     exit 2
+ }
+ 
+@@ -278,7 +284,7 @@ kz_build_or_run() {
+ 
+     if [ "$KZ_WHERE" = container ] && [ "$inside" = 0 ]; then
+         mkdir -p "$KZ_PROJECT_ROOT/.kazarov"
+-        kz_ensure_image
++        kz_require_builder
+         kz_report_parallelism
+         if [ "$what" = run ]; then
+             KZ_RUN_OUT=".kazarov/run-$$.txt"
+@@ -328,6 +334,16 @@ case $cmd in
+         done
+         ;;
+ 
++    up|down)
++        kz_load_project
++        kz_require_builder
++        if [ "$cmd" = up ]; then
++            kz_up
++        else
++            kz_down
++        fi
++        ;;
++
+     image)
+         if [ "$inside" = 1 ]; then
+             kz_image_tag
+@@ -345,7 +361,6 @@ case $cmd in
+             fi
+             exec "$@"
+         fi
+-        kz_ensure_image
+         KZ_INTERACTIVE=1 kz_container_run shell "$@"
+         ;;
+ 
+diff --git a/host/kazarov.ps1 b/host/kazarov.ps1
+index 819b5c7..851ceaa 100644
+--- a/host/kazarov.ps1
++++ b/host/kazarov.ps1
+@@ -106,6 +106,33 @@ function Invoke-WindowsHost([string]$Config, [string[]]$HostArgs) {
+     exit $code
+ }
+ 
++# The -v flags for each top-level junction or symlink whose target is a directory outside the root,
++# mounted at its own name under /work, as bin/kazarov mounts them.
++function Get-LinkedMounts([string]$Dir, [string]$Project) {
++    $mounts = @()
++    $prefix = $Dir + '\'
++    foreach ($entry in @(Get-ChildItem -LiteralPath $Dir -Directory)) {
++        if (-not $entry.LinkType) { continue }
++        $target = @($entry.Target) | Select-Object -First 1
++        if (-not $target) { continue }
++        $full = [System.IO.Path]::GetFullPath([string]$target).TrimEnd('\')
++        if ($full -eq $Dir -or $full.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { continue }
++        if (-not (Test-Path -LiteralPath $full -PathType Container)) { continue }
++        $mounts += '-v', "${full}:/work/$Project/$($entry.Name)"
++    }
++    $mounts
++}
++
++# kz-<project>-<10 hex digits of the sha256 of the root>. The root is hashed the way bin/kazarov's
++# kz_host_path writes it: forward slashes, upper-case drive letter.
++function Get-PersistName([string]$Dir, [string]$Project) {
++    $path = $Dir.Replace('\', '/')
++    if ($path -match '^[a-z]:') { $path = $path.Substring(0, 1).ToUpperInvariant() + $path.Substring(1) }
++    $sha = [System.Security.Cryptography.SHA256]::Create()
++    $hex = [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($path))) -replace '-', ''
++    return "kz-$Project-$($hex.Substring(0, 10).ToLowerInvariant())"
++}
++
+ function Invoke-Container([string]$Config, [string[]]$ContainerArgs) {
+     if (-not $project) { Fail 'KZ_PROJECT is not set in kazarov.conf' }
+ 
+@@ -150,15 +177,34 @@ function Invoke-Container([string]$Config, [string[]]$ContainerArgs) {
+     if (-not (Test-Path -LiteralPath $kzDir)) { New-Item -ItemType Directory -Path $kzDir | Out-Null }
+     $desc = 'run-' + [guid]::NewGuid().ToString('N') + '.txt'
+ 
+-    $runArgs = @('run', '--rm', '--init',
+-        '-v', "${Root}:/work/$project",
+-        '-w', "/work/$project",
+-        '-e', 'HOME=/tmp',
+-        '-e', 'KZ_HOST_OS=windows',
+-        '-e', 'CLEAN',
+-        '-e', 'JOBS',
+-        '-e', "KZ_RUN_OUT=.kazarov/$desc",
+-        $imgId, 'tools/kazarov/bin/kazarov', '--inside', $Command)
++    $mounts = @('-v', "${Root}:/work/$project") + @(Get-LinkedMounts $Root $project)
++
++    # A dirty tag never reuses a container: its label cannot say which uncommitted files it was built from.
++    $pname = Get-PersistName $Root $project
++    $state = ''
++    if ($tag -ne 'dirty') {
++        $state = [string](& $bld container inspect -f '{{.State.Running}} {{index .Config.Labels "org.themoonpeople.kazarov.image"}}' $pname 2>$null | Select-Object -First 1)
++    }
++    if ($tag -ne 'dirty' -and $state -ne "true $tag" -and $env:KZ_PERSIST -eq '1') {
++        if ($state) { Invoke-Native $bld @('rm', '-f', $pname) | Out-Null }
++        Invoke-Native $bld (@('run', '-d', '--name', $pname, '--init',
++            '--label', "org.themoonpeople.kazarov.image=$tag", '-w', "/work/$project") + $mounts + @($imgId, 'sleep', 'infinity')) | Out-Null
++        if ($script:NativeExit -ne 0) { Fail 'cannot start the persistent container' }
++        $state = "true $tag"
++    }
++    $persistent = ($tag -ne 'dirty') -and ($state -eq "true $tag")
++    if ($state -like 'true *' -and -not $persistent) {
++        [Console]::Error.WriteLine("kazarov: $pname runs another image than $tag; run 'kazarov up' to replace it")
++    }
++
++    $envArgs = @('-e', 'HOME=/tmp', '-e', 'KZ_HOST_OS=windows', '-e', 'CLEAN', '-e', 'JOBS', '-e', "KZ_RUN_OUT=.kazarov/$desc")
++    if ($persistent) {
++        $runArgs = @('exec', '-w', "/work/$project") + $envArgs + @($pname)
++    }
++    else {
++        $runArgs = @('run', '--rm', '--init') + $mounts + @('-w', "/work/$project") + $envArgs + @($imgId)
++    }
++    $runArgs += 'tools/kazarov/bin/kazarov', '--inside', $Command
+     if ($Config) { $runArgs += $Config }
+     $runArgs += $ContainerArgs
+     Invoke-Native $bld $runArgs
+diff --git a/lib/host.sh b/lib/host.sh
+index e3bd561..8bf5b67 100644
+--- a/lib/host.sh
++++ b/lib/host.sh
+@@ -12,22 +12,32 @@ kz_os_norm() {
+     esac
+ }
+ 
++# Read once per driver run: the hot path would otherwise fork uname and tr for every check.
++KZ_HOST_OS_NORM=$(kz_os_norm "$(uname -s)")
++
+ kz_host_os() {
+-    kz_os_norm "$(uname -s)"
++    printf '%s\n' "$KZ_HOST_OS_NORM"
+ }
+ 
+ kz_in_msys() {
+-    [ "$(kz_host_os)" = windows ] && [ -n "${MSYSTEM:-}" ]
++    [ "$KZ_HOST_OS_NORM" = windows ] && [ -n "${MSYSTEM:-}" ]
+ }
+ 
+ kz_nproc() {
+     nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1
+ }
+ 
+-# Converts a host path for a bind mount; Git Bash needs the mixed Windows form.
++# Converts a host path for a bind mount; Git Bash needs the mixed Windows form. A drive path
++# converts without a cygpath fork, which costs as much as the docker call it precedes.
+ kz_host_path() {
+     if kz_in_msys; then
+-        cygpath -m "$1"
++        case $1 in
++            /[a-zA-Z]/*)
++                local drive=${1:1:1}
++                printf '%s:%s\n' "${drive^^}" "${1:2}" ;;
++            *)
++                cygpath -m "$1" ;;
++        esac
+     else
+         printf '%s\n' "$1"
+     fi
+@@ -82,8 +92,17 @@ kz_image_content_hash() {
+     done | kz_sha256 | cut -c1-12
+ }
+ 
++# Sets KZ_TAG to the image tag, once per driver run. Call it in the driver's own shell:
++# a $(...) would discard the value.
++kz_resolve_image_tag() {
++    if [ -z "${KZ_TAG:-}" ]; then
++        KZ_TAG=$(kz_image_tag)
++    fi
++}
++
+ kz_image_name() {
+-    echo "kazarov-dev:$(kz_image_tag)"
++    kz_resolve_image_tag
++    echo "kazarov-dev:$KZ_TAG"
+ }
+ 
+ # The docker context of the first running x86_64 colima profile, exported as
+@@ -165,22 +184,21 @@ kz_require_builder() {
+ # REBUILD_IMAGE=1. The image is built from image/ alone, labelled with its tag.
+ # Sets KZ_IMAGE_REF to the image ID, which is what the containers run.
+ kz_ensure_image() {
+-    local tag name dirty=0
++    local name dirty=0
+     kz_require_builder
+-    tag=$(kz_image_tag)
+-    name="kazarov-dev:$tag"
+-    case $tag in
++    kz_resolve_image_tag
++    name="kazarov-dev:$KZ_TAG"
++    case $KZ_TAG in
+         dirty-*) dirty=1 ;;
+     esac
+     if [ "$dirty" = 0 ] && [ "${REBUILD_IMAGE:-0}" != 1 ] \
+-       && "$BUILDER" image inspect "$name" >/dev/null 2>&1; then
+-        KZ_IMAGE_REF=$("$BUILDER" image inspect --format '{{.Id}}' "$name")
++       && KZ_IMAGE_REF=$("$BUILDER" image inspect --format '{{.Id}}' "$name" 2>/dev/null); then
+         return 0
+     fi
+     echo "kazarov: building the image $name (once per image/ change)"
+     "$BUILDER" build --platform linux/amd64 \
+-        --build-arg "KZ_IMAGE_ID=$tag" \
+-        --label "org.themoonpeople.kazarov.image=$tag" \
++        --build-arg "KZ_IMAGE_ID=$KZ_TAG" \
++        --label "org.themoonpeople.kazarov.image=$KZ_TAG" \
+         -t "$name" "$KZ_ROOT/image"
+     KZ_IMAGE_REF=$("$BUILDER" image inspect --format '{{.Id}}' "$name")
+ }
+@@ -217,26 +235,133 @@ kz_report_parallelism() {
+     return 0
+ }
+ 
+-# Runs a command in a fresh container from the image. Arguments are the
+-# command. KZ_INTERACTIVE=1 adds -i; -t is added when stdout is a terminal.
+-# The project is mounted at /work/$KZ_PROJECT and the caller's working
+-# directory is mapped under it. Run from the host, not from inside.
+-kz_container_run() {
+-    local name host_root mount cwd_phys rel workdir kz_root_rel
+-    local -a flags=() env_args=()
++# Runs docker or podman. Under MSYS, path conversion would rewrite the /work/... paths.
++kz_engine() {
++    if kz_in_msys; then
++        MSYS_NO_PATHCONV=1 "$BUILDER" "$@"
++    else
++        "$BUILDER" "$@"
++    fi
++}
+ 
+-    kz_require_builder
++# Sets KZ_MOUNT_FLAGS: the project root at /work/$KZ_PROJECT, then each top-level symlink or
++# junction whose target is a directory outside the root, at its own name under /work. A worktree
++# keeps data/ as a junction into another checkout, which the container cannot follow.
++kz_mount_flags() {
++    local entry name target suffix=
++    if [ "$BUILDER" = podman ] && [ "$KZ_HOST_OS_NORM" = linux ]; then
++        suffix=:Z
++    fi
++    KZ_MOUNT_FLAGS=(-v "$(kz_host_path "$KZ_PROJECT_ROOT"):/work/$KZ_PROJECT$suffix")
++    for entry in "$KZ_PROJECT_ROOT"/*; do
++        [ -L "$entry" ] && [ -d "$entry" ] || continue
++        name=${entry##*/}
++        target=$(cd -P "$entry" && pwd -P) || continue
++        case $target in
++            "$KZ_PROJECT_ROOT"|"$KZ_PROJECT_ROOT"/*) continue ;;
++        esac
++        KZ_MOUNT_FLAGS+=(-v "$(kz_host_path "$target"):/work/$KZ_PROJECT/$name$suffix")
++    done
++}
++
++# kz-<project>-<10 hex digits of the sha256 of the root path>. The root is hashed in the form
++# kz_host_path gives, which host/kazarov.ps1 reproduces.
++kz_persist_name() {
++    local root
++    root=$(kz_host_path "$KZ_PROJECT_ROOT")
++    printf 'kz-%s-%s\n' "$KZ_PROJECT" "$(printf '%s' "$root" | kz_sha256 | cut -c1-10)"
++}
++
++# "<running> <image tag label>" for the container of that name; nothing when there is none.
++kz_persist_state() {
++    kz_engine container inspect -f '{{.State.Running}} {{index .Config.Labels "org.themoonpeople.kazarov.image"}}' "$1" 2>/dev/null || true
++}
++
++# Docker on Linux runs containers as root unless told otherwise, and root would own the
++# files written into the project.
++kz_user_flags() {
++    KZ_USER_FLAGS=()
++    if [ "$BUILDER" = docker ] && [ "$KZ_HOST_OS_NORM" = linux ]; then
++        KZ_USER_FLAGS=(--user "$(id -u):$(id -g)")
++    fi
++}
++
++# Environment fixed into a container when it starts.
++kz_fixed_env() {
++    KZ_FIXED_ENV=(-e HOME=/tmp
++                  -e "KZ_PROJECT_ROOT=/work/$KZ_PROJECT"
++                  -e "KZ_HOST_OS=$KZ_HOST_OS_NORM"
++                  -e "KZ_IMAGE_TAG=$KZ_TAG")
++}
++
++# Environment for one call. Passed to docker run and docker exec, never fixed into the persistent
++# container, since each command sets its own values.
++kz_call_env() {
++    local var
++    KZ_CALL_ENV=(-e "JOBS=$JOBS")
++    if [ -n "${CLEAN:-}" ]; then
++        KZ_CALL_ENV+=(-e "CLEAN=$CLEAN")
++    fi
++    if [ -n "${KZ_RUN_OUT:-}" ]; then
++        KZ_CALL_ENV+=(-e "KZ_RUN_OUT=$KZ_RUN_OUT")
++    fi
++    for var in ${KZ_ENV_PASS[@]+"${KZ_ENV_PASS[@]}"}; do
++        if [ -n "${!var+x}" ]; then
++            KZ_CALL_ENV+=(-e "$var=${!var}")
++        fi
++    done
++}
++
++# Starts the persistent container of this checkout from KZ_IMAGE_REF, replacing one that runs
++# another tag. It sleeps until kazarov down. Needs kz_ensure_image and KZ_TAG.
++kz_up() {
++    local pname state
++    pname=$(kz_persist_name)
++    state=$(kz_persist_state "$pname")
++    if [ "$state" = "true $KZ_TAG" ]; then
++        echo "kazarov: $pname is already running"
++        return 0
++    fi
++    if [ -n "$state" ]; then
++        kz_engine rm -f "$pname" >/dev/null
++    fi
+     if [ -z "${KZ_IMAGE_REF:-}" ]; then
+         kz_ensure_image
+     fi
+-    name=$KZ_IMAGE_REF
++    kz_mount_flags
++    kz_user_flags
++    kz_fixed_env
++    kz_engine run -d --name "$pname" --init \
++        --label "org.themoonpeople.kazarov.image=$KZ_TAG" \
++        "${KZ_MOUNT_FLAGS[@]}" -w "/work/$KZ_PROJECT" \
++        "${KZ_USER_FLAGS[@]}" "${KZ_FIXED_ENV[@]}" \
++        "$KZ_IMAGE_REF" sleep infinity >/dev/null
++    echo "kazarov: started $pname"
++}
+ 
+-    host_root=$(kz_host_path "$KZ_PROJECT_ROOT")
+-    mount="$host_root:/work/$KZ_PROJECT"
+-    if [ "$BUILDER" = podman ] && [ "$(kz_host_os)" = linux ]; then
+-        mount="$mount:Z"
++# Removes the persistent container of this checkout, if there is one.
++kz_down() {
++    local pname
++    pname=$(kz_persist_name)
++    if [ -z "$(kz_persist_state "$pname")" ]; then
++        echo "kazarov: no persistent container $pname"
++        return 0
+     fi
++    kz_engine rm -f "$pname" >/dev/null
++    echo "kazarov: removed $pname"
++}
+ 
++# Runs a command in the container for this checkout. Arguments are the command. When the
++# persistent container runs the current image tag, the command is exec'd in it; otherwise it runs
++# in a fresh container from the image. KZ_PERSIST=1 starts the persistent container first when it
++# is missing or stale. KZ_INTERACTIVE=1 adds -i; -t is added when stdout is a terminal. The project
++# is mounted at /work/$KZ_PROJECT and the caller's working directory is mapped under it. Run from
++# the host, not from inside.
++kz_container_run() {
++    local name workdir cwd_phys rel kz_root_rel driver pname state
++    local -a flags=() tty=()
++
++    kz_require_builder
+     cwd_phys=$(pwd -P)
+     rel=${cwd_phys#"$KZ_PROJECT_ROOT"}
+     case $rel in
+@@ -248,46 +373,46 @@ kz_container_run() {
+         *) workdir="/work/$KZ_PROJECT" ;;
+     esac
+ 
+-    flags+=(--rm --init --label org.themoonpeople.kazarov.run=1)
+-    flags+=(-v "$mount" -w "$workdir")
+-    if [ "$BUILDER" = docker ] && [ "$(kz_host_os)" = linux ]; then
+-        flags+=(--user "$(id -u):$(id -g)")
++    kz_root_rel=${KZ_ROOT#"$KZ_LOGICAL_PROJECT"/}
++    if [ "$kz_root_rel" = "$KZ_ROOT" ]; then
++        echo "kazarov: the Kazarov checkout must sit under the project root (tools/kazarov)" >&2
++        exit 1
+     fi
++    driver="/work/$KZ_PROJECT/$kz_root_rel/bin/kazarov"
++
+     if [ "${KZ_INTERACTIVE:-0}" = 1 ]; then
+-        flags+=(-i)
++        tty+=(-i)
+     fi
+     if [ -t 1 ]; then
+-        flags+=(-t)
++        tty+=(-t)
+     fi
++    kz_user_flags
++    kz_resolve_image_tag
++    kz_fixed_env
++    kz_call_env
+ 
+-    kz_root_rel=${KZ_ROOT#"$KZ_LOGICAL_PROJECT"/}
+-    if [ "$kz_root_rel" = "$KZ_ROOT" ]; then
+-        echo "kazarov: the Kazarov checkout must sit under the project root (tools/kazarov)" >&2
+-        exit 1
++    pname=$(kz_persist_name)
++    state=$(kz_persist_state "$pname")
++    if [ "$state" != "true $KZ_TAG" ] && [ "${KZ_PERSIST:-0}" = 1 ]; then
++        kz_up
++        state=$(kz_persist_state "$pname")
+     fi
+-    env_args+=(-e HOME=/tmp
+-               -e "KZ_PROJECT_ROOT=/work/$KZ_PROJECT"
+-               -e "KZ_HOST_OS=$(kz_host_os)"
+-               -e "KZ_IMAGE_TAG=$(kz_image_tag)"
+-               -e "JOBS=$JOBS")
+-    if [ -n "${CLEAN:-}" ]; then
+-        env_args+=(-e "CLEAN=$CLEAN")
++    if [ "$state" = "true $KZ_TAG" ]; then
++        kz_engine exec "${tty[@]}" "${KZ_USER_FLAGS[@]}" -w "$workdir" \
++            "${KZ_FIXED_ENV[@]}" "${KZ_CALL_ENV[@]}" "$pname" "$driver" --inside "$@"
++        return
+     fi
+-    if [ -n "${KZ_RUN_OUT:-}" ]; then
+-        env_args+=(-e "KZ_RUN_OUT=$KZ_RUN_OUT")
++    if [ "${state%% *}" = true ]; then
++        echo "kazarov: $pname runs another image than $KZ_TAG; run 'kazarov up' to replace it" >&2
+     fi
+-    local var
+-    for var in ${KZ_ENV_PASS[@]+"${KZ_ENV_PASS[@]}"}; do
+-        if [ -n "${!var+x}" ]; then
+-            env_args+=(-e "$var=${!var}")
+-        fi
+-    done
+ 
+-    if kz_in_msys; then
+-        MSYS_NO_PATHCONV=1 "$BUILDER" run "${flags[@]}" "${env_args[@]}" \
+-            "$name" "/work/$KZ_PROJECT/$kz_root_rel/bin/kazarov" --inside "$@"
+-    else
+-        "$BUILDER" run "${flags[@]}" "${env_args[@]}" \
+-            "$name" "/work/$KZ_PROJECT/$kz_root_rel/bin/kazarov" --inside "$@"
++    if [ -z "${KZ_IMAGE_REF:-}" ]; then
++        kz_ensure_image
+     fi
++    name=$KZ_IMAGE_REF
++    kz_mount_flags
++    flags+=(--rm --init --label org.themoonpeople.kazarov.run=1)
++    flags+=("${KZ_MOUNT_FLAGS[@]}" -w "$workdir")
++    kz_engine run "${flags[@]}" "${KZ_USER_FLAGS[@]}" "${tty[@]}" \
++        "${KZ_FIXED_ENV[@]}" "${KZ_CALL_ENV[@]}" "$name" "$driver" --inside "$@"
+ }
+diff --git a/tests/test_host_ps1.py b/tests/test_host_ps1.py
+index 7688ab4..b2ba937 100644
+--- a/tests/test_host_ps1.py
++++ b/tests/test_host_ps1.py
+@@ -4,6 +4,7 @@ A fake docker records its argv, and a fake Windows host script records its argv.
+ when no pwsh is found: KZ_PWSH names one, otherwise pwsh is taken from PATH.
+ """
+ 
++import hashlib
+ import json
+ import os
+ import shutil
+@@ -51,6 +52,8 @@ if sys.argv[1:2] == ["run"] and os.environ.get("FAKE_DESCRIPTOR"):
+     mount = args[args.index("-v") + 1].rsplit(":/work/", 1)[0]
+     with open(os.path.join(mount, out), "w", encoding="utf-8") as desc:
+         desc.write(os.environ["FAKE_DESCRIPTOR"] + "\\n")
++if sys.argv[1:3] == ["container", "inspect"] and os.environ.get("FAKE_INSPECT"):
++    print(os.environ["FAKE_INSPECT"])
+ sys.exit(0)
+ """ % IMAGE_ID
+ 
+@@ -84,7 +87,7 @@ def project(tmp_path):
+     return root, bin_dir
+ 
+ 
+-def run_kazarov(pwsh, project, *args, descriptor=None, conf=None):
++def run_kazarov(pwsh, project, *args, descriptor=None, conf=None, inspect=None, extra_env=None):
+     root, bin_dir = project
+     log = bin_dir.parent / "docker.log"
+     log.unlink(missing_ok=True)
+@@ -96,8 +99,13 @@ def run_kazarov(pwsh, project, *args, descriptor=None, conf=None):
+     env["FAKE_DOCKER_LOG"] = str(log)
+     env.pop("REBUILD_IMAGE", None)
+     env.pop("FAKE_DESCRIPTOR", None)
++    env.pop("FAKE_INSPECT", None)
++    env.pop("KZ_PERSIST", None)
+     if descriptor is not None:
+         env["FAKE_DESCRIPTOR"] = descriptor
++    if inspect is not None:
++        env["FAKE_INSPECT"] = inspect
++    env.update(extra_env or {})
+     result = subprocess.run([pwsh, "-NoProfile", "-File", str(SCRIPT), str(root), *args],
+                             capture_output=True, text=True, env=env, cwd=str(bin_dir))
+     docker_calls = []
+@@ -165,6 +173,63 @@ def test_container_default_is_passed_in_the_config_slot(pwsh, project):
+     assert run[-5:] == ["tools/kazarov/bin/kazarov", "--inside", "build", "ps2", "-x"]
+ 
+ 
++def image_tag():
++    head = subprocess.run(["git", "-C", str(KZ), "rev-parse", "HEAD:image"], capture_output=True, text=True)
++    status = subprocess.run(["git", "-C", str(KZ), "status", "--porcelain", "--", "image"],
++                            capture_output=True, text=True)
++    if head.returncode != 0 or status.stdout.strip():
++        pytest.skip("image/ has uncommitted changes, so the image tag is dirty")
++    return head.stdout.strip()[:12]
++
++
++def persist_name(root):
++    path = str(root).replace("\\", "/")
++    if path[1:2] == ":":
++        path = path[0].upper() + path[1:]
++    return "kz-scratch-" + hashlib.sha256(path.encode("utf-8")).hexdigest()[:10]
++
++
++def test_linked_junction_target_is_mounted_under_its_name(pwsh, project):
++    if sys.platform != "win32":
++        pytest.skip("junctions are a Windows feature")
++    root, _ = project
++    target = root.parent / "other checkout" / "data"
++    target.mkdir(parents=True)
++    subprocess.run(["cmd", "/c", "mklink", "/J", str(root / "data"), str(target)],
++                   check=True, capture_output=True)
++    result, calls, windows_argv = run_kazarov(pwsh, project, "build", "ps2")
++    assert result.returncode == 0, result.stderr
++    run = container_run(calls)
++    mounts = [run[i + 1].lower() for i, arg in enumerate(run[:-1]) if arg == "-v"]
++    assert f"{target}:/work/scratch/data".lower() in mounts, mounts
++    assert f"{root}:/work/scratch".lower() in mounts, mounts
++
++
++def test_running_persistent_container_of_the_same_tag_is_exec_d(pwsh, project):
++    root, _ = project
++    result, calls, _ = run_kazarov(pwsh, project, "build", "ps2", inspect=f"true {image_tag()}")
++    assert result.returncode == 0, result.stderr
++    assert [call for call in calls if call[:1] == ["run"]] == []
++    (exec_call,) = [call for call in calls if call[:1] == ["exec"]]
++    assert exec_call[-5:] == [persist_name(root), "tools/kazarov/bin/kazarov", "--inside", "build", "ps2"]
++    assert exec_call[exec_call.index("-w") + 1] == "/work/scratch"
++
++
++def test_persistent_container_of_another_tag_falls_back_with_a_message(pwsh, project):
++    result, calls, _ = run_kazarov(pwsh, project, "build", "ps2", inspect="true 000000000000")
++    assert result.returncode == 0, result.stderr
++    assert container_run(calls)[0] == "run"
++    assert "kazarov up" in result.stderr
++
++
++def test_keep_persist_starts_the_container_before_exec(pwsh, project):
++    result, calls, _ = run_kazarov(pwsh, project, "build", "ps2", extra_env={"KZ_PERSIST": "1"})
++    assert result.returncode == 0, result.stderr
++    starts = [i for i, call in enumerate(calls) if call[:2] == ["run", "-d"]]
++    execs = [i for i, call in enumerate(calls) if call[:1] == ["exec"]]
++    assert len(starts) == 1 and len(execs) == 1 and starts[0] < execs[0], calls
++
++
+ def test_exe_launch_passes_arguments_as_separate_words(pwsh, project):
+     root, _ = project
+     exe = root / "game.sh"
+diff --git a/tests/test_kz_container.py b/tests/test_kz_container.py
+new file mode 100644
+index 0000000..a03f8cb
+--- /dev/null
++++ b/tests/test_kz_container.py
+@@ -0,0 +1,206 @@
++"""bin/kazarov container paths, run against a fake docker (and podman) that records its argv.
++
++Covers the mounts for linked top-level entries, kazarov up and down, the exec path into a running
++persistent container, KZ_PERSIST, and the number of runtime calls on the ordinary run path.
++"""
++
++import hashlib
++import json
++import os
++import shutil
++import subprocess
++from pathlib import Path
++
++import pytest
++
++KZ = Path(__file__).resolve().parent.parent
++IMAGE_ID = "sha256:" + "cd" * 32
++CONF = """\
++KZ_PROJECT=scratch
++kz_config() { return 1; }
++"""
++
++FAKE_RUNTIME = """\
++#!/usr/bin/env python3
++import json
++import os
++import sys
++
++args = sys.argv[1:]
++with open(os.environ["FAKE_DOCKER_LOG"], "a", encoding="utf-8") as log:
++    log.write(json.dumps(args) + "\\n")
++state_path = os.environ["FAKE_DOCKER_STATE"]
++if args[:2] == ["image", "inspect"]:
++    print("%s")
++elif args[:1] == ["run"] and "-d" in args:
++    name = args[args.index("--name") + 1]
++    label = next(a.split("=", 1)[1] for a in args if a.startswith("org.themoonpeople.kazarov.image="))
++    with open(state_path, "w", encoding="utf-8") as state:
++        state.write(name + "\\n" + label + "\\n")
++elif args[:2] == ["container", "inspect"]:
++    if not os.path.exists(state_path):
++        sys.exit(1)
++    with open(state_path, encoding="utf-8") as state:
++        name, label = state.read().splitlines()
++    if args[-1] != name:
++        sys.exit(1)
++    print("true " + label)
++elif args[:1] == ["rm"] and os.path.exists(state_path):
++    os.remove(state_path)
++sys.exit(0)
++""" % IMAGE_ID
++
++
++def _git(cwd, *args):
++    subprocess.run(["git", "-C", str(cwd), *args], check=True, capture_output=True,
++                   env=dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t",
++                            GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t"))
++
++
++@pytest.fixture
++def project(tmp_path):
++    if shutil.which("git") is None:
++        pytest.skip("git is needed for a clean image tag")
++    root = tmp_path / "proj"
++    kz = root / "tools" / "kazarov"
++    shutil.copytree(KZ / "bin", kz / "bin")
++    shutil.copytree(KZ / "lib", kz / "lib")
++    (kz / "image").mkdir()
++    (kz / "image" / "Dockerfile").write_text("FROM scratch\n", encoding="utf-8")
++    _git(kz, "init", "-q")
++    _git(kz, "add", "image")
++    _git(kz, "commit", "-q", "-m", "image")
++
++    (root / "kazarov.conf").write_text(CONF, encoding="utf-8")
++    (root / "src").mkdir()
++    other = tmp_path / "other checkout"
++    (other / "data").mkdir(parents=True)
++    (other / "data" / "disc.bin").write_bytes(b"")
++    (root / "data").symlink_to(other / "data", target_is_directory=True)
++    (root / "inside-link").symlink_to(root / "src", target_is_directory=True)
++    (root / "dangling").symlink_to(tmp_path / "missing", target_is_directory=True)
++
++    bin_dir = tmp_path / "bin"
++    bin_dir.mkdir()
++    for name in ("docker", "podman"):
++        tool = bin_dir / name
++        tool.write_text(FAKE_RUNTIME, encoding="utf-8")
++        tool.chmod(0o755)
++    return root, other, bin_dir
++
++
++def run(project, *args, builder="docker", env=None):
++    root, _, bin_dir = project
++    log = bin_dir.parent / "calls.log"
++    log.unlink(missing_ok=True)
++    full_env = dict(os.environ)
++    for key in ("REBUILD_IMAGE", "KZ_PERSIST", "KZ_INTERACTIVE", "CLEAN", "KZ_ENV_PASS", "KZ_RUN_OUT"):
++        full_env.pop(key, None)
++    full_env.update(PATH=f"{bin_dir}{os.pathsep}{os.environ['PATH']}", BUILDER=builder,
++                    FAKE_DOCKER_LOG=str(log), FAKE_DOCKER_STATE=str(bin_dir.parent / "state"))
++    full_env.update(env or {})
++    result = subprocess.run(["bash", str(root / "tools" / "kazarov" / "bin" / "kazarov"), *args],
++                            cwd=str(root), env=full_env, capture_output=True, text=True)
++    calls = []
++    if log.exists():
++        calls = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines()]
++    return result, calls
++
++
++def persist_name(root):
++    digest = hashlib.sha256(str(root.resolve()).encode()).hexdigest()
++    return f"kz-scratch-{digest[:10]}"
++
++
++def driver_path():
++    return "/work/scratch/tools/kazarov/bin/kazarov"
++
++
++def runs(calls):
++    return [call for call in calls if call[:1] == ["run"]]
++
++
++def test_shell_mounts_linked_targets_and_nothing_else(project):
++    root, other, _ = project
++    result, calls = run(project, "shell", "true")
++    assert result.returncode == 0, result.stderr
++    (run_call,) = runs(calls)
++    assert f"{root.resolve()}:/work/scratch" in run_call
++    assert f"{(other / 'data').resolve()}:/work/scratch/data" in run_call
++    joined = " ".join(run_call)
++    assert "/work/scratch/inside-link" not in joined
++    assert "/work/scratch/dangling" not in joined
++    assert "/work/scratch/src" not in joined
++    assert "/work/scratch/.kazarov" not in joined
++
++
++def test_podman_adds_the_selinux_label_to_linked_mounts(project):
++    root, other, _ = project
++    result, calls = run(project, "shell", "true", builder="podman")
++    assert result.returncode == 0, result.stderr
++    (run_call,) = runs(calls)
++    assert f"{(other / 'data').resolve()}:/work/scratch/data:Z" in run_call
++    assert f"{root.resolve()}:/work/scratch:Z" in run_call
++
++
++def test_the_ordinary_run_path_makes_three_runtime_calls(project):
++    result, calls = run(project, "shell", "true")
++    assert result.returncode == 0, result.stderr
++    assert [call[0] for call in calls] == ["container", "image", "run"]
++
++
++def test_the_exec_path_makes_no_image_lookup(project):
++    assert run(project, "up")[0].returncode == 0
++    result, calls = run(project, "shell", "true")
++    assert result.returncode == 0, result.stderr
++    assert [call[0] for call in calls] == ["container", "exec"]
++
++
++def test_up_starts_a_detached_long_lived_container(project):
++    root, other, _ = project
++    result, calls = run(project, "up")
++    assert result.returncode == 0, result.stderr
++    (up_call,) = runs(calls)
++    assert up_call[:3] == ["run", "-d", "--name"]
++    assert up_call[3] == persist_name(root)
++    assert "--init" in up_call
++    assert any(arg.startswith("org.themoonpeople.kazarov.image=") for arg in up_call)
++    assert f"{(other / 'data').resolve()}:/work/scratch/data" in up_call
++    assert up_call[-2:] == ["sleep", "infinity"]
++
++
++def test_shell_execs_into_the_running_container_of_the_same_tag(project):
++    root, _, _ = project
++    assert run(project, "up")[0].returncode == 0
++    result, calls = run(project, "shell", "true")
++    assert result.returncode == 0, result.stderr
++    assert runs(calls) == []
++    (exec_call,) = [call for call in calls if call[:1] == ["exec"]]
++    assert exec_call[-5:] == [persist_name(root), driver_path(), "--inside", "shell", "true"]
++    assert exec_call[exec_call.index("-w") + 1] == "/work/scratch"
++
++
++def test_a_container_of_another_tag_falls_back_and_says_so(project):
++    root, _, bin_dir = project
++    (bin_dir.parent / "state").write_text(persist_name(root) + "\nold0000000000\n", encoding="utf-8")
++    result, calls = run(project, "shell", "true")
++    assert result.returncode == 0, result.stderr
++    assert runs(calls)
++    assert "kazarov up" in result.stderr
++
++
++def test_keep_persist_starts_the_container_then_execs(project):
++    result, calls = run(project, "shell", "true", env={"KZ_PERSIST": "1"})
++    assert result.returncode == 0, result.stderr
++    heads = [call[0] for call in calls]
++    assert heads.index("run") < heads.index("exec")
++    assert runs(calls)[0][:3] == ["run", "-d", "--name"]
++
++
++def test_down_removes_the_container_once(project):
++    assert run(project, "up")[0].returncode == 0
++    result, _ = run(project, "down")
++    assert result.returncode == 0, result.stderr
++    assert "removed" in result.stdout
++    again, _ = run(project, "down")
++    assert "no persistent container" in again.stdout

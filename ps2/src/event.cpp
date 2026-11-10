@@ -109,8 +109,8 @@ void SetEventScript(char *script, char *name, mgCMemory *memory) {
         return;
     }
 
-    stack_data = (RS_STACKDATA *) memory->Alloc(0x40);
-    call_data = (RS_CALLDATA *) memory->Alloc(0x180);
+    stack_data = (RS_STACKDATA *) memory->Alloc((sizeof(RS_STACKDATA) * 0x80 + 15) / 16);
+    call_data = (RS_CALLDATA *) memory->Alloc((sizeof(RS_CALLDATA) * 0x200 + 15) / 16);
     EventScript.load((RS_PROG_HEADER *) script, stack_data, 0x80, call_data, 0x200);
     SetEventFunc(&EventScript);
 }

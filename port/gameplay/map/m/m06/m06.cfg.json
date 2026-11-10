@@ -1,0 +1,37 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "action",
+        "point_no": 1
+      },
+      "name": "event1",
+      "transform": {
+        "position": [
+          1522.37,
+          4.0,
+          2978.08
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          50.0,
+          50.0,
+          50.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

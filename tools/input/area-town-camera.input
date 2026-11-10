@@ -1,0 +1,35 @@
+# --jump town:10 --fast-load: camera equip and first shutter.
+300 triangle
+306
+420 cross
+426
+600 down
+606
+630 down
+636
+660 down
+666
+690 down
+696
+720 down
+726
+750 down
+756
+780 right
+786
+810 cross
+816
+940 cross
+946
+1020 cross
+1026
+1120 circle
+1126
+1220 circle
+1226
+1340 square
+1346
+1460 square
+1466
+1700 triangle
+1706

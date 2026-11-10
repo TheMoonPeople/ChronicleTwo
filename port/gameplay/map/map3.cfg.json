@@ -1,0 +1,1700 @@
+{
+  "count": 189,
+  "kind": "map_names",
+  "maps": [
+    {
+      "add_path": "g00/g00",
+      "area_no": 2,
+      "name": "g01",
+      "sel_type": 1,
+      "snd_data_id": 2000,
+      "title": "Sindain",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 3,
+      "name": "g02",
+      "sel_type": 1,
+      "snd_data_id": 3000,
+      "title": "Schwebe-Tal",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 4,
+      "name": "g03",
+      "sel_type": 1,
+      "snd_data_id": 4000,
+      "title": "Veniccio",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 5,
+      "name": "g04",
+      "sel_type": 1,
+      "snd_data_id": 5000,
+      "title": "Heim Rada",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "g05",
+      "sel_type": 1,
+      "snd_data_id": 7000,
+      "title": "Mondblumen-Palast",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "s40",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Veniccio",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m01",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m02",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m03",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Marktplatz",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m04",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Residenz",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m05",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Park",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "s01",
+      "sel_type": 3,
+      "snd_data_id": 1682,
+      "title": "Kanal-Reservoir",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 2,
+      "name": "s02",
+      "sel_type": 3,
+      "snd_data_id": 2080,
+      "title": "Sindain Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "m06",
+      "sel_type": 6,
+      "snd_data_id": 1208,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s07",
+      "sel_type": 7,
+      "snd_data_id": 510,
+      "title": "Zug (innen)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m07",
+      "sel_type": 6,
+      "snd_data_id": 1200,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m08",
+      "sel_type": 6,
+      "snd_data_id": 1206,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01b01",
+      "sel_type": 5,
+      "snd_data_id": 1683,
+      "title": "Kanal-Reservoir",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01e01",
+      "sel_type": 5,
+      "snd_data_id": 1602,
+      "title": "Kanal-Eingang",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s08",
+      "sel_type": 7,
+      "snd_data_id": 516,
+      "title": "Lokomotive (innen)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b01",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Regenbogen-F[UNI00e4]lle",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "f01",
+      "sel_type": 4,
+      "snd_data_id": 2300,
+      "title": "Juraku-Zentrum",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02",
+      "sel_type": 4,
+      "snd_data_id": 3300,
+      "title": "Sternlicht-Tempel",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h01",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "Cedrics Garage",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Pollys B[UNI00e4]ckerei",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Lagerhaus",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h04",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Waffenladen",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Mortons Laden",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h06",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Polizeiwache",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h07",
+      "sel_type": 2,
+      "snd_data_id": 1082,
+      "title": "Kirche",
+      "type": 4
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "i02h01",
+      "sel_type": 2,
+      "snd_data_id": 1080,
+      "title": "Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Caf[UNI00e9]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Bar",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Rathaus-Eingangshalle",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "B[UNI00fc]ro d. B[UNI00fc]rgermeisters",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02",
+      "sel_type": 2,
+      "snd_data_id": 1213,
+      "title": "Zirkuszelt",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02a",
+      "sel_type": 2,
+      "snd_data_id": -1,
+      "title": "Zirkuszelt",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Maximilians Zimmer",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Maximilians Haus",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Esszimmer",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01c",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "K[UNI00fc]che",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01d",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Geralds Zimmer",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01e",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Bedienstetenzimmer",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01f",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Gang",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Claires Haus",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Claires Zimmer",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Claires Vaters Zimmer",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i05h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Dells Klinik",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Parns Studio",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s03",
+      "sel_type": 3,
+      "snd_data_id": 2203,
+      "title": "Waldtunnel",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 3,
+      "name": "s04",
+      "sel_type": 3,
+      "snd_data_id": 3080,
+      "title": "Schwebe-Tal Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f01",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "Unterirdischer Kanal",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b02",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Regenbogen-F[UNI00e4]lle",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02f01",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Regbg.-Schmett.-Wald",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f01",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Sternenlicht-Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f02",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "Sternenlicht-Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f03",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "Sternenlicht-Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 3,
+      "name": "d03b01",
+      "sel_type": 5,
+      "snd_data_id": 3683,
+      "title": "Leuchtturm am Kap",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship02",
+      "area_no": 3,
+      "name": "d03b02",
+      "sel_type": 5,
+      "snd_data_id": 3684,
+      "title": "Leuchtturm am Kap",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f02",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "Unterirdischer Kanal",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f01",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "H[UNI00f6]hle des Meeresdonners",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s05",
+      "sel_type": 5,
+      "snd_data_id": 2684,
+      "title": "Fischmonster-Sumpf",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "s06",
+      "sel_type": 5,
+      "snd_data_id": 1684,
+      "title": "Kanal-Pumpenraum",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Holzhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Holzhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Holzhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Holzhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "g01i07",
+      "sel_type": 1,
+      "snd_data_id": 2081,
+      "title": "Zwergenhaus",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 7,
+      "name": "s12",
+      "sel_type": 3,
+      "snd_data_id": 7680,
+      "title": "Mondbl.-Palast Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s25",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Schreinerium (innen)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s26",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Schreinerium (au[UNI00df]en)",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s27",
+      "sel_type": 3,
+      "snd_data_id": 4082,
+      "title": "Paus Haus",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s31",
+      "sel_type": 3,
+      "snd_data_id": 7681,
+      "title": "Mondbl.-Palast Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s33",
+      "sel_type": 3,
+      "snd_data_id": 7080,
+      "title": "Mondblumen-Palast",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s35",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Mdbl.-P. (auftauchend)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f01",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Gundorberg",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f02",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "H[UNI00f6]hle des Meeresdonners",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s17",
+      "sel_type": 5,
+      "snd_data_id": 3685,
+      "title": "Bargas Tal",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03",
+      "sel_type": 4,
+      "snd_data_id": 4300,
+      "title": "Mondlabor",
+      "type": 5
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 4,
+      "name": "s09",
+      "sel_type": 3,
+      "snd_data_id": 4080,
+      "title": "Veniccio Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s19",
+      "sel_type": 3,
+      "snd_data_id": 4684,
+      "title": "H[UNI00f6]hle der alten Bilder",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s41",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Heim Rada (Ereignis)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s42",
+      "sel_type": 6,
+      "snd_data_id": 1081,
+      "title": "Werkstatt",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 5,
+      "name": "s10",
+      "sel_type": 3,
+      "snd_data_id": 5080,
+      "title": "Heim Rada Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s20",
+      "sel_type": 5,
+      "snd_data_id": 5684,
+      "title": "Gundorberg-Gipfel",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Mortons Haus",
+      "type": 4
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "d04b01",
+      "sel_type": 5,
+      "snd_data_id": 4683,
+      "title": "Shigura-Dorf",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b03",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Regenbogen",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05b01",
+      "sel_type": 5,
+      "snd_data_id": 5683,
+      "title": "Gundorberg-Krater",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f02",
+      "sel_type": 5,
+      "snd_data_id": 5682,
+      "title": "Gundorberg",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s43",
+      "sel_type": 5,
+      "snd_data_id": -1,
+      "title": "Zirkuszelt",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h04",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "Flossen-Fieber",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h05",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "Flossen-Fieber",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06f01",
+      "sel_type": 5,
+      "snd_data_id": 7600,
+      "title": "Mondblumen-Palast",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s18",
+      "sel_type": 5,
+      "snd_data_id": 3686,
+      "title": "Yordas Tal",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h03",
+      "sel_type": 7,
+      "snd_data_id": 1084,
+      "title": "Angel-Turnier-Gel[UNI00e4]nde",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "g02i02",
+      "sel_type": 1,
+      "snd_data_id": 511,
+      "title": "Lins Haus",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i08",
+      "sel_type": 4,
+      "snd_data_id": 3381,
+      "title": "Lao Chaos Bistro",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "f04",
+      "sel_type": 4,
+      "snd_data_id": 5300,
+      "title": "Gundorada-Werkstatt",
+      "type": 5
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 6,
+      "name": "s11",
+      "sel_type": 3,
+      "snd_data_id": 6000,
+      "title": "Kazarov Stonehenge",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s29",
+      "sel_type": 3,
+      "snd_data_id": 5383,
+      "title": "Paznos (Sternwarte)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s30",
+      "sel_type": 3,
+      "snd_data_id": 5384,
+      "title": "Paznos (Br[UNI00fc]cke)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s36",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Ixion (au[UNI00df]en)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s39",
+      "sel_type": 4,
+      "snd_data_id": 5382,
+      "title": "Einsatz-Raum",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s37",
+      "sel_type": 3,
+      "snd_data_id": 514,
+      "title": "Ixion (Maschinenraum)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06e01",
+      "sel_type": 5,
+      "snd_data_id": 7688,
+      "title": "Blumenpalast-Foyer",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i04",
+      "sel_type": 4,
+      "snd_data_id": 4383,
+      "title": "Zentral-Labor",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f00",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "H[UNI00f6]hle des Meeresdonners",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i06",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "Sterngegenst[UNI00e4]nde",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0301",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Labor 1",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0304",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Labor 4",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s47",
+      "sel_type": 6,
+      "snd_data_id": 2000,
+      "title": "Sindain",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Stroh-Haus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Stroh-Haus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Stroh-Haus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Stroh-Haus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s38",
+      "sel_type": 7,
+      "snd_data_id": 513,
+      "title": "Ixion (G[UNI00e4]stezimmer)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s45",
+      "sel_type": 7,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Marktplatz",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s46",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Max' Zim. (Erinnerung)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s49",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Gaspard (Erinnerung)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b01",
+      "sel_type": 5,
+      "snd_data_id": 7687,
+      "title": "Sonnenkammer",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b02",
+      "sel_type": 5,
+      "snd_data_id": 7603,
+      "title": "Traumspirale",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s44",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Mondb.-P. (Erinnerung)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s21",
+      "sel_type": 3,
+      "snd_data_id": 7689,
+      "title": "Garten",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s23",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Griffons Kammert[UNI00fc]r",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s50",
+      "sel_type": 3,
+      "snd_data_id": 7686,
+      "title": "Alexandras Zimmer",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s51",
+      "sel_type": 6,
+      "snd_data_id": 520,
+      "title": "Raybrandt-Burg",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s53",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Zentral-Labor",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Steinhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Steinhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Steinhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Steinhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ia",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Eisenhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ib",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Eisenhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ic",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Eisenhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05id",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Eisenhaus (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f02i07",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "Sternlicht-Waffenladen",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0302",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Labor 2",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0303",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Labor 3",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i03",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-Waffen",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i04",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-Teile",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s13",
+      "sel_type": 5,
+      "snd_data_id": 2694,
+      "title": "Kammer d. Erdsteins",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s14",
+      "sel_type": 5,
+      "snd_data_id": 3694,
+      "title": "Kammer d. Windsteins",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s15",
+      "sel_type": 5,
+      "snd_data_id": 4694,
+      "title": "Kammer d. Wassersteins",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s16",
+      "sel_type": 5,
+      "snd_data_id": 5694,
+      "title": "Kammer d. Feuersteins",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s28",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s32",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Mondbl.-P. vs. Paznos",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s48",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos (Roboter)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s54",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "Zelmit-Mine",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s55",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos (Schlacht)",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s56",
+      "sel_type": 5,
+      "snd_data_id": 3682,
+      "title": "Zerst[UNI00f6]rter Leuchtturm",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s34",
+      "sel_type": 3,
+      "snd_data_id": 7682,
+      "title": "Mondbl.-Palast Bahnhof",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i05",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-Werkzeug",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01r",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Regenbogen-Schmetterling-Wald",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s58",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Subdimension",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s59",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Mondlabor",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07f01",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "Zelmit-Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07b01",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "Zelmit-Mine",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a20i01",
+      "sel_type": 1,
+      "snd_data_id": 522,
+      "title": "Kirche (innen)",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f01r",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Sternenlicht-Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02r",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "Sternenlicht-Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f03r",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "Sternenlicht-Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f02r",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "H[UNI00f6]hle des Meeresdonners",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01r",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Gundorberg",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f02",
+      "sel_type": 5,
+      "snd_data_id": 7683,
+      "title": "Mondblumen-Palast",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f03",
+      "sel_type": 5,
+      "snd_data_id": 7684,
+      "title": "Mondblumen-Palast",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b03",
+      "sel_type": 5,
+      "snd_data_id": 7692,
+      "title": "Palast-Terrasse",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s52",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "Zelmit-Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s60",
+      "sel_type": 6,
+      "snd_data_id": 1264,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s61",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmit-Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s62",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmit-Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s63",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmit-Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s64",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Mondblumen-Palast",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s65",
+      "sel_type": 3,
+      "snd_data_id": 7000,
+      "title": "Mondblumen-Palast",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s98",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "Kazarov Stonehenge",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s66",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "Kazarov Stonehenge",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s67",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Palast-Terrasse",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01s",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Regenbogen-Schmetterling-Wald",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02s",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Sternenlicht-Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f01s",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "H[UNI00f6]hle des Meeresdonners",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01s",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Gundorberg",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s69",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmit-Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s68",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Mondblumen-Palast",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s70",
+      "sel_type": 6,
+      "snd_data_id": 7081,
+      "title": "Mondblumen-Palast",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s71",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Mondbl.-Palast Bahnhof",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

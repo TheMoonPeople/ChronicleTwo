@@ -188,6 +188,7 @@ struct EditDataParts {
 };
 
 STATIC_ASSERT(sizeof(EditDataParts) == 0x24);
+PORT_RECORD_ASSERT(sizeof(EditDataParts) == 0x24);
 
 /**
  *
@@ -203,6 +204,7 @@ struct EditDataGrid {
 };
 
 STATIC_ASSERT(sizeof(EditDataGrid) == 0x18);
+PORT_RECORD_ASSERT(sizeof(EditDataGrid) == 0x18);
 
 /**
  *
@@ -224,6 +226,7 @@ struct EditDataHouse {
 };
 
 STATIC_ASSERT(sizeof(EditDataHouse) == 0x10);
+PORT_RECORD_ASSERT(sizeof(EditDataHouse) == 0x10);
 
 /**
  *
@@ -248,6 +251,7 @@ struct EditDataAnalyze {
 };
 
 STATIC_ASSERT(sizeof(EditDataAnalyze) == 0xD0);
+PORT_RECORD_ASSERT(sizeof(EditDataAnalyze) == 0xD0);
 
 /**
  *
@@ -260,6 +264,7 @@ struct EditPlaceLog {
 };
 
 STATIC_ASSERT(sizeof(EditPlaceLog) == 0x4);
+PORT_RECORD_ASSERT(sizeof(EditPlaceLog) == 0x4);
 
 /**
  *
@@ -439,6 +444,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CEditData) == 0x5510);
+PORT_RECORD_ASSERT(sizeof(CEditData) == 0x5510);
 
 /**
  *

@@ -184,7 +184,7 @@ static int htoi(char *text) {
 
     for (i = 0; i < length; i++) {
         s32 back = length - i;
-        s32 ch = ((u8 *) (back + (s32) text))[-1];
+        s32 ch = ((u8 *) (back + (uptr) text))[-1];
         s32 digit = 0;
 
         if (ch >= '0' && ch <= '9') {
@@ -679,7 +679,7 @@ mgCFrame *mgLoadMDSFile(mgLoadData *load) {
         texture_manager = &mgTexManager;
     }
 
-    if ((int) mds % 16 != 0) {
+    if ((sptr) mds % 16 != 0) {
         printf("address error!! %d \n", mds);
     }
 
@@ -933,7 +933,7 @@ mgCFrame *mgCopyFrame(mgCFrame *frame, mgCMemory *memory, int copy_visual) {
     table = frame->frame_list;
 
     if (count > 0 && table != 0) {
-        bytes = count * 4;
+        bytes = count * (s32) sizeof(mgCFrame *);
 
         if (bytes & 0xF) {
             blocks = (bytes >> 4) + 1;
@@ -947,10 +947,10 @@ mgCFrame *mgCopyFrame(mgCFrame *frame, mgCMemory *memory, int copy_visual) {
             return 0;
         }
 
-        if (((u_int) count * 0x110) & 0xF) {
-            blocks = (((u_int) count * 0x110) >> 4) + 1;
+        if (((u_int) count * sizeof(mgCFrame)) & 0xF) {
+            blocks = (((u_int) count * sizeof(mgCFrame)) >> 4) + 1;
         } else {
-            blocks = ((u_int) count * 0x110) >> 4;
+            blocks = ((u_int) count * sizeof(mgCFrame)) >> 4;
         }
 
         copies = new (memory->Alloc(blocks + 2)) mgCFrame[count];

@@ -1,0 +1,37 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 550
+      },
+      "name": "map_g04",
+      "transform": {
+        "position": [
+          2453.6,
+          112.2,
+          961.3
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          150.0,
+          150.0,
+          150.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

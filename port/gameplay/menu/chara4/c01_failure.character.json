@@ -1,0 +1,202 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "failure": {
+      "type": "string",
+      "value": "失敗"
+    },
+    "failure_loop": {
+      "type": "string",
+      "value": "失敗ループ"
+    },
+    "result": {
+      "type": "string",
+      "value": "結果"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "発明ミンツ･失敗"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "failure"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "failure_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "result"
+            }
+          ],
+          "command": "SEQ_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "failure"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "failure_loop"
+            },
+            {
+              "type": "float",
+              "value": 0.20000000298023224
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "SEQ"
+        },
+        {
+          "args": [],
+          "command": "SEQ_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 20.0
+            },
+            {
+              "type": "float",
+              "value": -29.0
+            },
+            {
+              "type": "float",
+              "value": 14.0
+            }
+          ],
+          "command": "POSITION"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": -0.5600000023841858
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "ROTATION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "START_MOTION"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

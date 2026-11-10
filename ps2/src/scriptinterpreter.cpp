@@ -402,8 +402,8 @@ int CScriptInterpreter::GetArg() {
             quotes++;
         }
 
-        if (text[(u32) length - 1] == '"') {
-            text[(u32) length - 1] = '\0';
+        if (text[(uptr) length - 1] == '"') {
+            text[(uptr) length - 1] = '\0';
             quotes++;
         }
 

@@ -1,0 +1,62 @@
+{
+  "entries": [
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/event/ev_110_125.sound/effects/ev_110_125_004.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/event/ev_110_125.sound/effects/ev_110_125_005.json",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/event/ev_110_125.sound/effects/ev_110_125_006.json",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    }
+  ],
+  "entry_count": 10,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

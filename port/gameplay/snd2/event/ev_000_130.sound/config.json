@@ -1,0 +1,158 @@
+{
+  "entries": [
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_004.json",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_005.json",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_006.json",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_007.json",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_008.json",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_009.json",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_010.json",
+      "flag": false,
+      "key": 60,
+      "program": 10
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 11
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_012.json",
+      "flag": false,
+      "key": 60,
+      "program": 12
+    },
+    {
+      "filename": "snd2/event/ev_000_130.sound/effects/ev_000_130_013.json",
+      "flag": false,
+      "key": 60,
+      "program": 13
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 14
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 15
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 16
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 17
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 18
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 19
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 20
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 21
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 22
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 23
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 24
+    }
+  ],
+  "entry_count": 26,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

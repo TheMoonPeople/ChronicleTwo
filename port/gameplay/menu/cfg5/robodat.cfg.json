@@ -1,0 +1,1025 @@
+{
+  "count": 63,
+  "kind": "ridepod_parts",
+  "parts": [
+    {
+      "defence": 6,
+      "item_no": 135,
+      "label": "arm1",
+      "offset_no": 1,
+      "type": 0,
+      "use_capacity": 10
+    },
+    {
+      "defence": 12,
+      "item_no": 136,
+      "label": "arm2",
+      "offset_no": 2,
+      "type": 0,
+      "use_capacity": 14
+    },
+    {
+      "defence": 22,
+      "item_no": 137,
+      "label": "arm4",
+      "offset_no": 4,
+      "type": 0,
+      "use_capacity": 18
+    },
+    {
+      "defence": 18,
+      "item_no": 138,
+      "label": "arm7",
+      "offset_no": 3,
+      "type": 0,
+      "use_capacity": 30
+    },
+    {
+      "defence": 26,
+      "item_no": 139,
+      "label": "arm6",
+      "offset_no": 5,
+      "type": 0,
+      "use_capacity": 24
+    },
+    {
+      "defence": 30,
+      "item_no": 140,
+      "label": "arm3",
+      "offset_no": 6,
+      "type": 0,
+      "use_capacity": 38
+    },
+    {
+      "defence": 34,
+      "item_no": 141,
+      "label": "arm5",
+      "offset_no": 7,
+      "type": 0,
+      "use_capacity": 44
+    },
+    {
+      "defence": 36,
+      "item_no": 142,
+      "label": "arm8",
+      "offset_no": 8,
+      "type": 0,
+      "use_capacity": 52
+    },
+    {
+      "attack": 60,
+      "attack_type": 0,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 40,
+      "durable": 0,
+      "item_no": 145,
+      "label": "body1",
+      "offset_no": 1,
+      "type": 1,
+      "use_capacity": 15
+    },
+    {
+      "attack": 95,
+      "attack_type": 10,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 50,
+      "durable": 0,
+      "item_no": 146,
+      "label": "body2",
+      "offset_no": 2,
+      "type": 1,
+      "use_capacity": 23
+    },
+    {
+      "attack": 80,
+      "attack_type": 80,
+      "attribute": [
+        0,
+        0,
+        0,
+        50,
+        50,
+        0,
+        0,
+        0
+      ],
+      "durability": 72,
+      "durable": 0,
+      "item_no": 147,
+      "label": "body9",
+      "offset_no": 9,
+      "type": 1,
+      "use_capacity": 40
+    },
+    {
+      "attack": 138,
+      "attack_type": 70,
+      "attribute": [
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 61,
+      "durable": 0,
+      "item_no": 148,
+      "label": "body8",
+      "offset_no": 8,
+      "type": 1,
+      "use_capacity": 30
+    },
+    {
+      "attack": 192,
+      "attack_type": 60,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 70,
+      "durable": 0,
+      "item_no": 149,
+      "label": "body7",
+      "offset_no": 7,
+      "type": 1,
+      "use_capacity": 40
+    },
+    {
+      "attack": 138,
+      "attack_type": 30,
+      "attribute": [
+        50,
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 62,
+      "durable": 0,
+      "item_no": 150,
+      "label": "body4",
+      "offset_no": 4,
+      "type": 1,
+      "use_capacity": 30
+    },
+    {
+      "attack": 100,
+      "attack_type": 50,
+      "attribute": [
+        0,
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 52,
+      "durable": 0,
+      "item_no": 151,
+      "label": "body6",
+      "offset_no": 6,
+      "type": 1,
+      "use_capacity": 23
+    },
+    {
+      "attack": 145,
+      "attack_type": 20,
+      "attribute": [
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        50,
+        50
+      ],
+      "durability": 63,
+      "durable": 0,
+      "item_no": 152,
+      "label": "body3",
+      "offset_no": 3,
+      "type": 1,
+      "use_capacity": 30
+    },
+    {
+      "attack": 235,
+      "attack_type": 40,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 80,
+      "durable": 0,
+      "item_no": 153,
+      "label": "body5",
+      "offset_no": 5,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 240,
+      "attack_type": 90,
+      "attribute": [
+        0,
+        50,
+        50,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 83,
+      "durable": 0,
+      "item_no": 154,
+      "label": "body10",
+      "offset_no": 10,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "item_no": 155,
+      "move_type": 1,
+      "offset_no": 1,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 10
+    },
+    {
+      "item_no": 156,
+      "move_type": 2,
+      "offset_no": 2,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 25
+    },
+    {
+      "item_no": 157,
+      "move_type": 1,
+      "offset_no": 5,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 15
+    },
+    {
+      "item_no": 158,
+      "move_type": 2,
+      "offset_no": 7,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 20
+    },
+    {
+      "item_no": 159,
+      "move_type": 3,
+      "offset_no": 4,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 25
+    },
+    {
+      "item_no": 160,
+      "move_type": 2,
+      "offset_no": 8,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 35
+    },
+    {
+      "item_no": 161,
+      "move_type": 1,
+      "offset_no": 3,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 30
+    },
+    {
+      "item_no": 162,
+      "move_type": 2,
+      "offset_no": 9,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 40
+    },
+    {
+      "item_no": 163,
+      "move_type": 1,
+      "offset_no": 6,
+      "type": 2,
+      "unk_4": 0,
+      "use_capacity": 35
+    },
+    {
+      "energy": 80,
+      "item_no": 165,
+      "offset_no": 1,
+      "type": 3,
+      "use_capacity": 15
+    },
+    {
+      "energy": 120,
+      "item_no": 166,
+      "offset_no": 2,
+      "type": 3,
+      "use_capacity": 30
+    },
+    {
+      "energy": 160,
+      "item_no": 167,
+      "offset_no": 5,
+      "type": 3,
+      "use_capacity": 35
+    },
+    {
+      "energy": 200,
+      "item_no": 168,
+      "offset_no": 4,
+      "type": 3,
+      "use_capacity": 45
+    },
+    {
+      "energy": 240,
+      "item_no": 169,
+      "offset_no": 3,
+      "type": 3,
+      "use_capacity": 50
+    },
+    {
+      "energy": 300,
+      "item_no": 170,
+      "offset_no": 6,
+      "type": 3,
+      "use_capacity": 60
+    },
+    {
+      "attack": 105,
+      "attack_type": 0,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 53,
+      "durable": 0,
+      "item_no": 392,
+      "label": "body1",
+      "offset_no": 1,
+      "type": 1,
+      "use_capacity": 23
+    },
+    {
+      "attack": 145,
+      "attack_type": 0,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 64,
+      "durable": 0,
+      "item_no": 393,
+      "label": "body1",
+      "offset_no": 1,
+      "type": 1,
+      "use_capacity": 30
+    },
+    {
+      "attack": 190,
+      "attack_type": 0,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 70,
+      "durable": 0,
+      "item_no": 394,
+      "label": "body1",
+      "offset_no": 1,
+      "type": 1,
+      "use_capacity": 40
+    },
+    {
+      "attack": 140,
+      "attack_type": 10,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 60,
+      "durable": 0,
+      "item_no": 395,
+      "label": "body2",
+      "offset_no": 2,
+      "type": 1,
+      "use_capacity": 30
+    },
+    {
+      "attack": 180,
+      "attack_type": 10,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 72,
+      "durable": 0,
+      "item_no": 396,
+      "label": "body2",
+      "offset_no": 2,
+      "type": 1,
+      "use_capacity": 40
+    },
+    {
+      "attack": 240,
+      "attack_type": 10,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 81,
+      "durable": 0,
+      "item_no": 397,
+      "label": "body2",
+      "offset_no": 2,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 128,
+      "attack_type": 80,
+      "attribute": [
+        0,
+        0,
+        0,
+        50,
+        50,
+        0,
+        0,
+        0
+      ],
+      "durability": 82,
+      "durable": 0,
+      "item_no": 398,
+      "label": "body9",
+      "offset_no": 9,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 155,
+      "attack_type": 80,
+      "attribute": [
+        0,
+        0,
+        0,
+        50,
+        50,
+        0,
+        0,
+        0
+      ],
+      "durability": 90,
+      "durable": 0,
+      "item_no": 399,
+      "label": "body9",
+      "offset_no": 9,
+      "type": 1,
+      "use_capacity": 60
+    },
+    {
+      "attack": 225,
+      "attack_type": 80,
+      "attribute": [
+        0,
+        0,
+        0,
+        50,
+        50,
+        0,
+        0,
+        0
+      ],
+      "durability": 98,
+      "durable": 0,
+      "item_no": 400,
+      "label": "body9",
+      "offset_no": 9,
+      "type": 1,
+      "use_capacity": 70
+    },
+    {
+      "attack": 185,
+      "attack_type": 70,
+      "attribute": [
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 73,
+      "durable": 0,
+      "item_no": 401,
+      "label": "body8",
+      "offset_no": 8,
+      "type": 1,
+      "use_capacity": 40
+    },
+    {
+      "attack": 242,
+      "attack_type": 70,
+      "attribute": [
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 81,
+      "durable": 0,
+      "item_no": 402,
+      "label": "body8",
+      "offset_no": 8,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 300,
+      "attack_type": 70,
+      "attribute": [
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 91,
+      "durable": 0,
+      "item_no": 403,
+      "label": "body8",
+      "offset_no": 8,
+      "type": 1,
+      "use_capacity": 60
+    },
+    {
+      "attack": 250,
+      "attack_type": 60,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 83,
+      "durable": 0,
+      "item_no": 404,
+      "label": "body7",
+      "offset_no": 7,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 315,
+      "attack_type": 60,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 80,
+      "durable": 0,
+      "item_no": 405,
+      "label": "body7",
+      "offset_no": 7,
+      "type": 1,
+      "use_capacity": 60
+    },
+    {
+      "attack": 450,
+      "attack_type": 60,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0,
+        0
+      ],
+      "durability": 99,
+      "durable": 0,
+      "item_no": 406,
+      "label": "body7",
+      "offset_no": 7,
+      "type": 1,
+      "use_capacity": 70
+    },
+    {
+      "attack": 180,
+      "attack_type": 30,
+      "attribute": [
+        50,
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 71,
+      "durable": 0,
+      "item_no": 407,
+      "label": "body4",
+      "offset_no": 4,
+      "type": 1,
+      "use_capacity": 40
+    },
+    {
+      "attack": 230,
+      "attack_type": 30,
+      "attribute": [
+        50,
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 80,
+      "durable": 0,
+      "item_no": 408,
+      "label": "body4",
+      "offset_no": 4,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 295,
+      "attack_type": 30,
+      "attribute": [
+        50,
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 90,
+      "durable": 0,
+      "item_no": 409,
+      "label": "body4",
+      "offset_no": 4,
+      "type": 1,
+      "use_capacity": 60
+    },
+    {
+      "attack": 140,
+      "attack_type": 50,
+      "attribute": [
+        0,
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 60,
+      "durable": 0,
+      "item_no": 410,
+      "label": "body6",
+      "offset_no": 6,
+      "type": 1,
+      "use_capacity": 30
+    },
+    {
+      "attack": 180,
+      "attack_type": 50,
+      "attribute": [
+        0,
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 70,
+      "durable": 0,
+      "item_no": 411,
+      "label": "body6",
+      "offset_no": 6,
+      "type": 1,
+      "use_capacity": 40
+    },
+    {
+      "attack": 245,
+      "attack_type": 50,
+      "attribute": [
+        0,
+        100,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 82,
+      "durable": 0,
+      "item_no": 412,
+      "label": "body6",
+      "offset_no": 6,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 260,
+      "attack_type": 20,
+      "attribute": [
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        50,
+        50
+      ],
+      "durability": 80,
+      "durable": 0,
+      "item_no": 413,
+      "label": "body3",
+      "offset_no": 3,
+      "type": 1,
+      "use_capacity": 50
+    },
+    {
+      "attack": 460,
+      "attack_type": 20,
+      "attribute": [
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        50,
+        50
+      ],
+      "durability": 99,
+      "durable": 0,
+      "item_no": 414,
+      "label": "body3",
+      "offset_no": 3,
+      "type": 1,
+      "use_capacity": 75
+    },
+    {
+      "attack": 1800,
+      "attack_type": 20,
+      "attribute": [
+        0,
+        0,
+        50,
+        0,
+        0,
+        0,
+        50,
+        50
+      ],
+      "durability": 100,
+      "durable": 0,
+      "item_no": 415,
+      "label": "body3",
+      "offset_no": 3,
+      "type": 1,
+      "use_capacity": 70
+    },
+    {
+      "attack": 295,
+      "attack_type": 40,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 92,
+      "durable": 0,
+      "item_no": 416,
+      "label": "body5",
+      "offset_no": 5,
+      "type": 1,
+      "use_capacity": 60
+    },
+    {
+      "attack": 430,
+      "attack_type": 40,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 98,
+      "durable": 0,
+      "item_no": 417,
+      "label": "body5",
+      "offset_no": 5,
+      "type": 1,
+      "use_capacity": 75
+    },
+    {
+      "attack": 800,
+      "attack_type": 40,
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        100,
+        0,
+        0
+      ],
+      "durability": 100,
+      "durable": 0,
+      "item_no": 418,
+      "label": "body5",
+      "offset_no": 5,
+      "type": 1,
+      "use_capacity": 70
+    },
+    {
+      "attack": 300,
+      "attack_type": 90,
+      "attribute": [
+        0,
+        50,
+        50,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 91,
+      "durable": 0,
+      "item_no": 419,
+      "label": "body10",
+      "offset_no": 10,
+      "type": 1,
+      "use_capacity": 60
+    },
+    {
+      "attack": 435,
+      "attack_type": 90,
+      "attribute": [
+        0,
+        50,
+        50,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 99,
+      "durable": 0,
+      "item_no": 420,
+      "label": "body10",
+      "offset_no": 10,
+      "type": 1,
+      "use_capacity": 70
+    },
+    {
+      "attack": 1600,
+      "attack_type": 90,
+      "attribute": [
+        0,
+        50,
+        50,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "durability": 100,
+      "durable": 0,
+      "item_no": 421,
+      "label": "body10",
+      "offset_no": 10,
+      "type": 1,
+      "use_capacity": 75
+    }
+  ],
+  "schema_version": 2
+}

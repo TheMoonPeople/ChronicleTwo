@@ -1,0 +1,20 @@
+# --jump town:10 --fast-load: options page.
+300 triangle
+301
+400 down
+401
+420 down
+421
+440 down
+441
+460 down
+461
+500 cross
+501
+# Enter PC settings, cancel to retail Options, then cancel to the root menu.
+700 select
+701
+900 mouse2
+901
+1100 mouse2
+1101

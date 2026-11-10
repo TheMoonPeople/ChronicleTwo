@@ -1,0 +1,10 @@
+# --jump town:10 --fast-load --window 1280x720
+# Character at 850; right click returns to root at 1100.
+300 triangle
+301
+500 mouse:-255,-135
+501
+550 mouse1
+551
+950 mouse2
+951

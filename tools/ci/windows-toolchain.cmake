@@ -1,0 +1,12 @@
+# Host tools run on Linux; libraries and headers belong to the Windows target.
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR AMD64)
+set(CMAKE_C_COMPILER /opt/llvm/bin/x86_64-w64-mingw32-clang)
+set(CMAKE_CXX_COMPILER /opt/llvm/bin/x86_64-w64-mingw32-clang++)
+set(CMAKE_RC_COMPILER /opt/llvm/bin/x86_64-w64-mingw32-windres)
+set(CMAKE_FIND_ROOT_PATH /opt/llvm/x86_64-w64-mingw32 /opt/deps)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
+set(Rust_CARGO_TARGET x86_64-pc-windows-gnullvm CACHE STRING "Windows Rust target")

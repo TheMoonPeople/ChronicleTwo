@@ -1,0 +1,51 @@
+# --jump town:10 --fast-load: enter Morton's, sell two Bread, buy one Gunpowder.
+# Frame 3100: Gunpowder 1, Bread 3, Gilda 10.
+300 128 0 128 128
+365 cross 128 0 128 128
+366
+600 255 128 128 128
+618
+650 cross
+656
+800 cross
+806
+1000 right
+1006
+1100 down
+1106
+1140 down
+1146
+1180 down
+1186
+1220 down
+1226
+1260 down
+1266
+1330 cross
+1336
+1450 up
+1456
+1600 cross
+1606
+1780 up
+1786
+1840 cross
+1846
+1900 left
+1906
+1980 cross
+1986
+2300 left
+2306
+2360 up
+2366
+2420 up
+2426
+2500 cross
+2506
+2640 cross
+2646
+2750 left
+2756
+2840 cross
+2846

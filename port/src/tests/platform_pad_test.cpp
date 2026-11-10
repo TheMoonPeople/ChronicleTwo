@@ -1,215 +1,166 @@
+#include <eekernel.h>
 #include <gtest/gtest.h>
-#include <libpad.h>
 
-#include "platform/input.hpp"
+#include <cstdint>
+#include <limits>
+#include <string>
+#include <utility>
+
 #include "gamepad.hpp"
+#include "input/gamepad_state.hpp"
+#include "mainloop.hpp"
+#include "mglib.hpp"
+#include "platform/clock.hpp"
+#include "platform/input_script.hpp"
+#include "sce/threads.hpp"
 
-// CGamePad::Init waits on sceGsSyncV, which lives in the libgraph stub, so
-// these tests do what Init does to the library themselves (scePadInit and
-// both scePadPortOpen calls) and rely on GamePad's zero-initialised storage
-// already holding what Init writes: phase QUERY, no key lock, no repeat.
+void WaitVSync(int start, int frames);
 
 namespace {
 
-unsigned char g_dma_buffer[2][1024];
+constexpr std::int64_t kPressFrame = 4;
+constexpr std::int64_t kReleaseFrame = 5;
 
-void OpenPads() {
-    ASSERT_TRUE(scePadInit(0) == 1);
-    ASSERT_TRUE(scePadPortOpen(0, 0, g_dma_buffer[0]) == 1);
-    ASSERT_TRUE(scePadPortOpen(1, 0, g_dma_buffer[1]) == 1);
+// Both pads are scripted so both are connected; an unscripted port reads as unplugged.
+const std::string kPressFirstPort = "0 pad1\n0 pad2\n4 pad1 cross 255 128 128 128\n5 pad1\n";
+const std::string kPressSecondPort = "0 pad1\n0 pad2\n4 pad2 circle 128 128 255 128\n5 pad2\n";
+
+void InstallScript(const std::string &text) {
+    InputScript script;
+    std::string error;
+    ASSERT_TRUE(InputScriptParse(text, script, error)) << error;
+    InputScriptInstall(std::move(script));
 }
 
-void SetPad(int pad, std::uint16_t buttons, int lx = 128, int ly = 128, int rx = 128, int ry = 128) {
-    InputPadState state;
-    state.connected = true;
-    state.buttons = buttons;
-    state.left_x = static_cast<std::uint8_t>(lx);
-    state.left_y = static_cast<std::uint8_t>(ly);
-    state.right_x = static_cast<std::uint8_t>(rx);
-    state.right_y = static_cast<std::uint8_t>(ry);
-    InputSetOverride(pad, &state);
+void InitGamePad() {
+    // Init spins on sceGsSyncV, which would otherwise sleep a field per call.
+    ClockSetUnbounded(true);
+    ClockReset();
+    GamePad__2.Init();
 }
 
-void Unplug(int pad) {
-    InputPadState state;
-    InputSetOverride(pad, &state);
+void Tick(std::int64_t frame) {
+    InputScriptApply(frame);
+    GamePad__2.UpDate();
+}
+
+void WarmUp() {
+    for (std::int64_t frame = 0; frame < kPressFrame; ++frame) {
+        Tick(frame);
+    }
+}
+
+void RotateControllerQueue() {
+    RotateThreadReadyQueue(GAMEPAD_THREAD_PRIORITY);
 }
 
 } // namespace
 
-TEST(PlatformPad, ButtonOrderMatchesGame) {
-    const int pairs[][2] = {
-        {kInputL2,       PAD_L2      },
-        {kInputR2,       PAD_R2      },
-        {kInputL1,       PAD_L1      },
-        {kInputR1,       PAD_R1      },
-        {kInputTriangle, PAD_TRIANGLE},
-        {kInputCircle,   PAD_CIRCLE  },
-        {kInputCross,    PAD_CROSS   },
-        {kInputSquare,   PAD_SQUARE  },
-        {kInputSelect,   PAD_SELECT  },
-        {kInputL3,       PAD_L3      },
-        {kInputR3,       PAD_R3      },
-        {kInputStart,    PAD_START   },
-        {kInputUp,       PAD_UP      },
-        {kInputRight,    PAD_RIGHT   },
-        {kInputDown,     PAD_DOWN    },
-        {kInputLeft,     PAD_LEFT    },
-    };
-    for (const auto &pair : pairs) {
-        ASSERT_TRUE(pair[0] == pair[1]);
-    }
+TEST(PlatformPad, InitReachesAnalogReadyOnBothPorts) {
+    InstallScript("0 pad1\n0 pad2\n");
+    InitGamePad();
+    WarmUp();
+
+    EXPECT_EQ(GamePad__2.pad[0].phase, PAD_PHASE_READY);
+    EXPECT_EQ(GamePad__2.pad[1].phase, PAD_PHASE_READY);
+    EXPECT_EQ(GamePad__2.pad[0].pad_mode, PAD_TERMINAL_DUALSHOCK);
+    EXPECT_EQ(GamePad__2.pad[1].pad_mode, PAD_TERMINAL_DUALSHOCK);
+    EXPECT_EQ(GamePad__2.GetLX(), 0);
+    EXPECT_EQ(GamePad__2.GetRX2(), 0);
+    InputScriptInstall({});
 }
 
-TEST(PlatformPad, ReadFillsDualshockLayout) {
-    OpenPads();
-    SetPad(0, kInputCross | kInputUp | kInputL2, 255, 0, 10, 200);
-    unsigned char data[32];
-    ASSERT_TRUE(scePadRead(0, 0, data) == 8);
-    ASSERT_TRUE(data[0] == 0);
-    ASSERT_TRUE(data[1] == 0x73);
-    ASSERT_TRUE((((data[2] << 8) | data[3]) ^ 0xFFFF) == (PAD_CROSS | PAD_UP | PAD_L2));
-    ASSERT_TRUE(data[4] == 10 && data[5] == 200 && data[6] == 255 && data[7] == 0);
+TEST(PlatformPad, ScriptedPressReadsOnFirstPortAndReleases) {
+    InstallScript(kPressFirstPort);
+    InitGamePad();
+    WarmUp();
 
-    PAD_STATUS status{};
-    ASSERT_TRUE(pad_button_read(&status, 0, 0) == PAD_TERMINAL_DUALSHOCK);
-    ASSERT_TRUE(status.button == (PAD_CROSS | PAD_UP | PAD_L2));
-    ASSERT_TRUE(status.left_x == 255 && status.left_y == 0 && status.right_x == 10 && status.right_y == 200);
+    Tick(kPressFrame);
+    EXPECT_TRUE(GamePad__2.On(PAD_CROSS));
+    EXPECT_TRUE(GamePad__2.Down(PAD_CROSS));
+    EXPECT_FALSE(GamePad__2.Up(PAD_CROSS));
+    EXPECT_FALSE(GamePad__2.On(PAD_CIRCLE));
+    EXPECT_EQ(GamePad__2.GetLX(), 128);
+
+    Tick(kPressFrame + 1);
+    EXPECT_FALSE(GamePad__2.On(PAD_CROSS));
+    EXPECT_FALSE(GamePad__2.Down(PAD_CROSS));
+    EXPECT_TRUE(GamePad__2.Up(PAD_CROSS));
+    EXPECT_EQ(GamePad__2.GetLX(), 0);
+    InputScriptInstall({});
 }
 
-TEST(PlatformPad, SetupReachesReady) {
-    OpenPads();
-    SetPad(0, PAD_START, 200);
-    PAD_STATUS status{};
-    read_pad(&status, 0, 0);
-    ASSERT_TRUE(status.phase == PAD_PHASE_ACTUATOR_CHECK);
-    ASSERT_TRUE(status.button == 0 && status.left_x == 128);
-    read_pad(&status, 0, 0);
-    ASSERT_TRUE(status.phase == PAD_PHASE_ACTUATOR_WAIT);
-    ASSERT_TRUE(status.actuator[0] == 0 && status.actuator[1] == 1 && status.actuator[2] == 255);
-    read_pad(&status, 0, 0);
-    ASSERT_TRUE(status.phase == PAD_PHASE_READY);
-    read_pad(&status, 0, 0);
-    ASSERT_TRUE(status.phase == PAD_PHASE_READY);
-    ASSERT_TRUE(status.pad_mode == PAD_TERMINAL_DUALSHOCK);
-    ASSERT_TRUE(status.button == PAD_START);
-    ASSERT_TRUE(status.left_x == 200);
+TEST(PlatformPad, ScriptedPressReadsOnSecondPortAndReleases) {
+    InstallScript(kPressSecondPort);
+    InitGamePad();
+    WarmUp();
 
-    Unplug(0);
-    read_pad(&status, 0, 0);
-    ASSERT_TRUE(status.state == scePadStateDiscon);
-    ASSERT_TRUE(status.phase == PAD_PHASE_QUERY);
-    ASSERT_TRUE(status.button == 0 && status.left_x == 128 && status.right_y == 128);
+    Tick(kPressFrame);
+    EXPECT_TRUE(GamePad__2.On2(PAD_CIRCLE));
+    EXPECT_TRUE(GamePad__2.Down2(PAD_CIRCLE));
+    EXPECT_FALSE(GamePad__2.On(PAD_CIRCLE));
+    EXPECT_EQ(GamePad__2.GetRX2(), 128);
+
+    Tick(kReleaseFrame);
+    EXPECT_FALSE(GamePad__2.On2(PAD_CIRCLE));
+    EXPECT_FALSE(GamePad__2.Down2(PAD_CIRCLE));
+    EXPECT_NE(GamePad__2.previous_pad[1].button & PAD_CIRCLE, 0);
+    EXPECT_EQ(GamePad__2.pad[1].button & PAD_CIRCLE, 0);
+    EXPECT_EQ(GamePad__2.GetRX2(), 0);
+    InputScriptInstall({});
 }
 
-TEST(PlatformPad, UnopenedPortReadsNothing) {
-    ASSERT_TRUE(scePadInit(0) == 1);
-    SetPad(1, PAD_CROSS);
-    unsigned char data[32];
-    ASSERT_TRUE(scePadGetState(1, 0) == scePadStateDiscon);
-    ASSERT_TRUE(scePadRead(1, 0, data) == 0);
-    ASSERT_TRUE(scePadPortOpen(1, 0, g_dma_buffer[1]) == 1);
-    ASSERT_TRUE(scePadGetState(1, 0) == scePadStateStable);
-    ASSERT_TRUE(scePadInfoMode(1, 0, InfoModeCurID, 0) == PAD_TERMINAL_DUALSHOCK);
-    ASSERT_TRUE(scePadInfoMode(1, 0, InfoModeCurExID, 0) == 0);
-    ASSERT_TRUE(scePadInfoAct(1, 0, -1, 0) == 2);
+TEST(PlatformPad, VibrationThreadStepsWithoutDeadlock) {
+    InstallScript("0 pad1\n0 pad2\n");
+    InitGamePad();
+    KzThreadsSetMainPriority(GAMEPAD_THREAD_PRIORITY);
+
+    CreateGamePadThread(&GamePad__2);
+    mgSetRotateThread(GAMEPAD_THREAD_PRIORITY);
+    WaitVSync(mgGetVSyncCount(), 3);
+    mgSetRotateThread(-1);
+    dc2::input::StopControllerThread();
+
+    // Step accumulates up to the thread's last turn, which runs one tick before the final count.
+    EXPECT_GT(GamePad__2.vibration_elapsed, 0);
+    EXPECT_EQ(GamePad__2.vibration_elapsed, mgGetVSyncCount() - 1);
+    InputScriptInstall({});
 }
 
-TEST(PlatformPad, GamepadUpdatesThroughLibpad) {
-    OpenPads();
-    SetPad(0, 0);
-    Unplug(1);
-    for (int i = 0; i < 3; ++i) {
-        GamePad.UpDate();
-    }
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.GetPadOn() == 0);
+TEST(PlatformPad, ReplacingAndStoppingTheWorkerLeavesNoReadyControllerThread) {
+    KzThreadsSetMainPriority(GAMEPAD_THREAD_PRIORITY);
+    CreateGamePadThread(&GamePad__2);
+    CreateGamePadThread(&GamePad__2);
+    dc2::input::StopControllerThread();
+    dc2::input::StopControllerThread();
 
-    SetPad(0, PAD_CROSS);
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.On(PAD_CROSS) == 1);
-    ASSERT_TRUE(GamePad.Down(PAD_CROSS) == 1);
-    ASSERT_TRUE(GamePad.Down(PAD_CIRCLE) == 0);
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.On(PAD_CROSS) == 1);
-    ASSERT_TRUE(GamePad.Down(PAD_CROSS) == 0);
-    SetPad(0, 0);
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.On(PAD_CROSS) == 0);
-    ASSERT_TRUE(GamePad.GetPadUp() == PAD_CROSS);
-
-    SetPad(0, PAD_UP | PAD_DOWN);
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.GetPadOn() == 0);
-
-    ASSERT_TRUE(GamePad.On2(PAD_CROSS) == 0);
-    ASSERT_TRUE(GamePad.GetLX2() == 0);
+    ClockSetUnbounded(true);
+    ClockAddPumpHook(RotateControllerQueue);
+    ClockPump();
+    ClockRemovePumpHook(RotateControllerQueue);
 }
 
-TEST(PlatformPad, AxesGoThroughCalibration) {
-    OpenPads();
-    Unplug(1);
-    SetPad(0, 0);
-    for (int i = 0; i < 4; ++i) {
-        GamePad.UpDate();
-    }
+TEST(PlatformPad, NullControllerRetiresTheWorkerBeforeReleasingItsCapture) {
+    KzThreadsSetMainPriority(GAMEPAD_THREAD_PRIORITY);
+    CreateGamePadThread(&GamePad__2);
+    CreateGamePadThread(nullptr);
 
-    SetPad(0, 0, 255, 0, 128 + 49, 128 - 50);
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.GetLX() == 128);
-    ASSERT_TRUE(GamePad.GetLXf() == 1.0f);
-    ASSERT_TRUE(GamePad.GetLY() == -128);
-    ASSERT_TRUE(GamePad.GetLYf() == -1.0f);
-    ASSERT_TRUE(GamePad.GetRX() == 0);
-    ASSERT_TRUE(GamePad.GetRY() == AxisCalibration(78));
-    ASSERT_TRUE(GamePad.GetRY() == 0);
-
-    SetPad(0, 0, 128 + 50, 128, 128, 128 - 51);
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.GetLX() == 1);
-    ASSERT_TRUE(GamePad.GetRY() == -1);
-    ASSERT_NEAR(GamePad.GetLXf(), 1.0f / 128.0f, 1e-6f);
-
-    SetPad(0, 0);
-    GamePad.UpDate();
-    ASSERT_TRUE(GamePad.GetLX() == 0 && GamePad.GetLY() == 0 && GamePad.GetRX() == 0 && GamePad.GetRY() == 0);
+    ClockSetUnbounded(true);
+    ClockAddPumpHook(RotateControllerQueue);
+    ClockPump();
+    ClockRemovePumpHook(RotateControllerQueue);
 }
 
-TEST(PlatformPad, VibrationDrivesRumble) {
-    OpenPads();
-    GamePad.VibrationEnable(1);
-    GamePad.SetVibration(0, 5, 2);
-    GamePad.SetVibration(1, 200, 2);
-    GamePad.Step();
-    InputRumble rumble = InputGetRumble(0);
-    ASSERT_TRUE(rumble.small_motor);
-    ASSERT_TRUE(rumble.large_motor == 200);
-    GamePad.Step();
-    GamePad.Step();
-    rumble = InputGetRumble(0);
-    ASSERT_TRUE(!rumble.small_motor);
-    ASSERT_TRUE(rumble.large_motor == 0);
-}
-
-TEST(PlatformPad, InputBindings) {
-    std::string_view keys[] = {"Space", "Z"};
-    ASSERT_TRUE(InputBindKeys("cross", keys));
-    std::string_view unknown[] = {"NoSuchKey"};
-    ASSERT_TRUE(!InputBindKeys("cross", unknown));
-    ASSERT_TRUE(!InputBindKeys("jump", keys));
-    InputResetBindings();
-    InputPoll();
-    ASSERT_TRUE(InputGetPad(0).connected);
-    ASSERT_TRUE(InputGetPad(0).buttons == 0);
-    ASSERT_TRUE(InputGetPad(0).left_x == 128);
-    ASSERT_TRUE(!InputGetPad(1).connected);
-}
-
-TEST(PlatformPad, InputWithoutVideo) {
-    InputInit();
-    InputPoll();
-    ASSERT_TRUE(InputGetPad(0).connected);
-    ASSERT_TRUE(InputGetPad(0).buttons == 0);
-    InputSetRumble(0, {true, 255});
-    InputShutdown();
+TEST(PlatformPad, CalibrationClampsMalformedSamplesBeforeArithmetic) {
+    CGamePad controller;
+    controller.pad[0].left_x = std::numeric_limits<int>::min();
+    controller.pad[0].left_y = std::numeric_limits<int>::max();
+    controller.pad[0].right_x = std::numeric_limits<int>::max();
+    controller.pad[0].right_y = std::numeric_limits<int>::min();
+    controller.pad[1].right_x = std::numeric_limits<int>::min();
+    EXPECT_EQ(controller.GetLX(), -128);
+    EXPECT_EQ(controller.GetLY(), 128);
+    EXPECT_EQ(controller.GetRX(), 128);
+    EXPECT_EQ(controller.GetRY(), -128);
+    EXPECT_EQ(controller.GetRX2(), -128);
 }

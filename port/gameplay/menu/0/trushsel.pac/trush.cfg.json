@@ -1,0 +1,847 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "from": 30,
+      "op": "clear_etc_info"
+    },
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "wakuwh0",
+          "values": [
+            72,
+            72
+          ]
+        },
+        {
+          "name": "wakuwh1",
+          "values": [
+            82,
+            82
+          ]
+        },
+        {
+          "name": "wakuwh2",
+          "values": [
+            36,
+            42
+          ]
+        }
+      ],
+      "op": "etc_info"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "trush",
+      "textures": [
+        {
+          "name": "捨板",
+          "rect": [
+            0,
+            0,
+            52,
+            52
+          ],
+          "spelling": "TEXDATA"
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mt0",
+      "textures": [
+        {
+          "name": "お金袋",
+          "rect": [
+            246,
+            0,
+            20,
+            20
+          ],
+          "spelling": "TEXDATA"
+        },
+        {
+          "name": "ギルダ",
+          "rect": [
+            266,
+            0,
+            36,
+            16
+          ],
+          "spelling": "TEXDATA"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "trushfrmimage",
+      "op": "form",
+      "parts": [
+        {
+          "name": "img",
+          "part": "normal",
+          "size": [
+            512,
+            416
+          ],
+          "spelling": "NORMAL",
+          "texture": "mframeimg",
+          "xy": [
+            0,
+            -1
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "rgb",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "rgba": [
+            64,
+            64,
+            64,
+            128
+          ],
+          "set": "rgba"
+        }
+      ]
+    },
+    {
+      "name": "overitem",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b0",
+          "part": "normal",
+          "size": [
+            58,
+            58
+          ],
+          "texture": "捨板",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b1",
+          "part": "normal",
+          "size": [
+            58,
+            58
+          ],
+          "texture": "捨板",
+          "xy": [
+            0,
+            60
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b2",
+          "part": "normal",
+          "size": [
+            58,
+            58
+          ],
+          "texture": "捨板",
+          "xy": [
+            0,
+            120
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item0",
+          "part": "item",
+          "xy": [
+            6,
+            0
+          ]
+        },
+        {
+          "name": "num0",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            28
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item1",
+          "part": "item",
+          "xy": [
+            6,
+            60
+          ]
+        },
+        {
+          "name": "num1",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            88
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item2",
+          "part": "item",
+          "xy": [
+            6,
+            120
+          ]
+        },
+        {
+          "name": "num2",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            148
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -200,
+            100
+          ]
+        },
+        {
+          "rate": [
+            4.0,
+            3.0
+          ],
+          "set": "move_rate"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                -100.0,
+                100.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                80.0,
+                100.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        },
+        {
+          "count": 9,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "itembrd",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "itembrd"
+        },
+        {
+          "set": "position",
+          "xy": [
+            560,
+            24
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                560.0,
+                24.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                226.0,
+                24.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "giftview",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            200,
+            200
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "giftview"
+        }
+      ]
+    },
+    {
+      "name": "moveitem0",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "moveitem1",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "moneybrd",
+      "op": "form",
+      "parts": [
+        {
+          "name": "left0",
+          "part": "normal",
+          "texture": "brdc0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "right0",
+          "part": "normal",
+          "texture": "brdc2",
+          "xy": [
+            168,
+            0
+          ]
+        },
+        {
+          "name": "cen0",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc1",
+          "xy": [
+            16,
+            0
+          ]
+        },
+        {
+          "name": "left1",
+          "part": "normal",
+          "size": [
+            16,
+            8
+          ],
+          "texture": "brdc3",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "name": "right1",
+          "part": "normal",
+          "size": [
+            16,
+            8
+          ],
+          "texture": "brdc5",
+          "xy": [
+            168,
+            14
+          ]
+        },
+        {
+          "name": "cen1",
+          "part": "normal",
+          "size": [
+            160,
+            8
+          ],
+          "texture": "brdc4",
+          "xy": [
+            16,
+            14
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "left2",
+          "part": "normal",
+          "texture": "brdc6",
+          "xy": [
+            2,
+            24
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "right2",
+          "part": "normal",
+          "texture": "brdc8",
+          "xy": [
+            170,
+            24
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "cen2",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc7",
+          "xy": [
+            18,
+            24
+          ]
+        },
+        {
+          "name": "left2",
+          "part": "normal",
+          "texture": "brdc6",
+          "xy": [
+            0,
+            22
+          ]
+        },
+        {
+          "name": "cen2",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc7",
+          "xy": [
+            16,
+            22
+          ]
+        },
+        {
+          "name": "right2",
+          "part": "normal",
+          "texture": "brdc8",
+          "xy": [
+            168,
+            22
+          ]
+        },
+        {
+          "name": "icon",
+          "part": "normal",
+          "texture": "お金袋",
+          "xy": [
+            10,
+            8
+          ]
+        },
+        {
+          "name": "gilda",
+          "part": "normal",
+          "texture": "ギルダ",
+          "xy": [
+            126,
+            11
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "numtime",
+          "value": 0,
+          "xy": [
+            118,
+            8
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 20,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            520,
+            6
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                520.0,
+                6.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                300.0,
+                6.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "set": "position",
+          "xy": [
+            20,
+            300
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                20.0,
+                500.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                20.0,
+                300.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "set": "position",
+          "xy": [
+            20,
+            20
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                20.0,
+                -240.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                20.0,
+                20.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    }
+  ],
+  "schema_version": 2
+}

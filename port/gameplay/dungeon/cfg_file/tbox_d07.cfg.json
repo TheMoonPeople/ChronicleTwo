@@ -1,0 +1,601 @@
+{
+  "floor_start": 33,
+  "floors": [
+    {
+      "floor": 1,
+      "group_id": [
+        30,
+        32,
+        31,
+        62
+      ]
+    },
+    {
+      "floor": 2,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    },
+    {
+      "floor": 3,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    },
+    {
+      "floor": 4,
+      "group_id": [
+        31,
+        32,
+        30
+      ]
+    },
+    {
+      "floor": 5,
+      "group_id": [
+        32,
+        30,
+        31
+      ]
+    },
+    {
+      "floor": 6,
+      "group_id": [
+        62,
+        31,
+        30,
+        32
+      ]
+    },
+    {
+      "floor": 7,
+      "group_id": [
+        30,
+        31,
+        32
+      ]
+    },
+    {
+      "floor": 8,
+      "group_id": [
+        32,
+        30,
+        31
+      ]
+    },
+    {
+      "floor": 9,
+      "group_id": [
+        31,
+        30,
+        32
+      ]
+    },
+    {
+      "floor": 11,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    },
+    {
+      "floor": 12,
+      "group_id": [
+        30,
+        31,
+        62,
+        32
+      ]
+    },
+    {
+      "floor": 13,
+      "group_id": [
+        30,
+        31,
+        32
+      ]
+    },
+    {
+      "floor": 14,
+      "group_id": [
+        31,
+        30,
+        32
+      ]
+    },
+    {
+      "floor": 15,
+      "group_id": [
+        31,
+        32,
+        30
+      ]
+    },
+    {
+      "floor": 17,
+      "group_id": [
+        30,
+        32,
+        31
+      ]
+    },
+    {
+      "floor": 18,
+      "group_id": [
+        32,
+        30,
+        31,
+        62
+      ]
+    },
+    {
+      "floor": 19,
+      "group_id": [
+        32,
+        30,
+        31
+      ]
+    },
+    {
+      "floor": 20,
+      "group_id": [
+        30,
+        32,
+        31
+      ]
+    },
+    {
+      "floor": 22,
+      "group_id": [
+        32,
+        30,
+        31
+      ]
+    },
+    {
+      "floor": 23,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    },
+    {
+      "floor": 24,
+      "group_id": [
+        62
+      ]
+    },
+    {
+      "floor": 25,
+      "group_id": [
+        32,
+        30,
+        31
+      ]
+    },
+    {
+      "floor": 26,
+      "group_id": [
+        31,
+        32,
+        30
+      ]
+    },
+    {
+      "floor": 28,
+      "group_id": [
+        30,
+        32,
+        31
+      ]
+    },
+    {
+      "floor": 29,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    },
+    {
+      "floor": 30,
+      "group_id": [
+        31,
+        30,
+        62,
+        32
+      ]
+    },
+    {
+      "floor": 31,
+      "group_id": [
+        32,
+        30,
+        31
+      ]
+    },
+    {
+      "floor": 32,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    },
+    {
+      "floor": 33,
+      "group_id": [
+        31,
+        30,
+        32
+      ]
+    },
+    {
+      "floor": 34,
+      "group_id": [
+        31,
+        32,
+        30
+      ]
+    },
+    {
+      "floor": 35,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    },
+    {
+      "floor": 36,
+      "group_id": [
+        32,
+        31,
+        30,
+        62
+      ]
+    },
+    {
+      "floor": 37,
+      "group_id": [
+        32,
+        31,
+        30
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "group_id": 30,
+      "item_num": 23,
+      "items": [
+        {
+          "item_no": 210,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 211,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 212,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 213,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 214,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 215,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 216,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 217,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 218,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 219,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 220,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 221,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 224,
+          "num": 6,
+          "rank": 100
+        },
+        {
+          "item_no": 225,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 228,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 229,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 230,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 231,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 232,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 233,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 234,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 235,
+          "num": 3,
+          "rank": 100
+        },
+        {
+          "item_no": 236,
+          "num": 3,
+          "rank": 100
+        }
+      ]
+    },
+    {
+      "group_id": 31,
+      "item_num": 13,
+      "items": [
+        {
+          "item_no": 8,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 13,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 16,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 19,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 29,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 30,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 33,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 38,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 47,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 64,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 85,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 105,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 107,
+          "num": 1,
+          "rank": 20
+        }
+      ]
+    },
+    {
+      "group_id": 32,
+      "item_num": 14,
+      "items": [
+        {
+          "item_no": 269,
+          "num": 3,
+          "rank": 90
+        },
+        {
+          "item_no": 270,
+          "num": 1,
+          "rank": 80
+        },
+        {
+          "item_no": 274,
+          "num": 2,
+          "rank": 80
+        },
+        {
+          "item_no": 275,
+          "num": 3,
+          "rank": 80
+        },
+        {
+          "item_no": 282,
+          "num": 6,
+          "rank": 60
+        },
+        {
+          "item_no": 283,
+          "num": 6,
+          "rank": 60
+        },
+        {
+          "item_no": 283,
+          "num": 6,
+          "rank": 70
+        },
+        {
+          "item_no": 284,
+          "num": 6,
+          "rank": 60
+        },
+        {
+          "item_no": 285,
+          "num": 6,
+          "rank": 60
+        },
+        {
+          "item_no": 286,
+          "num": 6,
+          "rank": 60
+        },
+        {
+          "item_no": 294,
+          "num": 3,
+          "rank": 70
+        },
+        {
+          "item_no": 298,
+          "num": 3,
+          "rank": 80
+        },
+        {
+          "item_no": 352,
+          "num": 3,
+          "rank": 80
+        },
+        {
+          "item_no": 391,
+          "num": 6,
+          "rank": 75
+        }
+      ]
+    },
+    {
+      "group_id": 62,
+      "item_num": 10,
+      "items": [
+        {
+          "item_no": 200,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 201,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 202,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 203,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 204,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 205,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 206,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 207,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 208,
+          "num": 1,
+          "rank": 20
+        },
+        {
+          "item_no": 209,
+          "num": 1,
+          "rank": 20
+        }
+      ]
+    }
+  ],
+  "kind": "treasure_boxes",
+  "schema_version": 2
+}

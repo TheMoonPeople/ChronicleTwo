@@ -14,7 +14,7 @@
 #include "sceneload.hpp"
 #include "scenesnd.hpp"
 
-static int         LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred);
+static uptr        LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred);
 static const u_int timer0_count = 0x10000000;
 
 /**
@@ -22,7 +22,7 @@ static const u_int timer0_count = 0x10000000;
  * Loads each enabled map file into the scene stack, optionally through background I/O.
  *
  */
-static int LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred) {
+static uptr LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred) {
     char       path[0x80];
     mgCMemory *stack = info.stack;
     u8        *load_buf = info.load_buf;
@@ -174,7 +174,7 @@ static int LoadMapData(SCN_LOADMAP_INFO2 &info, int deferred) {
         return 0;
     }
 
-    return (int) load_buf;
+    return (uptr) load_buf;
 }
 
 void SCN_LOADMAP_INFO2::Initialize() {

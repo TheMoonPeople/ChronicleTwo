@@ -1,0 +1,1700 @@
+{
+  "count": 189,
+  "kind": "map_names",
+  "maps": [
+    {
+      "add_path": "g00/g00",
+      "area_no": 2,
+      "name": "g01",
+      "sel_type": 1,
+      "snd_data_id": 2000,
+      "title": "Sindain",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 3,
+      "name": "g02",
+      "sel_type": 1,
+      "snd_data_id": 3000,
+      "title": "Valle dell'Equilibrio",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 4,
+      "name": "g03",
+      "sel_type": 1,
+      "snd_data_id": 4000,
+      "title": "Venetium",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 5,
+      "name": "g04",
+      "sel_type": 1,
+      "snd_data_id": 5000,
+      "title": "Desolandia",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "g05",
+      "sel_type": 1,
+      "snd_data_id": 7000,
+      "title": "Palazzo Fiordiluna",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "s40",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Venetium",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m01",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m02",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Stazione di Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m03",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Piazza di Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m04",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Abitazione di Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m05",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Parco di Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "s01",
+      "sel_type": 3,
+      "snd_data_id": 1682,
+      "title": "Cisterna Canale",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 2,
+      "name": "s02",
+      "sel_type": 3,
+      "snd_data_id": 2080,
+      "title": "Stazione di Sindain",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "m06",
+      "sel_type": 6,
+      "snd_data_id": 1208,
+      "title": "Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s07",
+      "sel_type": 7,
+      "snd_data_id": 510,
+      "title": "Interno del treno",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m07",
+      "sel_type": 6,
+      "snd_data_id": 1200,
+      "title": "Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m08",
+      "sel_type": 6,
+      "snd_data_id": 1206,
+      "title": "Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01b01",
+      "sel_type": 5,
+      "snd_data_id": 1683,
+      "title": "Cisterna Canale",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01e01",
+      "sel_type": 5,
+      "snd_data_id": 1602,
+      "title": "Entrata Canale",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s08",
+      "sel_type": 7,
+      "snd_data_id": 516,
+      "title": "Dentro la Locomotiva",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b01",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Cascate Arcobaleno",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "f01",
+      "sel_type": 4,
+      "snd_data_id": 2300,
+      "title": "Iper-Jurak",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02",
+      "sel_type": 4,
+      "snd_data_id": 3300,
+      "title": "Tempio stellare",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h01",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "Negozio di Cedric",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Forno di Polly",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Deposito in affitto",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h04",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Negozio di Armi",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Ninnoli di Morton",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h06",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Centrale Polizia",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h07",
+      "sel_type": 2,
+      "snd_data_id": 1082,
+      "title": "Chiesa",
+      "type": 4
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "i02h01",
+      "sel_type": 2,
+      "snd_data_id": 1080,
+      "title": "Stazione",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Caff[UNI00e8]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Bar",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Ingresso del Municipio",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Ufficio del Sindaco",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02",
+      "sel_type": 2,
+      "snd_data_id": 1213,
+      "title": "Tendone del Circo",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02a",
+      "sel_type": 2,
+      "snd_data_id": -1,
+      "title": "Tendone del Circo",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Stanza di Maximilian",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Casa di Maximilian",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Sala da pranzo",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01c",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "Cucina",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01d",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Stanza di Gerald",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01e",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Stanza servit[UNI00f9]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01f",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Corridoio",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Casa di Claire",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Stanza di Claire",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Stanza del padre di Claire",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i05h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Clinica Dell",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Studio di Parn",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s03",
+      "sel_type": 3,
+      "snd_data_id": 2203,
+      "title": "Tunnel della foresta",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 3,
+      "name": "s04",
+      "sel_type": 3,
+      "snd_data_id": 3080,
+      "title": "Stazione Valle Equilibrio",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f01",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "Canale sotterraneo",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b02",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Cascate Arcobaleno",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02f01",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Bosco Farfalla Arcobaleno",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f01",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Canyon stellare",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f02",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "Canyon stellare",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f03",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "Canyon stellare",
+      "type": 7
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 3,
+      "name": "d03b01",
+      "sel_type": 5,
+      "snd_data_id": 3683,
+      "title": "Faro sul Promontorio",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship02",
+      "area_no": 3,
+      "name": "d03b02",
+      "sel_type": 5,
+      "snd_data_id": 3684,
+      "title": "Faro sul Promontorio",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f02",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "Canale sotterraneo",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f01",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Caverna ruggente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s05",
+      "sel_type": 5,
+      "snd_data_id": 2684,
+      "title": "Palude del Pesce Mostro",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "s06",
+      "sel_type": 5,
+      "snd_data_id": 1684,
+      "title": "Sala Drenaggio del Canale",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Legno",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Legno",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Legno",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Legno",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "g01i07",
+      "sel_type": 1,
+      "snd_data_id": 2081,
+      "title": "Casa degli Gnomi",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 7,
+      "name": "s12",
+      "sel_type": 3,
+      "snd_data_id": 7680,
+      "title": "Stazione Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s25",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Carpenterion (interno)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s26",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Carpenterion (esterno)",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s27",
+      "sel_type": 3,
+      "snd_data_id": 4082,
+      "title": "Casa di Pau",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s31",
+      "sel_type": 3,
+      "snd_data_id": 7681,
+      "title": "Stazione Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s33",
+      "sel_type": 3,
+      "snd_data_id": 7080,
+      "title": "Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s35",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Ricomparsa Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f01",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Monte Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f02",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Caverna ruggente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s17",
+      "sel_type": 5,
+      "snd_data_id": 3685,
+      "title": "Valle di Barga",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03",
+      "sel_type": 4,
+      "snd_data_id": 4300,
+      "title": "Lab-Lunatica",
+      "type": 5
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 4,
+      "name": "s09",
+      "sel_type": 3,
+      "snd_data_id": 4080,
+      "title": "Stazione di Venetium",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s19",
+      "sel_type": 3,
+      "snd_data_id": 4684,
+      "title": "Caverna degli antichi Murali",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s41",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Evento Desolandia",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s42",
+      "sel_type": 6,
+      "snd_data_id": 1081,
+      "title": "Bottega di Cedric",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 5,
+      "name": "s10",
+      "sel_type": 3,
+      "snd_data_id": 5080,
+      "title": "Stazione Desolandia",
+      "type": 3
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s20",
+      "sel_type": 5,
+      "snd_data_id": 5684,
+      "title": "Vetta del Monte Gundor",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Casa di Morton",
+      "type": 4
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "d04b01",
+      "sel_type": 5,
+      "snd_data_id": 4683,
+      "title": "Villaggio di Shigura",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b03",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Cascate Arcobaleno",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05b01",
+      "sel_type": 5,
+      "snd_data_id": 5683,
+      "title": "Bocca del Monte Gundor",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f02",
+      "sel_type": 5,
+      "snd_data_id": 5682,
+      "title": "Monte Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s43",
+      "sel_type": 5,
+      "snd_data_id": -1,
+      "title": "Tendone del Circo",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h04",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "Corse Pinna Sprint",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h05",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "Corse Pinna Sprint",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06f01",
+      "sel_type": 5,
+      "snd_data_id": 7600,
+      "title": "Palazzo Fiordiluna",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s18",
+      "sel_type": 5,
+      "snd_data_id": 3686,
+      "title": "Valle di Yorda",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h03",
+      "sel_type": 7,
+      "snd_data_id": 1084,
+      "title": "Campo Torneo di Pesca",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "g02i02",
+      "sel_type": 1,
+      "snd_data_id": 511,
+      "title": "Casa di Lin",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i08",
+      "sel_type": 4,
+      "snd_data_id": 3381,
+      "title": "Bistrot di Lao Chao",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "f04",
+      "sel_type": 4,
+      "snd_data_id": 5300,
+      "title": "Officina Gundorandia",
+      "type": 5
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 6,
+      "name": "s11",
+      "sel_type": 3,
+      "snd_data_id": 6000,
+      "title": "Stonehenge Kazarov",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s29",
+      "sel_type": 3,
+      "snd_data_id": 5383,
+      "title": "Paznos (Osservatorio)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s30",
+      "sel_type": 3,
+      "snd_data_id": 5384,
+      "title": "Paznos (Ponte)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s36",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Ixion (Esterno)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s39",
+      "sel_type": 4,
+      "snd_data_id": 5382,
+      "title": "Sala operativa",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s37",
+      "sel_type": 3,
+      "snd_data_id": 514,
+      "title": "Ixion (Sala Motori)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06e01",
+      "sel_type": 5,
+      "snd_data_id": 7688,
+      "title": "Patio Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i04",
+      "sel_type": 4,
+      "snd_data_id": 4383,
+      "title": "Laboratorio centrale",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f00",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Caverna ruggente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i06",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "Articoli stellari",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0301",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab. 1",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0304",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab. 4",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s47",
+      "sel_type": 6,
+      "snd_data_id": 2000,
+      "title": "Sindain (Evento)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Paglia",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Paglia",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Paglia",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Paglia",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s38",
+      "sel_type": 7,
+      "snd_data_id": 513,
+      "title": "Ixion (Stanza degli Ospiti)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s45",
+      "sel_type": 7,
+      "snd_data_id": 1000,
+      "title": "Piazza di Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s46",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Camera di Max-Flashback",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s49",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Flashback di Gaspard",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b01",
+      "sel_type": 5,
+      "snd_data_id": 7687,
+      "title": "Camera del Sole",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b02",
+      "sel_type": 5,
+      "snd_data_id": 7603,
+      "title": "Spirale del Sogno",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s44",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Palazzo Fiordiluna-Flashback",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s21",
+      "sel_type": 3,
+      "snd_data_id": 7689,
+      "title": "Giardino",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s23",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Porta Camera di Grifone",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s50",
+      "sel_type": 3,
+      "snd_data_id": 7686,
+      "title": "Stanza di Alexandra",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s51",
+      "sel_type": 6,
+      "snd_data_id": 520,
+      "title": "Castello di Raybrandt",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s53",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Lab. centrale (Evento)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Mattoni",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Mattoni",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Mattoni",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Interno Casa di Mattoni",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ia",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Interno Casa di Ferro",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ib",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Interno Casa di Ferro",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ic",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Interno Casa di Ferro",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05id",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Interno Casa di Ferro",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f02i07",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "Negozio di Armi stellare",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0302",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab. 2",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0303",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab. 3",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i03",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "ARMI-G",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i04",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "PARTI-G",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s13",
+      "sel_type": 5,
+      "snd_data_id": 2694,
+      "title": "Camera Terra Dormiente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s14",
+      "sel_type": 5,
+      "snd_data_id": 3694,
+      "title": "Camera Vento Difesa",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s15",
+      "sel_type": 5,
+      "snd_data_id": 4694,
+      "title": "Camera Acqua Dormiente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s16",
+      "sel_type": 5,
+      "snd_data_id": 5694,
+      "title": "Camera Fuoco Ardente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s28",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s32",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Palazzo Fiordiluna vs Paznos",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s48",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos (Robot)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s54",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "Miniera di Zelmite",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s55",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Evento Paznos (Battaglia)",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s56",
+      "sel_type": 5,
+      "snd_data_id": 3682,
+      "title": "Faro distrutto",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s34",
+      "sel_type": 3,
+      "snd_data_id": 7682,
+      "title": "Stazione Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i05",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "ATTREZZI-G",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01r",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Bosco Farfalla Arcobaleno",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s58",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Sottodimensione",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s59",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Lab-Lunatica",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07f01",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "Miniera di Zelmite",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07b01",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "Miniera di Zelmite",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a20i01",
+      "sel_type": 1,
+      "snd_data_id": 522,
+      "title": "Interno della Chiesa",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f01r",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Canyon stellare",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02r",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "Canyon stellare",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f03r",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "Canyon stellare",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f02r",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Caverna ruggente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01r",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Monte Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f02",
+      "sel_type": 5,
+      "snd_data_id": 7683,
+      "title": "Palazzo Fiordiluna",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f03",
+      "sel_type": 5,
+      "snd_data_id": 7684,
+      "title": "Palazzo Fiordiluna",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b03",
+      "sel_type": 5,
+      "snd_data_id": 7692,
+      "title": "Terrazza del Palazzo",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s52",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "Miniera di Zelmite",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s60",
+      "sel_type": 6,
+      "snd_data_id": 1264,
+      "title": "Vallecatini",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s61",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Miniera di Zelmite",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s62",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Miniera di Zelmite",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s63",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Miniera di Zelmite",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s64",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s65",
+      "sel_type": 3,
+      "snd_data_id": 7000,
+      "title": "Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s98",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "Stonehenge Kazarov",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s66",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "Stonehenge Kazarov",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s67",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Terrazza del Palazzo",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01s",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Bosco Farfalla Arcobaleno",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02s",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Canyon stellare",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f01s",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Caverna ruggente",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01s",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Monte Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s69",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Miniera di Zelmite",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s68",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s70",
+      "sel_type": 6,
+      "snd_data_id": 7081,
+      "title": "Palazzo Fiordiluna",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s71",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Stazione Palazzo Fiordiluna",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

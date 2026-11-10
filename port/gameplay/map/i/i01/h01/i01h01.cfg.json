@@ -1,0 +1,37 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "check",
+        "point_no": 520
+      },
+      "name": "fc_event_e108c",
+      "transform": {
+        "position": [
+          -116.62,
+          -12.11,
+          -221.76
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          40.0,
+          40.0,
+          40.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

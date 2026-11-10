@@ -1,0 +1,10 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s98_01-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,310 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "e04-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "e04-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "e04_light-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04_shadow-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04g01_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04g01_01-a.gltf",
+      "type": 1
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "e04a02_04-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "e04a02_01-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "e04a02_02-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "e04a02_03-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "e04a02_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h01_01-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2500.0,
+        "fade": 1
+      },
+      "model": "e04h01_02-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "e04h01_03-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e04h01_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h01_05-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "e04h01_06-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "e04h01_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h01_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h01_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h01_09-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1400.0,
+        "fade": 1
+      },
+      "model": "e04h01_11-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 3000.0,
+        "fade": 1
+      },
+      "model": "e04h02_01-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "e04h02_02-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 3000.0,
+        "fade": 1
+      },
+      "model": "e04h02_03-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 3000.0,
+        "fade": 1
+      },
+      "model": "e04h02_04-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e04h02_05-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 3000.0,
+        "fade": 1
+      },
+      "model": "e04h02_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h02_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h03_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h03_03-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2500.0,
+        "fade": 1
+      },
+      "model": "e04h03_02-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "e04h05_06-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2500.0,
+        "fade": 1
+      },
+      "model": "e04h05_01-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "e04h05_02-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "e04h05_03-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e04h05_04-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "e04h05_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h05_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h16_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04h16_01-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 800.0,
+        "fade": 1
+      },
+      "model": "e04t01_01-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "e04t01_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e04t01_03-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "e04a03_01-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "e04a03_02-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "e04a03_03-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

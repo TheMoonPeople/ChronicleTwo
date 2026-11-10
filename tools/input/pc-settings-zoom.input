@@ -1,0 +1,52 @@
+# --jump town:10 --fast-load --window 1280x960 --frames 1120
+# Open PC Settings, scroll Controls, click Mouse wheel zoom; verify saved true.
+300 triangle
+301
+400 down
+401
+420 down
+421
+440 down
+441
+460 down
+461
+500 cross
+501
+# Controls page: scroll to the appended zoom row, then click its value.
+700 select
+701
+740 r1
+741
+780 r1
+781
+820 down
+821
+840 down
+841
+860 down
+861
+880 down
+881
+900 down
+901
+920 down
+921
+940 down
+941
+960 down
+961
+980 down
+981
+1000 down
+1001
+1020 down
+1021
+1040 down
+1041
+1060 down
+1061
+1080 mouse:320,114
+1081
+1100 mouse1
+1101
+# Capture at 1120: Mouse wheel zoom is On; input.mouse_zoom persists.

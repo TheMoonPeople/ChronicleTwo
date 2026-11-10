@@ -1,0 +1,91 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "wmap",
+      "textures": [
+        {
+          "name": "worldMap",
+          "rect": [
+            0,
+            0,
+            416,
+            320
+          ],
+          "spelling": "TEXDATA"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "地図",
+      "op": "form",
+      "parts": [
+        {
+          "name": "CUR0",
+          "part": "funcinfo",
+          "xy": [
+            0,
+            200
+          ]
+        },
+        {
+          "name": "CUR1",
+          "part": "funcinfo",
+          "xy": [
+            210,
+            140
+          ]
+        },
+        {
+          "name": "CUR2",
+          "part": "funcinfo",
+          "xy": [
+            120,
+            200
+          ]
+        },
+        {
+          "name": "worldMap",
+          "part": "normal",
+          "spelling": "NORMAL",
+          "texture": "worldMap",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "op": "reset_texinfo"
+    }
+  ],
+  "schema_version": 2
+}

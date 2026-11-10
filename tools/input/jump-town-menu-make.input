@@ -1,0 +1,11 @@
+# --jump town:10 --fast-load; enter 420, return 700.
+300 triangle
+306
+370 down
+371
+382 down
+383
+420 cross
+426
+700 circle
+706

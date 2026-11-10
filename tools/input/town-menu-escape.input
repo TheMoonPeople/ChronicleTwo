@@ -1,0 +1,6 @@
+# With --jump town:10 --fast-load: open the main menu, then cancel back to town.
+# Use host keys so this replay exercises menu-mode Escape routing.
+180 key:Tab
+186
+500 key:Escape
+506

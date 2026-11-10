@@ -1,0 +1,262 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "e01a01_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_02.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_03.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_07.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_09.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 800.0,
+        "fade": 1
+      },
+      "model": "e01a01_12.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 800.0,
+        "fade": 1
+      },
+      "model": "e01a01_13.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_14.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_15.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_16.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_17.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_19.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a01_18.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h01_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h01_03.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h01_02.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h01_04.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h01_05.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h01_06.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h02_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h02_02.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h02_03.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h02_04.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h02_05.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h02_06.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03h02_07.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03a01_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03_light.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01_light.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01g02_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01g01_01a.gltf",
+      "type": 1
+    },
+    {
+      "model": "e01g01_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "e01a37_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a37_02.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e01a35_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e01a34_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e01a33_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e01a26_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e01a25_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e01a21_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1800.0,
+        "fade": 1
+      },
+      "model": "e01a15_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "e01a14_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e01a14_01a.gltf",
+      "type": 1
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "e01a05_01.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "e01a02_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03a02_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03g01_01.gltf",
+      "type": 0
+    },
+    {
+      "model": "e03g01_01a.gltf",
+      "type": 1
+    },
+    {
+      "model": "e03c.gltf",
+      "type": 2
+    },
+    {
+      "model": "e03a.gltf",
+      "type": 1
+    },
+    {
+      "model": "spot_01.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,6 @@
+# With --jump town:31 --fast-load --display-per-tick 4 --screenshot-display 2.
+# Morton's Sundries uses retail fixed-camera map data.
+0
+# Baseline frame 598. Capture 609 while looking right/up, 900 after returning.
+600 mouse:10,-3
+610

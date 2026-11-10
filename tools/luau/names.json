@@ -1,0 +1,18 @@
+{
+ "$comment": "Hand names of shared helpers, keyed by kind and by the first 8 hex digits of the helper's canonical key (its default name is helper_<key>): the name its module and callers take, its parameters' names, and its documentation. tools/luau/stb2luau/transpile.py and emit.py read it.",
+ "event": {
+  "25abe6d2": {"name": "wait_frames", "params": ["frames"], "doc": "Waits one frame more than the given count."},
+  "d3f20302": {"name": "wait_frames_skipping", "params": ["frames"], "doc": "What skip mode runs of wait_frames: one pass of its count, without waiting."},
+  "0958ca60": {"name": "wait_objects", "params": ["sequence"], "doc": "Waits until an object sequence has run its commands."},
+  "c624bc16": {"name": "wait_camera", "params": [], "doc": "Waits until the camera sequence has run its commands."},
+  "f0c5f5d1": {"name": "wait_message", "params": ["window"], "doc": "Waits while a message window opens or prints its text."},
+  "125385ee": {"name": "set_window_mode", "params": ["window", "mode"], "doc": "Sets a message window's mode."},
+  "1e44cfff": {"name": "close_message", "params": ["window"], "doc": "Hides a message window's cursor, closes it and resets its position."},
+  "2a244c50": {"name": "open_message", "params": ["window", "text", "position", "x", "y"], "doc": "Builds a message window's text and places it; returns what MesMake returns."},
+  "5083849a": {"name": "message_step", "params": ["window", "answers"], "doc": "Runs one frame of a message window: its mouth animation and its answer; returns 0 until the window gives a result."},
+  "b01b1877": {"name": "wait_message_answer", "params": ["window", "answers", "chosen"], "doc": "Waits for a message window's answer; returns the frames it waited and whether the expected answer was chosen."},
+  "f3f369bc": {"name": "show_message", "params": ["window", "text", "position", "x", "y"], "doc": "Opens a message window, waits for it to be read and closes it."},
+  "1e1681bf": {"name": "interpolate", "params": ["from", "to", "step", "steps"], "doc": "The value step steps of the given count along from from to to."},
+  "8433e29e": {"name": "negate", "params": ["value"], "doc": "The value with its sign flipped."}
+ }
+}

@@ -1,0 +1,150 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "e02_shadow-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "e02-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "e02_light-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02g01_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02g01_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "e02a01_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02a01_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02a01_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02a01_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02a01_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02a01_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h01_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "e02h02_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h02_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h02_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h02_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h02_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h03_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h16_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e02h16_01-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

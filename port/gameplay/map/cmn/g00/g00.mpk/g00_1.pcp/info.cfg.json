@@ -1,0 +1,22 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "a1201-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "a1201-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "a1201-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "a1201_01-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

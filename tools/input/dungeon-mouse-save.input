@@ -1,0 +1,15 @@
+# --jump dungeon:0:1 --fast-load --window 1280x720; fresh save root.
+# Click Save Progress, then the flat list's single New Save row.
+300 mouse:240,290
+301
+400 mouse1
+401
+700 mouse:-240,-350
+701
+800 mouse1
+801
+1100 mouse:-70,95
+1101
+1150 mouse1
+1151
+# Capture 1450: Save complete; one new flat payload exists.

@@ -1,0 +1,187 @@
+{
+  "count": 18,
+  "fish": [
+    {
+      "battle": 6,
+      "boost": 12,
+      "endurance": 8,
+      "item_no": 310,
+      "size": 1450.0,
+      "stamina": 7,
+      "tenacity": 8,
+      "unk_4": 54
+    },
+    {
+      "battle": 4,
+      "boost": 6,
+      "endurance": 6,
+      "item_no": 320,
+      "size": 890.0,
+      "stamina": 13,
+      "tenacity": 5,
+      "unk_4": 66
+    },
+    {
+      "battle": 9,
+      "boost": 5,
+      "endurance": 4,
+      "item_no": 321,
+      "size": 980.0,
+      "stamina": 10,
+      "tenacity": 6,
+      "unk_4": 75
+    },
+    {
+      "battle": 3,
+      "boost": 3,
+      "endurance": 4,
+      "item_no": 322,
+      "size": 1300.0,
+      "stamina": 20,
+      "tenacity": 13,
+      "unk_4": 72
+    },
+    {
+      "battle": 10,
+      "boost": 7,
+      "endurance": 6,
+      "item_no": 323,
+      "size": 1750.0,
+      "stamina": 9,
+      "tenacity": 5,
+      "unk_4": 66
+    },
+    {
+      "battle": 5,
+      "boost": 6,
+      "endurance": 7,
+      "item_no": 324,
+      "size": 1450.0,
+      "stamina": 11,
+      "tenacity": 6,
+      "unk_4": 80
+    },
+    {
+      "battle": 7,
+      "boost": 8,
+      "endurance": 6,
+      "item_no": 325,
+      "size": 1050.0,
+      "stamina": 15,
+      "tenacity": 11,
+      "unk_4": 80
+    },
+    {
+      "battle": 6,
+      "boost": 11,
+      "endurance": 5,
+      "item_no": 326,
+      "size": 1000.0,
+      "stamina": 10,
+      "tenacity": 6,
+      "unk_4": 50
+    },
+    {
+      "battle": 9,
+      "boost": 10,
+      "endurance": 6,
+      "item_no": 327,
+      "size": 1000.0,
+      "stamina": 10,
+      "tenacity": 6,
+      "unk_4": 74
+    },
+    {
+      "battle": 6,
+      "boost": 13,
+      "endurance": 8,
+      "item_no": 328,
+      "size": 1050.0,
+      "stamina": 10,
+      "tenacity": 5,
+      "unk_4": 88
+    },
+    {
+      "battle": 6,
+      "boost": 8,
+      "endurance": 10,
+      "item_no": 329,
+      "size": 1000.0,
+      "stamina": 10,
+      "tenacity": 8,
+      "unk_4": 63
+    },
+    {
+      "battle": 5,
+      "boost": 12,
+      "endurance": 6,
+      "item_no": 330,
+      "size": 1000.0,
+      "stamina": 11,
+      "tenacity": 9,
+      "unk_4": 54
+    },
+    {
+      "battle": 4,
+      "boost": 6,
+      "endurance": 10,
+      "item_no": 331,
+      "size": 800.0,
+      "stamina": 10,
+      "tenacity": 12,
+      "unk_4": 68
+    },
+    {
+      "battle": 6,
+      "boost": 12,
+      "endurance": 7,
+      "item_no": 332,
+      "size": 1050.0,
+      "stamina": 9,
+      "tenacity": 8,
+      "unk_4": 70
+    },
+    {
+      "battle": 7,
+      "boost": 9,
+      "endurance": 8,
+      "item_no": 333,
+      "size": 1000.0,
+      "stamina": 10,
+      "tenacity": 8,
+      "unk_4": 84
+    },
+    {
+      "battle": 8,
+      "boost": 9,
+      "endurance": 11,
+      "item_no": 334,
+      "size": 1000.0,
+      "stamina": 12,
+      "tenacity": 8,
+      "unk_4": 74
+    },
+    {
+      "battle": 6,
+      "boost": 10,
+      "endurance": 7,
+      "item_no": 335,
+      "size": 1000.0,
+      "stamina": 9,
+      "tenacity": 7,
+      "unk_4": 67
+    },
+    {
+      "battle": 6,
+      "boost": 13,
+      "endurance": 8,
+      "item_no": 336,
+      "size": 1050.0,
+      "stamina": 13,
+      "tenacity": 9,
+      "unk_4": 86
+    }
+  ],
+  "kind": "fish",
+  "schema_version": 2
+}

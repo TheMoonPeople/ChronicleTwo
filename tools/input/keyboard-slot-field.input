@@ -1,0 +1,36 @@
+300 cross
+306
+520 cross
+526
+900 start
+906
+940 triangle
+946
+1100 cross
+1106
+1250 cross
+1256
+1400 cross
+1406
+1550 cross
+1556
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2200 128 0 128 128
+2260
+# Movement keys must leave the active item slot alone.
+2400 key:D
+2430
+2500 key:W
+2530
+2600 key:A
+2630
+2700 key:S
+2730
+# Explicit D-pad still selects the next slot.
+3000 key:Right
+3006

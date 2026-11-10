@@ -63,6 +63,7 @@
 #include "nowload.hpp"
 #include "npccfg.hpp"
 #include "padcontrol.hpp"
+#include "pal_timing.hpp"
 #include "pot.hpp"
 #include "quest.hpp"
 #include "runscript_opcodes.hpp"
@@ -2909,9 +2910,9 @@ void EventTimeDraw() {
             elapsed = EdEventInfo.stopwatch_limit - 2;
             EdEventInfo.stopwatch_limit = elapsed;
         } else if (EdEventInfo.stopwatch_limit != 0) {
-            elapsed = EdEventInfo.stopwatch_limit - (save_data->play_time - EdEventInfo.stopwatch_start);
+            elapsed = EdEventInfo.stopwatch_limit - (PAL_TIMING(save_data->play_time - EdEventInfo.stopwatch_start, (save_data->play_time - EdEventInfo.stopwatch_start) * 6 / 5));
         } else {
-            elapsed = save_data->play_time - EdEventInfo.stopwatch_start;
+            elapsed = PAL_TIMING(save_data->play_time - EdEventInfo.stopwatch_start, (save_data->play_time - EdEventInfo.stopwatch_start) * 6 / 5);
         }
 
         if (0x57E40 <= elapsed) {
@@ -4903,7 +4904,7 @@ static int _SET_CROSSFADE(RS_STACKDATA *stack, int argc) {
     if (argc == 3) {
         int direction = GetStackInt(stack++);
         int color = GetStackInt(stack++);
-        frames = GetStackInt(stack) * 50 / 60;
+        frames = GetStackInt(stack) * PAL_TIMING(50, 60) / 60;
 
         if (frames <= 0) {
             frames = 1;
@@ -4915,7 +4916,7 @@ static int _SET_CROSSFADE(RS_STACKDATA *stack, int argc) {
             EventScene->fade.CrossFadeOut(color, frames, 1.0f);
         }
     } else {
-        frames = GetStackInt(stack) * 50 / 60;
+        frames = GetStackInt(stack) * PAL_TIMING(50, 60) / 60;
 
         if (frames <= 0) {
             frames = 1;
@@ -5543,7 +5544,7 @@ static int _AUTO_SET_MONSTER(RS_STACKDATA *stack, int argc) {
     float position[4];
     float direction[4];
     int   monster_no;
-    int   param;
+    int   param PORT_INIT(0);
 
     if (GetNowLoopNo() != LOOP_DUNGEON) {
         return false;
@@ -5831,7 +5832,7 @@ static int _GET_PROJECTION(RS_STACKDATA *stack, int argc) {
 static int _SET_FADE_IN(RS_STACKDATA *stack, int argc) {
     float color[4];
     mgZeroVector(color);
-    int frames = GetStackInt(stack++) * 50 / 60;
+    int frames = GetStackInt(stack++) * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -5855,7 +5856,7 @@ static int _SET_FADE_IN(RS_STACKDATA *stack, int argc) {
 static int _SET_FADE_OUT(RS_STACKDATA *stack, int argc) {
     float color[4];
     mgZeroVector(color);
-    int frames = GetStackInt(stack++) * 50 / 60;
+    int frames = GetStackInt(stack++) * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -5885,7 +5886,7 @@ static int _DNG_DEBUG_COMMAND(RS_STACKDATA *stack, int argc) {
  *
  */
 static int _CD_SEEK(RS_STACKDATA *stack, int argc) {
-    sceCdlFILE *file_info;
+    sceCdlFILE *file_info PORT_INIT(NULL);
 
     if (sceCdSearchFile(file_info, GetStackString(stack)) != 0) {
         return sceCdSeek(file_info->lsn);
@@ -8071,7 +8072,7 @@ static int _GET_SAVEDATA_ETC(RS_STACKDATA *stack, int argc) {
         }
         case EVENT_GET_SAVEDATA_PLAY_TIME:
             PlayTimeCount(1);
-            SetStack(stack, (int) save->play_time);
+            SetStack(stack, (int) PAL_TIMING(save->play_time, (save->play_time) * 6 / 5));
             break;
         case EVENT_GET_SAVEDATA_CAPTION_OFF:
             SetStack(stack, GetConfigCaptionOff());
@@ -8634,7 +8635,7 @@ static int _STOPWATCH(RS_STACKDATA *stack, int argc) {
             SetStack(stack, -1);
             return true;
         } else {
-            u64 elapsed = save_data->play_time - EdEventInfo.stopwatch_start;
+            u64 elapsed = PAL_TIMING(save_data->play_time - EdEventInfo.stopwatch_start, (save_data->play_time - EdEventInfo.stopwatch_start) * 6 / 5);
             EdEventInfo.stopwatch_start = 0;
             SetStack(stack++, (int) (elapsed / 3600));
             SetStack(stack++, (int) (elapsed % 3600 / 60));
@@ -13506,7 +13507,7 @@ static int _SND_LOAD_SOUND(RS_STACKDATA *stack, int argc) {
  */
 static int _GET_SND_ID(RS_STACKDATA *stack, int argc) {
     int snd_id;
-    int src_no;
+    int src_no PORT_INIT(0);
 
     if (argc == 1) {
         snd_id = EdEventInfo.last_snd_id;
@@ -13972,7 +13973,11 @@ static int _STREAM_OPEN(RS_STACKDATA *stack, int argc) {
             }
         case 3:
             EdEventInfo.stream_source = EVENT_STREAM_VOICE_PACK;
-            CommandStreamOpenFromFPL(EVENT_STREAM_CHANNEL, GetStackString(stack++), GetStackString(stack));
+            {
+                char *name = GetStackString(stack++);
+                char *base = GetStackString(stack);
+                CommandStreamOpenFromFPL(EVENT_STREAM_CHANNEL, name, base);
+            }
             return false;
     }
 
@@ -14258,7 +14263,7 @@ static int _FADE_IN_BGM(RS_STACKDATA *stack, int argc) {
     int frames;
 
     frames60 = GetStackInt(stack);
-    frames = frames60 * 50 / 60;
+    frames = frames60 * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -14278,7 +14283,7 @@ static int _FADE_OUT_BGM(RS_STACKDATA *stack, int argc) {
     int frames;
 
     frames60 = GetStackInt(stack);
-    frames = frames60 * 50 / 60;
+    frames = frames60 * PAL_TIMING(50, 60) / 60;
 
     if (frames <= 0) {
         frames = 1;
@@ -14783,8 +14788,8 @@ static int _SET_MOVIE_CC(RS_STACKDATA *stack, int argc) {
                 return false;
             }
 
-            start = start * 50 / 60;
-            frames = frames * 50 / 60;
+            start = start * PAL_TIMING(50, 60) / 60;
+            frames = frames * PAL_TIMING(50, 60) / 60;
             EdEventInfo.caption_start[no] = start;
             strcpy(EdEventInfo.caption_text[no], text);
             EdEventInfo.caption_frames[no] = frames;
@@ -15144,7 +15149,7 @@ static int _EOH_SET_ROT(RS_STACKDATA *stack, int argc) {
  *
  */
 static int _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
-    float pos[3];
+    float pos[4];
 
     int result = EventObjHandleMother.GetPos(GetStackInt(stack++), pos);
 
@@ -15163,7 +15168,7 @@ static int _EOH_GET_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 static int _EOH_GET_ROT(RS_STACKDATA *stack, int argc) {
-    float rot[3];
+    float rot[4];
 
     int result = EventObjHandleMother.GetRot(GetStackInt(stack++), rot);
 
@@ -16545,7 +16550,7 @@ static int _DIST_VECTOR(RS_STACKDATA *stack, int argc) {
     float vec[4];
     GetStackVector(vec, stack);
 
-    stack = (RS_STACKDATA *) ((int) stack + 0x18);
+    stack = (RS_STACKDATA *) ((uptr) stack + 0x18);
     SetStack(stack, mgDistVector(vec));
     return true;
 }
@@ -16561,7 +16566,7 @@ static int _DIST_VECTOR2(RS_STACKDATA *stack, int argc) {
     GetStackVector(from, stack);
     GetStackVector(to, stack + 3);
 
-    stack = (RS_STACKDATA *) ((int) stack + 0x30);
+    stack = (RS_STACKDATA *) ((uptr) stack + 0x30);
     SetStack(stack, mgDistVector(from, to));
     return true;
 }
@@ -16829,7 +16834,7 @@ static int _ADD_CHARA_ROT(RS_STACKDATA *stack, int argc) {
  *
  */
 static int _POST_TREASURE_BOX(RS_STACKDATA *stack, int argc) {
-    float                position[3];
+    float                position[4];
     CTreasureBoxManager *chest_manager;
     float                angle;
     int                  kind;
@@ -17164,7 +17169,7 @@ static int _SWE_SET_COLOR(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) chara + offsetof(CCharacter2, sword_effect));
+    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (uptr) chara + offsetof(CCharacter2, sword_effect));
 
     if (*effect_slot == NULL) {
         return false;
@@ -17214,7 +17219,7 @@ static int _SWE_SET_TEXTURE(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) chara + offsetof(CCharacter2, sword_effect));
+    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (uptr) chara + offsetof(CCharacter2, sword_effect));
 
     if (*effect_slot == NULL) {
         return false;
@@ -17259,7 +17264,7 @@ static int _SWE_START_EFFECT(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (int) chara + offsetof(CCharacter2, sword_effect));
+    effect_slot = (CSWordAfterEffect **) ((slot << 2) + (uptr) chara + offsetof(CCharacter2, sword_effect));
 
     if (*effect_slot == NULL) {
         return false;
@@ -17891,7 +17896,7 @@ static int _GET_PARTS_FUNC_POS(RS_STACKDATA *stack, int argc) {
  *
  */
 static int _RANDOM_CIRCLE_GET_POS(RS_STACKDATA *stack, int argc) {
-    float pos[3];
+    float pos[4];
     int   circle_id = GetStackInt(stack++);
 
     if (RandomCircle.GetPosition(pos, circle_id) <= -1) {
@@ -18132,7 +18137,7 @@ static int _SET_STATUSBAR_SHOW(RS_STACKDATA *stack, int argc) {
     }
 
     if (speed < 1.0f) {
-        speed *= 1.2f;
+        speed *= PAL_TIMING(1.2f, 1.0f);
     }
 
     area->SetStatusBar(show, speed);
@@ -19967,7 +19972,7 @@ static int _GET_DEBUG_FLAG(RS_STACKDATA *stack, int argc) {
  *
  */
 static int _MINIMAP_DOOR_ENABLE(RS_STACKDATA *stack, int argc) {
-    float pos[3];
+    float pos[4];
 
     if (argc != 3) {
         return false;

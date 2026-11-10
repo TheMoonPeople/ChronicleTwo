@@ -1,0 +1,22 @@
+# Reach costume selection and turn Max to expose filtered outline seams.
+# Capture frame 3070 at 1280x960 with --screenshot-display 8.
+300 circle
+306
+320 cross
+326
+900 start
+906
+1200 circle
+1206
+1500 cross
+1506
+2450 start
+2456
+2600 mouse:0,-220
+2601
+2650 mouse1
+2651
+2900 cross
+2906
+3000 128 128 255 128
+3400

@@ -1,0 +1,498 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "action": "中へ",
+          "form": "モンスターバッジ箱",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "モンスターステータス",
+          "op": "form_set_action"
+        },
+        {
+          "action": "右へ",
+          "form": "モンスターポリ後ろ",
+          "op": "form_set_action"
+        },
+        {
+          "action": "右へ",
+          "form": "モンスターポリ枠",
+          "op": "form_set_action"
+        },
+        {
+          "action": "右へ",
+          "form": "mosclip10",
+          "op": "form_set_action"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg5",
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "バッジ選択に戻る"
+    },
+    {
+      "commands": [
+        {
+          "action": "外へ",
+          "form": "モンスターバッジ箱",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "モンスターステータス",
+          "op": "form_set_action"
+        },
+        {
+          "action": "左へ",
+          "form": "モンスターポリ後ろ",
+          "op": "form_set_action"
+        },
+        {
+          "action": "左へ",
+          "form": "モンスターポリ枠",
+          "op": "form_set_action"
+        },
+        {
+          "action": "左へ",
+          "form": "mosclip10",
+          "op": "form_set_action"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "ステータスを見る"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 6
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "クラスチェンジ2"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "クラスチェンジ？"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "クラスチェンジ！"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 6
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 6
+        },
+        {
+          "message": 480,
+          "op": "make_message",
+          "window": 6
+        }
+      ],
+      "name": "クラスチェンジ終了MSG"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 6
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 6
+        },
+        {
+          "message": 480,
+          "op": "make_message",
+          "window": 6
+        }
+      ],
+      "name": "クラスチェンジ終了"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 6
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 6
+        },
+        {
+          "message": 1206,
+          "op": "make_message",
+          "window": 6
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "モンスターしずく"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 6
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 6
+        },
+        {
+          "message": 1207,
+          "op": "make_message",
+          "window": 6
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "モンスターしずくNOT"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 6
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 6
+        },
+        {
+          "message": 1208,
+          "op": "make_message",
+          "window": 6
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "GET_LAST"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "クラスチェンジ2OFF"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "クラスチェンジ止め"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "polychr",
+            "mi2",
+            "mi0"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg7",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "forms": [
+            "msg5",
+            "msg_mosdmy"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "forms": [
+            "msg7",
+            "msg_mosdmy2"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "forms": [
+            "msg6",
+            "msg_mosdmy3"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "FORM_INIT"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 7
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 7
+        },
+        {
+          "op": "message_env",
+          "preset": "itemcmd",
+          "window": 5
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 7
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg5",
+            "msg0"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "message": 1200,
+          "op": "make_message",
+          "window": 7
+        }
+      ],
+      "name": "MSG初期化"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "mi2",
+            "mi0",
+            "msg0"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "action": "中へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "op": "init_drawlist"
+        }
+      ],
+      "name": "終了処理"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "itemcmd",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "バッジコマンド"
+    },
+    {
+      "commands": [],
+      "name": "FromCharaChangeBuff1"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

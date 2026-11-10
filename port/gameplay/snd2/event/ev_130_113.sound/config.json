@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/event/ev_130_113.sound/effects/ev_130_113_000.json",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "-",
+      "flag": true,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "-",
+      "flag": true,
+      "key": 60,
+      "program": 3
+    }
+  ],
+  "entry_count": 5,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

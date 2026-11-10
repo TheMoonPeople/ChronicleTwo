@@ -1,0 +1,530 @@
+{
+  "entries": [
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_001.json",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_002.json",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_003.json",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "KeyOn",
+      "flag": true,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 10
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 11
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 12
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_013.json",
+      "flag": false,
+      "key": 60,
+      "program": 13
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 14
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_015.json",
+      "flag": false,
+      "key": 60,
+      "program": 15
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 16
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_017.json",
+      "flag": false,
+      "key": 60,
+      "program": 17
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_018.json",
+      "flag": false,
+      "key": 60,
+      "program": 18
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_019.json",
+      "flag": false,
+      "key": 60,
+      "program": 19
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 20
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 21
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 22
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_023.json",
+      "flag": false,
+      "key": 60,
+      "program": 23
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_024.json",
+      "flag": false,
+      "key": 60,
+      "program": 24
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 25
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 26
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 27
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 28
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 29
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_030.json",
+      "flag": false,
+      "key": 60,
+      "program": 30
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_031.json",
+      "flag": false,
+      "key": 60,
+      "program": 31
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_032.json",
+      "flag": false,
+      "key": 60,
+      "program": 32
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 33
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_034.json",
+      "flag": false,
+      "key": 60,
+      "program": 34
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 35
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 36
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 37
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 38
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 39
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 40
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_041.json",
+      "flag": false,
+      "key": 60,
+      "program": 41
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_042.json",
+      "flag": false,
+      "key": 60,
+      "program": 42
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 43
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 44
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 45
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 46
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_047.json",
+      "flag": false,
+      "key": 60,
+      "program": 47
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_048.json",
+      "flag": false,
+      "key": 60,
+      "program": 48
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 49
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 50
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 51
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 52
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 53
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_054.json",
+      "flag": false,
+      "key": 60,
+      "program": 54
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_055.json",
+      "flag": false,
+      "key": 60,
+      "program": 55
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_056.json",
+      "flag": false,
+      "key": 60,
+      "program": 56
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 57
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 58
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 59
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 60
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_061.json",
+      "flag": false,
+      "key": 60,
+      "program": 61
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_062.json",
+      "flag": false,
+      "key": 60,
+      "program": 62
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 63
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 64
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 65
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 66
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_067.json",
+      "flag": false,
+      "key": 60,
+      "program": 67
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_068.json",
+      "flag": false,
+      "key": 60,
+      "program": 68
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 69
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 70
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 71
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 72
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 73
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 74
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 75
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_076.json",
+      "flag": false,
+      "key": 60,
+      "program": 76
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_077.json",
+      "flag": false,
+      "key": 60,
+      "program": 77
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_078.json",
+      "flag": false,
+      "key": 60,
+      "program": 78
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_079.json",
+      "flag": false,
+      "key": 60,
+      "program": 79
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_080.json",
+      "flag": false,
+      "key": 60,
+      "program": 80
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_081.json",
+      "flag": false,
+      "key": 60,
+      "program": 81
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_082.json",
+      "flag": false,
+      "key": 60,
+      "program": 82
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 83
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 84
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_085.json",
+      "flag": false,
+      "key": 60,
+      "program": 85
+    },
+    {
+      "filename": "snd2/fg/fg_000.sound/effects/fg_000_086.json",
+      "flag": false,
+      "key": 60,
+      "program": 86
+    }
+  ],
+  "entry_count": 88,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

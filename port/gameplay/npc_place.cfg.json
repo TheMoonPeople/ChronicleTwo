@@ -1,0 +1,232 @@
+{
+  "kind": "villager_schedule",
+  "progress_info": [
+    {
+      "chapter": 0,
+      "order": 0,
+      "progress": 1,
+      "section": 0
+    },
+    {
+      "chapter": 1,
+      "order": 1,
+      "progress": 2,
+      "section": 0
+    },
+    {
+      "chapter": 1,
+      "order": 2,
+      "progress": 3,
+      "section": 1
+    }
+  ],
+  "schema_version": 2,
+  "villagers": [
+    {
+      "id": 1,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "progress": [
+        {
+          "duplicate_id": 0,
+          "progress": 1
+        },
+        {
+          "duplicate_id": 0,
+          "progress": 2
+        }
+      ]
+    }
+  ]
+}

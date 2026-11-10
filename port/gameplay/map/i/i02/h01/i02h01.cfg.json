@@ -1,0 +1,87 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "action",
+        "point_no": 201
+      },
+      "name": "goto_inside",
+      "transform": {
+        "position": [
+          -200.0,
+          35.0,
+          -110.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          20.0,
+          20.0,
+          20.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "action",
+        "point_no": 202
+      },
+      "name": "goto_inside",
+      "transform": {
+        "position": [
+          -200.0,
+          35.0,
+          -625.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          20.0,
+          20.0,
+          20.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "action",
+        "point_no": 203
+      },
+      "name": "goto_inside",
+      "transform": {
+        "position": [
+          -200.0,
+          35.0,
+          -1140.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          20.0,
+          20.0,
+          20.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "count": 20,
+  "kind": "quests",
+  "quests": [
+    {
+      "comment": "Gordon loves taking care of plants.\\nHe wants to cure his tree with\\nPriest Bruno's Holy Water.",
+      "id": 0,
+      "name": "Gordon's Worries",
+      "reactions": [
+        "Let's go see Priest Bruno!\\nIs he at the church?",
+        "Gordon really loves looking\\nafter plants, eh?"
+      ]
+    },
+    {
+      "comment": "Parn's painting of his ideal woman,\\nJulia. He says it would come to\\nlife if he had some gold paint.",
+      "id": 1,
+      "name": "Portrait of a Bride",
+      "reactions": [
+        "But where can you get gold paint?",
+        "I just don't believe a painting\\ncan come to life."
+      ]
+    },
+    {
+      "comment": "Donny wants to complete his coin collection.\\nHe only needs the Protector Coin\\nand the Dark Coin...",
+      "id": 2,
+      "name": "The Mark of Business",
+      "reactions": [
+        "We need to get some coins.",
+        "I say Donny can do this himself."
+      ]
+    },
+    {
+      "comment": "Castagnaccio, the mystery snack.\\nWe know it uses chestnuts,\\nbut that's where we're stuck.",
+      "id": 3,
+      "name": "Castagnaccio",
+      "reactions": [
+        "We need to get some chestnuts.",
+        "I wonder if castagnaccio is any good?"
+      ]
+    },
+    {
+      "comment": "Claire refuses to come out.\\nShow her something to make her want\\nto, and she may change her mind.",
+      "id": 4,
+      "name": "Curiosity",
+      "reactions": [
+        "We need to take a picture of some\\nrare flowers.",
+        "Claire is incredibly curious,\\nisn't she?"
+      ]
+    },
+    {
+      "comment": "I think Pau is willing to cooperate\\nwith us. Now if we can find some\\nfood to boost his spirits...",
+      "id": 5,
+      "name": "Beautiful Orange Food",
+      "reactions": [
+        "Orange food, eh? Carrots, maybe?",
+        "I hate carrots! And green peppers, too!"
+      ]
+    },
+    {
+      "comment": "Stewart's hobby is reading. He\\nwants to bid on an auctioned book,\\nbut he doesn't have enough money.",
+      "id": 6,
+      "name": "The Auction",
+      "reactions": [
+        "We need to scrape some money together.",
+        "Is he even reading the book we\\nworked so hard for?"
+      ]
+    },
+    {
+      "comment": "Adel has lost her self-confidence because\\nshe can't make clothes.She needs Thick Hide,\\na Hunk of Copper and Sturdy Cloth.",
+      "id": 7,
+      "name": "Dreaming I Was Dreaming",
+      "reactions": [
+        "This time I'll definitely finish this\\nand help her get back her confidence.",
+        "Seeing things through to the end\\nmakes people confident."
+      ]
+    },
+    {
+      "comment": "Send some bread to Morton?\\nSounds easy enough. But something\\ntells me there's more to it.",
+      "id": 8,
+      "name": "Polly's Maid",
+      "reactions": [
+        "We need to do what we've been told.",
+        "That Morton is so self-centred!"
+      ]
+    },
+    {
+      "comment": "Sheriff Blinkhorn doubts my strength.\\nI've got to run fast to prove\\nthat I can cut it.",
+      "id": 9,
+      "name": "Palm Brinks: Mad Dash!",
+      "reactions": [
+        "Run the shortest distance to get\\na good time.",
+        "Can even Blinkhorn match this time?"
+      ]
+    },
+    {
+      "comment": "Milane is a swordmaster, so we should\\nbe worried about our own skill.\\nWe must show our strength.",
+      "id": 10,
+      "name": "Milane Shows Her Stuff",
+      "reactions": [
+        "Develop our swords, eh?\\nDon't know if I can do it.",
+        "I bet Monica and Milane would\\nget along well."
+      ]
+    },
+    {
+      "comment": "I hate asking my dad a favor, but I\\nneed help from people. It should be\\neasy to build up my gun levels.",
+      "id": 11,
+      "name": "Getting Father's Approval",
+      "reactions": [
+        "I'll work hard to get it to\\nbell-trigger level!",
+        "I wonder if Dad will start to see me\\nin a different light, now."
+      ]
+    },
+    {
+      "comment": "Mayor Need forgot the combo to the\\nsafe. If we don't do something, he\\nwon't be able to get his papers.",
+      "id": 12,
+      "name": "The Impossible Safe",
+      "reactions": [
+        "We should be able to figure it\\nout from what the Mayor said.",
+        "Is it really all right to leave\\nthe town to Morton?"
+      ]
+    },
+    {
+      "comment": "Why is the church set up like this\\nwhen you could just as well\\nblow out all the candles?",
+      "id": 13,
+      "name": "A Priest's Ordeal",
+      "reactions": [
+        "The answer is actually incredibly\\nsimple.",
+        "What a setup for a church!"
+      ]
+    },
+    {
+      "comment": "Rufio has begun living in the park.\\nHe says he wants to always be\\nlooking at the moon.",
+      "id": 14,
+      "name": "The Non-Setting Moon",
+      "reactions": [
+        "We can only take a picture of\\nthe moon at nighttime.",
+        "Rufio might really have come\\nfrom the moon after all."
+      ]
+    },
+    {
+      "comment": "Fabio just loves fishing.\\nWe'd never hear the end of it if he\\ncaught a really huge one.",
+      "id": 15,
+      "name": "Catch Up, Then Pass Me",
+      "reactions": [
+        "I'd say anything over about\\n2 feet would do.",
+        "What's the key to fishing?\\nI'd love to know."
+      ]
+    },
+    {
+      "comment": "Fish rancher Olivie has heard about\\nthe Finny Frenzy.\\nLet's win it for her!",
+      "id": 16,
+      "name": "In the Winner's Circle",
+      "reactions": [
+        "We need to try to win the Finny Frenzy.",
+        "You really have to take extra\\nspecial care of fish."
+      ]
+    },
+    {
+      "comment": "Mena isn't feeling very well,\\nand the time distortion is to blame.\\nBetter reduce it somehow...",
+      "id": 17,
+      "name": "The Spheda Challenge",
+      "reactions": [
+        "It's tough to beat 10 stages of Spheda.",
+        "I didn't know time distortions\\ncould cause this, too."
+      ]
+    },
+    {
+      "comment": "Corinne calls herself a lucky girl.\\nShe might become our friend if we\\nplay hide-and-seek with her.",
+      "id": 18,
+      "name": "Corinne's Hide-and-Seek",
+      "reactions": [
+        "C'mon, Corinne! Where the heck\\nare you?",
+        "She may be cheeky, but she's\\nstill just a kid."
+      ]
+    },
+    {
+      "comment": "Rosa is almost totally deaf.\\nShe might be our ally, if only\\nshe could hear us.",
+      "id": 19,
+      "name": "Mind to Mind",
+      "reactions": [
+        "As long as we get our feelings\\nacross clearly, we'll be fine.",
+        "I think we should get her\\na hearing aid next time."
+      ]
+    }
+  ],
+  "schema_version": 2
+}

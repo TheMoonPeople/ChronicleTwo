@@ -1,0 +1,66 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "d02b01_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d02b01_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d02b01_2-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d02b01_3-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d02b01_2-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d02b01_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d02b01_4-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d02b01_3-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d02b01_4-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d02b01_2-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d02b01_3-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d02b01_4-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "03bossbero.gltf",
+      "type": 3
+    },
+    {
+      "model": "d02b01_5-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "neba3.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

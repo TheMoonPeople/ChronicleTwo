@@ -82,6 +82,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMapFlagData) == 0x10);
+PORT_RECORD_ASSERT(sizeof(CMapFlagData) == 0x10);
 
 /**
  *

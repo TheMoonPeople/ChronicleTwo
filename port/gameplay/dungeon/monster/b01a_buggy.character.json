@@ -1,0 +1,1167 @@
+{
+  "cloth_commands": [
+    {
+      "commands": [
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            }
+          ],
+          "command": "FRAME_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "gun"
+            }
+          ],
+          "command": "FRAME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "dangan01"
+            }
+          ],
+          "command": "FRAME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "dangan02"
+            }
+          ],
+          "command": "FRAME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "dangan03"
+            }
+          ],
+          "command": "FRAME"
+        },
+        {
+          "args": [],
+          "command": "FRAME_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 8
+            }
+          ],
+          "command": "VERTEX_START"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": -3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": -3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": -3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 10
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": -3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 10
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "VERTEX_L"
+        },
+        {
+          "args": [],
+          "command": "VERTEX_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 8
+            }
+          ],
+          "command": "FIX_VERTEX_START"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 1
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "float",
+              "value": 0.07999999821186066
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "float",
+              "value": 0.009999999776482582
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 5
+            },
+            {
+              "type": "float",
+              "value": 0.009999999776482582
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 6
+            },
+            {
+              "type": "float",
+              "value": 0.004999999888241291
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 7
+            },
+            {
+              "type": "float",
+              "value": 0.004999999888241291
+            }
+          ],
+          "command": "FIX_VERTEX"
+        },
+        {
+          "args": [],
+          "command": "FIX_VERTEX_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "string",
+              "value": "bone"
+            },
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "FRAME_POSE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "string",
+              "value": "bone"
+            },
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "int",
+              "value": 5
+            }
+          ],
+          "command": "FRAME_POSE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "string",
+              "value": "bone"
+            },
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "int",
+              "value": 5
+            },
+            {
+              "type": "int",
+              "value": 6
+            },
+            {
+              "type": "int",
+              "value": 7
+            }
+          ],
+          "command": "FRAME_POSE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 22
+            }
+          ],
+          "command": "BIND_VERTEX_START"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 1
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 2
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 2
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": 2
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 3
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 4
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 5
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 4
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 5
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 5
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "int",
+              "value": 4
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "int",
+              "value": 5
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "int",
+              "value": 6
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "int",
+              "value": 7
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 5
+            },
+            {
+              "type": "int",
+              "value": 6
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 5
+            },
+            {
+              "type": "int",
+              "value": 7
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "int",
+              "value": 7
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 5
+            },
+            {
+              "type": "int",
+              "value": 6
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 6
+            },
+            {
+              "type": "int",
+              "value": 7
+            }
+          ],
+          "command": "BIND_VERTEX"
+        },
+        {
+          "args": [],
+          "command": "BIND_VERTEX_END"
+        }
+      ],
+      "index": 0
+    }
+  ],
+  "default_profile": "b01a_buggy",
+  "game_names": {
+    "attack_from_left": {
+      "type": "string",
+      "value": "左側から攻撃"
+    },
+    "attack_from_right": {
+      "type": "string",
+      "value": "右側から攻撃"
+    },
+    "damage_on_left": {
+      "type": "string",
+      "value": "左側でダメージ"
+    },
+    "damage_on_right": {
+      "type": "string",
+      "value": "右側でダメージ"
+    },
+    "drive": {
+      "type": "string",
+      "value": "走行"
+    },
+    "jump": {
+      "type": "string",
+      "value": "ジャンプ"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "b01a_buggy": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "ポルカスバギー"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "texture_set",
+              "type": "resource"
+            }
+          ],
+          "command": "IMG"
+        },
+        {
+          "args": [],
+          "command": "IMG_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "obj64"
+            },
+            {
+              "type": "string",
+              "value": "obj63"
+            },
+            {
+              "type": "string",
+              "value": "cube211"
+            },
+            {
+              "type": "string",
+              "value": "cube224"
+            }
+          ],
+          "command": "VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "obj291"
+            }
+          ],
+          "command": "SHADOW_VERTEX_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "float",
+              "value": 2.0
+            }
+          ],
+          "command": "OUTLINE"
+        },
+        {
+          "args": [
+            {
+              "index": 1,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1515
+            },
+            {
+              "type": "int",
+              "value": 75
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "string",
+              "value": "macho_chair"
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "string",
+              "value": "null256"
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "string",
+              "value": "macho_chair"
+            },
+            {
+              "type": "float",
+              "value": 20.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "type": "string",
+              "value": "dcol00"
+            },
+            {
+              "type": "float",
+              "value": 5.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 4
+            },
+            {
+              "type": "string",
+              "value": "macho_chair"
+            },
+            {
+              "type": "float",
+              "value": 20.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 0,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "index": 1,
+              "kind": "bind_pose",
+              "type": "resource"
+            },
+            {
+              "index": 1,
+              "kind": "weights",
+              "type": "resource"
+            }
+          ],
+          "command": "SHADOW_MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "drive"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_from_left"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "attack_from_right"
+            },
+            {
+              "type": "float",
+              "value": 0.5
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "damage_on_left"
+            },
+            {
+              "type": "float",
+              "value": 0.44999998807907104
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "damage_on_right"
+            },
+            {
+              "type": "float",
+              "value": 0.44999998807907104
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "jump"
+            },
+            {
+              "type": "float",
+              "value": 0.30000001192092896
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            }
+          ],
+          "command": "CLOTH_START"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "cloth",
+              "type": "resource"
+            }
+          ],
+          "command": "CLOTH"
+        },
+        {
+          "args": [],
+          "command": "CLOTH_END"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

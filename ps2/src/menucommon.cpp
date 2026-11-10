@@ -861,9 +861,9 @@ int GetNowChapter(CSaveData *save) {
 }
 
 u_long128 *MenuCalcBufAlignment(u_long128 *buffer) {
-    int aligned;
-    int blocks;
-    int size = (int) buffer;
+    uptr aligned;
+    uptr blocks;
+    sptr size = (sptr) buffer;
 
     aligned = size;
 

@@ -1,0 +1,14 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/bgm/bg_109.sound/sequences/bg_109_000.json",
+      "flag": true,
+      "key": 0,
+      "program": 0
+    }
+  ],
+  "entry_count": 2,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

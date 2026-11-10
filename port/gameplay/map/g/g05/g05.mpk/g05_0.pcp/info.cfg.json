@@ -1,0 +1,390 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "g050102-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050101-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050102-m.gltf",
+      "type": 3
+    },
+    {
+      "model": "g050208-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050101-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050101-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050201-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050202-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050203-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050204-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050206-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050207-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050205-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050302-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050209-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050301-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050301-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050301-h.gltf",
+      "type": 1
+    },
+    {
+      "far_clip": {
+        "distance": 800.0,
+        "fade": 1
+      },
+      "model": "g050318-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050301-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2000.0,
+        "fade": 1
+      },
+      "model": "g050308-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050308-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050308-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050308-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050310-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050309-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050317-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050310-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050309-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050309-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050310-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050309-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050305-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "g050311-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050305-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050305-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050305-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050306-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 800.0,
+        "fade": 1
+      },
+      "model": "g050313-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050306-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050306-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050306-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050403-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050402-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050401-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050404-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050405-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050401-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050402-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050403-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050404-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050402_r-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050401_r-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050404_r-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050403_r-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050304-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 800.0,
+        "fade": 1
+      },
+      "model": "g050314-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 800.0,
+        "fade": 1
+      },
+      "model": "g050312-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050304-h.gltf",
+      "type": 1
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "g050326-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050325-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050304-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050304-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050303-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050324-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050323-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050303-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050303-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050303-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050303_r-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050307-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050307-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050320-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050319-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050307-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050330-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050307-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g050302-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "g050316-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050302-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050321-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050322-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "g050302-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g050315-h.gltf",
+      "type": 1
+    },
+    {
+      "model": "g05_geo-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "g05_geo-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "g0504_k-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

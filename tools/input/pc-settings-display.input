@@ -1,0 +1,26 @@
+# Windowed display smoke check; --jump town:10 --fast-load --frames 940.
+# Seed a fresh config with a nonzero window size, without a --window override.
+# Opens PC SETTINGS, enters fullscreen, returns to windowed, then reduces the
+# saved window resolution by one supported preset. All changes apply live.
+300 triangle
+301
+400 down
+401
+420 down
+421
+440 down
+441
+460 down
+461
+500 cross
+501
+700 select
+701
+740 right
+741
+800 left
+801
+840 down
+841
+860 left
+861

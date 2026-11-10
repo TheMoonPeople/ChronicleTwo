@@ -1,0 +1,38 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/event/ev_130_111.sound/effects/ev_130_111_000.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "snd2/event/ev_130_111.sound/effects/ev_130_111_002.json",
+      "flag": true,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "snd2/event/ev_130_111.sound/effects/ev_130_111_003.json",
+      "flag": true,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "snd2/event/ev_130_111.sound/effects/ev_130_111_004.json",
+      "flag": true,
+      "key": 60,
+      "program": 4
+    }
+  ],
+  "entry_count": 6,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

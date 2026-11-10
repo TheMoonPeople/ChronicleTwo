@@ -1,0 +1,31 @@
+# --jump town:10 --fast-load --window 1280x720
+# Capture 660: held weapon at mouse. Capture 800: cells 0 and 1 swapped.
+300 triangle
+301
+420 cross
+421
+600 mouse:1,0
+601
+625 mouse1
+650 mouse1 mouse:75,0
+651 mouse1
+675
+# Wheel down five rows. Drag Bread from cell 30 into active slot 0.
+850 mouse:-75,0 wheel:-5
+851
+900 mouse1
+930 mouse1 mouse:-368.5,-1.5
+931 mouse1
+960
+# Capture 1100: Bread in active slot 0, source cell empty.
+# Move it to active slot 1.
+1150 mouse1
+1180 mouse1 mouse:75,0
+1181 mouse1
+1210
+# Capture 1300: Bread in slot 1. Drop outside the menu: return, no discard.
+1350 mouse1
+1380 mouse1 mouse:1049,-150
+1381 mouse1
+1410
+# Capture 1550: Bread still in slot 1, with nothing carried.

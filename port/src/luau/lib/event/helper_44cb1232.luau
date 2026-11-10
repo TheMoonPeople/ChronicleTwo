@@ -1,0 +1,25 @@
+--!strict
+-- Shared event helper used by 21 scripts, translated by tools/luau/stb2luau.
+
+local helper_70e4ac93 = require("@lib/event/helper_70e4ac93")
+
+--- Helper function.
+local function helper_44cb1232(arg0: s32, arg1: any)
+	local var2: s32 = 0
+	event.apply_message_window_preset(0, 0)
+	var2 = event.get_chapter() or var2
+	if var2 ~= 8 then
+		event.open_message_window_2(
+			0,
+			"Les armes ne sont pas des jouets.<page>Sois prudent quand tu t'en sers,\nou tu pourrais te blesser."
+		)
+	else
+		event.open_message_window_2(
+			0,
+			"Je vais d[UNI00e8]s maintenant aider Need\net C[UNI00e9]dric [UNI00e0] reconstruire le monde.\nOn doit tous travailler ensemble."
+		)
+	end
+	helper_70e4ac93(arg0, -1, 0, 0)
+end
+
+return helper_44cb1232

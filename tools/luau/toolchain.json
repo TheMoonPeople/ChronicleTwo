@@ -1,0 +1,46 @@
+{
+ "comment": "Pinned Luau and StyLua release binaries used by the transpiler; fetched into port/build/luau-tools.",
+ "tools": {
+  "luau": {
+   "version": "0.740",
+   "assets": {
+    "windows": {
+     "url": "https://github.com/luau-lang/luau/releases/download/0.740/luau-windows.zip",
+     "sha256": "be676d9a1092b3d5ee36be5f5f11e2af1976911c32f5644a052548dc7c66bb9c"
+    },
+    "linux": {
+     "url": "https://github.com/luau-lang/luau/releases/download/0.740/luau-ubuntu.zip",
+     "sha256": "7d4035db01816f977f6e4c42e3d5e8ef4235d95e9afe63a3c38905b42dde60f2"
+    },
+    "macos": {
+     "url": "https://github.com/luau-lang/luau/releases/download/0.740/luau-macos.zip",
+     "sha256": "8414763743116cbc2533ee7c932d41ba66bd25ea7c2353bc7eed2934b60b6715"
+    }
+   },
+   "executables": [
+    "luau",
+    "luau-analyze"
+   ]
+  },
+  "stylua": {
+   "version": "2.5.2",
+   "assets": {
+    "windows": {
+     "url": "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.5.2/stylua-windows-x86_64.zip",
+     "sha256": "e77d0ea1226b8b389b43f702240091249a96eea25857281f90ea24d0eb9eb969"
+    },
+    "linux": {
+     "url": "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.5.2/stylua-linux-x86_64.zip",
+     "sha256": "bcb0d855e91f102f28a370e850f8566b3b44b79e6274d806ea5246837c0fd5ab"
+    },
+    "macos": {
+     "url": "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.5.2/stylua-macos-aarch64.zip",
+     "sha256": "92ff0889e16324801bc072692974bb67f8161e62010fc90f96c62a17f81f32c7"
+    }
+   },
+   "executables": [
+    "stylua"
+   ]
+  }
+ }
+}

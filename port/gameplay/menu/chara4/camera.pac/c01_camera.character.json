@@ -1,0 +1,120 @@
+{
+  "default_profile": "info",
+  "game_names": {
+    "camera_idle": {
+      "type": "string",
+      "value": "カメラ立ち"
+    }
+  },
+  "kind": "character_gameplay",
+  "profiles": {
+    "info": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "カメラミンツ"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 3
+            },
+            {
+              "index": 0,
+              "kind": "animation",
+              "type": "resource"
+            },
+            {
+              "type": "string",
+              "value": ""
+            },
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "MOTION"
+        },
+        {
+          "args": [],
+          "command": "KEY_START"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "camera_idle"
+            },
+            {
+              "type": "float",
+              "value": 0.019999999552965164
+            }
+          ],
+          "command": "KEY"
+        },
+        {
+          "args": [],
+          "command": "KEY_END"
+        },
+        {
+          "args": [],
+          "command": "MOTION_END"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": -15.0
+            },
+            {
+              "type": "float",
+              "value": -14.0
+            },
+            {
+              "type": "float",
+              "value": -40.0
+            }
+          ],
+          "command": "POSITION"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "ROTATION"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": ""
+            }
+          ],
+          "command": "START_MOTION"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

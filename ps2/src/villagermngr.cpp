@@ -427,7 +427,7 @@ int CVillagerMngr::GetAppearVlgr(int progress, int time, int map_no, int *villag
                                 output_position = output_offset;
 
                                 do {
-                                    place = *(CVillagerPlaceInfo **) ((u8 *) (time * sizeof(void *)) + (int) schedule + alternative_offset + 8);
+                                    place = *(CVillagerPlaceInfo **) ((u8 *) (time * sizeof(void *)) + (uptr) schedule + alternative_offset + 8);
 
                                     if (place != NULL) {
                                         handled = 1;
@@ -467,7 +467,7 @@ int CVillagerMngr::GetAppearVlgr(int progress, int time, int map_no, int *villag
                         fallback_output_position = found * sizeof(int);
 
                         do {
-                            place = *(CVillagerPlaceInfo **) ((u8 *) (time * sizeof(void *)) + (int) schedule + fallback_offset + 8);
+                            place = *(CVillagerPlaceInfo **) ((u8 *) (time * sizeof(void *)) + (uptr) schedule + fallback_offset + 8);
 
                             if (place != NULL && map_no >= 0 && place->map_no == map_no) {
                                 *(CVillagerPlaceInfo **) ((u8 *) places + fallback_output_position) = place;

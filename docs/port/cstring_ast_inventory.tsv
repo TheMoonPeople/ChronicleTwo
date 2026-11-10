@@ -1,0 +1,226 @@
+file	line	column	call	destination_type	owner	status	destination
+port/src/dng_damage.cpp	56	5	snprintf	char[8]	menu_world_other	unreviewed	text
+port/src/dng_damage.cpp	126	5	snprintf	char[8]	menu_world_other	unreviewed	text
+port/src/editdebug_config_bridge.inc	22	13	strcpy	char[21]	menu_world_other	unreviewed	fish -> name
+port/src/event_asset_paths.cpp	28	5	snprintf	char[16]	menu_world_other	unreviewed	marker
+port/src/event_audio.cpp	48	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/ios/to_chars.cpp	31	26	snprintf	char *	menu_world_other	unreviewed	nullptr
+port/src/ios/to_chars.cpp	33	5	snprintf	char *	menu_world_other	unreviewed	text . data ( )
+port/src/ios/to_chars.cpp	102	22	snprintf	char *	menu_world_other	unreviewed	nullptr
+port/src/ios/to_chars.cpp	104	9	snprintf	char *	menu_world_other	unreviewed	text . data ( )
+port/src/ios/to_chars.cpp	188	5	snprintf	char[16]	menu_world_other	unreviewed	suffix
+port/src/item_icon3d.cpp	735	5	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/menu_icons.cpp	25	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/menu_mouse_monster.cpp	24	9	snprintf	char[8]	menu_world_other	unreviewed	name
+port/src/menu_save.cpp	440	9	snprintf	char[32]	menu_world_other	unreviewed	clock
+port/src/object/character/character.cpp	1620	32	snprintf	char[32]	character_event_script	unreviewed	texture_name
+port/src/object/character/photo.cpp	300	30	snprintf	char[40]	character_event_script	unreviewed	count_text
+port/src/object/dun/automap.cpp	1689	9	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/dun/dng_event.cpp	1143	17	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/dun/dng_event.cpp	1158	17	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/dun/dng_event.cpp	2032	17	snprintf	char[64]	menu_world_other	unreviewed	image_path
+port/src/object/dun/dng_event.cpp	2082	17	snprintf	char[48]	menu_world_other	unreviewed	stage_path
+port/src/object/dun/dng_event.cpp	2084	17	snprintf	char[48]	menu_world_other	unreviewed	stage_path
+port/src/object/dun/dng_event.cpp	2086	17	snprintf	char[48]	menu_world_other	unreviewed	stage_path
+port/src/object/dun/dng_event.cpp	2216	9	snprintf	char[16]	menu_world_other	unreviewed	slot . name
+port/src/object/dun/dng_event.cpp	2243	5	snprintf	char[76]	menu_world_other	unreviewed	path
+port/src/object/dun/dng_main.cpp	572	5	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/dun/dng_main.cpp	602	5	snprintf	char[64]	menu_world_other	unreviewed	tbox_path
+port/src/object/dun/dng_object.cpp	1397	17	snprintf	char[256]	menu_world_other	unreviewed	badge_message
+port/src/object/dun/dng_object.cpp	1404	21	snprintf	char[256]	menu_world_other	unreviewed	badge_message
+port/src/object/dun/dng_object.cpp	1441	25	snprintf	char[256]	menu_world_other	unreviewed	item_message
+port/src/object/dun/dng_object.cpp	1443	25	snprintf	char[256]	menu_world_other	unreviewed	item_message
+port/src/object/dun/dng_object.cpp	1445	25	snprintf	char[256]	menu_world_other	unreviewed	item_message
+port/src/object/dun/dng_object.cpp	1457	25	snprintf	char[256]	menu_world_other	unreviewed	item_message
+port/src/object/dun/dng_object.cpp	1459	25	snprintf	char[256]	menu_world_other	unreviewed	item_message
+port/src/object/dun/dng_object.cpp	1461	25	snprintf	char[256]	menu_world_other	unreviewed	item_message
+port/src/object/dun/dng_object.cpp	1481	17	snprintf	char[256]	menu_world_other	unreviewed	key_message
+port/src/object/dun/dng_object.cpp	1500	17	snprintf	char[256]	menu_world_other	unreviewed	stolen_message
+port/src/object/dun/dng_object.cpp	1705	17	snprintf	char[64]	menu_world_other	unreviewed	voice_file
+port/src/object/dun/dng_object.cpp	1707	17	snprintf	char[64]	menu_world_other	unreviewed	voice_file
+port/src/object/dun/dngfloor.cpp	1626	9	snprintf	char[96]	menu_world_other	unreviewed	path
+port/src/object/dun/dngfloor.cpp	1636	5	snprintf	char[64]	menu_world_other	unreviewed	menu_path
+port/src/object/dun/dngmenu.cpp	1083	5	snprintf	char[32]	menu_world_other	unreviewed	page
+port/src/object/dun/dngmenu.cpp	1348	17	snprintf	char[256]	menu_world_other	unreviewed	detail
+port/src/object/dun/dngmenu.cpp	1374	17	snprintf	char[128]	menu_world_other	unreviewed	line
+port/src/object/dun/dngmenu.cpp	1392	17	snprintf	char[256]	menu_world_other	unreviewed	detail
+port/src/object/dun/dngmenu.cpp	1395	21	snprintf	char[256]	menu_world_other	unreviewed	detail
+port/src/object/dun/dngmenu.cpp	1936	9	snprintf	char[64]	menu_world_other	unreviewed	filename
+port/src/object/dun/dngmenu.cpp	2422	5	snprintf	char[32]	menu_world_other	unreviewed	map_name
+port/src/object/dun/dngmenu.cpp	2682	5	snprintf	char[40]	menu_world_other	unreviewed	filename
+port/src/object/dun/dngmenu.cpp	3475	25	snprintf	char[72]	menu_world_other	unreviewed	time_text
+port/src/object/dun/dngmenu.cpp	3477	25	snprintf	char[72]	menu_world_other	unreviewed	time_text
+port/src/object/dun/dngmenu.cpp	3481	25	snprintf	char[72]	menu_world_other	unreviewed	time_text
+port/src/object/dun/dngmenu.cpp	3483	25	snprintf	char[72]	menu_world_other	unreviewed	time_text
+port/src/object/dun/monster.cpp	2934	9	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/event/event.cpp	78	32	snprintf	char[76]	character_event_script	unreviewed	path
+port/src/object/event/event.cpp	84	37	snprintf	char[76]	character_event_script	unreviewed	path
+port/src/object/event/event_func.cpp	4028	28	snprintf	char[20]	character_event_script	unreviewed	manager -> name_suffix
+port/src/object/event/event_func.cpp	4434	24	snprintf	char[140]	character_event_script	unreviewed	path
+port/src/object/event/event_func.cpp	6459	32	snprintf	char[20]	character_event_script	unreviewed	manager -> name_suffix
+port/src/object/event/event_func.cpp	10343	24	snprintf	char[128]	character_event_script	unreviewed	path
+port/src/object/event/event_func.cpp	10468	49	snprintf	char[64]	character_event_script	unreviewed	size_column
+port/src/object/event/event_func.cpp	14261	24	snprintf	char[64]	character_event_script	unreviewed	name
+port/src/object/event/event_func.cpp	17419	28	snprintf	char[20]	character_event_script	unreviewed	tex_manager -> name_suffix
+port/src/object/event/event_func.cpp	21877	9	snprintf	char[20]	character_event_script	unreviewed	mgTexManager . name_suffix
+port/src/object/menu/font.cpp	403	5	strncpy	char[12]	menu_world_other	unreviewed	code
+port/src/object/menu/font.cpp	406	9	strncpy	char[12]	menu_world_other	unreviewed	code
+port/src/object/menu/font.cpp	410	9	strncpy	char[12]	menu_world_other	unreviewed	code
+port/src/object/menu/font.cpp	414	9	strncpy	char[12]	menu_world_other	unreviewed	code
+port/src/object/menu/font.cpp	418	9	strncpy	char[12]	menu_world_other	unreviewed	code
+port/src/object/menu/font.cpp	422	9	strncpy	char[12]	menu_world_other	unreviewed	code
+port/src/object/menu/helpmes.cpp	65	5	snprintf	char[76]	menu_world_other	unreviewed	path
+port/src/object/menu/inventmn.cpp	774	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/inventmn.cpp	3012	33	sprintf	char[32]	menu_world_other	unreviewed	this -> create_photo_name
+port/src/object/menu/inventmn.cpp	3391	17	sprintf	char[136]	menu_world_other	unreviewed	wave_name
+port/src/object/menu/inventmn.cpp	3494	5	sprintf	char[40]	menu_world_other	unreviewed	text
+port/src/object/menu/inventmn.cpp	3496	5	snprintf	char[40]	menu_world_other	unreviewed	text
+port/src/object/menu/inventmn.cpp	3538	13	sprintf	char[40]	menu_world_other	unreviewed	text
+port/src/object/menu/inventmn.cpp	3972	13	sprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/inventmn.cpp	4275	33	sprintf	char[32]	menu_world_other	unreviewed	text
+port/src/object/menu/inventmn.cpp	6279	21	sprintf	char[64]	menu_world_other	unreviewed	line
+port/src/object/menu/inventmn.cpp	6305	17	sprintf	char[128]	menu_world_other	unreviewed	model_text
+port/src/object/menu/menuaqua.cpp	2775	5	snprintf	char[76]	menu_world_other	unreviewed	path
+port/src/object/menu/menuaqua.cpp	3719	5	snprintf	char[76]	menu_world_other	unreviewed	path
+port/src/object/menu/menuaqua.cpp	3897	5	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/menu/menuaqua.cpp	6460	17	snprintf	char[256]	menu_world_other	unreviewed	line
+port/src/object/menu/menuaqua.cpp	6691	5	snprintf	char[76]	menu_world_other	unreviewed	filename
+port/src/object/menu/menucapt.cpp	125	5	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menucapt.cpp	159	5	snprintf	char[32]	menu_world_other	unreviewed	voice
+port/src/object/menu/menuchr.cpp	969	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	976	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	1029	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	1031	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	1033	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	1136	9	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/menu/menuchr.cpp	2560	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	2594	5	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	2833	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	3420	9	strcpy	char[256]	menu_world_other	unreviewed	& npc_title [ menu_debug_npc_decide * 3 + 0x11 ]
+port/src/object/menu/menuchr.cpp	3445	13	snprintf	char[256]	menu_world_other	unreviewed	line
+port/src/object/menu/menuchr.cpp	3628	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	3859	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	5122	13	strcpy	char[7][64]	menu_world_other	unreviewed	name [ 0 ]
+port/src/object/menu/menuchr.cpp	5373	17	strcpy	char[20]	menu_world_other	unreviewed	tex_manager -> name_suffix
+port/src/object/menu/menuchr.cpp	5712	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuchr.cpp	7551	5	snprintf	char[128]	menu_world_other	unreviewed	position
+port/src/object/menu/menuchr.cpp	8157	17	snprintf	char[16]	menu_world_other	unreviewed	buffers [ i ] . name
+port/src/object/menu/menucommon.cpp	2906	5	strncpy	char[72]	menu_world_other	unreviewed	MenuCommandAnalyzeInfo . command_name
+port/src/object/menu/menudraw.cpp	1116	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menudraw.cpp	4589	5	sprintf	char[32]	menu_world_other	unreviewed	temp_3925
+port/src/object/menu/menudraw.cpp	5253	5	strcpy	char *	menu_world_other	unreviewed	parts -> name
+port/src/object/menu/menumain.cpp	1165	5	snprintf	char[96]	menu_world_other	unreviewed	workchr_1622
+port/src/object/menu/menumain.cpp	1377	5	snprintf	char[128]	menu_world_other	unreviewed	text
+port/src/object/menu/menumap.cpp	335	17	snprintf	char[32]	menu_world_other	unreviewed	map_name
+port/src/object/menu/menumap.cpp	1213	5	snprintf	char[32]	menu_world_other	unreviewed	path
+port/src/object/menu/menuop.cpp	955	29	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/menu/menuop.cpp	963	33	snprintf	char[40]	menu_world_other	unreviewed	movie_name
+port/src/object/menu/menuop.cpp	965	33	snprintf	char[40]	menu_world_other	unreviewed	movie_name
+port/src/object/menu/menuop.cpp	1409	21	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuop.cpp	1411	21	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuop.cpp	1417	17	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuop.cpp	1757	13	snprintf	char[32]	menu_world_other	unreviewed	prefix
+port/src/object/menu/menuop.cpp	1759	13	snprintf	char[32]	menu_world_other	unreviewed	prefix
+port/src/object/menu/menuop.cpp	1766	17	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menuop.cpp	2065	9	snprintf	char[512]	menu_world_other	unreviewed	text
+port/src/object/menu/menuop.cpp	2069	9	snprintf	char[512]	menu_world_other	unreviewed	text
+port/src/object/menu/menuop.cpp	2073	9	snprintf	char[512]	menu_world_other	unreviewed	text
+port/src/object/menu/menuop.cpp	2077	9	snprintf	char[512]	menu_world_other	unreviewed	text
+port/src/object/menu/menuop.cpp	2090	9	snprintf	char[512]	menu_world_other	unreviewed	text
+port/src/object/menu/menushop.cpp	599	9	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/menu/menushop.cpp	602	13	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/menu/menushop.cpp	1958	13	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/menu/menushop.cpp	2545	17	strcpy	char[256]	menu_world_other	unreviewed	& line [ 0x18 ]
+port/src/object/menu/menushop.cpp	2602	17	strcpy	char[256]	menu_world_other	unreviewed	& line [ 0x18 ]
+port/src/object/menu/menusys.cpp	2875	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	2901	5	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	4327	5	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	4331	5	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	4519	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	6023	17	snprintf	char[32]	menu_world_other	unreviewed	part_name
+port/src/object/menu/menusys.cpp	6807	13	snprintf	char[32]	menu_world_other	unreviewed	part_name
+port/src/object/menu/menusys.cpp	6921	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	6931	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	6976	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	7833	13	snprintf	char[128]	menu_world_other	unreviewed	title
+port/src/object/menu/menusys.cpp	7877	21	snprintf	char[256]	menu_world_other	unreviewed	text
+port/src/object/menu/menusys.cpp	7881	21	snprintf	char[256]	menu_world_other	unreviewed	text
+port/src/object/menu/menusys.cpp	7885	21	snprintf	char[256]	menu_world_other	unreviewed	text
+port/src/object/menu/menusys.cpp	7904	17	snprintf	char[64]	menu_world_other	unreviewed	size_text
+port/src/object/menu/menusys.cpp	7922	21	snprintf	char[256]	menu_world_other	unreviewed	text
+port/src/object/menu/menusys.cpp	7926	21	snprintf	char[256]	menu_world_other	unreviewed	text
+port/src/object/menu/menusys.cpp	8011	17	snprintf	char[256]	menu_world_other	unreviewed	text
+port/src/object/menu/menusys.cpp	8045	17	snprintf	char[256]	menu_world_other	unreviewed	text
+port/src/object/menu/menusys.cpp	9262	9	sprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/menusys.cpp	9269	9	sprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/menu/nd_meswin.cpp	1480	13	snprintf	char[128]	menu_world_other	unreviewed	text
+port/src/object/menu/nd_meswin.cpp	1482	13	snprintf	char[128]	menu_world_other	unreviewed	text
+port/src/object/menu/nd_meswin.cpp	1570	13	snprintf	char[128]	menu_world_other	unreviewed	text
+port/src/object/menu/nd_meswin.cpp	1572	13	snprintf	char[128]	menu_world_other	unreviewed	text
+port/src/object/menu/nd_meswin.cpp	2834	25	snprintf	char[128]	menu_world_other	unreviewed	number
+port/src/object/menu/nd_meswin.cpp	2836	25	snprintf	char[128]	menu_world_other	unreviewed	number
+port/src/object/menu/nd_meswin.cpp	2857	25	snprintf	char[128]	menu_world_other	unreviewed	number
+port/src/object/menu/nd_meswin.cpp	2859	25	snprintf	char[128]	menu_world_other	unreviewed	number
+port/src/object/menu/nd_meswin.cpp	2880	25	snprintf	char[128]	menu_world_other	unreviewed	number
+port/src/object/menu/nd_meswin.cpp	2882	25	snprintf	char[128]	menu_world_other	unreviewed	number
+port/src/object/menu/nd_meswin.cpp	3071	29	snprintf	char[128]	menu_world_other	unreviewed	value_text
+port/src/object/menu/nd_meswin.cpp	3073	29	snprintf	char[128]	menu_world_other	unreviewed	value_text
+port/src/object/menu/nd_meswin.cpp	3129	29	snprintf	char[128]	menu_world_other	unreviewed	number_text
+port/src/object/menu/nd_meswin.cpp	3131	29	snprintf	char[128]	menu_world_other	unreviewed	number_text
+port/src/object/menu/nowload.cpp	338	5	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/menu/nowload.cpp	418	9	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/menu/nowload.cpp	672	9	snprintf	char[128]	menu_world_other	unreviewed	path
+port/src/object/menu/title.cpp	733	5	snprintf	char[64]	menu_world_other	unreviewed	lang_file
+port/src/object/menu/title.cpp	2514	13	snprintf	char[32]	menu_world_other	unreviewed	image_name
+port/src/object/menu/title.cpp	2516	13	snprintf	char[32]	menu_world_other	unreviewed	image_name
+port/src/object/menu/title.cpp	2542	5	snprintf	char[76]	menu_world_other	unreviewed	message_path
+port/src/object/subgame/fishing.cpp	1392	9	snprintf	char[128]	menu_world_other	unreviewed	path
+port/src/object/subgame/fishing.cpp	4056	5	snprintf	char[64]	menu_world_other	unreviewed	path
+port/src/object/subgame/gyorace.cpp	400	5	snprintf	char[256]	menu_world_other	unreviewed	path
+port/src/object/subgame/gyorace.cpp	672	13	snprintf	char[64]	menu_world_other	unreviewed	image_path
+port/src/object/subgame/subgame.cpp	383	13	snprintf	char[128]	menu_world_other	unreviewed	name
+port/src/object/world/editdebug.cpp	234	27	snprintf	char[512]	menu_world_other	unreviewed	coordinates
+port/src/object/world/editloop.cpp	699	9	snprintf	char[64]	menu_world_other	unreviewed	system_image
+port/src/object/world/editmap2.cpp	661	36	snprintf	char[10]	menu_world_other	unreviewed	suffix
+port/src/object/world/editmenu.cpp	2502	13	snprintf	char[64]	menu_world_other	unreviewed	file_name
+port/src/object/world/editmenu.cpp	2661	13	snprintf	char[128]	menu_world_other	unreviewed	text
+port/src/object/world/editmenu.cpp	3350	9	snprintf	char[32]	menu_world_other	unreviewed	part_name
+port/src/object/world/editmenu.cpp	3755	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/world/editmenu.cpp	3993	21	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/world/editmenu.cpp	4061	13	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/world/editmenu.cpp	4806	21	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/world/editmenu.cpp	4812	25	snprintf	char[64]	menu_world_other	unreviewed	name
+port/src/object/world/editmenu.cpp	5213	29	snprintf	char[32]	menu_world_other	unreviewed	part_name
+port/src/object/world/mapinfo.cpp	140	15	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	144	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	145	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	146	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	147	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	155	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	164	23	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	168	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	169	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	170	19	sprintf	char *	menu_world_other	unreviewed	cursor
+port/src/object/world/mapinfo.cpp	205	9	strcpy	char *	menu_world_other	unreviewed	copy
+port/src/object/world/mapload.cpp	767	13	strcpy	char *	menu_world_other	unreviewed	copy
+port/src/object/world/mapload.cpp	1334	17	strcpy	char *	menu_world_other	unreviewed	copy
+port/src/object/world/pot.cpp	314	9	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/object/world/scenevillager.cpp	723	13	snprintf	char[4]	menu_world_other	unreviewed	suffix
+port/src/object/world/scenevillager.cpp	801	13	snprintf	char[4]	menu_world_other	unreviewed	suffix
+port/src/platform/dataread.cpp	424	13	snprintf	char[4]	render_memory_platform	unreviewed	hex
+port/src/render/maintex.cpp	306	5	snprintf	char[64]	render_memory_platform	unreviewed	path
+port/src/render/maintex.cpp	318	5	snprintf	char[64]	render_memory_platform	unreviewed	path
+port/src/render/mglib.cpp	2416	5	snprintf	char[32]	render_memory_platform	unreviewed	name
+port/src/video/convviewlp.cpp	253	5	snprintf	char[256]	menu_world_other	unreviewed	line
+port/src/video/convviewlp.cpp	309	13	snprintf	char[256]	menu_world_other	unreviewed	line
+port/src/video/convviewlp.cpp	313	13	snprintf	char[256]	menu_world_other	unreviewed	line
+port/src/video/convviewlp.cpp	317	13	snprintf	char[256]	menu_world_other	unreviewed	line
+port/src/video/convviewlp.cpp	505	25	snprintf	char[128]	menu_world_other	unreviewed	new_name
+port/src/photo_hd.cpp	31	5	snprintf	char[32]	menu_world_other	unreviewed	name
+port/src/platform/model_assets.cpp	136	5	snprintf	char[54]	menu_world_other	unreviewed	text
+port/src/present.cpp	537	5	snprintf	char[64]	menu_world_other	unreviewed	piece
+port/src/present.cpp	541	9	snprintf	char[64]	menu_world_other	unreviewed	piece
+port/src/present.cpp	546	9	snprintf	char[64]	menu_world_other	unreviewed	piece
+port/src/quick_loadout.cpp	796	9	snprintf	char[48]	menu_world_other	unreviewed	name
+port/src/save_json.cpp	125	5	snprintf	char *	menu_world_other	unreviewed	digits . data ( )
+port/src/script_timing.cpp	646	5	snprintf	char[200]	menu_world_other	unreviewed	text

@@ -1,0 +1,22 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s18_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s18_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s18_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s18_02-a.gltf",
+      "type": 1
+    }
+  ],
+  "schema_version": 2
+}

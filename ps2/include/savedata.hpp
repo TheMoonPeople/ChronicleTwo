@@ -186,6 +186,7 @@ struct SV_CONFIG_OPTION {
 };
 
 STATIC_ASSERT(sizeof(SV_CONFIG_OPTION) == 0x40);
+PORT_RECORD_ASSERT(sizeof(SV_CONFIG_OPTION) == 0x40);
 
 /**
  *
@@ -203,6 +204,7 @@ struct SAVE_TOUR_INFO {
 };
 
 STATIC_ASSERT(sizeof(SAVE_TOUR_INFO) == 0x1C);
+PORT_RECORD_ASSERT(sizeof(SAVE_TOUR_INFO) == 0x1C);
 
 /**
  *
@@ -519,6 +521,7 @@ struct SPHIDA_PLAYER_DATA {
 };
 
 STATIC_ASSERT(sizeof(SPHIDA_PLAYER_DATA) == 0x50);
+PORT_RECORD_ASSERT(sizeof(SPHIDA_PLAYER_DATA) == 0x50);
 
 /**
  *
@@ -637,6 +640,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CSphidaData) == 0x1848);
+PORT_RECORD_ASSERT(sizeof(CSphidaData) == 0x1848);
 
 /**
  *
@@ -669,6 +673,7 @@ struct GYORACE_DATA {
 };
 
 STATIC_ASSERT(sizeof(GYORACE_DATA) == 0xA0);
+PORT_RECORD_ASSERT(sizeof(GYORACE_DATA) == 0xA0);
 
 /**
  *
@@ -732,6 +737,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CGyoRaceData) == 0x2C28);
+PORT_RECORD_ASSERT(sizeof(CGyoRaceData) == 0x2C28);
 
 /**
  *
@@ -800,6 +806,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CSubGameData) == 0x5470);
+PORT_RECORD_ASSERT(sizeof(CSubGameData) == 0x5470);
 
 /**
  *

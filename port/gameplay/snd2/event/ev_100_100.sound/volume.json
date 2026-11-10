@@ -1,0 +1,91 @@
+{
+  "entries": [
+    {
+      "index": 0,
+      "volume": 33
+    },
+    {
+      "index": 1,
+      "volume": 33
+    },
+    {
+      "index": 2,
+      "volume": 63
+    },
+    {
+      "index": 3,
+      "volume": 63
+    },
+    {
+      "index": 4,
+      "volume": 57
+    },
+    {
+      "index": 5,
+      "volume": 50
+    },
+    {
+      "index": 6,
+      "volume": 51
+    },
+    {
+      "index": 7,
+      "volume": 50
+    },
+    {
+      "index": 8,
+      "volume": 85
+    },
+    {
+      "index": 9,
+      "volume": 81
+    },
+    {
+      "index": 10,
+      "volume": 85
+    },
+    {
+      "index": 11,
+      "volume": 85
+    },
+    {
+      "index": 12,
+      "volume": 84
+    },
+    {
+      "index": 13,
+      "volume": 84
+    },
+    {
+      "index": 14,
+      "volume": 48
+    },
+    {
+      "index": 15,
+      "volume": 75
+    },
+    {
+      "index": 16,
+      "volume": 35
+    },
+    {
+      "index": 17,
+      "volume": 85
+    },
+    {
+      "index": 18,
+      "volume": 85
+    },
+    {
+      "index": 19,
+      "volume": 85
+    },
+    {
+      "index": 20,
+      "volume": 0
+    }
+  ],
+  "kind": "sound_volume",
+  "reverb": [],
+  "schema_version": 1
+}

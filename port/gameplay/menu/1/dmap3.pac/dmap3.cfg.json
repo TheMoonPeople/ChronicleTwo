@@ -1,0 +1,1364 @@
+{
+  "cells": [
+    {
+      "room": {
+        "floor_id": 14,
+        "key_room": [
+          -1,
+          13,
+          -1,
+          13
+        ],
+        "link": [
+          -1,
+          13,
+          -1,
+          -1
+        ],
+        "options": [
+          "sub"
+        ],
+        "order": 14,
+        "tex_no": 2
+      },
+      "type": 1,
+      "unk_6": -25,
+      "unk_8": -10,
+      "x": 10,
+      "y": 0
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 14,
+      "unk_8": 7,
+      "x": 10,
+      "y": 1
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 17,
+      "unk_8": 4,
+      "x": 10,
+      "y": 2
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 12,
+      "unk_8": 8,
+      "x": 10,
+      "y": 3
+    },
+    {
+      "room": {
+        "floor_id": 13,
+        "key_room": [
+          14,
+          12,
+          14,
+          12
+        ],
+        "link": [
+          14,
+          12,
+          -1,
+          -1
+        ],
+        "order": 13,
+        "tex_no": 2
+      },
+      "type": 1,
+      "unk_6": -25,
+      "unk_8": -7,
+      "x": 10,
+      "y": 4
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 14,
+      "unk_8": 11,
+      "x": 10,
+      "y": 5
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 17,
+      "unk_8": 7,
+      "x": 10,
+      "y": 6
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 12,
+      "unk_8": 11,
+      "x": 10,
+      "y": 7
+    },
+    {
+      "room": {
+        "floor_id": 12,
+        "key_room": [
+          13,
+          11,
+          13,
+          11
+        ],
+        "link": [
+          13,
+          11,
+          -1,
+          -1
+        ],
+        "order": 12,
+        "tex_no": 1
+      },
+      "type": 1,
+      "unk_6": -30,
+      "unk_8": -4,
+      "x": 10,
+      "y": 8
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 17,
+      "unk_8": 10,
+      "x": 10,
+      "y": 9
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 12,
+      "unk_8": 14,
+      "x": 10,
+      "y": 10
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 15,
+      "unk_8": 16,
+      "x": 11,
+      "y": 10
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 18,
+      "unk_8": 11,
+      "x": 12,
+      "y": 10
+    },
+    {
+      "room": {
+        "floor_id": 11,
+        "key_room": [
+          12,
+          10,
+          12,
+          10
+        ],
+        "link": [
+          -1,
+          10,
+          12,
+          -1
+        ],
+        "order": 11,
+        "tex_no": 0
+      },
+      "type": 1,
+      "unk_6": -27,
+      "unk_8": -2,
+      "x": 13,
+      "y": 10
+    },
+    {
+      "root": {
+        "shape": 6,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 25,
+      "unk_8": 7,
+      "x": 15,
+      "y": 10
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 20,
+      "unk_8": 16,
+      "x": 16,
+      "y": 10
+    },
+    {
+      "room": {
+        "floor_id": 9,
+        "key_room": [
+          -1,
+          -1,
+          10,
+          8
+        ],
+        "link": [
+          -1,
+          -1,
+          10,
+          8
+        ],
+        "options": [
+          "sub"
+        ],
+        "order": 9,
+        "tex_no": 0
+      },
+      "type": 1,
+      "unk_6": -19,
+      "unk_8": -1,
+      "x": 17,
+      "y": 10
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 22,
+      "unk_8": 16,
+      "x": 18,
+      "y": 10
+    },
+    {
+      "root": {
+        "shape": 7,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 8,
+      "unk_8": 9,
+      "x": 19,
+      "y": 10
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 3
+      },
+      "type": 0,
+      "unk_6": 7,
+      "unk_8": 1,
+      "x": 13,
+      "y": 11
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 19,
+      "unk_8": 9,
+      "x": 15,
+      "y": 11
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 8,
+      "unk_8": 10,
+      "x": 19,
+      "y": 11
+    },
+    {
+      "root": {
+        "shape": 7,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 9,
+      "unk_8": 10,
+      "x": 20,
+      "y": 11
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 3
+      },
+      "type": 0,
+      "unk_6": 7,
+      "unk_8": 2,
+      "x": 13,
+      "y": 12
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 21,
+      "unk_8": 5,
+      "x": 15,
+      "y": 12
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 9,
+      "unk_8": 11,
+      "x": 20,
+      "y": 12
+    },
+    {
+      "room": {
+        "floor_id": 8,
+        "key_room": [
+          9,
+          7,
+          9,
+          7
+        ],
+        "link": [
+          -1,
+          7,
+          9,
+          -1
+        ],
+        "order": 8,
+        "tex_no": 0
+      },
+      "type": 1,
+      "unk_6": -17,
+      "unk_8": 1,
+      "x": 21,
+      "y": 12
+    },
+    {
+      "room": {
+        "floor_id": 1,
+        "key_room": [
+          0,
+          2,
+          2,
+          0
+        ],
+        "link": [
+          -1,
+          2,
+          -1,
+          0
+        ],
+        "order": 1,
+        "tex_no": 7
+      },
+      "type": 1,
+      "unk_6": -3,
+      "unk_8": 0,
+      "x": 37,
+      "y": 12
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 27,
+      "unk_8": 11,
+      "x": 38,
+      "y": 12
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 26,
+      "unk_8": 9,
+      "x": 39,
+      "y": 12
+    },
+    {
+      "room": {
+        "floor_id": 0,
+        "key_room": [
+          -1,
+          -1,
+          1,
+          -1
+        ],
+        "link": [
+          -1,
+          -1,
+          1,
+          -1
+        ],
+        "options": [
+          "start"
+        ],
+        "order": 0,
+        "tex_no": 0
+      },
+      "type": 1,
+      "unk_6": 0,
+      "unk_8": 0,
+      "x": 40,
+      "y": 12
+    },
+    {
+      "root": {
+        "shape": 4,
+        "show_mark": 0,
+        "type": 3
+      },
+      "type": 0,
+      "unk_6": 7,
+      "unk_8": 3,
+      "x": 13,
+      "y": 13
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 1,
+        "type": 3
+      },
+      "type": 0,
+      "unk_6": 8,
+      "unk_8": 3,
+      "x": 14,
+      "y": 13
+    },
+    {
+      "room": {
+        "floor_id": 10,
+        "key_room": [
+          11,
+          15,
+          11,
+          9
+        ],
+        "link": [
+          9,
+          15,
+          11,
+          -1
+        ],
+        "order": 10,
+        "tex_no": 4
+      },
+      "type": 1,
+      "unk_6": -25,
+      "unk_8": 1,
+      "x": 15,
+      "y": 13
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 24,
+      "unk_8": 11,
+      "x": 21,
+      "y": 13
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 24,
+      "unk_8": 10,
+      "x": 37,
+      "y": 13
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 1
+      },
+      "type": 0,
+      "unk_6": 9,
+      "unk_8": 10,
+      "x": 15,
+      "y": 14
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 24,
+      "unk_8": 12,
+      "x": 21,
+      "y": 14
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 24,
+      "unk_8": 11,
+      "x": 37,
+      "y": 14
+    },
+    {
+      "room": {
+        "floor_id": 15,
+        "key_room": [
+          10,
+          16,
+          16,
+          10
+        ],
+        "link": [
+          -1,
+          16,
+          -1,
+          10
+        ],
+        "order": 11,
+        "tex_no": 3
+      },
+      "type": 1,
+      "unk_6": -27,
+      "unk_8": 3,
+      "x": 13,
+      "y": 15
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 1,
+        "type": 1
+      },
+      "type": 0,
+      "unk_6": 8,
+      "unk_8": 11,
+      "x": 14,
+      "y": 15
+    },
+    {
+      "root": {
+        "shape": 5,
+        "show_mark": 0,
+        "type": 1
+      },
+      "type": 0,
+      "unk_6": 9,
+      "unk_8": 11,
+      "x": 15,
+      "y": 15
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 17,
+      "unk_8": 12,
+      "x": 21,
+      "y": 15
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 25,
+      "unk_8": 13,
+      "x": 22,
+      "y": 15
+    },
+    {
+      "room": {
+        "floor_id": 7,
+        "key_room": [
+          8,
+          6,
+          8,
+          6
+        ],
+        "link": [
+          -1,
+          6,
+          8,
+          -1
+        ],
+        "order": 7,
+        "tex_no": 2
+      },
+      "type": 1,
+      "unk_6": -15,
+      "unk_8": 3,
+      "x": 23,
+      "y": 15
+    },
+    {
+      "room": {
+        "floor_id": 2,
+        "key_room": [
+          1,
+          3,
+          3,
+          1
+        ],
+        "link": [
+          -1,
+          3,
+          -1,
+          1
+        ],
+        "order": 2,
+        "tex_no": 9
+      },
+      "type": 1,
+      "unk_6": -4,
+      "unk_8": 3,
+      "x": 36,
+      "y": 15
+    },
+    {
+      "root": {
+        "shape": 9,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 27,
+      "unk_8": 13,
+      "x": 37,
+      "y": 15
+    },
+    {
+      "room": {
+        "floor_id": 20,
+        "key_room": [
+          -1,
+          19,
+          -1,
+          19
+        ],
+        "link": [
+          -1,
+          19,
+          -1,
+          -1
+        ],
+        "options": [
+          "boss"
+        ],
+        "order": 16,
+        "tex_no": 1
+      },
+      "type": 1,
+      "unk_6": -34,
+      "unk_8": 4,
+      "x": 0,
+      "y": 16
+    },
+    {
+      "root": {
+        "shape": 6,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 6,
+      "unk_8": 14,
+      "x": 12,
+      "y": 16
+    },
+    {
+      "root": {
+        "shape": 9,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 7,
+      "unk_8": 14,
+      "x": 13,
+      "y": 16
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 26,
+      "unk_8": 14,
+      "x": 23,
+      "y": 16
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 27,
+      "unk_8": 14,
+      "x": 24,
+      "y": 16
+    },
+    {
+      "root": {
+        "shape": 7,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 19,
+      "unk_8": 13,
+      "x": 25,
+      "y": 16
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 23,
+      "unk_8": 13,
+      "x": 36,
+      "y": 16
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 7,
+      "unk_8": 15,
+      "x": 0,
+      "y": 17
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 5,
+      "unk_8": 23,
+      "x": 1,
+      "y": 17
+    },
+    {
+      "root": {
+        "shape": 7,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 6,
+      "unk_8": 23,
+      "x": 2,
+      "y": 17
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 6,
+      "unk_8": 15,
+      "x": 12,
+      "y": 17
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 19,
+      "unk_8": 14,
+      "x": 25,
+      "y": 17
+    },
+    {
+      "room": {
+        "floor_id": 6,
+        "key_room": [
+          7,
+          5,
+          7,
+          5
+        ],
+        "link": [
+          -1,
+          5,
+          7,
+          -1
+        ],
+        "order": 6,
+        "tex_no": 1
+      },
+      "type": 1,
+      "unk_6": -13,
+      "unk_8": 5,
+      "x": 26,
+      "y": 17
+    },
+    {
+      "room": {
+        "floor_id": 3,
+        "key_room": [
+          2,
+          4,
+          4,
+          2
+        ],
+        "link": [
+          -1,
+          4,
+          -1,
+          2
+        ],
+        "order": 3,
+        "tex_no": 8
+      },
+      "type": 1,
+      "unk_6": -6,
+      "unk_8": 5,
+      "x": 34,
+      "y": 17
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 22,
+      "unk_8": 14,
+      "x": 35,
+      "y": 17
+    },
+    {
+      "root": {
+        "shape": 9,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 26,
+      "unk_8": 15,
+      "x": 36,
+      "y": 17
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 6,
+      "unk_8": 24,
+      "x": 2,
+      "y": 18
+    },
+    {
+      "room": {
+        "floor_id": 19,
+        "key_room": [
+          20,
+          18,
+          20,
+          18
+        ],
+        "link": [
+          -1,
+          18,
+          20,
+          -1
+        ],
+        "order": 15,
+        "tex_no": 7
+      },
+      "type": 1,
+      "unk_6": -37,
+      "unk_8": 6,
+      "x": 3,
+      "y": 18
+    },
+    {
+      "room": {
+        "floor_id": 16,
+        "key_room": [
+          15,
+          17,
+          17,
+          15
+        ],
+        "link": [
+          -1,
+          17,
+          -1,
+          15
+        ],
+        "order": 12,
+        "tex_no": 1
+      },
+      "type": 1,
+      "unk_6": -29,
+      "unk_8": 6,
+      "x": 11,
+      "y": 18
+    },
+    {
+      "root": {
+        "shape": 9,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 6,
+      "unk_8": 16,
+      "x": 12,
+      "y": 18
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 29,
+      "unk_8": 16,
+      "x": 26,
+      "y": 18
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 30,
+      "unk_8": 16,
+      "x": 27,
+      "y": 18
+    },
+    {
+      "root": {
+        "shape": 7,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 21,
+      "unk_8": 15,
+      "x": 28,
+      "y": 18
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 21,
+      "unk_8": 15,
+      "x": 34,
+      "y": 18
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 9,
+      "unk_8": 17,
+      "x": 3,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 8,
+      "unk_8": 25,
+      "x": 4,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 7,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 9,
+      "unk_8": 25,
+      "x": 5,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 6,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 13,
+      "unk_8": 23,
+      "x": 10,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 9,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 14,
+      "unk_8": 23,
+      "x": 11,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 21,
+      "unk_8": 16,
+      "x": 28,
+      "y": 19
+    },
+    {
+      "room": {
+        "floor_id": 5,
+        "key_room": [
+          6,
+          4,
+          6,
+          4
+        ],
+        "link": [
+          -1,
+          -1,
+          6,
+          4
+        ],
+        "order": 5,
+        "tex_no": 9
+      },
+      "type": 1,
+      "unk_6": -11,
+      "unk_8": 7,
+      "x": 29,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 17,
+      "unk_8": 16,
+      "x": 30,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 18,
+      "unk_8": 16,
+      "x": 31,
+      "y": 19
+    },
+    {
+      "room": {
+        "floor_id": 4,
+        "key_room": [
+          3,
+          5,
+          5,
+          3
+        ],
+        "link": [
+          -1,
+          -1,
+          5,
+          3
+        ],
+        "order": 4,
+        "tex_no": 7
+      },
+      "type": 1,
+      "unk_6": -8,
+      "unk_8": 7,
+      "x": 32,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 20,
+      "unk_8": 16,
+      "x": 33,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 9,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 24,
+      "unk_8": 17,
+      "x": 34,
+      "y": 19
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 9,
+      "unk_8": 26,
+      "x": 5,
+      "y": 20
+    },
+    {
+      "room": {
+        "floor_id": 18,
+        "key_room": [
+          19,
+          17,
+          19,
+          17
+        ],
+        "link": [
+          -1,
+          17,
+          19,
+          -1
+        ],
+        "order": 14,
+        "tex_no": 9
+      },
+      "type": 1,
+      "unk_6": -34,
+      "unk_8": 8,
+      "x": 6,
+      "y": 20
+    },
+    {
+      "root": {
+        "shape": 0,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 13,
+      "unk_8": 24,
+      "x": 10,
+      "y": 20
+    },
+    {
+      "root": {
+        "shape": 8,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 0,
+      "unk_8": 19,
+      "x": 6,
+      "y": 21
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 13,
+      "unk_8": 19,
+      "x": 7,
+      "y": 21
+    },
+    {
+      "root": {
+        "shape": 1,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 14,
+      "unk_8": 19,
+      "x": 8,
+      "y": 21
+    },
+    {
+      "room": {
+        "floor_id": 17,
+        "key_room": [
+          16,
+          -1,
+          18,
+          16
+        ],
+        "link": [
+          -1,
+          -1,
+          18,
+          -1
+        ],
+        "order": 13,
+        "tex_no": 8
+      },
+      "type": 1,
+      "unk_6": -31,
+      "unk_8": 9,
+      "x": 9,
+      "y": 21
+    },
+    {
+      "root": {
+        "shape": 9,
+        "show_mark": 0,
+        "type": 0
+      },
+      "type": 0,
+      "unk_6": 13,
+      "unk_8": 25,
+      "x": 10,
+      "y": 21
+    }
+  ],
+  "glid_h": 21,
+  "glid_w": 40,
+  "kind": "dungeon_map",
+  "schema_version": 2
+}

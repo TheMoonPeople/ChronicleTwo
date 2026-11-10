@@ -1,0 +1,1121 @@
+{
+  "kind": "georama_analysis",
+  "schema_version": 2,
+  "sources": [
+    {
+      "conditions": [
+        {
+          "geo_floor": 108,
+          "index": 0,
+          "name": "川のエリアが15マス以上"
+        },
+        {
+          "geo_floor": 113,
+          "index": 1,
+          "name": "デカ鼻の木をめだまの木で挟む"
+        },
+        {
+          "geo_floor": 114,
+          "index": 2,
+          "name": "目や鼻のついた３つの木を川で囲む"
+        },
+        {
+          "geo_floor": 108,
+          "index": 3,
+          "name": "未来に枯れた巨木が出現している"
+        },
+        {
+          "geo_floor": 108,
+          "index": 4,
+          "name": "未来に湖が出現している"
+        },
+        {
+          "geo_floor": 108,
+          "index": 5,
+          "name": "木にくわしい人が住んでいる"
+        },
+        {
+          "geo_floor": 114,
+          "index": 6,
+          "name": "未来にジュラクが復活している"
+        },
+        {
+          "index": 7,
+          "name": "カルチャーポイント30以上"
+        },
+        {
+          "geo_floor": 113,
+          "index": 8,
+          "name": "ルネが住んでいる"
+        },
+        {
+          "geo_floor": 108,
+          "index": 9,
+          "name": "ポリーおばさんが住んでいる"
+        },
+        {
+          "geo_floor": 108,
+          "index": 10,
+          "name": "ミレーネが住んでいる"
+        },
+        {
+          "geo_floor": 113,
+          "index": 11,
+          "name": "木が10本以上植えられている"
+        },
+        {
+          "geo_floor": 114,
+          "index": 12,
+          "name": "未来にジュラクの枝が出来ている"
+        },
+        {
+          "geo_floor": 111,
+          "index": 13,
+          "name": "わらの家に人が住んでいる"
+        },
+        {
+          "geo_floor": 110,
+          "index": 14,
+          "name": "小人たちの家を丘の上に移動"
+        },
+        {
+          "geo_floor": 111,
+          "index": 15,
+          "name": "小人たちの家をサクで囲む"
+        },
+        {
+          "index": 16,
+          "name": "カルチャーポイント40以上"
+        },
+        {
+          "index": 17,
+          "name": "カルチャーポイント50以上"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 104,
+          "index": 0,
+          "message": "森の湖が出現",
+          "on_parts": "p10_f0101",
+          "percent": 10,
+          "unk_10": 1
+        },
+        {
+          "condition_numbers": [
+            6,
+            11
+          ],
+          "geo_floor": 104,
+          "index": 1,
+          "message": "キノコ街灯出現",
+          "on_parts": "p09_f0101;hotaru",
+          "percent": 10,
+          "unk_10": 2
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 105,
+          "index": 2,
+          "message": "枯れた巨木出現",
+          "on_parts": "p07_f0101-1",
+          "percent": 15,
+          "unk_10": 3
+        },
+        {
+          "condition_numbers": [
+            3,
+            4,
+            5
+          ],
+          "index": 3,
+          "message": "大長老ジュラク復活",
+          "on_parts": "p07_f0101;jyuraku",
+          "percent": 15,
+          "unk_10": 4
+        },
+        {
+          "condition_numbers": [
+            6,
+            8,
+            7
+          ],
+          "geo_floor": 107,
+          "index": 4,
+          "message": "服屋ができる",
+          "on_parts": "p01_f0104;p02_f0104",
+          "percent": 10,
+          "unk_10": 5
+        },
+        {
+          "condition_numbers": [
+            6,
+            9,
+            16
+          ],
+          "geo_floor": 108,
+          "index": 5,
+          "message": "食べもの屋ができる",
+          "off_parts": "p13_f0101",
+          "on_parts": "p01_f0103;p02_f0103",
+          "percent": 10,
+          "unk_10": 6
+        },
+        {
+          "condition_numbers": [
+            6,
+            10,
+            12,
+            17
+          ],
+          "geo_floor": 108,
+          "index": 6,
+          "message": "武器屋ができる",
+          "off_parts": "p12_f0101",
+          "on_parts": "p01_f0102",
+          "percent": 10,
+          "unk_10": 7
+        },
+        {
+          "condition_numbers": [
+            11,
+            15
+          ],
+          "geo_floor": 113,
+          "index": 7,
+          "message": "ジュラクの枝が出来る",
+          "on_parts": "p08_f0101",
+          "percent": 10,
+          "unk_10": 8
+        },
+        {
+          "condition_numbers": [
+            12,
+            13
+          ],
+          "geo_floor": 109,
+          "index": 8,
+          "message": "金の卵が発生",
+          "on_parts": "p14_f0101",
+          "percent": 10,
+          "unk_10": 9
+        }
+      ],
+      "id": 0
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 201,
+          "index": 0,
+          "name": "渓谷４つの大地が同じ高さ"
+        },
+        {
+          "geo_floor": 206,
+          "index": 1,
+          "name": "カルチャーポイント20以上"
+        },
+        {
+          "geo_floor": 203,
+          "index": 2,
+          "name": "未来に下段の祈り場が存在する"
+        },
+        {
+          "geo_floor": 205,
+          "index": 3,
+          "name": "木が15本以上植えられている"
+        },
+        {
+          "geo_floor": 209,
+          "index": 4,
+          "name": "カルチャーポイント30以上"
+        },
+        {
+          "geo_floor": 205,
+          "index": 5,
+          "name": "未来にステラ寺院が復活している"
+        },
+        {
+          "geo_floor": 219,
+          "index": 6,
+          "name": "4つ以上たいまつがともっている"
+        },
+        {
+          "geo_floor": 217,
+          "index": 7,
+          "name": "ブルーノ神父が住んでいる"
+        },
+        {
+          "geo_floor": 207,
+          "index": 8,
+          "name": "スチュアートが住んでいる"
+        },
+        {
+          "geo_floor": 221,
+          "index": 9,
+          "name": "カルチャーポイント40以上"
+        },
+        {
+          "geo_floor": 206,
+          "index": 10,
+          "name": "中華屋台をポークがひいている"
+        },
+        {
+          "geo_floor": 211,
+          "index": 11,
+          "name": "リンを助けている"
+        },
+        {
+          "geo_floor": 217,
+          "index": 12,
+          "name": "パトリが住んでいる"
+        },
+        {
+          "geo_floor": 222,
+          "index": 13,
+          "name": "灯台の月のクリスタルが存在する"
+        },
+        {
+          "geo_floor": 204,
+          "index": 14,
+          "name": "未来に木のつり橋が存在"
+        },
+        {
+          "geo_floor": 206,
+          "index": 15,
+          "name": "人が２人以上住んでいる"
+        },
+        {
+          "geo_floor": 210,
+          "index": 16,
+          "name": "星のランプがついた家が建っている"
+        },
+        {
+          "geo_floor": 219,
+          "index": 17,
+          "name": "パッカー保安官が住んでいる"
+        },
+        {
+          "geo_floor": 216,
+          "index": 18,
+          "name": "カルチャーポイント50以上"
+        },
+        {
+          "geo_floor": 204,
+          "index": 19,
+          "name": "クリスタルの祈り場ができている"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1
+          ],
+          "index": 0,
+          "message": "下段の祈り場ができる",
+          "on_parts": "p01_f0202-0",
+          "percent": 10,
+          "unk_10": 100
+        },
+        {
+          "condition_numbers": [
+            2,
+            3
+          ],
+          "geo_floor": 202,
+          "index": 1,
+          "message": "木のつり橋ができる",
+          "off_parts": "p02_f0201-0",
+          "on_parts": "p02_f0202-0;p01_f0205-0;p01_f0205-1;p01_f0205-2;p02_f0205-0;",
+          "percent": 10,
+          "unk_10": 101
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            19
+          ],
+          "index": 2,
+          "message": "ステラ寺院復活",
+          "percent": 10,
+          "unk_10": 102
+        },
+        {
+          "condition_numbers": [
+            5,
+            6
+          ],
+          "geo_floor": 210,
+          "index": 3,
+          "message": "聖火台ができる",
+          "on_parts": "p01_f0209-0",
+          "percent": 10,
+          "unk_10": 103
+        },
+        {
+          "condition_numbers": [
+            2,
+            7
+          ],
+          "geo_floor": 204,
+          "index": 4,
+          "message": "クリスタルの祈り場ができる",
+          "on_parts": "p01_f0203-0;",
+          "percent": 10,
+          "unk_10": 104
+        },
+        {
+          "condition_numbers": [
+            5,
+            8,
+            9
+          ],
+          "geo_floor": 203,
+          "index": 5,
+          "message": "ゲート出現",
+          "on_parts": "p01_f0211-0",
+          "percent": 10,
+          "unk_10": 105
+        },
+        {
+          "condition_numbers": [
+            5,
+            10,
+            4
+          ],
+          "index": 6,
+          "message": "ラオチャオ飯店出現",
+          "on_parts": "p01_f0208-0",
+          "percent": 10,
+          "unk_10": 106
+        },
+        {
+          "condition_numbers": [
+            11,
+            16,
+            12,
+            5
+          ],
+          "geo_floor": 205,
+          "index": 7,
+          "message": "道具屋「スターアイテムズ」出現",
+          "on_parts": "p01_f0206-0",
+          "percent": 10,
+          "unk_10": 107
+        },
+        {
+          "condition_numbers": [
+            5,
+            17,
+            4
+          ],
+          "geo_floor": 217,
+          "index": 8,
+          "message": "武器屋出現",
+          "on_parts": "p01_f0207-0",
+          "percent": 10,
+          "unk_10": 108
+        },
+        {
+          "condition_numbers": [
+            5,
+            13
+          ],
+          "geo_floor": 219,
+          "index": 9,
+          "message": "月のクリスタル＆クレスト出現",
+          "on_parts": "p01_f0204-0;moon_crystal",
+          "percent": 10,
+          "unk_10": 109
+        }
+      ],
+      "id": 1
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 302,
+          "index": 0,
+          "name": "桟橋パーツを８ブロック以上"
+        },
+        {
+          "geo_floor": 306,
+          "index": 1,
+          "name": "だれか人が住んでいる"
+        },
+        {
+          "geo_floor": 302,
+          "index": 2,
+          "name": "ラボのベースフロアが存在している"
+        },
+        {
+          "geo_floor": 303,
+          "index": 3,
+          "name": "鉄の家（赤）が配置されている"
+        },
+        {
+          "geo_floor": 304,
+          "index": 4,
+          "name": "鉄の家（赤）にクレアが住んでいる"
+        },
+        {
+          "geo_floor": 307,
+          "index": 5,
+          "name": "鉄の家（赤）の近くにボートを配置"
+        },
+        {
+          "geo_floor": 304,
+          "index": 6,
+          "name": "鉄の家（青）が配置されている"
+        },
+        {
+          "geo_floor": 305,
+          "index": 7,
+          "name": "鉄の家（青）にドニーが住んでいる"
+        },
+        {
+          "geo_floor": 308,
+          "index": 8,
+          "name": "鉄の家（青）の近くにボートを配置"
+        },
+        {
+          "geo_floor": 310,
+          "index": 9,
+          "name": "鉄の家（紫）が配置されている"
+        },
+        {
+          "geo_floor": 316,
+          "index": 10,
+          "name": "鉄の家（紫）の近くにボートを配置"
+        },
+        {
+          "geo_floor": 317,
+          "index": 11,
+          "name": "鉄の家（緑）が配置されている"
+        },
+        {
+          "geo_floor": 318,
+          "index": 12,
+          "name": "鉄の家（緑）の近くにボートを配置"
+        },
+        {
+          "geo_floor": 303,
+          "index": 13,
+          "name": "未来に４つのラボがすべて存在"
+        },
+        {
+          "geo_floor": 310,
+          "index": 14,
+          "name": "シーグラの村を救う"
+        },
+        {
+          "geo_floor": 315,
+          "index": 15,
+          "name": "未来にルナ研が復活している"
+        },
+        {
+          "geo_floor": 316,
+          "index": 16,
+          "name": "ルナストーンの灯りが８以上存在"
+        },
+        {
+          "geo_floor": 318,
+          "index": 17,
+          "name": "風車を配置"
+        },
+        {
+          "index": 18,
+          "name": "カルチャーポイント３０以上"
+        },
+        {
+          "index": 19,
+          "name": "カルチャーポイント５０以上"
+        },
+        {
+          "index": 20,
+          "name": "カルチャーポイント６０以上"
+        },
+        {
+          "geo_floor": 319,
+          "index": 21,
+          "name": "カルチャーポイント８０以上"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1,
+            18
+          ],
+          "geo_floor": 301,
+          "index": 0,
+          "message": "ルナ研のベースフロアができる",
+          "off_parts": "p13_f0301",
+          "on_parts": "p03_f0301;p04_f0301",
+          "percent": 15,
+          "unk_10": 200
+        },
+        {
+          "condition_numbers": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "geo_floor": 302,
+          "index": 1,
+          "message": "第１ラボができる",
+          "off_parts": "p14_f0301",
+          "on_parts": "p05_f0301",
+          "percent": 10,
+          "unk_10": 201
+        },
+        {
+          "condition_numbers": [
+            2,
+            6,
+            7,
+            8
+          ],
+          "geo_floor": 302,
+          "index": 2,
+          "message": "第２ラボができる",
+          "off_parts": "p15_f0301",
+          "on_parts": "p06_f0301",
+          "percent": 10,
+          "unk_10": 202
+        },
+        {
+          "condition_numbers": [
+            2,
+            9,
+            10
+          ],
+          "geo_floor": 302,
+          "index": 3,
+          "message": "第３ラボができる",
+          "off_parts": "p16_f0301",
+          "on_parts": "p07_f0301",
+          "percent": 10,
+          "unk_10": 203
+        },
+        {
+          "condition_numbers": [
+            2,
+            11,
+            12
+          ],
+          "geo_floor": 302,
+          "index": 4,
+          "message": "第４ラボができる",
+          "off_parts": "p17_f0301",
+          "on_parts": "p08_f0301",
+          "percent": 10,
+          "unk_10": 204
+        },
+        {
+          "condition_numbers": [
+            13,
+            14,
+            19
+          ],
+          "geo_floor": 301,
+          "index": 5,
+          "message": "ルナ研（センターラボ）復活",
+          "on_parts": "p09_f0301",
+          "percent": 10,
+          "unk_10": 205
+        },
+        {
+          "condition_numbers": [
+            15,
+            16,
+            20
+          ],
+          "geo_floor": 308,
+          "index": 6,
+          "message": "クリスタルライトができる",
+          "on_parts": "p12_f0301",
+          "percent": 10,
+          "unk_10": 206
+        },
+        {
+          "condition_numbers": [
+            15,
+            17
+          ],
+          "geo_floor": 315,
+          "index": 7,
+          "message": "アンテナができる",
+          "on_parts": "p11_f0301",
+          "percent": 10,
+          "unk_10": 207
+        },
+        {
+          "condition_numbers": [
+            15,
+            21
+          ],
+          "geo_floor": 316,
+          "index": 8,
+          "message": "ルナ研のエンブレム出現",
+          "on_parts": "p10_f0301",
+          "percent": 15,
+          "unk_10": 208
+        }
+      ],
+      "id": 2
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 402,
+          "index": 0,
+          "name": "家が３件以上建っている"
+        },
+        {
+          "geo_floor": 403,
+          "index": 1,
+          "name": "３ブロック以上の高さに家がある"
+        },
+        {
+          "geo_floor": 404,
+          "index": 2,
+          "name": "未来に大工房２Ｆができている"
+        },
+        {
+          "geo_floor": 409,
+          "index": 3,
+          "name": "未来に大工房３Ｆができている"
+        },
+        {
+          "geo_floor": 415,
+          "index": 4,
+          "name": "ボルネオが住んでいる"
+        },
+        {
+          "geo_floor": 414,
+          "index": 5,
+          "name": "クレーンとアームが存在する"
+        },
+        {
+          "geo_floor": 413,
+          "index": 6,
+          "name": "発電機が配置されている"
+        },
+        {
+          "geo_floor": 418,
+          "index": 7,
+          "name": "スターブルが住んでいる"
+        },
+        {
+          "geo_floor": 417,
+          "index": 8,
+          "name": "未来にガンドラダ大工房が復活"
+        },
+        {
+          "geo_floor": 412,
+          "index": 9,
+          "name": "クレーン付きの家に人が住んでいる"
+        },
+        {
+          "geo_floor": 415,
+          "index": 10,
+          "name": "風車が配置されている"
+        },
+        {
+          "geo_floor": 412,
+          "index": 11,
+          "name": "アーム付きの家に人が住んでいる"
+        },
+        {
+          "geo_floor": 417,
+          "index": 12,
+          "name": "オペレーションルームが存在する"
+        },
+        {
+          "geo_floor": 413,
+          "index": 13,
+          "name": "「つぼ」が10以上配置されている"
+        },
+        {
+          "geo_floor": 401,
+          "index": 14,
+          "name": "ファイアースコール発生器を破壊"
+        },
+        {
+          "geo_floor": 420,
+          "index": 15,
+          "name": "ジラードが住んでいる"
+        },
+        {
+          "geo_floor": 419,
+          "index": 16,
+          "name": "高さ４以上に人の住んだ家を配置"
+        },
+        {
+          "geo_floor": 409,
+          "index": 17,
+          "name": "エントツ付きの家に人が住んでいる"
+        },
+        {
+          "geo_floor": 419,
+          "index": 18,
+          "name": "風車の近くにトムが住んでいる"
+        },
+        {
+          "geo_floor": 421,
+          "index": 19,
+          "name": "ギルトーニを倒す"
+        },
+        {
+          "index": 20,
+          "name": "カルチャーポイント30以上"
+        },
+        {
+          "index": 21,
+          "name": "カルチャーポイント60以上"
+        },
+        {
+          "index": 22,
+          "name": "カルチャーポイント70以上"
+        },
+        {
+          "index": 23,
+          "name": "カルチャーポイント80以上"
+        },
+        {
+          "geo_floor": 410,
+          "index": 24,
+          "name": "カルチャーポイント100以上"
+        },
+        {
+          "geo_floor": 404,
+          "index": 25,
+          "name": "未来にエレベータができている"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            20
+          ],
+          "geo_floor": 401,
+          "index": 0,
+          "message": "大工房２Ｆができる",
+          "on_parts": "p02_f0401;p07_f0401-2;p07_f0401-3;p18_f0401;p21_f0401-1",
+          "percent": 5,
+          "unk_10": 300
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 402,
+          "index": 1,
+          "message": "大工房３Ｆができる",
+          "on_parts": "p05_f0401;p19_f0401-2;p19_f0401-3",
+          "percent": 5,
+          "unk_10": 301
+        },
+        {
+          "condition_numbers": [
+            17,
+            3,
+            21
+          ],
+          "geo_floor": 403,
+          "index": 2,
+          "message": "エレベータができる",
+          "on_parts": "p04_f0401;p09_f0401;p09_f0401-1;p24_f0401",
+          "percent": 10,
+          "unk_10": 302
+        },
+        {
+          "condition_numbers": [
+            25,
+            4,
+            5,
+            6
+          ],
+          "geo_floor": 404,
+          "index": 3,
+          "message": "ガンドラダ大工房復活",
+          "percent": 10,
+          "unk_10": 303
+        },
+        {
+          "condition_numbers": [
+            9,
+            3,
+            10
+          ],
+          "geo_floor": 410,
+          "index": 4,
+          "message": "作業クレーンができる",
+          "on_parts": "p11_f0401",
+          "percent": 10,
+          "unk_10": 304
+        },
+        {
+          "condition_numbers": [
+            11,
+            2,
+            13
+          ],
+          "geo_floor": 411,
+          "index": 5,
+          "message": "作業アームができる",
+          "on_parts": "p10_f0401",
+          "percent": 10,
+          "unk_10": 305
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            8,
+            24
+          ],
+          "geo_floor": 412,
+          "index": 6,
+          "message": "オペレーションルームができる",
+          "on_parts": "p12_f0401",
+          "percent": 10,
+          "unk_10": 306
+        },
+        {
+          "condition_numbers": [
+            7,
+            8,
+            22
+          ],
+          "geo_floor": 414,
+          "index": 7,
+          "message": "部品屋ができる",
+          "on_parts": "p01_f0404",
+          "percent": 10,
+          "unk_10": 307
+        },
+        {
+          "condition_numbers": [
+            17,
+            8,
+            22
+          ],
+          "geo_floor": 417,
+          "index": 8,
+          "message": "アイテムショップができる",
+          "on_parts": "p01_f0405",
+          "percent": 10,
+          "unk_10": 308
+        },
+        {
+          "condition_numbers": [
+            18,
+            8,
+            22
+          ],
+          "geo_floor": 418,
+          "index": 9,
+          "message": "武器屋ができる",
+          "on_parts": "p01_f0403",
+          "percent": 10,
+          "unk_10": 309
+        },
+        {
+          "condition_numbers": [
+            19,
+            12
+          ],
+          "index": 10,
+          "message": "パズノスが完成する",
+          "on_parts": "p20_f0401;p22_f0401;p23_f0401",
+          "percent": 10,
+          "unk_10": 310
+        }
+      ],
+      "id": 3
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 501,
+          "index": 0,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 502,
+          "index": 1,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 503,
+          "index": 2,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 504,
+          "index": 3,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 505,
+          "index": 4,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 505,
+          "index": 5,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 506,
+          "index": 6,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 507,
+          "index": 7,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 507,
+          "index": 8,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 508,
+          "index": 9,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 509,
+          "index": 10,
+          "name": "不思議な力が作用して解読不能"
+        },
+        {
+          "geo_floor": 510,
+          "index": 11,
+          "name": "不思議な力が作用して解読不能"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 501,
+          "index": 0,
+          "message": "太陽が照らす水の香",
+          "percent": 10,
+          "unk_10": 400
+        },
+        {
+          "condition_numbers": [
+            1
+          ],
+          "geo_floor": 502,
+          "index": 1,
+          "message": "いっしょに歩いた花の道",
+          "percent": 10,
+          "unk_10": 401
+        },
+        {
+          "condition_numbers": [
+            2
+          ],
+          "geo_floor": 503,
+          "index": 2,
+          "message": "月の柱が導く扉",
+          "percent": 10,
+          "unk_10": 402
+        },
+        {
+          "condition_numbers": [
+            3
+          ],
+          "geo_floor": 504,
+          "index": 3,
+          "message": "太陽がたどる道",
+          "percent": 10,
+          "unk_10": 403
+        },
+        {
+          "condition_numbers": [
+            4,
+            5
+          ],
+          "geo_floor": 505,
+          "index": 4,
+          "message": "星影の階段と小川のせせらぎ",
+          "percent": 10,
+          "unk_10": 404
+        },
+        {
+          "condition_numbers": [
+            6
+          ],
+          "geo_floor": 506,
+          "index": 5,
+          "message": "思い出の花壇",
+          "percent": 10,
+          "unk_10": 405
+        },
+        {
+          "condition_numbers": [
+            7,
+            8
+          ],
+          "geo_floor": 507,
+          "index": 6,
+          "message": "階段のそばに座ってた君",
+          "percent": 10,
+          "unk_10": 406
+        },
+        {
+          "condition_numbers": [
+            9
+          ],
+          "geo_floor": 508,
+          "index": 7,
+          "message": "悲しみの回廊はどこへ通じる？",
+          "percent": 10,
+          "unk_10": 407
+        },
+        {
+          "condition_numbers": [
+            10
+          ],
+          "geo_floor": 509,
+          "index": 8,
+          "message": "星くずの池に隠された想い",
+          "percent": 10,
+          "unk_10": 408
+        },
+        {
+          "condition_numbers": [
+            11
+          ],
+          "geo_floor": 510,
+          "index": 9,
+          "message": "木々のざわめき",
+          "percent": 10,
+          "unk_10": 409
+        }
+      ],
+      "id": 4
+    }
+  ]
+}

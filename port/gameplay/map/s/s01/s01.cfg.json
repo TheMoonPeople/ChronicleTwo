@@ -1,0 +1,87 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 501
+      },
+      "name": "fc_event_202",
+      "transform": {
+        "position": [
+          -205.83,
+          13.59,
+          440.93
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          200.0,
+          200.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 600
+      },
+      "name": "goto_dun",
+      "transform": {
+        "position": [
+          -579.29,
+          136.06,
+          -454.05
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          210.0,
+          200.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 601
+      },
+      "name": "remove",
+      "transform": {
+        "position": [
+          -218.64,
+          15.1,
+          1281.41
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          200.0,
+          200.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

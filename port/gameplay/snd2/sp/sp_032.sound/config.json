@@ -1,0 +1,44 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/sp/sp_032.sound/effects/sp_032_000.json",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/sp/sp_032.sound/effects/sp_032_001.json",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    }
+  ],
+  "entry_count": 7,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

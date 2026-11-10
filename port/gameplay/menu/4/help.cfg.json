@@ -1,0 +1,1615 @@
+{
+  "chapters": [
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.55,
+          "start_seconds": 1.65,
+          "text": "Stai per intraprendere un'incredibile avventura.\nMa lascia che prima ti dia dei consigli.\r"
+        },
+        {
+          "clear_seconds": 20.87,
+          "start_seconds": 9.55,
+          "text": "Per poterti spostare, muovi la levetta\nanalogica sinistra lievemente e camminerai.\nPremila di pi[UNI00f9] e correrai.\r"
+        },
+        {
+          "clear_seconds": 33.63,
+          "start_seconds": 20.87,
+          "text": "Usa la levetta analogica destra per \ncontrollare la telecamera. Puoi \nusare anche [l1] e [r1], ma non nei labirinti.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.63,
+          "text": "Quando sei in movimento,\npremendo (X) o [l2], porterai la \ntelecamera alle spalle del personaggio.\n[UNI00c8] utile quando vuoi guardare dove\nsta guardando il tuo personaggio.\r"
+        }
+      ],
+      "id": 901
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.28,
+          "start_seconds": 3.27,
+          "text": "Quando ti avvicini a un oggetto e premi (O), il personaggio \nagir[UNI00e0] nel modo pi[UNI00f9] appropriato alla situazione.\r"
+        },
+        {
+          "clear_seconds": 17.49,
+          "start_seconds": 10.28,
+          "text": "Ad esempio, se l'oggetto [UNI00e8] una porta, la aprir[UNI00e0].\nSe [UNI00e8] una persona, le parler[UNI00e0].\r"
+        },
+        {
+          "clear_seconds": 23.47,
+          "start_seconds": 17.49,
+          "text": "Se premi (A) mentre usi il tuo personaggio,\napparir[UNI00e0] un menu di comandi.\r"
+        },
+        {
+          "clear_seconds": 37.52,
+          "start_seconds": 23.47,
+          "text": "Questo [UNI00e8] il \"Menu principale\".\nDal Menu principale, potrai usare i vari\ncomandi che ti serviranno nel gioco.\nAd esempio, potrai utilizzare oggetti o armi.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 37.52,
+          "text": "Ricorda: nel Menu principale, dovrai usare\n(O) per confermare e (X) per annullare una selezione.\r"
+        }
+      ],
+      "id": 902
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.31,
+          "start_seconds": 3.55,
+          "text": "In alcune situazioni, userai (#) per accedere\nalla schermata Selezione Oggetti.\r"
+        },
+        {
+          "clear_seconds": 20.18,
+          "start_seconds": 10.31,
+          "text": "Scegli l'oggetto che ti serve in una determinata \nsituazione. Se selezioni quello corretto, potrai \nproseguire nella tua avventura!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.18,
+          "text": "Se nell'Inventario manca l'oggetto che ti serve,\npremi (X) per annullare.\nIn tal caso, dovrai andare a cercare l'oggetto mancante!\r"
+        }
+      ],
+      "id": 903
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.09,
+          "start_seconds": 4.61,
+          "text": "Ora ti spiegher[UNI00f2] l'utilizzo degli oggetti normali.\nDal Menu principale: \"Oggetti\".\nVisualizzerai il Menu Oggetti.\r"
+        },
+        {
+          "clear_seconds": 20.8,
+          "start_seconds": 13.09,
+          "text": "Poni il cursore sull'oggetto che vuoi usare\ncol tasto direzionale o con la levetta analogica sinistra.\nDopodich[UNI00e9], premi (O).\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.8,
+          "text": "Vedrai un elenco di comandi da usare con quell'oggetto.\nDevi scegliere il comando che desideri.\nEcco come usare gli oggetti!\r"
+        }
+      ],
+      "id": 904
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.71,
+          "start_seconds": 4.33,
+          "text": "Dal Menu Oggetti, utilizza (#) per selezionare un oggetto,\novvero per \"raccoglierlo\".\nA questo punto, potrai spostarlo altrove.\r"
+        },
+        {
+          "clear_seconds": 25.91,
+          "start_seconds": 14.71,
+          "text": "Premi (#) un'altra volta per porre l'oggetto nel \npunto indicato dal cursore. Sposta gli oggetti \ncome preferisci per facilitarne l'uso!\r"
+        },
+        {
+          "clear_seconds": 35.84,
+          "start_seconds": 25.91,
+          "text": "Puoi spostare gli oggetti anche con (A).\nCon (A) puoi anche decidere la\nquantit[UNI00e0] di un determinato oggetto spostato.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.84,
+          "text": "Infine, se premi [select], ordinerai automaticamente \ni tuoi oggetti. Se premi [select] un'altra volta,\nli disporrai in un ordine diverso.\r"
+        }
+      ],
+      "id": 905
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.97,
+          "start_seconds": 1.36,
+          "text": "Ehi! Io sono Donny. Ti spiegher[UNI00f2] i comandi base da usare\nnei labirinti.\nPremi (O) per usare l'arma che impugni\nnella mano destra.\r"
+        },
+        {
+          "clear_seconds": 20.83,
+          "start_seconds": 11.97,
+          "text": "Se premi (O) mentre tieni premuto [l1], attaccherai\ncon l'arma a proiettili che brandisci nella mano sinistra.\r"
+        },
+        {
+          "clear_seconds": 30.79,
+          "start_seconds": 20.83,
+          "text": "Se tieni premuto a lungo (O), \nquando lo rilasci, eseguirai una \"Megacarica\".\nUsala nei momenti critici!\r"
+        },
+        {
+          "clear_seconds": 37.28,
+          "start_seconds": 30.79,
+          "text": "Ecco un altro modo di attaccare!\nContrattacco!\r"
+        },
+        {
+          "clear_seconds": 40.81,
+          "start_seconds": 37.28,
+          "text": "Indicatore d'Assorbimento\nAssorbi l'attacco del nemico...\r"
+        },
+        {
+          "clear_seconds": 45.03,
+          "start_seconds": 40.81,
+          "text": "E usalo contro di lui!\nLama Assorbi-Magia!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 45.03,
+          "text": "Prova a vedere se hai capito!\r"
+        }
+      ],
+      "id": 906
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.75,
+          "start_seconds": 2.73,
+          "text": "Se premi [r1], ti difenderai contro gli attacchi\nnemici.\r"
+        },
+        {
+          "clear_seconds": 21.18,
+          "start_seconds": 8.75,
+          "text": "Se premi (O) mentre tieni premuto [r1],\npuoi afferrare un mostro vicino a te e lanciarlo\nlontano premendo un'altra volta (O). Che storia!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.18,
+          "text": "Ugualmente, potrai raccogliere e lanciare gli oggetti,\ncome i massi che vedrai nei labirinti. Cerca di buttarli sui\nmostri!\r"
+        }
+      ],
+      "id": 907
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.53,
+          "start_seconds": 2.49,
+          "text": "Per andare al piano seguente nei labirinti, servir[UNI00e0]\nun oggetto \"Chiave\".\r"
+        },
+        {
+          "clear_seconds": 15.49,
+          "start_seconds": 8.53,
+          "text": "La Chiave [UNI00e8] nascosta addosso a uno dei mostri.\nSconfiggilo, se vuoi ottenere la Chiave!\r"
+        },
+        {
+          "clear_seconds": 20.78,
+          "start_seconds": 15.49,
+          "text": "Ovviamente, scoprirai se un mostro ha la Chiave o no,\nsolo se lo batterai!\r"
+        },
+        {
+          "clear_seconds": 28.3,
+          "start_seconds": 20.78,
+          "text": "Ricorda che ogni labirinto ha la sua Chiave.\nCerca di non scambiarle!\r"
+        },
+        {
+          "clear_seconds": 34.06,
+          "start_seconds": 28.3,
+          "text": "Quando esplori i labirinti, puoi scegliere come vedere\nla mappa premendo [select].\r"
+        },
+        {
+          "clear_seconds": 42.39,
+          "start_seconds": 34.06,
+          "text": "Scegli la modalit[UNI00e0] di visualizzazione che preferisci tra\nDisattivata, \"Piccola\" e \"Grande\".\r"
+        },
+        {
+          "clear_seconds": 48.93,
+          "start_seconds": 42.39,
+          "text": "Potrai trovare anche le \"Mappe del Piano\" e i \"Cristalli\nMagici\".\r"
+        },
+        {
+          "clear_seconds": 58.61,
+          "start_seconds": 48.93,
+          "text": "Una \"Mappa del Piano\" ti fa vedere tutto il piano \nin cui ti trovi. Un \"Cristallo Magico\" riveler[UNI00e0] \ninvece le posizioni di mostri e tesori.\r"
+        },
+        {
+          "clear_seconds": 64.62,
+          "start_seconds": 58.61,
+          "text": "La mappa sar[UNI00e0] utile per trovarli\nentrambi.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 64.62,
+          "text": "La \"Mappa del Piano\" e il \"Cristallo Magico\" non\nfunzioneranno pi[UNI00f9] se accedi a un altro piano.\nDevi cercarne altri!\r"
+        }
+      ],
+      "id": 908
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.97,
+          "start_seconds": 2.68,
+          "text": "Se ti avvicini a un mostro e premi (X) quando il cursore\ncompare su schermo, attiverai la modalit[UNI00e0] \"Agganciare\",\nche ti posiziona sempre di fronte al nemico, a prescindere\ndall'azione.\r"
+        },
+        {
+          "clear_seconds": 20.39,
+          "start_seconds": 13.97,
+          "text": "Ricordatelo! Sar[UNI00e0] molto pi[UNI00f9] semplice combattere.\r"
+        },
+        {
+          "clear_seconds": 33.5,
+          "start_seconds": 20.39,
+          "text": "Se vuoi cambiare il bersaglio agganciato, premi\nrapidamente (X).\nOgni volta che lo premi, aggancerai un nuovo mostro nei\npressi.\r"
+        },
+        {
+          "clear_seconds": 47.92,
+          "start_seconds": 33.5,
+          "text": "Se sei stato agganciato, muovi la levetta analogica sinistra\nnella direzione opposta del bersaglio e premi (O) per\nSchivare l'attacco del mostro.\nQuesta [UNI00e8] un'altra mossa utile, ricordala!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 47.92,
+          "text": "Ora, ecco come disattivare la modalit[UNI00e0] Agganciare.\nAllontanati dal bersaglio con la levetta analogica\nsinistra e premi (X).\r"
+        }
+      ],
+      "id": 909
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.6,
+          "start_seconds": 2.43,
+          "text": "Quando il gioco si fa duro... scappa!\nMa se il nemico [UNI00e8] troppo vicino, sarai pi[UNI00f9] lento, \nquindi cerca di allontanarti il prima possibile.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 13.6,
+          "text": "Se il nemico [UNI00e8] nei pressi, non potrai aprire gli scrigni.\nQuindi devi per forza sconfiggere il nemico prima,\npoi puoi aprire lo scrigno.\r"
+        }
+      ],
+      "id": 910
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.19,
+          "start_seconds": 2.96,
+          "text": "Nei labirinti, puoi usare gli oggetti durante una\nlotta.\r"
+        },
+        {
+          "clear_seconds": 14.27,
+          "start_seconds": 8.19,
+          "text": "Per farlo, per[UNI00f2], dovrai prima impostare l'oggetto\ncome Oggetto attivo.\r"
+        },
+        {
+          "clear_seconds": 21.47,
+          "start_seconds": 14.27,
+          "text": "L'oggetto che selezioni verr[UNI00e0] visualizzato \nnella schermata Oggetti attivi, in alto \na sinistra dello schermo, anche se cammini.\r"
+        },
+        {
+          "clear_seconds": 29.24,
+          "start_seconds": 21.47,
+          "text": "Seleziona l'Oggetto attivo che vuoi usare premendo i tasti \ndirezionali sinistra e destra. Premi (#) per utilizzarlo.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 29.24,
+          "text": "Gli oggetti che possono essere lanciati verranno \nscagliati premendo (#).\nSe lanci l'oggetto dopo aver agganciato un nemico,\nlo colpirai quasi sicuramente.\r"
+        }
+      ],
+      "id": 911
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.32,
+          "start_seconds": 2.77,
+          "text": "Vi sono un sacco di scrigni sparsi in tutti i labirinti:\nalmeno un paio ne troverai!\r"
+        },
+        {
+          "clear_seconds": 14.74,
+          "start_seconds": 9.32,
+          "text": "Ma fai attenzione: alcuni sono delle trappole.\r"
+        },
+        {
+          "clear_seconds": 25.25,
+          "start_seconds": 14.74,
+          "text": "Se capisci la natura della trappola e riesci a neutralizzarla\naprirai lo scrigno senza correre rischi.\nSe sbagli, cadrai vittima della trappola!\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.25,
+          "text": "Ti imbatterai anche in scrigni chiusi a chiave.\nSe hai la \"Chiave per Scrigno\", non ci saranno problemi!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "Se, invece, non ce l'hai e cerchi di forzare lo scrigno,\ncorri il rischio di innescare una trappola.\r"
+        }
+      ],
+      "id": 912
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.37,
+          "start_seconds": 2.95,
+          "text": "Sai cosa sono le sfere rosse sopra la barra PD del\nmostro?\nRappresentano l'\"Indicatore Rabbia\" e, ogni volta\nche colpisci un mostro, \ncala.\r"
+        },
+        {
+          "clear_seconds": 21.93,
+          "start_seconds": 15.37,
+          "text": "Se non lo batti prima che la barra si esaurisca,\nquesto entrer[UNI00e0] in \"Modalit[UNI00e0] Rabbia\".\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.93,
+          "text": "In questo caso, il mostro diventer[UNI00e0] pi[UNI00f9] forte;\nquindi, faresti meglio a evitarlo se non sei\nben equipaggiato.\r"
+        }
+      ],
+      "id": 913
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.97,
+          "start_seconds": 3.46,
+          "text": "In battaglia, potresti venire colpito da oggetti che provocano\nStato alterato, come il Veleno.\r"
+        },
+        {
+          "clear_seconds": 19.99,
+          "start_seconds": 9.97,
+          "text": "Quando sei in uno Stato alterato, non servono i normali\noggetti ricostituenti (tipo \"Pane\").\nL'unico rimedio contro il Veleno [UNI00e8] la \"Bevanda antidoto\".\r"
+        },
+        {
+          "clear_seconds": 26.16,
+          "start_seconds": 19.99,
+          "text": "Quando ti trovi in uno Stato alterato particolare, \nti servir[UNI00e0] l'Oggetto giusto per curarti.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 26.16,
+          "text": "Se combatti un mostro che usa attacchi di Stato alterato,\nmeglio tu abbia l'oggetto ricostituente corretto,\nprima di andare all'attacco.\r"
+        }
+      ],
+      "id": 914
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.24,
+          "start_seconds": 1.95,
+          "text": "Ne so abbastanza di armi da non dover\nchiedere a nessuno...\nPer[UNI00f2] un ripasso non guasta!\r"
+        },
+        {
+          "clear_seconds": 16.66,
+          "start_seconds": 9.24,
+          "text": "Per cambiare equipaggiamento, vai al Menu Oggetti,\nselezionando Oggetto dal Menu Comandi.\r"
+        },
+        {
+          "clear_seconds": 25.56,
+          "start_seconds": 16.66,
+          "text": "Scegli l'oggetto che vuoi equipaggiare con (#),\nposizionalo sul personaggio e premi (#)\nun'altra volta per completare l'operazione.\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.56,
+          "text": "Se premi (O) sopra un'arma, potrai selezionare il\ncomando \"Attiva\", che equipagger[UNI00e0] quell'arma.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "Puoi cambiare l'equipaggiamento su cinque parti:\nArma destra, Arma sinistra, Scarpe,\nTorso e Testa.\r"
+        }
+      ],
+      "id": 915
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.65,
+          "start_seconds": 2.86,
+          "text": "Se sconfiggi con un'arma un nemico, questo perder[UNI00e0] la sua\nenergia magica sotto forma di piccole gocce blu.\nSe le raccogli, l'arma con cui hai sferrato il colpo\nfinale assorbir[UNI00e0] l'energia magica del nemico.\r"
+        },
+        {
+          "clear_seconds": 22.71,
+          "start_seconds": 15.65,
+          "text": "Il parametro che quantifica l'energia di un'arma [UNI00e8]\nlo Stato Assorbimento Magia (ASS).\r"
+        },
+        {
+          "clear_seconds": 28.16,
+          "start_seconds": 22.71,
+          "text": "La barra blu di fianco all'icona dell'arma \nrappresenta l'attuale ASS.\r"
+        },
+        {
+          "clear_seconds": 38.27,
+          "start_seconds": 28.16,
+          "text": "Se la barra ASS. si riempie, l'arma\naumenter[UNI00e0] di un livello e si potenzier[UNI00e0].\nQuesta [UNI00e8] la Crescita Arma.\r"
+        },
+        {
+          "clear_seconds": 49.97,
+          "start_seconds": 38.27,
+          "text": "Le armi hanno anche un valore PDA,\nche ne indica la Robustezza.\n[UNI00c8] la barra arancione sopra\nquella dell'ASS.\r"
+        },
+        {
+          "clear_seconds": 57.49,
+          "start_seconds": 49.97,
+          "text": "Se questa scende a zero, l'arma si romper[UNI00e0]\ne gli attacchi non danneggeranno pi[UNI00f9] i nemici.\r"
+        },
+        {
+          "clear_seconds": 65.19,
+          "start_seconds": 57.49,
+          "text": "Per ripristinare un'arma rotta, aggiustala\ncon la Polvere riparatrice.\r"
+        },
+        {
+          "clear_seconds": 75.77,
+          "start_seconds": 65.19,
+          "text": "Tuttavia, se un'arma si rompe, il suo ASS.\nsi ridurr[UNI00e0] leggermente. Quindi, se puoi, cerca di\nripararla prima che si rompa del tutto.\r"
+        },
+        {
+          "clear_seconds": 86.19,
+          "start_seconds": 75.77,
+          "text": "Inoltre, per riparare altre armi, serviranno altri oggetti.\nCon le Pistole usa la Polvere aggiustante\ne sui Bracciali la Polvere sistemante.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 86.19,
+          "text": "Quindi, per riparare l'arma di Donny, non serve\nPolvere riparatrice, ma aggiustante.\r"
+        }
+      ],
+      "id": 916
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 1.46,
+          "text": "Per potenziare un'arma in modo efficace,\ncombinala con altri oggetti.\r"
+        },
+        {
+          "clear_seconds": 18.77,
+          "start_seconds": 7.94,
+          "text": "Se sposti il cursore su un'arma nel Menu Oggetti\ne premi (O), accederai al Menu Armi.\nSeleziona Stato per accedere alle informazioni sull'arma.\r"
+        },
+        {
+          "clear_seconds": 27.35,
+          "start_seconds": 18.77,
+          "text": "I \"Punti Sintesi\" nella parte bassa della schermata Stato\nindicano i tipi di oggetto combinabili\ncon l'arma.\r"
+        },
+        {
+          "clear_seconds": 33.83,
+          "start_seconds": 27.35,
+          "text": "Se un'arma sale di livello,\ni suoi Punti Sintesi aumentano.\r"
+        },
+        {
+          "clear_seconds": 41.78,
+          "start_seconds": 33.83,
+          "text": "Se posizioni il cursore sull'oggetto\nche vuoi unire all'arma e premi (O), verranno\nmostrati i comandi per l'oggetto.\r"
+        },
+        {
+          "clear_seconds": 50.21,
+          "start_seconds": 41.78,
+          "text": "Su un'arma puoi combinare quelli\nche visualizzano il comando\nSpettralizza.\r"
+        },
+        {
+          "clear_seconds": 59.19,
+          "start_seconds": 50.21,
+          "text": "Scegli Spettralizza per rompere l'oggetto\ne creare una \"Sfera Sintesi\" che\nabbia le propriet[UNI00e0] di quell'oggetto.\r"
+        },
+        {
+          "clear_seconds": 70.64,
+          "start_seconds": 59.19,
+          "text": "Se prendi la Sfera Sintesi, la posizioni sopra\nl'arma con cui vuoi combinarla e premi\n(O), aggiungerai i suoi poteri\na quelli dell'arma.\r"
+        },
+        {
+          "clear_seconds": 87.62,
+          "start_seconds": 70.64,
+          "text": "Quando trovi un'arma nuova, pi[UNI00f9] potente, potrai \nspettralizzare la tua vecchia arma e unire le sue abilit[UNI00e0] \na quella nuova. Questa [UNI00e8] la chiave per potenziare ancor \ndi pi[UNI00f9] le armi.\r"
+        },
+        {
+          "clear_seconds": 100.65,
+          "start_seconds": 87.62,
+          "text": "Tuttavia, come Sfera Sintesi, l'arma avr[UNI00e0] i parametri \npi[UNI00f9] bassi. Se non la combini con un'altra arma dai parametri\nalti, potrebbe risultare pi[UNI00f9] debole dell'originale.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 100.65,
+          "text": "In pi[UNI00f9], se Spettralizzi un'arma che ha meno di\n+5, diventer[UNI00e0] una Sfera Sintesi Instabile,\ne quasi non cambier[UNI00e0] i parametri, se combinata.\nMeglio fare attenzione!\r"
+        }
+      ],
+      "id": 917
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.28,
+          "start_seconds": 4.11,
+          "text": "Le armi hanno diversi attributi.\nPer controllarli, premi (O)\nsu un'arma e seleziona Stato.\r"
+        },
+        {
+          "clear_seconds": 24.71,
+          "start_seconds": 14.28,
+          "text": "Tali parametri sono divisi in dieci attributi.\nQuando questi raggiungono un dato valore\npotrai tramutare l'arma in una pi[UNI00f9] potente.\r"
+        },
+        {
+          "clear_seconds": 34.97,
+          "start_seconds": 24.71,
+          "text": "Esiste un limite per ogni attributo di ogni arma;\nquindi, non potrai creare armi pi[UNI00f9] potenti,\nse non usi Potenzia per mutare l'arma.\r"
+        },
+        {
+          "clear_seconds": 42.27,
+          "start_seconds": 34.97,
+          "text": "Oltre ai dieci attributi, a volte le armi\npossono vantare abilit[UNI00e0] speciali.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 42.27,
+          "text": "Dato che i dettagli non sono ancora troppo chiari,\nvediamo di approfondirli un po'!\r"
+        }
+      ],
+      "id": 918
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.44,
+          "start_seconds": 2.67,
+          "text": "Migliorando un'arma e soddisfando certe condizioni,\nquesta potr[UNI00e0] avanzare al livello superiore.\nSe usi la funzione \"Potenzia\".\r"
+        },
+        {
+          "clear_seconds": 23.39,
+          "start_seconds": 11.44,
+          "text": "Se un'arma viene potenziata, non solo cambier[UNI00e0] d'aspetto,\nma aumenter[UNI00e0] anche il limite dei parametri.\nCos[UNI00ec] da avere parametri sempre pi[UNI00f9] alti!\r"
+        },
+        {
+          "clear_seconds": 35.31,
+          "start_seconds": 23.39,
+          "text": "Se usi il comando Potenzia e scegli \"???\"\nsotto l'arma successiva, potrai scoprire\nesattamente quali abilit[UNI00e0] devi migliorare\nper poter potenziare la tua arma.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.31,
+          "text": "Usa queste informazioni per stabilire\ncome meglio potenziare ogni arma.\r"
+        }
+      ],
+      "id": 919
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 5.93,
+          "start_seconds": 0.92,
+          "text": "Ehi! Qui Borneo!\nOra ti spiegher[UNI00f2] come viaggiare.\r"
+        },
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 5.93,
+          "text": "Per raggiungere un'area, usa \"Vai\" dal Menu\nprincipale.\nPuoi andare all'area prescelta anche in treno.\r"
+        },
+        {
+          "clear_seconds": 22.63,
+          "start_seconds": 14.15,
+          "text": "Dovrai solo scegliere un luogo sulla mappa dell'area...\na guidare il treno ci penseremo io e Cedric!\r"
+        },
+        {
+          "clear_seconds": 40.36,
+          "start_seconds": 22.63,
+          "text": "Se selezioni il comando \"Vai\" in un labirinto, potrai vedere\ni dati del piano. Se premi (#), potrai uscire dal labirinto\nin qualsiasi momento. Ma, se lo fai prima di completare\nil piano, perderai met[UNI00e0] del tuo denaro. A te la scelta!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 40.36,
+          "text": "Se vuoi uscire da un labirinto, la miglior cosa da fare\n[UNI00e8] completare prima un piano e poi scegliere Torna in Citt[UNI00e0]\ndal menu visualizzato. Cos[UNI00ec] non perderai il tuo denaro.\nLa conquista di un labirinto non [UNI00e8] un'impresa da poco!\r"
+        }
+      ],
+      "id": 920
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 3.81,
+          "start_seconds": 0.74,
+          "text": "Ora, ti parler[UNI00f2] del Robomobile.\r"
+        },
+        {
+          "clear_seconds": 11.95,
+          "start_seconds": 3.81,
+          "text": "Se devi affrontare un nemico enorme o un\navversario che non riesci a battere normalmente,\nallora [UNI00e8] il momento di chiamare il Robomobile.\r"
+        },
+        {
+          "clear_seconds": 17.84,
+          "start_seconds": 11.95,
+          "text": "Per farlo, seleziona Robomobile\ndal Menu Personaggi.\r"
+        },
+        {
+          "clear_seconds": 27.87,
+          "start_seconds": 17.84,
+          "text": "La barra verde nella schermata Stato dice quanta\nenergia ti rimane. Fai attenzione, perch[UNI00e9], se scende\na zero, non potrai pi[UNI00f9] usare il Robomobile nei labirinti.\r"
+        },
+        {
+          "clear_seconds": 35.5,
+          "start_seconds": 27.87,
+          "text": "Se batti un nemico con il Robomobile, i suoi Punti\nEsperienza, ovvero gli ESP del suo Nucleo, aumenteranno.\r"
+        },
+        {
+          "clear_seconds": 41.21,
+          "start_seconds": 35.5,
+          "text": "Aumentando gli ESP, potrai potenziare il Nucleo\ne la sua Capacit[UNI00e0].\r"
+        },
+        {
+          "clear_seconds": 50.25,
+          "start_seconds": 41.21,
+          "text": "La Capacit[UNI00e0] indica quanti componenti pu[UNI00f2]\nmontare il Nucleo.  Se [UNI00e8] alta, puoi\nmontare pi[UNI00f9] componenti!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 50.25,
+          "text": "Appena inizi ad aumentare gli ESP, fammi un fischio\ne io ti potenzier[UNI00f2] il Nucleo!\r"
+        }
+      ],
+      "id": 921
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.06,
+          "start_seconds": 1.55,
+          "text": "Con uno Stemma Mutazione in Mostro,\npotrai trasformarti in quel mostro.\r"
+        },
+        {
+          "clear_seconds": 20.74,
+          "start_seconds": 11.06,
+          "text": "Usa Personaggi dal Menu principale,\nscegli un personaggio e Mutazione in Mostro.\r"
+        },
+        {
+          "clear_seconds": 35.34,
+          "start_seconds": 20.74,
+          "text": "Se hai uno stemma, accederai alla schermata\nSelezione Stemma, dove puoi scegliere in\nche mostro trasformarti.\r"
+        },
+        {
+          "clear_seconds": 45.27,
+          "start_seconds": 35.34,
+          "text": "Potrai persino parlare con gli altri mostri\ndella tua stessa razza. Quanti segreti\nscoprirai!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 45.27,
+          "text": "Non sar[UNI00e0] facile avere gli stemmi!\nDovrai prima trovare un modo\nper battere il mostro giusto!\r"
+        }
+      ],
+      "id": 922
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.87,
+          "start_seconds": 0.46,
+          "text": "Se sconfiggi i nemici sotto forma di mostro,\nsalir[UNI00e0] il livello di abilit[UNI00e0] dello Stemma!\r"
+        },
+        {
+          "clear_seconds": 24.08,
+          "start_seconds": 9.87,
+          "text": "A barra esperienza piena, il livello dello\nstemma aumenter[UNI00e0]. Ad un certo punto, potrai\npassare al grado superiore del mostro!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 24.08,
+          "text": "Inoltre, se raggiungi il livello Master,\nriceverai una ricompensa.\nIl premio varia con lo stemma.\r"
+        }
+      ],
+      "id": 923
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.47,
+          "start_seconds": 2.96,
+          "text": "Il processo d'invenzione inizia raccogliendo idee. Per farlo,\ndovrai scattare delle foto con la Fotocamera.\r"
+        },
+        {
+          "clear_seconds": 25.7,
+          "start_seconds": 11.47,
+          "text": "Se premi (#) con la Fotocamera\nimpostata come Oggetto attivo,\nattiverai il mirino.\nRegolalo con la levetta analogica sinistra\ne premi (#) un'altra volta\nper scattare.\r"
+        },
+        {
+          "clear_seconds": 32.12,
+          "start_seconds": 25.7,
+          "text": "Dalla schermata Mirino, potrai vedere\ntutte le foto che hai scattato con (A).\r"
+        },
+        {
+          "clear_seconds": 41.39,
+          "start_seconds": 32.12,
+          "text": "Per scoprire se puoi utilizzare la foto per un'invenzione,\ncontrolla le lampadine blu vicino al nome delle foto.\nCos[UNI00ec] capirai quali puoi usare.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.39,
+          "text": "Ora, cerca di tenere bene a mente quanto sto per dirti.\nTranne nei labirinti puoi impostare la\nFotocamera come vuoi. Nei labirinti,\ninvece, se la Fotocamera non [UNI00e8] impostata come\nOggetto attivo e non [UNI00e8] presente il cursore,\nnon potrai utilizzarla.\nNon scordatelo, eh!?\r"
+        }
+      ],
+      "id": 924
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.3,
+          "start_seconds": 3.02,
+          "text": "Quando hai l'occorrente puoi iniziare ad inventare sul serio.\nPer farlo, usa il comando \"Inventa\" dal Menu principale.\r"
+        },
+        {
+          "clear_seconds": 15.44,
+          "start_seconds": 11.3,
+          "text": "Le Schede Invenzione vengono elencate a sinistra.\r"
+        },
+        {
+          "clear_seconds": 23.75,
+          "start_seconds": 15.44,
+          "text": "Ora, per un'invenzione, seleziona\nNuova Invenzione in alto\ne scegli i tre oggetti che vuoi utilizzare.\r"
+        },
+        {
+          "clear_seconds": 32.21,
+          "start_seconds": 23.75,
+          "text": "Se combini correttamente gli oggetti,\nl'invenzione sar[UNI00e0] un successo.\nL'oggetto inventato verr[UNI00e0] registrato come scheda.\r"
+        },
+        {
+          "clear_seconds": 38.5,
+          "start_seconds": 32.21,
+          "text": "Ricorda: anche se sei arrivato fin qui,\nnon significa che hai finito... nossignore!\r"
+        },
+        {
+          "clear_seconds": 43.58,
+          "start_seconds": 38.5,
+          "text": "Arrivato a questo punto, potrai progettare\ncome realizzare un'invenzione.\r"
+        },
+        {
+          "clear_seconds": 47.69,
+          "start_seconds": 43.58,
+          "text": "Ora ti sveler[UNI00f2] io come creare un nuovo oggetto.\r"
+        },
+        {
+          "clear_seconds": 52.99,
+          "start_seconds": 47.69,
+          "text": "Seleziona la Scheda Invenzione per il tuo\noggetto dal Menu Crea.\r"
+        },
+        {
+          "clear_seconds": 62.38,
+          "start_seconds": 52.99,
+          "text": "Decidi quanti oggetti creare premendo i tasti direzionali\nsinistra o destra e seleziona OK col tasto direzionale.\r"
+        },
+        {
+          "clear_seconds": 67.93,
+          "start_seconds": 62.38,
+          "text": "Se non hai abbastanza materiali per creare l'oggetto,\nprocurateli in un negozio o da qualche altra parte.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 67.93,
+          "text": "Allora, tutto chiaro?\nDatti da fare e crea pi[UNI00f9] oggetti che puoi!\r"
+        }
+      ],
+      "id": 925
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.32,
+          "start_seconds": 0.96,
+          "text": "Max, riportare il mondo alla normalit[UNI00e0]\nnon [UNI00e8] cosa da poco.\r"
+        },
+        {
+          "clear_seconds": 13.58,
+          "start_seconds": 6.32,
+          "text": "Muovi i personaggi fuori da Vallecatini,\nfalli viaggiare e contribuirai allo sviluppo del futuro.\r"
+        },
+        {
+          "clear_seconds": 20.72,
+          "start_seconds": 13.58,
+          "text": "Per muovere le persone, devi prima averle sul treno\ncome membri del gruppo che ti seguiranno nel tuo viaggio.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.72,
+          "text": "Figliolo, tutti hanno i loro problemi! Se tu\nli aiuterai, saranno lieti di unirsi alla nostra missione\nper la rinascita del mondo.\r"
+        }
+      ],
+      "id": 926
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.99,
+          "start_seconds": 1.49,
+          "text": "Porta i personaggi del treno nei labirinti,\nti aiuteranno a combattere contro i mostri.\r"
+        },
+        {
+          "clear_seconds": 15.53,
+          "start_seconds": 7.99,
+          "text": "Se parli loro sul treno e selezioni l’opzione\nUnisciti al gruppo, farai di loro il terzo membro.\r"
+        },
+        {
+          "clear_seconds": 23.36,
+          "start_seconds": 15.53,
+          "text": "Ora, il terzo membro del gruppo non potr[UNI00e0] combattere,\nma ti sar[UNI00e0] sicuramente d’aiuto\ncon svariate abilit[UNI00e0] di supporto.\r"
+        },
+        {
+          "clear_seconds": 28.43,
+          "start_seconds": 23.36,
+          "text": "Scegli il terzo membro del gruppo da Personaggi,\nnel Menu principale.\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 28.43,
+          "text": "Dal menu Personaggio di Supporto\npuoi selezionare l’abilit[UNI00e0] che vuoi che usi.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 34.52,
+          "text": "Se sfrutti l'abilit[UNI00e0] del terzo membro a tuo vantaggio,\nriuscirai sicuramente ad aprirti un varco nei labirinti.\r"
+        }
+      ],
+      "id": 927
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 2.99,
+          "text": "Pi[UNI00f9] ti addentri nei labirinti,\npi[UNI00f9] diventer[UNI00e0] pericoloso.\r"
+        },
+        {
+          "clear_seconds": 13.37,
+          "start_seconds": 7.94,
+          "text": "In alcune situazioni, Max,\n[UNI00e8] meglio che sia IO a condurre lo scontro.\r"
+        },
+        {
+          "clear_seconds": 18.81,
+          "start_seconds": 13.37,
+          "text": "In questi casi, scegli \"Personaggi\"\ndal Menu principale e scegli me.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 18.81,
+          "text": "Con la mia spada e la magia, terr[UNI00f2] a\nbada anche i mostri peggiori!\r"
+        }
+      ],
+      "id": 928
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.25,
+          "start_seconds": 2.27,
+          "text": "A volte, non ci sar[UNI00e0] una sola uscita dal labirinto.\r"
+        },
+        {
+          "clear_seconds": 11.27,
+          "start_seconds": 6.25,
+          "text": "Se ci sono pi[UNI00f9] uscite, vedrai un simbolo su ciascuna di esse.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 11.27,
+          "text": "Cerca sulla Mappa Labirinti i simboli delle uscite che\nnon hai ancora trovato. Per vederli seleziona \"Vai\".\nCos[UNI00ec], sarai sicuro di provarle tutte!\r"
+        }
+      ],
+      "id": 929
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.57,
+          "start_seconds": 1.84,
+          "text": "Ehil[UNI00e0]! Sai pescare?\nOra ti spiego come devi fare.\r"
+        },
+        {
+          "clear_seconds": 15.74,
+          "start_seconds": 7.57,
+          "text": "Puoi pescare in due zone: sulla\nmappa normale e nei labirinti.\r"
+        },
+        {
+          "clear_seconds": 24.75,
+          "start_seconds": 15.74,
+          "text": "Devi usare una \"Canna da Pesca\".\nUsa il Menu Oggetti cos[UNI00ec] come faresti\ncon un’arma.\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 24.75,
+          "text": "Poi, scegli un'esca.\nNon pescherai un bel niente,\nse non ci metti un’esca!\r"
+        },
+        {
+          "clear_seconds": 45.47,
+          "start_seconds": 34.52,
+          "text": "Con la canna pronta nella mano destra,\nscegli la tua esca premendo (O)\ne seleziona \"Metti l’amo\" dal\nMenu Oggetti.\r"
+        },
+        {
+          "clear_seconds": 54.33,
+          "start_seconds": 45.47,
+          "text": "Se vuoi cambiare esca, selezionane\nuna nuova allo stesso modo;\ncos[UNI00ec] la sostituirai automaticamente.\r"
+        },
+        {
+          "clear_seconds": 63.84,
+          "start_seconds": 54.33,
+          "text": "Ora puoi gi[UNI00e0] pescare.\nFatti un giro sulla riva e trovati una buona postazione.\nIl posto [UNI00e8] fondamentale!\r"
+        },
+        {
+          "clear_seconds": 69.87,
+          "start_seconds": 63.84,
+          "text": "Dopo aver deciso dove pescare,\npremi (O) per confermare.\r"
+        },
+        {
+          "clear_seconds": 81.19,
+          "start_seconds": 69.87,
+          "text": "La levetta analogica sinistra [UNI00e8] per muovere\nil cursore e scegliere il tuo punto di lancio.\nPer confermare premi di nuovo (O).\r"
+        },
+        {
+          "clear_seconds": 89.27,
+          "start_seconds": 81.19,
+          "text": "Quello [UNI00e8] il punto in cui lancerai l’amo.\nOra, occhio al galleggiante!\r"
+        },
+        {
+          "clear_seconds": 98.59,
+          "start_seconds": 89.27,
+          "text": "Se lo vedi affondare, tira rapidamente\nla levetta analogica sinistra verso di te.\nSe sei veloce, il pesce non ti sfuggir[UNI00e0]!\r"
+        },
+        {
+          "clear_seconds": 104.08,
+          "start_seconds": 98.59,
+          "text": "Bene, ne hai preso uno all’amo. Tieni premuto\n(O) per riavvolgere la lenza.\r"
+        },
+        {
+          "clear_seconds": 112.47,
+          "start_seconds": 104.08,
+          "text": "Adesso guarda la barra, sullo schermo,\nche ti segnala l’effettiva tensione\ndella lenza.\r"
+        },
+        {
+          "clear_seconds": 117.86,
+          "start_seconds": 112.47,
+          "text": "Se [UNI00e8] troppa, la lenza si spezzer[UNI00e0],\ne scordati pure il pesce!\r"
+        },
+        {
+          "clear_seconds": 124.59,
+          "start_seconds": 117.86,
+          "text": "Regola il riavvolgimento, la tensione\nnon deve essere troppa.\r"
+        },
+        {
+          "clear_seconds": 131.24,
+          "start_seconds": 124.59,
+          "text": "Tira il pesce a riva:\nora [UNI00e8] tutto tuo!\r"
+        },
+        {
+          "clear_seconds": 137.75,
+          "start_seconds": 131.24,
+          "text": "Nei labirinti vale la stessa regola,\nsolo che prima dovrai uccidere i nemici.\r"
+        },
+        {
+          "clear_seconds": 145.49,
+          "start_seconds": 137.75,
+          "text": "Pescherai pesci diversi a seconda del\nluogo, dell'ora e dell'esca. Datti da fare!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 145.49,
+          "text": "Pescare impegna! Divertiti!\r"
+        }
+      ],
+      "id": 930
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.37,
+          "start_seconds": 1.3,
+          "text": "Ah-ah, hai un'esca artificiale!\nAdesso ti spiego come utilizzarla.\r"
+        },
+        {
+          "clear_seconds": 15.45,
+          "start_seconds": 8.37,
+          "text": "Per prima cosa, la metti all'amo\nProprio come con un'esca normale.\r"
+        },
+        {
+          "clear_seconds": 21.75,
+          "start_seconds": 15.45,
+          "text": "Seleziona \"Metti l'amo\" dai comandi\ndell'esca artificiale. Ecco!\r"
+        },
+        {
+          "clear_seconds": 30.77,
+          "start_seconds": 21.75,
+          "text": "Come per la pesca classica scegliti una\nposizione per pescare. Poi scegli la\nzona con la levetta analogica sinistra.\r"
+        },
+        {
+          "clear_seconds": 34.5,
+          "start_seconds": 30.77,
+          "text": "Quando sei pronto, premi (O) per lanciare.\r"
+        },
+        {
+          "clear_seconds": 41.99,
+          "start_seconds": 34.5,
+          "text": "Con la levetta analogica sinistra muovi la canna\nquando l'esca tocca l'acqua, e (O) per recuperarla.\r"
+        },
+        {
+          "clear_seconds": 51.97,
+          "start_seconds": 41.99,
+          "text": "Devi usare i movimenti della canna\ne del riavvolgimento della lenza per attirare il pesce.\nProva diverse combinazioni.\r"
+        },
+        {
+          "clear_seconds": 59.39,
+          "start_seconds": 51.97,
+          "text": "Quando hai recuperato completamente l'esca,\nlanciala di nuovo. Continua cos[UNI00ec]!\r"
+        },
+        {
+          "clear_seconds": 70.96,
+          "start_seconds": 59.39,
+          "text": "Se un pesce abbocca mentre stai riavvolgendo\nla lenza, lo sentirai strattonare.\nTira la levetta analogica sinistra\nverso di te. Se sei veloce, non sfuggir[UNI00e0]!\r"
+        },
+        {
+          "clear_seconds": 78.54,
+          "start_seconds": 70.96,
+          "text": "Se non senti il pesce, guarda la testa dell'esca\nper capire quando tirare.\r"
+        },
+        {
+          "clear_seconds": 85.87,
+          "start_seconds": 78.54,
+          "text": "Quando hai un pesce all'amo, tieni premuto (O)\nper tirarlo su. Occhio alla tensione!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 85.87,
+          "text": "La pesca al lancio [UNI00e8] impegnativa, allenati\nprima di praticarla!\r"
+        }
+      ],
+      "id": 931
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.07,
+          "start_seconds": 1.02,
+          "text": "Ehi, Max! Sono Need. Come te la passi?\nHo organizzato un \"Torneo di Pesca\", che si \nterr[UNI00e0] spesso a Vallecatini.\r"
+        },
+        {
+          "clear_seconds": 18.46,
+          "start_seconds": 10.07,
+          "text": "Se durante un torneo prendi un grosso pesce,\nportalo a pesare nel tendone che troverai sulla Piazza\ndi Vallecatini.\r"
+        },
+        {
+          "clear_seconds": 24.78,
+          "start_seconds": 18.46,
+          "text": "Ma ricorda: i pesci che hai allevato tu\nnon saranno validi.\r"
+        },
+        {
+          "clear_seconds": 31.99,
+          "start_seconds": 24.78,
+          "text": "In fase di pesatura per il torneo, sulla schermata\ndel Menu principale apparir[UNI00e0] \"Torneo di di Pesca\nin Corso\".\r"
+        },
+        {
+          "clear_seconds": 37.34,
+          "start_seconds": 31.99,
+          "text": "Puoi pesare fino a 10 pesci per ogni torneo, ottenendo\npunti per i 3 migliori.\r"
+        },
+        {
+          "clear_seconds": 51.05,
+          "start_seconds": 37.34,
+          "text": "Se vinci, riceverai un premio. Se a fine corsa pesi\n3 o pi[UNI00f9] pesci, vai dal Direttore di Gara e seleziona\n\"Totale complessivo\"; i primi 3 pesci verranno cos[UNI00ec]\nsommati e i risultati mostrati.\r"
+        },
+        {
+          "clear_seconds": 179.0,
+          "start_seconds": 51.05,
+          "text": "Un sacco di premi ti aspettano, perci[UNI00f2] datti da fare\ne pesca un pescione!\r"
+        }
+      ],
+      "id": 932
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.02,
+          "start_seconds": 2.49,
+          "text": "Il mondo [UNI00e8] impazzito per colpa dell'Imperatore\nGrifone, detto il Sovrano Oscuro.\r"
+        },
+        {
+          "clear_seconds": 17.44,
+          "start_seconds": 9.02,
+          "text": "Tutto ci[UNI00f2] ha scatenato strani fenomeni.\nLo sport dello Spheda si basa proprio su\nuno di essi.\r"
+        },
+        {
+          "clear_seconds": 23.13,
+          "start_seconds": 17.44,
+          "text": "Nel mondo ci sono buche temporali, dette\nDistorsioni Temporali.\r"
+        },
+        {
+          "clear_seconds": 31.89,
+          "start_seconds": 23.13,
+          "text": "Alcuni frammenti temporali, o \"Sphere\", sono stati\nespulsi dalle distorsioni temporali. Per chiuderle,\ndovrai ributtarci dentro le Sphere.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.89,
+          "text": "Siccome non puoi toccare le Sphere, dovrai usare\nuna Mazza da Spheda, mirare alla distorsione\ne colpire.\r"
+        }
+      ],
+      "id": 933
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.38,
+          "start_seconds": 2.62,
+          "text": "Sphere e distorsioni possono essere rosse o blu.\r"
+        },
+        {
+          "clear_seconds": 15.68,
+          "start_seconds": 7.38,
+          "text": "Sphere e distorsioni di ugual colore si respingono. Perci[UNI00f2], \nse una Sphera colpisce una distorsione uguale, non entra.\r"
+        },
+        {
+          "clear_seconds": 23.3,
+          "start_seconds": 15.68,
+          "text": "Se una Sphera urta il pavimento o un muro, muta colore.\nUsa le tue abilit[UNI00e0] per mutare il colore\ndella Sphera, poi mira alla distorsione.\r"
+        },
+        {
+          "clear_seconds": 30.31,
+          "start_seconds": 23.3,
+          "text": "Quando una Sphera entra in una distorsione, questa sparir[UNI00e0] e, \nal suo posto, comparir[UNI00e0] un tesoro nascosto.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 30.31,
+          "text": "Raccogliere tesori [UNI00e8] bello, ma ricorda:\nil tuo obiettivo [UNI00e8] eliminare pi[UNI00f9] distorsioni che\npuoi e riportare l'ordine nel mondo.\r"
+        }
+      ],
+      "id": 934
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.19,
+          "start_seconds": 1.58,
+          "text": "Ehil[UNI00e0]!\nVuoi usare il Carpenterion, la nostra\nfavolosa macchina?\r"
+        },
+        {
+          "clear_seconds": 14.34,
+          "start_seconds": 7.19,
+          "text": "Bene, allora ti spiegher[UNI00f2] come usare il \nCarpenterion per costruire le citt[UNI00e0].\r"
+        },
+        {
+          "clear_seconds": 22.72,
+          "start_seconds": 14.34,
+          "text": "Se premi [select] nelle aree\nin cui puoi costruire citt[UNI00e0],\nattiverai la Modalit[UNI00e0] Controllo Carpenterion.\r"
+        },
+        {
+          "clear_seconds": 34.58,
+          "start_seconds": 22.72,
+          "text": "Passer[UNI00f2] alla visuale dall'alto, cos[UNI00ec] potrai capire \ndove ti trovi. Se premi (A) in questa modalit[UNI00e0],\npotrai accedere al Menu Diorama.\r"
+        },
+        {
+          "clear_seconds": 45.1,
+          "start_seconds": 34.58,
+          "text": "E ora vediamo come iniziare a costruire edifici.\nC'[UNI00e8] un mare di cose che puoi fare, perci[UNI00f2] \n[UNI00e8] meglio se impari man mano che procedi.\r"
+        },
+        {
+          "clear_seconds": 52.05,
+          "start_seconds": 45.1,
+          "text": "Prima di poter collocare qualunque cosa,\ndevi costruire le tue Parti Diorama.\r"
+        },
+        {
+          "clear_seconds": 64.34,
+          "start_seconds": 52.05,
+          "text": "Quando hai i materiali necessari, crea le parti con\nil comando Costruisci. Poi, seleziona dove\ncollocare le cose, col comando Colloca.\r"
+        },
+        {
+          "clear_seconds": 78.95,
+          "start_seconds": 64.34,
+          "text": "Prima di iniziare, dovrai procurarti le Geopietre,\nche racchiudono la saggezza degli antichi. Le troverai\nnei labirinti. Usale nel reattore del Carpenterion\ne potrai creare la tua selezione di parti disponibili.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 78.95,
+          "text": "Beh, in realt[UNI00e0] saremo noi ad inserire le Geopietre\nnel reattore. Tu dovrai limitarti a trovarle.\r"
+        }
+      ],
+      "id": 935
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.03,
+          "start_seconds": 1.83,
+          "text": "Ok, ora ti dir[UNI00f2] esattamente come collocare\nle parti sulla mappa.\r"
+        },
+        {
+          "clear_seconds": 14.12,
+          "start_seconds": 8.03,
+          "text": "Seleziona \"Colloca\", scegli una parte\ne accederai alla schermata di posizionamento.\r"
+        },
+        {
+          "clear_seconds": 26.13,
+          "start_seconds": 14.12,
+          "text": "Scegli un punto utilizzando la levetta analogica sinistra\ne ruota la parte premendo [l2] e [r2], per determinarne\nl'angolazione.\r"
+        },
+        {
+          "clear_seconds": 34.61,
+          "start_seconds": 26.13,
+          "text": "Quando hai stabilito la posizione ottimale,\npremi (O) per rilasciare la parte.\r"
+        },
+        {
+          "clear_seconds": 43.12,
+          "start_seconds": 34.61,
+          "text": "A seconda delle parti, puoi ammucchiarne,\ncollocarne sui tetti delle case e cos[UNI00ec] via.\nSperimenta: divertimento assicurato!\r"
+        },
+        {
+          "clear_seconds": 51.95,
+          "start_seconds": 43.12,
+          "text": "Per lampade e oggetti che si fissano alle pareti,\nprima posiziona la parte in cima all'edificio\ne poi premi (O).\r"
+        },
+        {
+          "clear_seconds": 62.78,
+          "start_seconds": 51.95,
+          "text": "Poi, fissa la parte all'edificio, scegli il muro\npremendo [l2] e [r2] e determinane la collocazione\ncon la levetta analogica sinistra.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 62.78,
+          "text": "So che sembra complicato, ma vedrai:\nimparerai in men che non si dica, amico!\r"
+        }
+      ],
+      "id": 936
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.03,
+          "start_seconds": 2.24,
+          "text": "Bene Max, ora ti spiegher[UNI00f2] come popolare\nle aree che d'ora in avanti ricostruirai.\r"
+        },
+        {
+          "clear_seconds": 15.46,
+          "start_seconds": 10.03,
+          "text": "Per muovere i personaggi, devi prima\ncondurli sul treno con te.\r"
+        },
+        {
+          "clear_seconds": 21.22,
+          "start_seconds": 15.46,
+          "text": "Se a bordo non c'[UNI00e8] nessuno, beh... torna in citt[UNI00e0]\ne trova qualcuno da reclutare.\r"
+        },
+        {
+          "clear_seconds": 32.24,
+          "start_seconds": 21.22,
+          "text": "Quando hai delle persone con te,\npremi (O) davanti alla porta\ndi una delle tue nuove case per scegliere\nse entrare o alloggiarvi le persone.\r"
+        },
+        {
+          "clear_seconds": 51.35,
+          "start_seconds": 32.24,
+          "text": "Ora scegli \"Muovi personaggio\"\ne scegli i personaggi del treno che vuoi\nalloggiare. A questo punto, essi potranno iniziare\nla loro nuova vita in una casetta nuova di zecca!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 51.35,
+          "text": "Ci servono persone per ripopolare il mondo del futuro, no?\nAllora non perder tempo e radunane un po'!\r"
+        }
+      ],
+      "id": 937
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.03,
+          "start_seconds": 2.86,
+          "text": "Rimodellato il terreno e iniziata l'edificazione,\nusa il Varco temporale rosso per andare\nnel futuro.\r"
+        },
+        {
+          "clear_seconds": 17.24,
+          "start_seconds": 11.03,
+          "text": "Se hai soddisfatto tutte le condizioni, il corso\ndel futuro dovrebbe essere cambiato.\r"
+        },
+        {
+          "clear_seconds": 23.82,
+          "start_seconds": 17.24,
+          "text": "Quando vuoi tornare nel presente,\nsalta nel Varco temporale blu.\r"
+        },
+        {
+          "clear_seconds": 33.89,
+          "start_seconds": 23.82,
+          "text": "Il contributo che darai allo sviluppo del futuro\nti permetter[UNI00e0] di risolvere i problemi del presente.\nE di qui nasceranno nuovi cambiamenti nel futuro.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.89,
+          "text": "Se tieni duro e ce la metti tutta,\nriuscirai a riportare il futuro al suo stato originario.\r"
+        }
+      ],
+      "id": 938
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.16,
+          "start_seconds": 0.96,
+          "text": "Che c'[UNI00e8]? Ah, non hai capito come fare?\r"
+        },
+        {
+          "clear_seconds": 16.33,
+          "start_seconds": 7.16,
+          "text": "Ok, ok. Nel Menu Diorama c'[UNI00e8] un comando\nche si chiama \"Analizza\". Selezionalo.\r"
+        },
+        {
+          "clear_seconds": 22.25,
+          "start_seconds": 16.33,
+          "text": "Accederai a un elenco delle condizioni\nper sviluppare il futuro.\r"
+        },
+        {
+          "clear_seconds": 31.61,
+          "start_seconds": 22.25,
+          "text": "Gli sviluppi futuri sono scritti su grandi luci a sinistra.\nSe soddisfi le condizioni per un dato sviluppo\nla luce si accender[UNI00e0].\r"
+        },
+        {
+          "clear_seconds": 37.81,
+          "start_seconds": 31.61,
+          "text": "Per ogni luce che accendi,\ns'innescher[UNI00e0] un cambiamento nel futuro.\r"
+        },
+        {
+          "clear_seconds": 42.93,
+          "start_seconds": 37.81,
+          "text": "Al lavoro! contribuisci allo sviluppo del futuro!\r"
+        },
+        {
+          "clear_seconds": 55.25,
+          "start_seconds": 42.93,
+          "text": "Ottenendo nuove Geopietre, delle\nincognite indicate con dei \"?\" saranno\nsvelate. Perci[UNI00f2], se rimani bloccato,\nfruga meglio i labirinti.\r"
+        },
+        {
+          "clear_seconds": 61.73,
+          "start_seconds": 55.25,
+          "text": "Puoi controllare i progressi alla voce\nCompleto/a dell'Analisi Diorama.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 61.73,
+          "text": "Puoi proseguire anche se non sei al 100%, ma, se arrivi\nalla fine col 100%, ti aspetta una bella sorpresa.\nNon ti viene voglia di scoprire cosa sia?\r"
+        }
+      ],
+      "id": 939
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.47,
+          "start_seconds": 1.2,
+          "text": "Uno dei requisiti per sviluppare\nil Diorama [UNI00e8] ottenere\nun numero minimo di Punti Cultura, o PC.\r"
+        },
+        {
+          "clear_seconds": 16.48,
+          "start_seconds": 10.47,
+          "text": "I Punti Cultura indicano il livello\ndi cultura nell'area.\r"
+        },
+        {
+          "clear_seconds": 22.53,
+          "start_seconds": 16.48,
+          "text": "Puoi controllarli selezionando \"Cultura\"\ndal Menu Diorama.\r"
+        },
+        {
+          "clear_seconds": 30.68,
+          "start_seconds": 22.53,
+          "text": "Il metodo migliore per aumentare i Punti Cultura [UNI00e8] costruire \npi[UNI00f9] edifici. Ma non baster[UNI00e0] costruirli e basta...\r"
+        },
+        {
+          "clear_seconds": 41.32,
+          "start_seconds": 30.68,
+          "text": "Per ottenere pi[UNI00f9] punti per gli edifici,\nprova varie combinazioni, aggiungi camini,\nlampade... Insomma, rendili pi[UNI00f9] gradevoli!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.32,
+          "text": "Ad esempio, invece di costruire due case,\npotresti farne una con una lampada e un camino, ottenendo\npi[UNI00f9] Punti Cultura. Tutto chiaro?\r"
+        }
+      ],
+      "id": 940
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.4,
+          "start_seconds": 2.39,
+          "text": "Capiti a fagiolo!\nHo deciso, si terr[UNI00e0] un nuovo evento! il Pinna Sprint!\r"
+        },
+        {
+          "clear_seconds": 15.8,
+          "start_seconds": 8.4,
+          "text": "I partecipanti iscriveranno i propri pesci.\nCi sono molti premi in palio, perci[UNI00f2] non puoi tirarti\nindietro!\r"
+        },
+        {
+          "clear_seconds": 25.62,
+          "start_seconds": 15.8,
+          "text": "Durante la corsa dei pesci, quando vedrai la scritta\nCorsa Pesci in Corso sul Menu principale,\nporta con te il pesce che vuoi far gareggiare.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 25.62,
+          "text": "Ovviamente, la gara sar[UNI00e0] nella Piazza di Vallecatini.\r"
+        }
+      ],
+      "id": 941
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.65,
+          "start_seconds": 1.05,
+          "text": "Dato che sei nuovo delle corse dei pesci, ti dar[UNI00f2]\nqualche dritta su come allevarli.\r"
+        },
+        {
+          "clear_seconds": 15.39,
+          "start_seconds": 7.65,
+          "text": "Ovviamente, ti serve un acquario.\nMetti il pesce che hai preso nell'acquario,\nlo trovi negli Oggetti.\r"
+        },
+        {
+          "clear_seconds": 24.41,
+          "start_seconds": 15.39,
+          "text": "Col comando Acquario puoi vedere\nil pesce che vi hai messo dentro.\nCi sono 3 vasche in cui allevare i pesci.\r"
+        },
+        {
+          "clear_seconds": 31.52,
+          "start_seconds": 24.41,
+          "text": "La prima [UNI00e8] la \"Vasca Crescita\".\n[UNI00c8] quella in cui il tuo pesce vive e si nutre.\r"
+        },
+        {
+          "clear_seconds": 38.12,
+          "start_seconds": 31.52,
+          "text": "La forza dei pesci dipende da come li nutri,\nperci[UNI00f2] fallo con cura.\r"
+        },
+        {
+          "clear_seconds": 46.46,
+          "start_seconds": 38.12,
+          "text": "La seconda [UNI00e8] la \"Vasca Battaglia\".\nServe a migliorare la resistenza dei pesci per\nle gare con gli altri.\r"
+        },
+        {
+          "clear_seconds": 56.5,
+          "start_seconds": 46.46,
+          "text": "Se metti due o pi[UNI00f9] pesci in questa vasca,\ncombatteranno, migliorando le proprie prestazioni.\nPerci[UNI00f2], non ha senso tenerci un solo pesce.\r"
+        },
+        {
+          "clear_seconds": 63.11,
+          "start_seconds": 56.5,
+          "text": "Se non ritiri un pesce prima che i suoi PD \nfiniscano, morir[UNI00e0]. Perci[UNI00f2], attento!\r"
+        },
+        {
+          "clear_seconds": 73.19,
+          "start_seconds": 63.11,
+          "text": "Ed ora, l'ultima delle tre vasche:\nla Vasca Riproduzione\".\nSe unisci due pesci diversi puoi ottenerne\nuno migliore.\r"
+        },
+        {
+          "clear_seconds": 77.95,
+          "start_seconds": 73.19,
+          "text": "Anche qui, non ha senso tenerci un solo pesce.\r"
+        },
+        {
+          "clear_seconds": 86.93,
+          "start_seconds": 77.95,
+          "text": "Col tempo, e se la riproduzione va a buon fine,\ni pesci-genitori muoiono, ma al loro posto rester[UNI00e0]\nil nuovo pesciolino.\r"
+        },
+        {
+          "clear_seconds": 95.86,
+          "start_seconds": 86.93,
+          "text": "I 2 nuovi pesci ereditano le abilit[UNI00e0] dei loro\ngenitori; cos[UNI00ec], se i genitori erano deboli, loro\nnon potranno esser forti. Tienilo bene a mente!\r"
+        },
+        {
+          "clear_seconds": 103.25,
+          "start_seconds": 95.86,
+          "text": "Ottenere risultati positivi nella Vasca Battaglia e\nnella Vasca Riproduzione pu[UNI00f2] richiedere molto tempo.\r"
+        },
+        {
+          "clear_seconds": 111.24,
+          "start_seconds": 103.25,
+          "text": "Se ti va di passare tutto il tempo guardando i pesci,\nfai pure, ma forse [UNI00e8] meglio se, nel frattempo,\nti occupi di altre cose.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 111.24,
+          "text": "Il tempo trascorrer[UNI00e0] come nella vita reale, perci[UNI00f2],\ndi tanto in tanto, dai un'occhiata al pesce.\r"
+        }
+      ],
+      "id": 942
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.68,
+          "start_seconds": 2.89,
+          "text": "Bene, ora ti spiego come si partecipa al Pinna Sprint.\r"
+        },
+        {
+          "clear_seconds": 14.3,
+          "start_seconds": 7.68,
+          "text": "Per iscriverti, vai nel tendone in Piazza, a \nVallecatini, e parla col Direttore di Gara.\r"
+        },
+        {
+          "clear_seconds": 23.83,
+          "start_seconds": 14.3,
+          "text": "Puoi partecipare a tre corse alla volta. Dipende da te\nse far partecipare lo stesso pesce a tre gare, oppure\nse cambiarlo.\r"
+        },
+        {
+          "clear_seconds": 29.85,
+          "start_seconds": 23.83,
+          "text": "Il pesce si stanca, non [UNI00e8] una buona idea\nfarlo partecipare a tre corse di fila.\r"
+        },
+        {
+          "clear_seconds": 41.84,
+          "start_seconds": 29.85,
+          "text": "Se lasci il tendone prima che tutte e tre le corse siano\nconcluse, decreterai la fine dell'intero torneo.\nQuindi, rimanici per tutta la durata delle gare\nin corso.\r"
+        },
+        {
+          "clear_seconds": 50.15,
+          "start_seconds": 41.84,
+          "text": "Ok, hai detto al Direttore di Gara che vuoi partecipare.\nOra, scegli dall'acquario il pesce che vuoi iscrivere.\r"
+        },
+        {
+          "clear_seconds": 55.5,
+          "start_seconds": 50.15,
+          "text": "A questo punto, scegli un pesce dalla Vasca Crescita.\r"
+        },
+        {
+          "clear_seconds": 65.24,
+          "start_seconds": 55.5,
+          "text": "Ora seleziona la classe che desideri.\nCerca di scegliere quella pi[UNI00f9] adeguata al livello\ndel pesce.\r"
+        },
+        {
+          "clear_seconds": 78.0,
+          "start_seconds": 65.24,
+          "text": "Infine, scegli la vasca in cui effettuare il riscaldamento\nprima della corsa. Pensa bene alle caratteristiche\ndel pesce, perch[UNI00e9] la scelta della vasca incider[UNI00e0] \nsul suo rendimento.\r"
+        },
+        {
+          "clear_seconds": 88.52,
+          "start_seconds": 78.0,
+          "text": "La corsa pu[UNI00f2] avere cos[UNI00ec] inizio.\nOra, devi solo guardare. Mi raccomando,\nfai il tifo per incoraggiare il tuo\npesce!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 88.52,
+          "text": "Ti aspettano dei premi, perci[UNI00f2] datti da fare: allena\nun fuoriclasse!\r"
+        }
+      ],
+      "id": 943
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 2.86,
+          "text": "La tua avventura sar[UNI00e0]\nlunga e pericolosa!\nQuando hai voglia di fare una pausa,\nassicurati di salvare i progressi\nfatti fino a quel momento!\r"
+        },
+        {
+          "clear_seconds": 26.9,
+          "start_seconds": 14.15,
+          "text": "Nel corso delle tue avventure, troverai un misterioso libro \nluccicante. Se ti ci avvicini e premi (O), accederai\na una schermata che ti permetter[UNI00e0] di salvare la partita.\r"
+        },
+        {
+          "clear_seconds": 31.41,
+          "start_seconds": 26.9,
+          "text": "Riprenderai la tua \navventura nel punto esatto in\ncui l'hai lasciata.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.41,
+          "text": "Ricordati sempre di salvare la partita!\nNon lasciare che le tue avventure vadano perdute.\r"
+        }
+      ],
+      "id": 944
+    },
+    {
+      "entries": [],
+      "id": 999
+    }
+  ],
+  "kind": "movie_subtitles",
+  "schema_version": 2
+}

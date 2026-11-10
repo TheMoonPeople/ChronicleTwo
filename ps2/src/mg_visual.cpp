@@ -407,10 +407,10 @@ void mgCVisualMDT::CopyMDTData(MDT_HEADER *header, mgCMemory *memory) {
 
 void mgCVisualMDT::CopyMDTDataPointer(MDT_HEADER *header, mgCMemory *memory) {
     mgCTextureManager *textures = GetTextureManager();
-    int                vertex_address = (int) header + header->vertex_ofs;
-    int                normal_address = (int) header + header->normal_ofs;
-    int                colour_address = (int) header + header->colour_ofs;
-    int                uv_address = (int) header + header->uv_ofs;
+    uptr               vertex_address = (uptr) header + header->vertex_ofs;
+    uptr               normal_address = (uptr) header + header->normal_ofs;
+    uptr               colour_address = (uptr) header + header->colour_ofs;
+    uptr               uv_address = (uptr) header + header->uv_ofs;
     MDT_MATERIAL_     *file_materials = (MDT_MATERIAL_ *) ((u_char *) header + header->material_ofs);
     vertex_num = header->vertex_num;
     normal_num = header->normal_num;
@@ -421,7 +421,7 @@ void mgCVisualMDT::CopyMDTDataPointer(MDT_HEADER *header, mgCMemory *memory) {
     normal = (sceVu0FVECTOR *) normal_address;
     colour = (sceVu0FVECTOR *) colour_address;
     uv = (sceVu0FVECTOR *) uv_address;
-    material = (mgMaterial *) memory->Alloc(material_num * 0x30 / 16);
+    material = (mgMaterial *) memory->Alloc(material_num * (int) sizeof(mgMaterial) / 16);
 
     if (material != NULL) {
         for (int i = 0; i < material_num; i++) {
@@ -544,7 +544,7 @@ FACES_ID *mgCVisualMDT::CreateFace(FACES_ID *faces, mgCMemory *memory, mgCMemory
         last_face->next = face;
     }
 
-    switch ((int) out_face) {
+    switch ((uptr) out_face) {
         case 0:
             break;
         default:
@@ -604,7 +604,7 @@ int mgCVisualFixMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,
         scratch.stack_used = 0;
         scratch.lock = 0;
         cursor = self->CreateFace(cursor, memory, &scratch, &part);
-        int address = (int) &memory->stack[memory->stack_used];
+        uptr address = (uptr) &memory->stack[memory->stack_used];
         int size = self->CreateFacePacket((u_int *) address, part);
         part->packet_tag_word[0] = size | MG_DMA_REF;
         part->packet_tag_word[1] = address;
@@ -634,7 +634,7 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
 
     if (tag != NULL) {
         tag[0] = 0x50000000;
-        tag[1] = (int) buffer;
+        tag[1] = (uptr) buffer;
         tag[2] = 0;
         tag[3] = 0;
         u_int *cursor = tag + 4;
@@ -642,7 +642,7 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
         for (mgFACE_GROUP *node = model->face_group; node != NULL; node = node->next) {
             cursor += mgSendVuProg(cursor, node->vu_program);
             cursor[0] = 0x50000000;
-            cursor[1] = (u_int) node->packet;
+            cursor[1] = (uptr) node->packet;
             cursor[2] = 0;
             cursor[3] = 0;
             cursor += 4;
@@ -665,21 +665,21 @@ int mgCVisualMDT::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_mana
     return 0;
 }
 
-u_int mgCVisualMDT::CreatePacket(mgCDrawManager *manager) {
+uptr mgCVisualMDT::CreatePacket(mgCDrawManager *manager) {
     mgCVisualMDT *model = this;
     GetTextureManager();
     mgCMemory     *packet_memory;
     mgCMemory     *data_memory;
     mgFACE_GROUP  *node;
     mgRENDER_INFO *info;
-    int            data_start;
+    sptr           data_start;
     info = manager->render_info;
     packet_memory = manager->packet_memory;
     data_memory = manager->data_memory;
     node = model->face_group;
-    u_int start = (u_int) (packet_memory->stack + packet_memory->stack_used);
-    int   data_cursor;
-    data_start = (u_int) (data_memory->stack + data_memory->stack_used);
+    uptr start = (uptr) (packet_memory->stack + packet_memory->stack_used);
+    sptr  data_cursor;
+    data_start = (uptr) (data_memory->stack + data_memory->stack_used);
     data_cursor = data_start;
     u_char *cursor = (u_char *) start;
     prev_tex = 0;
@@ -730,30 +730,30 @@ u_int mgCVisualMDT::CreatePacket(mgCDrawManager *manager) {
         end_tag[1] = 0;
         end_tag[2] = 0;
         end_tag[3] = 0;
-        node->packet_size = ((int) cursor - (int) node->packet) / 16;
+        node->packet_size = ((sptr) cursor - (sptr) node->packet) / 16;
         node = node->next;
     }
 
-    packet_memory->stack_used += ((int) cursor - (int) start) / 16;
+    packet_memory->stack_used += ((sptr) cursor - (sptr) start) / 16;
     data_memory->stack_used += (data_cursor - data_start) / 16;
     return start & 0xFFFFFFF;
 }
 
-u_int mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
+uptr mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
     GetTextureManager();
     mgCMemory     *packet_memory;
     mgCMemory     *data_memory;
     mgFACE_GROUP  *node;
     mgRENDER_INFO *info;
-    int            data_start;
+    sptr           data_start;
     data_memory = manager->data_memory;
     packet_memory = manager->packet_memory;
     node = face_group;
     info = manager->render_info;
 
     manager = (mgCDrawManager *) (packet_memory->stack + packet_memory->stack_used);
-    data_start = (u_int) (data_memory->stack + data_memory->stack_used);
-    int     data_cursor = data_start;
+    data_start = (uptr) (data_memory->stack + data_memory->stack_used);
+    sptr    data_cursor = data_start;
     u_char *cursor = (u_char *) (u_int *) manager;
     cursor += mgSetPkTexFlush_TagCnt((u_int *) manager) * 16;
     prev_tex = 0;
@@ -796,13 +796,13 @@ u_int mgCVisualFixMDT::CreatePacket(mgCDrawManager *manager) {
         end_tag[1] = 0;
         end_tag[2] = 0;
         end_tag[3] = 0;
-        node->packet_size = ((int) cursor - (int) node->packet) / 16;
+        node->packet_size = ((sptr) cursor - (sptr) node->packet) / 16;
         node = node->next;
     }
 
-    packet_memory->stack_used += ((int) cursor - (int) (u_int *) manager) / 16;
+    packet_memory->stack_used += ((sptr) cursor - (sptr) (u_int *) manager) / 16;
     data_memory->stack_used += (data_cursor - data_start) / 16;
-    return (u_int) manager;
+    return (uptr) manager;
 }
 
 u_long128 *SetData0(int count, int type, int **index, u_long128 *packet, u_long128 *vertex, u_long128 *normal, u_long128 *uv, u_long128 *colour) {
@@ -1087,7 +1087,7 @@ int mgCVisualMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
 
     use_scratchpad = 0;
 
-    if (((u_int) packet & 0xF0000000) == MG_UNCACHED) {
+    if (((uptr) packet & 0xF0000000) == MG_UNCACHED) {
         use_scratchpad = 1;
     }
 

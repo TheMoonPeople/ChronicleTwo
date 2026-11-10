@@ -16,5 +16,17 @@
 
 /** Checks a compile-time condition by forming an array type. */
 #define STATIC_ASSERT(expr) typedef char _static_assert_##__COUNTER__[(expr) ? 1 : -1]
+/** Checks the size of a record read from disc; compiled out on the PS2, a static_assert on PC. */
+#ifndef PORT_RECORD_ASSERT
+#define PORT_RECORD_ASSERT(expr)
+#endif
+/** Initializes a variable retail reads uninitialized; compiled out on the PS2, an initializer on PC. */
+#ifndef PORT_INIT
+#define PORT_INIT(value)
+#endif
+/** Returns a value where retail falls off the end of a function; compiled out on the PS2, a return on PC. */
+#ifndef PORT_RETURN
+#define PORT_RETURN(value)
+#endif
 
 #endif

@@ -1,0 +1,74 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/env/sr_274.sound/sequences/sr_274_000.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/env/sr_274.sound/sequences/sr_274_001.json",
+      "flag": true,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "snd2/env/sr_274.sound/sequences/sr_274_002.json",
+      "flag": true,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "snd2/env/sr_274.sound/sequences/sr_274_003.json",
+      "flag": true,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 10
+    }
+  ],
+  "entry_count": 12,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

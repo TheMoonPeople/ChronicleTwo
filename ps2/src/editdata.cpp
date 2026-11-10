@@ -300,7 +300,7 @@ void CEditMap::SaveData(CEditData *data) {
                 }
             }
 
-            if ((int) out & 1) {
+            if ((uptr) out & 1) {
                 out++;
             }
         }
@@ -491,7 +491,7 @@ void CEditMap::LoadData(CEditData *data) {
                 }
             }
 
-            if ((int) in & 1) {
+            if ((uptr) in & 1) {
                 in++;
             }
         }

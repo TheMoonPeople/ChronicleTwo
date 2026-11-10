@@ -31,6 +31,7 @@
 #include "mglib.hpp"
 #include "movie.hpp"
 #include "nd_meswin.hpp"
+#include "pal_timing.hpp"
 #include "prespr.hpp"
 #include "savedata.hpp"
 #include "sceneload.hpp"
@@ -1379,7 +1380,7 @@ int RushMovieKey() {
 
     RushInfo.count++;
 
-    if (RushInfo.count > 750) {
+    if (RushInfo.count > PAL_TIMING(750, 900)) {
         CalcPushAlpha(1, &RushInfo.push_alpha);
     }
 
@@ -1441,7 +1442,7 @@ void TitleModeInit() {
     TitleScene->fade.FadeStep();
     TitleInfo->menu_alpha = 0.0f;
     TitleInfo->cursor_alpha = 0.0f;
-    TitleInfo->wait_count = 200;
+    TitleInfo->wait_count = PAL_TIMING(200, 240);
     TitleInfo->title_alpha = 0.0f;
     TitleInfo->omake_alpha = 0.0f;
     TitleInfo->push_alpha = 0.0f;
@@ -1457,12 +1458,12 @@ void TitleModeInit() {
     E3ModeBoardDrawFlag = 0;
     E3_Trial_SpriteY = 236.0f;
     E3ModeBoardDrawAlpha = 0;
-    TitleRushWaitCount = 1250;
+    TitleRushWaitCount = PAL_TIMING(1250, 1500);
     Trial_TitleBlackFadeAlpha = 0;
     DCSelectedMovie = 0;
 
     if (TitleRushWaitCountBoot == 0) {
-        TitleRushWaitCount = 750;
+        TitleRushWaitCount = PAL_TIMING(750, 900);
         TitleRushWaitCountBoot = 1;
     }
 
@@ -2137,7 +2138,7 @@ void TitleMapDraw() {
         case TITLE_CAMERA_HOLD:
             TitleCameraPhaseCounter++;
 
-            if ((u_int) TitleCameraPhaseCounter > 250) {
+            if ((u_int) TitleCameraPhaseCounter > PAL_TIMING(250, 300)) {
                 follow->FollowOff();
                 TitleCameraPhaseCounter = 0;
                 TitleCameraAddAngle = 0.0f;
@@ -2439,7 +2440,7 @@ int TitleCopyRightStep() {
         case COPYRIGHT_PHASE_DELAY:
             TitleCopyRightDispCounter++;
 
-            if (TitleCopyRightDispCounter > 25) {
+            if (TitleCopyRightDispCounter > PAL_TIMING(25, 30)) {
                 TitleCopyRightDispCounter = 0;
                 TitleCopyRightDispPhase = COPYRIGHT_PHASE_FADE_IN;
                 TitleScene->fade.FadeIn(50);
@@ -2456,7 +2457,7 @@ int TitleCopyRightStep() {
         case COPYRIGHT_PHASE_TRIAL_SHOW:
             TitleCopyRightDispCounter++;
 
-            if (TitleCopyRightDispCounter > 75) {
+            if (TitleCopyRightDispCounter > PAL_TIMING(75, 90)) {
                 TitleCopyRightDispPhase = COPYRIGHT_PHASE_TRIAL_FADE_OUT;
                 TitleScene->fade.FadeOut(20, 0.0f, 0.0f, 0.0f);
             }
@@ -2479,7 +2480,7 @@ int TitleCopyRightStep() {
         case COPYRIGHT_PHASE_SHOW:
             TitleCopyRightDispCounter++;
 
-            if (TitleCopyRightDispCounter >= 75) {
+            if (TitleCopyRightDispCounter >= PAL_TIMING(75, 90)) {
                 TitleCopyRightDispPhase = COPYRIGHT_PHASE_FADE_OUT;
                 TitleScene->fade.FadeOut(30, 0.0f, 0.0f, 0.0f);
             }

@@ -1,0 +1,50 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "i04h01e_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "i04h01e_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h01e_11-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

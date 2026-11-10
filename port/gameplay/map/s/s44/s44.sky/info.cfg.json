@@ -1,0 +1,91 @@
+{
+  "animations": [],
+  "back_animations": [],
+  "back_models": [
+    {
+      "band": 0,
+      "file": "",
+      "rotation_degrees": 0.0
+    },
+    {
+      "band": 1,
+      "file": "",
+      "rotation_degrees": 0.0
+    },
+    {
+      "band": 2,
+      "file": "sky2.gltf",
+      "rotation_degrees": 0.0
+    },
+    {
+      "band": 3,
+      "file": "",
+      "rotation_degrees": 0.0
+    }
+  ],
+  "backgrounds": [
+    {
+      "file": "sky_bg.gltf"
+    }
+  ],
+  "images": [
+    {
+      "band": 0,
+      "file": "sky0.json"
+    },
+    {
+      "band": 1,
+      "file": "sky1.json"
+    },
+    {
+      "band": 2,
+      "file": "sky2.json"
+    },
+    {
+      "band": 3,
+      "file": "sky3.json"
+    }
+  ],
+  "kind": "sky",
+  "models": [
+    {
+      "band": 0,
+      "file": "sky0.gltf",
+      "rotation_degrees": 0.0
+    },
+    {
+      "band": 1,
+      "file": "sky1.gltf",
+      "rotation_degrees": 0.023
+    },
+    {
+      "band": 2,
+      "file": "",
+      "rotation_degrees": 0.0
+    },
+    {
+      "band": 3,
+      "file": "sky3.gltf",
+      "rotation_degrees": 0.023
+    }
+  ],
+  "schema_version": 2,
+  "suns": [
+    {
+      "band": 0,
+      "file": "sky0_1.gltf"
+    },
+    {
+      "band": 1,
+      "file": "sky1_1.gltf"
+    },
+    {
+      "band": 2,
+      "file": "sky2_1.gltf"
+    },
+    {
+      "band": 3,
+      "file": "sky3_1.gltf"
+    }
+  ]
+}

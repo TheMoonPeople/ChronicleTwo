@@ -1,0 +1,10 @@
+# With --jump town:10 --fast-load: open the main menu, then its item page.
+# Capture at frame 1800 to inspect the selected inventory cell.
+300 cross
+306
+520 cross
+526
+1100 triangle
+1106
+1400 cross
+1406

@@ -1,0 +1,29 @@
+# --window 1280x960; an isolated copy of a save root.
+# Continue opens the flat list directly. Click the first file, Yes, acknowledge.
+300 circle
+306
+320 cross
+326
+900 start
+906
+1200 circle
+1206
+1500 cross
+1506
+2450 start
+2456
+2600 mouse:0,-110
+2601
+2650 mouse1
+2651
+3500 mouse:0,-80
+3501
+3600 mouse1
+3601
+3800 mouse:-90,140
+3801
+3900 mouse1
+3901
+4400 mouse1
+4401
+# Capture 4700: the selected save has loaded.

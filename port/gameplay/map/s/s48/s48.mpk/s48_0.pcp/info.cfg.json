@@ -1,0 +1,18 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s48_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s48_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "e640_paz.gltf",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

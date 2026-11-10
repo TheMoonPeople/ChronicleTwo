@@ -1,0 +1,133 @@
+# Requires game.debug_mode=true in the replay save root config.json.
+# Retail debug event select, then dialogue and short movement probes.
+300 circle
+306
+320 cross
+326
+500 l1 l2 r1 r2 r3
+506
+520 start select
+526
+900 pad1 circle
+902 pad1
+940 pad1 down
+942 pad1
+952 pad1 down
+954 pad1
+964 pad1 down
+966 pad1
+976 pad1 down
+978 pad1
+988 pad1 down
+990 pad1
+1020 pad1 circle
+1022 pad1
+1080 pad1 right
+1082 pad1
+1140 pad1 right
+1142 pad1
+1200 pad1 right
+1202 pad1
+1260 pad1 right
+1262 pad1
+1320 pad1 right
+1322 pad1
+1380 pad1 right
+1382 pad1
+1440 pad1 right
+1442 pad1
+1500 pad1 right
+1502 pad1
+1560 pad1 right
+1562 pad1
+1620 pad1 right
+1622 pad1
+1680 pad1 right
+1682 pad1
+1740 pad1 down
+1742 pad1
+1800 pad1 down
+1802 pad1
+1860 pad1 circle
+1862 pad1
+1940 pad1
+2000 pad1 cross
+2003 pad1
+2030 pad1 circle
+2033 pad1
+2060 pad1 170 64 128 128
+2100 pad1
+2120 pad1 86 192 128 128
+2160 pad1
+2240 pad1 cross
+2243 pad1
+2270 pad1 circle
+2273 pad1
+2300 pad1 170 64 128 128
+2340 pad1
+2360 pad1 86 192 128 128
+2400 pad1
+2480 pad1 cross
+2483 pad1
+2510 pad1 circle
+2513 pad1
+2540 pad1 170 64 128 128
+2580 pad1
+2600 pad1 86 192 128 128
+2640 pad1
+2720 pad1 cross
+2723 pad1
+2750 pad1 circle
+2753 pad1
+2780 pad1 170 64 128 128
+2820 pad1
+2840 pad1 86 192 128 128
+2880 pad1
+2960 pad1 cross
+2963 pad1
+2990 pad1 circle
+2993 pad1
+3020 pad1 170 64 128 128
+3060 pad1
+3080 pad1 86 192 128 128
+3120 pad1
+3200 pad1 cross
+3203 pad1
+3230 pad1 circle
+3233 pad1
+3260 pad1 170 64 128 128
+3300 pad1
+3320 pad1 86 192 128 128
+3360 pad1
+3440 pad1 cross
+3443 pad1
+3470 pad1 circle
+3473 pad1
+3500 pad1 170 64 128 128
+3540 pad1
+3560 pad1 86 192 128 128
+3600 pad1
+3680 pad1 cross
+3683 pad1
+3710 pad1 circle
+3713 pad1
+3740 pad1 170 64 128 128
+3780 pad1
+3800 pad1 86 192 128 128
+3840 pad1
+3920 pad1 cross
+3923 pad1
+3950 pad1 circle
+3953 pad1
+3980 pad1 170 64 128 128
+4020 pad1
+4040 pad1 86 192 128 128
+4080 pad1
+4160 pad1 cross
+4163 pad1
+4190 pad1 circle
+4193 pad1
+4220 pad1 170 64 128 128
+4260 pad1
+4280 pad1 86 192 128 128
+4320 pad1

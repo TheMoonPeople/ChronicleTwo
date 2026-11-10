@@ -1,0 +1,1378 @@
+{
+  "kind": "monster_names",
+  "names": [
+    {
+      "id": 0,
+      "name": "R. de alcantarilla"
+    },
+    {
+      "id": 1,
+      "name": "Rata de playa"
+    },
+    {
+      "id": 2,
+      "name": "Ogro del castillo"
+    },
+    {
+      "id": 3,
+      "name": "Rat[UNI00f3]n moribundo"
+    },
+    {
+      "id": 4,
+      "name": "Vanguard"
+    },
+    {
+      "id": 5,
+      "name": "Neo Vanguard"
+    },
+    {
+      "id": 6,
+      "name": "Vanguard Mk 2"
+    },
+    {
+      "id": 7,
+      "name": "Burst desgarrador"
+    },
+    {
+      "id": 8,
+      "name": "Ranita"
+    },
+    {
+      "id": 9,
+      "name": "Geron"
+    },
+    {
+      "id": 10,
+      "name": "Gamal"
+    },
+    {
+      "id": 11,
+      "name": "Angelitos"
+    },
+    {
+      "id": 12,
+      "name": "Tore"
+    },
+    {
+      "id": 13,
+      "name": "Tore humeante"
+    },
+    {
+      "id": 14,
+      "name": "Tore loco"
+    },
+    {
+      "id": 15,
+      "name": "[UNI00c1]rbol grandioso"
+    },
+    {
+      "id": 16,
+      "name": "Kotore"
+    },
+    {
+      "id": 17,
+      "name": "Kotore humeante"
+    },
+    {
+      "id": 18,
+      "name": "Dorone"
+    },
+    {
+      "id": 19,
+      "name": "Arbolito"
+    },
+    {
+      "id": 20,
+      "name": "Zorro de caza"
+    },
+    {
+      "id": 21,
+      "name": "Zorro rojo"
+    },
+    {
+      "id": 22,
+      "name": "Lobo amenazador"
+    },
+    {
+      "id": 23,
+      "name": "Lobo sonriente"
+    },
+    {
+      "id": 24,
+      "name": "Bar[UNI00f3]n Balloon"
+    },
+    {
+      "id": 25,
+      "name": "Flotsam Balloon"
+    },
+    {
+      "id": 26,
+      "name": "Conde Balloon"
+    },
+    {
+      "id": 27,
+      "name": "Duque Balloon"
+    },
+    {
+      "id": 28,
+      "name": "Tortuga"
+    },
+    {
+      "id": 29,
+      "name": "Tortuga de mar"
+    },
+    {
+      "id": 30,
+      "name": "Tortuga estrella"
+    },
+    {
+      "id": 31,
+      "name": "Tortuga negra"
+    },
+    {
+      "id": 32,
+      "name": "Tortuga marina"
+    },
+    {
+      "id": 33,
+      "name": "Fintol"
+    },
+    {
+      "id": 34,
+      "name": "Arkerath"
+    },
+    {
+      "id": 35,
+      "name": "Atornillador"
+    },
+    {
+      "id": 36,
+      "name": "Payaso"
+    },
+    {
+      "id": 37,
+      "name": "Soldado Griffon"
+    },
+    {
+      "id": 38,
+      "name": "Artista malvado"
+    },
+    {
+      "id": 39,
+      "name": "Alquimista oscuro"
+    },
+    {
+      "id": 40,
+      "name": "Tigriff"
+    },
+    {
+      "id": 41,
+      "name": "Quimera"
+    },
+    {
+      "id": 42,
+      "name": "Leogriff"
+    },
+    {
+      "id": 43,
+      "name": "Esfinge"
+    },
+    {
+      "id": 44,
+      "name": "Duendecillo"
+    },
+    {
+      "id": 45,
+      "name": "S[UNI00ed]lfide"
+    },
+    {
+      "id": 46,
+      "name": "Faerie"
+    },
+    {
+      "id": 47,
+      "name": "Diablillo"
+    },
+    {
+      "id": 48,
+      "name": "Linda"
+    },
+    {
+      "id": 49,
+      "name": "Elfas"
+    },
+    {
+      "id": 50,
+      "name": "Fantasma Moonflower"
+    },
+    {
+      "id": 51,
+      "name": "Polilla Behe"
+    },
+    {
+      "id": 52,
+      "name": "Himarra"
+    },
+    {
+      "id": 53,
+      "name": "Balalla"
+    },
+    {
+      "id": 54,
+      "name": "Flor tormentosa"
+    },
+    {
+      "id": 55,
+      "name": "Mandora"
+    },
+    {
+      "id": 56,
+      "name": "Gyumo"
+    },
+    {
+      "id": 57,
+      "name": "Blumo"
+    },
+    {
+      "id": 58,
+      "name": "Cabuble"
+    },
+    {
+      "id": 59,
+      "name": "Minotauro"
+    },
+    {
+      "id": 60,
+      "name": "Night Stalker"
+    },
+    {
+      "id": 61,
+      "name": "Trapo apestoso"
+    },
+    {
+      "id": 62,
+      "name": "Infiltrado"
+    },
+    {
+      "id": 63,
+      "name": "Espectro"
+    },
+    {
+      "id": 64,
+      "name": "Drag[UNI00f3]n"
+    },
+    {
+      "id": 65,
+      "name": "Drag[UNI00f3]n rojo"
+    },
+    {
+      "id": 66,
+      "name": "Drag[UNI00f3]n terrestre"
+    },
+    {
+      "id": 67,
+      "name": "Tiamat"
+    },
+    {
+      "id": 68,
+      "name": "Devora-Memos"
+    },
+    {
+      "id": 69,
+      "name": "Burgu[UNI00e9]s"
+    },
+    {
+      "id": 70,
+      "name": "Atormentador"
+    },
+    {
+      "id": 71,
+      "name": "Ladha"
+    },
+    {
+      "id": 72,
+      "name": "Damara[UNI00f1]a"
+    },
+    {
+      "id": 73,
+      "name": "Shiva"
+    },
+    {
+      "id": 74,
+      "name": "Damara[UNI00f1]a"
+    },
+    {
+      "id": 75,
+      "name": "Bambamchoo"
+    },
+    {
+      "id": 76,
+      "name": "Elemento Fuego"
+    },
+    {
+      "id": 77,
+      "name": "Esp[UNI00ed]ritu del fuego"
+    },
+    {
+      "id": 78,
+      "name": "Fantasma [UNI00ed]gneo"
+    },
+    {
+      "id": 79,
+      "name": "Sirviente Magma"
+    },
+    {
+      "id": 80,
+      "name": "Elemento Hielo"
+    },
+    {
+      "id": 81,
+      "name": "Esp[UNI00ed]ritu del hielo"
+    },
+    {
+      "id": 82,
+      "name": "Fantasma de nieve"
+    },
+    {
+      "id": 83,
+      "name": "Sirviente de nieve"
+    },
+    {
+      "id": 84,
+      "name": "Vigoroso"
+    },
+    {
+      "id": 85,
+      "name": "Esp[UNI00ed]ritu aterrador"
+    },
+    {
+      "id": 86,
+      "name": "Fantasma aterrador"
+    },
+    {
+      "id": 87,
+      "name": "Sirviente aterrador"
+    },
+    {
+      "id": 88,
+      "name": "Elemento Agua"
+    },
+    {
+      "id": 89,
+      "name": "Esp[UNI00ed]ritu del agua"
+    },
+    {
+      "id": 90,
+      "name": "Fantasma de la lluvia"
+    },
+    {
+      "id": 91,
+      "name": "Sirviente de la tempestad"
+    },
+    {
+      "id": 92,
+      "name": "Elemento Viento"
+    },
+    {
+      "id": 93,
+      "name": "Esp[UNI00ed]ritu volador"
+    },
+    {
+      "id": 94,
+      "name": "Fantasma tormentoso"
+    },
+    {
+      "id": 95,
+      "name": "Sirviente del viento"
+    },
+    {
+      "id": 96,
+      "name": "Tribu enmascarada"
+    },
+    {
+      "id": 97,
+      "name": "Corredor de lava"
+    },
+    {
+      "id": 98,
+      "name": "Guardi[UNI00e1]n de la piedra"
+    },
+    {
+      "id": 99,
+      "name": "[UNI00da]ltimo guardi[UNI00e1]n"
+    },
+    {
+      "id": 100,
+      "name": "Cabeza Calabaza"
+    },
+    {
+      "id": 101,
+      "name": "Zucky"
+    },
+    {
+      "id": 102,
+      "name": "Mallone"
+    },
+    {
+      "id": 103,
+      "name": "Cuervo asustador"
+    },
+    {
+      "id": 104,
+      "name": "Momia"
+    },
+    {
+      "id": 105,
+      "name": "Bundy"
+    },
+    {
+      "id": 106,
+      "name": "Demonio"
+    },
+    {
+      "id": 107,
+      "name": "Vengativo"
+    },
+    {
+      "id": 108,
+      "name": "Hierba devora-hombres"
+    },
+    {
+      "id": 109,
+      "name": "Rosa maldita"
+    },
+    {
+      "id": 110,
+      "name": "Flor oscura"
+    },
+    {
+      "id": 111,
+      "name": "Planta misteriosa"
+    },
+    {
+      "id": 112,
+      "name": "Gemron de fuego"
+    },
+    {
+      "id": 113,
+      "name": "Gundron de fuego"
+    },
+    {
+      "id": 114,
+      "name": "Pato de fuego"
+    },
+    {
+      "id": 115,
+      "name": "Wyrm de fuego"
+    },
+    {
+      "id": 116,
+      "name": "Gemron de hielo"
+    },
+    {
+      "id": 117,
+      "name": "Gundron de hielo"
+    },
+    {
+      "id": 118,
+      "name": "Pato de hielo"
+    },
+    {
+      "id": 119,
+      "name": "Wyrm de hielo"
+    },
+    {
+      "id": 120,
+      "name": "Gemron aterrador"
+    },
+    {
+      "id": 121,
+      "name": "Gundron aterrador"
+    },
+    {
+      "id": 122,
+      "name": "Pato aterrador"
+    },
+    {
+      "id": 123,
+      "name": "Wyrm aterrador"
+    },
+    {
+      "id": 124,
+      "name": "Gemron de viento"
+    },
+    {
+      "id": 125,
+      "name": "Gundron de viento"
+    },
+    {
+      "id": 126,
+      "name": "Pato de viento"
+    },
+    {
+      "id": 127,
+      "name": "Wyrm de viento"
+    },
+    {
+      "id": 128,
+      "name": "Gemron sagrado"
+    },
+    {
+      "id": 129,
+      "name": "Gundron sagrado"
+    },
+    {
+      "id": 130,
+      "name": "Pato sagrado"
+    },
+    {
+      "id": 131,
+      "name": "Wyrm sagrado"
+    },
+    {
+      "id": 132,
+      "name": "Nikapous"
+    },
+    {
+      "id": 133,
+      "name": "M[UNI00e1]scara de hierro"
+    },
+    {
+      "id": 134,
+      "name": "Ummagumma"
+    },
+    {
+      "id": 135,
+      "name": "Incuder"
+    },
+    {
+      "id": 136,
+      "name": "Carnero"
+    },
+    {
+      "id": 137,
+      "name": "Carnero salvaje"
+    },
+    {
+      "id": 138,
+      "name": "Carnero Z"
+    },
+    {
+      "id": 139,
+      "name": "Bandu"
+    },
+    {
+      "id": 140,
+      "name": "Moler"
+    },
+    {
+      "id": 141,
+      "name": "Moler de arena"
+    },
+    {
+      "id": 142,
+      "name": "Moler minero"
+    },
+    {
+      "id": 143,
+      "name": "Moler ocupado"
+    },
+    {
+      "id": 144,
+      "name": "Serpiente asesina"
+    },
+    {
+      "id": 145,
+      "name": "Serpiente marina"
+    },
+    {
+      "id": 146,
+      "name": "Drag[UNI00f3]n de arena"
+    },
+    {
+      "id": 147,
+      "name": "Soga de la muerte"
+    },
+    {
+      "id": 148,
+      "name": "Goyone"
+    },
+    {
+      "id": 149,
+      "name": "Goyone humeante"
+    },
+    {
+      "id": 150,
+      "name": "Goyone lunar"
+    },
+    {
+      "id": 151,
+      "name": "Navegante"
+    },
+    {
+      "id": 152,
+      "name": "T[UNI00ed]a Medusa"
+    },
+    {
+      "id": 153,
+      "name": "Gordo gru[UNI00f1][UNI00f3]n"
+    },
+    {
+      "id": 154,
+      "name": "Srta. Gourgon"
+    },
+    {
+      "id": 155,
+      "name": "Sra. Gourgon"
+    },
+    {
+      "id": 156,
+      "name": "Perro estatua"
+    },
+    {
+      "id": 157,
+      "name": "Perro coral"
+    },
+    {
+      "id": 158,
+      "name": "Roca enana"
+    },
+    {
+      "id": 159,
+      "name": "Cerbero"
+    },
+    {
+      "id": 160,
+      "name": "Ivanoff"
+    },
+    {
+      "id": 161,
+      "name": "Magmanoff"
+    },
+    {
+      "id": 162,
+      "name": "Cara de Roca"
+    },
+    {
+      "id": 163,
+      "name": "Iwanosuke"
+    },
+    {
+      "id": 164,
+      "name": "Estatua"
+    },
+    {
+      "id": 165,
+      "name": "Armadura viviente"
+    },
+    {
+      "id": 166,
+      "name": "Guardia"
+    },
+    {
+      "id": 167,
+      "name": "Guardi[UNI00e1]n oscuro"
+    },
+    {
+      "id": 168,
+      "name": "Golem"
+    },
+    {
+      "id": 169,
+      "name": "Golem volc[UNI00e1]nico"
+    },
+    {
+      "id": 170,
+      "name": "Degustador de rocas"
+    },
+    {
+      "id": 171,
+      "name": "Tit[UNI00e1]n"
+    },
+    {
+      "id": 172,
+      "name": "Se[UNI00f1]or Hueso"
+    },
+    {
+      "id": 173,
+      "name": "Llama desgarradora"
+    },
+    {
+      "id": 174,
+      "name": "Demonio desgarrador"
+    },
+    {
+      "id": 175,
+      "name": "Rey Hueso"
+    },
+    {
+      "id": 176,
+      "name": "Soldado fantasma"
+    },
+    {
+      "id": 177,
+      "name": "Cabeza-cuerno"
+    },
+    {
+      "id": 178,
+      "name": "Robot plateado"
+    },
+    {
+      "id": 179,
+      "name": "Robot de platino"
+    },
+    {
+      "id": 180,
+      "name": "Chaqueta Jefa"
+    },
+    {
+      "id": 181,
+      "name": "Ropa ardiente"
+    },
+    {
+      "id": 182,
+      "name": "Calavera jefe"
+    },
+    {
+      "id": 183,
+      "name": "Chaqueta extra[UNI00f1]a"
+    },
+    {
+      "id": 184,
+      "name": "Capit[UNI00e1]n"
+    },
+    {
+      "id": 185,
+      "name": "Barbanegra"
+    },
+    {
+      "id": 186,
+      "name": "Barbablanca"
+    },
+    {
+      "id": 187,
+      "name": "Oyakata"
+    },
+    {
+      "id": 188,
+      "name": "Pirata"
+    },
+    {
+      "id": 189,
+      "name": "Pirata zombi"
+    },
+    {
+      "id": 190,
+      "name": "Ladr[UNI00f3]n de Minerales"
+    },
+    {
+      "id": 191,
+      "name": "Pirata de elite"
+    },
+    {
+      "id": 192,
+      "name": "Cara de Prajna"
+    },
+    {
+      "id": 193,
+      "name": "Alexander"
+    },
+    {
+      "id": 194,
+      "name": "Cara de Yaksa"
+    },
+    {
+      "id": 195,
+      "name": "Mu[UNI00f1]eco Duende"
+    },
+    {
+      "id": 196,
+      "name": "Hada sonriente"
+    },
+    {
+      "id": 197,
+      "name": "Hada ardiente"
+    },
+    {
+      "id": 198,
+      "name": "Hada amiga"
+    },
+    {
+      "id": 199,
+      "name": "Hada del infierno"
+    },
+    {
+      "id": 200,
+      "name": "Bar[UNI00f3]n creciente"
+    },
+    {
+      "id": 201,
+      "name": "Joe bast[UNI00f3]n"
+    },
+    {
+      "id": 202,
+      "name": "Joe lunar"
+    },
+    {
+      "id": 203,
+      "name": "Masa de luz lunar"
+    },
+    {
+      "id": 204,
+      "name": "Oscuridad"
+    },
+    {
+      "id": 205,
+      "name": "Tiznado"
+    },
+    {
+      "id": 206,
+      "name": "Oscurecido"
+    },
+    {
+      "id": 207,
+      "name": "Sombra"
+    },
+    {
+      "id": 208,
+      "name": "Cura de Rama"
+    },
+    {
+      "id": 209,
+      "name": "Sleeber"
+    },
+    {
+      "id": 210,
+      "name": "Cura cuervo"
+    },
+    {
+      "id": 211,
+      "name": "Garuda"
+    },
+    {
+      "id": 212,
+      "name": "Arturo"
+    },
+    {
+      "id": 213,
+      "name": "Lancero"
+    },
+    {
+      "id": 214,
+      "name": "Lanza de hierro"
+    },
+    {
+      "id": 215,
+      "name": "Acero volador"
+    },
+    {
+      "id": 216,
+      "name": "Tanque pirata"
+    },
+    {
+      "id": 217,
+      "name": "Ojo pirata"
+    },
+    {
+      "id": 218,
+      "name": "Ca[UNI00f1][UNI00f3]n enfadado"
+    },
+    {
+      "id": 219,
+      "name": "Fantasma de hierro"
+    },
+    {
+      "id": 220,
+      "name": "Jefe Bombitas"
+    },
+    {
+      "id": 221,
+      "name": "Triple petardo"
+    },
+    {
+      "id": 222,
+      "name": "Bomba peligrosa"
+    },
+    {
+      "id": 223,
+      "name": "Dulce dinamita"
+    },
+    {
+      "id": 224,
+      "name": "Tr[UNI00e9]boles"
+    },
+    {
+      "id": 225,
+      "name": "S. Tr[UNI00e9]boles"
+    },
+    {
+      "id": 226,
+      "name": "R. Tr[UNI00e9]boles"
+    },
+    {
+      "id": 227,
+      "name": "RSF Tr[UNI00e9]boles"
+    },
+    {
+      "id": 228,
+      "name": "Corazones"
+    },
+    {
+      "id": 229,
+      "name": "S. Corazones"
+    },
+    {
+      "id": 230,
+      "name": "R. Corazones"
+    },
+    {
+      "id": 231,
+      "name": "RSF Corazones"
+    },
+    {
+      "id": 232,
+      "name": "Picas"
+    },
+    {
+      "id": 233,
+      "name": "S. Picas"
+    },
+    {
+      "id": 234,
+      "name": "R. Picas"
+    },
+    {
+      "id": 235,
+      "name": "RSF Picas"
+    },
+    {
+      "id": 236,
+      "name": "Diamantes"
+    },
+    {
+      "id": 237,
+      "name": "S. Diamantes"
+    },
+    {
+      "id": 238,
+      "name": "R. Diamantes"
+    },
+    {
+      "id": 239,
+      "name": "RSF Diamantes"
+    },
+    {
+      "id": 240,
+      "name": "Comod[UNI00ed]n"
+    },
+    {
+      "id": 241,
+      "name": "S. Comod[UNI00ed]n"
+    },
+    {
+      "id": 242,
+      "name": "R. Comod[UNI00ed]n"
+    },
+    {
+      "id": 243,
+      "name": "RSF Comod[UNI00ed]n"
+    },
+    {
+      "id": 245,
+      "name": "Mimic"
+    },
+    {
+      "id": 246,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 247,
+      "name": "Mimic"
+    },
+    {
+      "id": 248,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 249,
+      "name": "Mimic"
+    },
+    {
+      "id": 250,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 251,
+      "name": "Mimic"
+    },
+    {
+      "id": 252,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 253,
+      "name": "Mimic"
+    },
+    {
+      "id": 254,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 255,
+      "name": "Mimic"
+    },
+    {
+      "id": 256,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 257,
+      "name": "Mimic"
+    },
+    {
+      "id": 258,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 259,
+      "name": "Mimic"
+    },
+    {
+      "id": 260,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 261,
+      "name": "Mimic"
+    },
+    {
+      "id": 262,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 263,
+      "name": "Mimic"
+    },
+    {
+      "id": 264,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 265,
+      "name": "Mimic"
+    },
+    {
+      "id": 266,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 267,
+      "name": "Mimic"
+    },
+    {
+      "id": 268,
+      "name": "Mimic Real"
+    },
+    {
+      "id": 269,
+      "name": "Bombitas s[UNI00f3]nico"
+    },
+    {
+      "id": 270,
+      "name": "Bomba ultras[UNI00f3]nica"
+    },
+    {
+      "id": 271,
+      "name": "Bombitas met[UNI00e1]lico"
+    },
+    {
+      "id": 272,
+      "name": "Krau Mauness"
+    },
+    {
+      "id": 273,
+      "name": "Barrilete"
+    },
+    {
+      "id": 274,
+      "name": "Rocas rodillo"
+    },
+    {
+      "id": 275,
+      "name": "Caballero del reloj"
+    },
+    {
+      "id": 276,
+      "name": "Platillo rodante"
+    },
+    {
+      "id": 277,
+      "name": "Murci[UNI00e9]lago"
+    },
+    {
+      "id": 278,
+      "name": "Murci[UNI00e9]lago marino"
+    },
+    {
+      "id": 279,
+      "name": "Murci[UNI00e9]lago volc[UNI00e1]nico"
+    },
+    {
+      "id": 280,
+      "name": "Murci[UNI00e9]lago malvado"
+    },
+    {
+      "id": 500,
+      "name": "Halloween"
+    },
+    {
+      "id": 501,
+      "name": "Mariposa"
+    },
+    {
+      "id": 502,
+      "name": "Mariposa"
+    },
+    {
+      "id": 503,
+      "name": "Mariposa"
+    },
+    {
+      "id": 504,
+      "name": "Mariposa"
+    },
+    {
+      "id": 505,
+      "name": "Mariposa"
+    },
+    {
+      "id": 506,
+      "name": "Mariposa"
+    },
+    {
+      "id": 507,
+      "name": "Mariposa"
+    },
+    {
+      "id": 508,
+      "name": "Mariposa"
+    },
+    {
+      "id": 509,
+      "name": "Pistilo de Lafrescia"
+    },
+    {
+      "id": 510,
+      "name": "Gaspard"
+    },
+    {
+      "id": 511,
+      "name": "Monstruo Gaspard"
+    },
+    {
+      "id": 512,
+      "name": "Gaspard"
+    },
+    {
+      "id": 513,
+      "name": "Llama malvada"
+    },
+    {
+      "id": 514,
+      "name": "Shigura indefenso"
+    },
+    {
+      "id": 515,
+      "name": "???"
+    },
+    {
+      "id": 516,
+      "name": "Shingala"
+    },
+    {
+      "id": 517,
+      "name": "Arca de la Muerte"
+    },
+    {
+      "id": 518,
+      "name": "Arsenal"
+    },
+    {
+      "id": 519,
+      "name": "Ametralladora"
+    },
+    {
+      "id": 520,
+      "name": "Miniarsenal"
+    },
+    {
+      "id": 522,
+      "name": "Jaming"
+    },
+    {
+      "id": 523,
+      "name": "Soldado Griffon"
+    },
+    {
+      "id": 600,
+      "name": "Payaso"
+    },
+    {
+      "id": 601,
+      "name": "Linda"
+    },
+    {
+      "id": 602,
+      "name": "Lin"
+    },
+    {
+      "id": 603,
+      "name": "Mammo"
+    },
+    {
+      "id": 604,
+      "name": "Pesadilla"
+    },
+    {
+      "id": 605,
+      "name": "Drag[UNI00f3]n negro"
+    },
+    {
+      "id": 606,
+      "name": "Uther"
+    },
+    {
+      "id": 607,
+      "name": "Gaja Uno"
+    },
+    {
+      "id": 608,
+      "name": "Gaja Dos"
+    },
+    {
+      "id": 609,
+      "name": "Trentos"
+    },
+    {
+      "id": 610,
+      "name": "Kortlenn"
+    },
+    {
+      "id": 611,
+      "name": "Lapis Garter"
+    },
+    {
+      "id": 612,
+      "name": "Drag[UNI00f3]n marino"
+    },
+    {
+      "id": 613,
+      "name": "Inferno"
+    },
+    {
+      "id": 614,
+      "name": "Linda"
+    },
+    {
+      "id": 615,
+      "name": "Emperador Griffon"
+    },
+    {
+      "id": 616,
+      "name": "Emperador Griffon"
+    },
+    {
+      "id": 617,
+      "name": "Emperador Griffon"
+    },
+    {
+      "id": 618,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 619,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 620,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 621,
+      "name": "Se[UNI00f1]or oscuro"
+    },
+    {
+      "id": 622,
+      "name": "Luna"
+    },
+    {
+      "id": 628,
+      "name": "Flotsam met[UNI00e1]lico"
+    },
+    {
+      "id": 629,
+      "name": "Genio oscuro"
+    },
+    {
+      "id": 630,
+      "name": "Genio oscuro"
+    },
+    {
+      "id": 700,
+      "name": "Himarra"
+    },
+    {
+      "id": 701,
+      "name": "Damara[UNI00f1]a"
+    },
+    {
+      "id": 702,
+      "name": "Gyumo"
+    },
+    {
+      "id": 703,
+      "name": "Zorro de caza"
+    },
+    {
+      "id": 704,
+      "name": "Duendecillo"
+    },
+    {
+      "id": 1000,
+      "name": "Robomba"
+    },
+    {
+      "id": 1001,
+      "name": "Pez el[UNI00e9]ctrico"
+    },
+    {
+      "id": 1002,
+      "name": "Bomba"
+    },
+    {
+      "id": 1003,
+      "name": "Bomba"
+    },
+    {
+      "id": 1004,
+      "name": "Bomba"
+    },
+    {
+      "id": 1005,
+      "name": "Bomba"
+    },
+    {
+      "id": 1006,
+      "name": "Bomba"
+    },
+    {
+      "id": 1500,
+      "name": "Monster"
+    },
+    {
+      "id": 1501,
+      "name": "Monster"
+    }
+  ],
+  "schema_version": 2
+}

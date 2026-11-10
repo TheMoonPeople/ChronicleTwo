@@ -1,0 +1,1880 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mt0",
+      "textures": [
+        {
+          "name": "お金袋",
+          "rect": [
+            102,
+            236,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "ギルダ",
+          "rect": [
+            122,
+            236,
+            36,
+            16
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "shop",
+      "textures": [
+        {
+          "name": "タイル",
+          "rect": [
+            256,
+            0,
+            256,
+            128
+          ]
+        },
+        {
+          "name": "品物リスト上",
+          "rect": [
+            0,
+            0,
+            218,
+            53
+          ]
+        },
+        {
+          "name": "品物リスト中",
+          "rect": [
+            0,
+            52,
+            218,
+            16
+          ]
+        },
+        {
+          "name": "品物リスト下",
+          "rect": [
+            0,
+            69,
+            218,
+            25
+          ]
+        },
+        {
+          "name": "もらえるもの",
+          "rect": [
+            294,
+            128,
+            218,
+            53
+          ]
+        },
+        {
+          "name": "区切りバー",
+          "rect": [
+            0,
+            142,
+            176,
+            6
+          ]
+        },
+        {
+          "name": "品物バー上",
+          "rect": [
+            211,
+            94,
+            8,
+            10
+          ]
+        },
+        {
+          "name": "品物バー中",
+          "rect": [
+            211,
+            104,
+            8,
+            10
+          ]
+        },
+        {
+          "name": "品物バー下",
+          "rect": [
+            211,
+            114,
+            8,
+            10
+          ]
+        },
+        {
+          "name": "所持数",
+          "rect": [
+            0,
+            148,
+            57,
+            48
+          ]
+        },
+        {
+          "name": "店数字大",
+          "rect": [
+            0,
+            212,
+            11,
+            20
+          ]
+        },
+        {
+          "name": "店名ボード",
+          "rect": [
+            0,
+            94,
+            209,
+            47
+          ]
+        },
+        {
+          "name": "店ギルダ",
+          "rect": [
+            0,
+            196,
+            36,
+            16
+          ]
+        },
+        {
+          "name": "やめる",
+          "rect": [
+            106,
+            148,
+            60,
+            26
+          ]
+        },
+        {
+          "name": "店EXP",
+          "rect": [
+            36,
+            196,
+            36,
+            16
+          ]
+        },
+        {
+          "name": "VOICEUNIT",
+          "rect": [
+            106,
+            174,
+            34,
+            34
+          ]
+        },
+        {
+          "name": "ヒマーラ",
+          "rect": [
+            140,
+            174,
+            34,
+            34
+          ]
+        },
+        {
+          "name": "枚",
+          "rect": [
+            72,
+            194,
+            18,
+            18
+          ]
+        },
+        {
+          "name": "メダル板",
+          "rect": [
+            354,
+            200,
+            158,
+            56
+          ]
+        },
+        {
+          "name": "each",
+          "rect": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "makebrd",
+      "textures": [
+        {
+          "name": "メイク左1",
+          "rect": [
+            0,
+            0,
+            24,
+            25
+          ]
+        },
+        {
+          "name": "メイク中1",
+          "rect": [
+            23,
+            0,
+            2,
+            25
+          ]
+        },
+        {
+          "name": "メイク右1",
+          "rect": [
+            25,
+            0,
+            23,
+            25
+          ]
+        },
+        {
+          "name": "メイク左2",
+          "rect": [
+            0,
+            25,
+            23,
+            2
+          ]
+        },
+        {
+          "name": "メイク中2",
+          "rect": [
+            23,
+            25,
+            2,
+            2
+          ]
+        },
+        {
+          "name": "メイク右2",
+          "rect": [
+            25,
+            25,
+            23,
+            2
+          ]
+        },
+        {
+          "name": "メイク左3",
+          "rect": [
+            0,
+            27,
+            23,
+            14
+          ]
+        },
+        {
+          "name": "メイク中3",
+          "rect": [
+            23,
+            27,
+            2,
+            14
+          ]
+        },
+        {
+          "name": "メイク右3",
+          "rect": [
+            25,
+            27,
+            23,
+            14
+          ]
+        },
+        {
+          "name": "メイク左4",
+          "rect": [
+            0,
+            41,
+            23,
+            14
+          ]
+        },
+        {
+          "name": "メイク中4",
+          "rect": [
+            23,
+            41,
+            2,
+            14
+          ]
+        },
+        {
+          "name": "メイク右4",
+          "rect": [
+            25,
+            41,
+            23,
+            14
+          ]
+        },
+        {
+          "name": "メイク左5",
+          "rect": [
+            0,
+            43,
+            23,
+            24
+          ]
+        },
+        {
+          "name": "メイク中5",
+          "rect": [
+            23,
+            43,
+            2,
+            24
+          ]
+        },
+        {
+          "name": "メイク右5",
+          "rect": [
+            25,
+            43,
+            23,
+            24
+          ]
+        },
+        {
+          "name": "メイク左6",
+          "rect": [
+            0,
+            67,
+            23,
+            24
+          ]
+        },
+        {
+          "name": "メイク中6",
+          "rect": [
+            23,
+            67,
+            2,
+            24
+          ]
+        },
+        {
+          "name": "メイク右6",
+          "rect": [
+            25,
+            67,
+            23,
+            24
+          ]
+        },
+        {
+          "name": "メイクNO",
+          "rect": [
+            68,
+            46,
+            60,
+            26
+          ]
+        },
+        {
+          "name": "数板1",
+          "rect": [
+            54,
+            50,
+            6,
+            22
+          ]
+        },
+        {
+          "name": "数板2",
+          "rect": [
+            60,
+            50,
+            2,
+            22
+          ]
+        },
+        {
+          "name": "数板3",
+          "rect": [
+            62,
+            50,
+            6,
+            22
+          ]
+        },
+        {
+          "name": "メイク数",
+          "rect": [
+            0,
+            116,
+            10,
+            12
+          ]
+        },
+        {
+          "name": "矢印上",
+          "rect": [
+            48,
+            72,
+            14,
+            10
+          ]
+        },
+        {
+          "name": "矢印下",
+          "rect": [
+            48,
+            82,
+            14,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "item0",
+      "textures": [
+        {
+          "name": "rbfrm_pt",
+          "rect": [
+            416,
+            140,
+            96,
+            46
+          ]
+        },
+        {
+          "name": "num3",
+          "rect": [
+            0,
+            92,
+            12,
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "店背景",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                0,
+                0,
+                0,
+                128
+              ]
+            }
+          ],
+          "name": "0",
+          "part": "fillbox",
+          "size": [
+            512,
+            416
+          ],
+          "style": 0,
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "BackTile",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": 1
+                },
+                {
+                  "index": 1,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "タイル",
+          "part": "normal",
+          "texture": "タイル",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "bg_tile"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "itembrd",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "itembrd"
+        },
+        {
+          "set": "position",
+          "xy": [
+            560,
+            26
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                560.0,
+                26.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                224.0,
+                26.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "giftview",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            200,
+            200
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "giftview"
+        }
+      ]
+    },
+    {
+      "name": "moveitem0",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "moveitem1",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "moneybrd",
+      "op": "form",
+      "parts": [
+        {
+          "name": "left0",
+          "part": "normal",
+          "texture": "brdc0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "right0",
+          "part": "normal",
+          "texture": "brdc2",
+          "xy": [
+            168,
+            0
+          ]
+        },
+        {
+          "name": "cen0",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc1",
+          "xy": [
+            16,
+            0
+          ]
+        },
+        {
+          "name": "left1",
+          "part": "normal",
+          "size": [
+            16,
+            8
+          ],
+          "texture": "brdc3",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "name": "right1",
+          "part": "normal",
+          "size": [
+            16,
+            8
+          ],
+          "texture": "brdc5",
+          "xy": [
+            168,
+            14
+          ]
+        },
+        {
+          "name": "cen1",
+          "part": "normal",
+          "size": [
+            160,
+            8
+          ],
+          "texture": "brdc4",
+          "xy": [
+            16,
+            14
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "left2",
+          "part": "normal",
+          "texture": "brdc6",
+          "xy": [
+            2,
+            24
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "right2",
+          "part": "normal",
+          "texture": "brdc8",
+          "xy": [
+            170,
+            24
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "cen2",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc7",
+          "xy": [
+            18,
+            24
+          ]
+        },
+        {
+          "name": "left2",
+          "part": "normal",
+          "texture": "brdc6",
+          "xy": [
+            0,
+            22
+          ]
+        },
+        {
+          "name": "cen2",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc7",
+          "xy": [
+            16,
+            22
+          ]
+        },
+        {
+          "name": "right2",
+          "part": "normal",
+          "texture": "brdc8",
+          "xy": [
+            168,
+            22
+          ]
+        },
+        {
+          "name": "icon",
+          "part": "normal",
+          "texture": "お金袋",
+          "xy": [
+            10,
+            8
+          ]
+        },
+        {
+          "name": "gilda",
+          "part": "normal",
+          "texture": "ギルダ",
+          "xy": [
+            126,
+            11
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "numtime",
+          "value": 0,
+          "xy": [
+            118,
+            8
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 20,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            520,
+            6
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                520.0,
+                6.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                300.0,
+                6.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "EXPBRD",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "rbfrm_pt",
+          "part": "normal",
+          "texture": "rbfrm_pt",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "corep",
+          "part": "number2",
+          "size": [
+            3,
+            0
+          ],
+          "texture": "num3",
+          "value": 5,
+          "xy": [
+            86,
+            20
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                520.0,
+                6.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                340.0,
+                6.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        },
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "MEDALBRD",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "メダル板",
+          "part": "normal",
+          "texture": "メダル板",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "numtime",
+          "value": 0,
+          "xy": [
+            108,
+            18
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            520,
+            3
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                520.0,
+                3.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                300.0,
+                3.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "店名ボード",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "店名ボード",
+          "part": "normal",
+          "texture": "店名ボード",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "中心",
+          "part": "funcinfo",
+          "xy": [
+            105,
+            12
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            16,
+            18
+          ]
+        },
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                -300.0,
+                18.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                14.0,
+                18.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "品物ボード",
+      "op": "form",
+      "parts": [
+        {
+          "name": "バー基本",
+          "part": "funcinfo",
+          "xy": [
+            202,
+            40
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "上",
+          "part": "normal",
+          "texture": "品物リスト上",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "中",
+          "part": "normal",
+          "size": [
+            218,
+            250
+          ],
+          "texture": "品物リスト中",
+          "xy": [
+            0,
+            52
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "下",
+          "part": "normal",
+          "texture": "品物リスト下",
+          "xy": [
+            0,
+            300
+          ]
+        },
+        {
+          "name": "SP",
+          "part": "normal",
+          "texture": "もらえるもの",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "b0",
+          "part": "normal",
+          "texture": "品物バー上",
+          "xy": [
+            203,
+            40
+          ]
+        },
+        {
+          "name": "b1",
+          "part": "normal",
+          "texture": "品物バー中",
+          "xy": [
+            203,
+            40
+          ]
+        },
+        {
+          "name": "b2",
+          "part": "normal",
+          "texture": "品物バー下",
+          "xy": [
+            203,
+            40
+          ]
+        },
+        {
+          "name": "所持数",
+          "part": "normal",
+          "texture": "所持数",
+          "xy": [
+            150,
+            -6
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            8,
+            74
+          ]
+        },
+        {
+          "count": 9,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "shopclip1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            1,
+            116
+          ]
+        },
+        {
+          "set": "clip",
+          "size": [
+            400,
+            270
+          ]
+        }
+      ]
+    },
+    {
+      "name": "品物リスト",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            12,
+            74
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "shoplist"
+        }
+      ]
+    },
+    {
+      "name": "shopclip2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "clip"
+        }
+      ]
+    },
+    {
+      "name": "dmy_msg0",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "売買ボード",
+      "op": "form",
+      "parts": [
+        {
+          "name": "0",
+          "part": "funcinfo",
+          "xy": [
+            0,
+            138
+          ]
+        },
+        {
+          "name": "1",
+          "part": "funcinfo",
+          "xy": [
+            102,
+            138
+          ]
+        },
+        {
+          "name": "列0",
+          "part": "funcinfo",
+          "xy": [
+            20,
+            20
+          ]
+        },
+        {
+          "name": "列1",
+          "part": "funcinfo",
+          "xy": [
+            80,
+            72
+          ]
+        },
+        {
+          "name": "合計金額",
+          "part": "funcinfo",
+          "xy": [
+            22,
+            105
+          ]
+        },
+        {
+          "name": "メイク左1",
+          "part": "normal",
+          "texture": "メイク左1",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "メイク中1",
+          "part": "normal",
+          "size": [
+            212,
+            25
+          ],
+          "texture": "メイク中1",
+          "xy": [
+            23,
+            0
+          ]
+        },
+        {
+          "name": "メイク右1",
+          "part": "normal",
+          "texture": "メイク右1",
+          "xy": [
+            235,
+            0
+          ]
+        },
+        {
+          "name": "メイク左2",
+          "part": "normal",
+          "size": [
+            23,
+            100
+          ],
+          "texture": "メイク左2",
+          "xy": [
+            0,
+            25
+          ]
+        },
+        {
+          "name": "メイク中2",
+          "part": "normal",
+          "size": [
+            212,
+            100
+          ],
+          "texture": "メイク中2",
+          "xy": [
+            23,
+            25
+          ]
+        },
+        {
+          "name": "メイク右2",
+          "part": "normal",
+          "size": [
+            23,
+            100
+          ],
+          "texture": "メイク右2",
+          "xy": [
+            235,
+            25
+          ]
+        },
+        {
+          "name": "メイク左3",
+          "part": "normal",
+          "texture": "メイク左3",
+          "xy": [
+            0,
+            125
+          ]
+        },
+        {
+          "name": "メイク中3",
+          "part": "normal",
+          "size": [
+            212,
+            14
+          ],
+          "texture": "メイク中3",
+          "xy": [
+            23,
+            125
+          ]
+        },
+        {
+          "name": "メイク右3",
+          "part": "normal",
+          "texture": "メイク右3",
+          "xy": [
+            235,
+            125
+          ]
+        },
+        {
+          "name": "メイク左4",
+          "part": "normal",
+          "size": [
+            23,
+            19
+          ],
+          "texture": "メイク左4",
+          "xy": [
+            0,
+            139
+          ]
+        },
+        {
+          "name": "メイク中4",
+          "part": "normal",
+          "size": [
+            212,
+            19
+          ],
+          "texture": "メイク中4",
+          "xy": [
+            23,
+            139
+          ]
+        },
+        {
+          "name": "メイク右4",
+          "part": "normal",
+          "size": [
+            23,
+            19
+          ],
+          "texture": "メイク右4",
+          "xy": [
+            235,
+            139
+          ]
+        },
+        {
+          "name": "メイク左5",
+          "part": "normal",
+          "texture": "メイク左5",
+          "xy": [
+            0,
+            158
+          ]
+        },
+        {
+          "name": "メイク中5",
+          "part": "normal",
+          "size": [
+            212,
+            24
+          ],
+          "texture": "メイク中5",
+          "xy": [
+            23,
+            158
+          ]
+        },
+        {
+          "name": "メイク右5",
+          "part": "normal",
+          "texture": "メイク右5",
+          "xy": [
+            235,
+            158
+          ]
+        },
+        {
+          "name": "数板1",
+          "part": "normal",
+          "texture": "数板1",
+          "xy": [
+            44,
+            142
+          ]
+        },
+        {
+          "name": "数板2",
+          "part": "normal",
+          "size": [
+            42,
+            22
+          ],
+          "texture": "数板2",
+          "xy": [
+            50,
+            142
+          ]
+        },
+        {
+          "name": "数板3",
+          "part": "normal",
+          "texture": "数板3",
+          "xy": [
+            92,
+            142
+          ]
+        },
+        {
+          "name": "数",
+          "part": "number1",
+          "texture": "メイク数",
+          "value": 1,
+          "xy": [
+            76,
+            147
+          ]
+        },
+        {
+          "name": "矢印上",
+          "part": "normal",
+          "texture": "矢印上",
+          "xy": [
+            64,
+            134
+          ]
+        },
+        {
+          "name": "矢印下",
+          "part": "normal",
+          "texture": "矢印下",
+          "xy": [
+            64,
+            162
+          ]
+        },
+        {
+          "name": "NO",
+          "part": "normal",
+          "texture": "やめる",
+          "xy": [
+            138,
+            141
+          ]
+        },
+        {
+          "name": "区切りバー",
+          "part": "normal",
+          "size": [
+            230,
+            3
+          ],
+          "texture": "区切りバー",
+          "xy": [
+            14,
+            98
+          ]
+        },
+        {
+          "name": "ギルダ１",
+          "part": "normal",
+          "texture": "店ギルダ",
+          "xy": [
+            190,
+            50
+          ]
+        },
+        {
+          "name": "ギルダ２",
+          "part": "normal",
+          "texture": "店ギルダ",
+          "xy": [
+            190,
+            110
+          ]
+        },
+        {
+          "name": "EXP1",
+          "part": "normal",
+          "texture": "店EXP",
+          "xy": [
+            190,
+            50
+          ]
+        },
+        {
+          "name": "EXP2",
+          "part": "normal",
+          "texture": "店EXP",
+          "xy": [
+            190,
+            110
+          ]
+        },
+        {
+          "name": "枚1",
+          "part": "normal",
+          "texture": "枚",
+          "xy": [
+            190,
+            48
+          ]
+        },
+        {
+          "name": "枚2",
+          "part": "normal",
+          "texture": "枚",
+          "xy": [
+            190,
+            108
+          ]
+        },
+        {
+          "name": "each",
+          "part": "normal",
+          "texture": "each",
+          "xy": [
+            236,
+            74
+          ]
+        },
+        {
+          "name": "単品",
+          "part": "number1",
+          "texture": "店数字大",
+          "value": 0,
+          "xy": [
+            186,
+            46
+          ]
+        },
+        {
+          "name": "合計",
+          "part": "number1",
+          "texture": "店数字大",
+          "value": 0,
+          "xy": [
+            186,
+            106
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            32,
+            50
+          ]
+        },
+        {
+          "name": "VOICEUNIT",
+          "part": "normal",
+          "size": [
+            32,
+            40
+          ],
+          "texture": "VOICEUNIT",
+          "xy": [
+            32,
+            50
+          ]
+        },
+        {
+          "name": "ヒマーラ",
+          "part": "normal",
+          "size": [
+            32,
+            40
+          ],
+          "texture": "ヒマーラ",
+          "xy": [
+            32,
+            50
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            120,
+            90
+          ]
+        },
+        {
+          "count": 40,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "op": "reset_texinfo"
+    }
+  ],
+  "schema_version": 2
+}

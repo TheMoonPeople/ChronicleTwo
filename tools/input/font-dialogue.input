@@ -1,0 +1,6 @@
+# With --jump dungeon:0:1 --fast-load: enter the floor and let the first voiced caption reveal.
+# Capture frame 1050 with --screenshot-display 1 to compare the same text-font settings.
+300 cross
+306
+520 cross
+526

@@ -1,17 +1,19 @@
+#include "mw_runtime.h"
+
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
+#include <format>
+#include <print>
 
+#include "crash/crash.hpp"
 #include "exitcodes.hpp"
-#include "mw_runtime.h"
 
 // stdout is flushed first so the game's own context (LoadFile names the file) precedes the message.
-// _Exit skips static destructors, which would tear the renderer down under a frame still in progress.
+// The exit skips static destructors, which would tear the renderer down under a frame still in progress.
 extern "C" [[noreturn]] void __assert(const char *file, int line, const char *expression) {
     std::fflush(stdout);
-    std::fprintf(stderr, "%s:%d: assertion failed: %s\n", file, line, expression);
-    std::fflush(nullptr);
-    std::_Exit(kExitGameAssert);
+    CrashReportAndExit(CrashKind::Assert, std::format("{}:{}: assertion failed: {}", file, line, expression), kExitGameAssert);
 }
 
 // glibc declares these noexcept; Apple's libc and the Windows CRT do not.
@@ -71,18 +73,18 @@ extern "C" unsigned int fptoui(float value) {
 // The MWCC layout: element size and count in the first 16 bytes, elements after. Every caller
 // passes a null destructor and no constructor throws in the port, so the partial-construction
 // cleanup is not reproduced.
-extern "C" void *__construct_new_array(void *allocation, void *(*constructor)(void *), void *,
-                                                    unsigned int element_size, int count) {
-    if (allocation == NULL) {
-        return NULL;
+extern "C" void *__construct_new_array(void        *allocation, void *(*constructor)(void *), void        */*unused*/,
+                                       unsigned int element_size, int count) {
+    if (allocation == nullptr) {
+        return nullptr;
     }
 
-    unsigned int *header = static_cast<unsigned int *>(allocation);
+    auto *header = static_cast<unsigned int *>(allocation);
     header[0] = element_size;
     header[1] = static_cast<unsigned int>(count);
     char *array = static_cast<char *>(allocation) + 16;
 
-    if (constructor != NULL) {
+    if (constructor != nullptr) {
         for (int index = 0; index < count; index++) {
             constructor(array + static_cast<size_t>(index) * element_size);
         }

@@ -36,7 +36,7 @@ int chk_int(RS_STACKDATA data, funcdata *func) {
         return data.val.i;
     }
 
-    fprintf(stderr, "RUNTIME ERROR: %s: operand is not integer\n", func->name);
+    fprintf(stderr, "RUNTIME ERROR: %s: operand is not integer\n", (char *) (uptr) func->name);
     exit(-1);
     return 0;
 }
@@ -87,7 +87,7 @@ void print(RS_STACKDATA *slots, int count) {
             if (slots->type == RS_INT) {
                 printf("%d", slots->val.i);
             } else if (slots->type == RS_STR) {
-                printf("%s", slots->val.i);
+                printf("%s", slots->val.s);
             } else if (slots->type == RS_FLOAT) {
                 printf("%f", slots->val.f);
             }
@@ -493,7 +493,7 @@ void CRunScript::exe(vmcode_t *entry) {
                         rhs_f = rhs.val.i;
                         lhs_f = lhs.val.f;
                     } else {
-                        fprintf(stderr, "RUNTIME ERROR at _CMP: %s: operand is not number\n", func->name);
+                        fprintf(stderr, "RUNTIME ERROR at _CMP: %s: operand is not number\n", (char *) (uptr) func->name);
                         exit(-1);
                     }
 
@@ -533,7 +533,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (lhs.type == RS_FLOAT && rhs.type == RS_INT) {
                     push_float(lhs.val.f + rhs.val.i);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _ADD: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _ADD: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -551,7 +551,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (lhs.type == RS_FLOAT && rhs.type == RS_INT) {
                     push_float(lhs.val.f - rhs.val.i);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _SUB: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _SUB: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -569,7 +569,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (lhs.type == RS_FLOAT && rhs.type == RS_INT) {
                     push_float(lhs.val.f * rhs.val.i);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR _MUL: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR _MUL: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -592,7 +592,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (lhs.type == RS_FLOAT && rhs.type == RS_INT) {
                     push_float(lhs.val.f / rhs.val.i);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _DIV: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _DIV: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -622,7 +622,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (rhs.type == RS_FLOAT) {
                     push_float(-rhs.val.f);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _INVT: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _INVT: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -635,7 +635,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (rhs.type == RS_FLOAT) {
                     push_float(sinf(rhs.val.f));
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _SIN: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _SIN: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -648,7 +648,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (rhs.type == RS_FLOAT) {
                     push_float(cosf(rhs.val.f));
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _COS: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _COS: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -659,7 +659,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 if (rhs.type == RS_INT) {
                     push_int(!rhs.val.i);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR: %s: \x90\xAE\x90\x94\x82\xC5\x82\xC8\x82\xA2\x83I\x83y\x83\x89\x83\x93\x83h\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR: %s: \x90\xAE\x90\x94\x82\xC5\x82\xC8\x82\xA2\x83I\x83y\x83\x89\x83\x93\x83h\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -672,7 +672,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (rhs.type == RS_FLOAT) {
                     push_float(rhs.val.f);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _ITOF: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _ITOF: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 
@@ -685,7 +685,7 @@ void CRunScript::exe(vmcode_t *entry) {
                 } else if (rhs.type == RS_FLOAT) {
                     push_int((int) rhs.val.f);
                 } else {
-                    fprintf(stderr, "RUNTIME ERROR at _FTOI: %s: operand is not number\n", func->name);
+                    fprintf(stderr, "RUNTIME ERROR at _FTOI: %s: operand is not number\n", (char *) (uptr) func->name);
                     exit(-1);
                 }
 

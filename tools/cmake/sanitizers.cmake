@@ -1,0 +1,31 @@
+# Instrument the native build, including host libraries, before their targets are created.
+set(CT_SANITIZERS none CACHE STRING "Native runtime checks: none, address or address,undefined")
+set_property(CACHE CT_SANITIZERS PROPERTY STRINGS none address address,undefined)
+if(CT_SANITIZERS STREQUAL "none")
+    return()
+endif()
+if(NOT CT_SANITIZERS MATCHES "^(address|address,undefined)$")
+    message(FATAL_ERROR "CT_SANITIZERS must be none, address or address,undefined")
+endif()
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR WIN32 OR PLATFORM STREQUAL "SWITCH"
+        OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    message(FATAL_ERROR "CT_SANITIZERS requires a desktop Linux or macOS Clang toolchain with compiler-rt")
+endif()
+
+include(CheckCXXSourceCompiles)
+include(CMakePushCheckState)
+cmake_push_check_state(RESET)
+set(CMAKE_REQUIRED_FLAGS "-fsanitize=${CT_SANITIZERS} -fno-sanitize-recover=all")
+unset(CT_SANITIZER_RUNTIME_AVAILABLE CACHE)
+check_cxx_source_compiles("int main() { return 0; }" CT_SANITIZER_RUNTIME_AVAILABLE)
+cmake_pop_check_state()
+if(NOT CT_SANITIZER_RUNTIME_AVAILABLE)
+    message(FATAL_ERROR "The selected compiler cannot link the requested sanitizer runtimes")
+endif()
+
+add_compile_options(-fsanitize=${CT_SANITIZERS} -fno-sanitize-recover=all
+    -fno-omit-frame-pointer -fsanitize-address-use-after-scope)
+add_link_options(-fsanitize=${CT_SANITIZERS} -fno-sanitize-recover=all)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_link_options(-fuse-ld=lld)
+endif()

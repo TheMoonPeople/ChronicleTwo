@@ -1,5 +1,0 @@
-PASS path 0 speed 8.530462 completed in 58 distance steps
-PASS path 1 speed 8.097962 completed in 58 distance steps
-PASS camera position and reference paths
-FAIL path 0 frame step 57 is nonfinite
-PASS baseline reproduces the nonfinite endpoint

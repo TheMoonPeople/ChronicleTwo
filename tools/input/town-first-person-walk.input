@@ -1,0 +1,11 @@
+# --jump town:10 --fast-load; eye baseline 620, walked 700, exit 920.
+0
+600 key:r
+601
+610 mouse:1800,0
+611
+640 key:w
+690 key:w mouse:3,0
+710
+900 key:r
+901

@@ -15,6 +15,7 @@
 #include "menucommon.hpp"
 #include "monster.hpp"
 #include "npccfg.hpp"
+#include "pal_timing.hpp"
 #include "quest.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
@@ -2373,7 +2374,7 @@ void CFishAquarium::RefreshParam() {
     }
 
     for (i = 0; i < 6; i++) {
-        fish_tank[i].TimeCheck(elapsed);
+        fish_tank[i].TimeCheck(PAL_TIMING(elapsed, (elapsed) * 6 / 5));
     }
 
     int fish_num = GetAquariumFishNum(AQUARIUM_TANK_SECOND);
@@ -2385,7 +2386,7 @@ void CFishAquarium::RefreshParam() {
 
     for (i = 0; i < 4; i++) {
         if (sub_tank[i].item_no > 0) {
-            sub_tank[i].TimeCheck(elapsed);
+            sub_tank[i].TimeCheck(PAL_TIMING(elapsed, (elapsed) * 6 / 5));
             int   tank_days = day - sub_tank[i].data.fish.tank_day;
             float tank_hours = hour - sub_tank[i].data.fish.tank_hour;
 
@@ -2426,7 +2427,7 @@ void CFishAquarium::RefreshParam() {
     }
 
     for (i = 0; i < 2; i++) {
-        breed_tank[i].TimeCheck(elapsed);
+        breed_tank[i].TimeCheck(PAL_TIMING(elapsed, (elapsed) * 6 / 5));
     }
 
     if (fatigue_step) {
@@ -2817,7 +2818,7 @@ void CUserDataManager::RefreshParam() {
     int elapsed = (int) (now - last_refresh_time);
 
     for (int slot = 0; slot < 150; slot++) {
-        used_data[slot].TimeCheck(elapsed);
+        used_data[slot].TimeCheck(PAL_TIMING(elapsed, (elapsed) * 6 / 5));
     }
 
     unk_451d0 = unk_451d0 % 0x534;
@@ -5244,7 +5245,7 @@ void CBattleCharaInfo::ClearMagicSwordPow() {
 }
 
 float CBattleCharaInfo::AddAbs(int slot, float amount, int *leveled_up) {
-    float        rate;
+    float        rate PORT_INIT(0.0f);
     COMMON_GAGE *gage = GetNowAccessAbs(slot);
 
     if (gage == NULL) {
@@ -5636,7 +5637,7 @@ int CBattleCharaInfo::StatusParamStep(int *poison_damage) {
     if ((weapon_param[0].special & WEAPON_SPECIAL_REGENERATE_HP) || (weapon_param[1].special & WEAPON_SPECIAL_REGENERATE_HP)) {
         regen_count++;
 
-        if (regen_count >= 125) {
+        if (regen_count >= PAL_TIMING(125, 150)) {
             hp->AddPoint(1.0f);
             regen_count = 0;
         }
@@ -5645,7 +5646,7 @@ int CBattleCharaInfo::StatusParamStep(int *poison_damage) {
     if (attr & CHARA_STATUS_POISON) {
         poison_count++;
 
-        if (poison_count >= 100) {
+        if (poison_count >= PAL_TIMING(100, 120)) {
             COMMON_GAGE *gauge = hp;
             float        poison_rate = 0.02f * gauge->max;
 

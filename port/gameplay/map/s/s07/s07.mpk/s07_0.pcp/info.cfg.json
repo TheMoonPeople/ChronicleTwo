@@ -1,0 +1,66 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "train_in_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "train_in_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "train_in_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "hari01-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

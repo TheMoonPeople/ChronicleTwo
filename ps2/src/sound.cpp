@@ -420,7 +420,7 @@ void CSound::DEL_PORT(int port) {
     ezMidi(port + 0x20, 0);
 
     if (midi_state.port[port].sequence_count != 0) {
-        ezMidi(port + 0x40, (int) midi_state.port[port].resident_sequence);
+        ezMidi(port + 0x40, (uptr) midi_state.port[port].resident_sequence);
     }
 
     for (int slot = 1; slot < midi_state.port[port].sequence_count; slot++) {
@@ -441,7 +441,7 @@ void CSound::DEL_PORT(int port) {
         ezMidi(midi_state.port[port].linked_port + 0x20, 0);
 
         if (midi_state.port[midi_state.port[port].linked_port].sequence_count != 0) {
-            ezMidi(midi_state.port[port].linked_port + 0x40, (int) midi_state.port[midi_state.port[port].linked_port].resident_sequence);
+            ezMidi(midi_state.port[port].linked_port + 0x40, (uptr) midi_state.port[midi_state.port[port].linked_port].resident_sequence);
         }
 
         for (int slot = 1; slot < midi_state.port[midi_state.port[port].linked_port].sequence_count; slot++) {
@@ -466,7 +466,7 @@ void CSound::DEL_PORT(int port) {
         midi_state.port[dependent_port].spu_next_address = midi_state.port[dependent_port].spu_address = midi_state.port[port].spu_address;
 
         if (midi_state.port[dependent_port].sequence_count != 0) {
-            ezMidi(dependent_port + 0x40, (int) midi_state.port[dependent_port].resident_sequence);
+            ezMidi(dependent_port + 0x40, (uptr) midi_state.port[dependent_port].resident_sequence);
         }
 
         for (int slot = 1; slot < midi_state.port[dependent_port].sequence_count; slot++) {
@@ -491,7 +491,7 @@ void CSound::SQ_Play(int port, int seq_no, int volume) {
 
     ezMidi(port + 0x20, 0);
     printf("MIDI start! port=%d \n", port);
-    ezMidi(port + 0x40, (int) sequence);
+    ezMidi(port + 0x40, (uptr) sequence);
     printf("###############PLAY SEQ_NO=%d PORT=%d#####################\n", seq_no, port);
 
     if (volume != 256) {
@@ -723,11 +723,11 @@ void CSound::LoadHdBd2(int port, int hd, int hd_size, int bd, int bd_size) {
     TransHdBd(hd, hd_size, bd, bd_size);
     gBank.bank_no = 0;
     ezMidi(port + 0x20, 0);
-    ezMidi(port + 0x9050, (int) &gBank);
+    ezMidi(port + 0x9050, (uptr) &gBank);
 
     if (midi_state.port[port].linked_port >= 0) {
         ezMidi(midi_state.port[port].linked_port + 0x20, 0);
-        ezMidi(midi_state.port[port].linked_port + 0x9050, (int) &gBank);
+        ezMidi(midi_state.port[port].linked_port + 0x9050, (uptr) &gBank);
     }
 
     for (slot = 0; slot < midi_state.port[port].bank_count; slot++) {
@@ -739,7 +739,7 @@ void CSound::LoadHdBd2(int port, int hd, int hd_size, int bd, int bd_size) {
     midi_state.port[port].bank_count = 0;
 
     if (midi_state.port[port].sequence_count != 0) {
-        ezMidi(port + 0x40, (int) midi_state.port[port].resident_sequence);
+        ezMidi(port + 0x40, (uptr) midi_state.port[port].resident_sequence);
     }
 
     for (int slot = 1; slot < midi_state.port[port].sequence_count; slot++) {
@@ -764,7 +764,7 @@ void CSound::LoadHdBd2(int port, int hd, int hd_size, int bd, int bd_size) {
         midi_state.port[midi_state.port[port].linked_port].bank_count = 0;
 
         if (midi_state.port[midi_state.port[port].linked_port].sequence_count != 0) {
-            ezMidi(midi_state.port[port].linked_port + 0x40, (int) midi_state.port[midi_state.port[port].linked_port].resident_sequence);
+            ezMidi(midi_state.port[port].linked_port + 0x40, (uptr) midi_state.port[midi_state.port[port].linked_port].resident_sequence);
         }
 
         for (int slot = 1; slot < midi_state.port[midi_state.port[port].linked_port].sequence_count; slot++) {
@@ -844,10 +844,10 @@ int CSound::LoadHdBdAdd(int port, int hd, int hd_size, int bd, int bd_size) {
         child->spu_next_address = child->spu_address = midi_state.port[port].spu_next_address;
     }
 
-    result = ezMidi(port + 0x9050, (int) &gBank);
+    result = ezMidi(port + 0x9050, (uptr) &gBank);
 
     if (midi_state.port[port].linked_port >= 0) {
-        result = ezMidi(midi_state.port[port].linked_port + 0x9050, (int) &gBank);
+        result = ezMidi(midi_state.port[port].linked_port + 0x9050, (uptr) &gBank);
     }
 
     if (midi_state.port[port].linked_port >= 0) {
@@ -883,7 +883,7 @@ int CSound::LoadSeq(int port, int address, int size) {
     ezTransToIOP2(sequence, (void *) address, size);
 
     if (midi_state.port[port].sequence_count == 0) {
-        ezMidi(port + 0x40, (int) sequence);
+        ezMidi(port + 0x40, (uptr) sequence);
 
         if (midi_state.port[port].resident_sequence != NULL) {
             sceSifFreeSysMemory(midi_state.port[port].resident_sequence);
@@ -929,7 +929,7 @@ void CSound::StreamOpenFast(int channel, char *name) {
 
     strcpy(file_name, name);
     ezBgm(channel | 0x80, 0);
-    bgm_info[channel] = ezBgm(channel | EZBGM_OPEN, (int) file_name);
+    bgm_info[channel] = ezBgm(channel | EZBGM_OPEN, (uptr) file_name);
 }
 
 void CSound::StreamOpenFromFPLFast(int channel, char *name, char *pack_name) {
@@ -938,7 +938,7 @@ void CSound::StreamOpenFromFPLFast(int channel, char *name, char *pack_name) {
     strcpy(request.name, name);
     strcpy(request.pack_name, pack_name);
     ezBgm(channel | 0x80, 0);
-    bgm_info[channel] = ezBgm(channel | EZBGM_OPEN_FROM_PACK, (int) &request);
+    bgm_info[channel] = ezBgm(channel | EZBGM_OPEN_FROM_PACK, (uptr) &request);
 }
 
 void CSound::StreamPlay(int channel) {

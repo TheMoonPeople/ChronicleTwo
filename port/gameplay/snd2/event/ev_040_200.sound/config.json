@@ -1,0 +1,62 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_000.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_001.json",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_002.json",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_003.json",
+      "flag": true,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_005.json",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_006.json",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_007.json",
+      "flag": true,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "snd2/event/ev_040_200.sound/effects/ev_040_200_008.json",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    }
+  ],
+  "entry_count": 10,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

@@ -22,6 +22,7 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "nameregi.hpp"
+#include "pal_timing.hpp"
 #include "password.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
@@ -2004,7 +2005,7 @@ int SphidaScoreViewKey() {
 
     Sfida_NowPlayHorlBlink++;
 
-    if (Sfida_NowPlayHorlBlink > 0x32) {
+    if (Sfida_NowPlayHorlBlink > PAL_TIMING(0x32, 0x3c)) {
         Sfida_NowPlayHorlBlink = 0;
     }
 
@@ -2091,7 +2092,7 @@ void SphidaScoreViewDraw() {
             prim->Texture(SphidaTex);
             prim->Color(128, 128, 128, 128);
 
-            if (Sfida_NowPlayHorlBlink > 0x19 && row == hole_no - 1) {
+            if (Sfida_NowPlayHorlBlink > PAL_TIMING(0x19, 0x1e) && row == hole_no - 1) {
                 prim->Color(0xD2, 0xD2, 0x64, 128);
             }
 

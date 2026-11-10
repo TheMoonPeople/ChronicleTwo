@@ -169,7 +169,7 @@ public:
      * @address 0x13BF60
      * @size 0x280
      */
-    virtual u_int CreatePacket(mgCDrawManager *manager);
+    virtual uptr CreatePacket(mgCDrawManager *manager);
 
     /**
      *

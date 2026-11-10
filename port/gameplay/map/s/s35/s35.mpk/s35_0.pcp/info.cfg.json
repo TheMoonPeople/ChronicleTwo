@@ -1,0 +1,54 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s350101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350201-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350202-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350203-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350204-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350101-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s350104-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350207-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350205-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350102-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s350208-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "futa-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,78 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "d04b02_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d04b01_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d04b03_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d04b01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d04b01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d04b01_2-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d04b02-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d04b02-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "otona-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "otona-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "otona-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "kodomo-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "kodomo-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "kodomo-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "boss-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "boss-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "boss02-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "boss02-c.gltf",
+      "type": 2
+    }
+  ],
+  "schema_version": 2
+}

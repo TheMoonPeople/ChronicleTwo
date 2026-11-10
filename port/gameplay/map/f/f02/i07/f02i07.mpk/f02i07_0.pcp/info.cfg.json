@@ -1,0 +1,22 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "f02i07_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f02i07_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "f02i07_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f02i07_02-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,150 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s050101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s050101-a.gltf",
+      "type": 1
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050102-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050104-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050103-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050105-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050106-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050107-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050108-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050109-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050110-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 1
+      },
+      "model": "s050113-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2500.0,
+        "fade": 0
+      },
+      "model": "s050114-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s050101-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s050115-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050116-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 2600.0,
+        "fade": 0
+      },
+      "model": "s050117-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s050102-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s050102-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s050111-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s050118-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s050119-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s050120-c.gltf",
+      "type": 2
+    }
+  ],
+  "schema_version": 2
+}

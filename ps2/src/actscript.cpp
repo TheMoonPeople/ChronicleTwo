@@ -472,7 +472,8 @@ static int _CHECK_PAUSE(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    SetStack(stack, static_cast<int>(pause->pause_flag & GetStackInt(stack++)));
+    int mask = GetStackInt(stack++);
+    SetStack(stack, static_cast<int>(pause->pause_flag & mask));
     return true;
 }
 
@@ -581,6 +582,7 @@ int _GET_MONS_ID(RS_STACKDATA *stack, int argc) {
     }
 
     SetStack(stack, monster_id);
+    PORT_RETURN(true);
 }
 
 /**
@@ -599,6 +601,7 @@ int _GET_FRONT_VEC(RS_STACKDATA *stack, int argc) {
     SetStack(stack++, front[0]);
     SetStack(stack++, front[1]);
     SetStack(stack, front[2]);
+    PORT_RETURN(true);
 }
 
 /**
@@ -653,7 +656,8 @@ int _GET_BTN(RS_STACKDATA *stack, int argc) {
         return false;
     }
 
-    SetStack(stack, PadCtrl.Btn(GetStackInt(stack++)));
+    int button = GetStackInt(stack++);
+    SetStack(stack, PadCtrl.Btn(button));
     return true;
 }
 
@@ -2609,8 +2613,8 @@ static int _ESM_SET_VALUE(RS_STACKDATA *stack, int argc) {
  *
  */
 int SetActionScript(CRunScript *script, char *program, mgCMemory *memory) {
-    RS_STACKDATA *stack = reinterpret_cast<RS_STACKDATA *>(memory->Alloc(0x40));
-    RS_CALLDATA  *call_data = reinterpret_cast<RS_CALLDATA *>(memory->Alloc(0x180));
+    RS_STACKDATA *stack = reinterpret_cast<RS_STACKDATA *>(memory->Alloc((sizeof(RS_STACKDATA) * 0x80 + 15) / 16));
+    RS_CALLDATA  *call_data = reinterpret_cast<RS_CALLDATA *>(memory->Alloc((sizeof(RS_CALLDATA) * 0x200 + 15) / 16));
     script->load(reinterpret_cast<RS_PROG_HEADER *>(program), stack, 0x80, call_data, 0x200);
     script->ext_func(ext_func, ACTION_EXT_FUNC_MAX);
     return true;

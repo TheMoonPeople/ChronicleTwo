@@ -19,6 +19,7 @@ struct MENU_SYSTEM_LIST_CURSOR {
 };
 
 STATIC_ASSERT(sizeof(MENU_SYSTEM_LIST_CURSOR) == 0x4);
+PORT_RECORD_ASSERT(sizeof(MENU_SYSTEM_LIST_CURSOR) == 0x4);
 
 /**
  *
@@ -31,6 +32,7 @@ struct MENU_SYSTEM_GHOBI {
 };
 
 STATIC_ASSERT(sizeof(MENU_SYSTEM_GHOBI) == 0x4);
+PORT_RECORD_ASSERT(sizeof(MENU_SYSTEM_GHOBI) == 0x4);
 
 /** Number of Donny's goods the menu system data can record. */
 #define MENU_SYSTEM_GHOBI_NUM 32
@@ -106,3 +108,4 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMenuSystemData) == 0x308);
+PORT_RECORD_ASSERT(sizeof(CMenuSystemData) == 0x308);

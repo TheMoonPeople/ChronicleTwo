@@ -70,6 +70,7 @@ struct FRAME_VECTOR_EX_DATA {
 };
 
 STATIC_ASSERT(sizeof(FRAME_VECTOR_EX_DATA) == 0x20);
+PORT_RECORD_ASSERT(sizeof(FRAME_VECTOR_EX_DATA) == 0x20);
 
 /**
  *
@@ -87,6 +88,7 @@ struct Mot_File_List {
 };
 
 STATIC_ASSERT(sizeof(Mot_File_List) == 0x20);
+PORT_RECORD_ASSERT(sizeof(Mot_File_List) == 0x20);
 
 /**
  *

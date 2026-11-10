@@ -1,0 +1,18 @@
+# --jump town:10 --fast-load; input.mouse_zoom must be true in config.json.
+# Capture 900 (retail), 1100 (close), 1250 (walking), 1450 (far), 1650 (reset).
+0
+920 wheel:100
+921
+1120 key:W
+1160
+1300 wheel:-100
+1301
+1500 mouse3
+1501
+# Menus own wheel/reset; neither request may leak back into the field.
+1700 triangle
+1701
+1740 wheel:100 mouse3
+1741
+1800 circle
+1801

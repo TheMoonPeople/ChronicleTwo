@@ -1,0 +1,187 @@
+{
+  "count": 20,
+  "kind": "quests",
+  "quests": [
+    {
+      "comment": "Gordon adore s'occuper des plantes.\\nIl veut gu[UNI00e9]rir son arbre [UNI00e0] l'aide\\nde l'eau sacr[UNI00e9]e du P[UNI00e8]re Bruno.",
+      "id": 0,
+      "name": "Les soucis de Gordon",
+      "reactions": [
+        "Allons voir P[UNI00e8]re Bruno !\\nIl est [UNI00e0] l'[UNI00e9]glise ?",
+        "Gordon aime vraiment\\ns'occuper des plantes, hein ?"
+      ]
+    },
+    {
+      "comment": "Parn peint sa femme id[UNI00e9]ale, appel[UNI00e9]e\\nJulia. Il dit qu'elle s'animerait\\ns'il avait de la peinture dor[UNI00e9]e.",
+      "id": 1,
+      "name": "Portrait d'une mari[UNI00e9]e",
+      "reactions": [
+        "O[UNI00f9] trouve-t-on de la peinture dor[UNI00e9]e ?",
+        "Je ne crois pas qu'un tableau\\npuisse s'animer."
+      ]
+    },
+    {
+      "comment": "Donny veut compl[UNI00e9]ter sa collection de pi[UNI00e8]ces\\nde monnaie. Il lui manque la Pi[UNI00e8]ce protectrice\\net la Pi[UNI00e8]ce de sacrifice...",
+      "id": 2,
+      "name": "Le sens des affaires",
+      "reactions": [
+        "Nous devons trouver des pi[UNI00e8]ces.",
+        "Donny peut faire [UNI00e7]a tout seul."
+      ]
+    },
+    {
+      "comment": "Castagnaccio, le g[UNI00e2]teau myst[UNI00e8]re.\\n[UNI00c7]a se fait avec des marrons,\\nmais on n'en sait pas davantage.",
+      "id": 3,
+      "name": "Castagnaccio",
+      "reactions": [
+        "Il nous faut des marrons.",
+        "Je me demande s'il est bon ce g[UNI00e2]teau ?"
+      ]
+    },
+    {
+      "comment": "Claire refuse de sortir.\\nMontre-lui quelque chose pour la\\nconvaincre, [UNI00e7]a peut marcher.",
+      "id": 4,
+      "name": "Curiosit[UNI00e9]",
+      "reactions": [
+        "Nous devons prendre une photo\\nde fleurs rares.",
+        "Claire est tr[UNI00e8]s curieuse,\\nn'est-ce pas ?"
+      ]
+    },
+    {
+      "comment": "Je pense que Pau veut bien coop[UNI00e9]rer,\\nmais il faudrait trouver de la\\nnourriture pour le motiver...",
+      "id": 5,
+      "name": "Orange, t'as dit orange ?",
+      "reactions": [
+        "De la nourriture orange ? Des carottes ?",
+        "Je hais les carottes et les poivrons !"
+      ]
+    },
+    {
+      "comment": "Le hobby de Stewart, c'est la lecture.\\nIl veut acheter un livre aux ench[UNI00e8]res\\nmais il n'a pas assez d'argent.",
+      "id": 6,
+      "name": "L'ench[UNI00e8]re",
+      "reactions": [
+        "Il faut qu'on trouve de l'argent.",
+        "Est-ce qu'au moins il lit le livre\\npour lequel on a fait tant d'efforts ?"
+      ]
+    },
+    {
+      "comment": "Pour retrouver de l'assurance, Ad[UNI00e8]le doit\\ncoudre un v[UNI00ea]tement avec du cuir [UNI00e9]pais, un\\nmorceau de cuivre et du tissu r[UNI00e9]sistant.",
+      "id": 7,
+      "name": "Le r[UNI00ea]ve d'Ad[UNI00e8]le",
+      "reactions": [
+        "Cette fois, je vais finir [UNI00e7]a et l'aider\\n[UNI00e0] retrouver confiance en elle.",
+        "[UNI00c7]a donne confiance aux gens\\nde terminer les choses."
+      ]
+    },
+    {
+      "comment": "Livrer du pain [UNI00e0] Morton ?\\n[UNI00c7]a a l'air simple. Mais quelque chose\\nme dit qu'on va avoir des surprises.",
+      "id": 8,
+      "name": "La livraison",
+      "reactions": [
+        "On doit faire ce qu'on nous a dit.",
+        "Morton est un peu [UNI00e9]go[UNI00ef]ste !"
+      ]
+    },
+    {
+      "comment": "Le Sh[UNI00e9]rif Blinkhorn doute de ma force.\\nJe dois courir vite pour lui prouver\\nque je peux y arriver.",
+      "id": 9,
+      "name": "Palm Brinks : le sprint",
+      "reactions": [
+        "Pour faire un bon temps, prends\\nl'itin[UNI00e9]raire le plus court.",
+        "Blinkhorn pourrait-il [UNI00e9]galer [UNI00e7]a ?"
+      ]
+    },
+    {
+      "comment": "Milane est tr[UNI00e8]s dou[UNI00e9]e [UNI00e0] l'[UNI00e9]p[UNI00e9]e, et\\nil va falloir faire nos preuves.\\nEt montrer notre force.",
+      "id": 10,
+      "name": "Milane fait son num[UNI00e9]ro",
+      "reactions": [
+        "Am[UNI00e9]liorer cette [UNI00e9]p[UNI00e9]e hein ?\\nJe ne sais pas si j'en suis capable.",
+        "Je parie que Monica et Milane\\ns'entendraient bien."
+      ]
+    },
+    {
+      "comment": "Je n'aime pas demander de l'aide [UNI00e0] mon\\np[UNI00e8]re, mais j'ai besoin de lui. [UNI00c7]a devrait\\n[UNI00ea]tre facile d'am[UNI00e9]liorer le pistolet.",
+      "id": 11,
+      "name": "Le d[UNI00e9]fi du p[UNI00e8]re",
+      "reactions": [
+        "Je ferai tout pour le transformer\\nen pistolet cloche !",
+        "Je me demande si mon p[UNI00e8]re me\\nregardera diff[UNI00e9]remment, maintenant."
+      ]
+    },
+    {
+      "comment": "Le Maire a oubli[UNI00e9] la combinaison\\ndu coffre. Si on ne fait rien, il ne\\npourra pas r[UNI00e9]cup[UNI00e9]rer ses papiers.",
+      "id": 12,
+      "name": "Le coffre fort",
+      "reactions": [
+        "On devrait pouvoir la trouver\\navec ce que nous a dit le maire.",
+        "Est-ce vraiment sage, de laisser\\nla ville [UNI00e0] Morton ?"
+      ]
+    },
+    {
+      "comment": "Pourquoi avoir install[UNI00e9] un tel syst[UNI00e8]me\\nd'[UNI00e9]clairage dans cette [UNI00e9]glise, alors\\nqu'on pourrait tout [UNI00e9]teindre d'un coup ?",
+      "id": 13,
+      "name": "L'[UNI00e9]preuve du pr[UNI00ea]tre",
+      "reactions": [
+        "La r[UNI00e9]ponse est tr[UNI00e8]s simple,\\nen fait.",
+        "Tu parles d'une installation !"
+      ]
+    },
+    {
+      "comment": "Rufio a commenc[UNI00e9] [UNI00e0] vivre dans le parc.\\nIl dit qu'il veut regarder la lune\\nen permanence.",
+      "id": 14,
+      "name": "La lune brille toujours",
+      "reactions": [
+        "On ne peut photographier la lune\\nque la nuit.",
+        "Apr[UNI00e8]s tout, il est bien possible que\\nRufio vienne de la lune."
+      ]
+    },
+    {
+      "comment": "Fabio adore p[UNI00ea]cher.\\nS'il attrape un gros poisson, on n'a pas\\nfini d'en entendre parler.",
+      "id": 15,
+      "name": "Partie de p[UNI00ea]che",
+      "reactions": [
+        "Un Nonky de plus de 60 cm, [UNI00e7]a devrait aller.",
+        "Le truc pour que [UNI00e7]a morde ?\\nJ'aimerais bien le conna[UNI00ee]tre."
+      ]
+    },
+    {
+      "comment": "Olivie la piscicultrice a entendu\\nparler des Meilleures nageoires.\\nGagnons cette course pour elle !",
+      "id": 16,
+      "name": "Le cercle des vainqueurs",
+      "reactions": [
+        "Il faut gagner les Meilleures nageoires.",
+        "Il faut vraiment [UNI00ea]tre aux petits\\nsoins avec les poissons."
+      ]
+    },
+    {
+      "comment": "Mena ne se sent pas tr[UNI00e8]s bien,\\n[UNI00e0] cause de la distorsion temporelle.\\nIl faudrait la r[UNI00e9]duire...",
+      "id": 17,
+      "name": "Le d[UNI00e9]fi de Spheda",
+      "reactions": [
+        "C'est dur de gagner 10 fois au Spheda.",
+        "Je ne savais pas que les distorsions\\ntemporelles pouvaient provoquer [UNI00e7]a."
+      ]
+    },
+    {
+      "comment": "Corinne dit [UNI00ea]tre tr[UNI00e8]s chanceuse.\\nSi on joue [UNI00e0] cache-cache avec elle,\\nelle voudra peut-[UNI00ea]tre nous aider.",
+      "id": 18,
+      "name": "Cache-cache avec Corinne",
+      "reactions": [
+        "Allez, Corinne ! Dis-moi o[UNI00f9] t'es ?",
+        "Elle est un peu insolente, c'est vrai,\\nmais c'est encore une petite fille."
+      ]
+    },
+    {
+      "comment": "Rosa est presque sourde.\\nElle pourrait accepter de nous aider\\nsi elle nous entendait.",
+      "id": 19,
+      "name": "T[UNI00e9]l[UNI00e9]pathie",
+      "reactions": [
+        "Tant qu'on arrivera [UNI00e0] se\\ncomprendre, tout ira bien.",
+        "Je crois qu'on devrait lui trouver\\nun audiophone la prochaine fois."
+      ]
+    }
+  ],
+  "schema_version": 2
+}

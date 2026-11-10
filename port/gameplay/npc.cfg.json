@@ -1,0 +1,576 @@
+{
+  "characters": [
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 51,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "男A",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 52,
+      "max_npc_point": 0,
+      "model": "p01_21a",
+      "name": "男B",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 53,
+      "max_npc_point": 0,
+      "model": "p01_23a",
+      "name": "男C",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 54,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "女A",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 55,
+      "max_npc_point": 0,
+      "model": "p01_22a",
+      "name": "女B",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 56,
+      "max_npc_point": 0,
+      "model": "p01_24a",
+      "name": "女C",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 32,
+      "max_npc_point": 0,
+      "model": "e105_steve",
+      "name": "スティーブ",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 100,
+      "max_npc_point": 0,
+      "model": "p03_01a",
+      "name": "村人男A（f01)",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 101,
+      "max_npc_point": 0,
+      "model": "p03_02a",
+      "name": "村人男B（f01)",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 102,
+      "max_npc_point": 0,
+      "model": "p03_03a",
+      "name": "村人女A（f01)",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 103,
+      "max_npc_point": 0,
+      "model": "p03_04a",
+      "name": "村人女A（f01)",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 24,
+      "max_npc_point": 0,
+      "model": "p01_13a",
+      "name": "コリン",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 25,
+      "max_npc_point": 0,
+      "model": "p01_03a",
+      "name": "ローザばあさん",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 50,
+      "max_npc_point": 0,
+      "model": "p00_03a",
+      "name": "ピエロ兵A",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 33,
+      "max_npc_point": 0,
+      "model": "p01_26a",
+      "name": "モートン",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        8,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 1,
+      "max_npc_point": 16,
+      "model": "p01_03a",
+      "name": "スターブル",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 2,
+      "max_npc_point": 0,
+      "model": "p01_06a",
+      "name": "ボルネオ",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 3,
+      "max_npc_point": 0,
+      "model": "p01_18a",
+      "name": "グリン",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 4,
+      "max_npc_point": 0,
+      "model": "p01_04a",
+      "name": "ドニー",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 5,
+      "max_npc_point": 0,
+      "model": "p01_10a",
+      "name": "パトリ",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 6,
+      "max_npc_point": 0,
+      "model": "p01_17a",
+      "name": "ダック先生",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 7,
+      "max_npc_point": 16,
+      "model": "p01_15a",
+      "name": "ポーク",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 8,
+      "max_npc_point": 0,
+      "model": "p01_16a",
+      "name": "クレア",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 9,
+      "max_npc_point": 0,
+      "model": "p01_03a",
+      "name": "パウ",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 10,
+      "max_npc_point": 0,
+      "model": "p01_08a",
+      "name": "スチュアート",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 11,
+      "max_npc_point": 0,
+      "model": "p01_09a",
+      "name": "ルネ",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 12,
+      "max_npc_point": 16,
+      "model": "p01_02a",
+      "name": "ポリーおばさん",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        6,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 13,
+      "max_npc_point": 0,
+      "model": "p01_07a",
+      "name": "トム",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 14,
+      "max_npc_point": 0,
+      "model": "p01_05a",
+      "name": "パッカー保安官",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 15,
+      "max_npc_point": 0,
+      "model": "p01_14a",
+      "name": "ミレーネ",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 16,
+      "max_npc_point": 0,
+      "model": "p01_11a",
+      "name": "ジラード",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 17,
+      "max_npc_point": 0,
+      "model": "p01_01a",
+      "name": "ニード町長",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 18,
+      "max_npc_point": 0,
+      "model": "p01_03a",
+      "name": "ブルーノ神父",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 19,
+      "max_npc_point": 0,
+      "model": "p01_03a",
+      "name": "ルーシオ",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 20,
+      "max_npc_point": 0,
+      "model": "p01_03a",
+      "name": "フラビン",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 21,
+      "max_npc_point": 0,
+      "model": "p01_03a",
+      "name": "オリビー",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 22,
+      "max_npc_point": 0,
+      "model": "p01_25a",
+      "name": "ジュリア",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 23,
+      "max_npc_point": 0,
+      "model": "p01_12a",
+      "name": "ミーナ",
+      "unk_31": 0
+    }
+  ],
+  "kind": "party_characters",
+  "schema_version": 2
+}

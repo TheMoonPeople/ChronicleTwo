@@ -1,0 +1,73 @@
+{
+  "draw_off_rects": [],
+  "event_points": [],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draw_count": 4,
+    "draws": [
+      {
+        "position": [
+          0.0,
+          -5.0,
+          0.0
+        ],
+        "surface": 0,
+        "target": "room56"
+      },
+      {
+        "position": [
+          0.0,
+          -5.0,
+          0.0
+        ],
+        "surface": 0,
+        "target": "room57"
+      },
+      {
+        "position": [
+          0.0,
+          -5.0,
+          0.0
+        ],
+        "surface": 0,
+        "target": "room58"
+      },
+      {
+        "position": [
+          0.0,
+          -5.0,
+          0.0
+        ],
+        "surface": 0,
+        "target": "room59"
+      }
+    ],
+    "surface_count": 1,
+    "surfaces": [
+      {
+        "param": [
+          0.15,
+          0.0045,
+          0.0,
+          16.0
+        ],
+        "vertex": {
+          "corner0": [
+            -160.0,
+            0.0,
+            -160.0
+          ],
+          "corner1": [
+            160.0,
+            0.0,
+            160.0
+          ],
+          "count_x": 32,
+          "count_z": 32
+        }
+      }
+    ]
+  }
+}

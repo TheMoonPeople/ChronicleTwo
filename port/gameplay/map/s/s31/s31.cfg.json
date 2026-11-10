@@ -1,0 +1,37 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "check",
+        "point_no": 501
+      },
+      "name": "goto_s33",
+      "transform": {
+        "position": [
+          0.0,
+          80.0,
+          2525.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          160.0,
+          10.0,
+          10.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

@@ -1,0 +1,1378 @@
+{
+  "kind": "monster_names",
+  "names": [
+    {
+      "id": 0,
+      "name": "Kanalratte"
+    },
+    {
+      "id": 1,
+      "name": "Strandratte"
+    },
+    {
+      "id": 2,
+      "name": "Burgfresser"
+    },
+    {
+      "id": 3,
+      "name": "Todesmaus"
+    },
+    {
+      "id": 4,
+      "name": "Vanguard"
+    },
+    {
+      "id": 5,
+      "name": "Neo-Vanguard"
+    },
+    {
+      "id": 6,
+      "name": "Vanguard 2"
+    },
+    {
+      "id": 7,
+      "name": "Nagel-Sturm"
+    },
+    {
+      "id": 8,
+      "name": "Frosch"
+    },
+    {
+      "id": 9,
+      "name": "Geron"
+    },
+    {
+      "id": 10,
+      "name": "Gamal"
+    },
+    {
+      "id": 11,
+      "name": "Putos"
+    },
+    {
+      "id": 12,
+      "name": "Tore"
+    },
+    {
+      "id": 13,
+      "name": "Dampf-Tore"
+    },
+    {
+      "id": 14,
+      "name": "Wahn-Tore"
+    },
+    {
+      "id": 15,
+      "name": "Gro[UNI00df]er Baum"
+    },
+    {
+      "id": 16,
+      "name": "Kotore"
+    },
+    {
+      "id": 17,
+      "name": "Dampf-Kotore"
+    },
+    {
+      "id": 18,
+      "name": "Dorone"
+    },
+    {
+      "id": 19,
+      "name": "Kleiner Baum"
+    },
+    {
+      "id": 20,
+      "name": "Jagdfuchs"
+    },
+    {
+      "id": 21,
+      "name": "Rotfuchs"
+    },
+    {
+      "id": 22,
+      "name": "Sch[UNI00fc]tzen-Wolf"
+    },
+    {
+      "id": 23,
+      "name": "Grinse-Wolf"
+    },
+    {
+      "id": 24,
+      "name": "Baron Ballon"
+    },
+    {
+      "id": 25,
+      "name": "Flotsam Ballon"
+    },
+    {
+      "id": 26,
+      "name": "F[UNI00fc]rst Ballon"
+    },
+    {
+      "id": 27,
+      "name": "Herzog Ballon"
+    },
+    {
+      "id": 28,
+      "name": "Schildkr[UNI00f6]te"
+    },
+    {
+      "id": 29,
+      "name": "Meeresschildkr."
+    },
+    {
+      "id": 30,
+      "name": "Sternschildkr."
+    },
+    {
+      "id": 31,
+      "name": "Ebenholz-Schild."
+    },
+    {
+      "id": 32,
+      "name": "Wasserschildkr."
+    },
+    {
+      "id": 33,
+      "name": "Fintol"
+    },
+    {
+      "id": 34,
+      "name": "Arkerath"
+    },
+    {
+      "id": 35,
+      "name": "Sauser"
+    },
+    {
+      "id": 36,
+      "name": "Clown"
+    },
+    {
+      "id": 37,
+      "name": "Griffon-Soldat"
+    },
+    {
+      "id": 38,
+      "name": "B[UNI00f6]ser Artist"
+    },
+    {
+      "id": 39,
+      "name": "D[UNI00fc]ster-Alchemist"
+    },
+    {
+      "id": 40,
+      "name": "Tiger-Greif"
+    },
+    {
+      "id": 41,
+      "name": "Chim[UNI00e4]ra"
+    },
+    {
+      "id": 42,
+      "name": "L[UNI00f6]wen-Greif"
+    },
+    {
+      "id": 43,
+      "name": "Sphinx"
+    },
+    {
+      "id": 44,
+      "name": "Pixie"
+    },
+    {
+      "id": 45,
+      "name": "Waldelf"
+    },
+    {
+      "id": 46,
+      "name": "Fee"
+    },
+    {
+      "id": 47,
+      "name": "Wicht"
+    },
+    {
+      "id": 48,
+      "name": "Linda"
+    },
+    {
+      "id": 49,
+      "name": "Elfas"
+    },
+    {
+      "id": 50,
+      "name": "Mondblumofant"
+    },
+    {
+      "id": 51,
+      "name": "Behemoth"
+    },
+    {
+      "id": 52,
+      "name": "Himarra"
+    },
+    {
+      "id": 53,
+      "name": "Balalla"
+    },
+    {
+      "id": 54,
+      "name": "Sturmblume"
+    },
+    {
+      "id": 55,
+      "name": "Mandora"
+    },
+    {
+      "id": 56,
+      "name": "Gyumo"
+    },
+    {
+      "id": 57,
+      "name": "Blumo"
+    },
+    {
+      "id": 58,
+      "name": "Cabubel"
+    },
+    {
+      "id": 59,
+      "name": "Minotaurus"
+    },
+    {
+      "id": 60,
+      "name": "Nachtpirscher"
+    },
+    {
+      "id": 61,
+      "name": "Stinklumpen"
+    },
+    {
+      "id": 62,
+      "name": "Egel"
+    },
+    {
+      "id": 63,
+      "name": "Spuk"
+    },
+    {
+      "id": 64,
+      "name": "Drache"
+    },
+    {
+      "id": 65,
+      "name": "Roter Drache"
+    },
+    {
+      "id": 66,
+      "name": "Landdrache"
+    },
+    {
+      "id": 67,
+      "name": "Tiamat"
+    },
+    {
+      "id": 68,
+      "name": "Memo-Fresser"
+    },
+    {
+      "id": 69,
+      "name": "Burger"
+    },
+    {
+      "id": 70,
+      "name": "St[UNI00fc]rmer"
+    },
+    {
+      "id": 71,
+      "name": "Ladha"
+    },
+    {
+      "id": 72,
+      "name": "Spinnen-Dame"
+    },
+    {
+      "id": 73,
+      "name": "Shiva"
+    },
+    {
+      "id": 74,
+      "name": "Spinnen-Dame"
+    },
+    {
+      "id": 75,
+      "name": "Bambamchoo"
+    },
+    {
+      "id": 76,
+      "name": "Feuer-Element"
+    },
+    {
+      "id": 77,
+      "name": "Feuergeist"
+    },
+    {
+      "id": 78,
+      "name": "Feuergespenst"
+    },
+    {
+      "id": 79,
+      "name": "Magmadiener"
+    },
+    {
+      "id": 80,
+      "name": "Eis-Element"
+    },
+    {
+      "id": 81,
+      "name": "Eisgeist"
+    },
+    {
+      "id": 82,
+      "name": "Schneegespenst"
+    },
+    {
+      "id": 83,
+      "name": "Schneediener"
+    },
+    {
+      "id": 84,
+      "name": "Zappy"
+    },
+    {
+      "id": 85,
+      "name": "Donnergeist"
+    },
+    {
+      "id": 86,
+      "name": "Donnergespenst"
+    },
+    {
+      "id": 87,
+      "name": "Donnerdiener"
+    },
+    {
+      "id": 88,
+      "name": "Wasser-Element"
+    },
+    {
+      "id": 89,
+      "name": "Wassergeist"
+    },
+    {
+      "id": 90,
+      "name": "Regengespenst"
+    },
+    {
+      "id": 91,
+      "name": "Sturmdiener"
+    },
+    {
+      "id": 92,
+      "name": "Wind-Element"
+    },
+    {
+      "id": 93,
+      "name": "Fluggeist"
+    },
+    {
+      "id": 94,
+      "name": "Sturmgespenst"
+    },
+    {
+      "id": 95,
+      "name": "Winddiener"
+    },
+    {
+      "id": 96,
+      "name": "Maskiert. Wilder"
+    },
+    {
+      "id": 97,
+      "name": "Lava-L[UNI00e4]ufer"
+    },
+    {
+      "id": 98,
+      "name": "Steinwache"
+    },
+    {
+      "id": 99,
+      "name": "Letzter W[UNI00e4]chter"
+    },
+    {
+      "id": 100,
+      "name": "K[UNI00fc]rbiskopf"
+    },
+    {
+      "id": 101,
+      "name": "Zucky"
+    },
+    {
+      "id": 102,
+      "name": "Mallone"
+    },
+    {
+      "id": 103,
+      "name": "Vogelscheuche"
+    },
+    {
+      "id": 104,
+      "name": "Mumie"
+    },
+    {
+      "id": 105,
+      "name": "Bundy"
+    },
+    {
+      "id": 106,
+      "name": "Ghul"
+    },
+    {
+      "id": 107,
+      "name": "Wiederg[UNI00e4]nger"
+    },
+    {
+      "id": 108,
+      "name": "Menschenfr.-Gras"
+    },
+    {
+      "id": 109,
+      "name": "Fluch-Rose"
+    },
+    {
+      "id": 110,
+      "name": "D[UNI00fc]sterblume"
+    },
+    {
+      "id": 111,
+      "name": "Myster. Pflanze"
+    },
+    {
+      "id": 112,
+      "name": "Feuer-Gemron"
+    },
+    {
+      "id": 113,
+      "name": "Feuer-Gundron"
+    },
+    {
+      "id": 114,
+      "name": "Feuer-Drake"
+    },
+    {
+      "id": 115,
+      "name": "Feuer-Wyrm"
+    },
+    {
+      "id": 116,
+      "name": "Eis-Gemron"
+    },
+    {
+      "id": 117,
+      "name": "Eis-Gundron"
+    },
+    {
+      "id": 118,
+      "name": "Eis-Drake"
+    },
+    {
+      "id": 119,
+      "name": "Eis-Wyrm"
+    },
+    {
+      "id": 120,
+      "name": "Donner-Gemron"
+    },
+    {
+      "id": 121,
+      "name": "Donner-Gundron"
+    },
+    {
+      "id": 122,
+      "name": "Donner-Drake"
+    },
+    {
+      "id": 123,
+      "name": "Donner-Wyrm"
+    },
+    {
+      "id": 124,
+      "name": "Wind-Gemron"
+    },
+    {
+      "id": 125,
+      "name": "Wind-Gundron"
+    },
+    {
+      "id": 126,
+      "name": "Wind-Drake"
+    },
+    {
+      "id": 127,
+      "name": "Wind-Wyrm"
+    },
+    {
+      "id": 128,
+      "name": "Heiliger Gemron"
+    },
+    {
+      "id": 129,
+      "name": "Heiliger Gundron"
+    },
+    {
+      "id": 130,
+      "name": "Heiliger Drake"
+    },
+    {
+      "id": 131,
+      "name": "Heiliger Wyrm"
+    },
+    {
+      "id": 132,
+      "name": "Nikapous"
+    },
+    {
+      "id": 133,
+      "name": "Eisenmaske"
+    },
+    {
+      "id": 134,
+      "name": "Ummagumma"
+    },
+    {
+      "id": 135,
+      "name": "Incuder"
+    },
+    {
+      "id": 136,
+      "name": "Bock"
+    },
+    {
+      "id": 137,
+      "name": "Wilder Bock"
+    },
+    {
+      "id": 138,
+      "name": "Z-Bock"
+    },
+    {
+      "id": 139,
+      "name": "Bandou"
+    },
+    {
+      "id": 140,
+      "name": "Buddler"
+    },
+    {
+      "id": 141,
+      "name": "Sandbuddler"
+    },
+    {
+      "id": 142,
+      "name": "Minenbuddler"
+    },
+    {
+      "id": 143,
+      "name": "Flei[UNI00df]-Buddler"
+    },
+    {
+      "id": 144,
+      "name": "Killerschlange"
+    },
+    {
+      "id": 145,
+      "name": "Seeschlange"
+    },
+    {
+      "id": 146,
+      "name": "Sanddrache"
+    },
+    {
+      "id": 147,
+      "name": "Todesseil"
+    },
+    {
+      "id": 148,
+      "name": "Goyon"
+    },
+    {
+      "id": 149,
+      "name": "Dampf-Goyon"
+    },
+    {
+      "id": 150,
+      "name": "Mond-Goyon"
+    },
+    {
+      "id": 151,
+      "name": "Seefahrer"
+    },
+    {
+      "id": 152,
+      "name": "Tante Medusa"
+    },
+    {
+      "id": 153,
+      "name": "Dicker Naga"
+    },
+    {
+      "id": 154,
+      "name": "Frl. Gogo"
+    },
+    {
+      "id": 155,
+      "name": "Frau Gorgo"
+    },
+    {
+      "id": 156,
+      "name": "Hundestatue"
+    },
+    {
+      "id": 157,
+      "name": "Korallenhund"
+    },
+    {
+      "id": 158,
+      "name": "Mini-Fels"
+    },
+    {
+      "id": 159,
+      "name": "Cerberus"
+    },
+    {
+      "id": 160,
+      "name": "Ivanoff"
+    },
+    {
+      "id": 161,
+      "name": "Magmanoff"
+    },
+    {
+      "id": 162,
+      "name": "Felsgesicht"
+    },
+    {
+      "id": 163,
+      "name": "Iwanosuke"
+    },
+    {
+      "id": 164,
+      "name": "Statue"
+    },
+    {
+      "id": 165,
+      "name": "Lebende R[UNI00fc]stung"
+    },
+    {
+      "id": 166,
+      "name": "Guardia"
+    },
+    {
+      "id": 167,
+      "name": "D[UNI00fc]sterw[UNI00e4]chter"
+    },
+    {
+      "id": 168,
+      "name": "Golem"
+    },
+    {
+      "id": 169,
+      "name": "Lava-Golem"
+    },
+    {
+      "id": 170,
+      "name": "Fels-Esser"
+    },
+    {
+      "id": 171,
+      "name": "Titan"
+    },
+    {
+      "id": 172,
+      "name": "Knochenf[UNI00fc]rst"
+    },
+    {
+      "id": 173,
+      "name": "Flammen-Nagel"
+    },
+    {
+      "id": 174,
+      "name": "B[UNI00f6]ser Nagel"
+    },
+    {
+      "id": 175,
+      "name": "Knochenk[UNI00f6]nig"
+    },
+    {
+      "id": 176,
+      "name": "Skelett-Soldat"
+    },
+    {
+      "id": 177,
+      "name": "Geweihkopf"
+    },
+    {
+      "id": 178,
+      "name": "Silberrad"
+    },
+    {
+      "id": 179,
+      "name": "Platinrad"
+    },
+    {
+      "id": 180,
+      "name": "Meister Jacke"
+    },
+    {
+      "id": 181,
+      "name": "Hitzekleidung"
+    },
+    {
+      "id": 182,
+      "name": "Sch[UNI00e4]del-Anf[UNI00fc]hrer"
+    },
+    {
+      "id": 183,
+      "name": "Edle Jacke"
+    },
+    {
+      "id": 184,
+      "name": "Captain"
+    },
+    {
+      "id": 185,
+      "name": "Schwarzbart"
+    },
+    {
+      "id": 186,
+      "name": "Wei[UNI00df]bart"
+    },
+    {
+      "id": 187,
+      "name": "Oyakata"
+    },
+    {
+      "id": 188,
+      "name": "Freibeuter"
+    },
+    {
+      "id": 189,
+      "name": "Zombie-Pirat"
+    },
+    {
+      "id": 190,
+      "name": "Erz-R[UNI00e4]uber"
+    },
+    {
+      "id": 191,
+      "name": "Elite-Freibeuter"
+    },
+    {
+      "id": 192,
+      "name": "Prajna-Gesicht"
+    },
+    {
+      "id": 193,
+      "name": "Alexander"
+    },
+    {
+      "id": 194,
+      "name": "Yaksa-Gesicht"
+    },
+    {
+      "id": 195,
+      "name": "D[UNI00e4]monenpuppe"
+    },
+    {
+      "id": 196,
+      "name": "Grinse-Fee"
+    },
+    {
+      "id": 197,
+      "name": "Hitze-Fee"
+    },
+    {
+      "id": 198,
+      "name": "Feenhelfer"
+    },
+    {
+      "id": 199,
+      "name": "H[UNI00f6]llenfee"
+    },
+    {
+      "id": 200,
+      "name": "Mondsichel-Baron"
+    },
+    {
+      "id": 201,
+      "name": "Stock-Joe"
+    },
+    {
+      "id": 202,
+      "name": "Mond-Joe"
+    },
+    {
+      "id": 203,
+      "name": "Mondlicht-Hulk"
+    },
+    {
+      "id": 204,
+      "name": "Finsterer"
+    },
+    {
+      "id": 205,
+      "name": "Ru[UNI00df]"
+    },
+    {
+      "id": 206,
+      "name": "Dunkler"
+    },
+    {
+      "id": 207,
+      "name": "Schatten"
+    },
+    {
+      "id": 208,
+      "name": "Priester v. Rama"
+    },
+    {
+      "id": 209,
+      "name": "Sleeber"
+    },
+    {
+      "id": 210,
+      "name": "Kr[UNI00e4]hen-Priester"
+    },
+    {
+      "id": 211,
+      "name": "Garuda"
+    },
+    {
+      "id": 212,
+      "name": "Arthur"
+    },
+    {
+      "id": 213,
+      "name": "Lanzentr[UNI00e4]ger"
+    },
+    {
+      "id": 214,
+      "name": "Eisenspeer"
+    },
+    {
+      "id": 215,
+      "name": "Flugstahl"
+    },
+    {
+      "id": 216,
+      "name": "Piratentank"
+    },
+    {
+      "id": 217,
+      "name": "Piratenauge"
+    },
+    {
+      "id": 218,
+      "name": "Wut-Kanone"
+    },
+    {
+      "id": 219,
+      "name": "Eisengespenst"
+    },
+    {
+      "id": 220,
+      "name": "Bomberkopf"
+    },
+    {
+      "id": 221,
+      "name": "Dreifach-Kracher"
+    },
+    {
+      "id": 222,
+      "name": "Gefahrenbombe"
+    },
+    {
+      "id": 223,
+      "name": "S[UNI00fc][UNI00df]es Dynamit"
+    },
+    {
+      "id": 224,
+      "name": "Kreuz"
+    },
+    {
+      "id": 225,
+      "name": "S. Kreuz"
+    },
+    {
+      "id": 226,
+      "name": "R. Kreuz"
+    },
+    {
+      "id": 227,
+      "name": "RSF Kreuz"
+    },
+    {
+      "id": 228,
+      "name": "Herz"
+    },
+    {
+      "id": 229,
+      "name": "S. Herz"
+    },
+    {
+      "id": 230,
+      "name": "R. Herz"
+    },
+    {
+      "id": 231,
+      "name": "RSF Herz"
+    },
+    {
+      "id": 232,
+      "name": "Pik"
+    },
+    {
+      "id": 233,
+      "name": "S. Pik"
+    },
+    {
+      "id": 234,
+      "name": "R. Pik"
+    },
+    {
+      "id": 235,
+      "name": "RSF Pik"
+    },
+    {
+      "id": 236,
+      "name": "Karo"
+    },
+    {
+      "id": 237,
+      "name": "S. Karo"
+    },
+    {
+      "id": 238,
+      "name": "R. Karo"
+    },
+    {
+      "id": 239,
+      "name": "RSF Karo"
+    },
+    {
+      "id": 240,
+      "name": "Joker"
+    },
+    {
+      "id": 241,
+      "name": "S. Joker"
+    },
+    {
+      "id": 242,
+      "name": "R. Joker"
+    },
+    {
+      "id": 243,
+      "name": "RSF Joker"
+    },
+    {
+      "id": 245,
+      "name": "Mime"
+    },
+    {
+      "id": 246,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 247,
+      "name": "Mime"
+    },
+    {
+      "id": 248,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 249,
+      "name": "Mime"
+    },
+    {
+      "id": 250,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 251,
+      "name": "Mime"
+    },
+    {
+      "id": 252,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 253,
+      "name": "Mime"
+    },
+    {
+      "id": 254,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 255,
+      "name": "Mime"
+    },
+    {
+      "id": 256,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 257,
+      "name": "Mime"
+    },
+    {
+      "id": 258,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 259,
+      "name": "Mime"
+    },
+    {
+      "id": 260,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 261,
+      "name": "Mime"
+    },
+    {
+      "id": 262,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 263,
+      "name": "Mime"
+    },
+    {
+      "id": 264,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 265,
+      "name": "Mime"
+    },
+    {
+      "id": 266,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 267,
+      "name": "Mime"
+    },
+    {
+      "id": 268,
+      "name": "K[UNI00f6]nigsmime"
+    },
+    {
+      "id": 269,
+      "name": "Schallbomber"
+    },
+    {
+      "id": 270,
+      "name": "[UNI00dc]berschall-Bombe"
+    },
+    {
+      "id": 271,
+      "name": "Metallbomber"
+    },
+    {
+      "id": 272,
+      "name": "Krau Mauness"
+    },
+    {
+      "id": 273,
+      "name": "Jojo-Fass"
+    },
+    {
+      "id": 274,
+      "name": "Rollfelsen"
+    },
+    {
+      "id": 275,
+      "name": "Uhr-Ritter"
+    },
+    {
+      "id": 276,
+      "name": "Drehscheibe"
+    },
+    {
+      "id": 277,
+      "name": "Fledermaus"
+    },
+    {
+      "id": 278,
+      "name": "Meer-Fledermaus"
+    },
+    {
+      "id": 279,
+      "name": "Lava-Fledermaus"
+    },
+    {
+      "id": 280,
+      "name": "Finster-Flederm."
+    },
+    {
+      "id": 500,
+      "name": "Halloween"
+    },
+    {
+      "id": 501,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 502,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 503,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 504,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 505,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 506,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 507,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 508,
+      "name": "Schmetterling"
+    },
+    {
+      "id": 509,
+      "name": "Lafresc.-Stempel"
+    },
+    {
+      "id": 510,
+      "name": "Gaspard"
+    },
+    {
+      "id": 511,
+      "name": "Monster-Gaspard"
+    },
+    {
+      "id": 512,
+      "name": "Gaspard"
+    },
+    {
+      "id": 513,
+      "name": "B[UNI00f6]se Flamme"
+    },
+    {
+      "id": 514,
+      "name": "Shigura-Marionette"
+    },
+    {
+      "id": 515,
+      "name": "???"
+    },
+    {
+      "id": 516,
+      "name": "Shingala"
+    },
+    {
+      "id": 517,
+      "name": "Todesarche"
+    },
+    {
+      "id": 518,
+      "name": "Arsenal"
+    },
+    {
+      "id": 519,
+      "name": "Maschinengewehr"
+    },
+    {
+      "id": 520,
+      "name": "Mini-Arsenal"
+    },
+    {
+      "id": 522,
+      "name": "Jaming"
+    },
+    {
+      "id": 523,
+      "name": "Griffon-Soldat"
+    },
+    {
+      "id": 600,
+      "name": "Clown"
+    },
+    {
+      "id": 601,
+      "name": "Linda"
+    },
+    {
+      "id": 602,
+      "name": "Lin"
+    },
+    {
+      "id": 603,
+      "name": "Mammo"
+    },
+    {
+      "id": 604,
+      "name": "Alptraum"
+    },
+    {
+      "id": 605,
+      "name": "Schwarzer Drache"
+    },
+    {
+      "id": 606,
+      "name": "Uther"
+    },
+    {
+      "id": 607,
+      "name": "Gaia Eins"
+    },
+    {
+      "id": 608,
+      "name": "Gaia Zwei"
+    },
+    {
+      "id": 609,
+      "name": "Trentos"
+    },
+    {
+      "id": 610,
+      "name": "Kortlenn"
+    },
+    {
+      "id": 611,
+      "name": "Schmuckband"
+    },
+    {
+      "id": 612,
+      "name": "Seedrache"
+    },
+    {
+      "id": 613,
+      "name": "Inferno"
+    },
+    {
+      "id": 614,
+      "name": "Linda"
+    },
+    {
+      "id": 615,
+      "name": "Kaiser Griffon"
+    },
+    {
+      "id": 616,
+      "name": "Kaiser Griffon"
+    },
+    {
+      "id": 617,
+      "name": "Kaiser Griffon"
+    },
+    {
+      "id": 618,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 619,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 620,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 621,
+      "name": "D[UNI00fc]ster-Element"
+    },
+    {
+      "id": 622,
+      "name": "Mond"
+    },
+    {
+      "id": 628,
+      "name": "Metall-Flotsam"
+    },
+    {
+      "id": 629,
+      "name": "D[UNI00fc]ster-Dschinn"
+    },
+    {
+      "id": 630,
+      "name": "D[UNI00fc]ster-Dschinn"
+    },
+    {
+      "id": 700,
+      "name": "Himarra"
+    },
+    {
+      "id": 701,
+      "name": "Spinnen-Dame"
+    },
+    {
+      "id": 702,
+      "name": "Gyumo"
+    },
+    {
+      "id": 703,
+      "name": "Jagdfuchs"
+    },
+    {
+      "id": 704,
+      "name": "Pixi"
+    },
+    {
+      "id": 1000,
+      "name": "Ro-Bombe"
+    },
+    {
+      "id": 1001,
+      "name": "Elektro-Fisch"
+    },
+    {
+      "id": 1002,
+      "name": "Bombe"
+    },
+    {
+      "id": 1003,
+      "name": "Bombe"
+    },
+    {
+      "id": 1004,
+      "name": "Bombe"
+    },
+    {
+      "id": 1005,
+      "name": "Bombe"
+    },
+    {
+      "id": 1006,
+      "name": "Bombe"
+    },
+    {
+      "id": 1500,
+      "name": "Monster"
+    },
+    {
+      "id": 1501,
+      "name": "Monster"
+    }
+  ],
+  "schema_version": 2
+}

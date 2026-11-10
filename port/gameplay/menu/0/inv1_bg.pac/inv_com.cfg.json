@@ -1,0 +1,2496 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "neta0",
+            "neta1",
+            "neta2",
+            "poly_chr0",
+            "poly_chr1"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "hukidashi0",
+            "hukidashi1",
+            "hukidashi2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "thinkin_ef1"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "ネタ板",
+            "カードリスト",
+            "cardlist",
+            "Album_sw",
+            "Album_Big"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "kakudai_pic",
+            "itembrd",
+            "invent_okeff",
+            "clip1",
+            "clip2",
+            "recbrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "form": "ネタ板",
+          "op": "part_draw_flag",
+          "part": "pictTitle"
+        },
+        {
+          "draw": 1,
+          "form": "ネタ板",
+          "op": "part_draw_flag",
+          "part": "title"
+        }
+      ],
+      "name": "フォーム初期化"
+    },
+    {
+      "commands": [
+        {
+          "fade_in": 1,
+          "op": "cursor_fade",
+          "speed": 20
+        },
+        {
+          "enable": 1,
+          "op": "input_key"
+        }
+      ],
+      "name": "INIT_END"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "system",
+          "window": 0
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg0"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "本終了処理"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "itembrd",
+            "msg2",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "RETURN_MODESELECT"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "poly_chr0",
+            "ネタ板",
+            "hukidashi0",
+            "Album_sw"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "Album_sw",
+          "op": "form_calc_rgba",
+          "step": 16,
+          "target": 128
+        }
+      ],
+      "name": "NextToThink"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "itembrd",
+            "clip1",
+            "clip2",
+            "カードリスト",
+            "cardlist"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        }
+      ],
+      "name": "NextToCardList"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "Album_Big",
+            "ネタ板"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg7",
+          "op": "form_calc_rgba",
+          "step": 12,
+          "target": 128
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg7"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "msgdic",
+          "window": 7
+        }
+      ],
+      "name": "NextToAlbumView"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "poly_chr0",
+            "ネタ板",
+            "Album_sw",
+            "recbrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg7",
+            "msg2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg3",
+            "msg0",
+            "msg1",
+            "msg5",
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "recbrd",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "Album_sw",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg7",
+          "op": "form_calc_rgba",
+          "step": 12,
+          "target": 128
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 7
+        }
+      ],
+      "name": "NextToPhotoView"
+    },
+    {
+      "commands": [
+        {
+          "form": "hukidashi0",
+          "op": "form_rgba"
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi1",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi2",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        }
+      ],
+      "name": "考えモード0"
+    },
+    {
+      "commands": [
+        {
+          "form": "hukidashi0",
+          "op": "form_rgba"
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi0",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi1",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi2",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        }
+      ],
+      "name": "考えモード5"
+    },
+    {
+      "commands": [
+        {
+          "op": "init_drawlist"
+        },
+        {
+          "forms": [
+            "msg0",
+            "dmy_swap"
+          ],
+          "op": "form_swap"
+        }
+      ],
+      "name": "FORMSWAP0"
+    },
+    {
+      "commands": [
+        {
+          "op": "init_drawlist"
+        },
+        {
+          "forms": [
+            "poly_chr1",
+            "swap_dmy10",
+            "カードリスト",
+            "swap_dmy20"
+          ],
+          "op": "form_group_swap"
+        },
+        {
+          "forms": [
+            "msg0",
+            "dmy_swap"
+          ],
+          "op": "form_swap"
+        }
+      ],
+      "name": "FORMSWAP1"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "neta0",
+          "op": "form_calc_rgba",
+          "step": -3,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "neta1",
+          "op": "form_calc_rgba",
+          "step": -3,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "neta2",
+          "op": "form_calc_rgba",
+          "step": -3,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": -6,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": -6,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "Album_sw",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi0",
+          "op": "form_calc_rgba",
+          "step": -2,
+          "target": 0
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "invent_okeff"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "発明考え開始"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "発明やめ"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "hukidashi1",
+            "poly_chr1",
+            "thinkin_ef1"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "hukidashi1",
+          "frames": 11,
+          "mode": 0,
+          "op": "form_fade"
+        },
+        {
+          "action": "外へ",
+          "form": "ネタ板",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "発明成功"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "hukidashi2",
+            "thinkin_ef1"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi2",
+          "op": "form_calc_rgba",
+          "step": 10,
+          "target": 128
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "poly_chr1"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "action": "外へ",
+          "form": "ネタ板",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "発明失敗"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "poly_chr1",
+            "thinkin_ef1",
+            "hukidashi2"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "action": "中へ",
+          "form": "ネタ板",
+          "op": "form_set_action"
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi0",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "Album_sw",
+          "op": "form_calc_rgba",
+          "step": 16,
+          "target": 128
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "invent_okeff",
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "発明後処理"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "system",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "invent",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "helpwin",
+          "window": 3
+        },
+        {
+          "message": 1,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "message": 618,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg0"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg2",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg3",
+          "op": "form_set_pos",
+          "xy": [
+            386,
+            16
+          ]
+        }
+      ],
+      "name": "MSG考察モード"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "system",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "msgdic",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "msgdic",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "default",
+          "window": 5
+        },
+        {
+          "message": 55,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "message": 640,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg0",
+            "msg2",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg5",
+            "msg4",
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg2",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 64,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg0",
+          "op": "form_calc_rgba",
+          "step": 20,
+          "target": 128
+        },
+        {
+          "action": "左下へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        }
+      ],
+      "name": "MSG発明製作モード"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "MSG_ITEMMAKE"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba"
+        }
+      ],
+      "name": "MSG_WARNING"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba"
+        },
+        {
+          "message": 614,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "発明済み"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 604,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "cursor": 0,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "発明する？"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "makebrd",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 609,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "作る？"
+    },
+    {
+      "commands": [
+        {
+          "action": "終了",
+          "form": "カードリスト",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "itembrd",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外右へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "poly_chr0"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg2",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 10
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "前終了処理"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "msg0",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "recbrd",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "Album_sw",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "ネタ板",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "写真の確認タイトル",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg7",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg2",
+          "op": "form_calc_rgba",
+          "step": -14,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "写真リスト",
+          "op": "form_calc_rgba",
+          "step": -16,
+          "target": 0
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 10
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "写真メニュー終了"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 650,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        }
+      ],
+      "name": "写真消しますか？"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 651,
+          "op": "make_message",
+          "window": 5
+        }
+      ],
+      "name": "写真消しました"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 652,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        }
+      ],
+      "name": "写真の一括消去？ネタ"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 680,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        }
+      ],
+      "name": "写真の一括消去？Album"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 654,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        }
+      ],
+      "name": "写真全消去？ネタ"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 682,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        }
+      ],
+      "name": "写真全消去？Album"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 655,
+          "op": "make_message",
+          "window": 5
+        }
+      ],
+      "name": "写真全消去ネタ"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 683,
+          "op": "make_message",
+          "window": 5
+        }
+      ],
+      "name": "写真全消去Album"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 672,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        }
+      ],
+      "name": "アルバム移す？"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 656,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg5"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        }
+      ],
+      "name": "ネタに移す？"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 5
+        },
+        {
+          "message": 653,
+          "op": "make_message",
+          "window": 5
+        }
+      ],
+      "name": "写真の一括消去"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "inv_bg",
+            "invent_okeff",
+            "hukidashi0"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "写真の確認タイトル"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "system",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "no_win",
+          "window": 1
+        },
+        {
+          "op": "message_env",
+          "preset": "invent",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "helpwin",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "no_win",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "no_win",
+          "window": 5
+        },
+        {
+          "form": "recbrd",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "recbrd",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "itembrd",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "itembrd",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "Album_sw",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "Album_sw",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "ネタ板",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "ネタ板",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "写真の確認タイトル",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "写真の確認タイトル",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "msg7",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "msg7",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        }
+      ],
+      "name": "写真確認モード初期化"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "form": "ネタ板",
+          "op": "part_draw_flag",
+          "part": "pictTitle"
+        },
+        {
+          "draw": 0,
+          "form": "ネタ板",
+          "op": "part_draw_flag",
+          "part": "title"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "写真の確認タイトル"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "写真の確認タイトル",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "写真の確認タイトル",
+          "op": "form_calc_rgba",
+          "step": 127,
+          "target": 128
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "picmodeonly"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "poly_chr0",
+            "hukidashi2",
+            "itembrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "form": "hukidashi0",
+          "op": "part_draw_flag",
+          "part": "line"
+        }
+      ],
+      "name": "通常のみ初期化"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "Album_sw"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "ALBUM_OFF"
+    },
+    {
+      "commands": [
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "message": 616,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "空き無し"
+    },
+    {
+      "commands": [
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "message": 610,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "ITEM不足"
+    },
+    {
+      "commands": [
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "ERRMSGOFF0"
+    },
+    {
+      "commands": [
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "message": 684,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "cursor": 2,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "op": "message_question_row",
+          "row": 2,
+          "window": 4
+        }
+      ],
+      "name": "IS_MCACCESS"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg4",
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "IS_MCACCESS_取消"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 3013,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_speed",
+          "speed": 0.0,
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "channel": 3,
+          "form": "hukidashi0",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "Album_sw",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "recbrd",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": -16,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg7",
+          "op": "form_calc_rgba",
+          "step": -16,
+          "target": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "MCLOAD_BEGIN"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_speed",
+          "speed": 0.1,
+          "window": 4
+        },
+        {
+          "message": 3041,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 6
+        },
+        {
+          "message": 685,
+          "op": "make_message",
+          "window": 6
+        }
+      ],
+      "name": "LOADING"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 688,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "LOADEND"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 693,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "LOADEND2"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 690,
+          "op": "make_message",
+          "window": 4
+        }
+      ],
+      "name": "LOAD_MISS"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 692,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_question_row",
+          "row": 2,
+          "window": 4
+        },
+        {
+          "cursor": 2,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "SAVE_SLOTSEL"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 3013,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_speed",
+          "speed": 0.0,
+          "window": 4
+        }
+      ],
+      "name": "SAVE_PRECHECK"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "message": 673,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "IS_SAVE"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 3013,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_speed",
+          "speed": 0.0,
+          "window": 4
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "SAVE_BEGIN"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 4
+        },
+        {
+          "message": 3007,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 6
+        },
+        {
+          "message": 686,
+          "op": "make_message",
+          "window": 6
+        }
+      ],
+      "name": "SAVING"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 675,
+          "op": "make_message",
+          "window": 4
+        }
+      ],
+      "name": "SAVE_END"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 676,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "IS_SAVE2"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "message": 689,
+          "op": "make_message",
+          "window": 4
+        }
+      ],
+      "name": "新規ALBUM"
+    },
+    {
+      "commands": [
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4",
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 8,
+          "window": 4
+        },
+        {
+          "message": 687,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 6
+        },
+        {
+          "message": 686,
+          "op": "make_message",
+          "window": 6
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "NEWALBUMSYS_SAVE"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 679,
+          "op": "make_message",
+          "window": 4
+        }
+      ],
+      "name": "NEWALBUM_SIZE不足"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 3047,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "NOTPS2MC"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 3047,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "NOTPS2MC_SAVE"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 693,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "UNFORMAT時"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 691,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "FORMAT確認"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general_2",
+          "window": 4
+        },
+        {
+          "message": 3048,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        }
+      ],
+      "name": "FORMAT中"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "message": 3049,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        }
+      ],
+      "name": "FORMAT_END"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "message": 3045,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "FORMAT_FAIL"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "message": 674,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "NOT_SAVE"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

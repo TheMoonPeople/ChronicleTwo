@@ -1,0 +1,2741 @@
+{
+  "kind": "villager_places",
+  "place_count": 160,
+  "places": [
+    {
+      "angle": 1.89,
+      "index": 0,
+      "map": -1,
+      "position": [
+        42.5,
+        57.1,
+        37.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.89,
+      "index": 1,
+      "map": 27,
+      "position": [
+        42.5,
+        57.1,
+        37.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.0,
+      "index": 2,
+      "map": 28,
+      "position": [
+        -0.9,
+        0.0,
+        -29.9
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        30.0
+      ]
+    },
+    {
+      "angle": 3.12,
+      "index": 3,
+      "map": 10,
+      "position": [
+        501.5,
+        4.1,
+        100.9
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.0,
+      "index": 4,
+      "map": 10,
+      "position": [
+        510.0,
+        4.1,
+        -175.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.5,
+      "index": 5,
+      "map": 10,
+      "position": [
+        1182.3,
+        4.1,
+        210.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -3.11,
+      "index": 6,
+      "map": 10,
+      "position": [
+        1237.1,
+        0.0,
+        918.2
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.11,
+      "index": 7,
+      "map": 10,
+      "position": [
+        1371.9,
+        0.0,
+        935.3
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.51,
+      "index": 8,
+      "map": 11,
+      "position": [
+        1417.8,
+        -86.0,
+        -1506.3
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.06,
+      "index": 9,
+      "map": 11,
+      "position": [
+        1588.0,
+        -86.0,
+        -1583.5
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.79,
+      "index": 10,
+      "map": 11,
+      "position": [
+        1924.9,
+        -86.0,
+        -1270.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.87,
+      "index": 11,
+      "map": 11,
+      "position": [
+        1516.8,
+        -90.0,
+        -1142.1
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.89,
+      "index": 12,
+      "map": 11,
+      "position": [
+        1801.7,
+        -90.0,
+        -1447.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.79,
+      "index": 13,
+      "map": 10,
+      "position": [
+        -512.7,
+        0.0,
+        -54.9
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.43,
+      "index": 14,
+      "map": 10,
+      "position": [
+        -183.5,
+        0.0,
+        27.5
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.16,
+      "index": 15,
+      "map": 10,
+      "position": [
+        120.4,
+        0.0,
+        -13.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.56,
+      "index": 16,
+      "map": 10,
+      "position": [
+        661.6,
+        0.0,
+        -10.9
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.66,
+      "index": 17,
+      "map": 10,
+      "position": [
+        -232.9,
+        0.0,
+        -57.4
+      ],
+      "route": [
+        {
+          "angle": 1.53,
+          "position": [
+            1043.5,
+            0.0,
+            -16.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 2.22,
+          "position": [
+            1557.9,
+            -28.5,
+            -374.3
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 3.11,
+          "position": [
+            1638.8,
+            -90.0,
+            -1105.6
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 200,
+          "type": "wait"
+        },
+        {
+          "angle": 2.22,
+          "position": [
+            1557.9,
+            -28.5,
+            -374.3
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.53,
+          "position": [
+            1043.5,
+            0.0,
+            -16.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.66,
+          "position": [
+            -232.9,
+            0.0,
+            -57.4
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 200,
+          "type": "wait"
+        }
+      ]
+    },
+    {
+      "angle": 1.1,
+      "index": 18,
+      "map": 10,
+      "position": [
+        664.3,
+        0.0,
+        7.1
+      ],
+      "route": [
+        {
+          "angle": 1.11,
+          "position": [
+            1083.8,
+            0.0,
+            196.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.41,
+          "position": [
+            1300.6,
+            0.0,
+            687.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.07,
+          "position": [
+            1342.9,
+            0.0,
+            1391.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.02,
+          "position": [
+            2138.1,
+            0.0,
+            1439.7
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.07,
+          "position": [
+            1342.9,
+            0.0,
+            1391.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.41,
+          "position": [
+            1300.6,
+            0.0,
+            687.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.11,
+          "position": [
+            1083.8,
+            0.0,
+            196.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.1,
+          "position": [
+            664.3,
+            0.0,
+            7.1
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": -0.76,
+      "index": 19,
+      "map": 22,
+      "position": [
+        -35.0,
+        104.2,
+        -150.3
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.12,
+      "index": 20,
+      "map": 12,
+      "position": [
+        1999.1,
+        0.0,
+        3193.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.31,
+      "index": 21,
+      "map": 12,
+      "position": [
+        2985.0,
+        0.0,
+        2497.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.72,
+      "index": 22,
+      "map": 12,
+      "position": [
+        2246.7,
+        0.0,
+        2165.9
+      ],
+      "route": []
+    },
+    {
+      "angle": -3.03,
+      "index": 23,
+      "map": 12,
+      "position": [
+        1783.0,
+        0.0,
+        2848.9
+      ],
+      "route": [
+        {
+          "angle": 2.88,
+          "position": [
+            1823.5,
+            0.0,
+            2486.8
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 2.22,
+          "position": [
+            2039.4,
+            0.0,
+            2311.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.44,
+          "position": [
+            2443.7,
+            0.0,
+            2311.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.22,
+          "position": [
+            2634.3,
+            0.0,
+            2705.5
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.71,
+          "position": [
+            2359.7,
+            0.0,
+            3024.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.53,
+          "position": [
+            2026.0,
+            0.0,
+            3046.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -3.03,
+          "position": [
+            1783.0,
+            0.0,
+            2848.9
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": -1.87,
+      "index": 24,
+      "map": 13,
+      "position": [
+        -2301.4,
+        145.7,
+        -52.5
+      ],
+      "route": [
+        {
+          "angle": -2.15,
+          "position": [
+            -2610.0,
+            181.6,
+            -194.0
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -3.05,
+          "position": [
+            -2685.6,
+            219.1,
+            -700.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -3.11,
+          "position": [
+            -2705.9,
+            270.4,
+            -1918.0
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 60,
+          "type": "wait"
+        },
+        {
+          "angle": -3.05,
+          "position": [
+            -2685.6,
+            219.1,
+            -700.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.15,
+          "position": [
+            -2610.0,
+            181.6,
+            -194.0
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.87,
+          "position": [
+            -2301.4,
+            145.7,
+            -52.5
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 60,
+          "type": "wait"
+        }
+      ]
+    },
+    {
+      "angle": 1.74,
+      "index": 25,
+      "map": 13,
+      "position": [
+        -2831.1,
+        206.7,
+        -79.4
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.14,
+      "index": 26,
+      "map": 14,
+      "position": [
+        -4784.4,
+        368.2,
+        2562.2
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.0,
+      "index": 27,
+      "map": 14,
+      "position": [
+        -4263.8,
+        350.0,
+        2737.4
+      ],
+      "route": [
+        {
+          "angle": -0.72,
+          "position": [
+            -5284.0,
+            350.0,
+            3272.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.51,
+          "position": [
+            -5829.4,
+            350.0,
+            2861.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 2.4,
+          "position": [
+            -5646.6,
+            355.0,
+            2332.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.98,
+          "position": [
+            -4527.0,
+            350.0,
+            2314.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.0,
+          "position": [
+            -4263.8,
+            350.0,
+            2737.4
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": -1.48,
+      "index": 28,
+      "map": 14,
+      "position": [
+        -5822.6,
+        350.0,
+        4109.1
+      ],
+      "route": [
+        {
+          "angle": -1.86,
+          "position": [
+            -6412.8,
+            350.0,
+            3974.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.61,
+          "position": [
+            -6729.5,
+            350.0,
+            3520.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.88,
+          "position": [
+            -6968.3,
+            350.0,
+            2897.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.61,
+          "position": [
+            -6729.5,
+            350.0,
+            3520.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.86,
+          "position": [
+            -6412.8,
+            350.0,
+            3974.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.48,
+          "position": [
+            -5822.6,
+            350.0,
+            4109.1
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": 1.47,
+      "index": 29,
+      "map": 14,
+      "position": [
+        -5522.6,
+        365.8,
+        3546.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.61,
+      "index": 30,
+      "map": 14,
+      "position": [
+        -6407.7,
+        356.1,
+        2878.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.39,
+      "index": 31,
+      "map": 31,
+      "position": [
+        -40.8,
+        0.0,
+        88.1
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": 0.04,
+      "index": 32,
+      "map": 30,
+      "position": [
+        -64.2,
+        -80.0,
+        -174.5
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": 0.44,
+      "index": 33,
+      "map": 32,
+      "position": [
+        -30.9,
+        0.0,
+        -63.8
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": 1.26,
+      "index": 34,
+      "map": 32,
+      "position": [
+        -111.9,
+        0.0,
+        38.1
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.37,
+      "index": 35,
+      "map": 32,
+      "position": [
+        35.6,
+        0.0,
+        8.2
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.68,
+      "index": 36,
+      "map": 36,
+      "position": [
+        134.3,
+        0.1,
+        -117.3
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.5,
+      "index": 37,
+      "map": 36,
+      "position": [
+        8.9,
+        -12.9,
+        -93.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.08,
+      "index": 38,
+      "map": 10,
+      "position": [
+        184.9,
+        0.0,
+        87.5
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.09,
+      "index": 39,
+      "map": 42,
+      "position": [
+        66.4,
+        39.6,
+        -293.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.85,
+      "index": 40,
+      "map": 11,
+      "motion": "sit",
+      "position": [
+        1669.3,
+        -90.0,
+        -1421.9
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.72,
+      "index": 41,
+      "map": 27,
+      "position": [
+        65.0,
+        11.0,
+        -180.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.72,
+      "index": 42,
+      "map": 27,
+      "position": [
+        38.77,
+        -0.02,
+        -147.68
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.27,
+      "index": 43,
+      "map": 36,
+      "position": [
+        -67.0,
+        -12.9,
+        -85.5
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.07,
+      "index": 44,
+      "map": 34,
+      "position": [
+        -259.9,
+        35.8,
+        327.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.05,
+      "index": 45,
+      "map": 34,
+      "position": [
+        -4.7,
+        198.8,
+        1085.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.6,
+      "index": 46,
+      "map": 25,
+      "position": [
+        100.0,
+        2.0,
+        300.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.0,
+      "index": 47,
+      "map": 25,
+      "position": [
+        30.0,
+        210.0,
+        250.0
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        20.0
+      ]
+    },
+    {
+      "angle": 0.62,
+      "index": 48,
+      "map": 25,
+      "position": [
+        -98.7,
+        -2.7,
+        936.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.0,
+      "index": 49,
+      "map": 25,
+      "position": [
+        -291.7,
+        282.0,
+        240.6
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": -2.71,
+      "index": 50,
+      "map": 13,
+      "position": [
+        -3064.5,
+        270.4,
+        -1778.2
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.41,
+      "index": 51,
+      "map": 52,
+      "position": [
+        40.8,
+        0.2,
+        -80.1
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.49,
+      "index": 52,
+      "map": 51,
+      "position": [
+        -45.0,
+        -0.0,
+        41.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -3.1,
+      "index": 53,
+      "map": 44,
+      "position": [
+        122.8,
+        0.0,
+        24.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.22,
+      "index": 54,
+      "map": 49,
+      "position": [
+        -0.3,
+        0.0,
+        53.8
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.79,
+      "index": 55,
+      "map": 46,
+      "position": [
+        114.9,
+        9.8,
+        -10.5
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.19,
+      "index": 56,
+      "map": 45,
+      "position": [
+        136.2,
+        12.7,
+        5.4
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.03,
+      "index": 57,
+      "map": 38,
+      "position": [
+        2.0,
+        0.0,
+        -4.6
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.61,
+      "index": 58,
+      "map": 33,
+      "position": [
+        -569.3,
+        0.0,
+        -1.1
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.2,
+      "index": 59,
+      "map": 47,
+      "position": [
+        -60.4,
+        0.0,
+        -96.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.14,
+      "index": 60,
+      "map": 10,
+      "position": [
+        1300.0,
+        0.0,
+        1100.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.74,
+      "index": 61,
+      "map": 14,
+      "position": [
+        -5312.0,
+        350.0,
+        3260.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.65,
+      "index": 62,
+      "map": 14,
+      "position": [
+        -6816.8,
+        357.8,
+        3026.5
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.8,
+      "index": 63,
+      "map": 14,
+      "position": [
+        -3905.0,
+        350.0,
+        2290.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.0,
+      "index": 64,
+      "map": 13,
+      "position": [
+        -3440.0,
+        320.4,
+        -1240.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.16,
+      "index": 65,
+      "map": 23,
+      "position": [
+        -10.0,
+        36.1,
+        65.1
+      ],
+      "route": [
+        {
+          "motion": "special",
+          "posture": "mtn",
+          "time": 999,
+          "type": "wait"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 60,
+          "type": "wait"
+        }
+      ]
+    },
+    {
+      "angle": 3.14,
+      "index": 66,
+      "map": 101,
+      "position": [
+        0.0,
+        0.0,
+        130.0
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "angle": 0.0,
+      "index": 67,
+      "map": 112,
+      "position": [
+        0.0,
+        0.0,
+        -160.0
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": -2.4,
+      "index": 68,
+      "map": 26,
+      "position": [
+        -32.1,
+        167.9,
+        12.1
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.47,
+      "index": 69,
+      "map": 26,
+      "position": [
+        -695.5,
+        149.8,
+        -651.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.73,
+      "index": 70,
+      "map": 26,
+      "position": [
+        -266.4,
+        453.8,
+        -168.3
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.78,
+      "index": 71,
+      "map": 26,
+      "position": [
+        -215.9,
+        453.8,
+        -214.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.08,
+      "index": 72,
+      "map": 140,
+      "position": [
+        3.9,
+        1.4,
+        -103.3
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "angle": 0.0,
+      "index": 73,
+      "map": 26,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.04,
+      "index": 73,
+      "map": 82,
+      "position": [
+        98.0,
+        270.0,
+        1501.3
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.02,
+      "index": 74,
+      "map": 113,
+      "position": [
+        -106.1,
+        0.0,
+        50.3
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.65,
+      "index": 75,
+      "map": 113,
+      "position": [
+        213.3,
+        20.0,
+        147.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.24,
+      "index": 76,
+      "map": 141,
+      "position": [
+        102.0,
+        -0.0,
+        49.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.51,
+      "index": 77,
+      "map": 141,
+      "position": [
+        -83.8,
+        -0.0,
+        104.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.33,
+      "index": 78,
+      "map": 142,
+      "position": [
+        -90.8,
+        0.0,
+        90.2
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.59,
+      "index": 79,
+      "map": 114,
+      "position": [
+        -48.8,
+        -0.0,
+        114.9
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.01,
+      "index": 80,
+      "map": 82,
+      "position": [
+        108.4,
+        360.0,
+        -514.8
+      ],
+      "route": []
+    },
+    {
+      "angle": -3.11,
+      "index": 81,
+      "map": 82,
+      "position": [
+        7.8,
+        360.0,
+        -2138.3
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.05,
+      "index": 83,
+      "map": 107,
+      "position": [
+        1.7,
+        0.0,
+        126.2
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.68,
+      "index": 84,
+      "map": 107,
+      "position": [
+        -165.9,
+        30.0,
+        672.3
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.38,
+      "index": 85,
+      "map": 107,
+      "position": [
+        695.9,
+        30.0,
+        7.5
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.13,
+      "index": 86,
+      "map": 143,
+      "position": [
+        148.1,
+        -30.0,
+        -112.7
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": 0.97,
+      "index": 87,
+      "map": 144,
+      "position": [
+        -142.6,
+        0.0,
+        -81.4
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": 1.44,
+      "index": 88,
+      "map": 156,
+      "position": [
+        -167.6,
+        -35.0,
+        5.2
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "angle": 2.12,
+      "index": 89,
+      "map": 102,
+      "position": [
+        -1675.9,
+        1160.0,
+        5031.1
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.12,
+      "index": 90,
+      "map": 102,
+      "position": [
+        531.0,
+        0.0,
+        5989.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.41,
+      "index": 91,
+      "map": 102,
+      "position": [
+        1901.7,
+        0.0,
+        5071.7
+      ],
+      "route": [
+        {
+          "angle": -0.75,
+          "position": [
+            1401.2,
+            0.0,
+            5584.0
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.21,
+          "position": [
+            534.3,
+            0.0,
+            5915.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.83,
+          "position": [
+            -1357.0,
+            0.0,
+            5648.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.5,
+          "position": [
+            -1937.9,
+            0.0,
+            4913.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.83,
+          "position": [
+            -1357.0,
+            0.0,
+            5648.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.21,
+          "position": [
+            534.3,
+            0.0,
+            5915.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.75,
+          "position": [
+            1401.2,
+            0.0,
+            5584.0
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.41,
+          "position": [
+            1901.7,
+            0.0,
+            5071.7
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": 2.54,
+      "index": 92,
+      "map": 102,
+      "position": [
+        -768.3,
+        1160.0,
+        5939.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.94,
+      "index": 93,
+      "map": 102,
+      "position": [
+        -49.8,
+        2460.0,
+        6009.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 2.76,
+      "index": 94,
+      "map": 110,
+      "position": [
+        -150.5,
+        14.7,
+        314.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.15,
+      "index": 95,
+      "map": 110,
+      "position": [
+        -90.0,
+        0.0,
+        -606.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.82,
+      "index": 96,
+      "map": 75,
+      "position": [
+        110.1,
+        0.0,
+        -49.4
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.13,
+      "index": 97,
+      "map": 89,
+      "position": [
+        30.7,
+        4.8,
+        -2.8
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.75,
+      "index": 98,
+      "map": 50,
+      "position": [
+        35.3,
+        0.0,
+        -2.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.04,
+      "index": 99,
+      "map": 37,
+      "position": [
+        14.9,
+        65.0,
+        -99.9
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.77,
+      "index": 100,
+      "map": 11,
+      "position": [
+        2020.0,
+        -86.0,
+        -1299.8
+      ],
+      "route": [],
+      "shadow": 0,
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": 3.06,
+      "index": 101,
+      "map": 34,
+      "position": [
+        -254.6,
+        198.8,
+        709.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.46,
+      "index": 102,
+      "map": 34,
+      "position": [
+        -483.0,
+        198.8,
+        1171.2
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": 1.47,
+      "index": 103,
+      "map": 34,
+      "position": [
+        -482.4,
+        198.8,
+        899.6
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": -3.05,
+      "index": 104,
+      "map": 34,
+      "move_motion": "run",
+      "move_speed": 3.0,
+      "position": [
+        -290.7,
+        35.8,
+        -268.1
+      ],
+      "route": [
+        {
+          "angle": 0.04,
+          "position": [
+            -286.0,
+            35.8,
+            -1727.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -3.05,
+          "position": [
+            -290.7,
+            35.8,
+            -268.1
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": 0.03,
+      "index": 105,
+      "map": 36,
+      "position": [
+        -131.2,
+        -12.9,
+        -144.1
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        30.0
+      ]
+    },
+    {
+      "angle": 1.62,
+      "index": 106,
+      "map": 34,
+      "position": [
+        -213.0,
+        35.8,
+        -1731.8
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.52,
+      "index": 107,
+      "map": 47,
+      "position": [
+        29.7,
+        0.0,
+        -38.1
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.19,
+      "index": 108,
+      "map": 10,
+      "move_speed": 1.0,
+      "position": [
+        -580.6,
+        0.0,
+        53.1
+      ],
+      "route": [
+        {
+          "angle": -1.28,
+          "position": [
+            -1412.7,
+            0.0,
+            327.8
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.14,
+          "position": [
+            -1988.9,
+            118.2,
+            328.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.92,
+          "position": [
+            -2214.0,
+            142.4,
+            524.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.08,
+          "position": [
+            -2569.2,
+            256.0,
+            539.8
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 2.73,
+          "position": [
+            -3089.7,
+            254.3,
+            44.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.53,
+          "position": [
+            -2595.3,
+            218.3,
+            -712.3
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.07,
+          "position": [
+            -2234.0,
+            214.4,
+            -732.8
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.36,
+          "position": [
+            -2127.7,
+            170.5,
+            -478.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 3.02,
+          "position": [
+            -2083.1,
+            128.6,
+            265.8
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.51,
+          "position": [
+            -1341.3,
+            0.0,
+            309.7
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.19,
+          "position": [
+            -580.6,
+            0.0,
+            53.1
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 60,
+          "type": "wait"
+        }
+      ]
+    },
+    {
+      "angle": 1.5,
+      "index": 109,
+      "map": 28,
+      "position": [
+        7.0,
+        0.0,
+        50.1
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.07,
+      "index": 110,
+      "map": 44,
+      "position": [
+        74.6,
+        0.0,
+        -90.9
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.08,
+      "index": 111,
+      "map": 31,
+      "position": [
+        16.9,
+        40.1,
+        -61.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.74,
+      "index": 112,
+      "map": 30,
+      "position": [
+        49.8,
+        -140.6,
+        -175.6
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.72,
+      "index": 113,
+      "map": 34,
+      "position": [
+        -314.6,
+        35.8,
+        -141.8
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.0,
+      "index": 114,
+      "map": 12,
+      "motion": "sit",
+      "position": [
+        2157.9,
+        0.0,
+        2371.1
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.92,
+      "index": 115,
+      "map": 12,
+      "position": [
+        1598.6,
+        4.0,
+        3126.6
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.62,
+      "index": 116,
+      "map": 12,
+      "position": [
+        1589.1,
+        0.0,
+        2627.4
+      ],
+      "route": []
+    },
+    {
+      "angle": -3.12,
+      "index": 117,
+      "map": 37,
+      "position": [
+        187.1,
+        65.1,
+        -204.5
+      ],
+      "route": [
+        {
+          "angle": -1.25,
+          "position": [
+            174.1,
+            191.6,
+            -505.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.58,
+          "position": [
+            -194.7,
+            191.6,
+            -508.5
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.06,
+          "position": [
+            -194.4,
+            65.1,
+            -28.5
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.64,
+          "position": [
+            186.6,
+            65.1,
+            -30.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -3.12,
+          "position": [
+            187.1,
+            65.1,
+            -204.5
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": -0.0,
+      "index": 118,
+      "map": 37,
+      "position": [
+        20.0,
+        64.0,
+        -250.2
+      ],
+      "route": [],
+      "talk_offset": [
+        0.0,
+        0.0,
+        40.0
+      ]
+    },
+    {
+      "angle": -2.98,
+      "index": 119,
+      "map": 37,
+      "position": [
+        -4.7,
+        191.6,
+        -391.9
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.45,
+      "index": 120,
+      "map": 33,
+      "motion": "sit",
+      "position": [
+        -421.0,
+        0.0,
+        -99.1
+      ],
+      "route": [],
+      "shadow": 0
+    },
+    {
+      "angle": -1.56,
+      "index": 121,
+      "map": 33,
+      "motion": "sit",
+      "position": [
+        -360.5,
+        0.0,
+        152.9
+      ],
+      "route": [],
+      "shadow": 0
+    },
+    {
+      "angle": -1.59,
+      "index": 123,
+      "map": 33,
+      "position": [
+        -60.3,
+        0.0,
+        106.3
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.71,
+      "index": 124,
+      "map": 13,
+      "position": [
+        -2895.3,
+        221.3,
+        -747.8
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.56,
+      "index": 122,
+      "map": 33,
+      "motion": "sit",
+      "position": [
+        -237.0,
+        0.0,
+        -166.1
+      ],
+      "route": [],
+      "shadow": 0
+    },
+    {
+      "angle": 2.51,
+      "index": 125,
+      "map": 42,
+      "position": [
+        -255.6,
+        0.0,
+        -169.1
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.54,
+      "index": 126,
+      "map": 25,
+      "position": [
+        254.0,
+        268.6,
+        976.5
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.56,
+      "index": 127,
+      "map": 25,
+      "position": [
+        376.8,
+        -4.7,
+        910.5
+      ],
+      "route": [
+        {
+          "angle": -1.67,
+          "position": [
+            121.8,
+            -6.8,
+            882.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.7,
+          "position": [
+            -142.5,
+            13.6,
+            1193.9
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 30,
+          "type": "wait"
+        },
+        {
+          "angle": 0.41,
+          "position": [
+            -15.9,
+            23.7,
+            1477.3
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.93,
+          "position": [
+            142.8,
+            19.4,
+            1282.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -2.84,
+          "position": [
+            200.8,
+            -0.7,
+            609.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.56,
+          "position": [
+            376.8,
+            -4.7,
+            910.5
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 30,
+          "type": "wait"
+        }
+      ]
+    },
+    {
+      "angle": -2.52,
+      "index": 128,
+      "map": 101,
+      "motion": "sit",
+      "position": [
+        -69.0,
+        0.0,
+        -6.3
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.57,
+      "index": 129,
+      "map": 101,
+      "motion": "sit",
+      "position": [
+        75.1,
+        0.0,
+        -25.5
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.54,
+      "index": 130,
+      "map": 112,
+      "position": [
+        -213.7,
+        20.0,
+        -105.1
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.94,
+      "index": 131,
+      "map": 112,
+      "position": [
+        -1.3,
+        0.2,
+        -60.0
+      ],
+      "route": [
+        {
+          "angle": 1.71,
+          "position": [
+            223.0,
+            20.0,
+            -93.5
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 120,
+          "type": "wait"
+        },
+        {
+          "angle": 0.16,
+          "position": [
+            232.4,
+            20.0,
+            39.7
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.63,
+          "position": [
+            -184.5,
+            23.2,
+            40.7
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.82,
+          "position": [
+            -263.0,
+            20.0,
+            2.7
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 120,
+          "type": "wait"
+        },
+        {
+          "angle": -0.17,
+          "position": [
+            -188.2,
+            19.9,
+            -71.6
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.94,
+          "position": [
+            -1.3,
+            0.2,
+            -60.0
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": 0.61,
+      "index": 132,
+      "map": 140,
+      "position": [
+        -219.6,
+        -20.6,
+        -83.7
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.93,
+      "index": 134,
+      "map": 26,
+      "position": [
+        835.8,
+        214.5,
+        872.1
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.56,
+      "index": 135,
+      "map": 26,
+      "position": [
+        276.5,
+        107.6,
+        350.8
+      ],
+      "route": [
+        {
+          "angle": -1.69,
+          "position": [
+            -274.1,
+            107.6,
+            354.9
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 2.9,
+          "position": [
+            -350.6,
+            107.6,
+            272.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 2.27,
+          "position": [
+            -354.4,
+            107.6,
+            -273.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 2.28,
+          "position": [
+            -283.7,
+            107.6,
+            -346.3
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.58,
+          "position": [
+            287.2,
+            107.6,
+            -347.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.45,
+          "position": [
+            343.0,
+            107.6,
+            -273.2
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.01,
+          "position": [
+            344.0,
+            107.6,
+            278.4
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -1.56,
+          "position": [
+            276.5,
+            107.6,
+            350.8
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": 1.62,
+      "index": 133,
+      "map": 140,
+      "position": [
+        247.8,
+        -20.6,
+        -13.2
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.48,
+      "index": 137,
+      "map": 82,
+      "position": [
+        945.6,
+        190.0,
+        -162.0
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.78,
+      "index": 138,
+      "map": 82,
+      "position": [
+        -1041.2,
+        190.0,
+        -2129.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.41,
+      "index": 139,
+      "map": 82,
+      "position": [
+        892.5,
+        190.0,
+        -1985.1
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.65,
+      "index": 140,
+      "map": 82,
+      "position": [
+        -915.6,
+        190.0,
+        -440.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.64,
+      "index": 143,
+      "map": 110,
+      "position": [
+        -129.4,
+        14.7,
+        288.1
+      ],
+      "route": []
+    },
+    {
+      "angle": -3.13,
+      "index": 141,
+      "map": 110,
+      "position": [
+        -39.7,
+        311.3,
+        791.7
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.83,
+      "index": 142,
+      "map": 110,
+      "position": [
+        420.5,
+        0.0,
+        348.7
+      ],
+      "route": [
+        {
+          "angle": 0.18,
+          "position": [
+            22.0,
+            0.0,
+            590.1
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.3,
+          "position": [
+            -35.6,
+            0.0,
+            1217.8
+          ],
+          "type": "move"
+        },
+        {
+          "motion": "stand",
+          "posture": "cnt",
+          "time": 120,
+          "type": "wait"
+        },
+        {
+          "angle": -1.84,
+          "position": [
+            -71.9,
+            0.0,
+            558.8
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 0.26,
+          "position": [
+            -424.6,
+            0.0,
+            228.5
+          ],
+          "type": "move"
+        },
+        {
+          "angle": 1.13,
+          "position": [
+            41.2,
+            0.0,
+            517.5
+          ],
+          "type": "move"
+        },
+        {
+          "angle": -0.83,
+          "position": [
+            420.5,
+            0.0,
+            348.7
+          ],
+          "type": "move"
+        }
+      ]
+    },
+    {
+      "angle": -0.33,
+      "index": 144,
+      "map": 113,
+      "position": [
+        357.8,
+        21.4,
+        -66.7
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.47,
+      "index": 145,
+      "map": 113,
+      "position": [
+        147.3,
+        20.0,
+        -16.6
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.92,
+      "index": 146,
+      "map": 113,
+      "position": [
+        -101.5,
+        0.0,
+        20.4
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.48,
+      "index": 147,
+      "map": 141,
+      "position": [
+        -294.1,
+        21.4,
+        23.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.17,
+      "index": 148,
+      "map": 141,
+      "position": [
+        32.4,
+        1.4,
+        197.0
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.57,
+      "index": 149,
+      "map": 141,
+      "position": [
+        -249.0,
+        20.0,
+        33.9
+      ],
+      "route": []
+    },
+    {
+      "angle": 0.79,
+      "index": 150,
+      "map": 142,
+      "position": [
+        102.2,
+        69.1,
+        -150.4
+      ],
+      "route": []
+    },
+    {
+      "angle": 3.14,
+      "index": 151,
+      "map": 142,
+      "position": [
+        -176.1,
+        1.4,
+        157.5
+      ],
+      "route": []
+    },
+    {
+      "angle": -2.3,
+      "index": 152,
+      "map": 142,
+      "position": [
+        158.6,
+        20.0,
+        -250.6
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.54,
+      "index": 153,
+      "map": 114,
+      "position": [
+        97.5,
+        0.0,
+        -43.5
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.65,
+      "index": 154,
+      "map": 114,
+      "position": [
+        106.3,
+        0.0,
+        3.4
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.95,
+      "index": 155,
+      "map": 114,
+      "position": [
+        90.4,
+        0.0,
+        59.4
+      ],
+      "route": []
+    },
+    {
+      "angle": -1.72,
+      "index": 156,
+      "map": 143,
+      "position": [
+        -190.0,
+        20.0,
+        99.4
+      ],
+      "route": []
+    },
+    {
+      "angle": -0.93,
+      "index": 157,
+      "map": 156,
+      "position": [
+        -98.0,
+        -35.0,
+        96.4
+      ],
+      "route": []
+    },
+    {
+      "angle": 1.64,
+      "index": 158,
+      "map": 144,
+      "position": [
+        -93.3,
+        0.0,
+        75.9
+      ],
+      "route": []
+    }
+  ],
+  "schema_version": 2
+}

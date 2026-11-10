@@ -1,0 +1,14 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s2501-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s2501-a.gltf",
+      "type": 1
+    }
+  ],
+  "schema_version": 2
+}

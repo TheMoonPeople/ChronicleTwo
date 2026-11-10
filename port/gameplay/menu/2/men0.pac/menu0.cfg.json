@@ -1,0 +1,1795 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "count": 96,
+      "op": "allocate_etc_info"
+    },
+    {
+      "count": 60,
+      "op": "allocate_etc_info2"
+    },
+    {
+      "count": 255,
+      "op": "allocate_textures"
+    },
+    {
+      "count": 100,
+      "op": "allocate_forms"
+    },
+    {
+      "from": 0,
+      "op": "clear_textures",
+      "to": 255
+    },
+    {
+      "index": 0,
+      "op": "etc_info_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "far_left",
+          "values": [
+            -260,
+            0
+          ]
+        },
+        {
+          "name": "far_right",
+          "values": [
+            670,
+            0
+          ]
+        },
+        {
+          "name": "main_ic_pos",
+          "values": [
+            50,
+            40
+          ]
+        },
+        {
+          "name": "main_ic_pos_o",
+          "values": [
+            20,
+            40
+          ]
+        }
+      ],
+      "op": "etc_info"
+    },
+    {
+      "index": 0,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mnmain",
+      "textures": [
+        {
+          "name": "m_ic_plate",
+          "rect": [
+            0,
+            64,
+            126,
+            32
+          ]
+        },
+        {
+          "name": "m_ic_plates",
+          "rect": [
+            0,
+            96,
+            126,
+            32
+          ]
+        },
+        {
+          "name": "mi_item_ic",
+          "rect": [
+            32,
+            160,
+            112,
+            24
+          ]
+        },
+        {
+          "name": "mi_chr_ic",
+          "rect": [
+            32,
+            184,
+            112,
+            24
+          ]
+        },
+        {
+          "name": "mi_invent_ic",
+          "rect": [
+            144,
+            136,
+            112,
+            24
+          ]
+        },
+        {
+          "name": "mi_move_ic",
+          "rect": [
+            144,
+            184,
+            112,
+            24
+          ]
+        },
+        {
+          "name": "mi_op_ic",
+          "rect": [
+            144,
+            208,
+            112,
+            24
+          ]
+        },
+        {
+          "name": "mi_mn_ic",
+          "rect": [
+            144,
+            232,
+            112,
+            24
+          ]
+        },
+        {
+          "name": "mi_hatena_ic",
+          "rect": [
+            144,
+            160,
+            112,
+            24
+          ]
+        },
+        {
+          "name": "num0_slush",
+          "rect": [
+            100,
+            244,
+            8,
+            12
+          ]
+        },
+        {
+          "name": "num0",
+          "rect": [
+            0,
+            244,
+            10,
+            13
+          ]
+        },
+        {
+          "name": "num1",
+          "rect": [
+            0,
+            244,
+            10,
+            12
+          ]
+        },
+        {
+          "name": "num2",
+          "rect": [
+            0,
+            244,
+            10,
+            12
+          ]
+        },
+        {
+          "name": "howmuchnum",
+          "rect": [
+            0,
+            210,
+            10,
+            17
+          ]
+        },
+        {
+          "name": "冒険",
+          "rect": [
+            88,
+            92,
+            76,
+            24
+          ]
+        },
+        {
+          "name": "日目",
+          "rect": [
+            56,
+            136,
+            42,
+            24
+          ]
+        },
+        {
+          "name": "cursor0",
+          "rect": [
+            60,
+            0,
+            40,
+            24
+          ]
+        },
+        {
+          "name": "cursor1",
+          "rect": [
+            60,
+            0,
+            40,
+            24
+          ]
+        },
+        {
+          "name": "cursor2",
+          "rect": [
+            0,
+            36,
+            36,
+            28
+          ]
+        },
+        {
+          "name": "numtime",
+          "rect": [
+            131,
+            68,
+            12,
+            18
+          ]
+        },
+        {
+          "name": "時間数",
+          "rect": [
+            88,
+            116,
+            16,
+            20
+          ]
+        },
+        {
+          "name": "AM",
+          "rect": [
+            120,
+            208,
+            24,
+            16
+          ]
+        },
+        {
+          "name": "PM",
+          "rect": [
+            120,
+            224,
+            24,
+            16
+          ]
+        },
+        {
+          "name": "::",
+          "rect": [
+            248,
+            116,
+            8,
+            206
+          ]
+        },
+        {
+          "name": "時間板",
+          "rect": [
+            0,
+            32,
+            232,
+            34
+          ]
+        },
+        {
+          "name": "未来",
+          "rect": [
+            98,
+            136,
+            46,
+            24
+          ]
+        },
+        {
+          "name": "brdc0",
+          "rect": [
+            154,
+            0,
+            16,
+            14
+          ]
+        },
+        {
+          "name": "brdc1",
+          "rect": [
+            170,
+            0,
+            70,
+            14
+          ]
+        },
+        {
+          "name": "brdc2",
+          "rect": [
+            240,
+            0,
+            16,
+            14
+          ]
+        },
+        {
+          "name": "brdc3",
+          "rect": [
+            154,
+            14,
+            16,
+            2
+          ]
+        },
+        {
+          "name": "brdc4",
+          "rect": [
+            170,
+            14,
+            70,
+            2
+          ]
+        },
+        {
+          "name": "brdc5",
+          "rect": [
+            240,
+            14,
+            16,
+            2
+          ]
+        },
+        {
+          "name": "brdc6",
+          "rect": [
+            154,
+            18,
+            16,
+            14
+          ]
+        },
+        {
+          "name": "brdc7",
+          "rect": [
+            170,
+            18,
+            70,
+            14
+          ]
+        },
+        {
+          "name": "brdc8",
+          "rect": [
+            240,
+            18,
+            16,
+            14
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mt0",
+      "textures": [
+        {
+          "name": "mt_circle",
+          "rect": [
+            128,
+            0,
+            84,
+            170
+          ]
+        },
+        {
+          "name": "brdline",
+          "rect": [
+            96,
+            220,
+            32,
+            4
+          ]
+        },
+        {
+          "name": "brda0",
+          "rect": [
+            0,
+            0,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda1",
+          "rect": [
+            32,
+            0,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda2",
+          "rect": [
+            64,
+            0,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda3",
+          "rect": [
+            96,
+            0,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda4",
+          "rect": [
+            0,
+            32,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda5",
+          "rect": [
+            96,
+            32,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda6",
+          "rect": [
+            0,
+            64,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda7",
+          "rect": [
+            96,
+            64,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda8",
+          "rect": [
+            0,
+            96,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda9",
+          "rect": [
+            32,
+            96,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda10",
+          "rect": [
+            64,
+            96,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brda11",
+          "rect": [
+            96,
+            96,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb0",
+          "rect": [
+            0,
+            128,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb1",
+          "rect": [
+            32,
+            128,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb2",
+          "rect": [
+            64,
+            128,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb3",
+          "rect": [
+            0,
+            160,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb4",
+          "rect": [
+            32,
+            160,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb5",
+          "rect": [
+            64,
+            160,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb6",
+          "rect": [
+            0,
+            192,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb7",
+          "rect": [
+            32,
+            192,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "brdb8",
+          "rect": [
+            64,
+            192,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "howmachup",
+          "rect": [
+            96,
+            158,
+            32,
+            12
+          ]
+        },
+        {
+          "name": "howmachbrd",
+          "rect": [
+            96,
+            168,
+            32,
+            28
+          ]
+        },
+        {
+          "name": "howmachdown",
+          "rect": [
+            96,
+            198,
+            32,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "menueff0",
+      "textures": [
+        {
+          "name": "waku_cube",
+          "rect": [
+            75,
+            75,
+            52,
+            52
+          ]
+        },
+        {
+          "name": "waku_line",
+          "rect": [
+            16,
+            32,
+            18,
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "itemicon",
+      "textures": [
+        {
+          "name": "transimg",
+          "rect": [
+            0,
+            0,
+            32,
+            32
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 0,
+      "op": "texture_sheet",
+      "sheet": "menuwork2",
+      "textures": [
+        {
+          "name": "mframeimg",
+          "rect": [
+            0,
+            0,
+            256,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "index": 0,
+      "op": "form_offset"
+    },
+    {
+      "name": "main_form_dmy0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "main_bg_img",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "mainimg"
+        }
+      ]
+    },
+    {
+      "name": "mainform_fill",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                40,
+                29,
+                42,
+                128
+              ]
+            }
+          ],
+          "name": "fill",
+          "part": "fillbox",
+          "size": [
+            512,
+            480
+          ],
+          "style": 0,
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "main_form_dmy1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "mainform_filldmy",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                40,
+                29,
+                42,
+                128
+              ]
+            }
+          ],
+          "name": "fill",
+          "part": "fillbox",
+          "size": [
+            512,
+            480
+          ],
+          "style": 0,
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "main_bg_frm",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "mainfrm"
+        }
+      ]
+    },
+    {
+      "name": "mainpureimage",
+      "op": "form",
+      "parts": [
+        {
+          "name": "img",
+          "part": "normal",
+          "size": [
+            512,
+            480
+          ],
+          "texture": "mframeimg",
+          "xy": [
+            0,
+            -1
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "channels": "rgb",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "index": 80,
+      "op": "form_offset"
+    },
+    {
+      "name": "mi0",
+      "op": "form",
+      "parts": [
+        {
+          "name": "mi0",
+          "part": "normal",
+          "texture": "mi_item_ic",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rate": [
+            4.0,
+            4.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "mi2",
+      "op": "form",
+      "parts": [
+        {
+          "name": "mi0",
+          "part": "normal",
+          "texture": "mi_chr_ic",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rate": [
+            4.0,
+            4.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "mi3",
+      "op": "form",
+      "parts": [
+        {
+          "name": "mi0",
+          "part": "normal",
+          "texture": "mi_invent_ic",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "mi1",
+          "part": "normal",
+          "texture": "mi_hatena_ic",
+          "xy": [
+            -4,
+            -2
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rate": [
+            4.0,
+            4.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "mi4",
+      "op": "form",
+      "parts": [
+        {
+          "name": "mi0",
+          "part": "normal",
+          "texture": "mi_move_ic",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "mi1",
+          "part": "normal",
+          "texture": "mi_hatena_ic",
+          "xy": [
+            2,
+            -2
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rate": [
+            4.0,
+            4.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "mi5",
+      "op": "form",
+      "parts": [
+        {
+          "name": "mi0",
+          "part": "normal",
+          "texture": "mi_op_ic",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rate": [
+            4.0,
+            4.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "mi6",
+      "op": "form",
+      "parts": [
+        {
+          "name": "mi0",
+          "part": "normal",
+          "texture": "mi_mn_ic",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "mi1",
+          "part": "normal",
+          "texture": "mi_hatena_ic",
+          "xy": [
+            0,
+            -2
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rate": [
+            4.0,
+            4.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "mi9",
+      "op": "form",
+      "parts": [
+        {
+          "name": "mi0",
+          "part": "normal",
+          "texture": "mi_move_ic",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "mi1",
+          "part": "normal",
+          "texture": "mi_hatena_ic",
+          "xy": [
+            2,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "rate": [
+            4.0,
+            4.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "areaboard",
+      "op": "form",
+      "parts": [
+        {
+          "name": "len_msg",
+          "part": "funcinfo",
+          "xy": [
+            100,
+            7
+          ]
+        },
+        {
+          "name": "時間板",
+          "part": "normal",
+          "size": [
+            270,
+            34
+          ],
+          "texture": "時間板",
+          "xy": [
+            -16,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            600,
+            14
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                5.0,
+                1.1
+              ],
+              "xy": [
+                640.0,
+                10.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                5.0,
+                1.1
+              ],
+              "xy": [
+                222.0,
+                10.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "timeboard",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "時間板",
+          "part": "normal",
+          "texture": "時間板",
+          "xy": [
+            0,
+            -3
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": "AM",
+          "part": "normal",
+          "texture": "AM",
+          "xy": [
+            188,
+            7
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": "PM",
+          "part": "normal",
+          "texture": "PM",
+          "xy": [
+            188,
+            7
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": ";",
+          "part": "normal",
+          "texture": "::",
+          "xy": [
+            151,
+            4
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": "日目",
+          "part": "normal",
+          "texture": "日目",
+          "xy": [
+            10,
+            2
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": "日間",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "時間数",
+          "value": 1,
+          "xy": [
+            92,
+            3
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": "時",
+          "part": "number2",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "時間数",
+          "value": 2,
+          "xy": [
+            150,
+            3
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": "分",
+          "part": "number2",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "時間数",
+          "value": 2,
+          "xy": [
+            183,
+            3
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow",
+              "offset": 2,
+              "on": 1
+            }
+          ],
+          "name": "未来",
+          "part": "normal",
+          "texture": "未来",
+          "xy": [
+            148,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 12,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -320,
+            360
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -300.0,
+                420.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                16.0,
+                420.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "cur_waku0",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "alpha_blend",
+              "mode": 2
+            }
+          ],
+          "name": "waku0",
+          "part": "waku_rect",
+          "size": [
+            40,
+            40
+          ],
+          "texture": "waku_line",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "alpha_blend",
+              "mode": 2
+            }
+          ],
+          "name": "waku1",
+          "part": "waku_circle",
+          "size": [
+            40,
+            40
+          ],
+          "texture": "waku_cube",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "move_type",
+          "type": "i"
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "cursor0",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "counts": [
+                60,
+                30
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                6,
+                4
+              ]
+            }
+          ],
+          "name": "item0sdw",
+          "part": "item",
+          "xy": [
+            42,
+            -6
+          ]
+        },
+        {
+          "kind": "trs",
+          "modifiers": [
+            {
+              "counts": [
+                60,
+                30
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                6,
+                4
+              ]
+            },
+            {
+              "count": 8,
+              "mod": "effect_capacity"
+            }
+          ],
+          "name": "item0",
+          "part": "item",
+          "xy": [
+            40,
+            -8
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "counts": [
+                60,
+                30
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                6,
+                4
+              ]
+            }
+          ],
+          "name": "cursor0",
+          "part": "cursor",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "counts": [
+                60,
+                30
+              ],
+              "mod": "vibe_count"
+            },
+            {
+              "mod": "viber",
+              "ranges": [
+                6,
+                4
+              ]
+            }
+          ],
+          "name": "item0num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 0,
+          "xy": [
+            73,
+            18
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 10,
+          "set": "parts_capacity"
+        },
+        {
+          "rate": [
+            2.6,
+            2.6
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "howmachbrd",
+      "op": "form",
+      "parts": [
+        {
+          "name": "up",
+          "part": "normal",
+          "texture": "howmachup",
+          "xy": [
+            26,
+            -8
+          ]
+        },
+        {
+          "name": "brd",
+          "part": "normal",
+          "texture": "howmachbrd",
+          "xy": [
+            26,
+            2
+          ]
+        },
+        {
+          "name": "down",
+          "part": "normal",
+          "texture": "howmachdown",
+          "xy": [
+            26,
+            32
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "howmuchnum",
+          "value": 1,
+          "xy": [
+            47,
+            10
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 4,
+          "set": "parts_capacity"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "msg1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        }
+      ]
+    },
+    {
+      "name": "msg0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            570,
+            460
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                6.0,
+                6.0
+              ],
+              "xy": [
+                570.0,
+                520.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "外右へ",
+              "rate": [
+                5.0,
+                5.0
+              ],
+              "xy": [
+                570.0,
+                354.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                5.0
+              ],
+              "xy": [
+                230.0,
+                354.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "左下へ",
+              "rate": [
+                5.0,
+                5.0
+              ],
+              "xy": [
+                20.0,
+                354.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "geo",
+              "rate": [
+                4.0,
+                5.0
+              ],
+              "xy": [
+                266.0,
+                354.0
+              ]
+            }
+          ],
+          "capacity": 5,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "mdmy",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "op": "init_drawlist"
+    },
+    {
+      "op": "reset_texinfo"
+    }
+  ],
+  "schema_version": 2
+}

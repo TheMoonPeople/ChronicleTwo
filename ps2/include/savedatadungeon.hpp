@@ -54,6 +54,7 @@ struct DNG_FLOOR_SAVE {
 };
 
 STATIC_ASSERT(sizeof(DNG_FLOOR_SAVE) == 0x14);
+PORT_RECORD_ASSERT(sizeof(DNG_FLOOR_SAVE) == 0x14);
 
 /**
  *
@@ -101,3 +102,4 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CSaveDataDungeon) == 0xCE4);
+PORT_RECORD_ASSERT(sizeof(CSaveDataDungeon) == 0xCE4);

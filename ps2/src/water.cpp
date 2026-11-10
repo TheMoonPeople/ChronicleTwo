@@ -592,10 +592,10 @@ int CWater::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *draw_manager) {
     mgRENDER_INFO *render_info = draw_manager->render_info;
     texture_manager = draw_manager->texture_manager;
     mgCMemory *data_memory = (mgCMemory *) draw_manager->data_memory;
-    int        render_info_packet = (int) data_memory->stAllocTest(0x3C);
+    uptr       render_info_packet = (uptr) data_memory->stAllocTest(0x3C);
     data_memory->Alloc(
         CreateRenderInfoPacket((u_int *) render_info_packet, matrix, render_info));
-    int water_packet = packet;
+    uptr water_packet = packet;
 
     if (tag != NULL) {
         u_int *cursor = tag + 4;
@@ -653,7 +653,7 @@ struct WaterTexture {
     mgCTexture *next;
 };
 
-u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
+uptr CWater::CreatePacket(mgCDrawManager *draw_manager) {
     static u_int       prog_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCAL | 0x2};
     static u_int       progf_vif[4] __attribute__((aligned(16))) = {0, 0, 0, MG_VIF_MSCNT};
     sceGsTexa          texa;
@@ -671,7 +671,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
     int                point_count;
     int                started;
     mgCMemory         *memory;
-    u_int              base;
+    uptr               base;
     WaterFinishPacket *finish;
     u_int             *counts;
     float             *previous;
@@ -732,7 +732,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
         slope[2][c][3] = 0.3f;
     }
 
-    base = (u_int) memory->stGetTop();
+    base = (uptr) memory->stGetTop();
     start = (u_long128 *) (base | MG_UNCACHED);
     end = start;
 
@@ -794,7 +794,7 @@ u_int CWater::CreatePacket(mgCDrawManager *draw_manager) {
             positions = (u_long128 *) (strip + 1);
             vertex_count = point_count * 2;
             int bytes = point_count * 32;
-            out = (u_long128 *) (bytes + (u_int) strip) + 3;
+            out = (u_long128 *) (bytes + (uptr) strip) + 3;
 
             for (index = 0; index < point_count; index++) {
                 positions[0] = *(u_long128 *) position0;

@@ -1,0 +1,165 @@
+# --jump town:10 --fast-load: photograph Milk Can, Belt and Pipe; invent Energy Pack.
+# Retail Save Data flag 21 unlocks the Belt subject before the map is reloaded.
+# Frame 4200: three ideas. Frame 6800: the new invention card.
+300 start select
+306
+400 down
+401
+420 down
+421
+440 down
+441
+460 down
+461
+480 down
+481
+500 down
+501
+520 down
+521
+540 down
+541
+560 down
+561
+580 down
+581
+600 down
+601
+660 circle
+661
+700 down
+701
+730 down
+731
+760 r1
+761
+790 r1
+791
+820 right
+821
+850 circle
+851
+900 cross
+901
+960 up
+961
+980 up
+981
+1000 up
+1001
+1020 up
+1021
+1040 up
+1041
+1060 up
+1061
+1080 up
+1081
+1100 up
+1101
+1120 up
+1121
+1140 up
+1141
+1180 r1
+1181
+1220 circle
+1221
+1600 triangle
+1606
+1720 cross
+1726
+1900 down
+1906
+1930 down
+1936
+1960 down
+1966
+1990 down
+1996
+2020 down
+2026
+2050 down
+2056
+2080 right
+2086
+2110 cross
+2116
+2240 cross
+2246
+2320 cross
+2326
+2420 circle
+2426
+2520 circle
+2526
+2600 l1
+2631
+2640 128 0 128 128
+2700
+2780 square
+2786
+2820 0 128 128 128
+2848
+2880 square
+2886
+2960 255 128 128 128
+3023
+3040 128 255 128 128
+3055
+3080 square
+3086
+3150 circle
+3156
+3200 128 0 128 128
+3330
+3400 square
+3406
+3450 255 128 128 128
+3470
+3480 128 31 128 128
+3481
+3500 square
+3506
+3550 circle
+3556
+3600 128 0 128 128
+3650
+3700 square
+3706
+3750 255 128 128 128
+3753
+3800 square
+3806
+3900 triangle
+3906
+4250 circle
+4256
+4350 circle
+4356
+4450 triangle
+4456
+4550 down
+4556
+4590 down
+4596
+4650 cross
+4656
+4850 cross
+4856
+5200 triangle
+5206
+5260 down
+5266
+5320 triangle
+5326
+5380 right
+5386
+5440 triangle
+5446
+5580 square
+5586
+5700 left
+5706
+5780 cross
+5786

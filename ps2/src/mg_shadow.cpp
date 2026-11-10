@@ -60,7 +60,7 @@ int mgCShadowMDT::CreateFacePacket(u_int *packet, mgCFace *face) {
 
     int scratchpad = 0;
 
-    if (((u_int) packet & 0xF0000000) == 0x20000000) {
+    if (((uptr) packet & 0xF0000000) == 0x20000000) {
         scratchpad = 1;
     }
 
@@ -212,15 +212,15 @@ FACES_ID *mgCShadowMDT::CreateFace(FACES_ID *source, mgCMemory *face_memory, mgC
     return (FACES_ID *) vertex;
 }
 
-u_int mgCShadowMDT::CreatePacket(mgCDrawManager *draw_manager) {
+uptr mgCShadowMDT::CreatePacket(mgCDrawManager *draw_manager) {
 
     GetTextureManager();
     mgFACE_GROUP *node = face_group;
     mgCMemory    *packet_memory = draw_manager->packet_memory;
     mgCMemory    *face_memory = draw_manager->data_memory;
     u_int        *packet_start = (u_int *) &packet_memory->stack[packet_memory->stack_used];
-    int           face_start = (int) &face_memory->stack[face_memory->stack_used];
-    int           face_cursor = face_start;
+    sptr          face_start = (uptr) &face_memory->stack[face_memory->stack_used];
+    sptr          face_cursor = face_start;
     u_int        *cursor = packet_start;
     u_int        *tag;
 
@@ -256,7 +256,7 @@ u_int mgCShadowMDT::CreatePacket(mgCDrawManager *draw_manager) {
 
     packet_memory->Alloc((int) ((u_char *) cursor - (u_char *) packet_start) / 16);
     face_memory->Alloc((face_cursor - face_start) / 16);
-    return (int) packet_start & 0x0FFFFFFF;
+    return (uptr) packet_start & 0x0FFFFFFF;
 }
 
 int mgCShadowMDT::DataAssignMDT(MDT_HEADER *header, mgCMemory *memory,

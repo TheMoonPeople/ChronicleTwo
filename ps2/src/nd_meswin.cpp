@@ -20,6 +20,7 @@
 #include "mg_texture.hpp"
 #include "mglib.hpp"
 #include "npccfg.hpp"
+#include "pal_timing.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "scenesnd.hpp"
@@ -4802,11 +4803,11 @@ void MovieCCAnalyze(char *text, int size, int id) {
     while (cursor < text + size) {
         if (strncmp(cursor, "_STA ", 5) == 0) {
             cursor += 5;
-            MovieCCStart[slot] = (int) (movie_ccframes_per_second * atof(cursor));
+            MovieCCStart[slot] = (int) (PAL_TIMING(movie_ccframes_per_second, 30) * atof(cursor));
             GetNextLineTop(&cursor);
         } else if (strncmp(cursor, "_CLR ", 5) == 0) {
             cursor += 5;
-            MovieCCClear[slot] = (int) (movie_ccframes_per_second * atof(cursor));
+            MovieCCClear[slot] = (int) (PAL_TIMING(movie_ccframes_per_second, 30) * atof(cursor));
             GetNextLineTop(&cursor);
         } else if (strncmp(cursor, "_STR ", 5) == 0) {
             cursor += 5;

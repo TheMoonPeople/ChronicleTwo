@@ -1,0 +1,32 @@
+# With --jump town:10 --fast-load --window 1280x960.
+# Equip the fixture's Camera in active slot 0 through the retail Item menu.
+0
+300 triangle
+301
+420 cross
+421
+600 mouse:1,0 wheel:-5
+601
+620 mouse:100,100
+621
+650 mouse1
+680 mouse1 mouse:-600,-100
+681 mouse1
+710
+760 circle
+761
+800 circle
+801
+# Raise the camera; capture baseline at 1838 and mouse aim at 1850.
+1800 square
+1806
+# Baseline viewfinder: frame 1838. Mouse aiming: frame 1850.
+1840 mouse:30,10
+1852
+# Clamp pitch at both retail bounds, then return to the level view.
+1860 mouse:0,10000
+1862
+1880 mouse:0,-10000
+1882
+1900 mouse:0,373
+1902

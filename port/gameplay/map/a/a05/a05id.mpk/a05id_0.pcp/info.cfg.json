@@ -1,0 +1,38 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "a05ia_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "a05ia_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "a05ia_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "a05ia_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "a05ia_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "a05ia_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "a05ia_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "a05ia_01-c.gltf",
+      "type": 2
+    }
+  ],
+  "schema_version": 2
+}

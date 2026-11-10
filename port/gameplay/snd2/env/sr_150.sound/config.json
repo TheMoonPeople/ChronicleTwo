@@ -1,0 +1,74 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_000.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_001.json",
+      "flag": true,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_002.json",
+      "flag": true,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_003.json",
+      "flag": true,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_004.json",
+      "flag": true,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_005.json",
+      "flag": true,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_006.json",
+      "flag": true,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "snd2/env/sr_150.sound/sequences/sr_150_007.json",
+      "flag": true,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 10
+    }
+  ],
+  "entry_count": 12,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

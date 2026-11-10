@@ -1,0 +1,26 @@
+# --jump town:10 --fast-load. Open the equipped wrench's command popup.
+300 triangle
+306
+420 cross
+426
+650 left
+656
+700 down
+706
+750 down
+756
+850 cross
+856
+# Hover Status, then confirm it with left click.
+940 mouse:0,-1
+941
+960 mouse1
+961
+# Hover the right-column Durable cell, then the left-column Lightning cell.
+1100 mouse:232.5,0
+1101
+1200 mouse:-222.5,120
+1201
+
+1300 mouse2
+1301

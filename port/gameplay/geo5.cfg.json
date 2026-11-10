@@ -1,0 +1,1121 @@
+{
+  "kind": "georama_analysis",
+  "schema_version": 2,
+  "sources": [
+    {
+      "conditions": [
+        {
+          "geo_floor": 108,
+          "index": 0,
+          "name": "15 Zonas del r[UNI00ed]o colocadas"
+        },
+        {
+          "geo_floor": 113,
+          "index": 1,
+          "name": "[UNI00c1]rbol narizudo con despiertos"
+        },
+        {
+          "geo_floor": 114,
+          "index": 2,
+          "name": "Narizudos y despiertos del R[UNI00ed]o"
+        },
+        {
+          "geo_floor": 108,
+          "index": 3,
+          "name": "[UNI00c1]rbol marchito restablecido"
+        },
+        {
+          "geo_floor": 108,
+          "index": 4,
+          "name": "Lago del bosque restablecido"
+        },
+        {
+          "geo_floor": 108,
+          "index": 5,
+          "name": "Gordon vive en Sindain"
+        },
+        {
+          "geo_floor": 114,
+          "index": 6,
+          "name": "Jurak Anciano restablecido"
+        },
+        {
+          "index": 7,
+          "name": "30 Puntos de Cultura obtenidos"
+        },
+        {
+          "geo_floor": 113,
+          "index": 8,
+          "name": "Adel vive en Sindain"
+        },
+        {
+          "geo_floor": 108,
+          "index": 9,
+          "name": "Polly vive en Sindain"
+        },
+        {
+          "geo_floor": 108,
+          "index": 10,
+          "name": "Milane vive en Sindain"
+        },
+        {
+          "geo_floor": 113,
+          "index": 11,
+          "name": "10 [UNI00c1]rboles colocados"
+        },
+        {
+          "geo_floor": 114,
+          "index": 12,
+          "name": "Rama de Jurak Anciano restab."
+        },
+        {
+          "geo_floor": 111,
+          "index": 13,
+          "name": "Habitante de la Casa de paja"
+        },
+        {
+          "geo_floor": 110,
+          "index": 14,
+          "name": "Casa de enanitos de la colina"
+        },
+        {
+          "geo_floor": 111,
+          "index": 15,
+          "name": "Valla de la Casa de Firbits"
+        },
+        {
+          "index": 16,
+          "name": "40 Puntos de Cultura obtenidos"
+        },
+        {
+          "index": 17,
+          "name": "50 Puntos de Cultura obtenidos"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 104,
+          "index": 0,
+          "message": "Lago del Bosque restablecido",
+          "on_parts": "p10_f0101",
+          "percent": 10,
+          "unk_10": 1
+        },
+        {
+          "condition_numbers": [
+            6,
+            11
+          ],
+          "geo_floor": 104,
+          "index": 1,
+          "message": "Champi[UNI00f1]ones brillantes restab.",
+          "on_parts": "p09_f0101;hotaru",
+          "percent": 10,
+          "unk_10": 2
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 105,
+          "index": 2,
+          "message": "[UNI00c1]rbol marchito restablecido",
+          "on_parts": "p07_f0101-1",
+          "percent": 15,
+          "unk_10": 3
+        },
+        {
+          "condition_numbers": [
+            3,
+            4,
+            5
+          ],
+          "index": 3,
+          "message": "Jurak Anciano restablecido",
+          "on_parts": "p07_f0101;jyuraku",
+          "percent": 15,
+          "unk_10": 4
+        },
+        {
+          "condition_numbers": [
+            6,
+            8,
+            7
+          ],
+          "geo_floor": 107,
+          "index": 4,
+          "message": "Sastrer[UNI00ed]a restablecida",
+          "on_parts": "p01_f0104;p02_f0104",
+          "percent": 10,
+          "unk_10": 5
+        },
+        {
+          "condition_numbers": [
+            6,
+            9,
+            16
+          ],
+          "geo_floor": 108,
+          "index": 5,
+          "message": "Restaurante restablecido",
+          "off_parts": "p13_f0101",
+          "on_parts": "p01_f0103;p02_f0103",
+          "percent": 10,
+          "unk_10": 6
+        },
+        {
+          "condition_numbers": [
+            6,
+            10,
+            12,
+            17
+          ],
+          "geo_floor": 108,
+          "index": 6,
+          "message": "Tienda de Armas restablecida",
+          "off_parts": "p12_f0101",
+          "on_parts": "p01_f0102",
+          "percent": 10,
+          "unk_10": 7
+        },
+        {
+          "condition_numbers": [
+            11,
+            15
+          ],
+          "geo_floor": 113,
+          "index": 7,
+          "message": "Rama de Jurak Anciano restab.",
+          "on_parts": "p08_f0101",
+          "percent": 10,
+          "unk_10": 8
+        },
+        {
+          "condition_numbers": [
+            12,
+            13
+          ],
+          "geo_floor": 109,
+          "index": 8,
+          "message": "Huevos dorados restablecidos",
+          "on_parts": "p14_f0101",
+          "percent": 10,
+          "unk_10": 9
+        }
+      ],
+      "id": 0
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 201,
+          "index": 0,
+          "name": "4 Mesetas a la misma altura"
+        },
+        {
+          "geo_floor": 206,
+          "index": 1,
+          "name": "20 Puntos de Cultura obtenidos"
+        },
+        {
+          "geo_floor": 203,
+          "index": 2,
+          "name": "Lugar de Oraci[UNI00f3]n restablecido"
+        },
+        {
+          "geo_floor": 205,
+          "index": 3,
+          "name": "15 [UNI00c1]rboles colocados"
+        },
+        {
+          "geo_floor": 209,
+          "index": 4,
+          "name": "30 Puntos de Cultura obtenidos"
+        },
+        {
+          "geo_floor": 205,
+          "index": 5,
+          "name": "Templo Starlight restablecido"
+        },
+        {
+          "geo_floor": 219,
+          "index": 6,
+          "name": "4 Vasijas antorcha colocadas"
+        },
+        {
+          "geo_floor": 217,
+          "index": 7,
+          "name": "Padre Bruno vive en el Pueblo"
+        },
+        {
+          "geo_floor": 207,
+          "index": 8,
+          "name": "Stewart vive en el Valle"
+        },
+        {
+          "geo_floor": 221,
+          "index": 9,
+          "name": "40 Puntos de Cultura obtenidos"
+        },
+        {
+          "geo_floor": 206,
+          "index": 10,
+          "name": "Ferdinand en el Puesto chino"
+        },
+        {
+          "geo_floor": 211,
+          "index": 11,
+          "name": "Lin recibe ayuda"
+        },
+        {
+          "geo_floor": 217,
+          "index": 12,
+          "name": "Parn vive en el Valle"
+        },
+        {
+          "geo_floor": 222,
+          "index": 13,
+          "name": "Cristal lunar del Faro restab."
+        },
+        {
+          "geo_floor": 204,
+          "index": 14,
+          "name": "Lugar Oraci[UNI00f3]n y Puente restab."
+        },
+        {
+          "geo_floor": 206,
+          "index": 15,
+          "name": "Viven 2 personas en el Valle"
+        },
+        {
+          "geo_floor": 210,
+          "index": 16,
+          "name": "L[UNI00e1]mpara de Casa de ladrillo"
+        },
+        {
+          "geo_floor": 219,
+          "index": 17,
+          "name": "Blinkhorn vive en el Valle"
+        },
+        {
+          "geo_floor": 216,
+          "index": 18,
+          "name": "50 Puntos de Cultura obtenidos"
+        },
+        {
+          "geo_floor": 204,
+          "index": 19,
+          "name": "Lugar Oraci[UNI00f3]n cristal restab."
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1
+          ],
+          "index": 0,
+          "message": "Lugar de Oraci[UNI00f3]n restablecido",
+          "on_parts": "p01_f0202-0",
+          "percent": 10,
+          "unk_10": 100
+        },
+        {
+          "condition_numbers": [
+            2,
+            3
+          ],
+          "geo_floor": 202,
+          "index": 1,
+          "message": "Puente colgante restablecido",
+          "off_parts": "p02_f0201-0",
+          "on_parts": "p02_f0202-0;p01_f0205-0;p01_f0205-1;p01_f0205-2;p02_f0205-0;",
+          "percent": 10,
+          "unk_10": 101
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            19
+          ],
+          "index": 2,
+          "message": "Templo Starlight restablecido",
+          "percent": 10,
+          "unk_10": 102
+        },
+        {
+          "condition_numbers": [
+            5,
+            6
+          ],
+          "geo_floor": 210,
+          "index": 3,
+          "message": "Antorcha sagrada restablecida",
+          "on_parts": "p01_f0209-0",
+          "percent": 10,
+          "unk_10": 103
+        },
+        {
+          "condition_numbers": [
+            2,
+            7
+          ],
+          "geo_floor": 204,
+          "index": 4,
+          "message": "Lugar Oraci[UNI00f3]n cristal restab.",
+          "on_parts": "p01_f0203-0;",
+          "percent": 10,
+          "unk_10": 104
+        },
+        {
+          "condition_numbers": [
+            5,
+            8,
+            9
+          ],
+          "geo_floor": 203,
+          "index": 5,
+          "message": "Puerta sagrada restablecida",
+          "on_parts": "p01_f0211-0",
+          "percent": 10,
+          "unk_10": 105
+        },
+        {
+          "condition_numbers": [
+            5,
+            10,
+            4
+          ],
+          "index": 6,
+          "message": "Restaurante Lao Chao restab.",
+          "on_parts": "p01_f0208-0",
+          "percent": 10,
+          "unk_10": 106
+        },
+        {
+          "condition_numbers": [
+            11,
+            16,
+            12,
+            5
+          ],
+          "geo_floor": 205,
+          "index": 7,
+          "message": "Tienda de Herramientas restab.",
+          "on_parts": "p01_f0206-0",
+          "percent": 10,
+          "unk_10": 107
+        },
+        {
+          "condition_numbers": [
+            5,
+            17,
+            4
+          ],
+          "geo_floor": 217,
+          "index": 8,
+          "message": "Tienda de Armas restablecida",
+          "on_parts": "p01_f0207-0",
+          "percent": 10,
+          "unk_10": 108
+        },
+        {
+          "condition_numbers": [
+            5,
+            13
+          ],
+          "geo_floor": 219,
+          "index": 9,
+          "message": "Cristal lunar y Crest restab.",
+          "on_parts": "p01_f0204-0;moon_crystal",
+          "percent": 10,
+          "unk_10": 109
+        }
+      ],
+      "id": 1
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 302,
+          "index": 0,
+          "name": "8 Bloques del Muelle colocados"
+        },
+        {
+          "geo_floor": 306,
+          "index": 1,
+          "name": "Alguien vive en Veniccio"
+        },
+        {
+          "geo_floor": 302,
+          "index": 2,
+          "name": "Fundaci[UNI00f3]n Laboratorio restab."
+        },
+        {
+          "geo_floor": 303,
+          "index": 3,
+          "name": "Casa roja de hierro colocada"
+        },
+        {
+          "geo_floor": 304,
+          "index": 4,
+          "name": "Claire vive en la Casa roja h."
+        },
+        {
+          "geo_floor": 307,
+          "index": 5,
+          "name": "Barco cerca de la Casa roja h."
+        },
+        {
+          "geo_floor": 304,
+          "index": 6,
+          "name": "Casa azul de hierro colocada"
+        },
+        {
+          "geo_floor": 305,
+          "index": 7,
+          "name": "Donny vive en la Casa azul h."
+        },
+        {
+          "geo_floor": 308,
+          "index": 8,
+          "name": "Barco cerca de la Casa azul h."
+        },
+        {
+          "geo_floor": 310,
+          "index": 9,
+          "name": "Casa morada de hierro colocada"
+        },
+        {
+          "geo_floor": 316,
+          "index": 10,
+          "name": "Barco cerca de Casa morada h."
+        },
+        {
+          "geo_floor": 317,
+          "index": 11,
+          "name": "Casa verde de hierro colocada"
+        },
+        {
+          "geo_floor": 318,
+          "index": 12,
+          "name": "Barco cerca de Casa verde h."
+        },
+        {
+          "geo_floor": 303,
+          "index": 13,
+          "name": "4 Laboratorios restablecidos"
+        },
+        {
+          "geo_floor": 310,
+          "index": 14,
+          "name": "Pueblo Shigura salvado"
+        },
+        {
+          "geo_floor": 315,
+          "index": 15,
+          "name": "Laboratorio lunar restablecido"
+        },
+        {
+          "geo_floor": 316,
+          "index": 16,
+          "name": "8 Luces Piedra lunar colocadas"
+        },
+        {
+          "geo_floor": 318,
+          "index": 17,
+          "name": "Molino colocado"
+        },
+        {
+          "index": 18,
+          "name": "30 Puntos de Cultura obtenidos"
+        },
+        {
+          "index": 19,
+          "name": "50 Puntos de Cultura obtenidos"
+        },
+        {
+          "index": 20,
+          "name": "60 Puntos de Cultura obtenidos"
+        },
+        {
+          "geo_floor": 319,
+          "index": 21,
+          "name": "80 Puntos de Cultura obtenidos"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1,
+            18
+          ],
+          "geo_floor": 301,
+          "index": 0,
+          "message": "Fundaci[UNI00f3]n Laboratorio restab.",
+          "off_parts": "p13_f0301",
+          "on_parts": "p03_f0301;p04_f0301",
+          "percent": 15,
+          "unk_10": 200
+        },
+        {
+          "condition_numbers": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "geo_floor": 302,
+          "index": 1,
+          "message": "Laboratorio 1 restablecido",
+          "off_parts": "p14_f0301",
+          "on_parts": "p05_f0301",
+          "percent": 10,
+          "unk_10": 201
+        },
+        {
+          "condition_numbers": [
+            2,
+            6,
+            7,
+            8
+          ],
+          "geo_floor": 302,
+          "index": 2,
+          "message": "Laboratorio 2 restablecido",
+          "off_parts": "p15_f0301",
+          "on_parts": "p06_f0301",
+          "percent": 10,
+          "unk_10": 202
+        },
+        {
+          "condition_numbers": [
+            2,
+            9,
+            10
+          ],
+          "geo_floor": 302,
+          "index": 3,
+          "message": "Laboratorio 3 restablecido",
+          "off_parts": "p16_f0301",
+          "on_parts": "p07_f0301",
+          "percent": 10,
+          "unk_10": 203
+        },
+        {
+          "condition_numbers": [
+            2,
+            11,
+            12
+          ],
+          "geo_floor": 302,
+          "index": 4,
+          "message": "Laboratorio 4 restablecido",
+          "off_parts": "p17_f0301",
+          "on_parts": "p08_f0301",
+          "percent": 10,
+          "unk_10": 204
+        },
+        {
+          "condition_numbers": [
+            13,
+            14,
+            19
+          ],
+          "geo_floor": 301,
+          "index": 5,
+          "message": "Laboratorio lunar restablecido",
+          "on_parts": "p09_f0301",
+          "percent": 10,
+          "unk_10": 205
+        },
+        {
+          "condition_numbers": [
+            15,
+            16,
+            20
+          ],
+          "geo_floor": 308,
+          "index": 6,
+          "message": "Reflectores restablecidos",
+          "on_parts": "p12_f0301",
+          "percent": 10,
+          "unk_10": 206
+        },
+        {
+          "condition_numbers": [
+            15,
+            17
+          ],
+          "geo_floor": 315,
+          "index": 7,
+          "message": "Veletas restablecidas",
+          "on_parts": "p11_f0301",
+          "percent": 10,
+          "unk_10": 207
+        },
+        {
+          "condition_numbers": [
+            15,
+            21
+          ],
+          "geo_floor": 316,
+          "index": 8,
+          "message": "S[UNI00ed]mbolo Laboratorio restab.",
+          "on_parts": "p10_f0301",
+          "percent": 15,
+          "unk_10": 208
+        }
+      ],
+      "id": 2
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 402,
+          "index": 0,
+          "name": "3 casas resistentes colocadas"
+        },
+        {
+          "geo_floor": 403,
+          "index": 1,
+          "name": "Casa de 3 bloques colocada"
+        },
+        {
+          "geo_floor": 404,
+          "index": 2,
+          "name": "2[UNI00aa] Planta Taller restablecida"
+        },
+        {
+          "geo_floor": 409,
+          "index": 3,
+          "name": "3[UNI00aa] Planta Taller restablecida"
+        },
+        {
+          "geo_floor": 415,
+          "index": 4,
+          "name": "Borneo vive en Heim Rada"
+        },
+        {
+          "geo_floor": 414,
+          "index": 5,
+          "name": "Gr[UNI00fa]a y Brazo restablecidos"
+        },
+        {
+          "geo_floor": 413,
+          "index": 6,
+          "name": "Generador colocado"
+        },
+        {
+          "geo_floor": 418,
+          "index": 7,
+          "name": "Cedric vive en Heim Rada"
+        },
+        {
+          "geo_floor": 417,
+          "index": 8,
+          "name": "Taller Gundorada restablecido"
+        },
+        {
+          "geo_floor": 412,
+          "index": 9,
+          "name": "Habitante de la casa con Gr[UNI00fa]a"
+        },
+        {
+          "geo_floor": 415,
+          "index": 10,
+          "name": "Molino colocado"
+        },
+        {
+          "geo_floor": 412,
+          "index": 11,
+          "name": "Habitante de la casa con Brazo"
+        },
+        {
+          "geo_floor": 417,
+          "index": 12,
+          "name": "Sala de Operaciones restab."
+        },
+        {
+          "geo_floor": 413,
+          "index": 13,
+          "name": "10 Vasijas colocadas"
+        },
+        {
+          "geo_floor": 401,
+          "index": 14,
+          "name": "Tromba de fuego destruida"
+        },
+        {
+          "geo_floor": 420,
+          "index": 15,
+          "name": "Gerald vive en Heim Rada"
+        },
+        {
+          "geo_floor": 419,
+          "index": 16,
+          "name": "Casa de 4 bloques inhabitada"
+        },
+        {
+          "geo_floor": 409,
+          "index": 17,
+          "name": "Habitante de casa con Chimenea"
+        },
+        {
+          "geo_floor": 419,
+          "index": 18,
+          "name": "Erik en casa cerca del Molino"
+        },
+        {
+          "geo_floor": 421,
+          "index": 19,
+          "name": "Gaspard vencido"
+        },
+        {
+          "index": 20,
+          "name": "30 Puntos de Cultura obtenidos"
+        },
+        {
+          "index": 21,
+          "name": "60 Puntos de Cultura obtenidos"
+        },
+        {
+          "index": 22,
+          "name": "70 Puntos de Cultura obtenidos"
+        },
+        {
+          "index": 23,
+          "name": "80 Puntos de Cultura obtenidos"
+        },
+        {
+          "geo_floor": 410,
+          "index": 24,
+          "name": "100 Puntos Cultura obtenidos"
+        },
+        {
+          "geo_floor": 404,
+          "index": 25,
+          "name": "Ascensor del Taller restablecido"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            20
+          ],
+          "geo_floor": 401,
+          "index": 0,
+          "message": "2[UNI00aa] Planta Taller restablecida",
+          "on_parts": "p02_f0401;p07_f0401-2;p07_f0401-3;p18_f0401;p21_f0401-1",
+          "percent": 5,
+          "unk_10": 300
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 402,
+          "index": 1,
+          "message": "3[UNI00aa] Planta Taller restablecida",
+          "on_parts": "p05_f0401;p19_f0401-2;p19_f0401-3",
+          "percent": 5,
+          "unk_10": 301
+        },
+        {
+          "condition_numbers": [
+            17,
+            3,
+            21
+          ],
+          "geo_floor": 403,
+          "index": 2,
+          "message": "Ascensor Taller restablecido",
+          "on_parts": "p04_f0401;p09_f0401;p09_f0401-1;p24_f0401",
+          "percent": 10,
+          "unk_10": 302
+        },
+        {
+          "condition_numbers": [
+            25,
+            4,
+            5,
+            6
+          ],
+          "geo_floor": 404,
+          "index": 3,
+          "message": "Taller Gundorada restablecido",
+          "percent": 10,
+          "unk_10": 303
+        },
+        {
+          "condition_numbers": [
+            9,
+            3,
+            10
+          ],
+          "geo_floor": 410,
+          "index": 4,
+          "message": "Gr[UNI00fa]a restablecida",
+          "on_parts": "p11_f0401",
+          "percent": 10,
+          "unk_10": 304
+        },
+        {
+          "condition_numbers": [
+            11,
+            2,
+            13
+          ],
+          "geo_floor": 411,
+          "index": 5,
+          "message": "Brazo trabajador restablecido",
+          "on_parts": "p10_f0401",
+          "percent": 10,
+          "unk_10": 305
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            8,
+            24
+          ],
+          "geo_floor": 412,
+          "index": 6,
+          "message": "Sala de Operaciones restab.",
+          "on_parts": "p12_f0401",
+          "percent": 10,
+          "unk_10": 306
+        },
+        {
+          "condition_numbers": [
+            7,
+            8,
+            22
+          ],
+          "geo_floor": 414,
+          "index": 7,
+          "message": "Tienda de Piezas restablecida",
+          "on_parts": "p01_f0404",
+          "percent": 10,
+          "unk_10": 307
+        },
+        {
+          "condition_numbers": [
+            17,
+            8,
+            22
+          ],
+          "geo_floor": 417,
+          "index": 8,
+          "message": "Tienda de Objetos restablecida",
+          "on_parts": "p01_f0405",
+          "percent": 10,
+          "unk_10": 308
+        },
+        {
+          "condition_numbers": [
+            18,
+            8,
+            22
+          ],
+          "geo_floor": 418,
+          "index": 9,
+          "message": "Tienda de Armas restablecida",
+          "on_parts": "p01_f0403",
+          "percent": 10,
+          "unk_10": 309
+        },
+        {
+          "condition_numbers": [
+            19,
+            12
+          ],
+          "index": 10,
+          "message": "Paznos completado",
+          "on_parts": "p20_f0401;p22_f0401;p23_f0401",
+          "percent": 10,
+          "unk_10": 310
+        }
+      ],
+      "id": 3
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 501,
+          "index": 0,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 502,
+          "index": 1,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 503,
+          "index": 2,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 504,
+          "index": 3,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 505,
+          "index": 4,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 505,
+          "index": 5,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 506,
+          "index": 6,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 507,
+          "index": 7,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 507,
+          "index": 8,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 508,
+          "index": 9,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 509,
+          "index": 10,
+          "name": "Bloqueo por poder misterioso"
+        },
+        {
+          "geo_floor": 510,
+          "index": 11,
+          "name": "Bloqueo por poder misterioso"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 501,
+          "index": 0,
+          "message": "La Fragancia del Agua al Sol",
+          "percent": 10,
+          "unk_10": 400
+        },
+        {
+          "condition_numbers": [
+            1
+          ],
+          "geo_floor": 502,
+          "index": 1,
+          "message": "Camino de Flores que andamos",
+          "percent": 10,
+          "unk_10": 401
+        },
+        {
+          "condition_numbers": [
+            2
+          ],
+          "geo_floor": 503,
+          "index": 2,
+          "message": "La Puerta y la Columna lunar",
+          "percent": 10,
+          "unk_10": 402
+        },
+        {
+          "condition_numbers": [
+            3
+          ],
+          "geo_floor": 504,
+          "index": 3,
+          "message": "El Recorrido del Sol",
+          "percent": 10,
+          "unk_10": 403
+        },
+        {
+          "condition_numbers": [
+            4,
+            5
+          ],
+          "geo_floor": 505,
+          "index": 4,
+          "message": "R[UNI00ed]o y Escalera Starlight",
+          "percent": 10,
+          "unk_10": 404
+        },
+        {
+          "condition_numbers": [
+            6
+          ],
+          "geo_floor": 506,
+          "index": 5,
+          "message": "Arriate de Recuerdos",
+          "percent": 10,
+          "unk_10": 405
+        },
+        {
+          "condition_numbers": [
+            7,
+            8
+          ],
+          "geo_floor": 507,
+          "index": 6,
+          "message": "T[UNI00fa], Sentado en la Escalera",
+          "percent": 10,
+          "unk_10": 406
+        },
+        {
+          "condition_numbers": [
+            9
+          ],
+          "geo_floor": 508,
+          "index": 7,
+          "message": "El fin del Sal[UNI00f3]n de las Penas",
+          "percent": 10,
+          "unk_10": 407
+        },
+        {
+          "condition_numbers": [
+            10
+          ],
+          "geo_floor": 509,
+          "index": 8,
+          "message": "Fondo de Estanque de Ilusiones",
+          "percent": 10,
+          "unk_10": 408
+        },
+        {
+          "condition_numbers": [
+            11
+          ],
+          "geo_floor": 510,
+          "index": 9,
+          "message": "El Murmullo de los [UNI00c1]rboles",
+          "percent": 10,
+          "unk_10": 409
+        }
+      ],
+      "id": 4
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "entries": [
+    {
+      "index": 0,
+      "volume": 50
+    },
+    {
+      "index": 1,
+      "volume": 51
+    },
+    {
+      "index": 2,
+      "volume": 62
+    },
+    {
+      "index": 3,
+      "volume": 65
+    },
+    {
+      "index": 4,
+      "volume": 75
+    },
+    {
+      "index": 5,
+      "volume": 70
+    },
+    {
+      "index": 6,
+      "volume": 67
+    },
+    {
+      "index": 7,
+      "volume": 45
+    },
+    {
+      "index": 8,
+      "volume": 58
+    },
+    {
+      "index": 9,
+      "volume": 70
+    },
+    {
+      "index": 10,
+      "volume": 5
+    },
+    {
+      "index": 11,
+      "volume": 61
+    },
+    {
+      "index": 12,
+      "volume": 61
+    },
+    {
+      "index": 13,
+      "volume": 64
+    },
+    {
+      "index": 14,
+      "volume": 85
+    },
+    {
+      "index": 15,
+      "volume": 85
+    },
+    {
+      "index": 16,
+      "volume": 85
+    },
+    {
+      "index": 17,
+      "volume": 39
+    },
+    {
+      "index": 18,
+      "volume": 57
+    },
+    {
+      "index": 19,
+      "volume": 85
+    },
+    {
+      "index": 20,
+      "volume": 85
+    },
+    {
+      "index": 21,
+      "volume": 85
+    },
+    {
+      "index": 22,
+      "volume": 85
+    },
+    {
+      "index": 23,
+      "volume": 58
+    },
+    {
+      "index": 24,
+      "volume": 64
+    },
+    {
+      "index": 25,
+      "volume": 51
+    },
+    {
+      "index": 26,
+      "volume": 51
+    },
+    {
+      "index": 27,
+      "volume": 60
+    },
+    {
+      "index": 28,
+      "volume": 61
+    },
+    {
+      "index": 29,
+      "volume": 65
+    },
+    {
+      "index": 30,
+      "volume": 38
+    },
+    {
+      "index": 31,
+      "volume": 58
+    },
+    {
+      "index": 32,
+      "volume": 61
+    },
+    {
+      "index": 33,
+      "volume": 79
+    },
+    {
+      "index": 34,
+      "volume": 62
+    },
+    {
+      "index": 35,
+      "volume": 53
+    },
+    {
+      "index": 36,
+      "volume": 60
+    },
+    {
+      "index": 37,
+      "volume": 55
+    },
+    {
+      "index": 38,
+      "volume": 0
+    }
+  ],
+  "kind": "sound_volume",
+  "reverb": [],
+  "schema_version": 1
+}

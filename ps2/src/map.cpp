@@ -1300,7 +1300,7 @@ void CMap::DrawWater(mgCCamera *camera, mgCTexture *screen, mgCTexture *overlay)
                 overlay_surface->SetParam(overlay_speed, 0.0045f, 0.0f, 300.0f);
                 overlay_surface->SetScale(overlay_scale);
 
-                for (overlay_parts_no = 0, overlay_parts_offset = 0; overlay_parts_no < overlay_water->parts_num; overlay_parts_offset += 4, overlay_parts_no++) {
+                for (overlay_parts_no = 0, overlay_parts_offset = 0; overlay_parts_no < overlay_water->parts_num; overlay_parts_offset += sizeof(CMapParts *), overlay_parts_no++) {
                     parts = *(CMapParts **) ((u8 *) overlay_water->parts + overlay_parts_offset);
 
                     if (parts == NULL) {

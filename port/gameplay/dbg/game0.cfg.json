@@ -1,0 +1,118 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 4
+    },
+    {
+      "action": "item_set",
+      "set": 0
+    },
+    {
+      "action": "monica"
+    },
+    {
+      "action": "steve"
+    },
+    {
+      "action": "monsters",
+      "ids": [
+        1,
+        52
+      ]
+    },
+    {
+      "action": "party",
+      "chara": 12
+    },
+    {
+      "action": "get_items",
+      "items": [
+        2,
+        24
+      ]
+    },
+    {
+      "action": "get_items",
+      "items": [
+        303,
+        377
+      ]
+    },
+    {
+      "action": "get_items_counted",
+      "items": [
+        {
+          "count": 10,
+          "item": 312
+        },
+        {
+          "count": 10,
+          "item": 313
+        },
+        {
+          "count": 10,
+          "item": 314
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        }
+      ]
+    },
+    {
+      "action": "equip",
+      "chara": 0,
+      "item": 2
+    },
+    {
+      "action": "equip",
+      "chara": 0,
+      "item": 24
+    },
+    {
+      "action": "hp",
+      "chara": 0,
+      "value": 48
+    },
+    {
+      "action": "defense",
+      "chara": 0,
+      "value": 2
+    },
+    {
+      "action": "option",
+      "name": "MonsterName",
+      "value": 1
+    },
+    {
+      "action": "option",
+      "name": "Map",
+      "value": 0
+    },
+    {
+      "action": "option",
+      "name": "EnemyHP",
+      "value": 1
+    },
+    {
+      "action": "option",
+      "name": "AngerCounter",
+      "value": 1
+    },
+    {
+      "action": "active_chara",
+      "chara": 1
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

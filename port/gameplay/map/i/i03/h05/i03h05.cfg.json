@@ -1,0 +1,77 @@
+{
+  "draw_off_rects": [],
+  "event_points": [],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draw_count": 2,
+    "draws": [
+      {
+        "position": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "surface": 0,
+        "target": ""
+      },
+      {
+        "position": [
+          0.0,
+          7.5,
+          0.0
+        ],
+        "surface": 1,
+        "target": ""
+      }
+    ],
+    "surface_count": 2,
+    "surfaces": [
+      {
+        "param": [
+          0.15,
+          0.0045,
+          0.0,
+          16.0
+        ],
+        "vertex": {
+          "corner0": [
+            -280.0,
+            0.0,
+            -650.0
+          ],
+          "corner1": [
+            280.0,
+            0.0,
+            650.0
+          ],
+          "count_x": 48,
+          "count_z": 48
+        }
+      },
+      {
+        "param": [
+          0.15,
+          0.0045,
+          0.0,
+          16.0
+        ],
+        "vertex": {
+          "corner0": [
+            -140.0,
+            0.0,
+            -360.0
+          ],
+          "corner1": [
+            140.0,
+            0.0,
+            360.0
+          ],
+          "count_x": 32,
+          "count_z": 48
+        }
+      }
+    ]
+  }
+}

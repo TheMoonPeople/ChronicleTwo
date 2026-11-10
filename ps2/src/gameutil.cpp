@@ -2453,8 +2453,8 @@ s32 CheckPosInOutFor2P(float x0, float y0, float x1, float y1, float x, float y)
 }
 
 int CalcIntersectionPointLineAndLine(float ax0, float ay0, float ax1, float ay1, float bx0, float by0, float bx1, float by1, float *out_x, float *out_y) {
-    float slope_a;
-    float slope_b;
+    float slope_a PORT_INIT(0.0f);
+    float slope_b PORT_INIT(0.0f);
     float relative_x;
     float relative_y;
 

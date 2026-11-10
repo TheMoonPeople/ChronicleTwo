@@ -7,8 +7,8 @@
 
 [<img src="https://decomp.dev/TheMoonPeople/ChronicleTwo/pal.svg?w=512&h=256" width="512" height="256" alt="PAL decompilation progress">][progress_link]
 
-Chronicle Two is a decompilation project (and eventual port) of Dark
-Chronicle/Dark Cloud 2 for the PlayStation 2.
+Chronicle Two is a decompilation of Dark Chronicle/Dark Cloud 2 for the
+PlayStation 2, and a native port built from it.
 
 ## Building and running
 
@@ -21,10 +21,14 @@ so Docker or Podman must be installed.
 - `./build.sh` builds the PAL executable (`ps2-pal`) and checks it against retail.
   `./build.sh ps2-pal elf objdiff` builds only the named targets; `CLEAN=1 ./build.sh`
   rebuilds from scratch.
-- `./run.sh` builds, masters a disc image and boots it in PCSX2.
+- `./run.sh` builds and runs the Release port; `./run.sh ps2-pal` builds, masters a disc image and boots it in PCSX2.
 - `build.bat` and `run.bat` do the same on Windows.
-- `tools/kazarov/bin/kazarov shell` opens a shell in the build container, with the
+- `./build.sh switch` or `build.bat switch` builds the Mesa Vulkan Switch port;
+  [Switch documentation](docs/SWITCH.md) covers installation and development-unit testing.
+- `tools/kazarov/scripts/kazarov shell` opens a shell in the build container, with the
   project at `/work/chronicletwo`.
+- `port/flatpak.sh` packages the PC port as a Flatpak, `chronicletwo.flatpak`, which CI
+  also builds; `docs/FLATPAK.md` covers building, installing and its first start.
 
 ## Diffing
 

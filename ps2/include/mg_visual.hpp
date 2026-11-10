@@ -67,6 +67,7 @@ struct MDT_HEADER {
 };
 
 STATIC_ASSERT(sizeof(MDT_HEADER) == 0x40);
+PORT_RECORD_ASSERT(sizeof(MDT_HEADER) == 0x40);
 
 /**
  *
@@ -84,6 +85,7 @@ struct MDT_MATERIAL_ {
 };
 
 STATIC_ASSERT(sizeof(MDT_MATERIAL_) == 0x60);
+PORT_RECORD_ASSERT(sizeof(MDT_MATERIAL_) == 0x60);
 
 /**
  *
@@ -98,6 +100,7 @@ struct MDT_FACES {
 };
 
 STATIC_ASSERT(sizeof(MDT_FACES) == 0x10);
+PORT_RECORD_ASSERT(sizeof(MDT_FACES) == 0x10);
 
 /**
  *
@@ -454,7 +457,7 @@ public:
      * @address 0x13FD10
      * @size 0x27C
      */
-    virtual u_int CreatePacket(mgCDrawManager *draw_manager);
+    virtual uptr CreatePacket(mgCDrawManager *draw_manager);
 
     /**
      *
@@ -616,7 +619,7 @@ public:
      * @address 0x13FF90
      * @size 0x228
      */
-    virtual u_int CreatePacket(mgCDrawManager *draw_manager);
+    virtual uptr CreatePacket(mgCDrawManager *draw_manager);
 
     /**
      *

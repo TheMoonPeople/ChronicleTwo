@@ -1,0 +1,10 @@
+# --jump event:26010 --fast-load. Replay endpoint: --frames 1000.
+# L3 quick-changes Max to Monica in the Rainbow Butterfly Wood boss approach, then she walks and attacks.
+400 l3
+406
+700 up
+800
+850 cross
+856
+900 cross
+906

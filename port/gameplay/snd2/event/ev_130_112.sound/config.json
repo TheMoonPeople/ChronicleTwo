@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "snd2/event/ev_130_112.sound/effects/ev_130_112_002.json",
+      "flag": true,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "snd2/event/ev_130_112.sound/effects/ev_130_112_003.json",
+      "flag": true,
+      "key": 60,
+      "program": 3
+    }
+  ],
+  "entry_count": 5,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

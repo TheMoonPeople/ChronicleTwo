@@ -1,0 +1,2240 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "from": 40,
+      "op": "clear_etc_info"
+    },
+    {
+      "index": 40,
+      "op": "etc_info_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "faceoffset",
+          "values": [
+            -30,
+            20
+          ]
+        },
+        {
+          "name": "face0tar",
+          "values": [
+            60,
+            80
+          ]
+        },
+        {
+          "name": "face1tar",
+          "values": [
+            60,
+            200
+          ]
+        },
+        {
+          "name": "namep0",
+          "values": [
+            274,
+            54
+          ]
+        },
+        {
+          "name": "namep1",
+          "values": [
+            250,
+            250
+          ]
+        },
+        {
+          "name": "namep2",
+          "values": [
+            352,
+            172
+          ]
+        },
+        {
+          "name": "namep3",
+          "values": [
+            26,
+            80
+          ]
+        },
+        {
+          "name": "namep4",
+          "values": [
+            11,
+            252
+          ]
+        }
+      ],
+      "op": "etc_info"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "chr_bg",
+      "textures": [
+        {
+          "name": "chr_bg",
+          "rect": [
+            0,
+            0,
+            513,
+            768
+          ],
+          "spelling": "TEXDATA"
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "chr0",
+      "textures": [
+        {
+          "name": "chr_cursor",
+          "rect": [
+            256,
+            0,
+            64,
+            64
+          ]
+        },
+        {
+          "name": "chr_cube",
+          "rect": [
+            224,
+            0,
+            32,
+            32
+          ]
+        },
+        {
+          "name": "fc0",
+          "rect": [
+            0,
+            0,
+            96,
+            96
+          ]
+        },
+        {
+          "name": "fc1",
+          "rect": [
+            96,
+            0,
+            96,
+            96
+          ]
+        },
+        {
+          "name": "fc2",
+          "rect": [
+            0,
+            96,
+            80,
+            80
+          ]
+        },
+        {
+          "name": "fc3",
+          "rect": [
+            0,
+            176,
+            80,
+            80
+          ]
+        },
+        {
+          "name": "fcback",
+          "rect": [
+            80,
+            96,
+            80,
+            80
+          ]
+        },
+        {
+          "name": "fc0name",
+          "rect": [
+            82,
+            193,
+            52,
+            19
+          ]
+        },
+        {
+          "name": "fc1name",
+          "rect": [
+            134,
+            193,
+            51,
+            19
+          ]
+        },
+        {
+          "name": "fc2name",
+          "rect": [
+            82,
+            212,
+            142,
+            22
+          ]
+        },
+        {
+          "name": "fc3name",
+          "rect": [
+            82,
+            234,
+            174,
+            21
+          ]
+        },
+        {
+          "name": "hpbar0",
+          "rect": [
+            234,
+            188,
+            86,
+            16
+          ]
+        },
+        {
+          "name": "hpbar1",
+          "rect": [
+            234,
+            206,
+            86,
+            16
+          ]
+        },
+        {
+          "name": "hpfill",
+          "rect": [
+            186,
+            206,
+            8,
+            5
+          ]
+        },
+        {
+          "name": "stfill",
+          "rect": [
+            186,
+            197,
+            8,
+            8
+          ]
+        },
+        {
+          "name": "num_chr",
+          "rect": [
+            82,
+            180,
+            12,
+            13
+          ]
+        },
+        {
+          "name": "num_chr_sl",
+          "rect": [
+            202,
+            180,
+            12,
+            12
+          ]
+        },
+        {
+          "name": "num_npc",
+          "rect": [
+            241,
+            164,
+            11,
+            22
+          ]
+        },
+        {
+          "name": "num_slu",
+          "rect": [
+            351,
+            164,
+            11,
+            22
+          ]
+        },
+        {
+          "name": "npcmd0",
+          "rect": [
+            272,
+            0,
+            27,
+            116
+          ]
+        },
+        {
+          "name": "npcmd1",
+          "rect": [
+            299,
+            0,
+            6,
+            116
+          ]
+        },
+        {
+          "name": "npcmd2",
+          "rect": [
+            305,
+            0,
+            78,
+            116
+          ]
+        },
+        {
+          "name": "npcmd3",
+          "rect": [
+            272,
+            116,
+            27,
+            6
+          ]
+        },
+        {
+          "name": "npcmd4",
+          "rect": [
+            299,
+            116,
+            6,
+            6
+          ]
+        },
+        {
+          "name": "npcmd5",
+          "rect": [
+            305,
+            116,
+            78,
+            6
+          ]
+        },
+        {
+          "name": "npcmd6",
+          "rect": [
+            272,
+            122,
+            27,
+            29
+          ]
+        },
+        {
+          "name": "npcmd7",
+          "rect": [
+            299,
+            122,
+            6,
+            29
+          ]
+        },
+        {
+          "name": "npcmd8",
+          "rect": [
+            305,
+            122,
+            78,
+            29
+          ]
+        },
+        {
+          "name": "npcwd0",
+          "rect": [
+            193,
+            0,
+            36,
+            75
+          ]
+        },
+        {
+          "name": "npcwd1",
+          "rect": [
+            229,
+            0,
+            8,
+            75
+          ]
+        },
+        {
+          "name": "npcwd2",
+          "rect": [
+            237,
+            0,
+            34,
+            75
+          ]
+        },
+        {
+          "name": "npcwd3",
+          "rect": [
+            193,
+            75,
+            36,
+            6
+          ]
+        },
+        {
+          "name": "npcwd4",
+          "rect": [
+            229,
+            75,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "npcwd5",
+          "rect": [
+            237,
+            75,
+            34,
+            6
+          ]
+        },
+        {
+          "name": "npcwd6",
+          "rect": [
+            193,
+            81,
+            36,
+            19
+          ]
+        },
+        {
+          "name": "npcwd7",
+          "rect": [
+            229,
+            81,
+            8,
+            19
+          ]
+        },
+        {
+          "name": "npcwd8",
+          "rect": [
+            237,
+            81,
+            34,
+            19
+          ]
+        },
+        {
+          "name": "npcwd9",
+          "rect": [
+            193,
+            100,
+            36,
+            6
+          ]
+        },
+        {
+          "name": "npcwd10",
+          "rect": [
+            229,
+            100,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "npcwd11",
+          "rect": [
+            237,
+            100,
+            34,
+            6
+          ]
+        },
+        {
+          "name": "npcwd12",
+          "rect": [
+            193,
+            106,
+            36,
+            31
+          ]
+        },
+        {
+          "name": "npcwd13",
+          "rect": [
+            229,
+            106,
+            8,
+            31
+          ]
+        },
+        {
+          "name": "npcwd14",
+          "rect": [
+            237,
+            106,
+            34,
+            31
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "face",
+      "textures": [
+        {
+          "name": "fc4",
+          "rect": [
+            0,
+            0,
+            96,
+            96
+          ]
+        },
+        {
+          "name": "fc4name",
+          "rect": [
+            0,
+            100,
+            192,
+            27
+          ]
+        }
+      ]
+    },
+    {
+      "from": 10,
+      "op": "clear_forms",
+      "to": 50
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "fade_block",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                0,
+                0,
+                0,
+                128
+              ]
+            }
+          ],
+          "name": "bg",
+          "part": "fillbox",
+          "size": [
+            514,
+            448
+          ],
+          "style": 0,
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "chr_bg",
+      "op": "form",
+      "parts": [
+        {
+          "name": "cur0",
+          "part": "funcinfo",
+          "xy": [
+            470,
+            94
+          ]
+        },
+        {
+          "name": "cur1",
+          "part": "funcinfo",
+          "xy": [
+            130,
+            180
+          ]
+        },
+        {
+          "name": "cur2",
+          "part": "funcinfo",
+          "xy": [
+            350,
+            214
+          ]
+        },
+        {
+          "name": "cur3",
+          "part": "funcinfo",
+          "xy": [
+            28,
+            110
+          ]
+        },
+        {
+          "name": "cur4",
+          "part": "funcinfo",
+          "xy": [
+            18,
+            300
+          ]
+        },
+        {
+          "name": "stpt",
+          "part": "funcinfo",
+          "xy": [
+            76,
+            435
+          ]
+        },
+        {
+          "name": "dousuru",
+          "part": "funcinfo",
+          "xy": [
+            94,
+            498
+          ]
+        },
+        {
+          "name": "polywin",
+          "part": "funcinfo",
+          "xy": [
+            244,
+            296
+          ]
+        },
+        {
+          "name": "cmd0",
+          "part": "funcinfo",
+          "xy": [
+            50,
+            540
+          ]
+        },
+        {
+          "name": "cmd1",
+          "part": "funcinfo",
+          "xy": [
+            50,
+            566
+          ]
+        },
+        {
+          "name": "cmd2",
+          "part": "funcinfo",
+          "xy": [
+            50,
+            592
+          ]
+        },
+        {
+          "name": "cmd3",
+          "part": "funcinfo",
+          "xy": [
+            50,
+            618
+          ]
+        },
+        {
+          "name": "mi2",
+          "part": "funcinfo",
+          "xy": [
+            50,
+            12
+          ]
+        },
+        {
+          "name": "dmytexreload",
+          "part": "normal",
+          "texture": "fc0",
+          "xy": [
+            319,
+            63
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fcb0",
+          "part": "normal",
+          "size": [
+            106,
+            106
+          ],
+          "texture": "fcback",
+          "xy": [
+            317,
+            63
+          ]
+        },
+        {
+          "etc_info": [
+            0
+          ],
+          "kind": "clut_reload",
+          "name": "clut0",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc0",
+          "part": "normal",
+          "texture": "fc0",
+          "xy": [
+            319,
+            63
+          ]
+        },
+        {
+          "etc_info": [
+            1
+          ],
+          "kind": "clut_reload",
+          "name": "clut00",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fcb1",
+          "part": "normal",
+          "size": [
+            100,
+            100
+          ],
+          "texture": "fcback",
+          "xy": [
+            178,
+            158
+          ]
+        },
+        {
+          "etc_info": [
+            0
+          ],
+          "kind": "clut_reload",
+          "name": "clut1",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc1",
+          "part": "normal",
+          "size": [
+            98,
+            98
+          ],
+          "texture": "fc1",
+          "xy": [
+            180,
+            158
+          ]
+        },
+        {
+          "etc_info": [
+            1
+          ],
+          "kind": "clut_reload",
+          "name": "clut01",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fcb2",
+          "part": "normal",
+          "size": [
+            88,
+            88
+          ],
+          "texture": "fcback",
+          "xy": [
+            384,
+            187
+          ]
+        },
+        {
+          "etc_info": [
+            0
+          ],
+          "kind": "clut_reload",
+          "name": "clut2",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc2",
+          "part": "normal",
+          "size": [
+            82,
+            82
+          ],
+          "texture": "fc2",
+          "xy": [
+            387,
+            188
+          ]
+        },
+        {
+          "etc_info": [
+            1
+          ],
+          "kind": "clut_reload",
+          "name": "clut02",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fcb3",
+          "part": "normal",
+          "size": [
+            88,
+            88
+          ],
+          "texture": "fcback",
+          "xy": [
+            65,
+            98
+          ]
+        },
+        {
+          "etc_info": [
+            0
+          ],
+          "kind": "clut_reload",
+          "name": "clut3",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc3",
+          "part": "normal",
+          "size": [
+            82,
+            82
+          ],
+          "texture": "fc3",
+          "xy": [
+            68,
+            98
+          ]
+        },
+        {
+          "etc_info": [
+            1
+          ],
+          "kind": "clut_reload",
+          "name": "clut03",
+          "part": "dtype"
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fcback",
+          "part": "normal",
+          "size": [
+            106,
+            106
+          ],
+          "texture": "fcback",
+          "xy": [
+            55,
+            294
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc4",
+          "part": "normal",
+          "texture": "fc4",
+          "xy": [
+            57,
+            294
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "bg",
+          "part": "normal",
+          "texture": "chr_bg",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                36,
+                36,
+                36,
+                128
+              ]
+            }
+          ],
+          "name": "hpbg0",
+          "part": "fillbox",
+          "size": [
+            68,
+            12
+          ],
+          "style": 0,
+          "xy": [
+            232,
+            91
+          ]
+        },
+        {
+          "name": "hpfill0",
+          "part": "normal",
+          "texture": "hpfill",
+          "xy": [
+            235,
+            94
+          ]
+        },
+        {
+          "name": "hpbar0",
+          "part": "normal",
+          "texture": "hpbar0",
+          "xy": [
+            229,
+            88
+          ]
+        },
+        {
+          "name": "slu0",
+          "part": "normal",
+          "texture": "num_chr_sl",
+          "xy": [
+            258,
+            105
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "hp_now0",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num_chr",
+          "value": 1,
+          "xy": [
+            249,
+            105
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "hp_max0",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num_chr",
+          "value": 1,
+          "xy": [
+            286,
+            105
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                36,
+                36,
+                36,
+                128
+              ]
+            }
+          ],
+          "name": "hpbg1",
+          "part": "fillbox",
+          "size": [
+            68,
+            12
+          ],
+          "style": 0,
+          "xy": [
+            294,
+            212
+          ]
+        },
+        {
+          "name": "hpfill1",
+          "part": "normal",
+          "texture": "hpfill",
+          "xy": [
+            297,
+            215
+          ]
+        },
+        {
+          "name": "hpbar1",
+          "part": "normal",
+          "texture": "hpbar1",
+          "xy": [
+            281,
+            209
+          ]
+        },
+        {
+          "name": "slu1",
+          "part": "normal",
+          "texture": "num_chr_sl",
+          "xy": [
+            322,
+            225
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "hp_now1",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num_chr",
+          "value": 1,
+          "xy": [
+            312,
+            225
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "hp_max1",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num_chr",
+          "value": 1,
+          "xy": [
+            350,
+            225
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                64
+              ]
+            }
+          ],
+          "name": "fc0namesh",
+          "part": "normal",
+          "texture": "fc0name",
+          "xy": [
+            274,
+            54
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc0name",
+          "part": "normal",
+          "texture": "fc0name",
+          "xy": [
+            274,
+            54
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                64
+              ]
+            }
+          ],
+          "name": "fc1namesh",
+          "part": "normal",
+          "texture": "fc1name",
+          "xy": [
+            250,
+            250
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc1name",
+          "part": "normal",
+          "texture": "fc1name",
+          "xy": [
+            250,
+            250
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                64
+              ]
+            }
+          ],
+          "name": "fc2namesh",
+          "part": "normal",
+          "texture": "fc2name",
+          "xy": [
+            352,
+            172
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc2name",
+          "part": "normal",
+          "texture": "fc2name",
+          "xy": [
+            352,
+            172
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                64
+              ]
+            }
+          ],
+          "name": "fc3namesh",
+          "part": "normal",
+          "texture": "fc3name",
+          "xy": [
+            26,
+            80
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc3name",
+          "part": "normal",
+          "texture": "fc3name",
+          "xy": [
+            26,
+            80
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                64
+              ]
+            }
+          ],
+          "name": "fc4namesh",
+          "part": "normal",
+          "texture": "fc4name",
+          "xy": [
+            -36,
+            268
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc4name",
+          "part": "normal",
+          "texture": "fc4name",
+          "xy": [
+            -36,
+            268
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                32
+              ]
+            }
+          ],
+          "name": "fc4namesh2",
+          "part": "normal",
+          "texture": "fc4name",
+          "xy": [
+            52,
+            400
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "fc4name2",
+          "part": "normal",
+          "texture": "fc4name",
+          "xy": [
+            50,
+            398
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                36,
+                36,
+                36,
+                128
+              ]
+            }
+          ],
+          "name": "stbg0",
+          "part": "fillbox",
+          "size": [
+            130,
+            30
+          ],
+          "style": 0,
+          "xy": [
+            40,
+            450
+          ]
+        },
+        {
+          "name": "stbar",
+          "part": "normal",
+          "texture": "stfill",
+          "xy": [
+            52,
+            459
+          ]
+        },
+        {
+          "name": "md0",
+          "part": "normal",
+          "texture": "npcmd0",
+          "xy": [
+            26,
+            420
+          ]
+        },
+        {
+          "name": "md1",
+          "part": "normal",
+          "size": [
+            110,
+            116
+          ],
+          "texture": "npcmd1",
+          "xy": [
+            53,
+            420
+          ]
+        },
+        {
+          "name": "md2",
+          "part": "normal",
+          "texture": "npcmd2",
+          "xy": [
+            163,
+            420
+          ]
+        },
+        {
+          "name": "md3",
+          "part": "normal",
+          "size": [
+            27,
+            106
+          ],
+          "texture": "npcmd3",
+          "xy": [
+            26,
+            536
+          ]
+        },
+        {
+          "name": "md4",
+          "part": "normal",
+          "size": [
+            110,
+            106
+          ],
+          "texture": "npcmd4",
+          "xy": [
+            53,
+            536
+          ]
+        },
+        {
+          "name": "md5",
+          "part": "normal",
+          "size": [
+            78,
+            106
+          ],
+          "texture": "npcmd5",
+          "xy": [
+            163,
+            536
+          ]
+        },
+        {
+          "name": "md6",
+          "part": "normal",
+          "texture": "npcmd6",
+          "xy": [
+            26,
+            642
+          ]
+        },
+        {
+          "name": "md7",
+          "part": "normal",
+          "size": [
+            110,
+            29
+          ],
+          "texture": "npcmd7",
+          "xy": [
+            53,
+            642
+          ]
+        },
+        {
+          "name": "md8",
+          "part": "normal",
+          "texture": "npcmd8",
+          "xy": [
+            163,
+            642
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "sp_n",
+          "part": "number1",
+          "texture": "num_npc",
+          "value": 0,
+          "xy": [
+            194,
+            450
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "sp_sl",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            194,
+            450
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "sp_m",
+          "part": "number1",
+          "texture": "num_npc",
+          "value": 2,
+          "xy": [
+            214,
+            450
+          ]
+        },
+        {
+          "name": "sp0",
+          "part": "number1",
+          "texture": "num_npc",
+          "value": 1,
+          "xy": [
+            210,
+            541
+          ]
+        },
+        {
+          "name": "sp1",
+          "part": "number1",
+          "texture": "num_npc",
+          "value": 1,
+          "xy": [
+            210,
+            565
+          ]
+        },
+        {
+          "name": "sp2",
+          "part": "number1",
+          "texture": "num_npc",
+          "value": 1,
+          "xy": [
+            210,
+            591
+          ]
+        },
+        {
+          "name": "sp3",
+          "part": "number1",
+          "texture": "num_npc",
+          "value": 1,
+          "xy": [
+            210,
+            617
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 75,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -512,
+            0
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "up",
+              "rate": [
+                4.0,
+                5.0
+              ],
+              "xy": [
+                0.0,
+                -274.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "default",
+              "rate": [
+                4.0,
+                5.0
+              ],
+              "xy": [
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        }
+      ]
+    },
+    {
+      "name": "polywin_bg",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                40,
+                29,
+                42,
+                128
+              ]
+            }
+          ],
+          "name": "stbg0",
+          "part": "fillbox",
+          "size": [
+            236,
+            170
+          ],
+          "style": 0,
+          "xy": [
+            14,
+            52
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            200,
+            500
+          ]
+        },
+        {
+          "count": 3,
+          "set": "parts_capacity"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        }
+      ]
+    },
+    {
+      "name": "polychr",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "poly"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "polywin_chrhide",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                40,
+                29,
+                42,
+                128
+              ]
+            }
+          ],
+          "name": "stbg0",
+          "part": "fillbox",
+          "size": [
+            236,
+            170
+          ],
+          "style": 0,
+          "xy": [
+            14,
+            52
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            200,
+            500
+          ]
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        }
+      ]
+    },
+    {
+      "name": "polywin",
+      "op": "form",
+      "parts": [
+        {
+          "name": "pname",
+          "part": "funcinfo",
+          "xy": [
+            130,
+            23
+          ]
+        },
+        {
+          "name": "setu0",
+          "part": "funcinfo",
+          "xy": [
+            20,
+            244
+          ]
+        },
+        {
+          "name": "setu1",
+          "part": "funcinfo",
+          "xy": [
+            20,
+            274
+          ]
+        },
+        {
+          "name": "setu2",
+          "part": "funcinfo",
+          "xy": [
+            20,
+            304
+          ]
+        },
+        {
+          "name": "setu3",
+          "part": "funcinfo",
+          "xy": [
+            20,
+            334
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd0",
+          "part": "normal",
+          "size": [
+            36,
+            75
+          ],
+          "texture": "npcwd0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd1",
+          "part": "normal",
+          "size": [
+            190,
+            75
+          ],
+          "texture": "npcwd1",
+          "xy": [
+            36,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd2",
+          "part": "normal",
+          "size": [
+            34,
+            75
+          ],
+          "texture": "npcwd2",
+          "xy": [
+            226,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd3",
+          "part": "normal",
+          "size": [
+            36,
+            140
+          ],
+          "texture": "npcwd3",
+          "xy": [
+            0,
+            75
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd4",
+          "part": "normal",
+          "size": [
+            190,
+            140
+          ],
+          "texture": "npcwd4",
+          "xy": [
+            36,
+            75
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd5",
+          "part": "normal",
+          "size": [
+            34,
+            140
+          ],
+          "texture": "npcwd5",
+          "xy": [
+            226,
+            75
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd6",
+          "part": "normal",
+          "size": [
+            36,
+            19
+          ],
+          "texture": "npcwd6",
+          "xy": [
+            0,
+            215
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd7",
+          "part": "normal",
+          "size": [
+            190,
+            19
+          ],
+          "texture": "npcwd7",
+          "xy": [
+            36,
+            215
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd8",
+          "part": "normal",
+          "size": [
+            34,
+            19
+          ],
+          "texture": "npcwd8",
+          "xy": [
+            226,
+            215
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd9",
+          "part": "normal",
+          "size": [
+            36,
+            110
+          ],
+          "texture": "npcwd9",
+          "xy": [
+            0,
+            234
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd10",
+          "part": "normal",
+          "size": [
+            190,
+            110
+          ],
+          "texture": "npcwd10",
+          "xy": [
+            36,
+            234
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd11",
+          "part": "normal",
+          "size": [
+            34,
+            110
+          ],
+          "texture": "npcwd11",
+          "xy": [
+            226,
+            234
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd12",
+          "part": "normal",
+          "size": [
+            36,
+            31
+          ],
+          "texture": "npcwd12",
+          "xy": [
+            0,
+            344
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd13",
+          "part": "normal",
+          "size": [
+            190,
+            31
+          ],
+          "texture": "npcwd13",
+          "xy": [
+            36,
+            344
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd14",
+          "part": "normal",
+          "size": [
+            34,
+            31
+          ],
+          "texture": "npcwd14",
+          "xy": [
+            226,
+            344
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 20,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            260,
+            500
+          ]
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        }
+      ]
+    },
+    {
+      "name": "chara_star",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "chrstar"
+        }
+      ]
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg6",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "itembrd",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "itembrd"
+        },
+        {
+          "set": "position",
+          "xy": [
+            560,
+            24
+          ]
+        },
+        {
+          "draw": 1,
+          "set": "draw_flag"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                560.0,
+                24.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                216.0,
+                24.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "msg5",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "msg7",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            270,
+            320
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    }
+  ],
+  "schema_version": 2
+}

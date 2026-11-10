@@ -1,0 +1,23 @@
+{
+  "actions": [
+    {
+      "action": "item_set",
+      "set": 6
+    },
+    {
+      "action": "get_items",
+      "items": [
+        309,
+        320,
+        321,
+        322,
+        323,
+        324,
+        325,
+        326
+      ]
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

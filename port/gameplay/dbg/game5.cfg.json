@@ -1,0 +1,70 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 4
+    },
+    {
+      "action": "item_set",
+      "set": 6
+    },
+    {
+      "action": "get_items",
+      "items": [
+        359,
+        311
+      ]
+    },
+    {
+      "action": "get_items_counted",
+      "items": [
+        {
+          "count": 5,
+          "item": 268
+        },
+        {
+          "count": 3,
+          "item": 294
+        },
+        {
+          "count": 3,
+          "item": 298
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        }
+      ]
+    },
+    {
+      "action": "get_items",
+      "items": [
+        369
+      ]
+    },
+    {
+      "action": "option",
+      "name": "MonsterName",
+      "value": 1
+    },
+    {
+      "action": "option",
+      "name": "Map",
+      "value": 0
+    },
+    {
+      "action": "active_chara",
+      "chara": 0
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

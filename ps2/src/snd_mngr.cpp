@@ -1011,7 +1011,7 @@ unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory) {
 
     if (info->bank_num == 0) {
         if (bd_size != 0 && hd_size != 0) {
-            CSnd.LoadHdBd(info->port, (int) hd, hd_size, (int) bd, bd_size);
+            CSnd.LoadHdBd(info->port, (uptr) hd, hd_size, (uptr) bd, bd_size);
         }
 
         sndWaitTransBd();
@@ -1023,7 +1023,7 @@ unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory) {
         }
 
         if (bd_size != 0 && hd_size != 0) {
-            CSnd.LoadHdBdAdd(info->port, (int) hd, hd_size, (int) bd, bd_size);
+            CSnd.LoadHdBdAdd(info->port, (uptr) hd, hd_size, (uptr) bd, bd_size);
         }
 
         sndWaitTransBd();
@@ -1052,7 +1052,7 @@ unsigned int sndLoadSound(int port_no, unsigned int *pack, mgCMemory *memory) {
 
         for (i = 0; i < bank->sq_num; i++) {
             bank->sq_name[i] = NULL;
-            CSnd.LoadSeq(info->sq_port, (int) sq[i], sq_size[i]);
+            CSnd.LoadSeq(info->sq_port, (uptr) sq[i], sq_size[i]);
             bank->sq_name[i] = mgCopyString(sq_name[i], memory);
         }
     }

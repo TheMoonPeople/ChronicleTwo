@@ -76,7 +76,7 @@ int ezMidi(int command, int argument) {
 
 int ezTransToIOP2(void *iop_address, void *ee_address, int size) {
     s32 id;
-    u32 source = (u32) ee_address;
+    uptr source = (uptr) ee_address;
 
     transData.size = size;
     transData.data = ee_address;

@@ -1,0 +1,254 @@
+{
+  "entries": [
+    {
+      "filename": "-",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": true,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_004.json",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_005.json",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_006.json",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_007.json",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_008.json",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_010.json",
+      "flag": false,
+      "key": 49,
+      "program": 10
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_011.json",
+      "flag": false,
+      "key": 60,
+      "program": 11
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_012.json",
+      "flag": false,
+      "key": 60,
+      "program": 12
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_013.json",
+      "flag": false,
+      "key": 60,
+      "program": 13
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_014.json",
+      "flag": false,
+      "key": 60,
+      "program": 14
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_015.json",
+      "flag": false,
+      "key": 60,
+      "program": 15
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 16
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 17
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 18
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 19
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 20
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 21
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_022.json",
+      "flag": false,
+      "key": 60,
+      "program": 22
+    },
+    {
+      "filename": "snd2/mon/en_390.sound/effects/en_390_023.json",
+      "flag": false,
+      "key": 60,
+      "program": 23
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 24
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 25
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 26
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 27
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 28
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 29
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 30
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 31
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 32
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 33
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 34
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 35
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 36
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 37
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 38
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 39
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 40
+    }
+  ],
+  "entry_count": 42,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

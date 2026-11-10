@@ -1,0 +1,1615 @@
+{
+  "chapters": [
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.55,
+          "start_seconds": 1.65,
+          "text": "Tu va te lancer dans une merveilleuse aventure.\nAvant de commencer, voici quelques conseils.\r"
+        },
+        {
+          "clear_seconds": 20.87,
+          "start_seconds": 9.55,
+          "text": "Tout d'abord, voyons comment se d[UNI00e9]placer.\nLe joystick analogique gauche sert [UNI00e0] marcher.\nPour courir, appuie [UNI00e0] fond.\r"
+        },
+        {
+          "clear_seconds": 33.63,
+          "start_seconds": 20.87,
+          "text": "Le joystick analogique droit est la cam[UNI00e9]ra.\nTu peux la faire pivoter avec\n[l1] et [r1], sauf dans les d[UNI00e9]dales.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.63,
+          "text": "En appuyant sur (X) ou [l2] \nlorsque tu te d[UNI00e9]places, la cam[UNI00e9]ra se \nplacera derri[UNI00e8]re ton personnage.\nCette fonction tr[UNI00e8]s utile te permet \nde voir ce que ton personnage regarde.\r"
+        }
+      ],
+      "id": 901
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.28,
+          "start_seconds": 3.27,
+          "text": "Si tu t'approches d'un objet et tu appuies sur (O),\nton personnage r[UNI00e9]agit diff[UNI00e9]remment en fonction\nde la situation.\r"
+        },
+        {
+          "clear_seconds": 17.49,
+          "start_seconds": 10.28,
+          "text": "Exemple : si l'objet est une porte, elle s'ouvrira.\nTu peux aussi parler aux gens.\r"
+        },
+        {
+          "clear_seconds": 23.47,
+          "start_seconds": 17.49,
+          "text": "Si tu appuies sur (A) tout en contr[UNI00f4]lant ton personnage,\nun [UNI00e9]cran de commandes appara[UNI00ee]tra.\r"
+        },
+        {
+          "clear_seconds": 37.52,
+          "start_seconds": 23.47,
+          "text": "Cet [UNI00e9]cran, c'est le \"Menu principal\".\nTu y trouveras toutes sortes de commandes\nte permettant d'[UNI00e9]voluer dans le jeu.\nTu pourras utiliser des objets ou des armes.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 37.52,
+          "text": "Et n'oublie pas : dans le Menu principal, (O)\npermet de valider et (X) d'annuler.\r"
+        }
+      ],
+      "id": 902
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.31,
+          "start_seconds": 3.55,
+          "text": "Dans certaines situations, tu dois utiliser (#)\npour s[UNI00e9]lectionner certains objets.\r"
+        },
+        {
+          "clear_seconds": 20.18,
+          "start_seconds": 10.31,
+          "text": "Choisis l'objet qui te sera utile en fonction de la situation.\nSi tu choisis l'objet appropri[UNI00e9], tu pourras poursuivre \nton aventure.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.18,
+          "text": "Si tu ne trouves pas l'objet dont tu as besoin,\nappuie sur (X) pour annuler.\nIl te faudra alors partir [UNI00e0] la recherche de cet objet !\r"
+        }
+      ],
+      "id": 903
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.09,
+          "start_seconds": 4.61,
+          "text": "Utilisation des objets courants.\nChoisis \"Objets\" (Menu principal)\net la fen[UNI00ea]tre Objets s'affichera.\r"
+        },
+        {
+          "clear_seconds": 20.8,
+          "start_seconds": 13.09,
+          "text": "Place le curseur sur l'objet d[UNI00e9]sir[UNI00e9] avec \nles touches directionnelles ou joystick analogique gauche.\nAppuie ensuite sur (O).\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.8,
+          "text": "Une liste de commandes relatives [UNI00e0] cet objet s'affiche.\nPuis s[UNI00e9]lectionne la commande d[UNI00e9]sir[UNI00e9]e.\nVoil[UNI00e0] comment on fait !\r"
+        }
+      ],
+      "id": 904
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.71,
+          "start_seconds": 4.33,
+          "text": "Dans \"Objets\", utilise (#) pour s[UNI00e9]lectionner un objet,\net ton personnage le prendra.\nUne fois que tu l'as pris, tu pourras d[UNI00e9]placer cet objet.\r"
+        },
+        {
+          "clear_seconds": 25.91,
+          "start_seconds": 14.71,
+          "text": "En appuyant [UNI00e0] nouveau sur (#), l'objet se posera \n[UNI00e0] l'endroit indiqu[UNI00e9] par le curseur. Range tes objets \npour en faciliter l'utilisation.\r"
+        },
+        {
+          "clear_seconds": 35.84,
+          "start_seconds": 25.91,
+          "text": "(A) te permet aussi de d[UNI00e9]placer des objets. \nMais avec (A), tu peux d[UNI00e9]finir la\nquantit[UNI00e9] d'objets que tu d[UNI00e9]places.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.84,
+          "text": "Et enfin, [select] te permet d'organiser automatiquement\ntes objets. Appuie [UNI00e0] nouveau pour trier tes objets selon\ndiff[UNI00e9]rents crit[UNI00e8]res.\r"
+        }
+      ],
+      "id": 905
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.97,
+          "start_seconds": 1.36,
+          "text": "Salut ! Moi c'est Donny, je vais t'expliquer les commandes\ndes d[UNI00e9]dales.\n(O) te permet d'utiliser l'arme dans\nta main droite.\r"
+        },
+        {
+          "clear_seconds": 20.83,
+          "start_seconds": 11.97,
+          "text": "Pour utiliser l'arme [UNI00e0] projectiles de ta main gauche, \nappuie sur (O) en maintenant [l1] enfonc[UNI00e9]e.\r"
+        },
+        {
+          "clear_seconds": 30.79,
+          "start_seconds": 20.83,
+          "text": "Dans les moments vraiment difficiles, tu peux  \ncharger l'ennemi en maintenant (O) enfonc[UNI00e9]e durant\nun moment et rel[UNI00e2]che-la.\r"
+        },
+        {
+          "clear_seconds": 37.28,
+          "start_seconds": 30.79,
+          "text": "Autre moyen d'attaque !\nLa contre attaque !\r"
+        },
+        {
+          "clear_seconds": 40.81,
+          "start_seconds": 37.28,
+          "text": "Jauge d'absorption\nAbsorbe l'attaque de l'ennemi...\r"
+        },
+        {
+          "clear_seconds": 45.03,
+          "start_seconds": 40.81,
+          "text": "Et renvoie-lui !\nAvec la lame Absomagie !!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 45.03,
+          "text": "Voyons si tu as compris !\r"
+        }
+      ],
+      "id": 906
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.75,
+          "start_seconds": 2.73,
+          "text": "Appuie sur [r1] pour te prot[UNI00e9]ger des attaques\nennemies.\r"
+        },
+        {
+          "clear_seconds": 21.18,
+          "start_seconds": 8.75,
+          "text": "Tu peux aussi soulever un monstre du sol et le lancer au loin\nen appuyant sur (O) et en maintenant \n[r1] enfonc[UNI00e9]e. G[UNI00e9]nial, non ?\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.18,
+          "text": "Cette technique sert [UNI00e0] prendre et lancer des objets. \nExemple : les rochers dans les d[UNI00e9]dales. Envoie-les sur les\nmonstres !\r"
+        }
+      ],
+      "id": 907
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.53,
+          "start_seconds": 2.49,
+          "text": "Pour passer au niveau suivant des d[UNI00e9]dales, il te faut \nune cl[UNI00e9] de porte.\r"
+        },
+        {
+          "clear_seconds": 15.49,
+          "start_seconds": 8.53,
+          "text": "Un des monstres du niveau d[UNI00e9]tient cette cl[UNI00e9] sur lui, \nmais il faudra le vaincre pour l'obtenir !\r"
+        },
+        {
+          "clear_seconds": 20.78,
+          "start_seconds": 15.49,
+          "text": "Tu ne sauras pas lequel des monstres a la cl[UNI00e9] avant\nde l'avoir vaincu.\r"
+        },
+        {
+          "clear_seconds": 28.3,
+          "start_seconds": 20.78,
+          "text": "Ces cl[UNI00e9]s de porte diff[UNI00e8]rent en fonction \ndu d[UNI00e9]dale. Ne te trompe pas de cl[UNI00e9] !\r"
+        },
+        {
+          "clear_seconds": 34.06,
+          "start_seconds": 28.3,
+          "text": "Quand tu explores les d[UNI00e9]dales, tu peux passer en mode carte\nen appuyant sur [select].\r"
+        },
+        {
+          "clear_seconds": 42.39,
+          "start_seconds": 34.06,
+          "text": "[UNI00c0] chaque pression de touche, tu bascules entre \nles affichages OFF, \"PETITE\" et \"GRANDE\".\r"
+        },
+        {
+          "clear_seconds": 48.93,
+          "start_seconds": 42.39,
+          "text": "Tu trouveras des \"cartes du niveau\" et cristaux magiques\"\ndes d[UNI00e9]dales.\r"
+        },
+        {
+          "clear_seconds": 58.61,
+          "start_seconds": 48.93,
+          "text": "La \"carte du niveau\" permet de voir le plan du niveau o[UNI00f9] tu \nte trouves. Le \"cristal magique\" t'indique l'emplacement \ndes monstres et tr[UNI00e9]sors.\r"
+        },
+        {
+          "clear_seconds": 64.62,
+          "start_seconds": 58.61,
+          "text": "Le mode carte est tr[UNI00e8]s utile pour trouver\nceux-ci.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 64.62,
+          "text": "Carte du niveau et \"cristal magique\" sont perdus\nd[UNI00e8]s que tu passes au niveau suivant, tu devras donc\nen trouver [UNI00e0] nouveau.\r"
+        }
+      ],
+      "id": 908
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.97,
+          "start_seconds": 2.68,
+          "text": "En t'approchant d'un monstre, pour passer en mode vis[UNI00e9]e, \nappuie sur  (X) lorsque le curseur appara[UNI00ee]t. Ainsi, \ntu te retrouveras toujours face [UNI00e0] face\navec ton ennemi.\r"
+        },
+        {
+          "clear_seconds": 20.39,
+          "start_seconds": 13.97,
+          "text": "Les combats n'en seront que plus faciles.\r"
+        },
+        {
+          "clear_seconds": 33.5,
+          "start_seconds": 20.39,
+          "text": "Si tu souhaites changer de cible, donne un\ncoup sec sur (X).\nChaque pression te permettra de viser un autre monstre.\r"
+        },
+        {
+          "clear_seconds": 47.92,
+          "start_seconds": 33.5,
+          "text": "Quand tu vises un monstre, si tu [UNI00e9]cartes le joystick\nanalogique gauche de celui-ci et tu appuies sur (O), \ntu pourras esquiver son attaque.\nEncore une technique sympa [UNI00e0] ne pas oublier !\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 47.92,
+          "text": "Et enfin, pour sortir du mode de vis[UNI00e9]e, \n[UNI00e9]loigne le joystick analogique de ta cible et appuie sur \n(X). C'est tout !\r"
+        }
+      ],
+      "id": 909
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 13.6,
+          "start_seconds": 2.43,
+          "text": "Quand le combat s'annonce mal, il faut d[UNI00e9]guerpir  !\nSi l'ennemi est trop pr[UNI00e8]s, tu ne peux partir en courant,\nalors tu dois t'echapper au plus vite.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 13.6,
+          "text": "Quand l'ennemi est proche, tu ne peux ouvrir les coffres.\nIl te faut donc battre ton ennemi,\net ensuite ouvrir le coffre.\r"
+        }
+      ],
+      "id": 910
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.19,
+          "start_seconds": 2.96,
+          "text": "Dans un d[UNI00e9]dale, tu peux utiliser un objet m[UNI00ea]me en\ncombat.\r"
+        },
+        {
+          "clear_seconds": 14.27,
+          "start_seconds": 8.19,
+          "text": "Pour cela, tu dois d'abord d[UNI00e9]finir l'objet souhait[UNI00e9] \ncomme Objet actif.\r"
+        },
+        {
+          "clear_seconds": 21.47,
+          "start_seconds": 14.27,
+          "text": "L'objet s[UNI00e9]lectionn[UNI00e9] sera alors affich[UNI00e9] dans \nla zone Objet actif, en haut [UNI00e0] gauche de l'[UNI00e9]cran, \nm[UNI00ea]me lorsque tu te d[UNI00e9]places.\r"
+        },
+        {
+          "clear_seconds": 29.24,
+          "start_seconds": 21.47,
+          "text": "S[UNI00e9]lectionne un Objet actif en utilisant les touches\ndirectionnelles gauche et droite et appuie sur (#)\npour l'utiliser.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 29.24,
+          "text": "Tu peux lancer les objets [UNI00e0] projeter en appuyant\nsur (#).\nSi tu les lances en visant un ennemi, tu peux [UNI00ea]tre\ncertain d'atteindre ta cible.\r"
+        }
+      ],
+      "id": 911
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.32,
+          "start_seconds": 2.77,
+          "text": "Les d[UNI00e9]dales sont truff[UNI00e9]s de coffres au tr[UNI00e9]sor, donc tu vas [UNI00e0]\ncoup s[UNI00fb]r en trouver sur ton chemin.\r"
+        },
+        {
+          "clear_seconds": 14.74,
+          "start_seconds": 9.32,
+          "text": "Attention ! Certains d'entre eux sont pi[UNI00e9]g[UNI00e9]s.\r"
+        },
+        {
+          "clear_seconds": 25.25,
+          "start_seconds": 14.74,
+          "text": "Si tu r[UNI00e9]ussis [UNI00e0] d[UNI00e9]couvrir et d[UNI00e9]jouer \nle pi[UNI00e8]ge, tu pourras ouvrir le coffre sans danger.\nSi tu ne le vois, c'est lui qui t'attrapera !\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.25,
+          "text": "Tu trouveras des coffres au tr[UNI00e9]sor ferm[UNI00e9]s \n[UNI00e0] cl[UNI00e9]. Si tu as la \"cl[UNI00e9] de coffre\", \ntu n'as pas [UNI00e0] t'en faire.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "Si tu n'as pas la cl[UNI00e9] et tu tentes de forcer le coffre, \ntu cours le risque de d[UNI00e9]clencher le pi[UNI00e8]ge.\r"
+        }
+      ],
+      "id": 912
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.37,
+          "start_seconds": 2.95,
+          "text": "Barre rouge [UNI00e0] c[UNI00f4]t[UNI00e9] de la barre PS d'un \nmonstre : C'est la jauge col[UNI00e8]re. Quand tu attaques\nun monstre, elle baisse d'un\npoint.\r"
+        },
+        {
+          "clear_seconds": 21.93,
+          "start_seconds": 15.37,
+          "text": "Si la jauge s'[UNI00e9]puise avant d'avoir tu[UNI00e9] le monstre,\ncelui-ci entrera en \"Mode rage\".\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 21.93,
+          "text": "Si cela se produit, le monstre deviendra plus fort,\nalors mieux vaut ne pas l'attaquer avec une\narme peu puissante.\r"
+        }
+      ],
+      "id": 913
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.97,
+          "start_seconds": 3.46,
+          "text": "Durant un combat tu peux [UNI00ea]tre victime d'une attaque \nau poison, qui te mettra en \"statut anormal\".\r"
+        },
+        {
+          "clear_seconds": 19.99,
+          "start_seconds": 9.97,
+          "text": "Contre les statuts anormaux, l'utilisation d'objets de \nr[UNI00e9]cup[UNI00e9]ration (pain) est sans effet.\nLe seul rem[UNI00e8]de contre le poison est la \"boisson antidote\".\r"
+        },
+        {
+          "clear_seconds": 26.16,
+          "start_seconds": 19.99,
+          "text": "Pour te remettre de tel ou tel statut anormal, il te faut \ndes objets bien sp[UNI00e9]cifiques.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 26.16,
+          "text": "Si un monstre utilise ce genre d'attaque, il te faut vite\nte procurer ces objets de r[UNI00e9]cup[UNI00e9]ration. Sinon, tu\nrisques de voir des [UNI00e9]toiles !\r"
+        }
+      ],
+      "id": 914
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.24,
+          "start_seconds": 1.95,
+          "text": "Les armes ? Pas besoin de demander.\nMais parfois un rappel\nne peut faire pas de mal. \r"
+        },
+        {
+          "clear_seconds": 16.66,
+          "start_seconds": 9.24,
+          "text": "Pour changer de mat[UNI00e9]riel, ouvre le menu Objets. \nPuis s[UNI00e9]lectionne Objets dans le menu des commandes.\r"
+        },
+        {
+          "clear_seconds": 25.56,
+          "start_seconds": 16.66,
+          "text": "Prends l'objet souhait[UNI00e9] [UNI00e0] l'aide de (#).  Place-le\nau-dessus d'un personnage et appuie \n[UNI00e0] nouveau sur (#) pour changer de mat[UNI00e9]riel.\r"
+        },
+        {
+          "clear_seconds": 32.92,
+          "start_seconds": 25.56,
+          "text": "Pour prendre une arme, mets le curseur sur celle-ci, appuie\nsur (O), puis s[UNI00e9]lectionne la commande \"Prendre\".\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 32.92,
+          "text": "Tu peux [UNI00e9]quiper cinq parties du corps diff[UNI00e9]rentes :\narme main droite-main gauche, chaussures,\ntorse et t[UNI00ea]te.\r"
+        }
+      ],
+      "id": 915
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 15.65,
+          "start_seconds": 2.86,
+          "text": "Lorsque tu bats un monstre avec une arme, son pouvoir magique \ns'[UNI00e9]chappe sous forme de minuscules billes bleues. Si tu les \nramasses, la magie qu'elles contiennent sera absorb[UNI00e9]e \npar l'arme qui a [UNI00e9]t[UNI00e9] utilis[UNI00e9]e.\r"
+        },
+        {
+          "clear_seconds": 22.71,
+          "start_seconds": 15.65,
+          "text": "Le Statut d'Absorption de Magie (ou SAM) indique la\nquantit[UNI00e9] absorb[UNI00e9]e par une arme.\r"
+        },
+        {
+          "clear_seconds": 28.16,
+          "start_seconds": 22.71,
+          "text": "La barre bleue pr[UNI00e8]s de l'ic[UNI00f4]ne de l'arme\nindique son SAM actuel.\r"
+        },
+        {
+          "clear_seconds": 38.27,
+          "start_seconds": 28.16,
+          "text": "Une fois le SAM rempli, l'arme passe au\nniv. sup. et ses stats augmentent. C'est\nla progression d'une arme.\r"
+        },
+        {
+          "clear_seconds": 49.97,
+          "start_seconds": 38.27,
+          "text": "Les armes ont aussi un indicateur \nappel[UNI00e9] PFp, qui indique leur solidit[UNI00e9].\nC'est la barre orange [UNI00e0] c[UNI00f4]t[UNI00e9] de\nl'ic[UNI00f4]ne de l'arme.\r"
+        },
+        {
+          "clear_seconds": 57.49,
+          "start_seconds": 49.97,
+          "text": "L'indicateur [UNI00e0] z[UNI00e9]ro, l'arme ne fonctionnera\nplus et tes attaques seront sans effet.\r"
+        },
+        {
+          "clear_seconds": 65.19,
+          "start_seconds": 57.49,
+          "text": "Une arme endommag[UNI00e9]e fonctionnera [UNI00e0] nouveau\n[UNI00e0] l'aide de la poudre r[UNI00e9]paratrice.\r"
+        },
+        {
+          "clear_seconds": 75.77,
+          "start_seconds": 65.19,
+          "text": "Quand une arme est gravement endommag[UNI00e9]e, son\nSAM baisse l[UNI00e9]g[UNI00e8]rement. C'est pourquoi il vaut mieux\nla r[UNI00e9]parer avant qu'elle ne soit cass[UNI00e9]e.\r"
+        },
+        {
+          "clear_seconds": 86.19,
+          "start_seconds": 75.77,
+          "text": "Certaines armes ne se r[UNI00e9]parent pas avec la poudre \nr[UNI00e9]paratrice (les armes [UNI00e0] feu n[UNI00e9]cessitent \nla poudre r[UNI00e9]pare-canon, les brassards, la poudre \nr[UNI00e9]pare-brassard).\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 86.19,
+          "text": "Ainsi, pour r[UNI00e9]parer l'arme [UNI00e0] feu de Donny,\nil faut de la poudre r[UNI00e9]pare-canon.\r"
+        }
+      ],
+      "id": 916
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 1.46,
+          "text": "Tu peux augmenter la puissance d'une arme\nen la combinant avec un objet.\r"
+        },
+        {
+          "clear_seconds": 18.77,
+          "start_seconds": 7.94,
+          "text": "Place d'abord le curseur sur une arme du menu Objets et\nappuie sur (O) : le menu des armes appara[UNI00ee]t.\nChoisir \"Statut\" te donnera des informations sur l'arme.\r"
+        },
+        {
+          "clear_seconds": 27.35,
+          "start_seconds": 18.77,
+          "text": "Les \"points de synth[UNI00e8]se\" en bas du Statut indiquent\nle type d'objet avec lequel l'arme peut \n[UNI00ea]tre combin[UNI00e9]e.\r"
+        },
+        {
+          "clear_seconds": 33.83,
+          "start_seconds": 27.35,
+          "text": "Si 1 arme augmente de niv., le\nnb de points de synth[UNI00e8]se augmente.\r"
+        },
+        {
+          "clear_seconds": 41.78,
+          "start_seconds": 33.83,
+          "text": "Place le curseur sur l'objet que tu veux\ncombiner [UNI00e0] ton arme et appuie sur (O) ; les\ncommandes de l'objet appara[UNI00ee]tront.\r"
+        },
+        {
+          "clear_seconds": 50.21,
+          "start_seconds": 41.78,
+          "text": "L'objet qui affiche la commande \nSpectromiser se combine\navec une arme.\r"
+        },
+        {
+          "clear_seconds": 59.19,
+          "start_seconds": 50.21,
+          "text": "Spectromiser d[UNI00e9]compose l'objet et cr[UNI00e9]e\nune \"sph[UNI00e8]re de synth[UNI00e8]se\" qui\ncontient les propri[UNI00e9]t[UNI00e9]s de cet objet.\r"
+        },
+        {
+          "clear_seconds": 70.64,
+          "start_seconds": 59.19,
+          "text": "Celle-ci permet ensuite d'ajouter les pouvoirs de cet \nobjet [UNI00e0] ceux de l'arme. Pour cela, prends\nla sph[UNI00e8]re de synth[UNI00e8]se et place-la sur\nl'arme et appuie sur (O).\r"
+        },
+        {
+          "clear_seconds": 87.62,
+          "start_seconds": 70.64,
+          "text": "Utilise la commande \"Spectromiser\" d'une arme \nplus puissante sur ton arme ancienne et \najoute ses pouvoirs [UNI00e0] la nouvelle. Cela permet de fabriquer\ndes armes plus puissantes.\r"
+        },
+        {
+          "clear_seconds": 100.65,
+          "start_seconds": 87.62,
+          "text": "Quand une arme devient une sph[UNI00e8]re de synth[UNI00e8]se, \nses stats baissent un peu. Et sans une arme avec des stats \n[UNI00e9]lev[UNI00e9]es avec laquelle la combiner, \nl'arme peut perdre de sa puissance.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 100.65,
+          "text": "Si tu spectromises avec une arme inf[UNI00e9]rieure [UNI00e0] +5, \ncelle-ci donnera une sph[UNI00e8]re instable et ne changera que\nl[UNI00e9]g[UNI00e8]rement les statistiques une fois combin[UNI00e9]e. \nTiens-en compte !\r"
+        }
+      ],
+      "id": 917
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.28,
+          "start_seconds": 4.11,
+          "text": "Les armes ont divers attributs.\nPlace le curseur sur une arme, appuie \nsur (O), puis s[UNI00e9]lectionne Statut.\r"
+        },
+        {
+          "clear_seconds": 24.71,
+          "start_seconds": 14.28,
+          "text": "Les stats des armes ont dix attributs.\nUne fois que chaque attribut d[UNI00e9]passe un niveau, l'arme peut \n[UNI00e9]voluer vers un niveau plus [UNI00e9]lev[UNI00e9].\r"
+        },
+        {
+          "clear_seconds": 34.97,
+          "start_seconds": 24.71,
+          "text": "Il y a une limite maxi de chaque attribut et c'est\ndifficile de cr[UNI00e9]er des armes + puissantes sans\nTransformer pour obtenir 1 nouv. arme.\r"
+        },
+        {
+          "clear_seconds": 42.27,
+          "start_seconds": 34.97,
+          "text": "En plus des dix attributs, les armes peuvent parfois\navoir des caract[UNI00e9]ristiques sp[UNI00e9]ciales.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 42.27,
+          "text": "Tout cela est peut-[UNI00ea]tre encore confus, alors\nvoyons [UNI00e7]a d'un peu plus pr[UNI00e8]s.\r"
+        }
+      ],
+      "id": 918
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.44,
+          "start_seconds": 2.67,
+          "text": "Quand tu accro[UNI00ee]s son niv. et si les conditions sont\nr[UNI00e9]unies, l'arme passe au niveau sup[UNI00e9]rieur.\n[UNI00c7]a s'app. \"transformer\" une arme.\r"
+        },
+        {
+          "clear_seconds": 23.39,
+          "start_seconds": 11.44,
+          "text": "Une arme transform[UNI00e9]e ne change pas seulement d'apparence, \nla limite de ses param[UNI00e8]tres augmente aussi, ce qui permet\nd'atteindre des stats plus [UNI00e9]lev[UNI00e9]es.\r"
+        },
+        {
+          "clear_seconds": 35.31,
+          "start_seconds": 23.39,
+          "text": "En s[UNI00e9]lectionnant \"Transformer\" et en\ncliquant sur \"???\" sous l'arme suivante, tu \nsauras quelles statistiques am[UNI00e9]liorer\npour transformer ton arme.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 35.31,
+          "text": "Utilise ces infos pour [UNI00e9]tudier \ncomment am[UNI00e9]liorer ton arme.\r"
+        }
+      ],
+      "id": 919
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 5.93,
+          "start_seconds": 0.92,
+          "text": "Moi c'est Born[UNI00e9]o.\nJe vais t'expliquer comment voyager.\r"
+        },
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 5.93,
+          "text": "Pour changer de r[UNI00e9]gion, s[UNI00e9]lectionne \"Voyager\" \ndans le Menu.\nTu peux aller dans la r[UNI00e9]gion choisie en train.\r"
+        },
+        {
+          "clear_seconds": 22.63,
+          "start_seconds": 14.15,
+          "text": "Il te suffit de choisir un endroit sur la carte ; C[UNI00e9]dric\net moi nous chargeons de conduire le train.\r"
+        },
+        {
+          "clear_seconds": 40.36,
+          "start_seconds": 22.63,
+          "text": "Dans les d[UNI00e9]dales, tu peux afficher des infos\n[UNI00e0] l'aide de \"Voyager\". Puis en appuyant sur (#),\ntu peux sortir des d[UNI00e9]dales (et ce [UNI00e0] tout moment).\nMais si tu en sors avant d'avoir termin[UNI00e9] un niveau,\ntu perdras la moiti[UNI00e9] de ton argent. [UNI00c0] toi de voir !\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 40.36,
+          "text": "Quand tu veux sortir des d[UNI00e9]dales, le mieux est de terminer \nun niveau puis de choisir \"Quitter les lieux\" dans le menu qui \ns'affiche. De cette fa[UNI00e7]on, tu ne gaspilleras pas ton argent.\nLa conqu[UNI00ea]te d'un d[UNI00e9]dale ne se fait pas [UNI00e0] la h[UNI00e2]te.\r"
+        }
+      ],
+      "id": 920
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 3.81,
+          "start_seconds": 0.74,
+          "text": "Parlons maintenant du Robomobil.\r"
+        },
+        {
+          "clear_seconds": 11.95,
+          "start_seconds": 3.81,
+          "text": "Face [UNI00e0] un monstre particuli[UNI00e8]rement costaud \nou [UNI00e0] un adversaire pas commode insensible\naux attaques normales, fais appel au Robomobil.\r"
+        },
+        {
+          "clear_seconds": 17.84,
+          "start_seconds": 11.95,
+          "text": "Il te suffit d'acc[UNI00e9]der au menu Personnages \net de s[UNI00e9]lectionner le Robomobil.\r"
+        },
+        {
+          "clear_seconds": 27.87,
+          "start_seconds": 17.84,
+          "text": "Barre verte de l'[UNI00e9]cran Statut : [UNI00e9]nergie restante. \nSurveille-la bien car lorsqu'elle atteint z[UNI00e9]ro, \ntu ne peux plus utiliser le robot dans les d[UNI00e9]dales.\r"
+        },
+        {
+          "clear_seconds": 35.5,
+          "start_seconds": 27.87,
+          "text": "Lorsque tu bats un ennemi avec le Robomobil, le noyau\nau centre de la machine accumule des pts d'exp[UNI00e9]rience (Pex).\r"
+        },
+        {
+          "clear_seconds": 41.21,
+          "start_seconds": 35.5,
+          "text": "En accumulant ses PEx, tu peux am[UNI00e9]liorer le noyau et\naugmenter sa capacit[UNI00e9].\r"
+        },
+        {
+          "clear_seconds": 50.25,
+          "start_seconds": 41.21,
+          "text": "La capacit[UNI00e9] d[UNI00e9]termine ce que le noyau peut \nsupporter : + elle est [UNI00e9]lev[UNI00e9]e, meilleures \nsont les pi[UNI00e8]ces support[UNI00e9]es.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 50.25,
+          "text": "Quand tu auras assez de PEx, tiens-moi au courant et \nj'am[UNI00e9]liorerai le noyau pour toi.\n \r"
+        }
+      ],
+      "id": 921
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.06,
+          "start_seconds": 1.55,
+          "text": "Avec un [UNI00e9]cusson de mutation,\ntu peux te transformer en monstre.\r"
+        },
+        {
+          "clear_seconds": 20.74,
+          "start_seconds": 11.06,
+          "text": "Utilise \"Personnages\" dans le Menu\nprincipal, et s[UNI00e9]lectionne Mutation en monstre.\r"
+        },
+        {
+          "clear_seconds": 35.34,
+          "start_seconds": 20.74,
+          "text": "Si tu poss[UNI00e8]des un [UNI00e9]cusson, l'[UNI00e9]cran \nS[UNI00e9]lection d'[UNI00e9]cusson s'affichera. S[UNI00e9]lectionne \nalors le monstre de ton choix.\r"
+        },
+        {
+          "clear_seconds": 45.27,
+          "start_seconds": 35.34,
+          "text": "Tu pourras parler [UNI00e0] d'autres monstres de \nton esp[UNI00e8]ce. Tu vas peut-[UNI00ea]tre d[UNI00e9]couvrir\ndes secrets !\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 45.27,
+          "text": "Pour obtenir des [UNI00e9]cussons, il te\nfaut d'abord trouver le moyen \nde vaincre le monstre appropri[UNI00e9].\r"
+        }
+      ],
+      "id": 922
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.87,
+          "start_seconds": 0.46,
+          "text": "Essaie de battre tes ennemis lorsque tu\nincarnes un monstre, car le niveau \nd'efficacit[UNI00e9] de ton [UNI00e9]cusson \naugmentera ! \r"
+        },
+        {
+          "clear_seconds": 24.08,
+          "start_seconds": 9.87,
+          "text": "Une fois la barre de PEx remplie, le niveau de \nl'[UNI00e9]cusson monte. Pass[UNI00e9] un niv., tu pourras \nincarner un monstre de la cat[UNI00e9]gorie sup.!\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 24.08,
+          "text": "Lorsque tu atteindras le niveau Master, tu\nsera r[UNI00e9]compens[UNI00e9] par un objet.\nL'objet variera selon l'[UNI00e9]cusson.\r"
+        }
+      ],
+      "id": 923
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.47,
+          "start_seconds": 2.96,
+          "text": "Pour inventer, il faut rassembler des id[UNI00e9]es. Et pour cela, \nil faut prendre des clich[UNI00e9]s avec ton appareil photo.\r"
+        },
+        {
+          "clear_seconds": 25.7,
+          "start_seconds": 11.47,
+          "text": "Place l'appareil photo dans la\nzone Objet actif et appuie sur (#),\nl'[UNI00e9]cran passera en mode viseur. D[UNI00e9]place le\nviseur [UNI00e0] l'aide du joystick analogique gauche\net appuie sur (#) pour \nprendre une photo.\r"
+        },
+        {
+          "clear_seconds": 32.12,
+          "start_seconds": 25.7,
+          "text": "Sur l'[UNI00e9]cran viseur, tu peux voir toutes\nles photos que tu as prises [UNI00e0] l'aide de (A).\r"
+        },
+        {
+          "clear_seconds": 41.39,
+          "start_seconds": 32.12,
+          "text": "Si une ampoule s'affiche [UNI00e0] c[UNI00f4]t[UNI00e9] du titre \nd'une photo, cela signifie que tu pourras t'en servir pour une \ninvention. Tu sauras ainsi quelle photo te sera utile.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.39,
+          "text": "Il y a une chose [UNI00e0] retenir concernant l'appareil photo.\nTu peux l'utiliser partout, sauf dans les d[UNI00e9]dales. Dans les \nd[UNI00e9]dales, s'il n'est pas d[UNI00e9]fini comme Objet actif et \nsi le curseur ne se trouve pas sur l'appareil, \nce dernier est inutilisable. [UNI00c0] retenir !\r"
+        }
+      ],
+      "id": 924
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.3,
+          "start_seconds": 3.02,
+          "text": "Une fois que tout est rassembl[UNI00e9], tu peux alors commencer \n[UNI00e0] cr[UNI00e9]er.\nSers-toi de \"Invent/Inventer\" dans le Menu principal.\r"
+        },
+        {
+          "clear_seconds": 15.44,
+          "start_seconds": 11.3,
+          "text": "Des cartes d'invention apparaissent [UNI00e0] gauche.\r"
+        },
+        {
+          "clear_seconds": 23.75,
+          "start_seconds": 15.44,
+          "text": "Pour cr[UNI00e9]er une invention,\ns[UNI00e9]lectionne \"Nouvelle invention\",\npuis choisis trois [UNI00e9]l[UNI00e9]ments [UNI00e0] utiliser.\r"
+        },
+        {
+          "clear_seconds": 32.21,
+          "start_seconds": 23.75,
+          "text": "Si les [UNI00e9]l[UNI00e9]ments peuvent s'assembler,\nton invention sera r[UNI00e9]ussie.\nL'objet cr[UNI00e9][UNI00e9] sera enregistr[UNI00e9] sur une carte.\r"
+        },
+        {
+          "clear_seconds": 38.5,
+          "start_seconds": 32.21,
+          "text": "Mais attention, ton invention\nn'est pas encore termin[UNI00e9]e. Paaas du tout !\r"
+        },
+        {
+          "clear_seconds": 43.58,
+          "start_seconds": 38.5,
+          "text": "Tu n'en es en fait qu'au stade \nde la pr[UNI00e9]paration.\r"
+        },
+        {
+          "clear_seconds": 47.69,
+          "start_seconds": 43.58,
+          "text": "Voici les autres [UNI00e9]tapes de cr[UNI00e9]ation : \nS[UNI00e9]lectionne\r"
+        },
+        {
+          "clear_seconds": 52.99,
+          "start_seconds": 47.69,
+          "text": "la carte d'invention de ton nouvel objet\n[UNI00e0] partir de \"Cr[UNI00e9]er\".\r"
+        },
+        {
+          "clear_seconds": 62.38,
+          "start_seconds": 52.99,
+          "text": "Indique la quantit[UNI00e9] d'objets [UNI00e0] cr[UNI00e9]er \npuis s[UNI00e9]lectionne OK [UNI00e0] l'aide des touches \ndirectionnelles.\r"
+        },
+        {
+          "clear_seconds": 67.93,
+          "start_seconds": 62.38,
+          "text": "S'il te manque du mat[UNI00e9]riel pour cr[UNI00e9]er ton objet, tu \npeux t'en procurer dans les magasins, ou ailleurs.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 67.93,
+          "text": "Tout est bien not[UNI00e9] ?\nAlors, tu vas pouvoir t'en donner [UNI00e0] c[UNI0153]ur joie !\n \r"
+        }
+      ],
+      "id": 925
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.32,
+          "start_seconds": 0.96,
+          "text": "Max, r[UNI00e9]ussir [UNI00e0] redonner vie [UNI00e0] un monde \nravag[UNI00e9] n'est pas chose facile.\r"
+        },
+        {
+          "clear_seconds": 13.58,
+          "start_seconds": 6.32,
+          "text": "Tu devras inciter les habitants de Palm Brinks  \n[UNI00e0] \"migrer\" pour que le monde du futur puisse cro[UNI00ee]tre.  \r"
+        },
+        {
+          "clear_seconds": 20.72,
+          "start_seconds": 13.58,
+          "text": "Tu dois d'abord les convaincre de monter dans le train \navec tes autres compagnons, puis les emmener avec toi.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 20.72,
+          "text": "Ils auront s[UNI00fb]rement des probl[UNI00e8]mes \n[UNI00e0] r[UNI00e9]soudre avant de partir, mais si tu les aides, \nils se joindront s[UNI00fb]rement [UNI00e0] \nnous pour reconstruire ce monde.\r"
+        }
+      ],
+      "id": 926
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.99,
+          "start_seconds": 1.49,
+          "text": "Tu peux m[UNI00ea]me emmener des gens du train dans \nles d[UNI00e9]dales pour qu'ils t'aident [UNI00e0] vaincre \nles monstres.\r"
+        },
+        {
+          "clear_seconds": 15.53,
+          "start_seconds": 7.99,
+          "text": "Discute avec eux dans le train, puis choisis\nAjouter au groupe : vous serez trois face [UNI00e0] l'ennemi.\r"
+        },
+        {
+          "clear_seconds": 23.36,
+          "start_seconds": 15.53,
+          "text": "Ce troisi[UNI00e8]me membre du groupe ne pourra pas combattre, mais \nil pourra t'aider gr[UNI00e2]ce [UNI00e0] ses\ndiverses aptitudes et comp[UNI00e9]tences.\r"
+        },
+        {
+          "clear_seconds": 28.43,
+          "start_seconds": 23.36,
+          "text": "Choisis ce 3[UNI00e8]me membre dans \"Personnages\" dans \nle Menu principal.\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 28.43,
+          "text": "Personnages de soutien : tu peux \ny choisir l'aptitude que tu souhaites utiliser.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 34.52,
+          "text": "Utiliser les comp[UNI00e9]tences de ce 3[UNI00e8]me membre \n[UNI00e0] ton avantage peut vraiment t'[UNI00ea]tre d'un grand \nsecours dans les d[UNI00e9]dales.\r"
+        }
+      ],
+      "id": 927
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.94,
+          "start_seconds": 2.99,
+          "text": "Plus tu avances dans les d[UNI00e9]dales,\nplus ils sont dangereux.\r"
+        },
+        {
+          "clear_seconds": 13.37,
+          "start_seconds": 7.94,
+          "text": "Max, selon la situation, il vaut parfois\nmieux que ce soit MOI qui attaque l'ennemi.\r"
+        },
+        {
+          "clear_seconds": 18.81,
+          "start_seconds": 13.37,
+          "text": "Choisis-moi [UNI00e0] l'aide de l'option \nPersonnages du menu principal.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 18.81,
+          "text": "Avec mon [UNI00e9]p[UNI00e9]e et mes pouvoirs, je peux \naffronter les pires des monstres !\r"
+        }
+      ],
+      "id": 928
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 6.25,
+          "start_seconds": 2.27,
+          "text": "Les d[UNI00e9]dales peuvent parfois avoir plusieurs sorties.\r"
+        },
+        {
+          "clear_seconds": 11.27,
+          "start_seconds": 6.25,
+          "text": "Quand c'est le cas, tu verras un symbole sur chacune \ndes sorties.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 11.27,
+          "text": "Tu trouveras les symboles des sorties sur la\ncarte des d[UNI00e9]dales. Pour l'afficher, utilise \"Voyager\".\nAinsi tu seras s[UNI00fb]r de les avoir toutes essay[UNI00e9]es !\r"
+        }
+      ],
+      "id": 929
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.57,
+          "start_seconds": 1.84,
+          "text": "Alors tu p[UNI00ea]ches ?\nJe vais t'expliquer comment faire.\r"
+        },
+        {
+          "clear_seconds": 15.74,
+          "start_seconds": 7.57,
+          "text": "Tu peux p[UNI00ea]cher [UNI00e0] deux endroits : la\ncarte normale et les d[UNI00e9]dales.\r"
+        },
+        {
+          "clear_seconds": 24.75,
+          "start_seconds": 15.74,
+          "text": "D'abord, prends une \"canne [UNI00e0] p[UNI00ea]che\".\nUtilise le \"Objets\", comme pour prendre\nune arme.\r"
+        },
+        {
+          "clear_seconds": 34.52,
+          "start_seconds": 24.75,
+          "text": "Accroche un app[UNI00e2]t [UNI00e0] \nl'hame[UNI00e7]on, sinon tu n'auras aucune\nchance de p[UNI00ea]cher quelque chose !\n \r"
+        },
+        {
+          "clear_seconds": 45.47,
+          "start_seconds": 34.52,
+          "text": "La canne dans la main droite, s[UNI00e9]lectionne\nton app[UNI00e2]t avec (O) et choisis\nMettre sur hame[UNI00e7]on dans les commandes\nd'objet.\r"
+        },
+        {
+          "clear_seconds": 54.33,
+          "start_seconds": 45.47,
+          "text": "Pour changer d'app[UNI00e2]t, proc[UNI00e8]de de \nla m[UNI00ea]me fa[UNI00e7]on et l'ancien sera \nautomatiquement remplac[UNI00e9].\r"
+        },
+        {
+          "clear_seconds": 63.84,
+          "start_seconds": 54.33,
+          "text": "Tu es pr[UNI00ea]t [UNI00e0] p[UNI00ea]cher.\nAvance pr[UNI00e8]s de l'eau et trouve un endroit.\nLe site est primordial !\r"
+        },
+        {
+          "clear_seconds": 69.87,
+          "start_seconds": 63.84,
+          "text": "Une fois install[UNI00e9] dans un bon coin,\nappuie sur (O) pour confirmer ton choix.\r"
+        },
+        {
+          "clear_seconds": 81.19,
+          "start_seconds": 69.87,
+          "text": "D[UNI00e9]place le curseur avec le joystick \nanalogique gauche et choisis l'endroit o[UNI00f9] tu vas \nlancer la ligne. Confirme avec (O).\r"
+        },
+        {
+          "clear_seconds": 89.27,
+          "start_seconds": 81.19,
+          "text": "C'est l[UNI00e0] que tu vas lancer ton hame[UNI00e7]on.\nGarde l'[UNI0153]il sur le flotteur. S'il\r"
+        },
+        {
+          "clear_seconds": 98.59,
+          "start_seconds": 89.27,
+          "text": "s'enfonce dans l'eau, tire vite le joystick\nanalogique gauche vers toi. Si tu synchronises\nbien ton action, tu attraperas un poisson !\r"
+        },
+        {
+          "clear_seconds": 104.08,
+          "start_seconds": 98.59,
+          "text": "[UNI00c7]a a mordu, on dirait. Continue [UNI00e0] appuyer sur\n(O) pour remonter le poisson.\r"
+        },
+        {
+          "clear_seconds": 112.47,
+          "start_seconds": 104.08,
+          "text": "Maintenant observe la barre [UNI00e0] l'[UNI00e9]cran.\nElle indique la tension subie par\nla ligne.\r"
+        },
+        {
+          "clear_seconds": 117.86,
+          "start_seconds": 112.47,
+          "text": "La ligne cassera si elle est trop tendue,\net ta prise s'[UNI00e9]chappera.\r"
+        },
+        {
+          "clear_seconds": 124.59,
+          "start_seconds": 117.86,
+          "text": "Remonte ta ligne en surveillant que la\nla barre de tension ne soit pas trop [UNI00e9]lev[UNI00e9]e.\r"
+        },
+        {
+          "clear_seconds": 131.24,
+          "start_seconds": 124.59,
+          "text": "Ram[UNI00e8]ne ton poisson sur la berge\net il sera [UNI00e0] toi.\r"
+        },
+        {
+          "clear_seconds": 137.75,
+          "start_seconds": 131.24,
+          "text": "Les r[UNI00e8]gles sont les m[UNI00ea]mes dans un d[UNI00e9]dale,\nmais il faut d'abord tuer tous les ennemis.\r"
+        },
+        {
+          "clear_seconds": 145.49,
+          "start_seconds": 137.75,
+          "text": "Tu p[UNI00ea]cheras diff[UNI00e9]rents poissons selon l'endroit\nle moment et l'app[UNI00e2]t, alors tente ta chance !\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 145.49,
+          "text": "La p[UNI00ea]che est un sport captivant !\r"
+        }
+      ],
+      "id": 930
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.37,
+          "start_seconds": 1.3,
+          "text": "Tiens, tu as trouv[UNI00e9] un leurre !\nJe vais te montrer comment p[UNI00ea]cher avec [UNI00e7]a.\r"
+        },
+        {
+          "clear_seconds": 15.45,
+          "start_seconds": 8.37,
+          "text": "D'abord, accroche-le [UNI00e0] la canne\ncomme s'il s'agissait d'un app[UNI00e2]t.\r"
+        },
+        {
+          "clear_seconds": 21.75,
+          "start_seconds": 15.45,
+          "text": "Puis choisis \"Mettre sur hame[UNI00e7]on\" \ndans les commandes de leurre.\r"
+        },
+        {
+          "clear_seconds": 30.77,
+          "start_seconds": 21.75,
+          "text": "Comme pour le flotteur, choisis ton \ncoin. Puis choisis le point de\nlancer avec le joystick analogique gauche.\r"
+        },
+        {
+          "clear_seconds": 34.5,
+          "start_seconds": 30.77,
+          "text": "Tu peux alors lancer ta ligne en appuyant sur (O).\r"
+        },
+        {
+          "clear_seconds": 41.99,
+          "start_seconds": 34.5,
+          "text": "Bouge la canne avec le joystick analogique gauche\nquand le leurre touche l'eau et (O) pour mouliner.\r"
+        },
+        {
+          "clear_seconds": 51.97,
+          "start_seconds": 41.99,
+          "text": "Avec le leurre, pour attirer les poissons, \nbouge la canne et remonte la ligne. \nEssaie diff[UNI00e9]rentes combinaisons.\r"
+        },
+        {
+          "clear_seconds": 59.39,
+          "start_seconds": 51.97,
+          "text": "Quand tu as ramen[UNI00e9] le leurre, relance-le.\nRecommence autant de fois que n[UNI00e9]cessaire !\r"
+        },
+        {
+          "clear_seconds": 70.96,
+          "start_seconds": 59.39,
+          "text": "Si un poisson s'approche quand tu moulines, \ntes mains sentiront un petit choc. Tire vite \nle joystick analogique vers toi. Si\ntu synchronises bien l'action, tu l'attraperas !\r"
+        },
+        {
+          "clear_seconds": 78.54,
+          "start_seconds": 70.96,
+          "text": "Si tu ne le sens pas, utilise la marque sur la t[UNI00ea]te \ndu leurre pour savoir quand tirer.\r"
+        },
+        {
+          "clear_seconds": 85.87,
+          "start_seconds": 78.54,
+          "text": "Quand [UNI00e7]a mord, continue [UNI00e0] appuyer sur (O) pour\namener le poisson [UNI00e0] toi. Attention [UNI00e0]  la ligne !\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 85.87,
+          "text": "P[UNI00ea]cher au leurre n'est pas tr[UNI00e8]s facile, il \nfaut s'entra[UNI00ee]ner !\n \r"
+        }
+      ],
+      "id": 931
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.07,
+          "start_seconds": 1.02,
+          "text": "H[UNI00e9] Max, c'est Need. Comment [UNI00e7]a va ?\nJ'ai d[UNI00e9]cid[UNI00e9] d'organiser un \"Tournoi de p[UNI00ea]che\"\nde temps [UNI00e0] autre [UNI00e0] Palm Brinks.\r"
+        },
+        {
+          "clear_seconds": 18.46,
+          "start_seconds": 10.07,
+          "text": "Pendant un tournoi, si tu attrapes un gros poisson,\napporte-le [UNI00e0] la tente de pes[UNI00e9]e qui \na [UNI00e9]t[UNI00e9] mont[UNI00e9]e sur la grand place de Palm Brinks.\r"
+        },
+        {
+          "clear_seconds": 24.78,
+          "start_seconds": 18.46,
+          "text": "N'oublie pas que les poissons que tu as nourris et \n[UNI00e9]lev[UNI00e9]s ne comptent pas.\r"
+        },
+        {
+          "clear_seconds": 31.99,
+          "start_seconds": 24.78,
+          "text": "Pendant que nous pesons les poissons du tournoi,\nTournoi de p[UNI00ea]che en cours s'affiche sur le menu\nprincipal.\r"
+        },
+        {
+          "clear_seconds": 37.34,
+          "start_seconds": 31.99,
+          "text": "Tu peux peser 10 poissons par tournoi ; les 3 meilleurs\ngagneront des points.\r"
+        },
+        {
+          "clear_seconds": 51.05,
+          "start_seconds": 37.34,
+          "text": "Si tu gagnes, tu \nrecevras un prix.\nSi tu p[UNI00e8]ses 3 poissons ou +, va voir le Ma[UNI00ee]tre \nde course et s[UNI00e9]lectionne \"Total\". Tes 3 meilleurs poissons \nseront additionn[UNI00e9]s et les r[UNI00e9]sultats s'afficheront.\r"
+        },
+        {
+          "clear_seconds": 179.0,
+          "start_seconds": 51.05,
+          "text": "Il y a plein de prix [UNI00e0] remporter, alors pars vite en\nattraper un beau !\r"
+        }
+      ],
+      "id": 932
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 9.02,
+          "start_seconds": 2.49,
+          "text": "Le chaos r[UNI00e8]gne [UNI00e0] cause de l'Empereur Griffon, \nsurnomm[UNI00e9] le tyran des t[UNI00e9]n[UNI00e8]bres.\r"
+        },
+        {
+          "clear_seconds": 17.44,
+          "start_seconds": 9.02,
+          "text": "D'[UNI00e9]tranges ph[UNI00e9]nom[UNI00e8]nes se produirent.\nSpheda est un sport qui permet de r[UNI00e9]gler\nl'un d'eux.\r"
+        },
+        {
+          "clear_seconds": 23.13,
+          "start_seconds": 17.44,
+          "text": "Le monde est truff[UNI00e9] de crat[UNI00e8]res temporels,\nles distorsions temporelles.\r"
+        },
+        {
+          "clear_seconds": 31.89,
+          "start_seconds": 23.13,
+          "text": "Des fragments de temps,les sph[UNI00e8]res, ont [UNI00e9]t[UNI00e9] \nrejet[UNI00e9]s hors de ces distorsions temporelles. Pour les boucher,\nil faut y renvoyer les sph[UNI00e8]res.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.89,
+          "text": "Mais comme on ne peut pas toucher ces sph[UNI00e8]res, on \nutilise des clubs pour viser les distorsions, puis\ny lancer les sph[UNI00e8]res.\r"
+        }
+      ],
+      "id": 933
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.38,
+          "start_seconds": 2.62,
+          "text": "Les sph[UNI00e8]res et distorsions sont rouges ou bleues.\r"
+        },
+        {
+          "clear_seconds": 15.68,
+          "start_seconds": 7.38,
+          "text": "Deux objets d'une m[UNI00ea]me couleur se repoussant, si une \nsph[UNI00e8]re frappe une distorsion de m[UNI00ea]me couleur, \nelle n'y entrera pas.\r"
+        },
+        {
+          "clear_seconds": 23.3,
+          "start_seconds": 15.68,
+          "text": "Quand une sph[UNI00e8]re touche un objet, elle change de couleur\nalors calcule la trajectoire pour atteindre la distorsion.\r"
+        },
+        {
+          "clear_seconds": 30.31,
+          "start_seconds": 23.3,
+          "text": "Quand une sph[UNI00e8]re entre dans une distorsion, celle-ci\ndispara[UNI00ee]t, laissant appara[UNI00ee]tre le tr[UNI00e9]sor \ncach[UNI00e9].\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 30.31,
+          "text": "R[UNI00e9]cup[UNI00e9]rer tous ces tr[UNI00e9]sors, ok, mais le but \nest d'[UNI00e9]liminer autant de distorsions que possible\npour que tout puisse redevenir normal.\n \r"
+        }
+      ],
+      "id": 934
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.19,
+          "start_seconds": 1.58,
+          "text": "Salut.\nAlors tu veux notre chef-d'[UNI0153]uvre, \nle Charpention ?\r"
+        },
+        {
+          "clear_seconds": 14.34,
+          "start_seconds": 7.19,
+          "text": "Bien, alors je vais t'expliquer comment tu vas\npouvoir construire de nouvelles villes.\r"
+        },
+        {
+          "clear_seconds": 22.72,
+          "start_seconds": 14.34,
+          "text": "En appuyant sur [select] dans \nles zones o[UNI00f9] tu peux construire,\ntu peux prendre le contr[UNI00f4]le du Charpention.\r"
+        },
+        {
+          "clear_seconds": 34.58,
+          "start_seconds": 22.72,
+          "text": "Tu pourras observer le paysage en vue a[UNI00e9]rienne et voir \no[UNI00f9] tu te trouves. En appuyant sur (A) dans ce mode,\ntu peux acc[UNI00e9]der au menu G[UNI00e9]orama.\r"
+        },
+        {
+          "clear_seconds": 45.1,
+          "start_seconds": 34.58,
+          "text": "Donc, voici comment on construit des trucs.\nOn peut faire des tas de choses diff[UNI00e9]rentes...\nEssaye petit [UNI00e0] petit.\r"
+        },
+        {
+          "clear_seconds": 52.05,
+          "start_seconds": 45.1,
+          "text": "Tu dois fabriquer tes [UNI00e9]l[UNI00e9]ments de G[UNI00e9]orama\navant de pouvoir placer quoi que ce soit.\r"
+        },
+        {
+          "clear_seconds": 64.34,
+          "start_seconds": 52.05,
+          "text": "Avec les mat[UNI00e9]riaux n[UNI00e9]cessaires, fabrique les \n[UNI00e9]l[UNI00e9]ments avec la commande Faire. Puis avec \nla commande Placer, choisis l'endroit o[UNI00f9] tu veux les placer.\r"
+        },
+        {
+          "clear_seconds": 78.95,
+          "start_seconds": 64.34,
+          "text": "Avant de commencer, tu devras trouver des G[UNI00e9]opierres, elle\nrenferment toute la sagesse des anciens. Elles sont \n[UNI00e9]parpill[UNI00e9]es partout dans les d[UNI00e9]dales. \nR[UNI00e9]cup[UNI00e8]re-les, tu allongeras ainsi la liste des \n[UNI00e9]l[UNI00e9]ments fabricables.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 78.95,
+          "text": "C'est nous qui mettrons les G[UNI00e9]opierres dans le\nr[UNI00e9]acteur. Tu as juste [UNI00e0] les trouver.\r"
+        }
+      ],
+      "id": 935
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.03,
+          "start_seconds": 1.83,
+          "text": "OK. Je vais t'expliquer exactement comment \nfaire pour placer sur la carte.\r"
+        },
+        {
+          "clear_seconds": 14.12,
+          "start_seconds": 8.03,
+          "text": "Choisis \"Placer\" puis choisis l'[UNI00e9]l[UNI00e9]ment,\ntu acc[UNI00e9]deras enfin [UNI00e0] l'[UNI00e9]cran \nde positionnement.\r"
+        },
+        {
+          "clear_seconds": 26.13,
+          "start_seconds": 14.12,
+          "text": "D[UNI00e9]cide l'endroit o[UNI00f9] poser l'objet avec le joystick \nanalogique gauche et fais pivoter l'[UNI00e9]l[UNI00e9]ment \navec [l2] et [r2] pour choisir son orientation.\r"
+        },
+        {
+          "clear_seconds": 34.61,
+          "start_seconds": 26.13,
+          "text": "Apr[UNI00e8]s avoir trouv[UNI00e9] un site et l'orientation,\nil ne reste qu'[UNI00e0] appuyer sur (O) pour poser \nl'[UNI00e9]l[UNI00e9]ment.\r"
+        },
+        {
+          "clear_seconds": 43.12,
+          "start_seconds": 34.61,
+          "text": "Selon leur nature, tu pourras les empiler,\nles fixer aux toits des maisons, etc.\nEssaie et tu verras bien.\r"
+        },
+        {
+          "clear_seconds": 51.95,
+          "start_seconds": 43.12,
+          "text": "Pour fixer une lampe (ou un autre objet) sur un pan \nde mur, fais-la glisser au-dessus du b[UNI00e2]timent\npuis appuie sur (O).\r"
+        },
+        {
+          "clear_seconds": 62.78,
+          "start_seconds": 51.95,
+          "text": "Fixe-le ensuite au b[UNI00e2]timent, choisis le mur avec\n[l2] et [r2] et sa position sur le mur\navec le joystick analogique gauche.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 62.78,
+          "text": "Tout cela peut te sembler un peu compliqu[UNI00e9],\nmais tu vas vite te d[UNI00e9]brouiller comme un chef.\r"
+        }
+      ],
+      "id": 936
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.03,
+          "start_seconds": 2.24,
+          "text": "Maintenant Max, voil[UNI00e0] comment repeupler\nles zones ainsi reconstruites.\r"
+        },
+        {
+          "clear_seconds": 15.46,
+          "start_seconds": 10.03,
+          "text": "Pour faire venir les gens, tu dois les faire\nmonter dans le train avec toi.\r"
+        },
+        {
+          "clear_seconds": 21.22,
+          "start_seconds": 15.46,
+          "text": "Si le train n'a aucun passager, retourne en ville\npour trouver des volontaires.\r"
+        },
+        {
+          "clear_seconds": 32.24,
+          "start_seconds": 21.22,
+          "text": "Une fois avec tes compagnons,\nappuie sur (O) devant la porte d'une \nde tes nouvelles maisons pour pouvoir soit y\nentrer, soit y faire emm[UNI00e9]nager quelqu'un.\r"
+        },
+        {
+          "clear_seconds": 51.35,
+          "start_seconds": 32.24,
+          "text": "L[UNI00e0], choisis \"Installer quelqu'un\",\npuis choisis qui tu veux y installer, parmi\nles gens du train. Elle pourra alors commencer\nune nouvelle vie dans sa toute nouvelle maison.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 51.35,
+          "text": "Nous avons besoin d'habitants pour que l'avenir puisse se \nd[UNI00e9]velopper. Alors am[UNI00e8]nes-en.\r"
+        }
+      ],
+      "id": 937
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 11.03,
+          "start_seconds": 2.86,
+          "text": "Apr[UNI00e8]s avoir remodel[UNI00e9] la terre et commenc[UNI00e9] \nta ville, traverse la porte temporelle rouge,\nvers l'avenir.\r"
+        },
+        {
+          "clear_seconds": 17.24,
+          "start_seconds": 11.03,
+          "text": "Si tu as rempli ces conditions, l'avenir devrait [UNI00ea]tre\nrelativement diff[UNI00e9]rent de ce qu'il [UNI00e9]tait auparavant.\r"
+        },
+        {
+          "clear_seconds": 23.82,
+          "start_seconds": 17.24,
+          "text": "Pour revenir dans le pr[UNI00e9]sent, repasse\nsimplement par la porte temporelle bleue.\r"
+        },
+        {
+          "clear_seconds": 33.89,
+          "start_seconds": 23.82,
+          "text": "Tout ce que tu feras pour faciliter le d[UNI00e9]veloppement\nde l'avenir t'aidera ensuite [UNI00e0] r[UNI00e9]soudre les \nprobl[UNI00e8]mes du pr[UNI00e9]sent. Et influera aussi sur l'avenir.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 33.89,
+          "text": "Si tu es pers[UNI00e9]v[UNI00e9]rant, je sais que\ntu pourras redonner au futur son vrai visage, mon gar[UNI00e7]on.\r"
+        }
+      ],
+      "id": 938
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.16,
+          "start_seconds": 0.96,
+          "text": "Quoi ? Tu ne sais pas comment faire pour d[UNI00e9]velopper \nl'avenir ?\r"
+        },
+        {
+          "clear_seconds": 16.33,
+          "start_seconds": 7.16,
+          "text": "Ok. Il y a une commande appel[UNI00e9]e \"Analyser\"\ndans le menu du G[UNI00e9]orama, s[UNI00e9]lectionne-la.\r"
+        },
+        {
+          "clear_seconds": 22.25,
+          "start_seconds": 16.33,
+          "text": "Elle te permettra d'afficher les conditions \nn[UNI00e9]cessaires au d[UNI00e9]veloppement de l'avenir.\r"
+        },
+        {
+          "clear_seconds": 31.61,
+          "start_seconds": 22.25,
+          "text": "Ces d[UNI00e9]veloppements sont sur de grandes ampoules, \n[UNI00e0] gauche. Si tu remplis les conditions pour \nun d[UNI00e9]veloppement donn[UNI00e9], elle s'allumera.\r"
+        },
+        {
+          "clear_seconds": 37.81,
+          "start_seconds": 31.61,
+          "text": "Pour chaque ampoule allum[UNI00e9]e,\nquelque chose changera dans l'avenir.\r"
+        },
+        {
+          "clear_seconds": 42.93,
+          "start_seconds": 37.81,
+          "text": "Fais le maximum et le futur redeviendra prometteur.\r"
+        },
+        {
+          "clear_seconds": 55.25,
+          "start_seconds": 42.93,
+          "text": "Les conditions masqu[UNI00e9]es par des ?\nappara[UNI00ee]tront avec des nouvelles g[UNI00e9]opierres.\nQuand tu es bloqu[UNI00e9], explore les d[UNI00e9]dales,\nil reste [UNI00e0] d[UNI00e9]couvrir !\r"
+        },
+        {
+          "clear_seconds": 61.73,
+          "start_seconds": 55.25,
+          "text": "Tu peux v[UNI00e9]rifier ta progression avec le \ncompteur \"Progression\" de la partie Analyse du G[UNI00e9]orama.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 61.73,
+          "text": "Tu peux avancer dans le jeu m[UNI00ea]me si tu n'as pas 100 %,\nmais une surprise t'attend si tu y parviens...\n[UNI00c0] toi de voir si tu veux d[UNI00e9]couvrir de quoi\nil s'agit !\r"
+        }
+      ],
+      "id": 939
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 10.47,
+          "start_seconds": 1.2,
+          "text": "Parmi les conditions du d[UNI00e9]veloppement du G[UNI00e9]orama,\nil est n[UNI00e9]cesssaire que tu obtiennes au moins\nun certain nombre de points de culture (PC).\r"
+        },
+        {
+          "clear_seconds": 16.48,
+          "start_seconds": 10.47,
+          "text": "Ils indiquent le niveau de \ncivilisation dans cette zone.\r"
+        },
+        {
+          "clear_seconds": 22.53,
+          "start_seconds": 16.48,
+          "text": "V[UNI00e9]rifie ce nombre dans la section \"Culture\"\ndu menu G[UNI00e9]orama. \r"
+        },
+        {
+          "clear_seconds": 30.68,
+          "start_seconds": 22.53,
+          "text": "Pour augmenter tes points de culture, construis de nouveaux \nb[UNI00e2]timents. Mais ne te limite pas [UNI00e0] cela...\r"
+        },
+        {
+          "clear_seconds": 41.32,
+          "start_seconds": 30.68,
+          "text": "Pour que cela te rapportent plus de points, \nessaie diff[UNI00e9]rentes choses, des chemin[UNI00e9]es et des\nlampes. C'est sympa et pratique, quoi.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 41.32,
+          "text": "Par exemple, tu obtiendras plus de points\nde culture avec une seule maison [UNI00e9]quip[UNI00e9]e d'une lampe \net d'une chemin[UNI00e9]e plut[UNI00f4]t que deux. Pig[UNI00e9] ?\r"
+        }
+      ],
+      "id": 940
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 8.4,
+          "start_seconds": 2.39,
+          "text": "H[UNI00e9], tu tombes bien.\nVoici ma nouvelle comp[UNI00e9]tition... Les Meilleures nageoires !!\r"
+        },
+        {
+          "clear_seconds": 15.8,
+          "start_seconds": 8.4,
+          "text": "Il s'agit d'une course de poissons.\nJ'ai plein de magnifiques prix en r[UNI00e9]serve, alors \nparticipe !\r"
+        },
+        {
+          "clear_seconds": 25.62,
+          "start_seconds": 15.8,
+          "text": "Au moment o[UNI00f9] le message \"Course de poissons\nen cours\" s'affiche sur le menu principal...\napporte alors le poisson que tu veux faire concourir.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 25.62,
+          "text": "Les bassins sont sur la grande place de Palm Brinks.\r"
+        }
+      ],
+      "id": 941
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.65,
+          "start_seconds": 1.05,
+          "text": "Comme tu as l'air d'[UNI00ea]tre d[UNI00e9]butant, je vais t'aider\npour l'[UNI00e9]levage des poissons de course.\r"
+        },
+        {
+          "clear_seconds": 15.39,
+          "start_seconds": 7.65,
+          "text": "Tu auras besoin d'un aquarium. \nMets les poissons que tu as p[UNI00ea]ch[UNI00e9]s dedans,\ndans l'[UNI00e9]cran \"Objets\".\r"
+        },
+        {
+          "clear_seconds": 24.41,
+          "start_seconds": 15.39,
+          "text": "Ensuite, pour les voir, utilise \nla commande Aquarium. Tu disposes\nde 3 aquariums pour entra[UNI00ee]ner tes poissons.\r"
+        },
+        {
+          "clear_seconds": 31.52,
+          "start_seconds": 24.41,
+          "text": "Le premier est l'aquarium de repos.\nC'est ici qu'ils vivent et mangent.\r"
+        },
+        {
+          "clear_seconds": 38.12,
+          "start_seconds": 31.52,
+          "text": "Ils deviendront + ou - forts selon l'alimentation\nque tu leur donneras, alors gare.\r"
+        },
+        {
+          "clear_seconds": 46.46,
+          "start_seconds": 38.12,
+          "text": "Le 2[UNI00e8]me aquarium est celui de combat.\nIl permet d'am[UNI00e9]liorer la r[UNI00e9]sistance de tes\npoissons en cas de choc.\r"
+        },
+        {
+          "clear_seconds": 56.5,
+          "start_seconds": 46.46,
+          "text": "Si tu mets des poissons dans cet aquarium, \nils lutteront et am[UNI00e9]lioreront leurs capacit[UNI00e9]s.\nIl n'y a aucun int[UNI00e9]r[UNI00ea]t [UNI00e0] mettre \nun seul poisson ici.\r"
+        },
+        {
+          "clear_seconds": 63.11,
+          "start_seconds": 56.5,
+          "text": "Au fait ! Si tu n'enl[UNI00e8]ves pas un poisson avant que\nses PS ne s'[UNI00e9]puisent, il mourra.\r"
+        },
+        {
+          "clear_seconds": 73.19,
+          "start_seconds": 63.11,
+          "text": "Et maintenant, le dernier aquarium.\nCe 3[UNI00e8]me aquarium, de reproduction,\nte permet d'unir deux poissons pour en cr[UNI00e9]er\nun plus fort.\r"
+        },
+        {
+          "clear_seconds": 77.95,
+          "start_seconds": 73.19,
+          "text": "Pas la peine non plus d'avoir un seul poisson\ndans cet aquarium.\r"
+        },
+        {
+          "clear_seconds": 86.93,
+          "start_seconds": 77.95,
+          "text": "Si la reproduction est r[UNI00e9]ussie,\nles deux poissons mourront, mais un nouveau\npoisson sera n[UNI00e9]. \r"
+        },
+        {
+          "clear_seconds": 95.86,
+          "start_seconds": 86.93,
+          "text": "M[UNI00ea]me si le nouveau poisson h[UNI00e9]rite \ndes capacit[UNI00e9]s de ses parents, si les parents \nn'[UNI00e9]taient pas forts, il ne le sera pas non plus. \nNe l'oublie pas.\r"
+        },
+        {
+          "clear_seconds": 103.25,
+          "start_seconds": 95.86,
+          "text": "Il faut [UNI00ea]tre patient pour am[UNI00e9]liorer \nles qualit[UNI00e9]s des poissons en combat et de bons \nr[UNI00e9]sultats pour la reproduction.\r"
+        },
+        {
+          "clear_seconds": 111.24,
+          "start_seconds": 103.25,
+          "text": "Si tu veux passer ton temps [UNI00e0] observer tes poissons,\npas de probl[UNI00e8]me, mais il vaut mieux s'occuper de d'autres\nchoses en m[UNI00ea]me temps.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 111.24,
+          "text": "La mesure du temps est r[UNI00e9]el, il n'est donc \nn[UNI00e9]cessaire de surveiller tes poissons que de temps en temps.\r"
+        }
+      ],
+      "id": 942
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 7.68,
+          "start_seconds": 2.89,
+          "text": "Comment participer aux Meilleures nageoires ?\r"
+        },
+        {
+          "clear_seconds": 14.3,
+          "start_seconds": 7.68,
+          "text": "Va dans la tente install[UNI00e9]e sur la grande place \nde Palm Brinks et parle au Ma[UNI00ee]tre de course.\r"
+        },
+        {
+          "clear_seconds": 23.83,
+          "start_seconds": 14.3,
+          "text": "Tu peux t'inscrire [UNI00e0] 3 courses en m[UNI00ea]me temps. \nTu peux inscrire le m[UNI00ea]me poisson ou un poisson \ndiff[UNI00e9]rent pour chaque course.\r"
+        },
+        {
+          "clear_seconds": 29.85,
+          "start_seconds": 23.83,
+          "text": "Les poissons se fatiguent vite, inscrire le m[UNI00ea]me \naux 3 courses n'est pas une bonne id[UNI00e9]e.\r"
+        },
+        {
+          "clear_seconds": 41.84,
+          "start_seconds": 29.85,
+          "text": "Si tu quittes la tente avant la fin des 3 courses,\ntu cl[UNI00f4]tureras toutes les courses de poissons.\nAlors reste dans la tente tout le temps de la\ncomp[UNI00e9]tition.\r"
+        },
+        {
+          "clear_seconds": 50.15,
+          "start_seconds": 41.84,
+          "text": "OK, tu as donc dit au Ma[UNI00ee]tre de course que tu veux \nparticiper. Tu dois maintenant choisir les poissons que tu \nas inscrits.\r"
+        },
+        {
+          "clear_seconds": 55.5,
+          "start_seconds": 50.15,
+          "text": "[UNI00c0] ce stade, tu ne peux choisir qu'un poisson de l'aquarium.\r"
+        },
+        {
+          "clear_seconds": 65.24,
+          "start_seconds": 55.5,
+          "text": "Tu dois ensuite choisir la cat[UNI00e9]gorie de course.\nEssaie de choisir la cat[UNI00e9]gorie qui correspondra [UNI00e0]\nton poisson.\r"
+        },
+        {
+          "clear_seconds": 78.0,
+          "start_seconds": 65.24,
+          "text": "Enfin, choisis l'aquarium pour faire tes pr[UNI00e9]paratifs\nd'avant-course. Prends bien en compte la personnalit[UNI00e9] \ndu poisson, car le choix de l'aquarium aura un effet sur ses\nperformances.\r"
+        },
+        {
+          "clear_seconds": 88.52,
+          "start_seconds": 78.0,
+          "text": "Apr[UNI00e8]s tout cela, c'est parti ! Tu \nas juste [UNI00e0] regarder. Surveille bien la \ncourse et encourage ton poisson pour qu'il\ngagne !\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 88.52,
+          "text": "De superbes prix sont en jeu, alors fais ton maximum.\nEntra[UNI00ee]ne un champion !\r"
+        }
+      ],
+      "id": 943
+    },
+    {
+      "entries": [
+        {
+          "clear_seconds": 14.15,
+          "start_seconds": 2.86,
+          "text": "Pour tous, la route\nest longue et p[UNI00e9]rilleuse !\nQuand tu veux faire une petite pause,\nn'oublie pas d'enregistrer ta\nprogression.\r"
+        },
+        {
+          "clear_seconds": 26.9,
+          "start_seconds": 14.15,
+          "text": "Ici et l[UNI00e0], au cours de tes voyages, tu trouveras \nun [UNI00e9]trange livre lumineux. Approche-toi de ce livre \net appuie sur (O). Tu acc[UNI00e9]deras ainsi \n[UNI00e0] un [UNI00e9]cran qui te permettra d'enregistrer \nta progression.\r"
+        },
+        {
+          "clear_seconds": 31.41,
+          "start_seconds": 26.9,
+          "text": "La prochaine fois,\ntu reprendras ton aventure \nl[UNI00e0] o[UNI00f9] tu l'as laiss[UNI00e9]e.\r"
+        },
+        {
+          "clear_seconds": 189.0,
+          "start_seconds": 31.41,
+          "text": "N'oublie jamais d'enregistrer ta progression !\nSinon tu auras fait beaucoup d'efforts pour rien.\r"
+        }
+      ],
+      "id": 944
+    },
+    {
+      "entries": [],
+      "id": 999
+    }
+  ],
+  "kind": "movie_subtitles",
+  "schema_version": 2
+}

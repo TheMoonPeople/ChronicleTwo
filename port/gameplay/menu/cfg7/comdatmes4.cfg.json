@@ -1,0 +1,1702 @@
+{
+  "kind": "item_messages",
+  "messages": [
+    {
+      "item_no": 26,
+      "name": "Pistola magica"
+    },
+    {
+      "item_no": 27,
+      "name": "Frantuma-anime"
+    },
+    {
+      "item_no": 28,
+      "name": "Lanciagranate"
+    },
+    {
+      "item_no": 29,
+      "name": "Vipera oscura"
+    },
+    {
+      "item_no": 30,
+      "name": "Doppio Colpo"
+    },
+    {
+      "item_no": 31,
+      "name": "Pistola di Jurak"
+    },
+    {
+      "item_no": 32,
+      "name": "Spara-domande"
+    },
+    {
+      "item_no": 33,
+      "name": "Pistola ladra"
+    },
+    {
+      "item_no": 34,
+      "name": "Supernova"
+    },
+    {
+      "item_no": 35,
+      "name": "Distruggi stelle"
+    },
+    {
+      "item_no": 36,
+      "name": "Lince"
+    },
+    {
+      "item_no": 37,
+      "name": "Pantera sexy"
+    },
+    {
+      "item_no": 38,
+      "name": "Desperado"
+    },
+    {
+      "item_no": 39,
+      "name": "Bazooka Sigma"
+    },
+    {
+      "item_no": 40,
+      "name": "Ultima Risorsa"
+    },
+    {
+      "item_no": 41,
+      "name": "Spada lunga"
+    },
+    {
+      "item_no": 42,
+      "name": "Spada larga"
+    },
+    {
+      "item_no": 43,
+      "name": "Baselard"
+    },
+    {
+      "item_no": 44,
+      "name": "Gladio"
+    },
+    {
+      "item_no": 45,
+      "name": "Spada Gufo Saggio"
+    },
+    {
+      "item_no": 46,
+      "name": "Pugnale affilato"
+    },
+    {
+      "item_no": 47,
+      "name": "Spada antica"
+    },
+    {
+      "item_no": 48,
+      "name": "Spada bastarda"
+    },
+    {
+      "item_no": 49,
+      "name": "Coltello da Cucina"
+    },
+    {
+      "item_no": 50,
+      "name": "Tsukikage"
+    },
+    {
+      "item_no": 51,
+      "name": "Spada del Sole"
+    },
+    {
+      "item_no": 52,
+      "name": "Affetta-serpente"
+    },
+    {
+      "item_no": 53,
+      "name": "Spada da macho"
+    },
+    {
+      "item_no": 54,
+      "name": "Scimitarra"
+    },
+    {
+      "item_no": 55,
+      "name": "Ama no Murakumo"
+    },
+    {
+      "item_no": 56,
+      "name": "Spada dell'Agnello"
+    },
+    {
+      "item_no": 57,
+      "name": "Nuvola Scura"
+    },
+    {
+      "item_no": 58,
+      "name": "Arca valorosa"
+    },
+    {
+      "item_no": 59,
+      "name": "Big Bang"
+    },
+    {
+      "item_no": 60,
+      "name": "Spada Atlamillia"
+    },
+    {
+      "item_no": 61,
+      "name": "Spada Mardan"
+    },
+    {
+      "item_no": 62,
+      "name": "Spada Garayan"
+    },
+    {
+      "item_no": 63,
+      "name": "Mardan Garayan"
+    },
+    {
+      "item_no": 64,
+      "name": "Spada del Sovrano"
+    },
+    {
+      "item_no": 65,
+      "name": "Malefica"
+    },
+    {
+      "item_no": 66,
+      "name": "Spada piccola"
+    },
+    {
+      "item_no": 67,
+      "name": "Spada di Sabbia"
+    },
+    {
+      "item_no": 68,
+      "name": "Spada Vampira"
+    },
+    {
+      "item_no": 69,
+      "name": "Mannaia"
+    },
+    {
+      "item_no": 70,
+      "name": "Choora"
+    },
+    {
+      "item_no": 71,
+      "name": "Spadone"
+    },
+    {
+      "item_no": 72,
+      "name": "Divora Anime"
+    },
+    {
+      "item_no": 73,
+      "name": "Spadino di Osso"
+    },
+    {
+      "item_no": 74,
+      "name": "Sax"
+    },
+    {
+      "item_no": 75,
+      "name": "Spada 7 Rami"
+    },
+    {
+      "item_no": 76,
+      "name": "Dusack"
+    },
+    {
+      "item_no": 77,
+      "name": "Croce scarlatta"
+    },
+    {
+      "item_no": 78,
+      "name": "Settimo Cielo"
+    },
+    {
+      "item_no": 79,
+      "name": "Spada di Zeus"
+    },
+    {
+      "item_no": 80,
+      "name": "Spada epica"
+    },
+    {
+      "item_no": 81,
+      "name": "Demoniaca"
+    },
+    {
+      "item_no": 82,
+      "name": "Spada sacra Dedalo"
+    },
+    {
+      "item_no": 83,
+      "name": "Muramasa"
+    },
+    {
+      "item_no": 84,
+      "name": "Excalibur oscura"
+    },
+    {
+      "item_no": 85,
+      "name": "Sargatanas"
+    },
+    {
+      "item_no": 86,
+      "name": "Spada di Halloween"
+    },
+    {
+      "item_no": 87,
+      "name": "Impeto di Luce"
+    },
+    {
+      "item_no": 88,
+      "name": "Re dell'Isola"
+    },
+    {
+      "item_no": 89,
+      "name": "Forca Grifone"
+    },
+    {
+      "item_no": 90,
+      "name": "Chiave eroica"
+    },
+    {
+      "item_no": 91,
+      "name": "Bracciale magico"
+    },
+    {
+      "item_no": 92,
+      "name": "Bracciale d'Oro"
+    },
+    {
+      "item_no": 93,
+      "name": "Bracciale Bandito"
+    },
+    {
+      "item_no": 94,
+      "name": "Bracciale Cristallo"
+    },
+    {
+      "item_no": 95,
+      "name": "Bracciale Platino"
+    },
+    {
+      "item_no": 96,
+      "name": "Bracciale divino"
+    },
+    {
+      "item_no": 97,
+      "name": "Bracciale spiritico"
+    },
+    {
+      "item_no": 98,
+      "name": "Bracciale oscuro"
+    },
+    {
+      "item_no": 99,
+      "name": "Bracciale di Satana"
+    },
+    {
+      "item_no": 100,
+      "name": "Bracciale di Atena"
+    },
+    {
+      "item_no": 101,
+      "name": "Bracciale di Mobius"
+    },
+    {
+      "item_no": 102,
+      "name": "Angelo letale"
+    },
+    {
+      "item_no": 103,
+      "name": "Pocklekul"
+    },
+    {
+      "item_no": 104,
+      "name": "Bracciale di Spine"
+    },
+    {
+      "item_no": 105,
+      "name": "Bracciale stellare"
+    },
+    {
+      "item_no": 1,
+      "name": "Chiave da Battaglia"
+    },
+    {
+      "item_no": 2,
+      "name": "Chiave-trivella"
+    },
+    {
+      "item_no": 3,
+      "name": "Chiave devastante"
+    },
+    {
+      "item_no": 4,
+      "name": "Chiave ladra"
+    },
+    {
+      "item_no": 5,
+      "name": "Chiave velenosa"
+    },
+    {
+      "item_no": 6,
+      "name": "Martello cubico"
+    },
+    {
+      "item_no": 7,
+      "name": "Digi-martello"
+    },
+    {
+      "item_no": 8,
+      "name": "Martello pesante"
+    },
+    {
+      "item_no": 9,
+      "name": "Ramo maneggevole"
+    },
+    {
+      "item_no": 10,
+      "name": "Tacchino"
+    },
+    {
+      "item_no": 11,
+      "name": "Cigno"
+    },
+    {
+      "item_no": 12,
+      "name": "Fenicottero"
+    },
+    {
+      "item_no": 13,
+      "name": "Falco"
+    },
+    {
+      "item_no": 14,
+      "name": "Albatro"
+    },
+    {
+      "item_no": 15,
+      "name": "Martello Tartaruga"
+    },
+    {
+      "item_no": 16,
+      "name": "Martello portasoldi"
+    },
+    {
+      "item_no": 17,
+      "name": "Tonno congelato"
+    },
+    {
+      "item_no": 18,
+      "name": "Mano di Kubera"
+    },
+    {
+      "item_no": 19,
+      "name": "Rompi-sigma"
+    },
+    {
+      "item_no": 20,
+      "name": "Grado Zero"
+    },
+    {
+      "item_no": 21,
+      "name": "LEGGENDA"
+    },
+    {
+      "item_no": 22,
+      "name": "Pistola classica"
+    },
+    {
+      "item_no": 23,
+      "name": "Pistola-phon"
+    },
+    {
+      "item_no": 24,
+      "name": "Pistola-trombetta"
+    },
+    {
+      "item_no": 25,
+      "name": "Pistola campana"
+    },
+    {
+      "item_no": 106,
+      "name": "Bracciale lunare"
+    },
+    {
+      "item_no": 107,
+      "name": "Bracciale solare"
+    },
+    {
+      "item_no": 108,
+      "name": "Cinque stelle"
+    },
+    {
+      "item_no": 109,
+      "name": "Amore"
+    },
+    {
+      "item_no": 110,
+      "name": "Spada regale"
+    },
+    {
+      "item_no": 111,
+      "name": "Cappello da caccia"
+    },
+    {
+      "item_no": 112,
+      "name": "Berretto"
+    },
+    {
+      "item_no": 113,
+      "name": "Berretto bicolore"
+    },
+    {
+      "item_no": 114,
+      "name": "Cappello da Lavoro"
+    },
+    {
+      "item_no": 115,
+      "name": "Elmetto Esploratore"
+    },
+    {
+      "item_no": 116,
+      "name": "Cappello da Clown"
+    },
+    {
+      "item_no": 117,
+      "name": "Scarpe di Cuoio"
+    },
+    {
+      "item_no": 118,
+      "name": "Scarpe stringate"
+    },
+    {
+      "item_no": 119,
+      "name": "Scarponcini"
+    },
+    {
+      "item_no": 120,
+      "name": "Scarpe di Drago"
+    },
+    {
+      "item_no": 121,
+      "name": "Scarpe da Clown"
+    },
+    {
+      "item_no": 122,
+      "name": "Scarpe Esploratore"
+    },
+    {
+      "item_no": 123,
+      "name": "Nastro giallo"
+    },
+    {
+      "item_no": 124,
+      "name": "Nastro a Righe"
+    },
+    {
+      "item_no": 125,
+      "name": "Pettine di Zipangu"
+    },
+    {
+      "item_no": 126,
+      "name": "Pettine a Farfalla"
+    },
+    {
+      "item_no": 127,
+      "name": "Sfera regale"
+    },
+    {
+      "item_no": 128,
+      "name": "Cerchietto-gattina"
+    },
+    {
+      "item_no": 129,
+      "name": "Stivali da cavallo"
+    },
+    {
+      "item_no": 130,
+      "name": "Stivali ferrati"
+    },
+    {
+      "item_no": 131,
+      "name": "Stivali alati"
+    },
+    {
+      "item_no": 132,
+      "name": "Stivali chiodati"
+    },
+    {
+      "item_no": 133,
+      "name": "Stivali regali"
+    },
+    {
+      "item_no": 134,
+      "name": "Stivali da Pantera"
+    },
+    {
+      "item_no": 135,
+      "name": "Torso di Latta"
+    },
+    {
+      "item_no": 136,
+      "name": "Torso Bidone"
+    },
+    {
+      "item_no": 137,
+      "name": "Torso Frigo"
+    },
+    {
+      "item_no": 138,
+      "name": "Torso di Legno"
+    },
+    {
+      "item_no": 139,
+      "name": "Torso da Clown"
+    },
+    {
+      "item_no": 140,
+      "name": "Torso da Samurai"
+    },
+    {
+      "item_no": 141,
+      "name": "Torso di super-lega"
+    },
+    {
+      "item_no": 142,
+      "name": "Corazza luna-solare"
+    },
+    {
+      "item_no": 145,
+      "name": "Braccio armato"
+    },
+    {
+      "item_no": 146,
+      "name": "Braccio Cannone"
+    },
+    {
+      "item_no": 147,
+      "name": "Braccio-Trivella"
+    },
+    {
+      "item_no": 148,
+      "name": "Braccio-Missile"
+    },
+    {
+      "item_no": 149,
+      "name": "Braccio-Martello"
+    },
+    {
+      "item_no": 150,
+      "name": "Braccio-Mitraglia"
+    },
+    {
+      "item_no": 151,
+      "name": "Mano da Clown"
+    },
+    {
+      "item_no": 152,
+      "name": "Braccio-Samurai"
+    },
+    {
+      "item_no": 153,
+      "name": "Braccio-Laser"
+    },
+    {
+      "item_no": 154,
+      "name": "Novacannone"
+    },
+    {
+      "item_no": 155,
+      "name": "Gamba di Ferro"
+    },
+    {
+      "item_no": 156,
+      "name": "Cingolato"
+    },
+    {
+      "item_no": 157,
+      "name": "Gamba di Latta"
+    },
+    {
+      "item_no": 158,
+      "name": "Piede-pattino"
+    },
+    {
+      "item_no": 159,
+      "name": "Fuoristrada"
+    },
+    {
+      "item_no": 160,
+      "name": "Gamba-propulsore"
+    },
+    {
+      "item_no": 161,
+      "name": "Multipiede"
+    },
+    {
+      "item_no": 162,
+      "name": "Jet"
+    },
+    {
+      "item_no": 163,
+      "name": "Piede da Clown"
+    },
+    {
+      "item_no": 165,
+      "name": "Fusto energetico"
+    },
+    {
+      "item_no": 166,
+      "name": "Barile energetico"
+    },
+    {
+      "item_no": 167,
+      "name": "Secchio energetico"
+    },
+    {
+      "item_no": 168,
+      "name": "Bidone energetico"
+    },
+    {
+      "item_no": 169,
+      "name": "Urna energetica"
+    },
+    {
+      "item_no": 170,
+      "name": "Tri-Urna energetica"
+    },
+    {
+      "item_no": 172,
+      "name": "Blocchetto Mostri"
+    },
+    {
+      "item_no": 173,
+      "name": "Dinamite"
+    },
+    {
+      "item_no": 174,
+      "name": "Foglio rompi-sigillo"
+    },
+    {
+      "item_no": 175,
+      "name": "Cristallo Fuoco"
+    },
+    {
+      "item_no": 176,
+      "name": "Cristallo Ghiaccio"
+    },
+    {
+      "item_no": 177,
+      "name": "Cristallo Fulmine"
+    },
+    {
+      "item_no": 178,
+      "name": "Cristallo Predone"
+    },
+    {
+      "item_no": 179,
+      "name": "Cristallo sacro"
+    },
+    {
+      "item_no": 180,
+      "name": "Cristallo-devasta"
+    },
+    {
+      "item_no": 181,
+      "name": "Cristallo Vento"
+    },
+    {
+      "item_no": 182,
+      "name": "Crist. Drago marino"
+    },
+    {
+      "item_no": 183,
+      "name": "Supercristallo"
+    },
+    {
+      "item_no": 184,
+      "name": "Cristallo difensivo"
+    },
+    {
+      "item_no": 185,
+      "name": "[line1]"
+    },
+    {
+      "item_no": 186,
+      "name": "Granato"
+    },
+    {
+      "item_no": 187,
+      "name": "Ametista"
+    },
+    {
+      "item_no": 188,
+      "name": "Acquamarina"
+    },
+    {
+      "item_no": 189,
+      "name": "Diamante"
+    },
+    {
+      "item_no": 190,
+      "name": "Smeraldo"
+    },
+    {
+      "item_no": 191,
+      "name": "Perla"
+    },
+    {
+      "item_no": 192,
+      "name": "Rubino"
+    },
+    {
+      "item_no": 193,
+      "name": "Peridoto"
+    },
+    {
+      "item_no": 194,
+      "name": "Zaffiro"
+    },
+    {
+      "item_no": 195,
+      "name": "Opale"
+    },
+    {
+      "item_no": 196,
+      "name": "Topazio"
+    },
+    {
+      "item_no": 197,
+      "name": "Turchese"
+    },
+    {
+      "item_no": 198,
+      "name": "Pietra solare"
+    },
+    {
+      "item_no": 199,
+      "name": "Pietra lunare"
+    },
+    {
+      "item_no": 200,
+      "name": "Moneta prospera"
+    },
+    {
+      "item_no": 201,
+      "name": "Moneta oscura"
+    },
+    {
+      "item_no": 202,
+      "name": "Moneta eterna"
+    },
+    {
+      "item_no": 203,
+      "name": "Moneta velenosa"
+    },
+    {
+      "item_no": 204,
+      "name": "Moneta Tempo"
+    },
+    {
+      "item_no": 205,
+      "name": "Moneta brigante"
+    },
+    {
+      "item_no": 206,
+      "name": "Moneta assorbente"
+    },
+    {
+      "item_no": 207,
+      "name": "Moneta guaritrice"
+    },
+    {
+      "item_no": 208,
+      "name": "Moneta Bersaglio"
+    },
+    {
+      "item_no": 209,
+      "name": "Moneta Esperienza"
+    },
+    {
+      "item_no": 210,
+      "name": "Tronco rotolante"
+    },
+    {
+      "item_no": 211,
+      "name": "Roccia granitica"
+    },
+    {
+      "item_no": 212,
+      "name": "Roccia ruvida"
+    },
+    {
+      "item_no": 213,
+      "name": "Covone di fieno"
+    },
+    {
+      "item_no": 214,
+      "name": "Stoffa robusta"
+    },
+    {
+      "item_no": 215,
+      "name": "Polvere da Sparo"
+    },
+    {
+      "item_no": 216,
+      "name": "Componente vetro"
+    },
+    {
+      "item_no": 217,
+      "name": "Osso sconosciuto"
+    },
+    {
+      "item_no": 218,
+      "name": "Creta appiccicosa"
+    },
+    {
+      "item_no": 219,
+      "name": "Farina"
+    },
+    {
+      "item_no": 220,
+      "name": "Canna da zucchero"
+    },
+    {
+      "item_no": 221,
+      "name": "Peperoncino"
+    },
+    {
+      "item_no": 222,
+      "name": "Veleno"
+    },
+    {
+      "item_no": 223,
+      "name": "Rugiada silvestre"
+    },
+    {
+      "item_no": 224,
+      "name": "Pezzo di Metallo"
+    },
+    {
+      "item_no": 225,
+      "name": "Lingotti d'Oro"
+    },
+    {
+      "item_no": 226,
+      "name": "Sfera d'Argento"
+    },
+    {
+      "item_no": 227,
+      "name": "Pezzo di Rame"
+    },
+    {
+      "item_no": 228,
+      "name": "Elemento Luce"
+    },
+    {
+      "item_no": 229,
+      "name": "Elemento sacro"
+    },
+    {
+      "item_no": 230,
+      "name": "Elemento Terra"
+    },
+    {
+      "item_no": 231,
+      "name": "Elemento Acqua"
+    },
+    {
+      "item_no": 232,
+      "name": "Elemento Ghiaccio"
+    },
+    {
+      "item_no": 233,
+      "name": "Elemento Tuono"
+    },
+    {
+      "item_no": 234,
+      "name": "Elemento Vento"
+    },
+    {
+      "item_no": 235,
+      "name": "Elemento Fuoco"
+    },
+    {
+      "item_no": 236,
+      "name": "Elemento Vita"
+    },
+    {
+      "item_no": 237,
+      "name": "Vernice (Rosso)"
+    },
+    {
+      "item_no": 238,
+      "name": "Vernice (Blu)"
+    },
+    {
+      "item_no": 239,
+      "name": "Vernice (Nero)"
+    },
+    {
+      "item_no": 240,
+      "name": "Vernice (Verde)"
+    },
+    {
+      "item_no": 241,
+      "name": "Vernice (Arancione)"
+    },
+    {
+      "item_no": 242,
+      "name": "Vernice (Giallo)"
+    },
+    {
+      "item_no": 243,
+      "name": "Vernice (Viola)"
+    },
+    {
+      "item_no": 244,
+      "name": "Vernice (Rosa)"
+    },
+    {
+      "item_no": 245,
+      "name": "Cuoio spesso"
+    },
+    {
+      "item_no": 246,
+      "name": "Nucleo"
+    },
+    {
+      "item_no": 247,
+      "name": "Nucleo potenziato"
+    },
+    {
+      "item_no": 248,
+      "name": "Nucleo 2"
+    },
+    {
+      "item_no": 249,
+      "name": "Nucleo 3"
+    },
+    {
+      "item_no": 250,
+      "name": "Supernucleo"
+    },
+    {
+      "item_no": 251,
+      "name": "Mega Nucleo"
+    },
+    {
+      "item_no": 252,
+      "name": "Sommo Nucleo"
+    },
+    {
+      "item_no": 253,
+      "name": "Anti-pietrificante"
+    },
+    {
+      "item_no": 254,
+      "name": "Amuleto non-stop"
+    },
+    {
+      "item_no": 255,
+      "name": "Anti maledizione"
+    },
+    {
+      "item_no": 256,
+      "name": "Anti-appiccicume"
+    },
+    {
+      "item_no": 257,
+      "name": "Amuleto Antidoto"
+    },
+    {
+      "item_no": 258,
+      "name": "Salopette verde"
+    },
+    {
+      "item_no": 259,
+      "name": "Giacca rossa"
+    },
+    {
+      "item_no": 260,
+      "name": "Salopette di Jeans"
+    },
+    {
+      "item_no": 261,
+      "name": "Tuta Esploratore"
+    },
+    {
+      "item_no": 262,
+      "name": "Costume da Clown"
+    },
+    {
+      "item_no": 263,
+      "name": "Pantaloncini a zucca"
+    },
+    {
+      "item_no": 264,
+      "name": "Abito a Righe"
+    },
+    {
+      "item_no": 265,
+      "name": "Body stellare"
+    },
+    {
+      "item_no": 266,
+      "name": "Abito regale"
+    },
+    {
+      "item_no": 267,
+      "name": "Completo Pantera"
+    },
+    {
+      "item_no": 268,
+      "name": "Pane"
+    },
+    {
+      "item_no": 269,
+      "name": "Formaggio"
+    },
+    {
+      "item_no": 270,
+      "name": "Pollo speciale"
+    },
+    {
+      "item_no": 271,
+      "name": "Doppio Budino"
+    },
+    {
+      "item_no": 272,
+      "name": "Dolcetto di Prugne"
+    },
+    {
+      "item_no": 273,
+      "name": "Polvere ridestante"
+    },
+    {
+      "item_no": 274,
+      "name": "Bevanda energetica"
+    },
+    {
+      "item_no": 275,
+      "name": "Bevanda antidoto"
+    },
+    {
+      "item_no": 276,
+      "name": "Acqua Santa"
+    },
+    {
+      "item_no": 277,
+      "name": "Sapone"
+    },
+    {
+      "item_no": 278,
+      "name": "Lacrima di Medusa"
+    },
+    {
+      "item_no": 279,
+      "name": "Guarigione potente"
+    },
+    {
+      "item_no": 280,
+      "name": "Bomba"
+    },
+    {
+      "item_no": 281,
+      "name": "Pietra"
+    },
+    {
+      "item_no": 282,
+      "name": "Pietra del Fuoco"
+    },
+    {
+      "item_no": 283,
+      "name": "Pietra del Ghiaccio"
+    },
+    {
+      "item_no": 284,
+      "name": "Pietra del Fulmine"
+    },
+    {
+      "item_no": 285,
+      "name": "Pietra del Vento"
+    },
+    {
+      "item_no": 286,
+      "name": "Pietra sacra"
+    },
+    {
+      "item_no": 287,
+      "name": "Ciliegia palpitante"
+    },
+    {
+      "item_no": 288,
+      "name": "Bacca pietrificante"
+    },
+    {
+      "item_no": 289,
+      "name": "Pesca appiccicosa"
+    },
+    {
+      "item_no": 290,
+      "name": "Noce-bomba"
+    },
+    {
+      "item_no": 291,
+      "name": "Mela avvelenata"
+    },
+    {
+      "item_no": 292,
+      "name": "Banana matura"
+    },
+    {
+      "item_no": 293,
+      "name": "Polvere di fuga"
+    },
+    {
+      "item_no": 294,
+      "name": "Polvere riparatrice"
+    },
+    {
+      "item_no": 295,
+      "name": "Polvere potenziante"
+    },
+    {
+      "item_no": 296,
+      "name": "Frutto dell'Eden"
+    },
+    {
+      "item_no": 297,
+      "name": "Chiave per Scrigno"
+    },
+    {
+      "item_no": 298,
+      "name": "Polvere aggiustante"
+    },
+    {
+      "item_no": 299,
+      "name": "Pane croccante"
+    },
+    {
+      "item_no": 300,
+      "name": "Pane croccante"
+    },
+    {
+      "item_no": 301,
+      "name": "Castagna"
+    },
+    {
+      "item_no": 302,
+      "name": "Canna da Pesca"
+    },
+    {
+      "item_no": 303,
+      "name": "Canna con Esca"
+    },
+    {
+      "item_no": 304,
+      "name": "Porta-dono"
+    },
+    {
+      "item_no": 305,
+      "name": "Mappa"
+    },
+    {
+      "item_no": 306,
+      "name": "Cristallo magico"
+    },
+    {
+      "item_no": 307,
+      "name": "Bomba Laser"
+    },
+    {
+      "item_no": 308,
+      "name": "Porta-stemmi"
+    },
+    {
+      "item_no": 309,
+      "name": "Acquario"
+    },
+    {
+      "item_no": 310,
+      "name": "Pesciolindo"
+    },
+    {
+      "item_no": 311,
+      "name": "Porta-medaglie"
+    },
+    {
+      "item_no": 312,
+      "name": "Esca-spina"
+    },
+    {
+      "item_no": 313,
+      "name": "Mimi"
+    },
+    {
+      "item_no": 314,
+      "name": "Gamberetto"
+    },
+    {
+      "item_no": 315,
+      "name": "Carota"
+    },
+    {
+      "item_no": 316,
+      "name": "Torta di Patate"
+    },
+    {
+      "item_no": 317,
+      "name": "Minon"
+    },
+    {
+      "item_no": 318,
+      "name": "Battan"
+    },
+    {
+      "item_no": 319,
+      "name": "Pesciolino"
+    },
+    {
+      "item_no": 320,
+      "name": "Bobo"
+    },
+    {
+      "item_no": 321,
+      "name": "Squartacuda"
+    },
+    {
+      "item_no": 322,
+      "name": "Nonky"
+    },
+    {
+      "item_no": 323,
+      "name": "Kaji"
+    },
+    {
+      "item_no": 324,
+      "name": "Baku Baku"
+    },
+    {
+      "item_no": 325,
+      "name": "Mardan Garayan"
+    },
+    {
+      "item_no": 326,
+      "name": "Pigronchio"
+    },
+    {
+      "item_no": 327,
+      "name": "Niler"
+    },
+    {
+      "item_no": 328,
+      "name": "Umadakara"
+    },
+    {
+      "item_no": 329,
+      "name": "Tarton"
+    },
+    {
+      "item_no": 330,
+      "name": "Piccoly"
+    },
+    {
+      "item_no": 331,
+      "name": "Bon"
+    },
+    {
+      "item_no": 332,
+      "name": "Hama Hama"
+    },
+    {
+      "item_no": 333,
+      "name": "Elastiglio"
+    },
+    {
+      "item_no": 334,
+      "name": "Den"
+    },
+    {
+      "item_no": 335,
+      "name": "Heela"
+    },
+    {
+      "item_no": 336,
+      "name": "Barone Garayan"
+    },
+    {
+      "item_no": 337,
+      "name": "Manovella"
+    },
+    {
+      "item_no": 338,
+      "name": "Chiave del Canale"
+    },
+    {
+      "item_no": 339,
+      "name": "Seghetto magico"
+    },
+    {
+      "item_no": 340,
+      "name": "Ramo devastante"
+    },
+    {
+      "item_no": 341,
+      "name": "Bistecca gigante"
+    },
+    {
+      "item_no": 342,
+      "name": "Pietra Luna"
+    },
+    {
+      "item_no": 343,
+      "name": "Scheggia Pietra Luna"
+    },
+    {
+      "item_no": 344,
+      "name": "Roccia magmatica"
+    },
+    {
+      "item_no": 345,
+      "name": "Fune"
+    },
+    {
+      "item_no": 346,
+      "name": "Pietra a \"T\""
+    },
+    {
+      "item_no": 347,
+      "name": "Vaso Biancovento"
+    },
+    {
+      "item_no": 348,
+      "name": "Annaffiatoio regale"
+    },
+    {
+      "item_no": 349,
+      "name": "Lancetta Ora lunare"
+    },
+    {
+      "item_no": 350,
+      "name": "Olio del Vagoncino"
+    },
+    {
+      "item_no": 351,
+      "name": "Chiave arrugginita"
+    },
+    {
+      "item_no": 352,
+      "name": "Polvere sistemante"
+    },
+    {
+      "item_no": 353,
+      "name": "Biglietto del Circo"
+    },
+    {
+      "item_no": 354,
+      "name": "Corno del Fuoco"
+    },
+    {
+      "item_no": 355,
+      "name": "Taccuino Scoop"
+    },
+    {
+      "item_no": 356,
+      "name": "Goccia del Sole"
+    },
+    {
+      "item_no": 357,
+      "name": "Album fotografico"
+    },
+    {
+      "item_no": 358,
+      "name": "Fornelli"
+    },
+    {
+      "item_no": 359,
+      "name": "Ricevi-consigli"
+    },
+    {
+      "item_no": 360,
+      "name": "Verme elettrico"
+    },
+    {
+      "item_no": 361,
+      "name": "Seme di Lafrescia"
+    },
+    {
+      "item_no": 362,
+      "name": "Chiave stellare"
+    },
+    {
+      "item_no": 363,
+      "name": "Fiore Biancovento"
+    },
+    {
+      "item_no": 364,
+      "name": "Gnocchi miracolosi"
+    },
+    {
+      "item_no": 365,
+      "name": "Gemma della Terra"
+    },
+    {
+      "item_no": 366,
+      "name": "Gemma dell'Acqua"
+    },
+    {
+      "item_no": 367,
+      "name": "Gemma del Vento"
+    },
+    {
+      "item_no": 368,
+      "name": "Gemma del Fuoco"
+    },
+    {
+      "item_no": 369,
+      "name": "Fotocamera"
+    },
+    {
+      "item_no": 370,
+      "name": "Succo d'Uva"
+    },
+    {
+      "item_no": 371,
+      "name": "Clessidra stellare"
+    },
+    {
+      "item_no": 372,
+      "name": "Bomba a Tempo"
+    },
+    {
+      "item_no": 373,
+      "name": "Radioconchiglia"
+    },
+    {
+      "item_no": 374,
+      "name": "Fiordisole"
+    },
+    {
+      "item_no": 375,
+      "name": "Antidoto del Drago"
+    },
+    {
+      "item_no": 376,
+      "name": "Vernice Oro"
+    },
+    {
+      "item_no": 377,
+      "name": "Cucchiaino"
+    },
+    {
+      "item_no": 378,
+      "name": "Rana"
+    },
+    {
+      "item_no": 379,
+      "name": "Esca-pesce"
+    },
+    {
+      "item_no": 380,
+      "name": "Forchetta"
+    },
+    {
+      "item_no": 381,
+      "name": "Benzina Robomobile"
+    },
+    {
+      "item_no": 382,
+      "name": "Chiave inglese"
+    },
+    {
+      "item_no": 383,
+      "name": "Goccia di Mostro"
+    },
+    {
+      "item_no": 384,
+      "name": "Coupon cambia-nome"
+    },
+    {
+      "item_no": 385,
+      "name": "Busta azzurra"
+    },
+    {
+      "item_no": 386,
+      "name": "Taccuino"
+    },
+    {
+      "item_no": 387,
+      "name": "Chiave inglese"
+    },
+    {
+      "item_no": 388,
+      "name": "Pasticcio di patate"
+    },
+    {
+      "item_no": 389,
+      "name": "Gelato stregato"
+    },
+    {
+      "item_no": 390,
+      "name": "Bomba potenziata"
+    },
+    {
+      "item_no": 391,
+      "name": "Superbomba"
+    },
+    {
+      "item_no": 392,
+      "name": "Braccio armato 2"
+    },
+    {
+      "item_no": 393,
+      "name": "Braccio armato 3"
+    },
+    {
+      "item_no": 394,
+      "name": "Braccio armato 4"
+    },
+    {
+      "item_no": 395,
+      "name": "Braccio-cannone 2"
+    },
+    {
+      "item_no": 396,
+      "name": "Braccio-cannone 3"
+    },
+    {
+      "item_no": 397,
+      "name": "Braccio-cannone 4"
+    },
+    {
+      "item_no": 398,
+      "name": "Braccio-Trivella 2"
+    },
+    {
+      "item_no": 399,
+      "name": "Braccio-Trivella 3"
+    },
+    {
+      "item_no": 400,
+      "name": "Braccio-Trivella 4"
+    },
+    {
+      "item_no": 401,
+      "name": "Braccio-Missile 2"
+    },
+    {
+      "item_no": 402,
+      "name": "Braccio-Missile 3"
+    },
+    {
+      "item_no": 403,
+      "name": "Braccio-Missile 4"
+    },
+    {
+      "item_no": 404,
+      "name": "Braccio-Martello 2"
+    },
+    {
+      "item_no": 405,
+      "name": "Braccio-Martello 3"
+    },
+    {
+      "item_no": 406,
+      "name": "Braccio-Martello 4"
+    },
+    {
+      "item_no": 407,
+      "name": "Braccio-Mitraglia 2"
+    },
+    {
+      "item_no": 408,
+      "name": "Braccio-Mitraglia 3"
+    },
+    {
+      "item_no": 409,
+      "name": "Braccio-Mitraglia 4"
+    },
+    {
+      "item_no": 410,
+      "name": "Mano da clown 2"
+    },
+    {
+      "item_no": 411,
+      "name": "Mano da clown 3"
+    },
+    {
+      "item_no": 412,
+      "name": "Mano da clown 4"
+    },
+    {
+      "item_no": 413,
+      "name": "Braccio-Samurai 2"
+    },
+    {
+      "item_no": 414,
+      "name": "Braccio-Samurai 3"
+    },
+    {
+      "item_no": 415,
+      "name": "Braccio-Samurai 4"
+    },
+    {
+      "item_no": 416,
+      "name": "Braccio-Laser 2"
+    },
+    {
+      "item_no": 417,
+      "name": "Braccio-Laser 3"
+    },
+    {
+      "item_no": 418,
+      "name": "Braccio-Laser 4"
+    },
+    {
+      "item_no": 419,
+      "name": "Novacannone 2"
+    },
+    {
+      "item_no": 420,
+      "name": "Novacannone 3"
+    },
+    {
+      "item_no": 421,
+      "name": "Novacannone 4"
+    },
+    {
+      "item_no": 422,
+      "name": "Unit[UNI00e0] vocale"
+    },
+    {
+      "item_no": 423,
+      "name": "Kit difensivo"
+    },
+    {
+      "item_no": 424,
+      "name": "Stemma di Himarra"
+    },
+    {
+      "item_no": 425,
+      "name": "Acqua saporita"
+    },
+    {
+      "item_no": 426,
+      "name": "Cuoci [line1]"
+    },
+    {
+      "item_no": 427,
+      "name": "Stemma del Sole"
+    },
+    {
+      "item_no": 428,
+      "name": "Stemma della Luna"
+    }
+  ],
+  "schema_version": 2
+}

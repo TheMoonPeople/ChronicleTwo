@@ -1044,7 +1044,7 @@ int _GET_ACTIVE_MONS_MAX_LIFE(RS_STACKDATA *stack, int argc) {
  */
 int _SET_DAMAGE_SCORE(RS_STACKDATA *stack, int argc) {
     float         pos[4];
-    int           color_flag;
+    int           color_flag PORT_INIT(0);
     int           id;
     int           value;
     CActionChara *monster;
@@ -1454,7 +1454,7 @@ int _SET_CAMERA_SPEED(RS_STACKDATA *stack, int argc) {
  */
 int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc) {
     CameraCtrlParam *param;
-    float            value;
+    float            value PORT_INIT(0.0f);
 
     if (argc > 0 && argc < 5) {
         return 0;
@@ -1504,7 +1504,7 @@ int _SET_CAMERA_CTRL_PARAM1(RS_STACKDATA *args, int argc) {
  */
 int _SET_CAMERA_CTRL_PARAM2(RS_STACKDATA *args, int argc) {
     CameraCtrlParam *param;
-    float            value;
+    float            value PORT_INIT(0.0f);
 
     if (argc > 0 && argc < 7) {
         return 0;
@@ -1947,7 +1947,7 @@ int _SET_DMG2(RS_STACKDATA *stack, int argc) {
 int _GET_OBJ_POS(RS_STACKDATA *stack, int argc) {
     float         pos[4];
     char         *object_name;
-    mgCFrame     *object;
+    mgCFrame     *object PORT_INIT(NULL);
     CActionChara *chara;
     char         *chara_name;
 
@@ -4478,7 +4478,7 @@ int _SET_INDEXOBJ_SIZE(RS_STACKDATA *stack, int argument_count) {
     CActiveMonster     *monster = nowMonster;
     CHARA_ENTRY_OBJECT *objects = monster->entry_object;
     int                 offset = object_index * sizeof(CHARA_ENTRY_OBJECT);
-    int                 address = (int) objects;
+    uptr                address = (uptr) objects;
     address = offset + address;
     ((CHARA_ENTRY_OBJECT *) address)->size = size;
     return 1;
@@ -4501,7 +4501,7 @@ int _GET_INDEXOBJ_SIZE(RS_STACKDATA *stack, int argument_count) {
     }
 
     CActiveMonster *monster = nowMonster;
-    int             object_base = (int) &monster->entry_object;
+    uptr            object_base = (uptr) &monster->entry_object;
     object_index *= sizeof(CHARA_ENTRY_OBJECT);
     object_index += object_base;
     CHARA_ENTRY_OBJECT *object = (CHARA_ENTRY_OBJECT *) object_index;
@@ -4675,8 +4675,8 @@ int _SET_MAPOBJ_SHOW(RS_STACKDATA *stack, int argument_count) {
  */
 int SetMonsterScript(CRunScript *script, char *program, mgCMemory *memory) {
 
-    RS_STACKDATA *value_stack = (RS_STACKDATA *) memory->Alloc(0x40);
-    RS_CALLDATA  *call_stack = (RS_CALLDATA *) memory->Alloc(0x180);
+    RS_STACKDATA *value_stack = (RS_STACKDATA *) memory->Alloc((sizeof(RS_STACKDATA) * 128 + 15) / 16);
+    RS_CALLDATA  *call_stack = (RS_CALLDATA *) memory->Alloc((sizeof(RS_CALLDATA) * 512 + 15) / 16);
     script->load((RS_PROG_HEADER *) program, value_stack, 128, call_stack,
                  512);
     script->ext_func(ext_func, RS_MONSTER_EXT_LIMIT);

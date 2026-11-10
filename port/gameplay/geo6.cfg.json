@@ -1,0 +1,1121 @@
+{
+  "kind": "georama_analysis",
+  "schema_version": 2,
+  "sources": [
+    {
+      "conditions": [
+        {
+          "geo_floor": 108,
+          "index": 0,
+          "name": "[Uac15][Uc774] 15[Ube14][Ub85d] [Uc774][Uc0c1] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 113,
+          "index": 1,
+          "name": "[Ub208][Uc54c] [Ub098][Ubb34] [Uc0ac][Uc774][Uc5d0] [Ud070] [Ucf54] [Ub098][Ubb34]"
+        },
+        {
+          "geo_floor": 114,
+          "index": 2,
+          "name": "[Ub208], [Ucf54] [Uc788][Ub294] [Ub098][Ubb34] 3[Uac1c][Ub97c] [Uac15][Uc73c][Ub85c] [Ud3ec][Uc704]"
+        },
+        {
+          "geo_floor": 108,
+          "index": 3,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Uc2dc][Ub4e0] [Uac70][Ubaa9] [Ub4f1][Uc7a5]"
+        },
+        {
+          "geo_floor": 108,
+          "index": 4,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Ud638][Uc218] [Ub4f1][Uc7a5]"
+        },
+        {
+          "geo_floor": 108,
+          "index": 5,
+          "name": "[Ub098][Ubb34][Uc5d0] [Ubc15][Uc2dd][Ud55c] [Uc0ac][Ub78c] [Uac70][Uc8fc]"
+        },
+        {
+          "geo_floor": 114,
+          "index": 6,
+          "name": "[Ubbf8][Ub798] [Uc138][Uacc4][Uc5d0] [Uc8fc][Ub77c][Ud06c] [Ubd80][Ud65c]"
+        },
+        {
+          "index": 7,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 30 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 113,
+          "index": 8,
+          "name": "[Ub974][Ub124][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 108,
+          "index": 9,
+          "name": "[Ud3f4][Ub9ac] [Uc544][Uc90c][Ub9c8][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 108,
+          "index": 10,
+          "name": "[Ubc00][Ub808][Ub290][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 113,
+          "index": 11,
+          "name": "[Ub098][Ubb34][Uac00] 10[Uadf8][Ub8e8] [Uc774][Uc0c1] "
+        },
+        {
+          "geo_floor": 114,
+          "index": 12,
+          "name": "[Ubbf8][Ub798][Uc758] [Uc8fc][Ub77c][Ud06c][Uc5d0][Uac8c] [Uac00][Uc9c0] [Uc0dd][Uae40]"
+        },
+        {
+          "geo_floor": 111,
+          "index": 13,
+          "name": "[Ucd08][Uac00][Uc9d1][Uc5d0] [Uc0ac][Ub78c][Uc774] [Uac70][Uc8fc]"
+        },
+        {
+          "geo_floor": 110,
+          "index": 14,
+          "name": "Delete[Ub09c][Uc7c1][Uc774] [Uc9d1][Uc744] [Uc5b8][Ub355] [Uc704][Ub85c] [Uc774][Ub3d9]"
+        },
+        {
+          "geo_floor": 111,
+          "index": 15,
+          "name": "[Ub09c][Uc7c1][Uc774] [Uc9d1][Uc744] [Uc6b8][Ud0c0][Ub9ac][Ub85c] [Uc5d0][Uc6cc][Uc308]"
+        },
+        {
+          "index": 16,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 40 [Uc774][Uc0c1]"
+        },
+        {
+          "index": 17,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 50 [Uc774][Uc0c1]"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 104,
+          "index": 0,
+          "message": "[Uc232][Uc5d0] [Ud638][Uc218] [Ub4f1][Uc7a5]",
+          "on_parts": "p10_f0101",
+          "percent": 10,
+          "unk_10": 1
+        },
+        {
+          "condition_numbers": [
+            6,
+            11
+          ],
+          "geo_floor": 104,
+          "index": 1,
+          "message": "[Ubc84][Uc12f] [Uac00][Ub85c][Ub4f1] [Ub4f1][Uc7a5]",
+          "on_parts": "p09_f0101;hotaru",
+          "percent": 10,
+          "unk_10": 2
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 105,
+          "index": 2,
+          "message": "[Uc2dc][Ub4e0] [Uac70][Ubaa9] [Ub4f1][Uc7a5]",
+          "on_parts": "p07_f0101-1",
+          "percent": 15,
+          "unk_10": 3
+        },
+        {
+          "condition_numbers": [
+            3,
+            4,
+            5
+          ],
+          "index": 3,
+          "message": "[Ub300][Uc7a5][Ub85c] [Uc8fc][Ub77c][Ud06c] [Ubd80][Ud65c]",
+          "on_parts": "p07_f0101;jyuraku",
+          "percent": 15,
+          "unk_10": 4
+        },
+        {
+          "condition_numbers": [
+            6,
+            8,
+            7
+          ],
+          "geo_floor": 107,
+          "index": 4,
+          "message": "[Uc637] [Uac00][Uac8c] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0104;p02_f0104",
+          "percent": 10,
+          "unk_10": 5
+        },
+        {
+          "condition_numbers": [
+            6,
+            9,
+            16
+          ],
+          "geo_floor": 108,
+          "index": 5,
+          "message": "[Uc74c][Uc2dd][Uc810] [Ub4f1][Uc7a5]",
+          "off_parts": "p13_f0101",
+          "on_parts": "p01_f0103;p02_f0103",
+          "percent": 10,
+          "unk_10": 6
+        },
+        {
+          "condition_numbers": [
+            6,
+            10,
+            12,
+            17
+          ],
+          "geo_floor": 108,
+          "index": 6,
+          "message": "[Ubb34][Uae30] [Uac00][Uac8c] [Ub4f1][Uc7a5]",
+          "off_parts": "p12_f0101",
+          "on_parts": "p01_f0102",
+          "percent": 10,
+          "unk_10": 7
+        },
+        {
+          "condition_numbers": [
+            11,
+            15
+          ],
+          "geo_floor": 113,
+          "index": 7,
+          "message": "[Uc8fc][Ub77c][Ud06c][Uc5d0][Uac8c] [Uac00][Uc9c0][Uac00] [Uc0dd][Uae40]",
+          "on_parts": "p08_f0101",
+          "percent": 10,
+          "unk_10": 8
+        },
+        {
+          "condition_numbers": [
+            12,
+            13
+          ],
+          "geo_floor": 109,
+          "index": 8,
+          "message": "[Ud669][Uae08][Uc54c] [Ub4f1][Uc7a5]",
+          "on_parts": "p14_f0101",
+          "percent": 10,
+          "unk_10": 9
+        }
+      ],
+      "id": 0
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 201,
+          "index": 0,
+          "name": "[Uacc4][Uace1] 4[Uacf3][Uc758] [Ub192][Uc774][Uac00] [Ubaa8][Ub450] [Uac19][Ub2e4]"
+        },
+        {
+          "geo_floor": 206,
+          "index": 1,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 20 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 203,
+          "index": 2,
+          "name": "[Ubbf8][Ub798][Uc5d0][Ub294] [Uc544][Ub798][Uce35][Uc5d0] [Uc608][Ubc30][Uc2e4][Uc774] [Uc788][Ub2e4]"
+        },
+        {
+          "geo_floor": 205,
+          "index": 3,
+          "name": "[Ub098][Ubb34][Uac00] 15[Uadf8][Ub8e8] [Uc774][Uc0c1] [Uc2ec][Uc5b4][Uc838] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 209,
+          "index": 4,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 30 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 205,
+          "index": 5,
+          "name": "[Ubbf8][Ub798][Uc5d0][Ub294] [Uc2a4][Ud154][Ub77c] [Uc0ac][Uc6d0][Uc774] [Ubd80][Ud65c]"
+        },
+        {
+          "geo_floor": 219,
+          "index": 6,
+          "name": "[Ud683][Ubd88][Uc774] 4[Uac1c] [Uc774][Uc0c1] [Ucf1c][Uc788][Ub2e4] "
+        },
+        {
+          "geo_floor": 217,
+          "index": 7,
+          "name": "[Ube0c][Ub8e8][Ub178] [Uc2e0][Ubd80][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 207,
+          "index": 8,
+          "name": "[Uc2a4][Ud29c][Uc5b4][Ud2b8][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 221,
+          "index": 9,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 40 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 206,
+          "index": 10,
+          "name": "[Ud3ec][Ud06c][Uac00] [Uc911][Ud654] [Ud3ec][Uc7a5][Ub9c8][Ucc28] [Ub04c][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 211,
+          "index": 11,
+          "name": "[Ub9b0][Uc744] [Uad6c][Ud588][Uc74c]"
+        },
+        {
+          "geo_floor": 217,
+          "index": 12,
+          "name": "[Ud30c][Ud2b8][Ub9ac][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 222,
+          "index": 13,
+          "name": "[Ub4f1][Ub300][Uc5d0] [Ub2ec][Uc758] [Ud06c][Ub9ac][Uc2a4][Ud138][Uc774] [Ub4f1][Uc7a5]"
+        },
+        {
+          "geo_floor": 204,
+          "index": 14,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Ub098][Ubb34] [Uc794][Uad50][Uac00] [Ub4f1][Uc7a5]"
+        },
+        {
+          "geo_floor": 206,
+          "index": 15,
+          "name": "[Uc0ac][Ub78c][Uc774] 2[Uba85] [Uc774][Uc0c1] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 210,
+          "index": 16,
+          "name": "[Ubcc4][Uc758] [Ub7a8][Ud504][Uac00] [Ub2ec][Ub9b0] [Uc9d1][Uc774] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 219,
+          "index": 17,
+          "name": "[Ud30c][Ucee4] [Ubcf4][Uc548][Uad00][Uc774] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 216,
+          "index": 18,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 50 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 204,
+          "index": 19,
+          "name": "[Ud06c][Ub9ac][Uc2a4][Ud138] [Uc608][Ubc30][Uc2e4][Uc774] [Uc788][Uc74c]"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1
+          ],
+          "index": 0,
+          "message": "[Uc544][Ub798][Uce35][Uc5d0] [Uc608][Ubc30][Uc2e4] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0202-0",
+          "percent": 10,
+          "unk_10": 100
+        },
+        {
+          "condition_numbers": [
+            2,
+            3
+          ],
+          "geo_floor": 202,
+          "index": 1,
+          "message": "[Ub098][Ubb34] [Uc794][Uad50] [Ub4f1][Uc7a5]",
+          "off_parts": "p02_f0201-0",
+          "on_parts": "p02_f0202-0;p01_f0205-0;p01_f0205-1;p01_f0205-2;p02_f0205-0;",
+          "percent": 10,
+          "unk_10": 101
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            19
+          ],
+          "index": 2,
+          "message": "[Uc2a4][Ud154][Ub77c] [Uc0ac][Uc6d0] [Ubd80][Ud65c]",
+          "percent": 10,
+          "unk_10": 102
+        },
+        {
+          "condition_numbers": [
+            5,
+            6
+          ],
+          "geo_floor": 210,
+          "index": 3,
+          "message": "[Uc131][Ud654][Ub300] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0209-0",
+          "percent": 10,
+          "unk_10": 103
+        },
+        {
+          "condition_numbers": [
+            2,
+            7
+          ],
+          "geo_floor": 204,
+          "index": 4,
+          "message": "[Ud06c][Ub9ac][Uc2a4][Ud138] [Uc608][Ubc30][Uc2e4] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0203-0;",
+          "percent": 10,
+          "unk_10": 104
+        },
+        {
+          "condition_numbers": [
+            5,
+            8,
+            9
+          ],
+          "geo_floor": 203,
+          "index": 5,
+          "message": "[Uac8c][Uc774][Ud2b8] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0211-0",
+          "percent": 10,
+          "unk_10": 105
+        },
+        {
+          "condition_numbers": [
+            5,
+            10,
+            4
+          ],
+          "index": 6,
+          "message": "[Ub77c][Uc624][Ucc28][Uc624] [Ubc18][Uc810] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0208-0",
+          "percent": 10,
+          "unk_10": 106
+        },
+        {
+          "condition_numbers": [
+            11,
+            16,
+            12,
+            5
+          ],
+          "geo_floor": 205,
+          "index": 7,
+          "message": "[Ub3c4][Uad6c] [Uac00][Uac8c] ‘[Uc2a4][Ud0c0] [Uc544][Uc774][Ud15c]’ [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0206-0",
+          "percent": 10,
+          "unk_10": 107
+        },
+        {
+          "condition_numbers": [
+            5,
+            17,
+            4
+          ],
+          "geo_floor": 217,
+          "index": 8,
+          "message": "[Ubb34][Uae30] [Uac00][Uac8c] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0207-0",
+          "percent": 10,
+          "unk_10": 108
+        },
+        {
+          "condition_numbers": [
+            5,
+            13
+          ],
+          "geo_floor": 219,
+          "index": 9,
+          "message": "[Ub2ec][Uc758] [Ud06c][Ub9ac][Uc2a4][Ud138] & [Ud06c][Ub808][Uc2a4][Ud2b8] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0204-0;moon_crystal",
+          "percent": 10,
+          "unk_10": 109
+        }
+      ],
+      "id": 1
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 302,
+          "index": 0,
+          "name": "[Uc794][Uad50][Uac00] 8[Ube14][Ub85d] [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 306,
+          "index": 1,
+          "name": "[Uc0ac][Ub78c][Uc774] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 302,
+          "index": 2,
+          "name": "[Uc5f0][Uad6c][Uc18c] [Uac74][Ubb3c][Uc758] [Ud1a0][Ub300][Uac00] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 303,
+          "index": 3,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ube68][Uac15])[Uc774] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 304,
+          "index": 4,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ube68][Uac15])[Uc5d0] [Ud074][Ub808][Uc5b4] [Uac70][Uc8fc]"
+        },
+        {
+          "geo_floor": 307,
+          "index": 5,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ube68][Uac15]) [Uac00][Uae4c][Uc774][Uc5d0] [Ubcf4][Ud2b8] [Ubc30][Uce58]"
+        },
+        {
+          "geo_floor": 304,
+          "index": 6,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ud30c][Ub791])[Uc774] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 305,
+          "index": 7,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ud30c][Ub791])[Uc5d0] [Ub3c4][Ub2c8] [Uac70][Uc8fc]"
+        },
+        {
+          "geo_floor": 308,
+          "index": 8,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ud30c][Ub791]) [Uac00][Uae4c][Uc774][Uc5d0] [Ubcf4][Ud2b8] [Ubc30][Uce58]"
+        },
+        {
+          "geo_floor": 310,
+          "index": 9,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ubcf4][Ub77c])[Uc774] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 316,
+          "index": 10,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ubcf4][Ub77c]) [Uac00][Uae4c][Uc774][Uc5d0] [Ubcf4][Ud2b8] [Ubc30][Uce58]"
+        },
+        {
+          "geo_floor": 317,
+          "index": 11,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ub179][Uc0c9])[Uc774] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 318,
+          "index": 12,
+          "name": "[Ucca0][Uc81c] [Uc9d1]([Ub179][Uc0c9]) [Uac00][Uae4c][Uc774][Uc5d0] [Ubcf4][Ud2b8] [Ubc30][Uce58]"
+        },
+        {
+          "geo_floor": 303,
+          "index": 13,
+          "name": "[Ubbf8][Ub798][Uc5d0] 4[Uac1c][Uc758] [Uc5f0][Uad6c][Uc18c][Uac00] [Ubaa8][Ub450] [Uc874][Uc7ac]"
+        },
+        {
+          "geo_floor": 310,
+          "index": 14,
+          "name": "[Uc2dc][Uadf8][Ub77c] [Ub9c8][Uc744][Uc744] [Uad6c][Ud568]"
+        },
+        {
+          "geo_floor": 315,
+          "index": 15,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Ub8e8][Ub098] [Uc5f0][Uad6c][Uc18c][Uac00] [Ubd80][Ud65c]"
+        },
+        {
+          "geo_floor": 316,
+          "index": 16,
+          "name": "[Ub8e8][Ub098] [Uc2a4][Ud1a4] [Ub4f1][Ubd88][Uc774] 8[Uac1c] [Uc774][Uc0c1] [Uc874][Uc7ac]"
+        },
+        {
+          "geo_floor": 318,
+          "index": 17,
+          "name": "[Ud48d][Ucc28][Uac00] [Uc788][Ub2e4]"
+        },
+        {
+          "index": 18,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 30 [Uc774][Uc0c1]"
+        },
+        {
+          "index": 19,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 50 [Uc774][Uc0c1]"
+        },
+        {
+          "index": 20,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 60 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 319,
+          "index": 21,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 80 [Uc774][Uc0c1]"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1,
+            18
+          ],
+          "geo_floor": 301,
+          "index": 0,
+          "message": "[Ub8e8][Ub098] [Uc5f0][Uad6c][Uc18c] [Uac74][Ubb3c] [Ud1a0][Ub300] [Ub4f1][Uc7a5]",
+          "off_parts": "p13_f0301",
+          "on_parts": "p03_f0301;p04_f0301",
+          "percent": 15,
+          "unk_10": 200
+        },
+        {
+          "condition_numbers": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "geo_floor": 302,
+          "index": 1,
+          "message": "[Uc81c] 1 [Uc5f0][Uad6c][Uc2e4] [Ub4f1][Uc7a5]",
+          "off_parts": "p14_f0301",
+          "on_parts": "p05_f0301",
+          "percent": 10,
+          "unk_10": 201
+        },
+        {
+          "condition_numbers": [
+            2,
+            6,
+            7,
+            8
+          ],
+          "geo_floor": 302,
+          "index": 2,
+          "message": "[Uc81c] 3 [Uc5f0][Uad6c][Uc2e4] [Ub4f1][Uc7a5]",
+          "off_parts": "p15_f0301",
+          "on_parts": "p06_f0301",
+          "percent": 10,
+          "unk_10": 202
+        },
+        {
+          "condition_numbers": [
+            2,
+            9,
+            10
+          ],
+          "geo_floor": 302,
+          "index": 3,
+          "message": "[Uc81c] 3 [Uc5f0][Uad6c][Uc2e4] [Ub4f1][Uc7a5]",
+          "off_parts": "p16_f0301",
+          "on_parts": "p07_f0301",
+          "percent": 10,
+          "unk_10": 203
+        },
+        {
+          "condition_numbers": [
+            2,
+            11,
+            12
+          ],
+          "geo_floor": 302,
+          "index": 4,
+          "message": "[Uc81c] 4 [Uc5f0][Uad6c][Uc2e4] [Ub4f1][Uc7a5]",
+          "off_parts": "p17_f0301",
+          "on_parts": "p08_f0301",
+          "percent": 10,
+          "unk_10": 204
+        },
+        {
+          "condition_numbers": [
+            13,
+            14,
+            19
+          ],
+          "geo_floor": 301,
+          "index": 5,
+          "message": "[Ub8e8][Ub098] [Uc5f0][Uad6c][Uc18c]([Uc911][Uc559] [Uc5f0][Uad6c][Uc2e4]) [Ubd80][Ud65c]",
+          "on_parts": "p09_f0301",
+          "percent": 10,
+          "unk_10": 205
+        },
+        {
+          "condition_numbers": [
+            15,
+            16,
+            20
+          ],
+          "geo_floor": 308,
+          "index": 6,
+          "message": "[Ud06c][Ub9ac][Uc2a4][Ud138] [Ub77c][Uc774][Ud2b8] [Ub4f1][Uc7a5]",
+          "on_parts": "p12_f0301",
+          "percent": 10,
+          "unk_10": 206
+        },
+        {
+          "condition_numbers": [
+            15,
+            17
+          ],
+          "geo_floor": 315,
+          "index": 7,
+          "message": "[Uc548][Ud14c][Ub098] [Ub4f1][Uc7a5]",
+          "on_parts": "p11_f0301",
+          "percent": 10,
+          "unk_10": 207
+        },
+        {
+          "condition_numbers": [
+            15,
+            21
+          ],
+          "geo_floor": 316,
+          "index": 8,
+          "message": "[Ub8e8][Ub098] [Uc5f0][Uad6c][Uc18c] [Uc5e0][Ube14][Ub7fc] [Ub4f1][Uc7a5]",
+          "on_parts": "p10_f0301",
+          "percent": 15,
+          "unk_10": 208
+        }
+      ],
+      "id": 2
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 402,
+          "index": 0,
+          "name": "[Uc9d1][Uc774] 3[Ucc44] [Uc774][Uc0c1] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 403,
+          "index": 1,
+          "name": "3[Ube14][Ub85d] [Uc774][Uc0c1] [Ub192][Uc774][Uc5d0] [Uc9d1][Uc774] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 404,
+          "index": 2,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Uacf5][Uc791][Uc18c] 2[Uce35][Uc774] [Uc644][Uc131]"
+        },
+        {
+          "geo_floor": 409,
+          "index": 3,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Uacf5][Uc791][Uc18c] 3[Uce35][Uc774] [Uc644][Uc131]"
+        },
+        {
+          "geo_floor": 415,
+          "index": 4,
+          "name": "[Ubcf4][Ub974][Ub124][Uc624][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 414,
+          "index": 5,
+          "name": "[Ud06c][Ub808][Uc778][Uacfc] [Uc554][Uc774] [Uc874][Uc7ac]"
+        },
+        {
+          "geo_floor": 413,
+          "index": 6,
+          "name": "[Ubc1c][Uc804][Uae30][Uac00] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 418,
+          "index": 7,
+          "name": "[Uc2a4][Ud0c0][Ube14][Uc774] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 417,
+          "index": 8,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Uac74][Ub3c4][Ub77c][Ub2e4] [Uacf5][Uc791][Uc18c][Uac00] [Ubd80][Ud65c]"
+        },
+        {
+          "geo_floor": 412,
+          "index": 9,
+          "name": "[Ud06c][Ub808][Uc778] [Ub2ec][Ub9b0] [Uc9d1][Uc5d0] [Uc0ac][Ub78c][Uc774] [Uac70][Uc8fc]"
+        },
+        {
+          "geo_floor": 415,
+          "index": 10,
+          "name": "[Ud48d][Ucc28][Uac00] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 412,
+          "index": 11,
+          "name": "[Uc554][Uc774] [Ub2ec][Ub9b0] [Uc9d1][Uc5d0] [Uc0ac][Ub78c] [Uac70][Uc8fc]"
+        },
+        {
+          "geo_floor": 417,
+          "index": 12,
+          "name": "[Uc870][Uc885][Uc2e4][Uc774] [Uc874][Uc7ac][Ud568]"
+        },
+        {
+          "geo_floor": 413,
+          "index": 13,
+          "name": "[Ud56d][Uc544][Ub9ac][Uac00] 10[Uac1c] [Uc774][Uc0c1] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 401,
+          "index": 14,
+          "name": "[Ud30c][Uc774][Uc5b4] [Uc2a4][Ucf5c] [Ubc1c][Uc0dd][Uae30] [Ud30c][Uad34]"
+        },
+        {
+          "geo_floor": 420,
+          "index": 15,
+          "name": "[Uc81c][Ub7f4][Ub4dc][Uac00] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 419,
+          "index": 16,
+          "name": "Delete4[Ube14][Ub85d] [Uc774][Uc0c1] [Ub192][Uc774][Uc5d0] [Uc0ac][Ub78c] [Uc0ac][Ub294] [Uc9d1] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 409,
+          "index": 17,
+          "name": "[Uad74][Ub69d] [Ub2ec][Ub9b0] [Uc9d1][Uc5d0] [Uc0ac][Ub78c][Uc774] [Uac70][Uc8fc]"
+        },
+        {
+          "geo_floor": 419,
+          "index": 18,
+          "name": "[Ud48d][Ucc28] [Uadfc][Ucc98][Uc5d0] [Ud1b0][Uc774] [Uc0b4][Uace0] [Uc788][Uc74c]"
+        },
+        {
+          "geo_floor": 421,
+          "index": 19,
+          "name": "[Uae38][Ud2b8][Ub2c8][Ub97c] [Uc4f0][Ub7ec][Ub728][Ub9bc]"
+        },
+        {
+          "index": 20,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 30 [Uc774][Uc0c1]"
+        },
+        {
+          "index": 21,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 60 [Uc774][Uc0c1]"
+        },
+        {
+          "index": 22,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 70 [Uc774][Uc0c1]"
+        },
+        {
+          "index": 23,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 80 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 410,
+          "index": 24,
+          "name": "[Ubb38][Uba85] [Ud3ec][Uc778][Ud2b8] 100 [Uc774][Uc0c1]"
+        },
+        {
+          "geo_floor": 404,
+          "index": 25,
+          "name": "[Ubbf8][Ub798][Uc5d0] [Uc5d8][Ub9ac][Ubca0][Uc774][Ud130][Uac00] [Ub4f1][Uc7a5]"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            20
+          ],
+          "geo_floor": 401,
+          "index": 0,
+          "message": "[Uacf5][Uc791][Uc18c] 2[Uce35] [Ub4f1][Uc7a5]",
+          "on_parts": "p02_f0401;p07_f0401-2;p07_f0401-3;p18_f0401;p21_f0401-1",
+          "percent": 5,
+          "unk_10": 300
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 402,
+          "index": 1,
+          "message": "[Uacf5][Uc791][Uc18c] 3[Uce35] [Ub4f1][Uc7a5]",
+          "on_parts": "p05_f0401;p19_f0401-2;p19_f0401-3",
+          "percent": 5,
+          "unk_10": 301
+        },
+        {
+          "condition_numbers": [
+            17,
+            3,
+            21
+          ],
+          "geo_floor": 403,
+          "index": 2,
+          "message": "[Uc5d8][Ub9ac][Ubca0][Uc774][Ud130] [Ub4f1][Uc7a5]",
+          "on_parts": "p04_f0401;p09_f0401;p09_f0401-1;p24_f0401",
+          "percent": 10,
+          "unk_10": 302
+        },
+        {
+          "condition_numbers": [
+            25,
+            4,
+            5,
+            6
+          ],
+          "geo_floor": 404,
+          "index": 3,
+          "message": "[Uac74][Ub3c4][Ub77c][Ub2e4] [Uacf5][Uc791][Uc18c] [Ubd80][Ud65c]",
+          "percent": 10,
+          "unk_10": 303
+        },
+        {
+          "condition_numbers": [
+            9,
+            3,
+            10
+          ],
+          "geo_floor": 410,
+          "index": 4,
+          "message": "[Uc791][Uc5c5] [Ud06c][Ub808][Uc778] [Ub4f1][Uc7a5]",
+          "on_parts": "p11_f0401",
+          "percent": 10,
+          "unk_10": 304
+        },
+        {
+          "condition_numbers": [
+            11,
+            2,
+            13
+          ],
+          "geo_floor": 411,
+          "index": 5,
+          "message": "[Uc791][Uc5c5] [Uc554] [Ub4f1][Uc7a5]",
+          "on_parts": "p10_f0401",
+          "percent": 10,
+          "unk_10": 305
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            8,
+            24
+          ],
+          "geo_floor": 412,
+          "index": 6,
+          "message": "[Uc870][Uc885][Uc2e4] [Ub4f1][Uc7a5]",
+          "on_parts": "p12_f0401",
+          "percent": 10,
+          "unk_10": 306
+        },
+        {
+          "condition_numbers": [
+            7,
+            8,
+            22
+          ],
+          "geo_floor": 414,
+          "index": 7,
+          "message": "[Ubd80][Ud488] [Uac00][Uac8c] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0404",
+          "percent": 10,
+          "unk_10": 307
+        },
+        {
+          "condition_numbers": [
+            17,
+            8,
+            22
+          ],
+          "geo_floor": 417,
+          "index": 8,
+          "message": "[Uc544][Uc774][Ud15c] [Uac00][Uac8c] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0405",
+          "percent": 10,
+          "unk_10": 308
+        },
+        {
+          "condition_numbers": [
+            18,
+            8,
+            22
+          ],
+          "geo_floor": 418,
+          "index": 9,
+          "message": "[Ubb34][Uae30] [Uac00][Uac8c] [Ub4f1][Uc7a5]",
+          "on_parts": "p01_f0403",
+          "percent": 10,
+          "unk_10": 309
+        },
+        {
+          "condition_numbers": [
+            19,
+            12
+          ],
+          "index": 10,
+          "message": "[Ud30c][Uc988][Ub178][Uc2a4] [Uc644][Uc131]",
+          "on_parts": "p20_f0401;p22_f0401;p23_f0401",
+          "percent": 10,
+          "unk_10": 310
+        }
+      ],
+      "id": 3
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 501,
+          "index": 0,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 502,
+          "index": 1,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 503,
+          "index": 2,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 504,
+          "index": 3,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 505,
+          "index": 4,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 505,
+          "index": 5,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 506,
+          "index": 6,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 507,
+          "index": 7,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 507,
+          "index": 8,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 508,
+          "index": 9,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 509,
+          "index": 10,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        },
+        {
+          "geo_floor": 510,
+          "index": 11,
+          "name": "[Uc54c] [Uc218] [Uc5c6][Ub294] [Ud798][Uc5d0] [Uc758][Ud574] [Ud574][Ub3c5] [Ubd88][Uac00]"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 501,
+          "index": 0,
+          "message": "[Ud587][Uc0b4] [Uc2a4][Ubbfc] [Ubb3c] [Ud5a5][Uae30]",
+          "percent": 10,
+          "unk_10": 400
+        },
+        {
+          "condition_numbers": [
+            1
+          ],
+          "geo_floor": 502,
+          "index": 1,
+          "message": "[Ud568][Uaed8] [Uac70][Ub2d0][Ub358] [Uaf43][Uae38]",
+          "percent": 10,
+          "unk_10": 401
+        },
+        {
+          "condition_numbers": [
+            2
+          ],
+          "geo_floor": 503,
+          "index": 2,
+          "message": "[Ub2ec][Uc758] [Uae30][Ub465][Uc774] [Uc778][Ub3c4][Ud558][Ub294] [Ubb38]",
+          "percent": 10,
+          "unk_10": 402
+        },
+        {
+          "condition_numbers": [
+            3
+          ],
+          "geo_floor": 504,
+          "index": 3,
+          "message": "[Ud0dc][Uc591][Uc774] [Uc9c0][Ub098][Ub294] [Uae38]",
+          "percent": 10,
+          "unk_10": 403
+        },
+        {
+          "condition_numbers": [
+            4,
+            5
+          ],
+          "geo_floor": 505,
+          "index": 4,
+          "message": "[Ubcc4][Ube5b] [Uacc4][Ub2e8][Uacfc] [Uc2dc][Ub0c7][Ubb3c] [Uc18c][Ub9ac]",
+          "percent": 10,
+          "unk_10": 404
+        },
+        {
+          "condition_numbers": [
+            6
+          ],
+          "geo_floor": 506,
+          "index": 5,
+          "message": "[Ucd94][Uc5b5][Uc758] [Ud654][Ub2e8]",
+          "percent": 10,
+          "unk_10": 405
+        },
+        {
+          "condition_numbers": [
+            7,
+            8
+          ],
+          "geo_floor": 507,
+          "index": 6,
+          "message": "[Uacc4][Ub2e8] [Uc606][Uc5d0] [Uc549][Uc544][Uc788][Ub358] [Ub108]",
+          "percent": 10,
+          "unk_10": 406
+        },
+        {
+          "condition_numbers": [
+            9
+          ],
+          "geo_floor": 508,
+          "index": 7,
+          "message": "[Uc2ac][Ud514][Uc758] [Ud68c][Ub791]. [Uadf8] [Ub05d][Uc5d0][Ub294]?",
+          "percent": 10,
+          "unk_10": 407
+        },
+        {
+          "condition_numbers": [
+            10
+          ],
+          "geo_floor": 509,
+          "index": 8,
+          "message": "[Uc740][Ud558][Uc218] [Uc5f0][Ubabb][Uc5d0] [Uac10][Ucdb0][Uc9c4] [Ub9c8][Uc74c]",
+          "percent": 10,
+          "unk_10": 408
+        },
+        {
+          "condition_numbers": [
+            11
+          ],
+          "geo_floor": 510,
+          "index": 9,
+          "message": "[Ub098][Ubb34][Ub4e4][Uc758] [Uc220][Ub801][Uc784]",
+          "percent": 10,
+          "unk_10": 409
+        }
+      ],
+      "id": 4
+    }
+  ]
+}

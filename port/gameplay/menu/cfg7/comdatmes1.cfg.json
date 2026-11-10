@@ -1,0 +1,1698 @@
+{
+  "kind": "item_messages",
+  "messages": [
+    {
+      "item_no": 11,
+      "name": "Swan"
+    },
+    {
+      "item_no": 12,
+      "name": "Flamingo"
+    },
+    {
+      "item_no": 13,
+      "name": "Falcon"
+    },
+    {
+      "item_no": 14,
+      "name": "Albatross"
+    },
+    {
+      "item_no": 15,
+      "name": "Turtle Shell Hammer"
+    },
+    {
+      "item_no": 16,
+      "name": "Big Bucks Hammer"
+    },
+    {
+      "item_no": 17,
+      "name": "Frozen Tuna"
+    },
+    {
+      "item_no": 18,
+      "name": "Kubera's Hand"
+    },
+    {
+      "item_no": 19,
+      "name": "Sigma Breaker"
+    },
+    {
+      "item_no": 20,
+      "name": "Grade Zero"
+    },
+    {
+      "item_no": 21,
+      "name": "LEGEND"
+    },
+    {
+      "item_no": 22,
+      "name": "Classic Gun"
+    },
+    {
+      "item_no": 23,
+      "name": "Dryer Gun"
+    },
+    {
+      "item_no": 24,
+      "name": "Trumpet Gun"
+    },
+    {
+      "item_no": 25,
+      "name": "Bell Trigger"
+    },
+    {
+      "item_no": 26,
+      "name": "Magic Gun"
+    },
+    {
+      "item_no": 27,
+      "name": "Soul Breaker"
+    },
+    {
+      "item_no": 28,
+      "name": "Grenade Launcher"
+    },
+    {
+      "item_no": 29,
+      "name": "Dark Viper"
+    },
+    {
+      "item_no": 30,
+      "name": "Twin Buster"
+    },
+    {
+      "item_no": 31,
+      "name": "Jurak Gun"
+    },
+    {
+      "item_no": 32,
+      "name": "Question Shooter"
+    },
+    {
+      "item_no": 33,
+      "name": "Steal Gun"
+    },
+    {
+      "item_no": 34,
+      "name": "Supernova"
+    },
+    {
+      "item_no": 35,
+      "name": "Star Breaker"
+    },
+    {
+      "item_no": 36,
+      "name": "Wild Cat"
+    },
+    {
+      "item_no": 37,
+      "name": "Sexy Panther"
+    },
+    {
+      "item_no": 38,
+      "name": "Desperado"
+    },
+    {
+      "item_no": 39,
+      "name": "Sigma Bazooka"
+    },
+    {
+      "item_no": 40,
+      "name": "Last Resort"
+    },
+    {
+      "item_no": 41,
+      "name": "Long Sword"
+    },
+    {
+      "item_no": 1,
+      "name": "Battle Wrench"
+    },
+    {
+      "item_no": 2,
+      "name": "Drill Wrench"
+    },
+    {
+      "item_no": 3,
+      "name": "Smash Wrench"
+    },
+    {
+      "item_no": 4,
+      "name": "Stinger Wrench"
+    },
+    {
+      "item_no": 5,
+      "name": "Poison Wrench"
+    },
+    {
+      "item_no": 6,
+      "name": "Cubic Hammer"
+    },
+    {
+      "item_no": 7,
+      "name": "Digi Hammer"
+    },
+    {
+      "item_no": 8,
+      "name": "Heavy Hammer"
+    },
+    {
+      "item_no": 9,
+      "name": "Handy Stick"
+    },
+    {
+      "item_no": 10,
+      "name": "Turkey"
+    },
+    {
+      "item_no": 42,
+      "name": "Broad Sword"
+    },
+    {
+      "item_no": 43,
+      "name": "Baselard"
+    },
+    {
+      "item_no": 44,
+      "name": "Gladius"
+    },
+    {
+      "item_no": 45,
+      "name": "Wise Owl Sword"
+    },
+    {
+      "item_no": 46,
+      "name": "Cliff Knife"
+    },
+    {
+      "item_no": 47,
+      "name": "Antique Sword"
+    },
+    {
+      "item_no": 48,
+      "name": "Bastard Sword"
+    },
+    {
+      "item_no": 49,
+      "name": "Kitchen Knife"
+    },
+    {
+      "item_no": 50,
+      "name": "Tsukikage"
+    },
+    {
+      "item_no": 51,
+      "name": "Sun Sword"
+    },
+    {
+      "item_no": 52,
+      "name": "Serpent Slicer"
+    },
+    {
+      "item_no": 53,
+      "name": "Macho Sword"
+    },
+    {
+      "item_no": 54,
+      "name": "Shamshir"
+    },
+    {
+      "item_no": 55,
+      "name": "Ama no Murakumo"
+    },
+    {
+      "item_no": 56,
+      "name": "Lamb's Sword"
+    },
+    {
+      "item_no": 57,
+      "name": "Dark Cloud"
+    },
+    {
+      "item_no": 58,
+      "name": "Brave Ark"
+    },
+    {
+      "item_no": 59,
+      "name": "Big Bang"
+    },
+    {
+      "item_no": 60,
+      "name": "Atlamillia Sword"
+    },
+    {
+      "item_no": 61,
+      "name": "Mardan Sword"
+    },
+    {
+      "item_no": 62,
+      "name": "Garayan Sword"
+    },
+    {
+      "item_no": 63,
+      "name": "Mardan Garayan"
+    },
+    {
+      "item_no": 64,
+      "name": "Ruler's Sword"
+    },
+    {
+      "item_no": 65,
+      "name": "Evilcise"
+    },
+    {
+      "item_no": 66,
+      "name": "Small Sword"
+    },
+    {
+      "item_no": 67,
+      "name": "Sand Breaker"
+    },
+    {
+      "item_no": 68,
+      "name": "Drain Seeker"
+    },
+    {
+      "item_no": 69,
+      "name": "Chopper"
+    },
+    {
+      "item_no": 70,
+      "name": "Choora"
+    },
+    {
+      "item_no": 71,
+      "name": "Claymore"
+    },
+    {
+      "item_no": 72,
+      "name": "Maneater"
+    },
+    {
+      "item_no": 73,
+      "name": "Bone Rapier"
+    },
+    {
+      "item_no": 74,
+      "name": "Sax"
+    },
+    {
+      "item_no": 75,
+      "name": "7 Branch Sword"
+    },
+    {
+      "item_no": 76,
+      "name": "Dusack"
+    },
+    {
+      "item_no": 77,
+      "name": "Cross Heinder"
+    },
+    {
+      "item_no": 78,
+      "name": "7th Heaven"
+    },
+    {
+      "item_no": 79,
+      "name": "Sword of Zeus"
+    },
+    {
+      "item_no": 80,
+      "name": "Chronicle Sword"
+    },
+    {
+      "item_no": 81,
+      "name": "Chronicle 2"
+    },
+    {
+      "item_no": 82,
+      "name": "Holy Daedalus Blade"
+    },
+    {
+      "item_no": 83,
+      "name": "Muramasa"
+    },
+    {
+      "item_no": 84,
+      "name": "Dark Excalibur"
+    },
+    {
+      "item_no": 85,
+      "name": "Sargatanas"
+    },
+    {
+      "item_no": 86,
+      "name": "Halloween Blade"
+    },
+    {
+      "item_no": 87,
+      "name": "Shining Bravado"
+    },
+    {
+      "item_no": 88,
+      "name": "Island King"
+    },
+    {
+      "item_no": 89,
+      "name": "Griffon Fork"
+    },
+    {
+      "item_no": 90,
+      "name": "True Battle Wrench"
+    },
+    {
+      "item_no": 91,
+      "name": "Magic Brassard"
+    },
+    {
+      "item_no": 92,
+      "name": "Gold Brassard"
+    },
+    {
+      "item_no": 93,
+      "name": "Bandit Brassard"
+    },
+    {
+      "item_no": 94,
+      "name": "Crystal Brassard"
+    },
+    {
+      "item_no": 95,
+      "name": "Platinum Brassard"
+    },
+    {
+      "item_no": 96,
+      "name": "Goddess Brassard"
+    },
+    {
+      "item_no": 97,
+      "name": "Spirit Brassard"
+    },
+    {
+      "item_no": 98,
+      "name": "Destruction Brassard"
+    },
+    {
+      "item_no": 99,
+      "name": "Satan Brassard"
+    },
+    {
+      "item_no": 100,
+      "name": "Athena's Armlet"
+    },
+    {
+      "item_no": 101,
+      "name": "Mobius Bangle"
+    },
+    {
+      "item_no": 102,
+      "name": "Angel Shooter"
+    },
+    {
+      "item_no": 103,
+      "name": "Pocklekul"
+    },
+    {
+      "item_no": 104,
+      "name": "Thorn Armlet"
+    },
+    {
+      "item_no": 105,
+      "name": "Star Armlet"
+    },
+    {
+      "item_no": 106,
+      "name": "Moon Armlet"
+    },
+    {
+      "item_no": 107,
+      "name": "Sun Armlet"
+    },
+    {
+      "item_no": 108,
+      "name": "Five-Star Armlet"
+    },
+    {
+      "item_no": 109,
+      "name": "Love"
+    },
+    {
+      "item_no": 110,
+      "name": "Royal Sword"
+    },
+    {
+      "item_no": 111,
+      "name": "Hunting Cap"
+    },
+    {
+      "item_no": 112,
+      "name": "Fashionable Cap"
+    },
+    {
+      "item_no": 113,
+      "name": "Two-Tone Beret"
+    },
+    {
+      "item_no": 114,
+      "name": "Maintenance Cap"
+    },
+    {
+      "item_no": 115,
+      "name": "Explorer's Helmet"
+    },
+    {
+      "item_no": 116,
+      "name": "Clown Hat"
+    },
+    {
+      "item_no": 117,
+      "name": "Leather Shoes"
+    },
+    {
+      "item_no": 118,
+      "name": "Wing Shoes"
+    },
+    {
+      "item_no": 119,
+      "name": "Work Shoes"
+    },
+    {
+      "item_no": 120,
+      "name": "Dragon Shoes"
+    },
+    {
+      "item_no": 121,
+      "name": "Clown Shoes"
+    },
+    {
+      "item_no": 122,
+      "name": "Explorer's Shoes"
+    },
+    {
+      "item_no": 123,
+      "name": "Yellow Ribbon"
+    },
+    {
+      "item_no": 124,
+      "name": "Striped Ribbon"
+    },
+    {
+      "item_no": 125,
+      "name": "Zipangu Comb"
+    },
+    {
+      "item_no": 126,
+      "name": "Swallowtail"
+    },
+    {
+      "item_no": 127,
+      "name": "Princess Orb"
+    },
+    {
+      "item_no": 128,
+      "name": "Kitty Bell"
+    },
+    {
+      "item_no": 129,
+      "name": "Knight Boots"
+    },
+    {
+      "item_no": 130,
+      "name": "Metal Boots"
+    },
+    {
+      "item_no": 131,
+      "name": "Wing Boots"
+    },
+    {
+      "item_no": 132,
+      "name": "Spike Boots"
+    },
+    {
+      "item_no": 133,
+      "name": "Princess Boots"
+    },
+    {
+      "item_no": 134,
+      "name": "Panther Boots"
+    },
+    {
+      "item_no": 135,
+      "name": "Drum Can Body"
+    },
+    {
+      "item_no": 136,
+      "name": "Milk Can Body"
+    },
+    {
+      "item_no": 137,
+      "name": "Refrigerator Body"
+    },
+    {
+      "item_no": 138,
+      "name": "Wooden Box Body"
+    },
+    {
+      "item_no": 139,
+      "name": "Clown Body"
+    },
+    {
+      "item_no": 140,
+      "name": "Samurai Body"
+    },
+    {
+      "item_no": 141,
+      "name": "Super-Alloy Body"
+    },
+    {
+      "item_no": 142,
+      "name": "Sun and Moon Armor"
+    },
+    {
+      "item_no": 145,
+      "name": "Cannonball Arm"
+    },
+    {
+      "item_no": 146,
+      "name": "Barrel Cannon"
+    },
+    {
+      "item_no": 147,
+      "name": "Drill Arm"
+    },
+    {
+      "item_no": 148,
+      "name": "Missile Pod Arm"
+    },
+    {
+      "item_no": 149,
+      "name": "Hammer Arm"
+    },
+    {
+      "item_no": 150,
+      "name": "Machine Gun Arm"
+    },
+    {
+      "item_no": 151,
+      "name": "Clown Hand"
+    },
+    {
+      "item_no": 152,
+      "name": "Samurai Arm"
+    },
+    {
+      "item_no": 153,
+      "name": "Laser Arm"
+    },
+    {
+      "item_no": 154,
+      "name": "Nova Cannon"
+    },
+    {
+      "item_no": 155,
+      "name": "Iron Leg"
+    },
+    {
+      "item_no": 156,
+      "name": "Caterpillar"
+    },
+    {
+      "item_no": 157,
+      "name": "Bucket Leg"
+    },
+    {
+      "item_no": 158,
+      "name": "Roller Foot"
+    },
+    {
+      "item_no": 159,
+      "name": "Buggy"
+    },
+    {
+      "item_no": 160,
+      "name": "Propeller Leg"
+    },
+    {
+      "item_no": 161,
+      "name": "Multi Feet"
+    },
+    {
+      "item_no": 162,
+      "name": "Jet Hover"
+    },
+    {
+      "item_no": 163,
+      "name": "Clown Foot"
+    },
+    {
+      "item_no": 165,
+      "name": "Energy Pack"
+    },
+    {
+      "item_no": 166,
+      "name": "Energy Pack (Barrel)"
+    },
+    {
+      "item_no": 167,
+      "name": "Bucket Pack"
+    },
+    {
+      "item_no": 168,
+      "name": "Cleaner Pack"
+    },
+    {
+      "item_no": 169,
+      "name": "Energy Pack (Urn)"
+    },
+    {
+      "item_no": 170,
+      "name": "Triple-Urn Pack"
+    },
+    {
+      "item_no": 172,
+      "name": "Monster Notes"
+    },
+    {
+      "item_no": 173,
+      "name": "Dynamite"
+    },
+    {
+      "item_no": 174,
+      "name": "Seal-Breaking Scroll"
+    },
+    {
+      "item_no": 175,
+      "name": "Flame Crystal"
+    },
+    {
+      "item_no": 176,
+      "name": "Chill Crystal"
+    },
+    {
+      "item_no": 177,
+      "name": "Lightning Crystal"
+    },
+    {
+      "item_no": 178,
+      "name": "Hunter Crystal"
+    },
+    {
+      "item_no": 179,
+      "name": "Holy Crystal"
+    },
+    {
+      "item_no": 180,
+      "name": "Destruction Crystal"
+    },
+    {
+      "item_no": 181,
+      "name": "Wind Crystal"
+    },
+    {
+      "item_no": 182,
+      "name": "Sea Dragon Crystal"
+    },
+    {
+      "item_no": 183,
+      "name": "Power Crystal"
+    },
+    {
+      "item_no": 184,
+      "name": "Protector Crystal"
+    },
+    {
+      "item_no": 185,
+      "name": "[line1]"
+    },
+    {
+      "item_no": 186,
+      "name": "Garnet"
+    },
+    {
+      "item_no": 187,
+      "name": "Amethyst"
+    },
+    {
+      "item_no": 188,
+      "name": "Aquamarine"
+    },
+    {
+      "item_no": 189,
+      "name": "Diamond"
+    },
+    {
+      "item_no": 190,
+      "name": "Emerald"
+    },
+    {
+      "item_no": 191,
+      "name": "Pearl"
+    },
+    {
+      "item_no": 192,
+      "name": "Ruby"
+    },
+    {
+      "item_no": 193,
+      "name": "Peridot"
+    },
+    {
+      "item_no": 194,
+      "name": "Sapphire"
+    },
+    {
+      "item_no": 195,
+      "name": "Opal"
+    },
+    {
+      "item_no": 196,
+      "name": "Topaz"
+    },
+    {
+      "item_no": 197,
+      "name": "Turquoise"
+    },
+    {
+      "item_no": 198,
+      "name": "Sun Stone"
+    },
+    {
+      "item_no": 199,
+      "name": "Moon Stone"
+    },
+    {
+      "item_no": 200,
+      "name": "Wealth Coin"
+    },
+    {
+      "item_no": 201,
+      "name": "Dark Coin"
+    },
+    {
+      "item_no": 202,
+      "name": "Indestructible Coin"
+    },
+    {
+      "item_no": 203,
+      "name": "Poison Coin"
+    },
+    {
+      "item_no": 204,
+      "name": "Time Coin"
+    },
+    {
+      "item_no": 205,
+      "name": "Bandit Coin"
+    },
+    {
+      "item_no": 206,
+      "name": "Absorption Coin"
+    },
+    {
+      "item_no": 207,
+      "name": "Healing Coin"
+    },
+    {
+      "item_no": 208,
+      "name": "Bull's-Eye Coin"
+    },
+    {
+      "item_no": 209,
+      "name": "Experience Coin"
+    },
+    {
+      "item_no": 210,
+      "name": "Rolling Log"
+    },
+    {
+      "item_no": 211,
+      "name": "Sturdy Rock"
+    },
+    {
+      "item_no": 212,
+      "name": "Rough Rock"
+    },
+    {
+      "item_no": 213,
+      "name": "Bundle of Hay"
+    },
+    {
+      "item_no": 214,
+      "name": "Sturdy Cloth"
+    },
+    {
+      "item_no": 215,
+      "name": "Gunpowder"
+    },
+    {
+      "item_no": 216,
+      "name": "Glass Material"
+    },
+    {
+      "item_no": 217,
+      "name": "Unknown Bone"
+    },
+    {
+      "item_no": 218,
+      "name": "Sticky Clay"
+    },
+    {
+      "item_no": 219,
+      "name": "Flour"
+    },
+    {
+      "item_no": 220,
+      "name": "Sugar Cane"
+    },
+    {
+      "item_no": 221,
+      "name": "Super Hot Pepper"
+    },
+    {
+      "item_no": 222,
+      "name": "Poison"
+    },
+    {
+      "item_no": 223,
+      "name": "Forest Dew"
+    },
+    {
+      "item_no": 224,
+      "name": "Scrap of Metal"
+    },
+    {
+      "item_no": 225,
+      "name": "Gold Bar"
+    },
+    {
+      "item_no": 226,
+      "name": "Silver Ball"
+    },
+    {
+      "item_no": 227,
+      "name": "Hunk of Copper"
+    },
+    {
+      "item_no": 228,
+      "name": "Light Element"
+    },
+    {
+      "item_no": 229,
+      "name": "Holy Element"
+    },
+    {
+      "item_no": 230,
+      "name": "Earth Element"
+    },
+    {
+      "item_no": 231,
+      "name": "Water Element"
+    },
+    {
+      "item_no": 232,
+      "name": "Chill Element"
+    },
+    {
+      "item_no": 233,
+      "name": "Thunder Element"
+    },
+    {
+      "item_no": 234,
+      "name": "Wind Element"
+    },
+    {
+      "item_no": 235,
+      "name": "Fire Element"
+    },
+    {
+      "item_no": 236,
+      "name": "Life Element"
+    },
+    {
+      "item_no": 237,
+      "name": "Paint (Red)"
+    },
+    {
+      "item_no": 238,
+      "name": "Paint (Blue)"
+    },
+    {
+      "item_no": 239,
+      "name": "Paint (Black)"
+    },
+    {
+      "item_no": 240,
+      "name": "Paint (Green)"
+    },
+    {
+      "item_no": 241,
+      "name": "Paint (Orange)"
+    },
+    {
+      "item_no": 242,
+      "name": "Paint (Yellow)"
+    },
+    {
+      "item_no": 243,
+      "name": "Paint (Purple)"
+    },
+    {
+      "item_no": 244,
+      "name": "Paint (Pink)"
+    },
+    {
+      "item_no": 245,
+      "name": "Thick Hide"
+    },
+    {
+      "item_no": 246,
+      "name": "Core"
+    },
+    {
+      "item_no": 247,
+      "name": "Improved Core"
+    },
+    {
+      "item_no": 248,
+      "name": "Core II"
+    },
+    {
+      "item_no": 249,
+      "name": "Core III"
+    },
+    {
+      "item_no": 250,
+      "name": "Super Core"
+    },
+    {
+      "item_no": 251,
+      "name": "Hyper Core"
+    },
+    {
+      "item_no": 252,
+      "name": "Master Grade Core"
+    },
+    {
+      "item_no": 253,
+      "name": "Anti-Petrify Amulet"
+    },
+    {
+      "item_no": 254,
+      "name": "Non-Stop Amulet"
+    },
+    {
+      "item_no": 255,
+      "name": "Anti-Curse Amulet"
+    },
+    {
+      "item_no": 256,
+      "name": "Anti-Goo Amulet"
+    },
+    {
+      "item_no": 257,
+      "name": "Antidote Amulet"
+    },
+    {
+      "item_no": 258,
+      "name": "Green Overalls"
+    },
+    {
+      "item_no": 259,
+      "name": "Red Vest"
+    },
+    {
+      "item_no": 260,
+      "name": "Denim Overalls"
+    },
+    {
+      "item_no": 261,
+      "name": "Explorer's Outfit"
+    },
+    {
+      "item_no": 262,
+      "name": "Clown Suit"
+    },
+    {
+      "item_no": 263,
+      "name": "Pumpkin Shorts"
+    },
+    {
+      "item_no": 264,
+      "name": "Striped Dress"
+    },
+    {
+      "item_no": 265,
+      "name": "Star Leotard"
+    },
+    {
+      "item_no": 266,
+      "name": "Princess Dress"
+    },
+    {
+      "item_no": 267,
+      "name": "Panther Ensemble"
+    },
+    {
+      "item_no": 268,
+      "name": "Bread"
+    },
+    {
+      "item_no": 269,
+      "name": "Cheese"
+    },
+    {
+      "item_no": 270,
+      "name": "Premium Chicken"
+    },
+    {
+      "item_no": 271,
+      "name": "Double Pudding"
+    },
+    {
+      "item_no": 272,
+      "name": "Plum Rice Ball"
+    },
+    {
+      "item_no": 273,
+      "name": "Resurrection Powder"
+    },
+    {
+      "item_no": 274,
+      "name": "Stamina Drink"
+    },
+    {
+      "item_no": 275,
+      "name": "Antidote Drink"
+    },
+    {
+      "item_no": 276,
+      "name": "Holy Water"
+    },
+    {
+      "item_no": 277,
+      "name": "Soap"
+    },
+    {
+      "item_no": 278,
+      "name": "Medusa's Tear"
+    },
+    {
+      "item_no": 279,
+      "name": "Mighty Healing"
+    },
+    {
+      "item_no": 280,
+      "name": "Bomb"
+    },
+    {
+      "item_no": 281,
+      "name": "Stone"
+    },
+    {
+      "item_no": 282,
+      "name": "Flame Stone"
+    },
+    {
+      "item_no": 283,
+      "name": "Chill Stone"
+    },
+    {
+      "item_no": 284,
+      "name": "Lightning Stone"
+    },
+    {
+      "item_no": 285,
+      "name": "Wind Stone"
+    },
+    {
+      "item_no": 286,
+      "name": "Holy Stone"
+    },
+    {
+      "item_no": 287,
+      "name": "Heart-Throb Cherry"
+    },
+    {
+      "item_no": 288,
+      "name": "Stone Berry"
+    },
+    {
+      "item_no": 289,
+      "name": "Gooey Peach"
+    },
+    {
+      "item_no": 290,
+      "name": "Bomb Nut"
+    },
+    {
+      "item_no": 291,
+      "name": "Poison Apple"
+    },
+    {
+      "item_no": 292,
+      "name": "Mellow Banana"
+    },
+    {
+      "item_no": 293,
+      "name": "Escape Powder"
+    },
+    {
+      "item_no": 294,
+      "name": "Repair Powder"
+    },
+    {
+      "item_no": 295,
+      "name": "Level Up Powder"
+    },
+    {
+      "item_no": 296,
+      "name": "Fruit of Eden"
+    },
+    {
+      "item_no": 297,
+      "name": "Treasure Chest Key"
+    },
+    {
+      "item_no": 298,
+      "name": "Gun Repair Powder"
+    },
+    {
+      "item_no": 299,
+      "name": "Crunchy Bread"
+    },
+    {
+      "item_no": 300,
+      "name": "Crunchy Bread"
+    },
+    {
+      "item_no": 301,
+      "name": "Roasted Chestnut"
+    },
+    {
+      "item_no": 302,
+      "name": "Fishing Rod"
+    },
+    {
+      "item_no": 303,
+      "name": "Lure Rod"
+    },
+    {
+      "item_no": 304,
+      "name": "Gift Capsule"
+    },
+    {
+      "item_no": 305,
+      "name": "Map"
+    },
+    {
+      "item_no": 306,
+      "name": "Magic Crystal"
+    },
+    {
+      "item_no": 307,
+      "name": "Lightspeed"
+    },
+    {
+      "item_no": 308,
+      "name": "Badge Box"
+    },
+    {
+      "item_no": 309,
+      "name": "Aquarium"
+    },
+    {
+      "item_no": 310,
+      "name": "Priscleen"
+    },
+    {
+      "item_no": 311,
+      "name": "Medal Holder"
+    },
+    {
+      "item_no": 312,
+      "name": "Prickly"
+    },
+    {
+      "item_no": 313,
+      "name": "Mimi"
+    },
+    {
+      "item_no": 314,
+      "name": "Evy"
+    },
+    {
+      "item_no": 315,
+      "name": "Carrot"
+    },
+    {
+      "item_no": 316,
+      "name": "Potato Cake"
+    },
+    {
+      "item_no": 317,
+      "name": "Minon"
+    },
+    {
+      "item_no": 318,
+      "name": "Battan"
+    },
+    {
+      "item_no": 319,
+      "name": "Petite Fish"
+    },
+    {
+      "item_no": 320,
+      "name": "Bobo"
+    },
+    {
+      "item_no": 321,
+      "name": "Gobbler"
+    },
+    {
+      "item_no": 322,
+      "name": "Nonky"
+    },
+    {
+      "item_no": 323,
+      "name": "Kaji"
+    },
+    {
+      "item_no": 324,
+      "name": "Baku Baku"
+    },
+    {
+      "item_no": 325,
+      "name": "Mardan Garayan"
+    },
+    {
+      "item_no": 326,
+      "name": "Gummy"
+    },
+    {
+      "item_no": 327,
+      "name": "Niler"
+    },
+    {
+      "item_no": 328,
+      "name": "Umadakara"
+    },
+    {
+      "item_no": 329,
+      "name": "Tarton"
+    },
+    {
+      "item_no": 330,
+      "name": "Piccoly"
+    },
+    {
+      "item_no": 331,
+      "name": "Bon"
+    },
+    {
+      "item_no": 332,
+      "name": "Hama Hama"
+    },
+    {
+      "item_no": 333,
+      "name": "Negie"
+    },
+    {
+      "item_no": 334,
+      "name": "Den"
+    },
+    {
+      "item_no": 335,
+      "name": "Heela"
+    },
+    {
+      "item_no": 336,
+      "name": "Baron Garayan"
+    },
+    {
+      "item_no": 337,
+      "name": "Key Handle"
+    },
+    {
+      "item_no": 338,
+      "name": "Channel Key"
+    },
+    {
+      "item_no": 339,
+      "name": "Fairy Saw"
+    },
+    {
+      "item_no": 340,
+      "name": "Slash Branch"
+    },
+    {
+      "item_no": 341,
+      "name": "Giant Meat"
+    },
+    {
+      "item_no": 342,
+      "name": "Luna Stone"
+    },
+    {
+      "item_no": 343,
+      "name": "Luna Stone Piece"
+    },
+    {
+      "item_no": 344,
+      "name": "Magma Rock"
+    },
+    {
+      "item_no": 345,
+      "name": "Rope"
+    },
+    {
+      "item_no": 346,
+      "name": "Stone \"T\""
+    },
+    {
+      "item_no": 347,
+      "name": "White Wind Vase"
+    },
+    {
+      "item_no": 348,
+      "name": "Queen's Watering Pot"
+    },
+    {
+      "item_no": 349,
+      "name": "Moon Clock Hand"
+    },
+    {
+      "item_no": 350,
+      "name": "Trolley Oil"
+    },
+    {
+      "item_no": 351,
+      "name": "Rusted Key"
+    },
+    {
+      "item_no": 352,
+      "name": "Armband Repair Powder"
+    },
+    {
+      "item_no": 353,
+      "name": "Circus Ticket"
+    },
+    {
+      "item_no": 354,
+      "name": "Fire Horn"
+    },
+    {
+      "item_no": 355,
+      "name": "Inside Scoop Memo"
+    },
+    {
+      "item_no": 356,
+      "name": "Sundrop"
+    },
+    {
+      "item_no": 357,
+      "name": "Photo Album"
+    },
+    {
+      "item_no": 358,
+      "name": "Cooking Stove"
+    },
+    {
+      "item_no": 359,
+      "name": "Help Receiver"
+    },
+    {
+      "item_no": 360,
+      "name": "Electric Worm"
+    },
+    {
+      "item_no": 361,
+      "name": "Lafrescia Seed"
+    },
+    {
+      "item_no": 362,
+      "name": "Star Key"
+    },
+    {
+      "item_no": 363,
+      "name": "White Windflower"
+    },
+    {
+      "item_no": 364,
+      "name": "Miracle Dumplings"
+    },
+    {
+      "item_no": 365,
+      "name": "Earth Gem"
+    },
+    {
+      "item_no": 366,
+      "name": "Water Gem"
+    },
+    {
+      "item_no": 367,
+      "name": "Wind Gem"
+    },
+    {
+      "item_no": 368,
+      "name": "Fire Gem"
+    },
+    {
+      "item_no": 369,
+      "name": "Camera"
+    },
+    {
+      "item_no": 370,
+      "name": "Grape Juice"
+    },
+    {
+      "item_no": 371,
+      "name": "Starglass"
+    },
+    {
+      "item_no": 372,
+      "name": "Time Bomb"
+    },
+    {
+      "item_no": 373,
+      "name": "Shell Talkie"
+    },
+    {
+      "item_no": 374,
+      "name": "Flower of the Sun"
+    },
+    {
+      "item_no": 375,
+      "name": "Secret Dragon Remedy"
+    },
+    {
+      "item_no": 376,
+      "name": "Gold Paint"
+    },
+    {
+      "item_no": 377,
+      "name": "Spinner"
+    },
+    {
+      "item_no": 378,
+      "name": "Frog"
+    },
+    {
+      "item_no": 379,
+      "name": "Minnow"
+    },
+    {
+      "item_no": 380,
+      "name": "Fork"
+    },
+    {
+      "item_no": 381,
+      "name": "Ridepod Fuel"
+    },
+    {
+      "item_no": 382,
+      "name": "Wrench"
+    },
+    {
+      "item_no": 383,
+      "name": "Monster Drop"
+    },
+    {
+      "item_no": 384,
+      "name": "Name-Change Ticket"
+    },
+    {
+      "item_no": 385,
+      "name": "Teal Envelope"
+    },
+    {
+      "item_no": 386,
+      "name": "Notebook"
+    },
+    {
+      "item_no": 387,
+      "name": "Wrench"
+    },
+    {
+      "item_no": 388,
+      "name": "Potato Pie"
+    },
+    {
+      "item_no": 389,
+      "name": "Witch Parfait"
+    },
+    {
+      "item_no": 390,
+      "name": "Improved Bomb"
+    },
+    {
+      "item_no": 391,
+      "name": "Final Bomb"
+    },
+    {
+      "item_no": 392,
+      "name": "Cannonball Arm II"
+    },
+    {
+      "item_no": 393,
+      "name": "Cannonball Arm III"
+    },
+    {
+      "item_no": 394,
+      "name": "Cannonball Arm IV"
+    },
+    {
+      "item_no": 395,
+      "name": "Barrel Cannon II"
+    },
+    {
+      "item_no": 396,
+      "name": "Barrel Cannon III"
+    },
+    {
+      "item_no": 397,
+      "name": "Barrel Cannon IV"
+    },
+    {
+      "item_no": 398,
+      "name": "Drill Arm II"
+    },
+    {
+      "item_no": 399,
+      "name": "Drill Arm III"
+    },
+    {
+      "item_no": 400,
+      "name": "Drill Arm IV"
+    },
+    {
+      "item_no": 401,
+      "name": "Missile Pod Arm II"
+    },
+    {
+      "item_no": 402,
+      "name": "Missile Pod Arm III"
+    },
+    {
+      "item_no": 403,
+      "name": "Missile Pod Arm IV"
+    },
+    {
+      "item_no": 404,
+      "name": "Hammer Arm II"
+    },
+    {
+      "item_no": 405,
+      "name": "Hammer Arm III"
+    },
+    {
+      "item_no": 406,
+      "name": "Hammer Arm IV"
+    },
+    {
+      "item_no": 407,
+      "name": "Machine Gun Arm II"
+    },
+    {
+      "item_no": 408,
+      "name": "Machine Gun Arm III"
+    },
+    {
+      "item_no": 409,
+      "name": "Machine Gun Arm IV"
+    },
+    {
+      "item_no": 410,
+      "name": "Clown Hand II"
+    },
+    {
+      "item_no": 411,
+      "name": "Clown Hand III"
+    },
+    {
+      "item_no": 412,
+      "name": "Clown Hand IV"
+    },
+    {
+      "item_no": 413,
+      "name": "Samurai Arm II"
+    },
+    {
+      "item_no": 414,
+      "name": "Samurai Arm III"
+    },
+    {
+      "item_no": 415,
+      "name": "Samurai Arm IV"
+    },
+    {
+      "item_no": 416,
+      "name": "Laser Arm II"
+    },
+    {
+      "item_no": 417,
+      "name": "Laser Arm III"
+    },
+    {
+      "item_no": 418,
+      "name": "Laser Arm IV"
+    },
+    {
+      "item_no": 419,
+      "name": "Nova Cannon II"
+    },
+    {
+      "item_no": 420,
+      "name": "Nova Cannon III"
+    },
+    {
+      "item_no": 421,
+      "name": "Nova Cannon IV"
+    },
+    {
+      "item_no": 422,
+      "name": "Voice Unit"
+    },
+    {
+      "item_no": 423,
+      "name": "Shield Kit"
+    },
+    {
+      "item_no": 424,
+      "name": "Himarra Badge"
+    },
+    {
+      "item_no": 425,
+      "name": "Tasty Water"
+    },
+    {
+      "item_no": 427,
+      "name": "Sun Badge"
+    },
+    {
+      "item_no": 428,
+      "name": "Moon Badge"
+    }
+  ],
+  "schema_version": 2
+}

@@ -19,6 +19,7 @@
 #include "mg_math.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
+#include "pal_timing.hpp"
 #include "prespr.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
@@ -1236,19 +1237,19 @@ int MenuUseItemCheckFunc(CGameDataUsed *item, CItemUseTarget *target, int apply)
                                     changed = true;
 
                                     if (st_bittable[i] & CHARA_STATUS_POWER) {
-                                        chara->status_time[0] = 750;
+                                        chara->status_time[0] = PAL_TIMING(750, 900);
                                     }
 
                                     if (st_bittable[i] & CHARA_STATUS_SLOW) {
-                                        chara->status_time[1] = 750;
+                                        chara->status_time[1] = PAL_TIMING(750, 900);
                                     }
 
                                     if (st_bittable[i] & CHARA_STATUS_STOP) {
-                                        chara->status_time[2] = 750;
+                                        chara->status_time[2] = PAL_TIMING(750, 900);
                                     }
 
                                     if (st_bittable[i] & CHARA_STATUS_STONE) {
-                                        chara->status_time[2] = 750;
+                                        chara->status_time[2] = PAL_TIMING(750, 900);
                                     }
                                 }
                             }

@@ -1,0 +1,3243 @@
+#include "common.h"
+
+#include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
+
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <limits>
+#include <memory>
+#include <print>
+#include <vector>
+
+#include "assets/data_registry.hpp"
+#include "character.hpp"
+#include "character_motion.hpp"
+#include "charasetup.hpp"
+#include "collision.hpp"
+#include "collision_assets.hpp"
+#include "dng_event.hpp"
+#include "dng_hud.hpp"
+#include "dng_main.hpp"
+#include "dungeon_articles.hpp"
+#include "dynamicanime.hpp"
+#include "gameutil.hpp"
+#include "mainloop.hpp"
+#include "mdslist.hpp"
+#include "menu_character_assets.hpp"
+#include "menuchr.hpp"
+#include "menucommon.hpp"
+#include "menumain.hpp"
+#include "mg_dataset.hpp"
+#include "mglib.hpp"
+#include "platform/arena.hpp"
+#include "platform/datapacks.hpp"
+#include "platform/model_assets.hpp"
+#include "platform/texture_catalog.hpp"
+#include "render/texture_runtime.hpp"
+#include "render/visual_mesh.hpp"
+#include "scene.hpp"
+#include "texture_source.hpp"
+#include "userdata.hpp"
+#include "visualmotion.hpp"
+
+namespace {
+using Json = nlohmann::json;
+
+/** Encodes a small synthetic accessor buffer for a standalone glTF fixture. */
+std::string Base64(const std::vector<unsigned char> &bytes) {
+    constexpr char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string    result;
+    for (std::size_t index = 0; index < bytes.size(); index += 3) {
+        const unsigned int word = (bytes[index] << 16) |
+                                  (index + 1 < bytes.size() ? bytes[index + 1] << 8 : 0) |
+                                  (index + 2 < bytes.size() ? bytes[index + 2] : 0);
+        result += alphabet[(word >> 18) & 63];
+        result += alphabet[(word >> 12) & 63];
+        result += index + 1 < bytes.size() ? alphabet[(word >> 6) & 63] : '=';
+        result += index + 2 < bytes.size() ? alphabet[word & 63] : '=';
+    }
+    return result;
+}
+
+/** Provides an isolated native model catalog, embedded glTF and game allocation arena. */
+class NativeModel : public testing::Test {
+protected:
+    std::filesystem::path  directory;
+    std::vector<u_long128> storage;
+    mgCMemory              memory;
+    Json                   gltf;
+    Json                   game;
+
+    void SetUp() override {
+        directory = std::filesystem::temp_directory_path() / ("chronicle_native_model_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+        std::filesystem::create_directories(directory / "data/models");
+        storage.resize(16384);
+        memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+        const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+        std::vector<unsigned char> bytes(values.size() * sizeof(float));
+        std::memcpy(bytes.data(), values.data(), bytes.size());
+        gltf = {
+            {"asset",       {{"version", "2.0"}}                                                                                                                                                                                                                                                                                                         },
+            {"scene",       0                                                                                                                                                                                                                                                                                                                            },
+            {"scenes",      Json::array({{{"nodes", {0}}}})                                                                                                                                                                                                                                                                                              },
+            {"nodes",       Json::array({{{"name", "root"}, {"mesh", 0}}})                                                                                                                                                                                                                                                                               },
+            {"meshes",      Json::array({{{"primitives", Json::array({{{"attributes", {{"POSITION", 0}}}, {"mode", 4}, {"material", 0}}})}}})                                                                                                                                                                                                            },
+            {"materials",   Json::array({{{"pbrMetallicRoughness", {{"baseColorFactor", {1, 1, 1, 1}}}}}})                                                                                                                                                                                                                                               },
+            {"buffers",     Json::array({{{"byteLength", bytes.size()}, {"uri", "data:application/octet-stream;base64," + Base64(bytes)}}})                                                                                                                                                                                                              },
+            {"bufferViews", Json::array({{{"buffer", 0}, {"byteOffset", 0}, {"byteLength", 36}}, {{"buffer", 0}, {"byteOffset", 36}, {"byteLength", 8}}, {{"buffer", 0}, {"byteOffset", 44}, {"byteLength", 24}}})                                                                                                                                       },
+            {"accessors",   Json::array({{{"bufferView", 0}, {"componentType", 5126}, {"count", 3}, {"type", "VEC3"}, {"min", {0, 0, 0}}, {"max", {2, 2, 0}}}, {{"bufferView", 1}, {"componentType", 5126}, {"count", 2}, {"type", "SCALAR"}, {"min", {0}}, {"max", {1}}}, {{"bufferView", 2}, {"componentType", 5126}, {"count", 2}, {"type", "VEC3"}}})},
+            {"animations",  Json::array({{{"name", "fixture/model.mot"}, {"samplers", Json::array({{{"input", 1}, {"output", 2}, {"interpolation", "LINEAR"}}})}, {"channels", Json::array({{{"sampler", 0}, {"target", {{"node", 0}, {"path", "translation"}}}}})}}})                                                                                   }
+        };
+        const Json metadata = {
+            {"schema_version",  1                                                                                                                                                                                                                                                                                                                                                                                                                         },
+            {"source",          "fixture/model.mds"                                                                                                                                                                                                                                                                                                                                                                                                       },
+            {"frames",          Json::array({{{"id", 0}, {"name", "root"}, {"parent", -1}, {"mdt", 0}}})                                                                                                                                                                                                                                                                                                                                                  },
+            {"meshes",          Json::array({{{"frame", 0}, {"vertex_count", 3}, {"normal_count", 0}, {"uv_count", 0}, {"colour_count", 0}, {"primitives", Json::array({{{"type", 531}, {"material", 0}, {"source_vertices", {0, 1, 2}}, {"source_normals", Json::array()}, {"source_uvs", Json::array()}, {"source_colours", Json::array()}}})}, {"materials", Json::array({{{"texture", ""}, {"diffuse", {1, 1, 1, 1}}, {"ambient", {0, 0, 0, 0}}}})}}})},
+            {"motion_channels", Json::array()                                                                                                                                                                                                                                                                                                                                                                                                             },
+            {"weights",         Json::array()                                                                                                                                                                                                                                                                                                                                                                                                             },
+            {"bind_poses",      Json::array()                                                                                                                                                                                                                                                                                                                                                                                                             }
+        };
+        game = metadata;
+        Write(directory / "data/models/model.gltf", gltf);
+        Write(directory / "data/models/model.game.json", game);
+        datapacks::Load(directory / "data");
+        std::string error;
+    }
+
+    void TearDown() override {
+        model_assets::Clear();
+        datapacks::Clear();
+
+        std::filesystem::remove_all(directory);
+    }
+
+    void Write(const std::filesystem::path &path, const Json &value) {
+        std::ofstream(path) << value.dump(2);
+        if (path.filename() == "model.gltf") {
+            std::ofstream(directory / "data/models/model.game.json") << game.dump(2);
+        }
+    }
+
+    mgCFrame *Instantiate() {
+        mgLoadData load{};
+        load.memory = &memory;
+        std::string error;
+        auto       *frame = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+        EXPECT_NE(frame, nullptr) << error;
+        return frame;
+    }
+
+    /**
+     * Publishes a standalone character profile containing the fixture's model.
+     */
+    void PublishCharacter(const std::string &name, const std::string &profile) {
+        const Json resource{
+            {"type",  "resource"},
+            {"kind",  "model"   },
+            {"index", 0         }
+        };
+        const Json document{
+            {"schema_version",  1                                                                                                    },
+            {"kind",            "character"                                                                                          },
+            {"default_profile", profile                                                                                              },
+            {"models",          Json::array({game})                                                                                  },
+            {"resources",       {{"texture_sets", Json::array()}}                                                                    },
+            {"profiles",        {{profile, {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+        };
+        auto path = directory / "data" / name;
+        std::filesystem::create_directories(path.parent_path());
+        Write(path, gltf);
+        path.replace_extension(".game.json");
+        Write(path, document);
+        DataReadIndex(directory / "data");
+    }
+
+    tagMOTION_TYPE Motion() {
+        tagMOTION_TYPE motion{};
+        std::string    error;
+        EXPECT_TRUE(model_assets::LoadAnimation(std::filesystem::path("models/model.gltf"), motion, memory, 0, std::nullopt, std::nullopt, std::nullopt, error)) << error;
+        return motion;
+    }
+};
+
+/**
+ * Isolates the menu's background queue and monster-book model workspace.
+ */
+struct MenuBackgroundState {
+    MENU_LOAD_INFO    load_info = MenuLoadInfo;       /**< Loading configuration restored after the fixture. */
+    CScene           *scene = MenuMainScene;          /**< Scene receiving menu loads before the fixture. */
+    CUserDataManager *user_data = MenuUserDataManPtr; /**< User data used by menu callbacks before the fixture. */
+    std::string       directory = GetCurrentDir();    /**< Asset directory restored after the fixture. */
+    int               language = LanguageCode;        /**< Language restored after localized menu reads. */
+
+    /**
+     * Starts an isolated monster-book read queue without scene callbacks.
+     */
+    MenuBackgroundState() {
+        SetCurrentDir(nullptr);
+        InitReadBG();
+        StartReadBG();
+        MenuMainScene = nullptr;
+        MenuUserDataManPtr = nullptr;
+        MenuLoadInfo = {};
+        MenuLoadInfo.mode = MENU_LOAD_MODE_BOOK;
+        LanguageCode = LANG_ENGLISH;
+    }
+
+    /**
+     * Clears fixture reads and model storage before restoring menu state.
+     */
+    ~MenuBackgroundState() {
+        InitReadBG();
+        MenuActionCharaBuffer[0].stSetBuffer(nullptr, 0);
+        MenuLoadInfo = load_info;
+        MenuMainScene = scene;
+        MenuUserDataManPtr = user_data;
+        SetCurrentDir(directory.data());
+        LanguageCode = language;
+    }
+};
+} // namespace
+
+TEST(NativeModelBounds, RejectsSlotAtTheEndOfTheModelList) {
+    CMdsListSet models;
+    ASSERT_EQ(models.mds_list_num, 8);
+    EXPECT_EQ(models.GetMdsList(0), &models.mds_list[0]);
+    EXPECT_EQ(models.GetMdsList(models.mds_list_num - 1), &models.mds_list[7]);
+    EXPECT_EQ(models.GetMdsList(-1), nullptr);
+    EXPECT_EQ(models.GetMdsList(models.mds_list_num), nullptr);
+}
+
+TEST(NativeModelBounds, MapPieceCopyRejectsAClaimedMaterialCountBeyondItsArena) {
+    alignas(64) u_long128 storage[128]{};
+    mgCMemory             arena;
+    arena.stSetBuffer(storage, 128);
+    CMapPiece     source;
+    CMapPiece     copy;
+    PieceMaterial material;
+
+    source.SetMaterial(&material, std::numeric_limits<int>::max());
+    EXPECT_FALSE(source.Copy(copy, &arena));
+    EXPECT_EQ(copy.material_num, 0);
+    EXPECT_EQ(copy.material, nullptr);
+    EXPECT_EQ(arena.stack_used, 0);
+
+    source.SetMaterial(&material, 1);
+    ASSERT_TRUE(source.Copy(copy, &arena));
+    EXPECT_EQ(copy.material_num, 1);
+    ASSERT_NE(copy.material, nullptr);
+    EXPECT_EQ(copy.material[0].color_no, material.color_no);
+}
+
+TEST(NativeModelBounds, MotionVisualCopyRejectsInvalidMaterialStorageAndLockedArena) {
+    std::vector<u_long128> storage(1024);
+    mgCMemory              arena;
+    arena.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    std::vector<u_long128> producer_storage(1024);
+    mgCMemory              producer;
+    producer.stSetBuffer(producer_storage.data(), static_cast<int>(producer_storage.size()));
+    auto *visual = dc2::memory::NewObject<mgCVisualMotionMDT>(producer);
+    ASSERT_NE(visual, nullptr);
+    ASSERT_TRUE(dc2::render::VisualCloneInputs::Publish(producer, *visual, dc2::render::VisualCloneKind::MotionMdt));
+    auto clone_inputs = visual->clone_inputs;
+
+    visual->material_num = 1;
+    visual->material = nullptr;
+    EXPECT_EQ(clone_inputs.Clone(visual, &arena), nullptr);
+
+    visual->material = dc2::memory::NewObject<mgMaterial>(producer);
+    ASSERT_NE(visual->material, nullptr);
+    visual->material_num = std::numeric_limits<int>::max();
+    EXPECT_FALSE(dc2::render::VisualCloneInputs::Publish(producer, *visual, dc2::render::VisualCloneKind::MotionMdt));
+    EXPECT_EQ(clone_inputs.Clone(visual, &arena), nullptr);
+
+    visual->material = nullptr;
+    visual->material_num = 0;
+    ASSERT_TRUE(dc2::render::VisualCloneInputs::Publish(producer, *visual, dc2::render::VisualCloneKind::MotionMdt));
+    clone_inputs = visual->clone_inputs;
+    arena.stSetLocked(true);
+    EXPECT_EQ(clone_inputs.Clone(visual, &arena), nullptr);
+}
+
+TEST(NativeModelBounds, DynamicAnimationTablesInitializeOnlyTheirAllocatedElements) {
+    alignas(64) u_long128 storage[128]{};
+    mgCMemory             arena;
+    arena.stSetBuffer(storage, 128);
+    CDynamicAnime                 animation;
+    std::array<unsigned char, 16> sentinel{};
+    sentinel.fill(0x5a);
+
+    animation.vertex_num = 9;
+    auto *fix_guard = reinterpret_cast<unsigned char *>(arena.stGetTop()) +
+                      ((2 * sizeof(DA_FIX_VERTEX) + 15) / 16) * 16;
+    std::memcpy(fix_guard, sentinel.data(), sentinel.size());
+    animation.NewFixVertexTable(2, &arena);
+    ASSERT_EQ(animation.fix_vertex_num, 2);
+    ASSERT_NE(animation.fix_vertex, nullptr);
+    EXPECT_EQ(std::memcmp(fix_guard, sentinel.data(), sentinel.size()), 0);
+
+    animation.bind_vertex_num = 9;
+    auto *box_guard = reinterpret_cast<unsigned char *>(arena.stGetTop()) +
+                      ((2 * sizeof(DA_BOUNDING_BOX) + 15) / 16) * 16;
+    std::memcpy(box_guard, sentinel.data(), sentinel.size());
+    animation.NewBoundingBoxTable(2, &arena);
+    ASSERT_EQ(animation.bbox_num, 2);
+    ASSERT_NE(animation.bbox, nullptr);
+    EXPECT_EQ(std::memcmp(box_guard, sentinel.data(), sentinel.size()), 0);
+
+    animation.NewFixVertexTable(-1, &arena);
+    EXPECT_EQ(animation.fix_vertex_num, 0);
+    EXPECT_EQ(animation.fix_vertex, nullptr);
+    arena.stSetLocked(true);
+    animation.NewVertexTable(2, &arena);
+    EXPECT_EQ(animation.vertex_num, 0);
+    EXPECT_EQ(animation.init_vertex, nullptr);
+}
+
+TEST_F(NativeModel, DistinctModelDocumentsReuseIdenticalEmbeddedTexturesWithinTableCapacity) {
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(2, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    game["meshes"][0]["materials"][0]["texture"] = "shared";
+    game["texture_sets"] = Json::array({
+        {{"document", {{"schema_version", 3}, {"groups", {0}}, {"entries", Json::array({{{"name", "shared"}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}}}}
+    });
+    mgCTexture *original = nullptr;
+    for (int index = 0; index < 80; ++index) {
+        const std::string stem = "models/scene" + std::to_string(index);
+        Write(directory / "data" / (stem + ".gltf"), gltf);
+        Write(directory / "data" / (stem + ".game.json"), game);
+        memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+        mgLoadData load{};
+        load.memory = &memory;
+        load.texture_manager = &textures;
+        std::string error;
+        auto       *frame = model_assets::LoadModel(stem + ".gltf", load, error);
+        ASSERT_NE(frame, nullptr) << error;
+        auto *texture = frame->visual->GetMaterial(0)->texture;
+        ASSERT_NE(texture, nullptr) << index;
+        if (!original) {
+            original = texture;
+        }
+        EXPECT_EQ(texture, original);
+        EXPECT_EQ(textures.texture_num, 1);
+    }
+    textures.Initialize(0x1000, -1);
+}
+
+// A map piece embeds the texture set its map has already entered into the map's own blocks, as the Palm Brinks
+// residence pieces carry e04's water. Entering that copy again from block 0 put it, and the texture animation that
+// follows it by name, in another map's blocks, which outlive the map whose memory holds the animation.
+TEST_F(NativeModel, ModelLeavesATextureSetItsMapAlreadyEnteredWithTheMap) {
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 32, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    const Json document = {
+        {"schema_version", 3                                                                                                           },
+        {"groups",         {0}                                                                                                         },
+        {"entries",        Json::array({{{"name", "water"}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    std::filesystem::create_directories(directory / "data/textures/map");
+    Write(directory / "data/textures/map/piece.json", document);
+    std::string catalog_error;
+    ASSERT_TRUE(texture_catalog::Load(directory / "data", catalog_error)) << catalog_error;
+    MgTextureEnterDocument(&textures, "textures/map/piece.json", 24, &memory, nullptr);
+    auto *map_texture = textures.GetTexture(const_cast<char *>("water"), -1);
+    ASSERT_NE(map_texture, nullptr);
+    ASSERT_EQ(map_texture->block, 24);
+
+    game["meshes"][0]["materials"][0]["texture"] = "water";
+    game["texture_sets"] = Json::array({{{"document", document}}});
+    Write(directory / "data/models/piece.gltf", gltf);
+    Write(directory / "data/models/piece.game.json", game);
+    mgLoadData load{};
+    load.memory = &memory;
+    load.texture_manager = &textures;
+    std::string error;
+    auto       *frame = model_assets::LoadModel(std::filesystem::path("models/piece.gltf"), load, error);
+    ASSERT_NE(frame, nullptr) << error;
+    EXPECT_EQ(frame->visual->GetMaterial(0)->texture, map_texture);
+    EXPECT_EQ(textures.texture_num, 1);
+    EXPECT_EQ(textures.GetTexture(const_cast<char *>("water"), 0), nullptr);
+    textures.Initialize(0x1000, -1);
+    texture_catalog::Clear();
+}
+
+TEST_F(NativeModel, CharacterTextureOwnershipDoesNotSkipDeletedReinitializedOrSuffixedRegistrations) {
+    Json model = game;
+    model["texture_sets"] = {0};
+    model["meshes"][0]["materials"][0]["texture"] = "shared";
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    const Json textures_document{
+        {"schema_version", 3                                                                                                            },
+        {"groups",         {0}                                                                                                          },
+        {"entries",        Json::array({{{"name", "shared"}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array({{{"document", textures_document}}})}}                                },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    CCharacter2                        character;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory, .textures = &textures, .parent = nullptr, .texture_block = 2, .outline = false};
+    std::string                        error;
+    auto                               load = [&] {
+        character.Initialize();
+        memory.stReset();
+        return model_assets::LoadCharacter(character, "models/model.gltf", "info", options, error);
+    };
+    ASSERT_TRUE(load()) << error;
+    char  name[] = "shared";
+    auto *initial = textures.GetTexture(name, 2);
+    ASSERT_NE(initial, nullptr);
+    EXPECT_EQ(character.GetFrame()->visual->GetMaterial(0)->texture, initial);
+    textures.DeleteBlock(2);
+    EXPECT_EQ(textures.GetTexture(name, 2), nullptr);
+    ASSERT_TRUE(load()) << error;
+    ASSERT_NE(textures.GetTexture(name, 2), nullptr);
+    EXPECT_EQ(textures.texture_num, 1);
+    textures.Initialize(0x1000, -1);
+    ASSERT_TRUE(load()) << error;
+    auto *plain = textures.GetTexture(name, 2);
+    ASSERT_NE(plain, nullptr);
+    std::strcpy(textures.name_suffix, "_menu");
+    ASSERT_TRUE(load()) << error;
+    auto *suffixed = textures.GetTexture(name, 2);
+    ASSERT_NE(suffixed, nullptr);
+    EXPECT_NE(suffixed, plain);
+    EXPECT_STREQ(suffixed->name, "shared_menu");
+    EXPECT_EQ(character.GetFrame()->visual->GetMaterial(0)->texture, suffixed);
+    EXPECT_EQ(textures.texture_num, 2);
+    model_assets::DeleteCharacterTextures(character, 0, 0);
+    EXPECT_EQ(textures.GetTexture(name, 2), nullptr);
+    EXPECT_EQ(textures.SearchHash(name, 2), nullptr);
+    EXPECT_EQ(textures.texture_num, 0);
+    textures.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, BlocklessCharacterBorrowsItsMapsExistingTextures) {
+    Json model = game;
+    model["texture_sets"] = {0};
+    model["meshes"][0]["materials"][0]["texture"] = "shared";
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    const Json textures_document{
+        {"schema_version", 3                                                                                                                          },
+        {"groups",         {1}                                                                                                                        },
+        {"entries",        Json::array({{{"name", "shared"}, {"block", 1}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array({{{"document", textures_document}}})}}                                },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    CCharacter2                        character;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory, .textures = &textures, .parent = nullptr, .texture_block = 2, .outline = false};
+    std::string                        error;
+    auto                               load = [&] {
+        character.Initialize();
+        memory.stReset();
+        return model_assets::LoadCharacter(character, "models/model.gltf", "info", options, error);
+    };
+    const auto catalog_path = directory / "data/textures/map/piece.json";
+    std::filesystem::create_directories(catalog_path.parent_path());
+    Write(catalog_path, textures_document);
+    std::string catalog_error;
+    ASSERT_TRUE(texture_catalog::Load(directory / "data", catalog_error)) << catalog_error;
+    MgTextureEnterDocument(&textures, "textures/map/piece.json", 0, &texture_memory, nullptr);
+    char  name[] = "shared";
+    auto *map_texture = textures.GetTexture(name, 1);
+    ASSERT_NE(map_texture, nullptr);
+    options.texture_block = -1;
+    ASSERT_TRUE(load()) << error;
+    ASSERT_NE(character.GetFrame(), nullptr);
+    ASSERT_NE(character.GetFrame()->visual, nullptr);
+    ASSERT_NE(character.GetFrame()->visual->GetMaterial(0), nullptr);
+    EXPECT_EQ(character.GetFrame()->visual->GetMaterial(0)->texture, map_texture);
+    EXPECT_EQ(textures.GetTexture(name, 1), map_texture);
+    EXPECT_EQ(textures.GetTexture(name, 0), nullptr);
+    EXPECT_EQ(textures.texture_num, 1);
+    model_assets::DeleteCharacterTextures(character, 0, 0);
+    EXPECT_EQ(textures.GetTexture(name, 1), map_texture);
+    textures.Initialize(0x1000, -1);
+    texture_catalog::Clear();
+}
+
+TEST_F(NativeModel, StaleCharacterImagesKeepAnotherModelsSameNamedTexture) {
+    // The item menu loads the Ridepod rider and then Max's hat into one slot: the rider's stale images must not delete
+    // the face Max entered under the same name after the block was cleared and the slot reinitialised.
+    Json model = game;
+    model["texture_sets"] = {0};
+    model["meshes"][0]["materials"][0]["texture"] = "shared";
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    const Json textures_document{
+        {"schema_version", 3                                                                                                            },
+        {"groups",         {0}                                                                                                          },
+        {"entries",        Json::array({{{"name", "shared"}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array({{{"document", textures_document}}})}}                                },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+    Write(directory / "data/models/other.gltf", gltf);
+    Write(directory / "data/models/other.game.json", game);
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    std::strcpy(textures.name_suffix, "_menu");
+    CCharacter2                        stale_slot;
+    CCharacter2                        max;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory, .textures = &textures, .parent = nullptr, .texture_block = 2, .outline = false};
+    std::string                        error;
+    stale_slot.Initialize();
+    memory.stReset();
+    ASSERT_TRUE(model_assets::LoadCharacter(stale_slot, "models/other.gltf", "info", options, error)) << error;
+    textures.DeleteBlock(2);
+    stale_slot.Initialize();
+    max.Initialize();
+    ASSERT_TRUE(model_assets::LoadCharacter(max, "models/model.gltf", "info", options, error)) << error;
+    char name[] = "shared_menu";
+    textures.name_suffix[0] = 0;
+    auto *face = textures.GetTexture(name, 2);
+    ASSERT_NE(face, nullptr);
+    EXPECT_EQ(max.GetFrame()->visual->GetMaterial(0)->texture, face);
+    model_assets::DeleteCharacterTextures(stale_slot, 0, 0);
+    EXPECT_EQ(textures.GetTexture(name, 2), face);
+    EXPECT_EQ(max.GetFrame()->visual->GetMaterial(0)->texture, face);
+    model_assets::DeleteCharacterTextures(max, 0, 0);
+    EXPECT_EQ(textures.GetTexture(name, 2), nullptr);
+    textures.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, NpcPortraitBackgroundReadSurvivesScratchResetAndHonorsDelayAndCancellation) {
+    const auto path = directory / "data/textures/menu/1/npcface/1.json";
+    std::filesystem::create_directories(path.parent_path());
+    Write(path, Json{
+                    {"schema_version", 3            },
+                    {"groups",         Json::array()},
+                    {"entries",        Json::array()}
+    });
+    DataReadIndex(directory / "data");
+    MenuBackgroundState cleanup;
+    auto                user = std::make_unique<CUserDataManager>();
+    user->SetPartyCharaStatus(PARTY_NPC_CEDRIC, PARTY_CHARA_STATUS_IN_PARTY);
+    ASSERT_EQ(user->NowPartyCharaID(), PARTY_NPC_CEDRIC);
+    MenuUserDataManPtr = user.get();
+    std::array<u_long128, 1> scratch_storage{};
+    mgCMemory                scratch;
+    scratch.stSetBuffer(scratch_storage.data(), static_cast<int>(scratch_storage.size()));
+    CMenuChrCngMenu menu;
+    menu.LoadNPCFaceData(&scratch, MENU_FILE_LOAD_BG);
+    EXPECT_EQ(menu.face_loaded, MENU_FILE_LOAD_BG);
+    ASSERT_EQ(menu.face_state, 0);
+    ASSERT_NE(menu.face_img, nullptr);
+    EXPECT_NE(menu.face_img, reinterpret_cast<u8 *>(scratch_storage.data()));
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    scratch.stReset();
+    menu.EnterNPCFaceData();
+    EXPECT_EQ(menu.face_state, 0);
+    auto cancelled = dc2::io::FindBackgroundReadInCurrentDir("textures/menu/1/npcface/1.json");
+    ASSERT_TRUE(cancelled);
+    EXPECT_TRUE(cancelled.Issued());
+    EXPECT_FALSE(cancelled.Done());
+    StartReadBG();
+    EXPECT_TRUE(cancelled.Cancelled());
+    menu.EnterNPCFaceData();
+    EXPECT_EQ(menu.face_state, -1);
+    EXPECT_EQ(menu.face_img, nullptr);
+
+    menu.LoadNPCFaceData(&scratch, MENU_FILE_LOAD_BG);
+    ASSERT_EQ(menu.face_state, 0);
+    auto retained = dc2::io::FindBackgroundReadInCurrentDir("textures/menu/1/npcface/1.json");
+    ASSERT_TRUE(retained);
+    scratch.stReset();
+    ASSERT_EQ(ReadBGSync(), 1);
+    ASSERT_EQ(ReadBGSync(), 0);
+    EXPECT_TRUE(retained.Done());
+    EXPECT_FALSE(retained.Cancelled());
+    EXPECT_EQ(menu.face_img, retained.Bytes().data());
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    menu.LoadNPCFaceData(nullptr, MENU_FILE_LOAD_BG);
+    EXPECT_EQ(menu.face_state, -1);
+    EXPECT_EQ(menu.face_img, nullptr);
+}
+
+TEST_F(NativeModel, MonsterBookBackgroundReadOutlivesScratchResetAndDoesNotReserveDestinationBytes) {
+    constexpr int monster_id = 0;
+    const auto    model_name = GetMonsterModelFile(monster_id, MONSTER_FILE_MODEL);
+    const auto    profile = GetMonsterModelFile(monster_id, MONSTER_FILE_CONFIG);
+    ASSERT_TRUE(model_name);
+    ASSERT_TRUE(profile);
+    const std::string path = "menu/monster/" + *model_name;
+    PublishCharacter(path, *profile);
+    MenuBackgroundState      cleanup;
+    std::array<u_long128, 1> scratch_storage{};
+    mgCMemory                scratch;
+    scratch.stSetBuffer(scratch_storage.data(), static_cast<int>(scratch_storage.size()));
+    std::array<MENU_BGREAD_INFO2, MENU_CHARA_LOAD_MAX>   records{};
+    std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> reads{};
+    for (std::size_t slot = 0; slot < reads.size(); ++slot) {
+        reads[slot] = &records[slot];
+    }
+
+    ASSERT_EQ(MenuMonsterLoadBG(&scratch, reads.data(), monster_id, 0), 1);
+    ASSERT_EQ(records[0].reading, 1);
+    auto queued = dc2::io::FindBackgroundReadInCurrentDir(path);
+    ASSERT_TRUE(queued);
+    EXPECT_GT(queued.Size(), sizeof(scratch_storage));
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    scratch.stReset();
+    ASSERT_EQ(ReadBGSync(), 1);
+    ASSERT_EQ(ReadBGSync(), 0);
+    ASSERT_TRUE(queued.Done());
+    EXPECT_FALSE(queued.Cancelled());
+
+    ASSERT_TRUE(MenuActionCharaBuffer[0].stShareStack(memory));
+    auto                                            body = std::make_unique<CActionChara>();
+    std::array<CActionChara *, MENU_CHARA_LOAD_MAX> targets{};
+    targets[0] = body.get();
+    ASSERT_EQ(MenuMonsterLoadBGCheck(reads.data(), targets.data(), -1, -1), 1);
+    EXPECT_EQ(records[0].reading, 0);
+    ASSERT_NE(body->GetFrame(), nullptr);
+    queued = {};
+    InitReadBG();
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    body->UpdatePosition();
+    EXPECT_NE(body->GetFrame(), nullptr);
+    body->Initialize(nullptr);
+}
+
+TEST_F(NativeModel, MonsterBookPendingCancelledAndMissingReadsDoNotReplaceTheCurrentModel) {
+    constexpr int monster_id = 0;
+    const auto    model_name = GetMonsterModelFile(monster_id, MONSTER_FILE_MODEL);
+    const auto    profile = GetMonsterModelFile(monster_id, MONSTER_FILE_CONFIG);
+    ASSERT_TRUE(model_name);
+    ASSERT_TRUE(profile);
+    const std::string path = "menu/monster/" + *model_name;
+    PublishCharacter(path, *profile);
+    MenuBackgroundState cleanup;
+    auto                body = std::make_unique<CActionChara>();
+    body->CObjectFrame::frame = Instantiate();
+    ASSERT_NE(body->GetFrame(), nullptr);
+    ASSERT_TRUE(dc2::character::CaptureModelResources(*body, memory));
+    auto *original_frame = body->GetFrame();
+    ASSERT_TRUE(MenuActionCharaBuffer[0].stShareStack(memory));
+    const int                original_used = MenuActionCharaBuffer[0].stGetUsed();
+    std::array<u_long128, 1> scratch_storage{};
+    mgCMemory                scratch;
+    scratch.stSetBuffer(scratch_storage.data(), static_cast<int>(scratch_storage.size()));
+    std::array<MENU_BGREAD_INFO2, MENU_CHARA_LOAD_MAX>   records{};
+    std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> reads{};
+    std::array<CActionChara *, MENU_CHARA_LOAD_MAX>      targets{};
+    targets[0] = body.get();
+    for (std::size_t slot = 0; slot < reads.size(); ++slot) {
+        reads[slot] = &records[slot];
+    }
+
+    ASSERT_EQ(MenuMonsterLoadBG(&scratch, reads.data(), monster_id, 0), 1);
+    EXPECT_EQ(MenuMonsterLoadBGCheck(reads.data(), targets.data(), -1, -1), 0);
+    EXPECT_EQ(records[0].reading, 1);
+    EXPECT_EQ(body->GetFrame(), original_frame);
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    EXPECT_EQ(MenuActionCharaBuffer[0].stGetUsed(), original_used);
+    BreakReadBG();
+    EXPECT_EQ(MenuMonsterLoadBGCheck(reads.data(), targets.data(), -1, -1), 0);
+    EXPECT_EQ(records[0].reading, 0);
+    EXPECT_EQ(body->GetFrame(), original_frame);
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    EXPECT_EQ(MenuActionCharaBuffer[0].stGetUsed(), original_used);
+
+    StartReadBG();
+    constexpr int missing_monster_id = 1;
+    EXPECT_EQ(MenuMonsterLoadBG(&scratch, reads.data(), missing_monster_id, 0), 0);
+    EXPECT_EQ(records[0].reading, 0);
+    EXPECT_EQ(scratch.stGetUsed(), 0);
+    EXPECT_EQ(body->GetFrame(), original_frame);
+    EXPECT_TRUE(dc2::character::ResourcesLive(*body));
+    body->Initialize(nullptr);
+}
+
+TEST_F(NativeModel, MenuSkinCompletionWithoutBodySkipsAssetConstruction) {
+    DataReadIndex(directory / "data");
+    const auto previous_directory = GetCurrentDir();
+    char       root_directory[] = "";
+    SetCurrentDir(root_directory);
+    StartReadBG();
+    char                   path[] = "models/model.gltf";
+    std::vector<u_long128> read_storage(4096);
+    int                    size = 0;
+    ASSERT_EQ(LoadFileBG(path, {reinterpret_cast<u8 *>(read_storage.data()), read_storage.size() * sizeof(u_long128)}, &size), 1);
+    EXPECT_EQ(ReadBGSync(), 1);
+    EXPECT_EQ(ReadBGSync(), 0);
+    MENU_BGREAD_INFO2 body{};
+    MENU_BGREAD_INFO2 skin{};
+    std::memcpy(skin.path, path, sizeof(path));
+    skin.reading = 1;
+    std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> slots{};
+    slots[0] = &body;
+    slots[1] = &skin;
+    const auto previous_load_info = MenuLoadInfo;
+    auto      *previous_scene = MenuMainScene;
+    MenuMainScene = nullptr;
+    MenuLoadInfo = {};
+    MenuLoadInfo.mode = MENU_LOAD_MODE_INVENT;
+    EXPECT_EQ(MenuItemCharaDataLoadEndCheck(slots.data(), nullptr, nullptr, USER_CHARA_MONICA, -1, -1), 0);
+    EXPECT_EQ(skin.reading, 0);
+    EXPECT_EQ(skin.chara, nullptr);
+    MenuLoadInfo = previous_load_info;
+    MenuMainScene = previous_scene;
+    auto restored_directory = previous_directory;
+    SetCurrentDir(restored_directory.data());
+    InitReadBG();
+}
+
+TEST_F(NativeModel, RidepodSceneCompletionLoadsExplicitSceneTargetsAndSkipsRetiredOnes) {
+    /**
+     * Describes whether the scene can resolve the model that a completed read targets.
+     */
+    enum class TargetState {
+        Missing,
+        Live,
+        Retired
+    };
+
+    const Json model = game;
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array()}}                                                                   },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+
+    /**
+     * Restores the menu loading state after the scene completion regression.
+     */
+    struct Cleanup {
+        MENU_LOAD_INFO    load_info = MenuLoadInfo;       /**< Previous character loading configuration. */
+        CScene           *scene = MenuMainScene;          /**< Previous scene receiving menu model loads. */
+        CUserDataManager *user_data = MenuUserDataManPtr; /**< Previous user data used by menu callbacks. */
+        mgCMemory        *stacks = MorattaStack;          /**< Previous character part workspaces. */
+        std::string       directory = GetCurrentDir();    /**< Previous asset directory for background reads. */
+
+        /**
+         * Restores menu globals and clears pending background reads.
+         */
+        ~Cleanup() {
+            MenuLoadInfo = load_info;
+            MenuMainScene = scene;
+            MenuUserDataManPtr = user_data;
+            MorattaStack = stacks;
+            SetCurrentDir(directory.data());
+            InitReadBG();
+        }
+    } cleanup;
+
+    DataReadIndex(directory / "data");
+    char root_directory[] = "";
+    SetCurrentDir(root_directory);
+    StartReadBG();
+    char                   path[] = "models/model.gltf";
+    std::vector<u_long128> read_storage(4096);
+    int                    size = 0;
+    ASSERT_EQ(LoadFileBG(path, {reinterpret_cast<u8 *>(read_storage.data()), read_storage.size() * sizeof(u_long128)}, &size), 1);
+    ASSERT_EQ(ReadBGSync(), 1);
+    ASSERT_EQ(ReadBGSync(), 0);
+    MenuUserDataManPtr = nullptr;
+
+    for (bool update_scene : {false, true}) {
+        for (auto target_state : {TargetState::Missing, TargetState::Live, TargetState::Retired}) {
+            SCOPED_TRACE(testing::Message() << update_scene << ":" << static_cast<int>(target_state));
+            memory.stReset();
+            auto scene = std::make_unique<CScene>();
+            auto body = std::make_shared<CActionChara>();
+            auto arm = std::make_shared<CActionChara>();
+            arm->prog = 0x1234;
+            scene->chara_num = ROBO_MODEL_NUM + 1;
+            if (target_state != TargetState::Missing) {
+                if (target_state == TargetState::Retired) {
+                    body->CObjectFrame::frame = Instantiate();
+                    ASSERT_NE(body->CObjectFrame::frame, nullptr);
+                    ASSERT_TRUE(dc2::character::CaptureModelResources(*body, memory));
+                }
+                ASSERT_EQ(scene->AssignChara(0, dc2::scene::CharacterResource::FromOwned(body)), 0);
+                if (target_state == TargetState::Retired) {
+                    memory.stReset();
+                    ASSERT_EQ(scene->GetCharacter(0), nullptr);
+                }
+            }
+            ASSERT_EQ(scene->AssignChara(1, dc2::scene::CharacterResource::FromOwned(arm)), 1);
+            std::array<mgCMemory, CHARA_MEM_STACK_NUM> stacks{};
+            ASSERT_TRUE(stacks[0].stShareStack(memory));
+            ASSERT_NE(stacks[0].Alloc(1), nullptr);
+            MenuMainScene = scene.get();
+            MorattaStack = stacks.data();
+            MenuLoadInfo = {};
+            MenuLoadInfo.mode = MENU_LOAD_MODE_SCENE;
+            MenuLoadInfo.update_scene = update_scene;
+            MenuLoadInfo.load_all = true;
+            std::array<MENU_BGREAD_INFO2, MENU_CHARA_LOAD_MAX>   reads{};
+            std::array<MENU_BGREAD_INFO2 *, MENU_CHARA_LOAD_MAX> slots{};
+            std::array<CActionChara *, MENU_CHARA_LOAD_MAX>      menu_characters{};
+            for (std::size_t index = 0; index < slots.size(); ++index) {
+                slots[index] = &reads[index];
+            }
+            std::memcpy(reads[0].path, path, sizeof(path));
+            reads[0].reading = 1;
+            if (target_state != TargetState::Live) {
+                std::memcpy(reads[1].path, path, sizeof(path));
+                reads[1].reading = 1;
+            }
+            EXPECT_EQ(MenuItemRoboDataLoadEndCheck(slots.data(), nullptr, menu_characters.data(), -1, -1), 0);
+            EXPECT_EQ(reads[0].reading, 0);
+            if (target_state == TargetState::Live) {
+                EXPECT_NE(body->GetFrame(), nullptr);
+                EXPECT_EQ(scene->GetCharacter(0), body.get());
+            } else {
+                EXPECT_EQ(stacks[0].stGetUsed(), 1);
+                EXPECT_EQ(scene->GetCharacter(0), nullptr);
+                EXPECT_EQ(arm->prog, 0x1234);
+                EXPECT_EQ(reads[1].reading, 0);
+            }
+        }
+    }
+}
+
+TEST_F(NativeModel, MenuCostumeArenaUsesActualNativeCountsInsteadOfRetailPartitionSize) {
+    Json model = game;
+    model["meshes"][0]["vertex_count"] = 20000;
+    const Json resource{
+        {"type",  "resource"},
+        {"kind",  "model"   },
+        {"index", 0         }
+    };
+    game = {
+        {"schema_version",  1                                                                                                   },
+        {"kind",            "character"                                                                                         },
+        {"default_profile", "info"                                                                                              },
+        {"models",          Json::array({model})                                                                                },
+        {"resources",       {{"texture_sets", Json::array()}}                                                                   },
+        {"profiles",        {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({resource})}}})}}}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+    constexpr int retail_capacity = 0x1b80;
+    static char   retail_owner;
+    auto         *retail = reinterpret_cast<u_long128 *>(ArenaBlock(&retail_owner, (retail_capacity + 1) * sizeof(u_long128)));
+    std::memset(retail, 0xa5, (retail_capacity + 1) * sizeof(u_long128));
+    const std::vector<u_long128> before(retail, retail + retail_capacity + 1);
+    mgCMemory                    slot;
+    slot.stSetBuffer(retail, retail_capacity);
+    ASSERT_EQ(slot.stack, retail);
+    ASSERT_EQ(slot.stack_size, retail_capacity);
+    std::string error;
+    const auto  estimate = model_assets::EstimateCharacterMemory("models/model.gltf", "info", error);
+    ASSERT_TRUE(estimate) << error;
+    ASSERT_GT(*estimate, static_cast<std::size_t>(retail_capacity) * sizeof(u_long128));
+    ASSERT_TRUE(menu_character::PrepareArena(slot, "models/model.gltf", "info", error)) << error;
+    EXPECT_NE(slot.stack, retail);
+    auto       *native_storage = slot.stack;
+    CCharacter2 character;
+    character.Initialize();
+    model_assets::CharacterLoadOptions options{.model_memory = &slot, .motion_memory = &slot, .image_memory = &slot, .textures = nullptr, .parent = nullptr, .texture_block = 0, .outline = false};
+    ASSERT_TRUE(model_assets::LoadCharacter(character, "models/model.gltf", "info", options, error)) << error;
+    ASSERT_NE(character.GetFrame(), nullptr);
+    EXPECT_GT(slot.stack_used, retail_capacity);
+    EXPECT_LT(slot.stack_used, slot.stack_size);
+    EXPECT_EQ(std::memcmp(retail, before.data(), before.size() * sizeof(u_long128)), 0);
+    EXPECT_FALSE(menu_character::PrepareArena(slot, "models/model.gltf", "info", error));
+    EXPECT_EQ(slot.stack, native_storage);
+    slot.stReset();
+    ASSERT_TRUE(menu_character::PrepareArena(slot, "models/model.gltf", "info", error)) << error;
+    EXPECT_EQ(slot.stack, native_storage);
+}
+
+namespace {
+/** Typed profile argument helpers for named-action fixtures. */
+Json IntegerArgument(int value) {
+    return {
+        {"type",  "int"},
+        {"value", value}
+    };
+}
+
+Json RealArgument(float value) {
+    return {
+        {"type",  "float"},
+        {"value", value  }
+    };
+}
+
+Json TextArgument(const char *value) {
+    return {
+        {"type",  "string"},
+        {"value", value   }
+    };
+}
+
+Json AnimationArgument(int index) {
+    return {
+        {"type",  "resource" },
+        {"kind",  "animation"},
+        {"index", index      }
+    };
+}
+
+/** Builds a character whose motion set plays the fixture clip as two named actions and publishes an external one. */
+Json NamedActionCharacter(const Json &model, const Json &commands) {
+    return {
+        {"schema_version",  1                                                                                        },
+        {"kind",            "character"                                                                              },
+        {"default_profile", "info"                                                                                   },
+        {"models",          Json::array({model})                                                                     },
+        {"game_names",      {{"idle", TextArgument("\xE7\xAB\x8B\xE3\x81\xA1")}, {"walk", TextArgument("walk_game")}}},
+        {"profiles",        {{"info", {{"commands", commands}}}}                                                     },
+        {"resources",
+         {{"animations",
+           Json::array({{{"actions", Json::array({{{"name", "idle"}, {"duration", 10}}, {{"name", "walk"}, {"duration", 30}}})},
+                         {"variants", Json::array({{{"model", 0}, {"node_offset", 0}, {"animations", {0, 0}}}})}},
+                        {{"external", "models/wave.gltf#0"},
+                         {"actions", Json::array({{{"name", "wave"}, {"duration", 30}, {"channels", Json::array()}}})},
+                         {"variants", Json::array({{{"model", 0}, {"node_offset", 0}, {"animations", {0}}}})}}})}}   }
+    };
+}
+
+/** Loads the named-action character and returns whether it succeeded. */
+bool LoadNamedActionCharacter(CCharacter2 &character, const Json &gltf, const Json &game, mgCMemory &memory, std::string &error) {
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    const auto bytes = gltf.dump();
+    return model_assets::LoadCharacter(character, {reinterpret_cast<const std::byte *>(bytes.data()), bytes.size()}, game, "info", options, error);
+}
+
+} // namespace
+
+TEST_F(NativeModel, KeysSelectNamedActionsInProfileOrderWithDisjointGameFrames) {
+    const Json  commands = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}                        },
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0)}}                                       },
+        {{"command", "KEY_START"}, {"args", Json::array()}                                                                    },
+        {{"command", "KEY"},       {"args", {TextArgument("idle"), RealArgument(.5f)}}                                        },
+        {{"command", "KEY"},       {"args", {TextArgument("walk"), RealArgument(1)}}                                          },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                                                    },
+        {{"command", "SE_START"},  {"args", {IntegerArgument(1)}}                                                             },
+        {{"command", "SE"},        {"args", {TextArgument("walk"), IntegerArgument(0), IntegerArgument(3), RealArgument(.5f)}}},
+        {{"command", "SE_END"},    {"args", Json::array()}                                                                    }
+    });
+    CCharacter2 character;
+    character.Initialize();
+    std::string error;
+    ASSERT_TRUE(LoadNamedActionCharacter(character, gltf, NamedActionCharacter(game, commands), memory, error)) << error;
+    // The game sees each action under its original name, in KEY order, on its own game frames.
+    auto *idle = character.GetKeyListIndexPtr(0, nullptr);
+    auto *walk = character.GetKeyListIndexPtr(1, nullptr);
+    ASSERT_NE(idle, nullptr);
+    ASSERT_NE(walk, nullptr);
+    EXPECT_STREQ(idle->name, "\x97\xA7\x82\xBF");
+    EXPECT_STREQ(walk->name, "walk_game");
+    EXPECT_EQ(idle->start_frame, 2);
+    EXPECT_EQ(idle->end_frame, 12);
+    EXPECT_EQ(walk->start_frame, 14);
+    EXPECT_EQ(walk->end_frame, 44);
+    EXPECT_FLOAT_EQ(walk->step, 1);
+    EXPECT_EQ(character.GetKeyListPtr(const_cast<char *>("walk_game"), nullptr), walk);
+    // A sound's ratio lands on its action's game frames.
+    ASSERT_NE(character.se_list[0], nullptr);
+    EXPECT_FLOAT_EQ(character.se_list[0][0].frame, 14 + 15);
+    auto *root = character.CObjectFrame::frame;
+    SetMotionTime(root, &character.motion[0], 14 + 7, nullptr);
+    EXPECT_NEAR(root->trans_matrix[3][0], 7, 1e-4f);
+    SetMotionTime(root, &character.motion[0], 2 + 4, nullptr);
+    EXPECT_NEAR(root->trans_matrix[3][0], 4, 1e-4f);
+    // A blend within one action interpolates both of its samples as the game does.
+    ChangeMotion(root, &character.motion[0], 14 + 10, 14 + 20, .5f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[3][0], 15, 1e-4f);
+}
+
+TEST_F(NativeModel, ExternalMotionPlaysActionsPublishedIntoTheCharacterModelAndBlendsAcrossSets) {
+    const Json  base_commands = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"}, {"args", Json::array()}                                            },
+        {{"command", "KEY"},       {"args", {TextArgument("idle"), RealArgument(.5f)}}                },
+        {{"command", "KEY"},       {"args", {TextArgument("walk"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                            }
+    });
+    CCharacter2 character;
+    character.Initialize();
+    std::string error;
+    ASSERT_TRUE(LoadNamedActionCharacter(character, gltf, NamedActionCharacter(game, base_commands), memory, error)) << error;
+    const Json extension = {
+        {"schema_version",  1                                                                                                                                                                          },
+        {"kind",            "character"                                                                                                                                                                },
+        {"default_profile", "info"                                                                                                                                                                     },
+        {"models",          Json::array()                                                                                                                                                              },
+        {"game_names",      {{"wave", TextArgument("wave_game")}}                                                                                                                                      },
+        {"resources",       {{"animations", Json::array({{{"external", "models/wave.gltf#0"}, {"actions", Json::array({{{"name", "wave"}, {"duration", 30}}})}, {"targets", {"models/model.gltf"}}}})}}},
+        {"profiles",
+         {{"info",
+           {{"commands", Json::array({{{"command", "MOTION"}, {"args", {IntegerArgument(1), AnimationArgument(0)}}},
+                                      {{"command", "KEY_START"}, {"args", Json::array()}},
+                                      {{"command", "KEY"}, {"args", {TextArgument("wave"), RealArgument(1)}}},
+                                      {{"command", "KEY_END"}, {"args", Json::array()}}})}}}}                                                                                                          }
+    };
+    const Json empty = {
+        {"asset", {{"version", "2.0"}}}
+    };
+    std::vector<u_long128> extension_storage(16384);
+    mgCMemory              extension_memory;
+    extension_memory.stSetBuffer(extension_storage.data(), static_cast<int>(extension_storage.size()));
+    ASSERT_TRUE(LoadNamedActionCharacter(character, empty, extension, extension_memory, error)) << error;
+    ASSERT_TRUE(dc2::character::ResourcesLive(character));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, extension_memory, dc2::memory::ArenaResetKind::Stack));
+    auto *wave = character.GetKeyListPtr(const_cast<char *>("wave_game"), nullptr);
+    ASSERT_NE(wave, nullptr);
+    // Extension actions continue after every game frame the base set uses.
+    EXPECT_EQ(wave->start_frame, 46);
+    EXPECT_EQ(wave->end_frame, 76);
+    auto *root = character.CObjectFrame::frame;
+    SetMotionTime(root, &character.motion[1], 46 + 20, nullptr);
+    EXPECT_NEAR(root->trans_matrix[3][0], 20, 1e-4f);
+    // The blend source is the action last posed, even from another motion set.
+    SetMotionTime(root, &character.motion[0], 2 + 10, nullptr);
+    EXPECT_NEAR(root->trans_matrix[3][0], 10, 1e-4f);
+    ChangeMotion(root, &character.motion[1], 2 + 10, 46 + 20, .5f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[3][0], 15, 1e-4f);
+    character.DeleteExtMotion();
+    EXPECT_TRUE(character_motion::Actions(character.motion[1]).empty());
+    EXPECT_FALSE(character_motion::Actions(character.motion[0]).empty());
+    EXPECT_EQ(character.motion[1].motion_list, nullptr);
+    EXPECT_EQ(character.shadow_motion[1].motion_list, nullptr);
+    EXPECT_FALSE(dc2::character::ResourcesWouldRetireOnReset(character, extension_memory, dc2::memory::ArenaResetKind::Stack));
+    extension_memory.stClearUsed();
+    EXPECT_TRUE(dc2::character::ResourcesLive(character));
+}
+
+TEST_F(NativeModel, ProfilesNamingUnknownActionsOrMissingExternalActionsFail) {
+    const Json  commands = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"}, {"args", Json::array()}                                            },
+        {{"command", "KEY"},       {"args", {TextArgument("run"), RealArgument(1)}}                   },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                            }
+    });
+    CCharacter2 character;
+    character.Initialize();
+    std::string error;
+    EXPECT_FALSE(LoadNamedActionCharacter(character, gltf, NamedActionCharacter(game, commands), memory, error));
+    EXPECT_NE(error.find("KEY names no action"), std::string::npos) << error;
+    auto external = NamedActionCharacter(game, Json::array({
+                                                   {{"command", "MODEL"},  {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+                                                   {{"command", "MOTION"}, {"args", {IntegerArgument(1), AnimationArgument(2)}}               }
+    }));
+    external["resources"]["animations"].push_back({
+        {"external", "models/elsewhere.gltf#0"                          },
+        {"actions",  Json::array({{{"name", "wave"}, {"duration", 30}}})},
+        {"targets",  Json::array()                                      }
+    });
+    CCharacter2 other;
+    other.Initialize();
+    EXPECT_FALSE(LoadNamedActionCharacter(other, gltf, external, memory, error));
+    EXPECT_NE(error.find("lacks the actions of external motion models/elsewhere.gltf#0"), std::string::npos) << error;
+}
+
+TEST_F(NativeModel, BuildsNativeFramesAndStreamsWithoutRetailRecords) {
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    EXPECT_STREQ(frame->name, "root");
+    EXPECT_EQ(frame->frame_num, 1);
+    auto *visual = static_cast<mgCVisualMDT *>(frame->visual);
+    ASSERT_NE(visual, nullptr);
+    EXPECT_EQ(visual->vertex_num, 3);
+    EXPECT_FLOAT_EQ(visual->vertex[1][0], 2);
+    EXPECT_FLOAT_EQ(visual->vertex[2][1], 2);
+    ASSERT_NE(visual->face_group, nullptr);
+    EXPECT_EQ(visual->face_group->face->vertex_num, 3);
+}
+
+TEST_F(NativeModel, SelectsStandardScenesByNameAcrossDifferentBundleOrders) {
+    const auto metadata = game;
+    gltf["nodes"].push_back({
+        {"name",        "cursor" },
+        {"mesh",        0        },
+        {"translation", {9, 0, 0}}
+    });
+    gltf["scenes"] = Json::array({
+        {{"name", "alert"},  {"nodes", {0}}},
+        {{"name", "cursor"}, {"nodes", {1}}}
+    });
+    auto first = metadata;
+    auto second = metadata;
+    first["scene"] = 0;
+    second["scene"] = 1;
+    second["node_offset"] = 1;
+    game = {
+        {"schema_version", 1                           },
+        {"models",         Json::array({first, second})},
+        {"profiles",       Json::object()              },
+        {"resources",      Json::object()              }
+    };
+    for (int order = 0; order < 2; ++order) {
+        Write(directory / "data/models/model.gltf", gltf);
+        mgLoadData load{};
+        load.memory = &memory;
+        std::string error;
+        auto       *frame = model_assets::LoadModelScene("models/model.gltf", "cursor", load, error);
+        ASSERT_NE(frame, nullptr) << error;
+        EXPECT_STREQ(frame->name, "cursor");
+        EXPECT_FLOAT_EQ(frame->trans_matrix[3][0], 9);
+        EXPECT_EQ(frame->frame_num, 1);
+        EXPECT_EQ(model_assets::LoadModelScene("models/model.gltf", "missing", load, error), nullptr);
+        EXPECT_FALSE(error.empty());
+        std::swap(gltf["scenes"][0], gltf["scenes"][1]);
+        game["models"][0]["scene"] = 1;
+        game["models"][1]["scene"] = 0;
+        model_assets::Clear();
+    }
+}
+
+TEST_F(NativeModel, SelectsNondefaultStandardScenesWithoutGameplayJson) {
+    auto standard = gltf;
+    standard["asset"]["generator"] = "Kazarov";
+    standard["nodes"] = Json::array({
+        {{"name", "other"}, {"mesh", 0}},
+        {{"name", "cursor"}, {"mesh", 0}, {"translation", {9, 0, 0}}, {"children", {3}}},
+        {{"name", "second_root"}, {"mesh", 0}, {"translation", {99, 0, 0}}},
+        {{"name", "cursor_child"}, {"mesh", 0}, {"translation", {2, 0, 0}}}
+    });
+    standard["scenes"] = Json::array({
+        {{"name", "other"},  {"nodes", {0}}},
+        {{"name", "cursor"}, {"nodes", {1}}}
+    });
+    const auto path = directory / "data/models/standard.gltf";
+    Write(path, standard);
+    ASSERT_FALSE(std::filesystem::exists(directory / "data/models/standard.game.json"));
+    mgLoadData load{};
+    load.memory = &memory;
+    std::string error;
+    auto       *frame = model_assets::LoadModelScene("models/standard.gltf", "cursor", load, error);
+    ASSERT_NE(frame, nullptr) << error;
+    EXPECT_STREQ(frame->name, "cursor");
+    EXPECT_EQ(frame->frame_num, 2);
+    EXPECT_TRUE(model_assets::UsesStandardScaleOrder(frame));
+    ASSERT_NE(frame->child, nullptr);
+    EXPECT_STREQ(frame->child->name, "cursor_child");
+    float world[4][4];
+    frame->child->GetLWMatrix(world);
+    EXPECT_FLOAT_EQ(world[3][0], 11);
+    char other_name[] = "other";
+    EXPECT_EQ(frame->SearchFrame(other_name), nullptr);
+    auto *default_frame = model_assets::LoadModel("models/standard.gltf", load, error);
+    ASSERT_NE(default_frame, nullptr) << error;
+    EXPECT_STREQ(default_frame->name, "other");
+    standard["scenes"][1]["nodes"] = {1, 2};
+    Write(path, standard);
+    model_assets::Clear();
+    frame = model_assets::LoadModelScene("models/standard.gltf", "cursor", load, error);
+    ASSERT_NE(frame, nullptr) << error;
+    EXPECT_EQ(frame->frame_num, 4);
+    char  second_name[] = "second_root";
+    auto *second = frame->SearchFrame(second_name);
+    ASSERT_NE(second, nullptr);
+    second->GetLWMatrix(world);
+    EXPECT_FLOAT_EQ(world[3][0], 99);
+    standard["scenes"][0]["name"] = "cursor";
+    Write(path, standard);
+    model_assets::Clear();
+    EXPECT_EQ(model_assets::LoadModelScene("models/standard.gltf", "cursor", load, error), nullptr);
+    EXPECT_NE(error.find("ambiguous"), std::string::npos);
+    EXPECT_EQ(model_assets::LoadModelScene("models/standard.gltf", "missing", load, error), nullptr);
+    EXPECT_NE(error.find("missing"), std::string::npos);
+}
+
+TEST_F(NativeModel, DungeonArticlesLoadNamedScenesAndAllDirectChildCharacters) {
+    const auto                            metadata = game;
+    constexpr std::array<const char *, 6> scenes{"bikkuri_aka", "bteffe_att_a", "bteffe_att_b", "bteffe_att_c", "bteffe_cyc", "cursor"};
+    auto                                  bundle = gltf;
+    bundle["nodes"] = Json::array();
+    bundle["scenes"] = Json::array();
+    Json models = Json::array();
+    for (std::size_t index = 0; index < scenes.size(); ++index) {
+        bundle["nodes"].push_back({
+            {"name", scenes[index]},
+            {"mesh", 0            }
+        });
+        bundle["scenes"].push_back({
+            {"name",  scenes[index]},
+            {"nodes", {index}      }
+        });
+        auto model = metadata;
+        model["scene"] = index;
+        model["node_offset"] = index;
+        models.push_back(std::move(model));
+    }
+    const auto publish = [&](const std::string &relative, const Json &asset, const Json &semantics) {
+        auto path = directory / "data" / relative;
+        std::filesystem::create_directories(path.parent_path());
+        Write(path, asset);
+        path.replace_extension(".game.json");
+        Write(path, semantics);
+    };
+    publish("dungeon/articles/pack01_1.gltf", bundle, {
+                                                          {"schema_version", 1             },
+                                                          {"models",         models        },
+                                                          {"profiles",       Json::object()},
+                                                          {"resources",      Json::object()}
+    });
+    auto character_model = metadata;
+    character_model["scene"] = 0;
+    const Json character = {
+        {"schema_version", 1                                                                                                                                     },
+        {"models",         Json::array({character_model})                                                                                                        },
+        {"resources",      Json::object()                                                                                                                        },
+        {"profiles",       {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}}})}}}}}
+    };
+    publish("dungeon/articles/pack01_1.assets/giostone.gltf", gltf, character);
+    publish("dungeon/articles/pack01_1.assets/ring_loop.gltf", gltf, character);
+    constexpr std::array<const char *, 18> items{
+        "seisui", "bom", "isi", "maseki_hi", "maseki_rei", "maseki_rai", "maseki_kaze", "maseki_sei", "tokimeki",
+        "isi_berry", "neba_momo", "bom_nattu", "dokuring", "m_banana", "gift_cp", "bom_kai", "f_bom", "denkou"};
+    for (const auto *item : items) {
+        auto profile = character;
+        if (std::string_view(item) == "seisui") {
+            profile["profiles"]["info"]["commands"].push_back({
+                {"command", "IMG_END"    },
+                {"args",    Json::array()}
+            });
+        }
+        publish(std::string("dungeon/articles/item01b.assets/") + item + ".gltf", gltf, profile);
+    }
+    const int previous_language = LanguageCode;
+    auto     *previous_memory = MainBuffer__2;
+    LanguageCode = 1;
+    MainBuffer__2 = &memory;
+    const bool loaded = PortLoadDungeonArticleModels();
+    LanguageCode = previous_language;
+    MainBuffer__2 = previous_memory;
+    ASSERT_TRUE(loaded);
+    ASSERT_NE(LockOnModel.frame, nullptr);
+    EXPECT_STREQ(LockOnModel.frame->name, "cursor");
+    EXPECT_TRUE(LockOnModel.frame->attr->no_light);
+    ASSERT_NE(RedMarkModel, nullptr);
+    ASSERT_NE(RedMarkModel->frame, nullptr);
+    EXPECT_STREQ(RedMarkModel->frame->name, "bikkuri_aka");
+    EXPECT_NE(GeoStone.GetFrame(), nullptr);
+    EXPECT_NE(RandomCircle.model.GetFrame(), nullptr);
+    for (const auto *model : SparcModel) {
+        ASSERT_NE(model, nullptr);
+    }
+    EXPECT_NE(TornadoModel, nullptr);
+    for (std::size_t index = 0; index < items.size(); ++index) {
+        EXPECT_NE(ItemBaseData[index].GetFrame(), nullptr) << items[index];
+        EXPECT_EQ(ItemBaseData[index].texture_block, index == 0 ? 0x68 : 0);
+    }
+}
+
+TEST_F(NativeModel, PreservesEscapedGameNamesAndUntexturedNullMetadata) {
+    Json metadata = game;
+    metadata["frames"][0]["name"] = "%81%5C";
+    metadata["meshes"][0]["materials"][0]["texture_source"] = nullptr;
+    metadata["meshes"][0]["materials"][0]["texture_path"] = nullptr;
+    gltf["nodes"][0]["name"] = "%81%5C";
+    Write(directory / "data/models/model.gltf", gltf);
+    game = metadata;
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    EXPECT_STREQ(frame->name, "\x81\x5C");
+}
+
+TEST_F(NativeModel, RejectsMetadataNumbersBeforeNarrowingNativeFields) {
+    const auto source = gltf.dump();
+    const auto bytes = std::as_bytes(std::span(source));
+    const auto original = game;
+    for (int malformed = 0; malformed < 4; ++malformed) {
+        auto  metadata = original;
+        auto &mesh = metadata.at("meshes").at(0);
+        if (malformed == 0) {
+            mesh["vertex_count"] = 1.0e100;
+        } else if (malformed == 1) {
+            mesh["vertex_count"] = std::numeric_limits<std::uint64_t>::max();
+        } else if (malformed == 2) {
+            mesh["primitives"][0]["material"] = 1.0e100;
+        } else {
+            mesh["primitives"][0]["source_vertices"][0] = 1.0e100;
+        }
+        mgLoadData load{};
+        load.memory = &memory;
+        std::string error;
+        EXPECT_EQ(model_assets::LoadModel(bytes, metadata, load, error), nullptr) << malformed;
+        EXPECT_FALSE(error.empty()) << malformed;
+    }
+}
+
+TEST_F(NativeModel, LoadsActualGltfBytesWithExplicitGameplayJson) {
+    const auto                 json = gltf.dump();
+    std::vector<unsigned char> destination(json.begin(), json.end());
+    mgLoadData                 load{};
+    load.memory = &memory;
+    std::string error;
+    auto       *frame = model_assets::LoadModel({reinterpret_cast<const std::byte *>(destination.data()), destination.size()}, game, load, error);
+    ASSERT_NE(frame, nullptr);
+    EXPECT_STREQ(frame->name, "root");
+}
+
+TEST_F(NativeModel, SamplesStandardGltfAnimationAtFractionalGameFrames) {
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    auto motion = Motion();
+    ASSERT_NE(motion.motion_list, nullptr);
+    SetMotionTime(frame, &motion, 7.5f, nullptr);
+    EXPECT_NEAR(frame->trans_matrix[3][0], 7.5f, .0001f);
+    ChangeMotion(frame, &motion, 0, 30, .25f, nullptr);
+    EXPECT_NEAR(frame->trans_matrix[3][0], 7.5f, .0001f);
+}
+
+TEST_F(NativeModel, LoadsCharacterProfileResourcesAndGameplayInOrder) {
+    const auto model = game;
+    auto       integer = [](int value) { return Json{
+                                             {"type",  "int"},
+                                             {"value", value}
+ }; };
+    auto       real = [](float value) { return Json{
+                                            {"type",  "float"},
+                                            {"value", value  }
+ }; };
+    auto       text = [](const char *value) { return Json{
+                                                  {"type",  "string"},
+                                                  {"value", value   }
+ }; };
+    auto       resource = [](const char *kind, int index) { return Json{
+                                                                {"type",  "resource"},
+                                                                {"kind",  kind      },
+                                                                {"index", index     }
+ }; };
+    const Json commands = Json::array({
+        {{"command", "BODY_SIZE"}, {"args", {integer(10), integer(20), integer(30)}}                                             },
+        {{"command", "MODEL"},     {"args", {resource("model", 0)}}                                                              },
+        {{"command", "MOTION"},    {"args", {integer(0), resource("animation", 0), {{"type", "invalid"}}, {{"type", "invalid"}}}}},
+        {{"command", "KEY_START"}, {"args", Json::array()}                                                                       },
+        {{"command", "KEY"},       {"args", {text("walk"), real(1)}}                                                             },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                                                       },
+        {{"command", "POLY_NUM"},  {"args", {integer(1), integer(0)}}                                                            }
+    });
+    game = {
+        {"schema_version", 1                                                                                                                                                                                        },
+        {"kind",           "character"                                                                                                                                                                              },
+        {"models",         Json::array({model})                                                                                                                                                                     },
+        {"profiles",       {{"info", {{"commands", commands}}}}                                                                                                                                                     },
+        {"game_names",     {{"walk", text("walk")}}                                                                                                                                                                 },
+        {"resources",      {{"animations", Json::array({{{"actions", Json::array({{{"name", "walk"}, {"duration", 30}}})}, {"variants", Json::array({{{"model", 0}, {"node_offset", 0}, {"animations", {0}}}})}}})}}}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+    CCharacter2 character;
+    character.Initialize();
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, std::filesystem::path("models/model.gltf"), "info", options, error)) << error;
+    EXPECT_FLOAT_EQ(character.body_height, 10);
+    EXPECT_FLOAT_EQ(character.body_width, 20);
+    EXPECT_FLOAT_EQ(character.body_depth, 30);
+    EXPECT_EQ(character.poly_num, 1);
+    ASSERT_NE(character.CObjectFrame::frame, nullptr);
+    ASSERT_NE(character.motion[0].motion_list, nullptr);
+    ASSERT_NE(character.GetKeyListIndexPtr(0, nullptr), nullptr);
+    EXPECT_STREQ(character.GetKeyListIndexPtr(0, nullptr)->name, "walk");
+    EXPECT_EQ(character.key_num[0], 2);
+    // The first action's game frames start at two, so the game's ratio arithmetic never meets frame zero.
+    EXPECT_EQ(character.key_list[0][0].start_frame, 2);
+    EXPECT_EQ(character.key_list[0][0].end_frame, 32);
+    SetMotionTime(character.CObjectFrame::frame, &character.motion[0], 9.5f, nullptr);
+    EXPECT_NEAR(character.CObjectFrame::frame->trans_matrix[3][0], 7.5f, .0001f);
+    EXPECT_EQ(model_assets::Profiles("models/model.gltf", error), std::vector<std::string>{"info"});
+    const auto estimate = model_assets::EstimateCharacterMemory("models/model.gltf", "info", error);
+    ASSERT_TRUE(estimate.has_value()) << error;
+    EXPECT_GE(*estimate, static_cast<std::size_t>(memory.stack_used) * 16);
+    EXPECT_LT(*estimate, 16384u);
+}
+
+TEST_F(NativeModel, ExplicitAbsentResourcesPreserveFollowingGameplayCommands) {
+    auto missing = [](const char *kind) { return Json{
+                                              {"type",  "resource"},
+                                              {"kind",  kind      },
+                                              {"index", nullptr   }
+ }; };
+    game = {
+        {"schema_version", 1                                                                                                                                                                                                                                                                                                                                                                 },
+        {"models",         Json::array()                                                                                                                                                                                                                                                                                                                                                     },
+        {"resources",      Json::object()                                                                                                                                                                                                                                                                                                                                                    },
+        {"profiles",       {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", {missing("model")}}}, {{"command", "SHADOW_MODEL"}, {"args", {missing("model")}}}, {{"command", "EFFECT"}, {"args", {missing("script")}}}, {{"command", "BODY_SIZE"}, {"args", {{{"type", "int"}, {"value", 10}}, {{"type", "int"}, {"value", 20}}, {{"type", "int"}, {"value", 30}}}}}})}}}}}
+    };
+    CCharacter2 character;
+    character.Initialize();
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    const auto                         bytes = gltf.dump();
+    std::string                        error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, {reinterpret_cast<const std::byte *>(bytes.data()), bytes.size()}, game, "info", options, error)) << error;
+    EXPECT_EQ(character.CObjectFrame::frame, nullptr);
+    EXPECT_FLOAT_EQ(character.body_height, 10);
+    EXPECT_FLOAT_EQ(character.body_width, 20);
+    EXPECT_FLOAT_EQ(character.body_depth, 30);
+}
+
+TEST_F(NativeModel, SkinReadsTextureResourceAfterItsImageSlot) {
+    const Json model = game;
+    const Json texture_document{
+        {"schema_version", 3                                                                                                                           },
+        {"groups",         {1}                                                                                                                         },
+        {"entries",        Json::array({{{"name", "costume"}, {"block", 1}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+    };
+    game = {
+        {"schema_version", 1                                                                  },
+        {"kind",           "character"                                                        },
+        {"models",         Json::array({model})                                               },
+        {"resources",      {{"texture_sets", Json::array({{{"document", texture_document}}})}}}
+    };
+    game["profiles"]["info"]["commands"] = Json::array({
+        {{"command", "MODEL"}, {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}}
+    });
+    game["profiles"]["skin"]["commands"] = Json::array({
+        {{"command", "IMG"}, {"args", {IntegerArgument(0), {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}}}}
+    });
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    mgCTextureManager      textures;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    textures.SetTableBuffer(8, 8, &texture_memory);
+    textures.Initialize(0x1000, -1);
+    CCharacter2                        character;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory, .textures = &textures, .texture_block = 2, .outline = false};
+    const auto                         bytes = gltf.dump();
+    const auto                         source = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    std::string                        error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source, game, "info", options, error)) << error;
+    char name[] = "costume";
+    ASSERT_EQ(textures.GetTexture(name, 3), nullptr);
+    std::vector<u_long128> skin_storage(4096);
+    mgCMemory              skin_memory;
+    skin_memory.stSetBuffer(skin_storage.data(), static_cast<int>(skin_storage.size()));
+    options.model_memory = options.motion_memory = options.image_memory = &skin_memory;
+    for (int iteration = 0; iteration < 3; ++iteration) {
+        ASSERT_TRUE(model_assets::PrepareSkinArenaReset(character, skin_memory, error)) << error;
+        skin_memory.stReset();
+        ASSERT_TRUE(dc2::character::ResourcesLive(character));
+        game["profiles"]["skin"]["commands"][0]["args"] = iteration == 1
+                                                              ? Json::array({
+                                                                    {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}
+        })
+                                                              : Json::array({IntegerArgument(0), {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}});
+        ASSERT_TRUE(model_assets::LoadSkin(character, source, game, "skin", "", options, error)) << error;
+        EXPECT_NE(textures.GetTexture(name, 3), nullptr);
+    }
+    game["profiles"]["skin"]["commands"][0]["args"] = Json::array({
+        {{"type", "resource"}, {"kind", "model"}, {"index", 0}}
+    });
+    EXPECT_FALSE(model_assets::LoadSkin(character, source, game, "skin", "", options, error));
+    EXPECT_NE(error.find("resource kind mismatch"), std::string::npos);
+    textures.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, ImageEndSetsTheCharacterBlockWithoutImagesAndSkinEndRetainsIt) {
+    game = {
+        {"schema_version", 1                                                                                           },
+        {"models",         Json::array()                                                                               },
+        {"resources",      Json::object()                                                                              },
+        {"profiles",       {{"info", {{"commands", Json::array({{{"command", "IMG_END"}, {"args", Json::array()}}})}}}}}
+    };
+    CCharacter2 character;
+    character.Initialize();
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.texture_block = 0x68;
+    const auto                       bytes = gltf.dump();
+    const std::span<const std::byte> data{reinterpret_cast<const std::byte *>(bytes.data()), bytes.size()};
+    std::string                      error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, data, game, "info", options, error)) << error;
+    EXPECT_EQ(character.texture_block, 0x68);
+    options.texture_block = 0xd1;
+    ASSERT_TRUE(model_assets::LoadSkin(character, data, game, "info", "", options, error)) << error;
+    EXPECT_EQ(character.texture_block, 0x68);
+}
+
+TEST_F(NativeModel, SupportsStepInterpolationAndClampsOutsideClip) {
+    gltf["animations"][0]["samplers"][0]["interpolation"] = "STEP";
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    auto motion = Motion();
+    ASSERT_NE(motion.motion_list, nullptr);
+    SetMotionTime(frame, &motion, 29.5f, nullptr);
+    EXPECT_FLOAT_EQ(frame->trans_matrix[3][0], 0);
+    SetMotionTime(frame, &motion, 60, nullptr);
+    EXPECT_FLOAT_EQ(frame->trans_matrix[3][0], 30);
+}
+
+TEST_F(NativeModel, RejectsEscapingDirectPaths) {
+    mgLoadData load{};
+    load.memory = &memory;
+    std::string error;
+    EXPECT_EQ(model_assets::LoadModel(std::filesystem::path("../outside.gltf"), load, error), nullptr);
+    EXPECT_FALSE(error.empty());
+}
+
+TEST_F(NativeModel, ConvertsStandardRotationsToNativeMatricesAndMotionRecords) {
+    const float half = std::sqrt(.5f);
+    for (const auto *interpolation : {"LINEAR", "STEP", "CUBICSPLINE"}) {
+        std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1};
+        const bool         cubic = std::strcmp(interpolation, "CUBICSPLINE") == 0;
+        if (cubic) {
+            values.insert(values.end(), {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+                                         0, 0, 0, 0, 0, 0, half, half, 0, 0, 0, 0});
+        } else {
+            values.insert(values.end(), {0, 0, 0, 1, 0, 0, half, half});
+        }
+        std::vector<unsigned char> bytes(values.size() * sizeof(float));
+        std::memcpy(bytes.data(), values.data(), bytes.size());
+        gltf["buffers"][0]["byteLength"] = bytes.size();
+        gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+        gltf["bufferViews"][2]["byteLength"] = (cubic ? 24 : 8) * sizeof(float);
+        gltf["accessors"][2]["type"] = "VEC4";
+        gltf["accessors"][2]["count"] = cubic ? 6 : 2;
+        gltf["animations"][0]["samplers"][0]["interpolation"] = interpolation;
+        gltf["animations"][0]["channels"][0]["target"]["path"] = "rotation";
+        Write(directory / "data/models/model.gltf", gltf);
+        auto *root = Instantiate();
+        ASSERT_NE(root, nullptr);
+        auto motion = Motion();
+        ASSERT_NE(motion.motion_list, nullptr);
+        // The channel samples the document's (x, y, z, w) keys; the game arena holds only its record.
+        const auto actions = character_motion::Actions(motion);
+        ASSERT_EQ(actions.size(), 1u);
+        const auto *channel = actions[0].head;
+        ASSERT_NE(channel, nullptr);
+        EXPECT_TRUE(model_assets::IsNativeChannel(*channel));
+        EXPECT_EQ(channel->key_count, 2u);
+        EXPECT_EQ(channel->values, nullptr);
+        EXPECT_EQ(channel->key_frames, nullptr);
+        root->SetPosition(5, 7, 11);
+        SetMotionTime(root, &motion, 0, nullptr);
+        EXPECT_NEAR(root->trans_matrix[0][0], 1, 1e-6f);
+        EXPECT_NEAR(root->trans_matrix[1][1], 1, 1e-6f);
+        EXPECT_NEAR(root->trans_matrix[2][2], 1, 1e-6f);
+        SetMotionTime(root, &motion, 15, nullptr);
+        const bool step = std::strcmp(interpolation, "STEP") == 0;
+        EXPECT_NEAR(root->trans_matrix[0][0], step ? 1 : half, 1e-5f);
+        EXPECT_NEAR(root->trans_matrix[0][1], step ? 0 : half, 1e-5f);
+        EXPECT_NEAR(root->trans_matrix[1][0], step ? 0 : -half, 1e-5f);
+        SetMotionTime(root, &motion, 30, nullptr);
+        EXPECT_NEAR(root->trans_matrix[0][0], 0, 1e-5f);
+        EXPECT_NEAR(root->trans_matrix[0][1], 1, 1e-5f);
+        EXPECT_NEAR(root->trans_matrix[1][0], -1, 1e-5f);
+        float local[4][4];
+        root->GetLocalMatrix(local);
+        EXPECT_FLOAT_EQ(local[3][0], 5);
+        EXPECT_FLOAT_EQ(local[3][1], 7);
+        EXPECT_FLOAT_EQ(local[3][2], 11);
+        ChangeMotion(root, &motion, 0, 30, .5f, nullptr);
+        EXPECT_NEAR(root->trans_matrix[0][1], half, 1e-5f);
+    }
+}
+
+TEST_F(NativeModel, GltfOnlyOverlayChangesTopologyAndMalformedGameplayOverlayFallsBack) {
+    std::filesystem::create_directories(directory / "datapacks/test/models");
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    auto replacement = gltf;
+    replacement["nodes"][0]["translation"] = {9, 0, 0};
+    replacement["meshes"][0]["primitives"].push_back(replacement["meshes"][0]["primitives"][0]);
+    Write(directory / "datapacks/test/models/model.gltf", replacement);
+    std::ofstream(directory / "datapacks/test/models/model.game.json") << "{broken";
+    datapacks::Load(directory / "data");
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    EXPECT_FLOAT_EQ(frame->trans_matrix[3][0], 9);
+    auto *visual = static_cast<mgCVisualMDT *>(frame->visual);
+    EXPECT_EQ(visual->vertex_num, 6);
+    ASSERT_NE(visual->face_group, nullptr);
+    EXPECT_NE(visual->face_group->next, nullptr);
+    Json changed = game;
+    changed["frames"][0]["name"] = "changed";
+    changed["meshes"][0]["materials"][0]["ambient"] = {1, 2, 3, 4};
+    Write(directory / "datapacks/test/models/model.game.json", changed);
+    frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    EXPECT_FLOAT_EQ(static_cast<mgCVisualMDT *>(frame->visual)->material[0].unk_10[1], 2);
+}
+
+TEST_F(NativeModel, CollapsesStandardScaleRotationHelpersWithoutChangingGameplayFrameIdentities) {
+    const float        half = std::sqrt(.5f);
+    std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 1, 0, 0, half, half};
+    auto               vector_accessor = [&](std::initializer_list<float> components) {
+        const auto view = gltf["bufferViews"].size();
+        gltf["bufferViews"].push_back({
+            {"buffer",     0                                },
+            {"byteOffset", values.size() * sizeof(float)    },
+            {"byteLength", components.size() * sizeof(float)}
+        });
+        values.insert(values.end(), components);
+        const auto accessor = gltf["accessors"].size();
+        gltf["accessors"].push_back({
+            {"bufferView",    view                 },
+            {"componentType", 5126                 },
+            {"count",         components.size() / 3},
+            {"type",          "VEC3"               }
+        });
+        return accessor;
+    };
+    gltf["asset"]["generator"] = "Kazarov";
+    gltf["bufferViews"][2]["byteLength"] = 8 * sizeof(float);
+    gltf["accessors"][2]["type"] = "VEC4";
+    const auto                 scale = vector_accessor({1, 1, 1, 2, 3, 4});
+    const auto                 reset = vector_accessor({1, 1, 1, 1, 1, 1});
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["nodes"] = Json::array({
+        {{"name", "root"}, {"translation", {5, 7, 11}}, {"children", {2}}},
+        {{"name", "child"}, {"translation", {1, 2, 3}}},
+        {{"name", "rotation"}, {"mesh", 0}, {"rotation", {0, 0, half, half}}, {"scale", {2, 3, 4}}, {"children", {1}}}
+    });
+    game["frames"] = Json::array({
+        {{"id", 0}, {"mdt", 0}, {"rotation_node", 2}},
+        {{"id", 1}, {"mdt", nullptr}}
+    });
+    gltf["animations"][0]["samplers"] = Json::array({
+        {{"input", 1}, {"output", 2}    },
+        {{"input", 1}, {"output", scale}},
+        {{"input", 1}, {"output", reset}}
+    });
+    gltf["animations"][0]["channels"] = Json::array({
+        {{"sampler", 0}, {"target", {{"node", 2}, {"path", "rotation"}}}},
+        {{"sampler", 1}, {"target", {{"node", 0}, {"path", "scale"}}}   },
+        {{"sampler", 2}, {"target", {{"node", 2}, {"path", "scale"}}}   }
+    });
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *root = Instantiate();
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->frame_num, 2);
+    EXPECT_STREQ(root->name, "root");
+    ASSERT_NE(root->visual, nullptr);
+    EXPECT_EQ(root->child, root->GetFrame(1));
+    EXPECT_EQ(root->GetFrame(1)->parent, root);
+    EXPECT_FALSE(model_assets::UsesStandardScaleOrder(root));
+    float local[4][4];
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][1], 2, 1e-5f);
+    EXPECT_NEAR(local[1][0], -3, 1e-5f);
+    auto motion = Motion();
+    SetMotionTime(root, &motion, 15, nullptr);
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][0], 1.5f * half, 1e-5f);
+    EXPECT_NEAR(local[0][1], 2 * half, 1e-5f);
+    EXPECT_NEAR(local[1][0], -1.5f * half, 1e-5f);
+    EXPECT_NEAR(local[1][1], 2 * half, 1e-5f);
+    EXPECT_NEAR(local[2][2], 2.5f, 1e-5f);
+    EXPECT_FLOAT_EQ(local[3][0], 5);
+    EXPECT_FLOAT_EQ(local[3][1], 7);
+    EXPECT_FLOAT_EQ(local[3][2], 11);
+    EXPECT_FLOAT_EQ(root->scale[0], 1.5f);
+    EXPECT_FLOAT_EQ(root->scale[1], 2);
+
+    // The nonuniform rotation at p00_19a frame 74, time 14 must retain the native scale order.
+    float quaternion[4] = {.628367f, -.021839f, .025335f, .777198f};
+    float length = 0;
+    for (float component : quaternion) {
+        length += component * component;
+    }
+    for (float &component : quaternion) {
+        component /= std::sqrt(length);
+    }
+    for (int key = 0; key < 2; ++key) {
+        values[11 + key * 4] = -quaternion[1];
+        values[12 + key * 4] = -quaternion[2];
+        values[13 + key * 4] = -quaternion[3];
+        values[14 + key * 4] = quaternion[0];
+        values[19 + key * 3] = .924201f;
+        values[20 + key * 3] = values[21 + key * 3] = 1;
+    }
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    Write(directory / "data/models/model.gltf", gltf);
+    // Reload the independent pose fixture even when both writes share a timestamp.
+    model_assets::Clear();
+    root = Instantiate();
+    motion = Motion();
+    SetMotionTime(root, &motion, 14, nullptr);
+    root->GetLocalMatrix(local);
+    mgCFrame native;
+    float    reference[4][4]{};
+    reference[0][0] = reference[1][1] = reference[2][2] = reference[3][3] = 1;
+    reference[3][0] = 5;
+    reference[3][1] = 7;
+    reference[3][2] = 11;
+    native.SetTransMatrix(reference);
+    native.SetTransMatrix(quaternion);
+    native.SetScale(.924201f, 1, 1);
+    native.GetLocalMatrix(reference);
+    for (int column = 0; column < 4; ++column) {
+        for (int row = 0; row < 4; ++row) {
+            EXPECT_NEAR(local[column][row], reference[column][row], 1e-5f);
+        }
+    }
+}
+
+TEST_F(NativeModel, StandardNonuniformScaleOverridesUseRotationBeforeScaleAndClearOnFrameReuse) {
+    std::filesystem::create_directories(directory / "datapacks/test/models");
+    auto base = gltf;
+    base["nodes"] = Json::array({
+        {{"name", "root"}, {"children", {1}}},
+        {{"mesh", 0}}
+    });
+    game["frames"][0]["rotation_node"] = 1;
+    Write(directory / "data/models/model.gltf", base);
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    const float half = std::sqrt(.5f);
+    gltf["asset"]["generator"] = "Kazarov";
+    gltf["nodes"][0]["rotation"] = {0, 0, half, half};
+    gltf["nodes"][0]["scale"] = {2, 3, 4};
+    Write(directory / "datapacks/test/models/model.gltf", gltf);
+    datapacks::Load(directory / "data");
+    auto *root = Instantiate();
+    ASSERT_NE(root, nullptr);
+    EXPECT_TRUE(model_assets::UsesStandardScaleOrder(root));
+    float local[4][4];
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][1], 2, 1e-5f);
+    EXPECT_NEAR(local[1][0], -3, 1e-5f);
+    root->SetScale(5, 6, 7);
+    root->SetPosition(8, 9, 10);
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][1], 5, 1e-5f);
+    EXPECT_NEAR(local[1][0], -6, 1e-5f);
+    EXPECT_FLOAT_EQ(local[3][0], 8);
+    EXPECT_FLOAT_EQ(local[3][1], 9);
+    EXPECT_FLOAT_EQ(local[3][2], 10);
+    root->rot_type = MG_FRAME_ROT_APPLY;
+    root->SetRotation(0, 0, .2f);
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][0], -5 * std::sin(.2f), 1e-5f);
+    EXPECT_NEAR(local[0][1], 5 * std::cos(.2f), 1e-5f);
+    root->Initialize();
+    EXPECT_FALSE(model_assets::UsesStandardScaleOrder(root));
+    float rotation[4][4]{};
+    rotation[0][1] = rotation[2][2] = rotation[3][3] = 1;
+    rotation[1][0] = -1;
+    root->SetTransMatrix(rotation);
+    root->SetScale(2, 3, 4);
+    root->GetLocalMatrix(local);
+    EXPECT_FLOAT_EQ(local[0][1], 3);
+    EXPECT_FLOAT_EQ(local[1][0], -2);
+}
+
+TEST_F(NativeModel, GameModelsKeepAuthoredScaleInTheMatrixSoGameplayScaleUsesTheGameOrder) {
+    const float        half = std::sqrt(.5f);
+    std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    auto               accessor = [&](std::initializer_list<float> components, const char *type, std::size_t width) {
+        gltf["bufferViews"].push_back({
+            {"buffer",     0                                },
+            {"byteOffset", values.size() * sizeof(float)    },
+            {"byteLength", components.size() * sizeof(float)}
+        });
+        values.insert(values.end(), components);
+        gltf["accessors"].push_back({
+            {"bufferView",    gltf["bufferViews"].size() - 1},
+            {"componentType", 5126                          },
+            {"count",         components.size() / width     },
+            {"type",          type                          }
+        });
+        return gltf["accessors"].size() - 1;
+    };
+    gltf["asset"]["generator"] = "Kazarov";
+    gltf["nodes"][0]["rotation"] = {0, 0, half, half};
+    gltf["nodes"][0]["scale"] = {2, 3, 4};
+    const auto                 rotation = accessor({0, 0, 0, 1, 0, 0, 0, 1}, "VEC4", 4);
+    const auto                 ones = accessor({1, 1, 1, 1, 1, 1}, "VEC3", 3);
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["animations"][0]["samplers"].push_back({
+        {"input",  1       },
+        {"output", rotation}
+    });
+    gltf["animations"][0]["samplers"].push_back({
+        {"input",  1   },
+        {"output", ones}
+    });
+    gltf["animations"][0]["channels"].push_back({
+        {"sampler", 1                                  },
+        {"target",  {{"node", 0}, {"path", "rotation"}}}
+    });
+    gltf["animations"][0]["channels"].push_back({
+        {"sampler", 2                               },
+        {"target",  {{"node", 0}, {"path", "scale"}}}
+    });
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *root = Instantiate();
+    ASSERT_NE(root, nullptr);
+    EXPECT_FALSE(model_assets::UsesStandardScaleOrder(root));
+    float local[4][4];
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][1], 2, 1e-5f);
+    EXPECT_NEAR(local[1][0], -3, 1e-5f);
+    EXPECT_NEAR(local[2][2], 4, 1e-5f);
+    // Gameplay scale multiplies the authored matrix's columns, as the game does.
+    root->SetScale(5, 6, 7);
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][1], 2 * 6, 1e-5f);
+    EXPECT_NEAR(local[1][0], -3 * 5, 1e-5f);
+    EXPECT_NEAR(local[2][2], 4 * 7, 1e-5f);
+    // Rotation keys replace the authored matrix, scale included; the unit scale key leaves gameplay scale alone.
+    auto motion = Motion();
+    SetMotionTime(root, &motion, 15, nullptr);
+    root->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][0], 5, 1e-5f);
+    EXPECT_NEAR(local[1][1], 6, 1e-5f);
+    EXPECT_NEAR(local[2][2], 7, 1e-5f);
+    EXPECT_FLOAT_EQ(root->scale[0], 5);
+}
+
+TEST_F(NativeModel, GeneratedBaseRotationsPreserveRetailNearOppositeSnapWhileOverridesUseStandardSlerp) {
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["asset"]["generator"] = "Kazarov";
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["bufferViews"][2]["byteLength"] = 8 * sizeof(float);
+    gltf["accessors"][2]["type"] = "VEC4";
+    gltf["animations"][0]["channels"][0]["target"]["path"] = "rotation";
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *root = Instantiate();
+    ASSERT_NE(root, nullptr);
+    auto motion = Motion();
+    ASSERT_NE(motion.motion_list, nullptr);
+    SetMotionTime(root, &motion, 0, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], 1, 1e-5f);
+    SetMotionTime(root, &motion, .01f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], 1, 1e-5f);
+    SetMotionTime(root, &motion, 15, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], -1, 1e-5f);
+    EXPECT_NEAR(root->trans_matrix[2][2], -1, 1e-5f);
+    SetMotionTime(root, &motion, 29.99f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], -1, 1e-5f);
+    ChangeMotion(root, &motion, 0, 30, .00005f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], 1, 1e-5f);
+    ChangeMotion(root, &motion, 0, 30, .99995f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], -1, 1e-5f);
+    ChangeMotion(root, &motion, 0, 30, .5f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], -1, 1e-5f);
+    std::filesystem::create_directories(directory / "datapacks/test/models");
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    Write(directory / "datapacks/test/models/model.gltf", gltf);
+    datapacks::Load(directory / "data");
+    root = Instantiate();
+    motion = Motion();
+    SetMotionTime(root, &motion, 15, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], 0, 1e-5f);
+    EXPECT_NEAR(root->trans_matrix[2][2], 0, 1e-5f);
+    ChangeMotion(root, &motion, 0, 30, .5f, nullptr);
+    EXPECT_NEAR(root->trans_matrix[0][0], 0, 1e-5f);
+}
+
+TEST_F(NativeModel, InvalidGameplayIdentitiesFallBackBeforeNativeAllocation) {
+    std::filesystem::create_directories(directory / "datapacks/test/models");
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    datapacks::Load(directory / "data");
+    std::vector<Json> invalid(5, game);
+    invalid[0]["frames"][0]["mdt"] = 999;
+    invalid[1]["frames"][0]["mdt"] = -1;
+    invalid[2]["frames"][0]["id"] = 1;
+    invalid[3]["meshes"][0]["primitives"][0]["source_vertices"][0] = 3;
+    invalid[4]["meshes"][0]["vertex_count"] = -1;
+    for (const auto &candidate : invalid) {
+        Write(directory / "datapacks/test/models/model.game.json", candidate);
+        std::string error;
+        const auto  selected = model_assets::ReadGameplay("models/model.gltf", error);
+        ASSERT_NE(selected, nullptr) << error;
+        EXPECT_EQ(*selected, game);
+        auto *frame = Instantiate();
+        ASSERT_NE(frame, nullptr);
+        EXPECT_EQ(static_cast<mgCVisualMDT *>(frame->visual)->vertex_num, 3);
+    }
+}
+
+TEST_F(NativeModel, ModelListsIncludeModelsAddedOnlyByDatapacks) {
+    std::filesystem::create_directories(directory / "datapacks/test/models");
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    Write(directory / "datapacks/test/models/added.gltf", gltf);
+    Write(directory / "datapacks/test/models/added.game.json", game);
+    const Json marker = {
+        {"schema_version", 1                },
+        {"kind",           "asset_directory"}
+    };
+    Write(directory / "data/models/pack.json", marker);
+    Json models = Json::array();
+    for (const auto *name : {"model.gltf", "added.gltf"}) {
+        models.push_back({
+            {"model", name},
+            {"type",  0   }
+        });
+    }
+    Write(directory / "datapacks/test/models/info.cfg.json", {
+                                                                 {"schema_version", 2           },
+                                                                 {"kind",           "model_list"},
+                                                                 {"models",         models      }
+    });
+    datapacks::Load(directory / "data");
+    auto metadata = marker.dump(2);
+    DataReadRegisterAsset(metadata.data(), "models/pack.json", metadata.size());
+    CMdsList list{};
+    char     label[] = "models";
+    list.LoadPCPFile(label, reinterpret_cast<u_int *>(metadata.data()), &memory, 0);
+    ASSERT_EQ(list.num, 2);
+    char        added_name[] = "added.gltf";
+    const auto *added = list.GetList(added_name);
+    ASSERT_NE(added, nullptr);
+    ASSERT_NE(added->frame, nullptr);
+    EXPECT_EQ(static_cast<mgCVisualMDT *>(added->frame->visual)->vertex_num, 3);
+
+    alignas(16) std::array<u_long128, 1> tiny_storage{};
+    mgCMemory                            tiny_memory;
+    tiny_memory.stSetBuffer(tiny_storage.data(), static_cast<int>(tiny_storage.size()));
+    CMdsList tiny_list{};
+    tiny_list.LoadPCPFile(label, reinterpret_cast<u_int *>(metadata.data()), &tiny_memory, 0);
+    EXPECT_EQ(tiny_list.num, 0);
+    EXPECT_EQ(tiny_memory.stGetUsed(), 0);
+
+    const auto producer = added->resource_lifetime;
+    ASSERT_TRUE(producer.IsLive());
+    memory.stClearUsed();
+    EXPECT_FALSE(producer.IsLive());
+    EXPECT_EQ(list.GetList(added_name), nullptr);
+    EXPECT_EQ(list.GetList(0), nullptr);
+
+    TextureSourceForget(metadata.data());
+    DataReadRegisterBuffer(metadata.data(), 0);
+}
+
+TEST_F(NativeModel, SamplesCubicSplineWithSecondBasedTangents) {
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 30, 0, 0, 0, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["bufferViews"][2]["byteLength"] = 72;
+    gltf["accessors"][2]["count"] = 6;
+    gltf["animations"][0]["samplers"][0]["interpolation"] = "CUBICSPLINE";
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    auto motion = Motion();
+    ASSERT_NE(motion.motion_list, nullptr);
+    SetMotionTime(frame, &motion, 7.5f, nullptr);
+    EXPECT_NEAR(frame->trans_matrix[3][0], 4.6875f, .0001f);
+}
+
+TEST_F(NativeModel, AppliesStandardMorphTargetWeightsThroughRotationHelpers) {
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 2, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["bufferViews"][2]["byteLength"] = 8;
+    gltf["accessors"][2]["type"] = "SCALAR";
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 68},
+        {"byteLength", 36}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    3     },
+        {"componentType", 5126  },
+        {"count",         3     },
+        {"type",          "VEC3"}
+    });
+    gltf["meshes"][0]["primitives"][0]["targets"] = Json::array({{{"POSITION", 3}}});
+    gltf["nodes"] = Json::array({
+        {{"name", "root"}, {"children", {1}}},
+        {{"mesh", 0}}
+    });
+    game["frames"][0]["rotation_node"] = 1;
+    gltf["animations"][0]["channels"][0]["target"]["node"] = 1;
+    gltf["animations"][0]["channels"][0]["target"]["path"] = "weights";
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    auto motion = Motion();
+    ASSERT_NE(motion.motion_list, nullptr);
+    SetMotionTime(frame, &motion, 15, nullptr);
+    auto *visual = static_cast<mgCVisualMDT *>(frame->visual);
+    EXPECT_FLOAT_EQ(visual->vertex[0][0], 1);
+    EXPECT_FLOAT_EQ(visual->vertex[1][0], 3);
+}
+
+TEST_F(NativeModel, PngOverlayWinsBeforeImageRegistrationAndGltfOverlayOwnsItsEmbeddedImage) {
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    mgTexManager.SetTableBuffer(16, 8, &texture_memory);
+    mgTexManager.Initialize(0x1000, -1);
+    gltf["images"] = Json::array({{{"uri", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=="}}});
+    const std::vector<unsigned char> red_pixels{255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255};
+    ASSERT_TRUE(gfx::WritePng(directory / "base.png", red_pixels.data(), 2, 2));
+    {
+        std::ifstream                    input(directory / "base.png", std::ios::binary);
+        const std::vector<unsigned char> png((std::istreambuf_iterator<char>(input)), {});
+        gltf["images"][0]["uri"] = "data:image/png;base64," + Base64(png);
+    }
+    std::filesystem::remove(directory / "base.png");
+    game["images"] = Json::array({
+        {{"image", 0}, {"png", "textures/model.png"}}
+    });
+    gltf["textures"] = Json::array({{{"source", 0}}});
+    gltf["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"] = {
+        {"index", 0}
+    };
+    Write(directory / "data/models/model.gltf", gltf);
+    Json metadata = game;
+    metadata["meshes"][0]["materials"][0]["texture"] = "fixture_texture";
+    metadata["meshes"][0]["materials"][0]["texture_path"] = "textures/model.png";
+    game = metadata;
+    Write(directory / "data/models/model.gltf", gltf);
+    std::filesystem::create_directories(directory / "datapacks/test/textures");
+    {
+        std::vector<unsigned char> pixels(8 * 8 * 4);
+        for (std::size_t index = 0; index < pixels.size(); index += 4) {
+            pixels[index + 1] = 255;
+            pixels[index + 3] = 255;
+        }
+        ASSERT_TRUE(gfx::WritePng(directory / "datapacks/test/textures/model.png", pixels.data(), 8, 8));
+    }
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    datapacks::Load(directory / "data");
+    auto *base = Instantiate();
+    ASSERT_NE(base, nullptr);
+    auto *base_texture = static_cast<mgCVisualMDT *>(base->visual)->material[0].texture;
+    ASSERT_NE(base_texture, nullptr);
+    const auto *base_pixels = reinterpret_cast<const unsigned char *>(base_texture->image[0]);
+    ASSERT_NE(base_pixels, nullptr);
+    EXPECT_EQ(base_pixels[0], 0);
+    EXPECT_EQ(base_pixels[1], 255);
+    EXPECT_EQ(base_texture->width, 2);
+    EXPECT_EQ(base_texture->height, 2);
+    EXPECT_EQ(MgTexturePhysicalExtent(base_texture).width, 8u);
+    EXPECT_EQ(MgTexturePhysicalExtent(base_texture).height, 8u);
+    std::filesystem::create_directories(directory / "datapacks/test/models");
+    Write(directory / "datapacks/test/models/model.gltf", gltf);
+    datapacks::Load(directory / "data");
+    auto *overlaid = Instantiate();
+    ASSERT_NE(overlaid, nullptr);
+    auto *overlay_texture = static_cast<mgCVisualMDT *>(overlaid->visual)->material[0].texture;
+    ASSERT_NE(overlay_texture, nullptr);
+    const auto *overlay_pixels = reinterpret_cast<const unsigned char *>(overlay_texture->image[0]);
+    ASSERT_NE(overlay_pixels, nullptr);
+    EXPECT_EQ(overlay_pixels[0], 255);
+    EXPECT_EQ(overlay_pixels[1], 0);
+    mgTexManager.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, ContentKeyedImagesNeverShareDifferentEmbeddedFallbacksAndFollowReplacementEdits) {
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    mgTexManager.SetTableBuffer(16, 8, &texture_memory);
+    mgTexManager.Initialize(0x1000, -1);
+    gltf["textures"] = Json::array({{{"source", 0}}});
+    gltf["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"] = {
+        {"index", 0}
+    };
+    game["images"] = Json::array({
+        {{"image", 0}, {"png", "textures/shared.png"}}
+    });
+    std::filesystem::create_directories(directory / "datapacks/test/textures");
+    std::ofstream(directory / "datapacks/test/textures/shared.png", std::ios::binary) << "not a png";
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    datapacks::Load(directory / "data");
+    const auto load = [&](const std::string &stem, const std::string &texture, unsigned char red) {
+        const std::vector<unsigned char> pixels{red, 0, 0, 255, red, 0, 0, 255, red, 0, 0, 255, red, 0, 0, 255};
+        EXPECT_TRUE(gfx::WritePng(directory / "embedded.png", pixels.data(), 2, 2));
+        std::ifstream                    input(directory / "embedded.png", std::ios::binary);
+        const std::vector<unsigned char> png((std::istreambuf_iterator<char>(input)), {});
+        input.close();
+        std::filesystem::remove(directory / "embedded.png");
+        auto model = gltf;
+        model["images"] = Json::array({{{"uri", "data:image/png;base64," + Base64(png)}}});
+        game["meshes"][0]["materials"][0]["texture"] = texture;
+        Write(directory / "data" / (stem + ".gltf"), model);
+        Write(directory / "data" / (stem + ".game.json"), game);
+        memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+        mgLoadData data{};
+        data.memory = &memory;
+        std::string error;
+        auto       *frame = model_assets::LoadModel(stem + ".gltf", data, error);
+        EXPECT_NE(frame, nullptr) << error;
+        return frame ? static_cast<mgCVisualMDT *>(frame->visual)->material[0].texture : nullptr;
+    };
+    // An invalid replacement falls back to each document's own embedded image.
+    auto *first = load("models/first", "first", 100);
+    auto *second = load("models/second", "second", 200);
+    ASSERT_NE(first, nullptr);
+    ASSERT_NE(second, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(first->image[0])[0], 100);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(second->image[0])[0], 200);
+    EXPECT_EQ(MgTexturePhysicalExtent(first).width, 2u);
+
+    // A valid replacement wins for every document while the logical extent stays the embedded image's.
+    std::vector<unsigned char> green(8 * 8 * 4);
+    for (std::size_t index = 0; index < green.size(); index += 4) {
+        green[index + 1] = 255;
+        green[index + 3] = 255;
+    }
+    std::filesystem::remove(directory / "datapacks/test/textures/shared.png");
+    ASSERT_TRUE(gfx::WritePng(directory / "datapacks/test/textures/shared.png", green.data(), 8, 8));
+    datapacks::Load(directory / "data");
+    auto *third = load("models/third", "third", 50);
+    auto *fourth = load("models/fourth", "fourth", 60);
+    ASSERT_NE(third, nullptr);
+    ASSERT_NE(fourth, nullptr);
+    for (auto *texture : {third, fourth}) {
+        EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[0], 0);
+        EXPECT_EQ(reinterpret_cast<const unsigned char *>(texture->image[0])[1], 255);
+        EXPECT_EQ(texture->width, 2);
+        EXPECT_EQ(MgTexturePhysicalExtent(texture).width, 8u);
+    }
+    mgTexManager.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, ExternalImageUrisShareOneDecodeAndFollowPackOverrides) {
+    std::vector<u_long128> texture_storage(4096);
+    mgCMemory              texture_memory;
+    texture_memory.stSetBuffer(texture_storage.data(), static_cast<int>(texture_storage.size()));
+    mgTexManager.SetTableBuffer(16, 8, &texture_memory);
+    mgTexManager.Initialize(0x1000, -1);
+    gltf["textures"] = Json::array({{{"source", 0}}});
+    gltf["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"] = {
+        {"index", 0}
+    };
+    const std::vector<unsigned char> red{200, 0, 0, 255, 200, 0, 0, 255, 200, 0, 0, 255, 200, 0, 0, 255};
+    std::filesystem::create_directories(directory / "data/textures");
+    ASSERT_TRUE(gfx::WritePng(directory / "data/textures/shared.png", red.data(), 2, 2));
+    datapacks::Load(directory / "data");
+    const auto load = [&](const std::string &stem, const std::string &uri, const std::string &texture) {
+        auto model = gltf;
+        model["images"] = Json::array({{{"uri", uri}}});
+        game["meshes"][0]["materials"][0]["texture"] = texture;
+        std::filesystem::create_directories((directory / "data" / (stem + ".gltf")).parent_path());
+        Write(directory / "data" / (stem + ".gltf"), model);
+        Write(directory / "data" / (stem + ".game.json"), game);
+        memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+        mgLoadData data{};
+        data.memory = &memory;
+        std::string error;
+        auto       *frame = model_assets::LoadModel(stem + ".gltf", data, error);
+        EXPECT_NE(frame, nullptr) << error;
+        return frame ? static_cast<mgCVisualMDT *>(frame->visual)->material[0].texture : nullptr;
+    };
+    auto *first = load("models/first", "../textures/shared.png", "first");
+    ASSERT_NE(first, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(first->image[0])[0], 200);
+    EXPECT_EQ(first->width, 2);
+
+    // The decode is named by the PNG's data path and stamp alone, so every referencing document shares it.
+    const auto key = datapacks::ImageDecodeKey("png:textures/shared.png\n", datapacks::Candidates("textures/shared.png"));
+    const auto unexpected = [](datapacks::DecodedTexture &, std::string &error) {
+        error = "decoded again";
+        return false;
+    };
+    std::string error;
+    const auto  cached = datapacks::DecodeShared(key, unexpected, error);
+    ASSERT_NE(cached, nullptr);
+    auto *second = load("models/sub/second", "../../textures/%73hared.png", "second");
+    ASSERT_NE(second, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(second->image[0])[0], 200);
+    EXPECT_EQ(datapacks::DecodeShared(key, unexpected, error), cached) << error;
+
+    // A pack replacing the PNG's path wins for external references while the logical extent stays the original's.
+    std::vector<unsigned char> green(8 * 8 * 4);
+    for (std::size_t index = 0; index < green.size(); index += 4) {
+        green[index + 1] = 255;
+        green[index + 3] = 255;
+    }
+    std::filesystem::create_directories(directory / "datapacks/test/textures");
+    ASSERT_TRUE(gfx::WritePng(directory / "datapacks/test/textures/shared.png", green.data(), 8, 8));
+    Write(directory / "datapacks/datapacks.json", {
+                                                      {"schema_version", 1       },
+                                                      {"load_order",     {"test"}}
+    });
+    datapacks::Load(directory / "data");
+    auto *third = load("models/third", "../textures/shared.png", "third");
+    ASSERT_NE(third, nullptr);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(third->image[0])[0], 0);
+    EXPECT_EQ(reinterpret_cast<const unsigned char *>(third->image[0])[1], 255);
+    EXPECT_EQ(third->width, 2);
+    EXPECT_EQ(MgTexturePhysicalExtent(third).width, 8u);
+    mgTexManager.Initialize(0x1000, -1);
+}
+
+TEST_F(NativeModel, BuildsCollisionHierarchyAndGroundAttributesFromNativeGeometry) {
+    Json metadata = game;
+    metadata["meshes"][0]["materials"][0]["diffuse"] = {10, 20, 30, 0};
+    metadata["frames"].push_back({
+        {"id",     1      },
+        {"name",   "child"},
+        {"parent", 0      },
+        {"mdt",    nullptr}
+    });
+    gltf["nodes"][0]["children"] = {1};
+    gltf["nodes"].push_back({
+        {"name",        "child"  },
+        {"translation", {2, 0, 0}}
+    });
+    gltf["materials"][0]["pbrMetallicRoughness"]["baseColorFactor"] = {1, 1, 1, 0};
+    Write(directory / "data/models/model.gltf", gltf);
+    game = metadata;
+    Write(directory / "data/models/model.gltf", gltf);
+    auto *frame = LoadCollisionModel("models/model.gltf", &memory);
+    ASSERT_NE(frame, nullptr);
+    EXPECT_STREQ(frame->name, "root");
+    ASSERT_NE(frame->child, nullptr);
+    EXPECT_STREQ(frame->child->name, "child");
+    EXPECT_EQ(frame->child->parent, frame);
+    ASSERT_NE(frame->collision, nullptr);
+    auto *collision = static_cast<CCollisionMDT *>(frame->collision);
+    ASSERT_EQ(collision->poly_count, 1);
+    EXPECT_FLOAT_EQ(collision->poly[0].vertex[1][0], 2);
+    EXPECT_EQ(collision->poly[0].ground_kind, 7);
+    EXPECT_EQ(collision->poly[0].foot_sound, 14);
+    EXPECT_EQ(collision->poly[0].area_kind, 21);
+    EXPECT_EQ(collision->poly[0].ignore_mask, 1);
+}
+
+TEST_F(NativeModel, TreasureBoxesSelectCollisionSceneFromCompleteGltfBundle) {
+    auto        standard = gltf;
+    const float half = std::sqrt(.5f);
+    standard["nodes"] = Json::array({
+        {{"name", "tbox0"}, {"mesh", 0}},
+        {{"name", "tbox1"}, {"mesh", 0}},
+        {{"name", "tbox_a"}, {"mesh", 0}, {"rotation", {0, 0, half, half}}, {"scale", {2, 3, 4}}, {"translation", {5, 7, 11}}}
+    });
+    standard["scenes"] = Json::array({
+        {{"name", "tbox0"},  {"nodes", {0}}},
+        {{"name", "tbox1"},  {"nodes", {1}}},
+        {{"name", "tbox_a"}, {"nodes", {2}}}
+    });
+    Write(directory / "data/models/treasure.gltf", standard);
+    const auto       text = standard.dump();
+    std::vector<u32> buffer((text.size() + sizeof(u32) - 1) / sizeof(u32));
+    std::memcpy(buffer.data(), text.data(), text.size());
+    DataReadRegisterAsset(buffer.data(), "models/treasure.gltf", text.size());
+    CTreasureBoxManager manager{};
+    manager.Initialize();
+    manager.SetCollisionModel(buffer.data(), &memory);
+    TextureSourceForget(buffer.data());
+    ASSERT_NE(manager.col_frame, nullptr);
+    EXPECT_STREQ(manager.col_frame->name, "tbox_a");
+    ASSERT_NE(manager.col_frame->collision, nullptr);
+    EXPECT_EQ(static_cast<CCollisionMDT *>(manager.col_frame->collision)->poly_count, 1);
+    float local[4][4];
+    manager.col_frame->GetLocalMatrix(local);
+    EXPECT_NEAR(local[0][0], 0, 1e-5f);
+    EXPECT_NEAR(local[0][1], 2, 1e-5f);
+    EXPECT_NEAR(local[1][0], -3, 1e-5f);
+    EXPECT_NEAR(local[1][1], 0, 1e-5f);
+    EXPECT_NEAR(local[2][2], 4, 1e-5f);
+    EXPECT_FLOAT_EQ(local[3][0], 5);
+    EXPECT_FLOAT_EQ(local[3][1], 7);
+    EXPECT_FLOAT_EQ(local[3][2], 11);
+}
+
+TEST_F(NativeModel, ShadowCpuSkinRetainsMoreThanThirtyTwoBones) {
+    Json             metadata = game;
+    Json             channels = Json::array();
+    std::vector<int> joints;
+    for (int bone = 1; bone <= 34; ++bone) {
+        joints.push_back(bone);
+        const auto name = "bone_" + std::to_string(bone);
+        gltf["nodes"].push_back({
+            {"name",        name     },
+            {"translation", {2, 0, 0}}
+        });
+        metadata["frames"].push_back({
+            {"id",     bone   },
+            {"name",   name   },
+            {"parent", 0      },
+            {"mdt",    nullptr}
+        });
+        channels.push_back({
+            {"alias",  "fixture/model.wgt"                                             },
+            {"frame",  0                                                               },
+            {"target", bone                                                            },
+            {"type",   20                                                              },
+            {"keys",   Json::array({{{"frame", 0}, {"value", {100.0f / 34, 0, 0, 0}}}})}
+        });
+    }
+    gltf["nodes"][0]["children"] = joints;
+    gltf["nodes"][0]["skin"] = 0;
+    gltf["skins"] = Json::array({{{"joints", joints}}});
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float) + 24, 0);
+    std::memcpy(bytes.data(), values.data(), values.size() * sizeof(float));
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 68},
+        {"byteLength", 48}
+    });
+    gltf["bufferViews"].push_back({
+        {"buffer",     0  },
+        {"byteOffset", 116},
+        {"byteLength", 24 }
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    3     },
+        {"componentType", 5126  },
+        {"count",         3     },
+        {"type",          "VEC4"}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    4     },
+        {"componentType", 5123  },
+        {"count",         3     },
+        {"type",          "VEC4"}
+    });
+    gltf["meshes"][0]["primitives"][0]["attributes"]["WEIGHTS_0"] = 3;
+    gltf["meshes"][0]["primitives"][0]["attributes"]["JOINTS_0"] = 4;
+    metadata["weights"] = Json::array({
+        {{"alias", "fixture/model.wgt"}, {"channels", channels}}
+    });
+    Write(directory / "data/models/model.gltf", gltf);
+    game = metadata;
+    Write(directory / "data/models/model.gltf", gltf);
+    std::string        error;
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {.type = MG_VISUAL_CREATE_SHADOW_MDT, .name = empty  },
+        {.type = MG_VISUAL_CREATE_END,        .name = nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    auto *frame = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    ASSERT_NE(frame, nullptr) << error;
+    tagMOTION_TYPE resource{};
+    ASSERT_TRUE(model_assets::LoadAnimation(std::filesystem::path("models/model.gltf"), resource, memory, std::nullopt, std::nullopt, 0, std::nullopt, error)) << error;
+    auto *skin = resource.skin_list;
+    int   count = 0;
+    for (auto *channel = skin; channel; channel = channel->next) {
+        ++count;
+    }
+    ASSERT_EQ(count, 34);
+    std::vector<std::array<float, 16>> bind(35);
+    for (auto &matrix : bind) {
+        matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1;
+    }
+    tagMOTION_TYPE motion{};
+    motion.skin_list = skin;
+    motion.base_matrices = reinterpret_cast<sceVu0FMATRIX *>(bind.data());
+    tagFRAME_INF *info = nullptr;
+    AnimeDataInit(frame, &motion, &memory, &info);
+    ASSERT_NE(info, nullptr);
+    DeformMesh(frame, &motion, motion.frame_info_view, false);
+    EXPECT_NEAR(static_cast<mgCVisualMDT *>(frame->visual)->vertex[0][0], 2.0f, .0001f);
+}
+
+namespace {
+
+// Loads the fixture's model with every frame a shadow model.
+mgCVisualMDT *LoadShadowVisual(mgCMemory &memory) {
+    std::string        error;
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {.type = MG_VISUAL_CREATE_SHADOW_MDT, .name = empty  },
+        {.type = MG_VISUAL_CREATE_END,        .name = nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    auto *frame = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    EXPECT_NE(frame, nullptr) << error;
+    return frame != nullptr ? static_cast<mgCVisualMDT *>(frame->visual) : nullptr;
+}
+
+// Appends six triangle-list corners, 0 1 2 2 1 0, as the primitive's indices, after the buffer's first `used` bytes.
+void AddShadowCorners(Json &gltf, std::vector<unsigned char> &bytes, std::size_t used) {
+    const std::uint16_t corners[6] = {0, 1, 2, 2, 1, 0};
+    bytes.resize(used + sizeof corners);
+    std::memcpy(bytes.data() + used, corners, sizeof corners);
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    gltf["bufferViews"].push_back({
+        {"buffer",     0                               },
+        {"byteOffset", static_cast<int>(used)          },
+        {"byteLength", static_cast<int>(sizeof corners)}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    gltf["bufferViews"].size() - 1},
+        {"componentType", 5123                          },
+        {"count",         6                             },
+        {"type",          "SCALAR"                      }
+    });
+    gltf["meshes"][0]["primitives"][0]["indices"] = gltf["accessors"].size() - 1;
+}
+
+// Gives the primitive one normal and two uvs, so its corners carry position, normal and uv indices.
+void AddNormalsAndUvs(Json &gltf, Json &game) {
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 0 },
+        {"byteLength", 24}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    gltf["bufferViews"].size() - 1},
+        {"componentType", 5126                          },
+        {"count",         3                             },
+        {"type",          "VEC2"                        }
+    });
+    auto &primitive = gltf["meshes"][0]["primitives"][0];
+    primitive["attributes"]["NORMAL"] = 0;
+    primitive["attributes"]["TEXCOORD_0"] = gltf["accessors"].size() - 1;
+    auto &mesh = game["meshes"][0];
+    mesh["normal_count"] = 1;
+    mesh["uv_count"] = 2;
+    mesh["primitives"][0]["type"] = MG_PRIM_TRIANGLE;
+    mesh["primitives"][0]["source_normals"] = {0, 0, 0};
+    mesh["primitives"][0]["source_uvs"] = {1, 0, 1};
+}
+
+void ExpectShadowTriangles(const mgCVisualMDT *visual, const std::vector<int> &positions) {
+    ASSERT_NE(visual, nullptr);
+    ASSERT_NE(visual->face_group, nullptr);
+    EXPECT_EQ(visual->face_group->vu_program, MG_VU_PROG_SHADOW);
+    const mgCFace *face = visual->face_group->face;
+    ASSERT_NE(face, nullptr);
+    EXPECT_EQ(face->vertex_num, static_cast<int>(positions.size() / 3));
+    EXPECT_EQ(face->index_stride, 3);
+    EXPECT_EQ(face->index_num, static_cast<int>(positions.size()));
+    EXPECT_EQ(std::vector<int>(face->index, face->index + positions.size()), positions);
+}
+
+std::vector<unsigned char> FixtureBytes() {
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    return bytes;
+}
+
+} // namespace
+
+// A shadow model's faces are read as retail's mgCShadowMDT::CreateFace leaves them: triangles of three position
+// indices, without the normal and uv indices the visual layout carries per corner.
+TEST_F(NativeModel, ShadowModelFacesKeepOnlyTrianglePositionIndices) {
+    auto bytes = FixtureBytes();
+    AddShadowCorners(gltf, bytes, 68);
+    AddNormalsAndUvs(gltf, game);
+    Write(directory / "data/models/model.gltf", gltf);
+    ExpectShadowTriangles(LoadShadowVisual(memory), {0, 1, 2, 2, 1, 0});
+}
+
+// Corners with a position index only (stride 1) compact the same way.
+TEST_F(NativeModel, ShadowModelFacesWithoutNormalsOrUvsKeepTheirTriangles) {
+    auto bytes = FixtureBytes();
+    AddShadowCorners(gltf, bytes, 68);
+    Write(directory / "data/models/model.gltf", gltf);
+    ExpectShadowTriangles(LoadShadowVisual(memory), {0, 1, 2, 2, 1, 0});
+}
+
+// Retail's shadow draw takes triangle lists only, so a strip keeps no triangles.
+TEST_F(NativeModel, ShadowModelStripFacesKeepNoTriangles) {
+    auto bytes = FixtureBytes();
+    AddShadowCorners(gltf, bytes, 68);
+    gltf["meshes"][0]["primitives"][0]["mode"] = 5;
+    Write(directory / "data/models/model.gltf", gltf);
+    ExpectShadowTriangles(LoadShadowVisual(memory), {});
+}
+
+// A morph moves a shadow model's vertices without handing its rewritten faces to the visual face builder.
+TEST_F(NativeModel, ShadowModelMorphKeepsShadowFaces) {
+    const std::vector<float>   values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 2, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+    std::vector<unsigned char> bytes(values.size() * sizeof(float));
+    std::memcpy(bytes.data(), values.data(), bytes.size());
+    gltf["bufferViews"][2]["byteLength"] = 8;
+    gltf["accessors"][2]["type"] = "SCALAR";
+    gltf["bufferViews"].push_back({
+        {"buffer",     0 },
+        {"byteOffset", 68},
+        {"byteLength", 36}
+    });
+    gltf["accessors"].push_back({
+        {"bufferView",    3     },
+        {"componentType", 5126  },
+        {"count",         3     },
+        {"type",          "VEC3"}
+    });
+    gltf["meshes"][0]["primitives"][0]["targets"] = Json::array({{{"POSITION", 3}}});
+    gltf["nodes"] = Json::array({
+        {{"name", "root"}, {"children", {1}}},
+        {{"mesh", 0}}
+    });
+    game["frames"][0]["rotation_node"] = 1;
+    gltf["animations"][0]["channels"][0]["target"]["node"] = 1;
+    gltf["animations"][0]["channels"][0]["target"]["path"] = "weights";
+    AddShadowCorners(gltf, bytes, values.size() * sizeof(float));
+    AddNormalsAndUvs(gltf, game);
+    Write(directory / "data/models/model.gltf", gltf);
+
+    std::string        error;
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {.type = MG_VISUAL_CREATE_SHADOW_MDT, .name = empty  },
+        {.type = MG_VISUAL_CREATE_END,        .name = nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    auto *frame = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    ASSERT_NE(frame, nullptr) << error;
+    auto *visual = static_cast<mgCVisualMDT *>(frame->visual);
+    ASSERT_NE(visual, nullptr);
+    ASSERT_NE(visual->face_group, nullptr);
+    const mgVisualFaceMesh *before = mgVisualPortFaceMesh(visual->face_group->face);
+    auto                    motion = Motion();
+    ASSERT_NE(motion.motion_list, nullptr);
+    SetMotionTime(frame, &motion, 15, nullptr);
+    EXPECT_EQ(mgVisualPortFaceMesh(visual->face_group->face), before);
+    ExpectShadowTriangles(visual, {0, 1, 2, 2, 1, 0});
+    EXPECT_FLOAT_EQ(visual->vertex[0][0], 1);
+    EXPECT_FLOAT_EQ(visual->vertex[1][0], 3);
+}
+
+// A skin's glTF inverse binds hold only in the hierarchy it was loaded with; a visual attached to another character's
+// frames, as a costume piece is, skins from that character's base matrices as retail does.
+TEST_F(NativeModel, SkinUsesGltfBindsOnlyInItsLoadedHierarchy) {
+    std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    for (int vertex = 0; vertex < 3; ++vertex) {
+        values.insert(values.end(), {1, 0, 0, 0});
+    }
+    const std::vector<std::uint16_t> joints(12, 0);
+    std::vector<unsigned char>       bytes((values.size() * sizeof(float)) + (joints.size() * sizeof(std::uint16_t)));
+    std::memcpy(bytes.data(), values.data(), values.size() * sizeof(float));
+    std::memcpy(&bytes.at(values.size() * sizeof(float)), joints.data(), joints.size() * sizeof(std::uint16_t));
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    for (const auto &[offset, length] : std::array<std::pair<int, int>, 2>{
+             {{68, 48}, {116, 24}}
+    }) {
+        gltf["bufferViews"].push_back({
+            {"buffer",     0     },
+            {"byteOffset", offset},
+            {"byteLength", length}
+        });
+    }
+    for (int index = 0; index < 2; ++index) {
+        gltf["accessors"].push_back({
+            {"bufferView",    3 + index               },
+            {"componentType", index == 0 ? 5126 : 5123},
+            {"count",         3                       },
+            {"type",          "VEC4"                  }
+        });
+    }
+    auto &attributes = gltf["meshes"][0]["primitives"][0]["attributes"];
+    attributes["WEIGHTS_0"] = 3;
+    attributes["JOINTS_0"] = 4;
+    gltf["nodes"][0]["skin"] = 0;
+    gltf["nodes"][0]["children"] = {1};
+    gltf["nodes"].push_back({
+        {"name", "bone"}
+    });
+    gltf["skins"] = Json::array({{{"joints", {1}}}});
+    game["frames"].push_back({
+        {"id",  1      },
+        {"mdt", nullptr}
+    });
+    Write(directory / "data/models/model.gltf", gltf);
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {.type = MG_VISUAL_CREATE_MOTION_MDT, .name = empty  },
+        {.type = MG_VISUAL_CREATE_END,        .name = nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    std::string error;
+    auto       *root = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    ASSERT_NE(root, nullptr) << error;
+    auto *visual = static_cast<mgCVisualMotionMDT *>(root->visual);
+    ASSERT_NE(visual, nullptr);
+    ASSERT_EQ(visual->bone[0], 1);
+
+    // Base matrices that place the bone 5 units along x; the glTF binds ignore them.
+    sceVu0FMATRIX base[2]{};
+    for (auto &matrix : base) {
+        for (int axis = 0; axis < 4; ++axis) {
+            matrix[axis][axis] = 1;
+        }
+    }
+    base[1][3][0] = 5;
+    visual->base_matrix = base;
+    float object[4][4]{};
+    for (int axis = 0; axis < 4; ++axis) {
+        object[axis][axis] = 1;
+    }
+    auto &palette = mgVisualPortCurrentPalette().bones[0];
+    visual->CreateExtRenderInfoPacket(nullptr, object, &mgRenderInfo);
+    EXPECT_NEAR(palette[0][3], 0.0f, .0001f);
+
+    std::array<mgCFrame *, 2> attached{visual->frame[0], visual->frame[1]};
+    visual->frame = attached.data();
+    visual->CreateExtRenderInfoPacket(nullptr, object, &mgRenderInfo);
+    EXPECT_NEAR(palette[0][3], -5.0f, .0001f);
+}
+
+TEST_F(NativeModel, ReadsAllStandardJointGroupsAndPreservesNativeGpuInfluenceLimit) {
+    std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    for (int vertex = 0; vertex < 3; ++vertex) {
+        values.insert(values.end(), {.1f, .2f, .3f, .1f});
+    }
+    for (int vertex = 0; vertex < 3; ++vertex) {
+        values.insert(values.end(), {.3f, 0, 0, 0});
+    }
+    const std::vector<std::uint16_t> joints{0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0};
+    std::vector<unsigned char>       bytes(values.size() * sizeof(float) + joints.size() * sizeof(std::uint16_t));
+    std::memcpy(bytes.data(), values.data(), values.size() * sizeof(float));
+    std::memcpy(bytes.data() + values.size() * sizeof(float), joints.data(), joints.size() * sizeof(std::uint16_t));
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    for (const auto &[offset, length] : std::array<std::pair<int, int>, 4>{
+             {{68, 48}, {116, 48}, {164, 24}, {188, 24}}
+    }) {
+        gltf["bufferViews"].push_back({
+            {"buffer",     0     },
+            {"byteOffset", offset},
+            {"byteLength", length}
+        });
+    }
+    for (int index = 0; index < 4; ++index) {
+        gltf["accessors"].push_back({
+            {"bufferView",    3 + index              },
+            {"componentType", index < 2 ? 5126 : 5123},
+            {"count",         3                      },
+            {"type",          "VEC4"                 }
+        });
+    }
+    auto &attributes = gltf["meshes"][0]["primitives"][0]["attributes"];
+    attributes["WEIGHTS_0"] = 3;
+    attributes["WEIGHTS_1"] = 4;
+    attributes["JOINTS_0"] = 5;
+    attributes["JOINTS_1"] = 6;
+    gltf["nodes"][0]["skin"] = 0;
+    gltf["nodes"][0]["children"] = {1, 2, 3, 4, 5};
+    gltf["skins"] = Json::array({{{"joints", {1, 2, 3, 4, 5}}}});
+    for (int index = 1; index <= 5; ++index) {
+        gltf["nodes"].push_back({
+            {"name", "bone" + std::to_string(index)}
+        });
+        game["frames"].push_back({
+            {"id",  index  },
+            {"mdt", nullptr}
+        });
+    }
+    gltf["nodes"][0].erase("mesh");
+    gltf["nodes"][0].erase("skin");
+    gltf["nodes"][0]["children"] = {6};
+    gltf["nodes"].push_back({
+        {"mesh",     0              },
+        {"skin",     0              },
+        {"children", {1, 2, 3, 4, 5}}
+    });
+    gltf["nodes"][1]["children"] = {7};
+    gltf["nodes"].push_back(Json::object());
+    gltf["skins"][0]["joints"][0] = 7;
+    game["frames"][0]["rotation_node"] = 6;
+    game["frames"][1]["rotation_node"] = 7;
+    Write(directory / "data/models/model.gltf", gltf);
+    char               empty[] = "";
+    mgCreateVisualType types[] = {
+        {.type = MG_VISUAL_CREATE_MOTION_MDT, .name = empty  },
+        {.type = MG_VISUAL_CREATE_END,        .name = nullptr}
+    };
+    mgLoadData load{};
+    load.memory = &memory;
+    load.visual_type = types;
+    std::string error;
+    auto       *root = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+    ASSERT_NE(root, nullptr) << error;
+    auto *visual = static_cast<mgCVisualMotionMDT *>(root->visual);
+    EXPECT_EQ(root->frame_num, 6);
+    EXPECT_EQ(visual->bone[0], 1);
+    ASSERT_NE(visual->weight, nullptr);
+    EXPECT_NEAR(visual->weight[0].weight[0], 1.0f / 7, .00001f);
+    EXPECT_NEAR(visual->weight[0].weight[1], 2.0f / 7, .00001f);
+    EXPECT_NEAR(visual->weight[0].weight[2], 3.0f / 7, .00001f);
+    EXPECT_NEAR(visual->weight[0].weight[3], 1.0f / 7, .00001f);
+    EXPECT_EQ(visual->weight[0].matrix[3], 12);
+}
+
+TEST(NativeCharacterRetail, LoadsConvertedC01ProfileAndEvaluatesItsNativeMotion) {
+    const auto *data = std::getenv("DC2_DATA");
+    if (data == nullptr || *data == '\0') {
+        GTEST_SKIP() << "DC2_DATA supplies the converted character and gameplay documents";
+    }
+    const std::filesystem::path path("chara/c01_base.gltf");
+    std::vector<u_long128>      arena(2 * 1024 * 1024);
+    std::vector<u_long128>      texture_arena(65536);
+    mgCMemory                   memory;
+    mgCMemory                   textures;
+
+    struct AssetCleanup {
+        ~AssetCleanup() {
+            mgTexManager.Initialize(0x1000, -1);
+            model_assets::Clear();
+            datapacks::Clear();
+        }
+    } cleanup;
+
+    memory.stSetBuffer(arena.data(), static_cast<int>(arena.size()));
+    textures.stSetBuffer(texture_arena.data(), static_cast<int>(texture_arena.size()));
+    mgTexManager.SetTableBuffer(1024, 64, &textures);
+    mgTexManager.Initialize(0x1000, -1);
+    CCharacter2 character;
+    character.Initialize();
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    std::string error;
+    DataReadIndex(data);
+    ASSERT_TRUE(model_assets::LoadCharacter(character, path, "info", options, error)) << error;
+    ASSERT_NE(character.CObjectFrame::frame, nullptr);
+    EXPECT_GT(character.CObjectFrame::frame->frame_num, 1);
+    ASSERT_NE(character.GetKeyListIndexPtr(0, nullptr), nullptr);
+    EXPECT_GT(character.key_num[0], 1);
+    const auto estimate = model_assets::EstimateCharacterMemory(path, "info", error);
+    ASSERT_TRUE(estimate.has_value()) << error;
+    EXPECT_GE(*estimate, static_cast<std::size_t>(memory.stack_used) * 16);
+    std::println(stderr, "native c01 arena: {} bytes; allocation estimate: {} bytes", static_cast<std::size_t>(memory.stack_used) * 16, *estimate);
+    ASSERT_NE(character.motion[0].motion_list, nullptr);
+    // The idle action keeps its original name for the game's own lookups.
+    auto *idle = character.GetKeyListPtr(const_cast<char *>("\x97\xA7\x82\xBF"), nullptr);
+    ASSERT_NE(idle, nullptr);
+    ASSERT_NE(character_motion::At(character.motion[0], idle->start_frame + .5f), nullptr);
+    SetMotionTime(character.CObjectFrame::frame, &character.motion[0], idle->start_frame + .5f, nullptr);
+    for (int index = 0; index < character.CObjectFrame::frame->frame_num; ++index) {
+        const auto *frame = character.CObjectFrame::frame->GetFrame(index);
+        ASSERT_NE(frame, nullptr);
+        for (const auto &column : frame->trans_matrix) {
+            for (float value : column) {
+                EXPECT_TRUE(std::isfinite(value));
+            }
+        }
+    }
+}
+
+TEST(NativeModelBounds, MapPieceCharacterCopyRejectsAnArenaTooSmallForTheHostController) {
+    static char key;
+    auto       *storage = reinterpret_cast<u_long128 *>(ArenaBlock(&key, 2 * sizeof(u_long128)));
+    mgCMemory   arena;
+    arena.stSetBuffer(storage, 2);
+    CCharacter2 character;
+    CMapPiece   source;
+    CMapPiece   destination;
+    source.chara = &character;
+    EXPECT_FALSE(source.Copy(destination, &arena));
+    EXPECT_EQ(destination.chara, nullptr);
+    EXPECT_EQ(arena.stack_used, 0);
+}
+
+TEST_F(NativeModel, AStrictEndOrLockedFrameAllocationReturnsAnErrorBeforeChangingTheArena) {
+    Write(directory / "data/models/model.gltf", gltf);
+    static char    identity;
+    constexpr auto reserved = (sizeof(mgCFrame) + 15) / 16 + 2;
+    auto          *buffer = reinterpret_cast<u_long128 *>(ArenaBlock(&identity, reserved * sizeof(u_long128)));
+    for (bool locked : {false, true}) {
+        mgCMemory small;
+        small.stSetBuffer(buffer, static_cast<int>(reserved));
+        ASSERT_EQ(small.stGetSize(), static_cast<int>(reserved));
+        small.stSetLocked(locked);
+        mgLoadData load{};
+        load.memory = &small;
+        std::string error;
+        EXPECT_EQ(model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error), nullptr);
+        EXPECT_FALSE(error.empty());
+        EXPECT_EQ(small.stGetUsed(), 0);
+    }
+}
+
+TEST(ModelCatalogLifetime, ImageNamesAndBlocksRejectResetAndAddressReuse) {
+    alignas(16) std::array<u_long128, 64> storage{};
+    mgCMemory                             memory;
+    memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CMdsListSet     catalog;
+    mgCEnterIMGInfo info{};
+    char            name[] = "image.img";
+    ASSERT_TRUE(catalog.LoadIMGFile(name, &info, &memory));
+    ASSERT_NE(catalog.SearchIMGList(name), nullptr);
+    memory.stClearUsed();
+    EXPECT_EQ(catalog.SearchIMGList(name), nullptr);
+    int block = -2;
+    EXPECT_EQ(catalog.GetTextureBlockNo(0, &block, 1), 0);
+    EXPECT_EQ(block, -2);
+    char replacement[] = "replacement.img";
+    ASSERT_TRUE(catalog.LoadIMGFile(replacement, &info, &memory));
+    EXPECT_EQ(catalog.SearchIMGList(name), nullptr);
+    EXPECT_NE(catalog.SearchIMGList(replacement), nullptr);
+}
+
+TEST_F(NativeModel, CharacterResourceCapabilitiesFollowModelMotionAndCopiedStorage) {
+    const auto             commands = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"}, {"args", Json::array()}                                            },
+        {{"command", "KEY"},       {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                            }
+    });
+    const auto             profile = NamedActionCharacter(game, commands);
+    const auto             bytes = gltf.dump();
+    std::vector<u_long128> motion_storage(16384), copy_storage(16384), unrelated_storage(16);
+    mgCMemory              motions, copies, unrelated;
+    motions.stSetBuffer(motion_storage.data(), static_cast<int>(motion_storage.size()));
+    copies.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+    unrelated.stSetBuffer(unrelated_storage.data(), static_cast<int>(unrelated_storage.size()));
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &motions, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character, copied;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, {reinterpret_cast<const std::byte *>(bytes.data()), bytes.size()}, profile, "info", options, error)) << error;
+    ASSERT_TRUE(dc2::character::ResourcesLive(character));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, memory, dc2::memory::ArenaResetKind::Stack));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(character, motions, dc2::memory::ArenaResetKind::Stack));
+    EXPECT_FALSE(dc2::character::ResourcesWouldRetireOnReset(character, unrelated, dc2::memory::ArenaResetKind::Stack));
+    ASSERT_TRUE(character.Copy(copied, &copies));
+    ASSERT_NE(copied.CObjectFrame::frame, nullptr);
+    ASSERT_TRUE(dc2::character::ResourcesLive(copied));
+    unrelated.stClearUsed();
+    EXPECT_TRUE(dc2::character::ResourcesLive(copied));
+    copies.stClearUsed();
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+    EXPECT_TRUE(dc2::character::ResourcesLive(character));
+    ASSERT_TRUE(character.Copy(copied, &copies));
+    ASSERT_TRUE(dc2::character::ResourcesLive(copied));
+    motions.stClearUsed();
+    EXPECT_FALSE(dc2::character::ResourcesLive(character));
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+    // Reusing the motion address cannot revive either immutable producer snapshot.
+    EXPECT_NE(dc2::memory::NewArray<u8>(motions, 16), nullptr);
+    EXPECT_FALSE(dc2::character::ResourcesLive(character));
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+}
+
+TEST_F(NativeModel, RepeatingAnUnchangedResourceSlotReusesItsImmutableSnapshot) {
+    auto *frame = Instantiate();
+    ASSERT_NE(frame, nullptr);
+    CCharacter2 character;
+    character.CObjectFrame::frame = frame;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(character, memory));
+    ASSERT_TRUE(dc2::character::RetainResource(character, dc2::character::ResourceChannel::Sword, 0, memory));
+    ASSERT_TRUE(dc2::character::RetainResource(character, dc2::character::ResourceChannel::Sword, 1, memory));
+    auto before = character.resource_state.Acquire<dc2::character::ResourceState>();
+    ASSERT_NE(before, nullptr);
+    ASSERT_TRUE(dc2::character::RetainResource(character, dc2::character::ResourceChannel::Sword, 0, memory));
+    EXPECT_EQ(character.resource_state.Acquire<dc2::character::ResourceState>(), before);
+    auto reordered = *before;
+    reordered.producers.push_back(reordered.producers.front());
+    std::reverse(reordered.producers.begin(), reordered.producers.end());
+    ASSERT_TRUE(dc2::character::PublishResources(character, std::move(reordered)));
+    EXPECT_EQ(character.resource_state.Acquire<dc2::character::ResourceState>(), before);
+}
+
+TEST_F(NativeModel, ANewImageSlotOnACopyPreservesItsSharedBaseImageProducer) {
+    const auto image_document = [](const char *name) {
+        return Json{
+            {"schema_version", 3                                                                                                        },
+            {"groups",         {0}                                                                                                      },
+            {"entries",        Json::array({{{"name", name}, {"pictures", Json::array({{{"canvas", {{"width", 2}, {"height", 2}}}}})}}})}
+        };
+    };
+    Json model = game;
+    model["texture_sets"] = {0};
+    model["meshes"][0]["materials"][0]["texture"] = "shared_base";
+    Json base = {
+        {"schema_version", 1                                                                                                                                                  },
+        {"kind",           "character"                                                                                                                                        },
+        {"models",         Json::array({model})                                                                                                                               },
+        {"resources",      {{"texture_sets", Json::array({{{"document", image_document("shared_base")}}})}}                                                                   },
+        {"profiles",       {{"info", {{"commands", Json::array({{{"command", "MODEL"}, {"args", Json::array({{{"type", "resource"}, {"kind", "model"}, {"index", 0}}})}}})}}}}}
+    };
+    Json extension = {
+        {"schema_version", 1                                                                                                                                                                          },
+        {"kind",           "character"                                                                                                                                                                },
+        {"models",         Json::array()                                                                                                                                                              },
+        {"resources",      {{"texture_sets", Json::array({{{"document", image_document("extension")}}})}}                                                                                             },
+        {"profiles",       {{"info", {{"commands", Json::array({{{"command", "IMG"}, {"args", Json::array({IntegerArgument(1), {{"type", "resource"}, {"kind", "texture_set"}, {"index", 0}}})}}})}}}}}
+    };
+    std::vector<u_long128> base_image_storage(4096), extension_image_storage(4096), copy_storage(4096), table_storage(4096);
+    mgCMemory              base_images, extension_images, copies, table_memory;
+    base_images.stSetBuffer(base_image_storage.data(), static_cast<int>(base_image_storage.size()));
+    extension_images.stSetBuffer(extension_image_storage.data(), static_cast<int>(extension_image_storage.size()));
+    copies.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+    table_memory.stSetBuffer(table_storage.data(), static_cast<int>(table_storage.size()));
+    mgCTextureManager textures;
+
+    struct TextureCleanup {
+        mgCTextureManager &manager;
+
+        ~TextureCleanup() { manager.Initialize(0x1000, -1); }
+    } cleanup{textures};
+
+    textures.SetTableBuffer(16, 8, &table_memory);
+    textures.Initialize(0x1000, -1);
+    CCharacter2                        original, copied;
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &base_images, .textures = &textures};
+    options.texture_block = 2;
+    options.outline = false;
+    const auto                       bytes = gltf.dump();
+    const std::span<const std::byte> source(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    std::string                      error;
+    ASSERT_TRUE(model_assets::LoadCharacter(original, source, base, "info", options, error)) << error;
+    ASSERT_TRUE(original.Copy(copied, &copies));
+    ASSERT_TRUE(dc2::character::ResourcesLive(copied));
+    options.model_memory = &copies;
+    options.motion_memory = &copies;
+    options.image_memory = &extension_images;
+    ASSERT_TRUE(model_assets::LoadCharacter(copied, source, extension, "info", options, error)) << error;
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(copied, base_images, dc2::memory::ArenaResetKind::Stack));
+    EXPECT_TRUE(dc2::character::ResourcesWouldRetireOnReset(copied, extension_images, dc2::memory::ArenaResetKind::Stack));
+    base_images.stClearUsed();
+    EXPECT_FALSE(dc2::character::ResourcesLive(copied));
+}
+
+TEST_F(NativeModel, ActualVisualFactoriesPublishCloneInputsForEveryConcreteCase) {
+    std::vector<float> values{0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 30, 0, 0};
+    for (int vertex = 0; vertex < 3; ++vertex) {
+        values.insert(values.end(), {1, 0, 0, 0});
+    }
+    const std::vector<std::uint16_t> joints(12, 0);
+    std::vector<unsigned char>       bytes((values.size() * sizeof(float)) + (joints.size() * sizeof(std::uint16_t)));
+    std::memcpy(bytes.data(), values.data(), values.size() * sizeof(float));
+    std::memcpy(&bytes.at(values.size() * sizeof(float)), joints.data(), joints.size() * sizeof(std::uint16_t));
+    gltf["buffers"][0]["byteLength"] = bytes.size();
+    gltf["buffers"][0]["uri"] = "data:application/octet-stream;base64," + Base64(bytes);
+    for (const auto &[offset, length] : std::array<std::pair<int, int>, 2>{
+             {{68, 48}, {116, 24}}
+    }) {
+        gltf["bufferViews"].push_back({
+            {"buffer",     0     },
+            {"byteOffset", offset},
+            {"byteLength", length}
+        });
+    }
+    for (int index = 0; index < 2; ++index) {
+        gltf["accessors"].push_back({
+            {"bufferView",    3 + index               },
+            {"componentType", index == 0 ? 5126 : 5123},
+            {"count",         3                       },
+            {"type",          "VEC4"                  }
+        });
+    }
+    auto &attributes = gltf["meshes"][0]["primitives"][0]["attributes"];
+    attributes["WEIGHTS_0"] = 3;
+    attributes["JOINTS_0"] = 4;
+    gltf["nodes"][0]["skin"] = 0;
+    gltf["nodes"][0]["children"] = {1};
+    gltf["nodes"].push_back({
+        {"name", "bone"}
+    });
+    gltf["skins"] = Json::array({{{"joints", {1}}}});
+    game["frames"].push_back({
+        {"id",  1      },
+        {"mdt", nullptr}
+    });
+    Write(directory / "data/models/model.gltf", gltf);
+
+    using dc2::render::VisualCloneKind;
+    const std::array choices{
+        std::pair{MG_VISUAL_CREATE_MDT,            VisualCloneKind::Mdt         },
+        std::pair{MG_VISUAL_CREATE_FIX_MDT,        VisualCloneKind::FixMdt      },
+        std::pair{MG_VISUAL_CREATE_SHADOW_MDT,     VisualCloneKind::ShadowMdt   },
+        std::pair{MG_VISUAL_CREATE_SHADOW_FIX_MDT, VisualCloneKind::ShadowFixMdt},
+        std::pair{MG_VISUAL_CREATE_MOTION_MDT,     VisualCloneKind::MotionMdt   }
+    };
+    for (const auto &[type, kind] : choices) {
+        SCOPED_TRACE(type);
+        char               empty[] = "";
+        mgCreateVisualType types[] = {
+            {.type = type,                 .name = empty  },
+            {.type = MG_VISUAL_CREATE_END, .name = nullptr}
+        };
+        mgLoadData load{};
+        load.memory = &memory;
+        load.visual_type = types;
+        std::string error;
+        auto       *root = model_assets::LoadModel(std::filesystem::path("models/model.gltf"), load, error);
+        ASSERT_NE(root, nullptr) << error;
+        ASSERT_NE(root->visual, nullptr);
+        EXPECT_EQ(root->visual->clone_inputs.Kind(root->visual), kind);
+        EXPECT_TRUE(root->clone_inputs.Matches(*root));
+        EXPECT_TRUE(root->frame_list[1]->clone_inputs.Matches(*root->frame_list[1]));
+        std::array<u_long128, 4096> copy_storage{};
+        mgCMemory                   destination;
+        destination.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+        auto *copy = mgCopyFrame(root, &destination, 1);
+        ASSERT_NE(copy, nullptr);
+        const bool deep = kind == VisualCloneKind::FixMdt || kind == VisualCloneKind::MotionMdt;
+        EXPECT_EQ(copy->visual == root->visual, !deep);
+        EXPECT_NE(copy->attr, root->attr);
+        EXPECT_NE(copy->bound, root->bound);
+        memory.stReset();
+        EXPECT_EQ(copy->clone_inputs.Matches(*copy), deep);
+    }
+}
+
+TEST_F(NativeModel, CharacterFactoryPublishesEntryDeformAndSoundCloneInputs) {
+    const Json  commands = Json::array({
+        {{"command", "VERTEX_ANIME"}, {"args", {TextArgument("root")}}                                                           },
+        {{"command", "MODEL"},        {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}                        },
+        {{"command", "OBJECT_NAME"},  {"args", {TextArgument("root")}}                                                           },
+        {{"command", "MOTION"},       {"args", {IntegerArgument(0), AnimationArgument(0)}}                                       },
+        {{"command", "KEY_START"},    {"args", Json::array()}                                                                    },
+        {{"command", "KEY"},          {"args", {TextArgument("walk"), RealArgument(1)}}                                          },
+        {{"command", "KEY_END"},      {"args", Json::array()}                                                                    },
+        {{"command", "SE_START"},     {"args", {IntegerArgument(1)}}                                                             },
+        {{"command", "SE"},           {"args", {TextArgument("walk"), IntegerArgument(0), IntegerArgument(7), RealArgument(.5f)}}},
+        {{"command", "SE_END"},       {"args", Json::array()}                                                                    }
+    });
+    CCharacter2 source;
+    std::string error;
+    ASSERT_TRUE(LoadNamedActionCharacter(source, gltf, NamedActionCharacter(game, commands), memory, error)) << error;
+    ASSERT_TRUE(dc2::character::CloneInputsLive(source));
+    ASSERT_EQ(source.entry_frame[0], source.CObjectFrame::frame);
+    ASSERT_EQ(source.entry_object[0].frame, source.CObjectFrame::frame);
+    ASSERT_EQ(source.deform_frame_num, 1);
+    ASSERT_EQ(source.deform_frame[0], source.CObjectFrame::frame);
+    ASSERT_EQ(source.se_num[0], 1);
+    std::vector<u_long128> storage(8192);
+    mgCMemory              destination_memory;
+    destination_memory.stSetBuffer(storage.data(), static_cast<int>(storage.size()));
+    CCharacter2 destination;
+    ASSERT_TRUE(source.Copy(destination, &destination_memory));
+    EXPECT_NE(destination.CObjectFrame::frame, source.CObjectFrame::frame);
+    EXPECT_EQ(destination.entry_frame[0], destination.CObjectFrame::frame);
+    EXPECT_EQ(destination.entry_object[0].frame, destination.CObjectFrame::frame);
+    EXPECT_EQ(destination.deform_frame[0], destination.CObjectFrame::frame);
+    ASSERT_NE(destination.se_list[0], source.se_list[0]);
+    EXPECT_EQ(destination.se_list[0][0].se_no, 7);
+    EXPECT_TRUE(dc2::character::CloneInputsLive(destination));
+}
+
+TEST_F(NativeModel, UnchangedProfilesReuseFrameAndAuxiliarySnapshotsWithoutRetainingTheirModelContext) {
+    const auto commands = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"}, {"args", Json::array()}                                            },
+        {{"command", "KEY"},       {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                            }
+    });
+    auto       profile = NamedActionCharacter(game, commands);
+    profile["profiles"]["unchanged"]["commands"] = Json::array();
+    const auto                         bytes = gltf.dump();
+    const auto                         source = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source, profile, "info", options, error)) << error;
+    const auto before = character.resource_state.Acquire<dc2::character::ResourceState>();
+    ASSERT_NE(before, nullptr);
+    const auto context = before->model_context;
+    ASSERT_NE(context, nullptr);
+    const auto baseline = context.use_count();
+    for (int iteration = 0; iteration < 50; ++iteration) {
+        ASSERT_TRUE(model_assets::LoadCharacter(character, source, profile, "unchanged", options, error)) << error;
+        EXPECT_EQ(character.resource_state.Acquire<dc2::character::ResourceState>(), before);
+        EXPECT_EQ(context.use_count(), baseline);
+    }
+}
+
+TEST_F(NativeModel, CostumeSkinArenaCanBeReusedWithoutRetiringTheBody) {
+    const auto commands = Json::array({
+        {{"command", "MODEL"},       {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "OBJECT_NAME"}, {"args", {TextArgument("root")}}                                   },
+        {{"command", "MOTION"},      {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"},   {"args", Json::array()}                                            },
+        {{"command", "KEY"},         {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},     {"args", Json::array()}                                            }
+    });
+    auto       profile = NamedActionCharacter(game, commands);
+    profile["resources"]["bind_poses"] = Json::array({{{"matrices", Json::array({Json::array({1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 42, 0, 0, 1})})}}});
+    profile["profiles"]["skin"]["commands"] = Json::array({
+        {{"command", "MODEL"},     {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}                                              },
+        {{"command", "MOTION"},    {"args", {IntegerArgument(0), AnimationArgument(0), {{"type", "resource"}, {"kind", "bind_pose"}, {"index", 0}}}}},
+        {{"command", "KEY_START"}, {"args", Json::array()}                                                                                          },
+        {{"command", "KEY_END"},   {"args", Json::array()}                                                                                          }
+    });
+    const auto                         bytes = gltf.dump();
+    const auto                         source = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source, profile, "info", options, error)) << error;
+    auto         *root = character.CObjectFrame::frame;
+    sceVu0FMATRIX original_bind;
+    std::memcpy(original_bind, root->init_matrix[0], sizeof(original_bind));
+    std::vector<u_long128> skin_storage(8192);
+    mgCMemory              skin_memory;
+    skin_memory.stSetBuffer(skin_storage.data(), static_cast<int>(skin_storage.size()));
+    options.model_memory = options.motion_memory = options.image_memory = &skin_memory;
+    int used = 0;
+    for (int iteration = 0; iteration < 100; ++iteration) {
+        ASSERT_TRUE(model_assets::PrepareSkinArenaReset(character, skin_memory, error)) << error;
+        skin_memory.stReset();
+        ASSERT_TRUE(dc2::character::ResourcesLive(character));
+        ASSERT_TRUE(dc2::character::CloneInputsLive(character));
+        ASSERT_TRUE(model_assets::LoadSkin(character, source, profile, "skin", "", options, error)) << error;
+        ASSERT_EQ(character.CObjectFrame::frame, root);
+        ASSERT_NE(root->visual, nullptr);
+        EXPECT_EQ(std::memcmp(original_bind, root->init_matrix[0], sizeof(original_bind)), 0);
+        ASSERT_TRUE(dc2::character::CloneInputsLive(character));
+        if (iteration == 0) {
+            used = skin_memory.stack_used;
+        }
+        EXPECT_EQ(skin_memory.stack_used, used);
+    }
+    EXPECT_FALSE(model_assets::PrepareSkinArenaReset(character, memory, error));
+    EXPECT_TRUE(dc2::character::CloneInputsLive(character));
+}
+
+TEST_F(NativeModel, SkinUpdatesReuseExactEntryNamesAfterExternalRootReferenceChanges) {
+    const auto commands = Json::array({
+        {{"command", "MODEL"},       {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "OBJECT_NAME"}, {"args", {TextArgument("root")}}                                   },
+        {{"command", "MOTION"},      {"args", {IntegerArgument(0), AnimationArgument(0)}}               },
+        {{"command", "KEY_START"},   {"args", Json::array()}                                            },
+        {{"command", "KEY"},         {"args", {TextArgument("idle"), RealArgument(1)}}                  },
+        {{"command", "KEY_END"},     {"args", Json::array()}                                            }
+    });
+    auto       profile = NamedActionCharacter(game, commands);
+    profile["profiles"]["skin"]["commands"] = Json::array({
+        {{"command", "MODEL"},  {"args", {{{"type", "resource"}, {"kind", "model"}, {"index", 0}}}}},
+        {{"command", "MOTION"}, {"args", {IntegerArgument(0), AnimationArgument(0)}}               }
+    });
+    const auto                         bytes = gltf.dump();
+    const auto                         source_data = std::span(reinterpret_cast<const std::byte *>(bytes.data()), bytes.size());
+    model_assets::CharacterLoadOptions options{.model_memory = &memory, .motion_memory = &memory, .image_memory = &memory};
+    options.outline = false;
+    CCharacter2 character;
+    std::string error;
+    ASSERT_TRUE(model_assets::LoadCharacter(character, source_data, profile, "info", options, error)) << error;
+    auto      *root = character.CObjectFrame::frame;
+    const auto graph = dc2::world::FrameGraph::Capture(memory, root);
+    ASSERT_TRUE(graph.IsLive());
+    std::array<u_long128, 256> reference_storage{};
+    mgCMemory                  reference_memory;
+    reference_memory.stSetBuffer(reference_storage.data(), static_cast<int>(reference_storage.size()));
+    auto *reference = dc2::memory::NewObject<mgCFrame>(reference_memory);
+    auto *reference_name = dc2::memory::NewArray<char>(reference_memory, 9);
+    ASSERT_NE(reference, nullptr);
+    ASSERT_NE(reference_name, nullptr);
+    std::memcpy(reference_name, "external", 9);
+    reference->SetName(reference_name);
+    root->SetReference(reference);
+    EXPECT_FALSE(graph.IsLive());
+    EXPECT_TRUE(graph.MatchesRootAllocation(root));
+    EXPECT_TRUE(dc2::character::CloneInputsLive(character));
+    std::vector<u_long128> skin_storage(8192), copy_storage(8192);
+    mgCMemory              skin_memory, copy_memory;
+    skin_memory.stSetBuffer(skin_storage.data(), static_cast<int>(skin_storage.size()));
+    copy_memory.stSetBuffer(copy_storage.data(), static_cast<int>(copy_storage.size()));
+    options.model_memory = options.motion_memory = options.image_memory = &skin_memory;
+    auto *previous_visual = root->visual;
+    ASSERT_TRUE(model_assets::LoadSkin(character, source_data, profile, "skin", "", options, error)) << error;
+    EXPECT_EQ(character.CObjectFrame::frame, root);
+    EXPECT_EQ(root->parent, reference);
+    EXPECT_NE(root->visual, previous_visual);
+    EXPECT_TRUE(root->clone_inputs.Matches(*root));
+    EXPECT_TRUE(dc2::character::CloneInputsLive(character));
+    EXPECT_FALSE(graph.IsLive());
+    CCharacter2 destination;
+    ASSERT_TRUE(character.Copy(destination, &copy_memory));
+    EXPECT_EQ(destination.entry_frame[0], destination.CObjectFrame::frame);
+    EXPECT_TRUE(dc2::character::CloneInputsLive(destination));
+}

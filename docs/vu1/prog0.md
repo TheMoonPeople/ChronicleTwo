@@ -1035,7 +1035,7 @@ Nw0 = 0.5*N = (0,0,0.5);  Nw1 = 0.5*N = (0,0,0.5)
 Nrm = M0.3x3*Nw0 + M1.3x3*Nw1 = (0,0,0.5) + (0,0,0.5) = (0, 0, 1)   // N_k <- (0, 0, 1, ACC.w)
 ```
 
-Bone-3 sub-case (bug, 5.2): add weight 1 on slot 3 (offset 12, M3 = identity), with w0 = w1 = 0 and N = (0, 0, 1). Correct normal = M3.3x3 * N = (0, 0, 1). VU: `maddz vf31, vf14, vf28z` uses col1 of M3 = (0, 1, 0), so the normal is (0, 1, 0). Expected 0 in z, observed 1 in y.
+Bone-3 sub-case (bug, 5.2): add weight 1 on slot 3 (offset 12, M3 = identity), with w0 = w1 = 0 and N = (0, 0, 1). Correct normal = M3.3x3 * N = (0, 0, 1). VU: `maddz vf31, vf14, vf28z` uses col1 of M3 = (0, 1, 0), so the normal is (0, 1, 0). Expected 0 in z, observed 1 in y. The shared `GfxGpuMeshDc2.SkinnedFourthInfluenceNormal` regression covers this sub-case with a y-light output of 100 and a z-light output of 0.
 
 ---
 

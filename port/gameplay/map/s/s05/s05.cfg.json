@@ -1,0 +1,237 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "check",
+        "point_no": 600
+      },
+      "name": "event_kari",
+      "transform": {
+        "position": [
+          3076.82,
+          0.0,
+          1617.56
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "action",
+        "point_no": 502
+      },
+      "name": "fc_e220",
+      "transform": {
+        "position": [
+          2193.78,
+          30.55,
+          989.14
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 503
+      },
+      "name": "fc_e230",
+      "transform": {
+        "position": [
+          -1196.11,
+          -27.12,
+          565.75
+        ],
+        "rotation": [
+          0.0,
+          150.0,
+          150.0
+        ],
+        "scale": [
+          150.0,
+          100.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 504
+      },
+      "name": "fc_e235",
+      "transform": {
+        "position": [
+          7.6,
+          0.0,
+          -1155.59
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          900.0,
+          900.0,
+          900.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 507
+      },
+      "name": "fc_e247",
+      "transform": {
+        "position": [
+          2062.03,
+          1.35,
+          1100.69
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          400.0
+        ],
+        "scale": [
+          400.0,
+          400.0,
+          900.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 508
+      },
+      "name": "fc_e253",
+      "transform": {
+        "position": [
+          -2081.12,
+          1.38,
+          824.24
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          300.0,
+          300.0,
+          300.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 551
+      },
+      "name": "next_floor",
+      "transform": {
+        "position": [
+          -2397.82,
+          -0.7,
+          615.91
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "check",
+        "point_no": 560
+      },
+      "name": "itemget_paplle",
+      "transform": {
+        "position": [
+          -1887.9,
+          2.77,
+          936.62
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          75.0,
+          75.0,
+          75.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "action",
+        "point_no": 561
+      },
+      "name": "itemget_mimi",
+      "transform": {
+        "position": [
+          2193.78,
+          30.55,
+          989.14
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          50.0,
+          50.0,
+          50.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

@@ -1,0 +1,14 @@
+# --jump dungeon:0:1 --fast-load with a fresh --save root.
+# Floor list -> Save Adventure -> New Save -> Yes -> completed -> return.
+300 triangle
+306
+520 cross
+526
+1500 left
+1506
+1530 cross
+1536
+1800 cross
+1806
+1960 triangle
+1966

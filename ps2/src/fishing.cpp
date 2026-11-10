@@ -725,7 +725,7 @@ int stack_size;
  * Aligned address of the fishing loading thread stack.
  *
  */
-static int ThreadStack;
+static uptr ThreadStack;
 
 /**
  *
@@ -1324,7 +1324,7 @@ int CreateLoadThread(mgCMemory *memory) {
 
     stack_size = 0x40000;
 
-    ThreadStack = (int) memory->Alloc(0x4001);
+    ThreadStack = (uptr) memory->Alloc(0x4001);
     misalignment = ThreadStack & 0x3F;
 
     if (misalignment != 0) {
@@ -3890,7 +3890,7 @@ int GetUkiWaitTime(FISH_DATA *fish, CScene *scene, float *position, int rod_no, 
     float vigour_recovery = 0.01f;
     int   wait_extra = 240;
     float width_scale = 1.0f;
-    float weight;
+    float weight PORT_INIT(0.0f);
     int   wait_time;
 
     if (MardanEventMap != 0 && bait_no == 4 && position[0] < 1000.0f && position[2] < -300.0f) {

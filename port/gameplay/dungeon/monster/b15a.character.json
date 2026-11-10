@@ -1,0 +1,178 @@
+{
+  "default_profile": "b15a",
+  "game_names": null,
+  "kind": "character_gameplay",
+  "profiles": {
+    "b15a": {
+      "commands": [
+        {
+          "args": [],
+          "command": "v2"
+        },
+        {
+          "args": [
+            {
+              "type": "string",
+              "value": "バトルシップ当たり"
+            }
+          ],
+          "command": "NAME"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "command": "MATERIAL_ANIME"
+        },
+        {
+          "args": [
+            {
+              "index": 0,
+              "kind": "model",
+              "type": "resource"
+            }
+          ],
+          "command": "MODEL"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            },
+            {
+              "type": "float",
+              "value": 0.0
+            }
+          ],
+          "command": "BODY_SIZE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "int",
+              "value": -1
+            }
+          ],
+          "command": "POLY_NUM"
+        },
+        {
+          "args": [
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            },
+            {
+              "type": "float",
+              "value": 1.0
+            }
+          ],
+          "command": "SCALE"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 0
+            },
+            {
+              "type": "string",
+              "value": "null84"
+            },
+            {
+              "type": "float",
+              "value": 50.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 1
+            },
+            {
+              "type": "string",
+              "value": "null84"
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        },
+        {
+          "args": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "string",
+              "value": "C0"
+            },
+            {
+              "type": "float",
+              "value": 200.0
+            },
+            {
+              "type": "string",
+              "value": "C5"
+            },
+            {
+              "type": "float",
+              "value": 120.0
+            },
+            {
+              "type": "string",
+              "value": "C4"
+            },
+            {
+              "type": "float",
+              "value": 300.0
+            },
+            {
+              "type": "string",
+              "value": "C3"
+            },
+            {
+              "type": "float",
+              "value": 220.0
+            },
+            {
+              "type": "string",
+              "value": "C2"
+            },
+            {
+              "type": "float",
+              "value": 340.0
+            },
+            {
+              "type": "string",
+              "value": "C1"
+            },
+            {
+              "type": "float",
+              "value": 260.0
+            }
+          ],
+          "command": "OBJECT_NAME2"
+        }
+      ]
+    }
+  },
+  "schema_version": 1
+}

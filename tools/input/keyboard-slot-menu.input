@@ -1,0 +1,20 @@
+# With --jump town:10 --fast-load, enter the Item page.
+180 key:Tab
+186
+400 key:Tab
+406
+# Move from the bag to the first active-item slot.
+550 key:Left
+556
+575 key:Left
+581
+600 key:Left
+606
+# Keyboard stick and arrow keys both navigate active-item slots inside menus.
+650 key:D
+656
+800 key:Right
+806
+# A controller stick uses the same retail menu conversion.
+1000 255 128 128 128
+1006

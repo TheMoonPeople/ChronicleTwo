@@ -1,0 +1,230 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "op": "init_drawlist"
+        }
+      ],
+      "name": "初期化"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 8
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 8
+        },
+        {
+          "action": "外へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "helpwin",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 5
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 6
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 8
+        },
+        {
+          "message": 1862,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "message": 1862,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "message": 1862,
+          "op": "make_message",
+          "window": 5
+        },
+        {
+          "message": 1852,
+          "op": "make_message",
+          "window": 6
+        },
+        {
+          "message": 1852,
+          "op": "make_message",
+          "window": 8
+        },
+        {
+          "message": 1850,
+          "op": "make_message",
+          "window": 3
+        }
+      ],
+      "name": "MSG初期化"
+    },
+    {
+      "commands": [
+        {
+          "action": "外へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 10
+        }
+      ],
+      "name": "PREEND"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg2",
+            "msg3",
+            "msg4",
+            "msg5",
+            "msg6",
+            "msg8"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 8
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 8
+        }
+      ],
+      "name": "終了処理"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

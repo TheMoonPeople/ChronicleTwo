@@ -1,0 +1,1700 @@
+{
+  "count": 189,
+  "kind": "map_names",
+  "maps": [
+    {
+      "add_path": "g00/g00",
+      "area_no": 2,
+      "name": "g01",
+      "sel_type": 1,
+      "snd_data_id": 2000,
+      "title": "[Uc0e4][Ub97c][Ub85c][Ud2b8]",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 3,
+      "name": "g02",
+      "sel_type": 1,
+      "snd_data_id": 3000,
+      "title": "[Ucc9c][Uce6d] [Uacc4][Uace1]",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 4,
+      "name": "g03",
+      "sel_type": 1,
+      "snd_data_id": 4000,
+      "title": "[Ubca0][Ub2c8][Uce58][Uc624]",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 5,
+      "name": "g04",
+      "sel_type": 1,
+      "snd_data_id": 5000,
+      "title": "[Ud558][Uc784] [Ub77c][Ub2e4]",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "g05",
+      "sel_type": 1,
+      "snd_data_id": 7000,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Uc815][Uc6d0]",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "s40",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "[Ubca0][Ub2c8][Uce58][Uc624] [Ub370][Ubaa8][Uc6a9]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m01",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m02",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4] [Uc5ed] [Uc55e]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m03",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4] [Uad11][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m04",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4] [Uc8fc][Uac70][Uc9c0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m05",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4] [Uacf5][Uc6d0]",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "s01",
+      "sel_type": 3,
+      "snd_data_id": 1682,
+      "title": "[Uc9c0][Ud558] [Uc218][Ub3c4] [Ucd9c][Uad6c]",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 2,
+      "name": "s02",
+      "sel_type": 3,
+      "snd_data_id": 2080,
+      "title": "[Uc0e4][Ub97c][Ub85c][Ud2b8] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "m06",
+      "sel_type": 6,
+      "snd_data_id": 1208,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s07",
+      "sel_type": 7,
+      "snd_data_id": 510,
+      "title": "[Uc5f4][Ucc28] [Uc548]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m07",
+      "sel_type": 6,
+      "snd_data_id": 1200,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m08",
+      "sel_type": 6,
+      "snd_data_id": 1206,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01b01",
+      "sel_type": 5,
+      "snd_data_id": 1683,
+      "title": "[Uc9c0][Ud558] [Uc218][Ub3c4] [Ucd9c][Uad6c]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01e01",
+      "sel_type": 5,
+      "snd_data_id": 1602,
+      "title": "[Uc9c0][Ud558] [Uc218][Ub3c4] [Uc785][Uad6c]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s08",
+      "sel_type": 7,
+      "snd_data_id": 516,
+      "title": "[Uae30][Uad00][Ucc28] [Uc548]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b01",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "[Ubb34][Uc9c0][Uac1c] [Ud3ed][Ud3ec]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "f01",
+      "sel_type": 4,
+      "snd_data_id": 2300,
+      "title": "[Uc8fc][Ub77c][Ud06c] [Ubab0]",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02",
+      "sel_type": 4,
+      "snd_data_id": 3300,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uc0ac][Uc6d0]",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h01",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "[Uc218][Ub9ac][Uc810]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ud3f4][Ub9ac] [Ubca0][Uc774][Ucee4][Ub9ac]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ub300][Uc5ec] [Ucc3d][Uace0]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h04",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ubb34][Uae30] [Uac00][Uac8c]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Uc544][Uc774][Ud15c] [Uac00][Uac8c]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h06",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ubcf4][Uc548][Uad00] [Uc0ac][Ubb34][Uc2e4]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h07",
+      "sel_type": 2,
+      "snd_data_id": 1082,
+      "title": "[Uad50][Ud68c]",
+      "type": 4
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "i02h01",
+      "sel_type": 2,
+      "snd_data_id": 1080,
+      "title": "[Uc5ed]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ucee4][Ud53c][Uc20d]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ubc14]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Uc2dc][Uccad] [Ub85c][Ube44]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Uc2dc][Uc7a5] [Uc9d1][Ubb34][Uc2e4]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02",
+      "sel_type": 2,
+      "snd_data_id": 1213,
+      "title": "[Uc11c][Ucee4][Uc2a4] [Ud150][Ud2b8]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02a",
+      "sel_type": 2,
+      "snd_data_id": -1,
+      "title": "[Uc11c][Ucee4][Uc2a4] [Ud150][Ud2b8]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Uc720][Ub9ac][Uc2a4][Uc758] [Ubc29]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Uc720][Ub9ac][Uc2a4][Uc758] [Uc9d1]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Uc2dd][Ub2f9]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01c",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "[Ubd80][Uc5cc]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01d",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Uc81c][Ub7f4][Ub4dc][Uc758] [Ubc29]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01e",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ud558][Uc778][Uc758] [Ubc29]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01f",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ubcf5][Ub3c4][Uc2e4]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ud074][Ub808][Uc5b4][Uc758] [Uc9d1]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ud074][Ub808][Uc5b4][Uc758] [Ubc29]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ud074][Ub808][Uc5b4] [Ubd80][Uce5c][Uc758] [Ubc29]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i05h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ub355] [Uc758][Uc6d0]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ud30c][Ud2b8][Ub9ac][Uc758] [Uc9d1]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s03",
+      "sel_type": 3,
+      "snd_data_id": 2203,
+      "title": "[Uc232][Uc758] [Ud130][Ub110]",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 3,
+      "name": "s04",
+      "sel_type": 3,
+      "snd_data_id": 3080,
+      "title": "[Ucc9c][Uce6d] [Uacc4][Uace1] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f01",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "[Uc9c0][Ud558] [Uc218][Ub3c4]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b02",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "[Ubb34][Uc9c0][Uac1c] [Ud3ed][Ud3ec]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02f01",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "[Ubb34][Uc9c0][Uac1c] [Ub098][Ube44] [Uc232]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f01",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uacc4][Uace1]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f02",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uacc4][Uace1]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f03",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uacc4][Uace1]",
+      "type": 7
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 3,
+      "name": "d03b01",
+      "sel_type": 5,
+      "snd_data_id": 3683,
+      "title": "[Uacf6] [Ub4f1][Ub300]",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship02",
+      "area_no": 3,
+      "name": "d03b02",
+      "sel_type": 5,
+      "snd_data_id": 3684,
+      "title": "[Uacf6] [Ub4f1][Ub300]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f02",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "[Uc9c0][Ud558] [Uc218][Ub3c4]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f01",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "[Ud574][Uc870][Uc74c] [Ub3d9][Uad74]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s05",
+      "sel_type": 5,
+      "snd_data_id": 2684,
+      "title": "[Uad34][Uc5b4][Uc758] [Ub2aa]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "s06",
+      "sel_type": 5,
+      "snd_data_id": 1684,
+      "title": "[Uc9c0][Ud558] [Uc218][Ub3c4] [Ud38c][Ud504][Uc2e4]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ub098][Ubb34][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ub098][Ubb34][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ub098][Ubb34][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ub098][Ubb34][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "g01i07",
+      "sel_type": 1,
+      "snd_data_id": 2081,
+      "title": "[Ub09c][Uc7c1][Uc774][Uc758] [Uc9d1]",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 7,
+      "name": "s12",
+      "sel_type": 3,
+      "snd_data_id": 7680,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s25",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "[Uce74][Ud39c][Ud130][Ub9ac][Uc628]([Uc678][Ubd80])",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s26",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "[Uce74][Ud39c][Ud130][Ub9ac][Uc628]([Ub0b4][Ubd80])",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s27",
+      "sel_type": 3,
+      "snd_data_id": 4082,
+      "title": "[Ud30c][Uc6b0][Uc758] [Uc9d1]",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s31",
+      "sel_type": 3,
+      "snd_data_id": 7681,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s33",
+      "sel_type": 3,
+      "snd_data_id": 7080,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Ud544][Ub4dc]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s35",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "[Uc6d4][Ud654][Uad81][Uc804] [Ubd80][Uc0c1] [Uc2e0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f01",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "[Uac74][Ub3c4][Ub974] [Ud654][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f02",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "[Ud574][Uc870][Uc74c] [Ub3d9][Uad74]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s17",
+      "sel_type": 5,
+      "snd_data_id": 3685,
+      "title": "[Ubcf4][Uc2a4][Uc758] [Uace8][Uc9dc][Uae30]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03",
+      "sel_type": 4,
+      "snd_data_id": 4300,
+      "title": "[Ub8e8][Ub098] [Uc5f0][Uad6c][Uc18c]",
+      "type": 5
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 4,
+      "name": "s09",
+      "sel_type": 3,
+      "snd_data_id": 4080,
+      "title": "[Ubca0][Ub2c8][Uce58][Uc624] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s19",
+      "sel_type": 3,
+      "snd_data_id": 4684,
+      "title": "[Uace0][Ub300] [Ubcbd][Ud654] [Ub3d9][Uad74]",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s41",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Ud558][Uc784] [Ub77c][Ub2e4] [Uc774][Ubca4][Ud2b8]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s42",
+      "sel_type": 6,
+      "snd_data_id": 1081,
+      "title": "[Uc218][Ub9ac][Uc810]",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 5,
+      "name": "s10",
+      "sel_type": 3,
+      "snd_data_id": 5080,
+      "title": "[Ud558][Uc784] [Ub77c][Ub2e4] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s20",
+      "sel_type": 5,
+      "snd_data_id": 5684,
+      "title": "[Uac74][Ub3c4][Ub974] [Ud654][Uc0b0] [Uc815][Uc0c1]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "[Ubaa8][Ud2bc][Uc758] [Uc9d1]",
+      "type": 4
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "d04b01",
+      "sel_type": 5,
+      "snd_data_id": 4683,
+      "title": "[Uc2dc][Uadf8][Ub77c] [Ub9c8][Uc744]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b03",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "[Ubb34][Uc9c0][Uac1c][Ud3ed][Ud3ec]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05b01",
+      "sel_type": 5,
+      "snd_data_id": 5683,
+      "title": "[Uac74][Ub3c4][Ub974] [Ud654][Uc0b0] [Ubd84][Ud654][Uad6c]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f02",
+      "sel_type": 5,
+      "snd_data_id": 5682,
+      "title": "[Uac74][Ub3c4][Ub974] [Ud654][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s43",
+      "sel_type": 5,
+      "snd_data_id": -1,
+      "title": "[Uc11c][Ucee4][Uc2a4] [Ud150][Ud2b8]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h04",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "[Ud53c][Uc2dc] [Ub808][Uc774][Uc2a4] [Uacbd][Uae30][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h05",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "[Ud53c][Uc2dc] [Ub808][Uc774][Uc2a4] [Uacbd][Uae30][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06f01",
+      "sel_type": 5,
+      "snd_data_id": 7600,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s18",
+      "sel_type": 5,
+      "snd_data_id": 3686,
+      "title": "[Uc694][Ub974][Ub2e4][Uc758] [Uace8][Uc9dc][Uae30]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h03",
+      "sel_type": 7,
+      "snd_data_id": 1084,
+      "title": "[Ub09a][Uc2dc] [Ub300][Ud68c][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "g02i02",
+      "sel_type": 1,
+      "snd_data_id": 511,
+      "title": "[Ub9b0][Uc758] [Uc9d1]",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i08",
+      "sel_type": 4,
+      "snd_data_id": 3381,
+      "title": "[Ub77c][Uc624][Ucc28][Uc624] [Ubc18][Uc810]",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "f04",
+      "sel_type": 4,
+      "snd_data_id": 5300,
+      "title": "[Uac74][Ub3c4][Ub77c][Ub2e4] [Uacf5][Uc791][Uc18c]",
+      "type": 5
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 6,
+      "name": "s11",
+      "sel_type": 3,
+      "snd_data_id": 6000,
+      "title": "[Uce74][Uc790][Ub85c][Ud504] [Uc2a4][Ud1a4][Ud5e8][Uc9c0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s29",
+      "sel_type": 3,
+      "snd_data_id": 5383,
+      "title": "[Ud30c][Uc988][Ub178][Uc2a4]([Uc804][Ub9dd][Ub300])",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s30",
+      "sel_type": 3,
+      "snd_data_id": 5384,
+      "title": "[Ud30c][Uc988][Ub178][Uc2a4]([Ube0c][Ub9ac][Uc9c0])",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s36",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "[Uc775][Uc2dc][Uc628]([Uc678][Ubd80]) [Uacf5][Uc720]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s39",
+      "sel_type": 4,
+      "snd_data_id": 5382,
+      "title": "[Uac74][Ub3c4][Ub77c][Ub2e4] [Uacf5][Uc791][Uc18c] [Uc870][Uc885][Uc2e4]",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s37",
+      "sel_type": 3,
+      "snd_data_id": 514,
+      "title": "[Uc775][Uc2dc][Uc628]([Uae30][Uad00][Uc2e4])",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06e01",
+      "sel_type": 5,
+      "snd_data_id": 7688,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Uc785][Uad6c] [Ud640]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i04",
+      "sel_type": 4,
+      "snd_data_id": 4383,
+      "title": "[Uc911][Uc559] [Uc5f0][Uad6c][Uc2e4]",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f00",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "[Ud574][Uc870][Uc74c] [Ub3d9][Uad74]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i06",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "[Uc2a4][Ud0c0] [Uc544][Uc774][Ud15c]",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0301",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "[Uc81c] 1 [Uc5f0][Uad6c][Uc2e4]",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0304",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "[Uc81c] 4 [Uc5f0][Uad6c][Uc2e4]",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s47",
+      "sel_type": 6,
+      "snd_data_id": 2000,
+      "title": "[Uc0e4][Ub97c][Ub85c][Ud2b8]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ucd08][Uac00][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ucd08][Uac00][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ucd08][Uac00][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ucd08][Uac00][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s38",
+      "sel_type": 7,
+      "snd_data_id": 513,
+      "title": "[Uc775][Uc2dc][Uc628]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s45",
+      "sel_type": 7,
+      "snd_data_id": 1000,
+      "title": "PB [Uc774][Ubca4][Ud2b8] [Uad11][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s46",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Ud68c][Uc0c1][Uc6a9] [Uc720][Ub9ac][Uc2a4] [Ubc29]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s49",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uae38][Ud2b8][Ub2c8] [Ud68c][Uc0c1] [Uc2e0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b01",
+      "sel_type": 5,
+      "snd_data_id": 7687,
+      "title": "[Uadf8][Ub9ac][Ud3f0][Uc758] [Ubc29]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b02",
+      "sel_type": 5,
+      "snd_data_id": 7603,
+      "title": "[Ub098][Uc120]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s44",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Ud68c][Uc0c1] [Uc2e0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s21",
+      "sel_type": 3,
+      "snd_data_id": 7689,
+      "title": "[Uc7ac][Ubc30][Uc7a5]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s23",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "[Uadf8][Ub9ac][Ud3f0][Uc758] [Ubc29] [Uc55e] [Ud1b5][Ub85c]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s50",
+      "sel_type": 3,
+      "snd_data_id": 7686,
+      "title": "[Uc548][Ub4dc][Ub808][Uc544][Uc758] [Ubc29]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s51",
+      "sel_type": 6,
+      "snd_data_id": 520,
+      "title": "[Ub808][Uc774][Ube0c][Ub780][Ud2b8] [Uc131]",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s53",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uc911][Uc559] [Uc5f0][Uad6c][Uc2e4]([Uc774][Ubca4][Ud2b8])",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ubcbd][Ub3cc][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ubcbd][Ub3cc][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ubcbd][Ub3cc][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "[Ubcbd][Ub3cc][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ia",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "[Uac15][Ucca0][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ib",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "[Uac15][Ucca0][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ic",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "[Uac15][Ucca0][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05id",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "[Uac15][Ucca0][Uc9d1] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f02i07",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uc0ac][Uc6d0] [Ubb34][Uae30] [Uac00][Uac8c]",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0302",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "[Uc81c] 2 [Uc5f0][Uad6c][Uc2e4]",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0303",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "[Uc81c] 3 [Uc5f0][Uad6c][Uc2e4]",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i03",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-WEAPONS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i04",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-PARTS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s13",
+      "sel_type": 5,
+      "snd_data_id": 2694,
+      "title": "[Ud759][Uc758] [Ub77c][Ud53c][Uc2a4] [Ubc29]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s14",
+      "sel_type": 5,
+      "snd_data_id": 3694,
+      "title": "[Ubc14][Ub78c][Uc758] [Ub77c][Ud53c][Uc2a4] [Ubc29]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s15",
+      "sel_type": 5,
+      "snd_data_id": 4694,
+      "title": "[Ubb3c][Uc758] [Ub77c][Ud53c][Uc2a4] [Ubc29]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s16",
+      "sel_type": 5,
+      "snd_data_id": 5694,
+      "title": "[Ubd88][Uc758] [Ub77c][Ud53c][Uc2a4] [Ubc29]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s28",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Ud30c][Uc988][Ub178][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s32",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] vs [Ud30c][Uc988][Ub178][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s48",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Ud30c][Uc988][Ub178][Uc2a4]([Ub85c][Ubd07])",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s54",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s55",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Ud30c][Uc988][Ub178][Uc2a4] [Uc774][Ubca4][Ud2b8]([Uc804][Ud22c])",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s56",
+      "sel_type": 5,
+      "snd_data_id": 3682,
+      "title": "[Ubd80][Uc11c][Uc9c4] [Ub4f1][Ub300]",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s34",
+      "sel_type": 3,
+      "snd_data_id": 7682,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i05",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-TOOLS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01r",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "[Ubb34][Uc9c0][Uac1c] [Ub098][Ube44] [Uc232]",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s58",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "[Uc544][Uacf5][Uac04]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s59",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Ub8e8][Ub098] [Uc5f0][Uad6c][Uc18c]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07f01",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07b01",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a20i01",
+      "sel_type": 1,
+      "snd_data_id": 522,
+      "title": "[Uad50][Ud68c] [Uc2e4][Ub0b4]",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f01r",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uacc4][Uace1]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02r",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uacc4][Uace1]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f03r",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uacc4][Uace1]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f02r",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "[Ud574][Uc870][Uc74c] [Ub3d9][Uad74]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01r",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "[Uac74][Ub3c4][Ub974] [Ud654][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f02",
+      "sel_type": 5,
+      "snd_data_id": 7683,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f03",
+      "sel_type": 5,
+      "snd_data_id": 7684,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b03",
+      "sel_type": 5,
+      "snd_data_id": 7692,
+      "title": "[Uad81][Uc804] [Ud14c][Ub77c][Uc2a4]",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s52",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s60",
+      "sel_type": 6,
+      "snd_data_id": 1264,
+      "title": "[Ud31c] [Ube0c][Ub9c1][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s61",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s62",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s63",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s64",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Ud68c][Uc0c1] [Uc2e0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s65",
+      "sel_type": 3,
+      "snd_data_id": 7000,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Uc774][Ubca4][Ud2b8][Uc6a9]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s98",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "[Uce74][Uc790][Ub85c][Ud504] [Uc2a4][Ud1a4][Ud5e8][Uc9c0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s66",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "[Uce74][Uc790][Ub85c][Ud504] [Uc2a4][Ud1a4][Ud5e8][Uc9c0]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s67",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uad81][Uc804] [Ud14c][Ub77c][Uc2a4]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01s",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "[Ubb34][Uc9c0][Uac1c] [Ub098][Ube44] [Uc232]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02s",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "[Uc2a4][Ud154][Ub77c] [Uacc4][Uace1]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f01s",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "[Ud574][Uc870][Uc74c] [Ub3d9][Uad74]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01s",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "[Uac74][Ub3c4][Ub974] [Ud654][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s69",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "[Uc824][Ub9c8][Uc774][Ud2b8] [Uad11][Uc0b0]",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s68",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804]",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s70",
+      "sel_type": 6,
+      "snd_data_id": 7081,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804]",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s71",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "[Uc6d4][Ud654] [Uad81][Uc804] [Uc815][Ucc28][Uc7a5]",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,63 @@
+# --jump town:10 --fast-load --give 388 --window 1920x1080; 1440x1080 (4:3) uses the same counts.
+# Item page left-panel targets: use an item on Max, then attach a synth sphere to a weapon.
+300 triangle
+301
+420 cross
+421
+600 mouse:1.97,0.00
+601
+620 wheel:-5
+621
+# Drag the Potato Pie (cell 53) onto Max: the retail use-on-character.
+660 mouse:560.53,337.50
+661
+680 mouse1
+690 mouse1 mouse:-226.41,2.81
+691 mouse1 mouse:-226.41,2.81
+692 mouse1 mouse:-226.41,2.81
+693 mouse1 mouse:-226.41,2.81
+694 mouse1
+710
+# Capture 800: the pie is used and Max's defence has risen.
+# Spectrumise one Bread (cell 30) through its commands and confirmations.
+820 mouse:343.12,-348.75
+821
+840 mouse1
+841
+900 mouse:47.81,299.25
+901
+920 mouse1
+921
+980 mouse1
+981
+1040 mouse:-135.00,81.00
+1041
+1060 mouse1
+1061
+# Open the equipped weapon's Status page from its icon.
+1350 mouse:-520.31,387.00
+1351
+1370 mouse1
+1371
+1430 mouse:30.94,-294.75
+1431
+1450 mouse1
+1451
+# Drag the new synth sphere (cell 53) onto the weapon on the left.
+1580 mouse:1139.06,-135.00
+1581
+1600 mouse1
+1610 mouse1 mouse:-247.50,-36.56
+1611 mouse1 mouse:-247.50,-36.56
+1612 mouse1 mouse:-247.50,-36.56
+1613 mouse1 mouse:-247.50,-36.56
+1614 mouse1
+1630
+# Capture 1680: the retail synthesis question. Answer Yes.
+1690 mouse:236.25,162.00
+1691
+1710 mouse1
+1711
+# Capture 2150: Flame 2 -> 4, Synthesis Point 1 -> 0 and the retail result message.
+2250 mouse1
+2251

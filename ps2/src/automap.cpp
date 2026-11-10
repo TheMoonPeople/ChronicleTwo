@@ -1486,7 +1486,7 @@ void CAutoMapGen::CreatTermParts() {
         }
     } while (open_dirs == 0);
 
-    room_no = ((CAutoMapParts *) (x_off + (y_off + (int) cells)))->room_no;
+    room_no = ((CAutoMapParts *) (x_off + (y_off + (uptr) cells)))->room_no;
 
     do {
         direction = 1 << iRand(4);

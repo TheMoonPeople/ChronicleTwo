@@ -12,7 +12,7 @@ import unittest
 import disassemble
 
 ROOT = Path(__file__).resolve().parents[2]
-KAZAROV_CMAKE = ROOT / 'tools/kazarov/cmake/Kazarov.cmake'
+KAZAROV_CMAKE = ROOT / 'tools/kazarov/CMakeLists.txt'
 
 
 @unittest.skipUnless(shutil.which('cmake') and shutil.which('ninja'), 'CMake and Ninja required')

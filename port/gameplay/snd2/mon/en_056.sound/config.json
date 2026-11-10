@@ -1,0 +1,152 @@
+{
+  "entries": [
+    {
+      "filename": "-",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": true,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "KeyOn",
+      "flag": true,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "snd2/mon/en_056.sound/effects/en_056_006.json",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 10
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 11
+    },
+    {
+      "filename": "snd2/mon/en_056.sound/effects/en_056_012.json",
+      "flag": false,
+      "key": 60,
+      "program": 12
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 13
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 14
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 15
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 16
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 17
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 18
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 19
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 20
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 21
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 22
+    },
+    {
+      "filename": "snd2/mon/en_056.sound/effects/en_056_023.json",
+      "flag": false,
+      "key": 60,
+      "program": 23
+    }
+  ],
+  "entry_count": 25,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

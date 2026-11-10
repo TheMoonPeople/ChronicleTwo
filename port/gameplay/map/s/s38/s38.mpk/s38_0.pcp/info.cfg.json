@@ -1,0 +1,34 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s3801_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3801_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s3801_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3801_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3801_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s3801_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3801_05-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

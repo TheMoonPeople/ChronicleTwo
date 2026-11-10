@@ -1,0 +1,70 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "i02h03_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "i02h03_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i02h03_01-c.gltf",
+      "type": 2
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,28 @@
+300 128 0 128 128
+365 cross 128 0 128 128
+366
+600 255 128 128 128
+618
+650 cross
+656
+800 cross
+806
+# --jump town:10 --fast-load --window 512x480; mouse selects Bread, sells two for 30 gilda.
+950 mouse:4,-136
+951
+1000 wheel:-1
+1005
+1100 mouse:0,145.6
+1101
+1120 mouse1
+1121
+1250 wheel:1
+1251
+1300 mouse:-55,2.4
+1301
+1320 mouse1
+1321
+1450 mouse:19,23.2
+1451
+1480 mouse1
+1481

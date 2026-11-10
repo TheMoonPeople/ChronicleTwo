@@ -1,0 +1,20 @@
+# --jump town:10 --fast-load --window 1920x1080; use --screenshot-fps to see the pointer.
+# Hover Monica (610), then Max with an unmirrored pointer (630); click Monica (650), then YES (740).
+300 triangle
+306
+370 down
+371
+420 cross
+426
+600 mouse:-85,-5
+601
+620 mouse:390,-245
+621
+640 mouse:-390,245
+641
+650 mouse1
+652
+720 mouse:-13,70
+721
+740 mouse1
+742

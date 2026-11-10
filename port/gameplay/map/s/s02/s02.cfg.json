@@ -1,0 +1,62 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 209
+      },
+      "name": "goto_dungeon",
+      "transform": {
+        "position": [
+          -1000.0,
+          0.0,
+          -30.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 210
+      },
+      "name": "goto_map",
+      "transform": {
+        "position": [
+          -990.0,
+          0.0,
+          -840.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          120.0,
+          100.0,
+          120.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

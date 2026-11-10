@@ -1,0 +1,113 @@
+{
+  "draw_off_rects": [],
+  "event_points": [],
+  "georama": {
+    "fixed_parts": {
+      "count": 1,
+      "parts": [
+        {
+          "angle": 0,
+          "id": 56,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "mask_parts": [
+      {
+        "index": 0,
+        "model": "g050303_r-m.gltf"
+      }
+    ],
+    "river_parts": [
+      {
+        "index": 0,
+        "model": "g050402_r-m.gltf",
+        "parts": "p02_g0504"
+      },
+      {
+        "index": 1,
+        "model": "g050401_r-m.gltf",
+        "parts": "p01_g0504"
+      },
+      {
+        "index": 2,
+        "model": "g050403_r-m.gltf",
+        "parts": "p03_g0504"
+      },
+      {
+        "index": 3,
+        "model": "g050404_r-m.gltf",
+        "parts": "p04_g0504"
+      },
+      {
+        "index": 4,
+        "model": "g050402_r-m.gltf",
+        "parts": "p02_g0504"
+      },
+      {
+        "index": 5,
+        "model": "g050401_r-m.gltf",
+        "parts": "p01_g0504"
+      },
+      {
+        "index": 6,
+        "model": "g050403_r-m.gltf",
+        "parts": "p03_g0504"
+      },
+      {
+        "index": 7,
+        "model": "g050404_r-m.gltf",
+        "parts": "p04_g0504"
+      }
+    ],
+    "water_parts_models": [
+      "g050405-m.gltf"
+    ]
+  },
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draw_count": 1,
+    "draws": [
+      {
+        "position": [
+          0.0,
+          -19.0,
+          0.0
+        ],
+        "surface": 0,
+        "target": "#follow101"
+      }
+    ],
+    "surface_count": 1,
+    "surfaces": [
+      {
+        "param": [
+          0.15,
+          0.0045,
+          0.0,
+          16.0
+        ],
+        "vertex": {
+          "corner0": [
+            -500.0,
+            0.0,
+            -500.0
+          ],
+          "corner1": [
+            500.0,
+            0.0,
+            500.0
+          ],
+          "count_x": 48,
+          "count_z": 48
+        }
+      }
+    ]
+  }
+}

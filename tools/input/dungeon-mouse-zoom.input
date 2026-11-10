@@ -1,0 +1,42 @@
+# --jump dungeon:0:1 --fast-load; input.mouse_zoom must be true.
+# Complete the floor-entry messages, then walk into the corridor.
+300 cross
+306
+520 cross
+526
+900 start
+906
+940 triangle
+946
+1100 cross
+1106
+1250 cross
+1256
+1400 cross
+1406
+1550 cross
+1556
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2200 128 0 128 128
+2260
+# Capture 2400 (retail), 2580 (close), 2760 (far, collision limited), 2940 (reset).
+2420 wheel:100
+2421
+2600 wheel:-100
+2601
+2780 mouse3
+2781
+# Follow while moving, then verify menu ownership.
+2960 wheel:6 key:W
+3000
+3100 triangle
+3106
+3140 wheel:-100
+3141
+3200 circle
+3206

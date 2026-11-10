@@ -1,0 +1,106 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "i04h02_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "i04h02_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_15-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_16-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_17-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_18-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_19-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_20-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_21-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_22-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h02_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "i04h02_27-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

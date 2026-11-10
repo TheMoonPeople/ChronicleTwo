@@ -1,0 +1,50 @@
+# Requires game.debug_mode=true in the replay save root config.json.
+# Replay endpoint: --frames 3300.
+# Title -> retail debug event menu -> chapter one normal -> floor 1.
+300 circle
+306
+320 cross
+326
+500 l1 l2 r1 r2 r3
+506
+520 start select
+526
+580 circle
+586
+620 down
+626
+660 circle
+666
+1000 cross
+1006
+1250 cross
+1256
+1500 start
+1506
+1540 triangle
+1546
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2150 cross
+2156
+2300 cross
+2306
+2450 cross
+2456
+2600 cross
+2606
+
+# Guard on the entry bridge.
+2800 r1
+2860
+# Fire the pistol from the entry bridge, then charge and release the wrench.
+2900 l1 cross
+2960
+3000 l1 cross
+3060
+3100 cross
+3250

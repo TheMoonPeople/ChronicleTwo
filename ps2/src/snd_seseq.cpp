@@ -96,7 +96,7 @@ void sndCSeSeqData::LoadSMF(char *smf, int size, mgCMemory *memory) {
     }
 
     BigToLittle(&header_size, smf + 4, 4);
-    cursor = (char *) (header_size + (int) smf + 8);
+    cursor = (char *) (header_size + (uptr) smf + 8);
     BigToLittle(&format, smf + 8, 2);
 
     if (format != 0) {

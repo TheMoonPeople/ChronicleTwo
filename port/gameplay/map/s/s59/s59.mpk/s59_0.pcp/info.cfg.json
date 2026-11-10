@@ -1,0 +1,214 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "f030901-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030801-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030601-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030501-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030305-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030304-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030303-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030302-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030301-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030101-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030206-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030203-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030202-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030201-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030104-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030103-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030205-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030102-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_15-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_16-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030401-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030402-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030403-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030404-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030407-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030408-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030410-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030409-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030413-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030411-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030412-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030414-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "water02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "water01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "water03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "water06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "water05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "water04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "f030401-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "f030402-a.gltf",
+      "type": 1
+    }
+  ],
+  "schema_version": 2
+}

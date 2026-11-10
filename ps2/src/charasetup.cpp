@@ -43,14 +43,17 @@ struct SetupPartStack {
     int stack_no[5]; /**< Index into the stacks array for each ROBO_MODEL_SLOT. */
 };
 
+// Retail budgets were counted at PS2 pointer widths; SetActionScript's stack and call allocations grow on PC. Zero on PS2.
+#define CHARA_SCRIPT_RUNTIME_DELTA (((sizeof(RS_STACKDATA) - 8) * 0x80 + (sizeof(RS_CALLDATA) - 12) * 0x200) / 16)
+
 /**
  *
  * Sizes of the memory stacks of each main character layout, indexed by CHARA_MEM_SIZE row and stack.
  *
  */
 static int mem_table[CHARA_MEM_LAYOUT_NUM][CHARA_MEM_STACK_NUM] = {
-    {68500,  40000, 7000,  4650,  3000,  9900, 4500},
-    {30000,  30000, 60000, 10000, 10000, 0,    0   },
+    {68500,  40000, 7000,  4650,  3000,  9900 + CHARA_SCRIPT_RUNTIME_DELTA, 4500 + CHARA_SCRIPT_RUNTIME_DELTA},
+    {30000,  30000, 60000, 10000, 10000 + CHARA_SCRIPT_RUNTIME_DELTA, 0,    0   },
     {75000,  40000, 7000,  4650,  3000,  9900, 0   },
     {120000, 0,     0,     0,     0,     5500, 0   }
 };

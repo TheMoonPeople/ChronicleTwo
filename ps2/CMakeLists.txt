@@ -39,7 +39,7 @@ endif()
 find_program(PYTHON NAMES python3 python REQUIRED HINTS $ENV{VIRTUAL_ENV}/bin)
 
 #
-# Compiler and linker, for tools/kazarov/cmake/Kazarov.cmake
+# Compiler and linker, for tools/kazarov/CMakeLists.txt
 #
 
 # Satan's Fiddle controls the compiler's state. The runner is an absolute path:
@@ -66,7 +66,7 @@ set(KZ_LIB_INCLUDE_DIRS ps2/include/std ps2/include/sce)
 set(KZ_AS_FLAGS -EL -march=r5900 -mabi=eabi -mno-pdr -non_shared -G0 -I ${INCLUDE_DIR})
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-include(${CMAKE_SOURCE_DIR}/tools/kazarov/cmake/Kazarov.cmake)
+include(${CMAKE_SOURCE_DIR}/tools/kazarov/CMakeLists.txt)
 
 # MWLD runs under wibo and links the executable from every object in
 # <build>/main_o_files, placed by the linker script.

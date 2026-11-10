@@ -1,0 +1,155 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 4
+    },
+    {
+      "action": "item_set",
+      "set": 6
+    },
+    {
+      "action": "monica"
+    },
+    {
+      "action": "steve"
+    },
+    {
+      "action": "monsters",
+      "ids": [
+        1,
+        52
+      ]
+    },
+    {
+      "action": "party",
+      "chara": 13
+    },
+    {
+      "action": "get_items",
+      "items": [
+        359,
+        311
+      ]
+    },
+    {
+      "action": "get_items",
+      "items": [
+        44,
+        93
+      ]
+    },
+    {
+      "action": "get_items",
+      "items": [
+        124,
+        264,
+        130
+      ]
+    },
+    {
+      "action": "get_items_counted",
+      "items": [
+        {
+          "count": 5,
+          "item": 268
+        },
+        {
+          "count": 3,
+          "item": 294
+        },
+        {
+          "count": 3,
+          "item": 298
+        },
+        {
+          "count": 2,
+          "item": 381
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        },
+        {
+          "count": 0,
+          "item": 0
+        }
+      ]
+    },
+    {
+      "action": "get_items",
+      "items": [
+        369
+      ]
+    },
+    {
+      "action": "equip",
+      "chara": 1,
+      "item": 44
+    },
+    {
+      "action": "equip",
+      "chara": 1,
+      "item": 93
+    },
+    {
+      "action": "equip",
+      "chara": 1,
+      "item": 124
+    },
+    {
+      "action": "equip",
+      "chara": 1,
+      "item": 264
+    },
+    {
+      "action": "equip",
+      "chara": 1,
+      "item": 130
+    },
+    {
+      "action": "hp",
+      "chara": 1,
+      "value": 48
+    },
+    {
+      "action": "defense",
+      "chara": 1,
+      "value": 50
+    },
+    {
+      "action": "option",
+      "name": "MonsterName",
+      "value": 1
+    },
+    {
+      "action": "option",
+      "name": "Map",
+      "value": 0
+    },
+    {
+      "action": "option",
+      "name": "EnemyHP",
+      "value": 1
+    },
+    {
+      "action": "option",
+      "name": "AngerCounter",
+      "value": 1
+    },
+    {
+      "action": "active_chara",
+      "chara": 1
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

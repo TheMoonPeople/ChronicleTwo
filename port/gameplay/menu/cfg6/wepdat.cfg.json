@@ -1,0 +1,5657 @@
+{
+  "count": 113,
+  "kind": "weapons",
+  "schema_version": 2,
+  "weapons": [
+    {
+      "attribute": [
+        2,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        2,
+        90,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 32,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        8,
+        10
+      ],
+      "status_max": [
+        20,
+        19
+      ]
+    },
+    {
+      "attribute": [
+        2,
+        0,
+        0,
+        0,
+        10,
+        0,
+        5,
+        0
+      ],
+      "attribute_max": [
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        3,
+        0,
+        0
+      ],
+      "durability": 42,
+      "levelup_exp": 64,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        16,
+        15
+      ],
+      "status_max": [
+        35,
+        34
+      ]
+    },
+    {
+      "attribute": [
+        20,
+        0,
+        10,
+        0,
+        20,
+        0,
+        0,
+        5
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        4,
+        6,
+        0
+      ],
+      "durability": 62,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        35,
+        30
+      ],
+      "status_max": [
+        60,
+        60
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        44,
+        0,
+        0,
+        0,
+        30,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        5,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 16,
+        "unk_47": 0
+      },
+      "status": [
+        55,
+        42
+      ],
+      "status_max": [
+        110,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        80,
+        0,
+        0,
+        0,
+        75,
+        50
+      ],
+      "attribute_max": [
+        125,
+        125,
+        130,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        19,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 4,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        125,
+        81
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        50,
+        0,
+        0,
+        44,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        7,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 64,
+        "unk_47": 0
+      },
+      "status": [
+        57,
+        42
+      ],
+      "status_max": [
+        109,
+        73
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        88,
+        0,
+        0,
+        88,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        125,
+        130,
+        125,
+        125,
+        130,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        8,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        90,
+        55
+      ],
+      "status_max": [
+        125,
+        85
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        130,
+        0,
+        0,
+        110,
+        110,
+        0,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        133,
+        217,
+        -1
+      ],
+      "buildup_weapon": [
+        21,
+        0,
+        0
+      ],
+      "durability": 85,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 16,
+      "levelup_exp": 32,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        3,
+        9
+      ],
+      "status_max": [
+        19,
+        19
+      ]
+    },
+    {
+      "attribute": [
+        10,
+        0,
+        0,
+        10,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        12,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        25,
+        25
+      ],
+      "status_max": [
+        45,
+        44
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        10,
+        0,
+        10,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        12,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 32,
+        "unk_47": 0
+      },
+      "status": [
+        24,
+        26
+      ],
+      "status_max": [
+        44,
+        45
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        10,
+        0
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        13,
+        0,
+        0
+      ],
+      "durability": 60,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        32,
+        29
+      ],
+      "status_max": [
+        61,
+        55
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        55,
+        0,
+        0,
+        40,
+        0
+      ],
+      "attribute_max": [
+        108,
+        108,
+        110,
+        110,
+        108,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        14,
+        0,
+        0
+      ],
+      "durability": 65,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 1024,
+        "unk_47": 0
+      },
+      "status": [
+        50,
+        35
+      ],
+      "status_max": [
+        108,
+        70
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        80,
+        0,
+        0,
+        80,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 70,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        77,
+        45
+      ],
+      "status_max": [
+        120,
+        75
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        10,
+        0,
+        0,
+        10,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        30,
+        36,
+        34,
+        34,
+        36,
+        34,
+        34,
+        34
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        17,
+        0,
+        0
+      ],
+      "durability": 42,
+      "levelup_exp": 64,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        11,
+        20
+      ],
+      "status_max": [
+        36,
+        35
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        45,
+        45,
+        45,
+        45
+      ],
+      "attribute_max": [
+        125,
+        130,
+        125,
+        125,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 78,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 1,
+        "unk_47": 0
+      },
+      "status": [
+        44,
+        44
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        25,
+        0,
+        0,
+        25,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        6,
+        16,
+        0
+      ],
+      "durability": 63,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        33,
+        31
+      ],
+      "status_max": [
+        61,
+        61
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        10,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        46,
+        45,
+        45,
+        46,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        16,
+        0,
+        0
+      ],
+      "durability": 50,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 16,
+        "unk_47": 0
+      },
+      "status": [
+        22,
+        22
+      ],
+      "status_max": [
+        45,
+        44
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        120,
+        120,
+        0,
+        0,
+        100,
+        95
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        45,
+        30,
+        -1
+      ],
+      "buildup_weapon": [
+        20,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        100,
+        0,
+        150,
+        0,
+        0,
+        0,
+        150,
+        100
+      ],
+      "attribute_max": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        105,
+        50,
+        158
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 90,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        80
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        150,
+        0,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "attribute_max": [
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250
+      ],
+      "buildup_monster": [
+        174,
+        166,
+        213
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 100,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        89
+      ],
+      "status_max": [
+        500,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        19,
+        19,
+        19,
+        25,
+        19,
+        25,
+        19,
+        19
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        24,
+        0,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 32,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        7,
+        10
+      ],
+      "status_max": [
+        24,
+        19
+      ]
+    },
+    {
+      "attribute": [
+        5,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        30
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        25,
+        0,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 32,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        12,
+        8
+      ],
+      "status_max": [
+        25,
+        30
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        12,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        25,
+        28,
+        0
+      ],
+      "durability": 32,
+      "levelup_exp": 64,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        15,
+        15
+      ],
+      "status_max": [
+        34,
+        34
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        21,
+        0,
+        15,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        26,
+        35,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        24,
+        26
+      ],
+      "status_max": [
+        44,
+        45
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        25,
+        25,
+        0,
+        25,
+        25
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        75,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        32,
+        27,
+        0
+      ],
+      "durability": 50,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        34,
+        30
+      ],
+      "status_max": [
+        60,
+        60
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        75,
+        60,
+        0,
+        60,
+        45
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        38,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 512,
+        "unk_47": 0
+      },
+      "status": [
+        60,
+        55
+      ],
+      "status_max": [
+        120,
+        75
+      ]
+    },
+    {
+      "attribute": [
+        15,
+        0,
+        0,
+        21,
+        21,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        29,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 10,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        25,
+        25
+      ],
+      "status_max": [
+        44,
+        45
+      ]
+    },
+    {
+      "attribute": [
+        45,
+        0,
+        0,
+        45,
+        45,
+        0,
+        30,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        27,
+        30,
+        0
+      ],
+      "durability": 56,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 10,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 128,
+        "unk_47": 0
+      },
+      "status": [
+        44,
+        42
+      ],
+      "status_max": [
+        110,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        85,
+        0,
+        0,
+        85,
+        95,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        217,
+        221,
+        -1
+      ],
+      "buildup_weapon": [
+        39,
+        0,
+        0
+      ],
+      "durability": 82,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 10,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        62
+      ],
+      "status_max": [
+        150,
+        88
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        30,
+        30,
+        30,
+        0,
+        15,
+        0,
+        30
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        32,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 20,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        42,
+        20
+      ],
+      "status_max": [
+        60,
+        44
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        45,
+        0,
+        0,
+        45,
+        0,
+        45
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        33,
+        0,
+        0
+      ],
+      "durability": 60,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 20,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 2,
+        "unk_47": 0
+      },
+      "status": [
+        50,
+        42
+      ],
+      "status_max": [
+        110,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        95,
+        0,
+        0,
+        95,
+        0,
+        85
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        197,
+        22,
+        -1
+      ],
+      "buildup_weapon": [
+        34,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 20,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 16,
+        "unk_47": 0
+      },
+      "status": [
+        105,
+        72
+      ],
+      "status_max": [
+        150,
+        90
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        100,
+        150,
+        0,
+        150,
+        150,
+        140,
+        150
+      ],
+      "attribute_max": [
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250
+      ],
+      "buildup_monster": [
+        50,
+        6,
+        236
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 100,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 20,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        89
+      ],
+      "status_max": [
+        500,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        40,
+        0,
+        0,
+        30,
+        45,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        36,
+        0,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 30,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        34,
+        32
+      ],
+      "status_max": [
+        60,
+        62
+      ]
+    },
+    {
+      "attribute": [
+        60,
+        0,
+        0,
+        60,
+        60,
+        0,
+        0,
+        60
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        37,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 30,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        57,
+        42
+      ],
+      "status_max": [
+        109,
+        73
+      ]
+    },
+    {
+      "attribute": [
+        80,
+        0,
+        0,
+        95,
+        95,
+        0,
+        85,
+        95
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        38,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 30,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        77,
+        45
+      ],
+      "status_max": [
+        120,
+        75
+      ]
+    },
+    {
+      "attribute": [
+        110,
+        0,
+        90,
+        110,
+        95,
+        100,
+        0,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        93,
+        165,
+        -1
+      ],
+      "buildup_weapon": [
+        40,
+        0,
+        0
+      ],
+      "durability": 83,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 30,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        110,
+        62
+      ],
+      "status_max": [
+        150,
+        89
+      ]
+    },
+    {
+      "attribute": [
+        140,
+        0,
+        0,
+        135,
+        140,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        178,
+        182,
+        38
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 10,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        149,
+        82
+      ],
+      "status_max": [
+        312,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        150,
+        100,
+        0,
+        145,
+        135,
+        0,
+        125,
+        50
+      ],
+      "attribute_max": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        240,
+        228,
+        232
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 90,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 30,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        85
+      ],
+      "status_max": [
+        301,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        10,
+        0,
+        10,
+        0
+      ],
+      "attribute_max": [
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        48,
+        42,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 64,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        15,
+        21
+      ],
+      "status_max": [
+        36,
+        34
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        21,
+        0,
+        21,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        74,
+        49,
+        45
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        22,
+        25
+      ],
+      "status_max": [
+        45,
+        44
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        10,
+        0,
+        10,
+        0,
+        0
+      ],
+      "attribute_max": [
+        30,
+        36,
+        34,
+        34,
+        36,
+        34,
+        34,
+        34
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        42,
+        0,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 64,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        21,
+        20
+      ],
+      "status_max": [
+        35,
+        35
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        10,
+        0,
+        0,
+        5,
+        0
+      ],
+      "attribute_max": [
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        46,
+        0,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 64,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        20,
+        15
+      ],
+      "status_max": [
+        34,
+        34
+      ]
+    },
+    {
+      "attribute": [
+        15,
+        0,
+        0,
+        0,
+        0,
+        15,
+        25,
+        15
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        85,
+        60,
+        60,
+        85,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        56,
+        66,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 2,
+        "unk_47": 0
+      },
+      "status": [
+        30,
+        31
+      ],
+      "status_max": [
+        89,
+        61
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        15,
+        0,
+        0,
+        15,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        69,
+        67,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        20,
+        22
+      ],
+      "status_max": [
+        42,
+        40
+      ]
+    },
+    {
+      "attribute": [
+        50,
+        0,
+        50,
+        0,
+        0,
+        50,
+        0,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        75,
+        86,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 8,
+        "unk_47": 0
+      },
+      "status": [
+        55,
+        42
+      ],
+      "status_max": [
+        110,
+        73
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        21,
+        0,
+        15,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        54,
+        67,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        23,
+        23
+      ],
+      "status_max": [
+        46,
+        45
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        5,
+        15,
+        0,
+        0,
+        0,
+        0,
+        30
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        52,
+        0,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        32,
+        33
+      ],
+      "status_max": [
+        61,
+        62
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        99,
+        0,
+        0,
+        0,
+        0,
+        99
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        55,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        124,
+        81
+      ]
+    },
+    {
+      "attribute": [
+        99,
+        0,
+        0,
+        0,
+        85,
+        85,
+        0,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        80,
+        59,
+        87
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        90,
+        55
+      ],
+      "status_max": [
+        125,
+        82
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        55,
+        0,
+        0,
+        0,
+        0,
+        55
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        75,
+        50,
+        85
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        54,
+        43
+      ],
+      "status_max": [
+        111,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        86,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        56,
+        40
+      ],
+      "status_max": [
+        109,
+        71
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        25,
+        0,
+        25,
+        10
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        76,
+        0,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        33,
+        32
+      ],
+      "status_max": [
+        62,
+        61
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        120,
+        0,
+        0,
+        0,
+        100,
+        120
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        173,
+        209,
+        -1
+      ],
+      "buildup_weapon": [
+        83,
+        57,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        99,
+        81
+      ],
+      "status_max": [
+        155,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        85,
+        0,
+        0,
+        85,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        55,
+        78,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        89,
+        52
+      ],
+      "status_max": [
+        123,
+        80
+      ]
+    },
+    {
+      "attribute": [
+        99,
+        99,
+        0,
+        150,
+        150,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        300,
+        300,
+        300,
+        300,
+        300,
+        300,
+        300,
+        300
+      ],
+      "buildup_monster": [
+        2,
+        26,
+        105
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        85
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        60,
+        0,
+        60,
+        50,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        71,
+        64,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        52,
+        46
+      ],
+      "status_max": [
+        112,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        120,
+        0,
+        120,
+        0,
+        120,
+        120,
+        0,
+        60
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        77,
+        81,
+        -1
+      ],
+      "buildup_weapon": [
+        60,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        152,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        150,
+        0,
+        0,
+        0,
+        0,
+        100,
+        150,
+        150
+      ],
+      "attribute_max": [
+        220,
+        200,
+        200,
+        200,
+        200,
+        200,
+        220,
+        220
+      ],
+      "buildup_monster": [
+        94,
+        90,
+        86
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        149,
+        85
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        53,
+        53,
+        53,
+        53,
+        45,
+        45,
+        45,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        62,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        21,
+        25
+      ],
+      "status_max": [
+        53,
+        53
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        50,
+        0,
+        50,
+        0,
+        0,
+        0,
+        60
+      ],
+      "attribute_max": [
+        110,
+        120,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        63,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        53,
+        42
+      ],
+      "status_max": [
+        111,
+        73
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        120,
+        0,
+        0,
+        0,
+        0,
+        0,
+        120
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        212,
+        173,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 256,
+        "unk_47": 0
+      },
+      "status": [
+        102,
+        79
+      ],
+      "status_max": [
+        151,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        99,
+        0,
+        99,
+        0,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        77,
+        80,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 2048,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        124,
+        81
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        25,
+        10,
+        0,
+        0,
+        0,
+        25,
+        0
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        68,
+        0,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 4,
+        "unk_47": 0
+      },
+      "status": [
+        33,
+        31
+      ],
+      "status_max": [
+        61,
+        62
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        60,
+        60,
+        0,
+        60,
+        60,
+        60
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        72,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 1024,
+        "unk_47": 0
+      },
+      "status": [
+        89,
+        55
+      ],
+      "status_max": [
+        125,
+        82
+      ]
+    },
+    {
+      "attribute": [
+        25,
+        0,
+        10,
+        0,
+        0,
+        10,
+        0,
+        0
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        47,
+        0,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 32,
+        "unk_47": 0
+      },
+      "status": [
+        34,
+        34
+      ],
+      "status_max": [
+        60,
+        61
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        60,
+        0,
+        0,
+        50,
+        0,
+        55,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        85,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 128,
+        "unk_47": 0
+      },
+      "status": [
+        52,
+        44
+      ],
+      "status_max": [
+        110,
+        70
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        30,
+        0,
+        0,
+        40,
+        0
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        70,
+        76,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        33,
+        31
+      ],
+      "status_max": [
+        61,
+        60
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        55,
+        0,
+        0,
+        55,
+        45
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        66,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        55,
+        46
+      ],
+      "status_max": [
+        111,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        110,
+        0,
+        90,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        77,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        89,
+        52
+      ],
+      "status_max": [
+        123,
+        80
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        120,
+        0,
+        0,
+        120,
+        99
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        104,
+        185,
+        -1
+      ],
+      "buildup_weapon": [
+        57,
+        89,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        21,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        65,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 4,
+        "unk_47": 0
+      },
+      "status": [
+        22,
+        20
+      ],
+      "status_max": [
+        45,
+        42
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        30,
+        0,
+        0,
+        30,
+        10
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        58,
+        47,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        32,
+        32
+      ],
+      "status_max": [
+        62,
+        62
+      ]
+    },
+    {
+      "attribute": [
+        50,
+        50,
+        0,
+        0,
+        50,
+        50,
+        50,
+        50
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        170,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        45,
+        0,
+        55,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        71,
+        0,
+        0
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        54,
+        45
+      ],
+      "status_max": [
+        109,
+        71
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        120,
+        99,
+        0,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        57,
+        57,
+        -1
+      ],
+      "buildup_weapon": [
+        79,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 64,
+        "unk_47": 0
+      },
+      "status": [
+        100,
+        81
+      ],
+      "status_max": [
+        155,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "attribute_max": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        228,
+        229,
+        213
+      ],
+      "buildup_weapon": [
+        88,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        123,
+        85
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        150,
+        150,
+        150,
+        150
+      ],
+      "attribute_max": [
+        200,
+        200,
+        200,
+        200,
+        250,
+        210,
+        220,
+        220
+      ],
+      "buildup_monster": [
+        114,
+        118,
+        86
+      ],
+      "buildup_weapon": [
+        88,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        147,
+        85
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        99,
+        120,
+        99,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        221,
+        212,
+        -1
+      ],
+      "buildup_weapon": [
+        81,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 8,
+        "unk_47": 0
+      },
+      "status": [
+        111,
+        83
+      ],
+      "status_max": [
+        152,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        150,
+        150,
+        150,
+        150
+      ],
+      "attribute_max": [
+        220,
+        200,
+        200,
+        200,
+        200,
+        250,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        150,
+        202,
+        174
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 1032,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        85
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        50,
+        0,
+        0,
+        0,
+        0,
+        50,
+        0,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        64,
+        51,
+        75
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 4.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        56,
+        42
+      ],
+      "status_max": [
+        112,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        150,
+        150,
+        0,
+        0,
+        0,
+        0,
+        150
+      ],
+      "attribute_max": [
+        200,
+        220,
+        220,
+        200,
+        200,
+        200,
+        200,
+        220
+      ],
+      "buildup_monster": [
+        240,
+        38,
+        2
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        149,
+        85
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        120,
+        0,
+        0,
+        120,
+        0,
+        120,
+        120
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        185,
+        153,
+        -1
+      ],
+      "buildup_weapon": [
+        89,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 512,
+        "unk_47": 0
+      },
+      "status": [
+        102,
+        80
+      ],
+      "status_max": [
+        153,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        90,
+        0,
+        0,
+        90,
+        0,
+        0,
+        80
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        84,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 512,
+        "unk_47": 0
+      },
+      "status": [
+        90,
+        55
+      ],
+      "status_max": [
+        125,
+        82
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        95,
+        0,
+        80,
+        80,
+        80,
+        80
+      ],
+      "attribute_max": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        87,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 288,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        89,
+        52
+      ],
+      "status_max": [
+        123,
+        80
+      ]
+    },
+    {
+      "attribute": [
+        120,
+        0,
+        120,
+        0,
+        0,
+        99,
+        0,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        150,
+        200,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        212,
+        274,
+        -1
+      ],
+      "buildup_weapon": [
+        88,
+        0,
+        0
+      ],
+      "durability": 86,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 256,
+        "unk_47": 0
+      },
+      "status": [
+        99,
+        79
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        200,
+        200,
+        200,
+        200
+      ],
+      "attribute_max": [
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250
+      ],
+      "buildup_monster": [
+        213,
+        225,
+        241
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 100,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        89
+      ],
+      "status_max": [
+        500,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        150,
+        0,
+        150,
+        150,
+        150,
+        0,
+        0
+      ],
+      "attribute_max": [
+        200,
+        250,
+        200,
+        200,
+        250,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        275,
+        166,
+        154
+      ],
+      "buildup_weapon": [
+        88,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        148,
+        85
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        2,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        2,
+        0,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 32,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        14,
+        10
+      ],
+      "status_max": [
+        20,
+        19
+      ]
+    },
+    {
+      "attribute": [
+        10,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34,
+        34
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        92,
+        93,
+        0
+      ],
+      "durability": 42,
+      "levelup_exp": 64,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        14,
+        15
+      ],
+      "status_max": [
+        35,
+        34
+      ]
+    },
+    {
+      "attribute": [
+        18,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        94,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        24,
+        26
+      ],
+      "status_max": [
+        44,
+        45
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        18,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        94,
+        104,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 16,
+        "unk_47": 0
+      },
+      "status": [
+        24,
+        26
+      ],
+      "status_max": [
+        44,
+        45
+      ]
+    },
+    {
+      "attribute": [
+        31,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        95,
+        103,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        35,
+        30
+      ],
+      "status_max": [
+        60,
+        60
+      ]
+    },
+    {
+      "attribute": [
+        60,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        100,
+        97,
+        98
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 1,
+        "unk_47": 0
+      },
+      "status": [
+        55,
+        42
+      ],
+      "status_max": [
+        110,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        125,
+        125,
+        0,
+        60,
+        110,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        150,
+        170,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        45,
+        153,
+        -1
+      ],
+      "buildup_weapon": [
+        102,
+        0,
+        0
+      ],
+      "durability": 85,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        99,
+        0,
+        0,
+        99,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        130,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        96,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 228,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        125,
+        81
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        99,
+        0,
+        99,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        130,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        99,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 228,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        125,
+        81
+      ]
+    },
+    {
+      "attribute": [
+        100,
+        0,
+        125,
+        0,
+        110,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        150,
+        150,
+        170,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        189,
+        209,
+        -1
+      ],
+      "buildup_weapon": [
+        101,
+        108,
+        0
+      ],
+      "durability": 85,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        99,
+        0,
+        0,
+        0,
+        0,
+        99,
+        0,
+        0
+      ],
+      "attribute_max": [
+        125,
+        125,
+        130,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        107,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 228,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        125,
+        81
+      ]
+    },
+    {
+      "attribute": [
+        150,
+        0,
+        150,
+        0,
+        0,
+        150,
+        0,
+        0
+      ],
+      "attribute_max": [
+        220,
+        200,
+        220,
+        220,
+        200,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        210,
+        236,
+        237
+      ],
+      "buildup_weapon": [
+        109,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 64,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        80
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        150,
+        0,
+        170,
+        0,
+        0,
+        150,
+        0
+      ],
+      "attribute_max": [
+        200,
+        220,
+        200,
+        150,
+        200,
+        200,
+        200,
+        200
+      ],
+      "buildup_monster": [
+        38,
+        174,
+        182
+      ],
+      "buildup_weapon": [
+        109,
+        0,
+        0
+      ],
+      "durability": 92,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        80
+      ],
+      "status_max": [
+        300,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        60,
+        0,
+        60,
+        0,
+        35,
+        0,
+        0
+      ],
+      "attribute_max": [
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110,
+        110
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        100,
+        97,
+        106
+      ],
+      "durability": 68,
+      "levelup_exp": 224,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 1,
+        "unk_47": 0
+      },
+      "status": [
+        55,
+        42
+      ],
+      "status_max": [
+        110,
+        72
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        31,
+        0,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        60,
+        99,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        103,
+        106,
+        0
+      ],
+      "durability": 55,
+      "levelup_exp": 160,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 2050,
+        "unk_47": 0
+      },
+      "status": [
+        35,
+        30
+      ],
+      "status_max": [
+        88,
+        60
+      ]
+    },
+    {
+      "attribute": [
+        115,
+        125,
+        0,
+        0,
+        50,
+        0,
+        0,
+        110
+      ],
+      "attribute_max": [
+        150,
+        170,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        30,
+        274,
+        -1
+      ],
+      "buildup_weapon": [
+        108,
+        0,
+        0
+      ],
+      "durability": 85,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        99,
+        0,
+        0,
+        0,
+        0,
+        0,
+        60
+      ],
+      "attribute_max": [
+        125,
+        125,
+        130,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        105,
+        0,
+        0
+      ],
+      "durability": 75,
+      "levelup_exp": 228,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 4,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        88,
+        52
+      ],
+      "status_max": [
+        125,
+        81
+      ]
+    },
+    {
+      "attribute": [
+        125,
+        0,
+        0,
+        100,
+        0,
+        110,
+        0,
+        0
+      ],
+      "attribute_max": [
+        170,
+        150,
+        150,
+        170,
+        150,
+        150,
+        150,
+        150
+      ],
+      "buildup_monster": [
+        53,
+        197,
+        -1
+      ],
+      "buildup_weapon": [
+        101,
+        102,
+        0
+      ],
+      "durability": 85,
+      "levelup_exp": 352,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        101,
+        80
+      ],
+      "status_max": [
+        150,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        100,
+        100,
+        100,
+        100,
+        150,
+        150,
+        150,
+        150
+      ],
+      "attribute_max": [
+        300,
+        300,
+        300,
+        300,
+        250,
+        250,
+        250,
+        250
+      ],
+      "buildup_monster": [
+        202,
+        275,
+        150
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 100,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        89
+      ],
+      "status_max": [
+        500,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        0,
+        150,
+        150,
+        150,
+        150
+      ],
+      "attribute_max": [
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250,
+        250
+      ],
+      "buildup_monster": [
+        229,
+        154,
+        178
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 100,
+      "levelup_exp": 416,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 6,
+        "initial_fusion_point": 2.0,
+        "pallet_color": 0,
+        "special": 256,
+        "unk_47": 0
+      },
+      "status": [
+        150,
+        89
+      ],
+      "status_max": [
+        500,
+        99
+      ]
+    },
+    {
+      "attribute": [
+        0,
+        0,
+        0,
+        21,
+        0,
+        21,
+        0,
+        0
+      ],
+      "attribute_max": [
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 48,
+      "levelup_exp": 128,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        22,
+        25
+      ],
+      "status_max": [
+        45,
+        44
+      ]
+    },
+    {
+      "attribute": [
+        12,
+        4,
+        6,
+        1,
+        2,
+        3,
+        5,
+        1
+      ],
+      "attribute_max": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 32,
+      "levelup_exp": 20,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": -1,
+        "special": 0,
+        "unk_47": -1
+      },
+      "status": [
+        1,
+        1
+      ],
+      "status_max": [
+        100,
+        100
+      ]
+    },
+    {
+      "attribute": [
+        14,
+        7,
+        3,
+        1,
+        1,
+        4,
+        6,
+        1
+      ],
+      "attribute_max": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 32,
+      "levelup_exp": 20,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": -1,
+        "special": 0,
+        "unk_47": -1
+      },
+      "status": [
+        1,
+        1
+      ],
+      "status_max": [
+        100,
+        100
+      ]
+    },
+    {
+      "attribute": [
+        2,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0
+      ],
+      "attribute_max": [
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19,
+        19
+      ],
+      "buildup_monster": [
+        -1,
+        -1,
+        -1
+      ],
+      "buildup_weapon": [
+        0,
+        0,
+        0
+      ],
+      "durability": 36,
+      "levelup_exp": 32,
+      "special": {
+        "attack_type": 0,
+        "fusion_point": 3,
+        "initial_fusion_point": 1.0,
+        "pallet_color": 0,
+        "special": 0,
+        "unk_47": 0
+      },
+      "status": [
+        4,
+        10
+      ],
+      "status_max": [
+        20,
+        19
+      ]
+    }
+  ]
+}

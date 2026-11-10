@@ -1,0 +1,1700 @@
+{
+  "count": 189,
+  "kind": "map_names",
+  "maps": [
+    {
+      "add_path": "g00/g00",
+      "area_no": 2,
+      "name": "g01",
+      "sel_type": 1,
+      "snd_data_id": 2000,
+      "title": "Sindain",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 3,
+      "name": "g02",
+      "sel_type": 1,
+      "snd_data_id": 3000,
+      "title": "Balance Valley",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 4,
+      "name": "g03",
+      "sel_type": 1,
+      "snd_data_id": 4000,
+      "title": "Veniccio",
+      "type": 1
+    },
+    {
+      "add_path": "g00/g00",
+      "area_no": 5,
+      "name": "g04",
+      "sel_type": 1,
+      "snd_data_id": 5000,
+      "title": "Heim Rada",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "g05",
+      "sel_type": 1,
+      "snd_data_id": 7000,
+      "title": "Moon Flower Palace",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "",
+      "name": "",
+      "sel_type": 0,
+      "title": "",
+      "type": 0
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "s40",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Veniccio",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m01",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m02",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Station",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m03",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Square",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m04",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Residence",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m05",
+      "sel_type": 2,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Park",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "s01",
+      "sel_type": 3,
+      "snd_data_id": 1682,
+      "title": "Channel Reservoir",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 2,
+      "name": "s02",
+      "sel_type": 3,
+      "snd_data_id": 2080,
+      "title": "Sindain Station",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "m06",
+      "sel_type": 6,
+      "snd_data_id": 1208,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s07",
+      "sel_type": 7,
+      "snd_data_id": 510,
+      "title": "Inside of Train",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m07",
+      "sel_type": 6,
+      "snd_data_id": 1200,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "m08",
+      "sel_type": 6,
+      "snd_data_id": 1206,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01b01",
+      "sel_type": 5,
+      "snd_data_id": 1683,
+      "title": "Channel Reservoir",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01e01",
+      "sel_type": 5,
+      "snd_data_id": 1602,
+      "title": "Channel Entrance",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s08",
+      "sel_type": 7,
+      "snd_data_id": 516,
+      "title": "Inside of Locomotive",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b01",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Rainbow Falls",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "f01",
+      "sel_type": 4,
+      "snd_data_id": 2300,
+      "title": "Jurak Mall",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02",
+      "sel_type": 4,
+      "snd_data_id": 3300,
+      "title": "Starlight Temple",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h01",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "Cedric's Shop",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Polly's Bakery",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Rental Storehouse",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h04",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Weapon Shop",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Morton's Sundries",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h06",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Police Station",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i01h07",
+      "sel_type": 2,
+      "snd_data_id": 1082,
+      "title": "Church",
+      "type": 4
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 1,
+      "name": "i02h01",
+      "sel_type": 2,
+      "snd_data_id": 1080,
+      "title": "Station",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Coffee Shop",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i02h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Bar",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "City Hall Lobby",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Mayor's Office",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02",
+      "sel_type": 2,
+      "snd_data_id": 1213,
+      "title": "Circus Tent",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h02a",
+      "sel_type": 2,
+      "snd_data_id": -1,
+      "title": "Circus Tent",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Maximilian's Room",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Maximilian's House",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Dining Room",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01c",
+      "sel_type": 2,
+      "snd_data_id": 1081,
+      "title": "Kitchen",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01d",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Gerald's Room",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01e",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Servant's Room",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h01f",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Hallway Room",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Claire's House",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02a",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Claire's Room",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h02b",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Claire's Dad's Room",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i05h01",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Dell Clinic",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h03",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Parn's Studio",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s03",
+      "sel_type": 3,
+      "snd_data_id": 2203,
+      "title": "Forest Tunnel",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 3,
+      "name": "s04",
+      "sel_type": 3,
+      "snd_data_id": 3080,
+      "title": "Balance Valley Station",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f01",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "Underground Channel",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b02",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Rainbow Falls",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02f01",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Rainbow Butterfly Wood",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f01",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Starlight Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f02",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "Starlight Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "d03f03",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "Starlight Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 3,
+      "name": "d03b01",
+      "sel_type": 5,
+      "snd_data_id": 3683,
+      "title": "Lighthouse on the Cape",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship02",
+      "area_no": 3,
+      "name": "d03b02",
+      "sel_type": 5,
+      "snd_data_id": 3684,
+      "title": "Lighthouse on the Cape",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "d01f02",
+      "sel_type": 5,
+      "snd_data_id": 1600,
+      "title": "Underground Channel",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f01",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Ocean's Roar Cave",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "s05",
+      "sel_type": 5,
+      "snd_data_id": 2684,
+      "title": "Fish Monster Swamp",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "s06",
+      "sel_type": 5,
+      "snd_data_id": 1684,
+      "title": "Channel Pump Room",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Wooden House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Wooden House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Wooden House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a02id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Wooden House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "g01i07",
+      "sel_type": 1,
+      "snd_data_id": 2081,
+      "title": "Dwarves' House",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 7,
+      "name": "s12",
+      "sel_type": 3,
+      "snd_data_id": 7680,
+      "title": "Moon Flower Palace Stop",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s25",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Carpenterion (Inner)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s26",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Carpenterion (Outer)",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s27",
+      "sel_type": 3,
+      "snd_data_id": 4082,
+      "title": "Pau's House",
+      "type": 4
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s31",
+      "sel_type": 3,
+      "snd_data_id": 7681,
+      "title": "Moon Flower Palace Stop",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s33",
+      "sel_type": 3,
+      "snd_data_id": 7080,
+      "title": "Moon Flower Palace",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s35",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Moon Flower Palace Surfacing",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f01",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Mount Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f02",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Ocean's Roar Cave",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s17",
+      "sel_type": 5,
+      "snd_data_id": 3685,
+      "title": "Barga's Valley",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03",
+      "sel_type": 4,
+      "snd_data_id": 4300,
+      "title": "Luna Lab",
+      "type": 5
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 4,
+      "name": "s09",
+      "sel_type": 3,
+      "snd_data_id": 4080,
+      "title": "Veniccio Station",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s19",
+      "sel_type": 3,
+      "snd_data_id": 4684,
+      "title": "Cave of Ancient Murals",
+      "type": 8
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s41",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Heim Rada Event",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s42",
+      "sel_type": 6,
+      "snd_data_id": 1081,
+      "title": "Repair Shop",
+      "type": 3
+    },
+    {
+      "add_path": "trn/train",
+      "area_no": 5,
+      "name": "s10",
+      "sel_type": 3,
+      "snd_data_id": 5080,
+      "title": "Heim Rada Stop",
+      "type": 3
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 0,
+      "name": "s20",
+      "sel_type": 5,
+      "snd_data_id": 5684,
+      "title": "Mount Gundor Peak",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i04h05",
+      "sel_type": 2,
+      "snd_data_id": 511,
+      "title": "Morton's House",
+      "type": 4
+    },
+    {
+      "add_path": "bs/battleship01",
+      "area_no": 4,
+      "name": "d04b01",
+      "sel_type": 5,
+      "snd_data_id": 4683,
+      "title": "Shigura Village",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 2,
+      "name": "d02b03",
+      "sel_type": 5,
+      "snd_data_id": 2683,
+      "title": "Rainbow Falls",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05b01",
+      "sel_type": 5,
+      "snd_data_id": 5683,
+      "title": "Mount Gundor Mouth",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "d05f02",
+      "sel_type": 5,
+      "snd_data_id": 5682,
+      "title": "Mount Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s43",
+      "sel_type": 5,
+      "snd_data_id": -1,
+      "title": "Circus Tent",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h04",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "Finny Frenzy Races",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h05",
+      "sel_type": 7,
+      "snd_data_id": 1083,
+      "title": "Finny Frenzy Races",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06f01",
+      "sel_type": 5,
+      "snd_data_id": 7600,
+      "title": "Moon Flower Palace",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s18",
+      "sel_type": 5,
+      "snd_data_id": 3686,
+      "title": "Yorda's Valley",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 1,
+      "name": "i03h03",
+      "sel_type": 7,
+      "snd_data_id": 1084,
+      "title": "Fishing Contest Grounds",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "g02i02",
+      "sel_type": 1,
+      "snd_data_id": 511,
+      "title": "Lin's House",
+      "type": 4
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i08",
+      "sel_type": 4,
+      "snd_data_id": 3381,
+      "title": "Lao Chao's Bistro",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 5,
+      "name": "f04",
+      "sel_type": 4,
+      "snd_data_id": 5300,
+      "title": "Gundorada Workshop",
+      "type": 5
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 6,
+      "name": "s11",
+      "sel_type": 3,
+      "snd_data_id": 6000,
+      "title": "Kazarov Stonehenge",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s29",
+      "sel_type": 3,
+      "snd_data_id": 5383,
+      "title": "Paznos (Observatory)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s30",
+      "sel_type": 3,
+      "snd_data_id": 5384,
+      "title": "Paznos (Bridge)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s36",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Ixion (Outer)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s39",
+      "sel_type": 4,
+      "snd_data_id": 5382,
+      "title": "Operations Room",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s37",
+      "sel_type": 3,
+      "snd_data_id": 514,
+      "title": "Ixion (Engine Room)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 7,
+      "name": "d06e01",
+      "sel_type": 5,
+      "snd_data_id": 7688,
+      "title": "Flower Palace Foyer",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i04",
+      "sel_type": 4,
+      "snd_data_id": 4383,
+      "title": "Central Lab",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "d04f00",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Ocean's Roar Cave",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 3,
+      "name": "f02i06",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "Star Items",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0301",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab 1",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 4,
+      "name": "f03i0304",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab 4",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s47",
+      "sel_type": 6,
+      "snd_data_id": 2000,
+      "title": "Sindain (Event)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Straw House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Straw House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Straw House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a01id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Straw House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s38",
+      "sel_type": 7,
+      "snd_data_id": 513,
+      "title": "Ixion (Guest Room)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s45",
+      "sel_type": 7,
+      "snd_data_id": 1000,
+      "title": "Palm Brinks Square",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s46",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Max's Room-Flashback",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s49",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Gaspard Flashback Scene",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b01",
+      "sel_type": 5,
+      "snd_data_id": 7687,
+      "title": "Sun Chamber",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b02",
+      "sel_type": 5,
+      "snd_data_id": 7603,
+      "title": "Dream Spiral",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s44",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Moon Flower Palace-Flashback",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s21",
+      "sel_type": 3,
+      "snd_data_id": 7689,
+      "title": "Garden",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s23",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Griffon's Chamber Door",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s50",
+      "sel_type": 3,
+      "snd_data_id": 7686,
+      "title": "Alexandra's Room",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s51",
+      "sel_type": 6,
+      "snd_data_id": 520,
+      "title": "Raybrandt Castle",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s53",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Central Lab (Event)",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ia",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Brick House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ib",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Brick House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04ic",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Brick House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a04id",
+      "sel_type": 1,
+      "snd_data_id": 520,
+      "title": "Brick House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ia",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Steel House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ib",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Steel House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05ic",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Steel House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a05id",
+      "sel_type": 1,
+      "snd_data_id": 519,
+      "title": "Steel House Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f02i07",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "Starlight Weapon Shop",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0302",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab 2",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f03i0303",
+      "sel_type": 4,
+      "snd_data_id": 4382,
+      "title": "Lab 3",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i03",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-WEAPONS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i04",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-PARTS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s13",
+      "sel_type": 5,
+      "snd_data_id": 2694,
+      "title": "Sleeping Earth Chamber",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s14",
+      "sel_type": 5,
+      "snd_data_id": 3694,
+      "title": "Defending Wind Chamber",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s15",
+      "sel_type": 5,
+      "snd_data_id": 4694,
+      "title": "Sleeping Water Chamber",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s16",
+      "sel_type": 5,
+      "snd_data_id": 5694,
+      "title": "Blazing Fire Chamber",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s28",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s32",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Moon Flower Palace vs Paznos",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s48",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos (Robot)",
+      "type": 5
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s54",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "Zelmite Mine",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s55",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Paznos Event (Battle)",
+      "type": 1
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s56",
+      "sel_type": 5,
+      "snd_data_id": 3682,
+      "title": "Destroyed Lighthouse",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s34",
+      "sel_type": 3,
+      "snd_data_id": 7682,
+      "title": "Moon Flower Palace Stop",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "f04i05",
+      "sel_type": 4,
+      "snd_data_id": 521,
+      "title": "G-TOOLS",
+      "type": 6
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01r",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Rainbow Butterfly Wood",
+      "type": 7
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s58",
+      "sel_type": 3,
+      "snd_data_id": -1,
+      "title": "Subdimension",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s59",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Luna Lab",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07f01",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "Zelmite Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d07b01",
+      "sel_type": 5,
+      "snd_data_id": 8683,
+      "title": "Zelmite Mine",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "a20i01",
+      "sel_type": 1,
+      "snd_data_id": 522,
+      "title": "Church Interior",
+      "type": 2
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f01r",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Starlight Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02r",
+      "sel_type": 5,
+      "snd_data_id": 3687,
+      "title": "Starlight Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f03r",
+      "sel_type": 5,
+      "snd_data_id": 3688,
+      "title": "Starlight Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f02r",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Ocean's Roar Cave",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01r",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Mount Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f02",
+      "sel_type": 5,
+      "snd_data_id": 7683,
+      "title": "Moon Flower Palace",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06f03",
+      "sel_type": 5,
+      "snd_data_id": 7684,
+      "title": "Moon Flower Palace",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d06b03",
+      "sel_type": 5,
+      "snd_data_id": 7692,
+      "title": "Palace Terrace",
+      "type": 8
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s52",
+      "sel_type": 5,
+      "snd_data_id": 8600,
+      "title": "Zelmite Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s60",
+      "sel_type": 6,
+      "snd_data_id": 1264,
+      "title": "Palm Brinks",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s61",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmite Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s62",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmite Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s63",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmite Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s64",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Moon Flower Palace",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s65",
+      "sel_type": 3,
+      "snd_data_id": 7000,
+      "title": "Moon Flower Palace",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s98",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "Kazarov Stonehenge",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 6,
+      "name": "s66",
+      "sel_type": 6,
+      "snd_data_id": 6000,
+      "title": "Kazarov Stonehenge",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s67",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Palace Terrace",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d02f01s",
+      "sel_type": 5,
+      "snd_data_id": 2600,
+      "title": "Rainbow Butterfly Wood",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d03f02s",
+      "sel_type": 5,
+      "snd_data_id": 3600,
+      "title": "Starlight Canyon",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d04f01s",
+      "sel_type": 5,
+      "snd_data_id": 4600,
+      "title": "Ocean's Roar Cave",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "d05f01s",
+      "sel_type": 5,
+      "snd_data_id": 5600,
+      "title": "Mount Gundor",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s69",
+      "sel_type": 5,
+      "snd_data_id": 8694,
+      "title": "Zelmite Mine",
+      "type": 7
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s68",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Moon Flower Palace",
+      "type": 3
+    },
+    {
+      "add_path": "",
+      "area_no": 0,
+      "name": "s70",
+      "sel_type": 6,
+      "snd_data_id": 7081,
+      "title": "Moon Flower Palace",
+      "type": 3
+    },
+    {
+      "add_path": "trn2/s36",
+      "area_no": 0,
+      "name": "s71",
+      "sel_type": 6,
+      "snd_data_id": -1,
+      "title": "Moon Flower Palace Stop",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

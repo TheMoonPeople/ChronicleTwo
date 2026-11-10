@@ -1,0 +1,142 @@
+# Georama river replay: --jump georama:4 --fast-load (Moon Flower Palace, Georama preset).
+# Takes Petal Stream (the river, last in the stock list) and lays adjacent river cells in rows. Each step
+# moves the cursor about one cell, then taps cross after the previous cell's 50-frame animation. Alternate
+# rows also turn the camera with the right stick, and the run ends with a full camera pan.
+150 select
+156
+220 triangle
+226
+330 cross
+336
+360 down
+364
+370 down
+374
+380 down
+384
+390 down
+394
+400 down
+404
+410 down
+414
+420 down
+424
+430 down
+434
+440 down
+444
+450 down
+454
+460 down
+464
+470 down
+474
+480 down
+484
+490 down
+494
+500 down
+504
+520 cross
+526
+550 cross
+556
+580 cross
+586
+620 cross
+626
+680 200 128 128 128
+725
+732 cross
+738
+750 200 128 128 128
+795
+802 cross
+808
+820 200 128 128 128
+865
+872 cross
+878
+890 200 128 128 128
+935
+942 cross
+948
+960 200 128 128 128
+1005
+1012 cross
+1018
+1030 128 200 128 128
+1075
+1082 cross
+1088
+1100 56 128 190 128
+1145
+1152 cross
+1158
+1170 56 128 190 128
+1215
+1222 cross
+1228
+1240 56 128 190 128
+1285
+1292 cross
+1298
+1310 56 128 190 128
+1355
+1362 cross
+1368
+1380 56 128 190 128
+1425
+1432 cross
+1438
+1450 128 200 128 128
+1495
+1502 cross
+1508
+1520 200 128 66 128
+1565
+1572 cross
+1578
+1590 200 128 66 128
+1635
+1642 cross
+1648
+1660 200 128 66 128
+1705
+1712 cross
+1718
+1730 200 128 66 128
+1775
+1782 cross
+1788
+1800 200 128 66 128
+1845
+1852 cross
+1858
+1870 128 200 128 128
+1915
+1922 cross
+1928
+1940 56 128 190 128
+1985
+1992 cross
+1998
+2010 56 128 190 128
+2055
+2062 cross
+2068
+2080 56 128 190 128
+2125
+2132 cross
+2138
+2150 56 128 190 128
+2195
+2202 cross
+2208
+2220 56 128 190 128
+2265
+2272 cross
+2278
+2300 128 128 220 128
+2540

@@ -1,0 +1,26 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/sp/sp_009.sound/effects/sp_009_000.json",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "-",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    }
+  ],
+  "entry_count": 4,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

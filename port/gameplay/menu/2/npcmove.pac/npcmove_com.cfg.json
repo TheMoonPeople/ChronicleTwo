@@ -1,0 +1,1004 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "fade_black"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "GUIDE_LR",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "bg",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "家情報",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "家情報",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "質問板",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "質問板",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "CPVIEW",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "CPVIEW",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "form": "msg0",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "msg0",
+          "op": "form_calc_rgba",
+          "step": 6,
+          "target": 128
+        },
+        {
+          "forms": [
+            "msg0",
+            "msg2"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "forms": [
+            "msg3",
+            "msg1"
+          ],
+          "op": "form_swap"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "timeboard",
+            "areaboard"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": -1
+        }
+      ],
+      "name": "INIT_END"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 1
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 1
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 6
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 1
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 5
+        },
+        {
+          "message": 2421,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "message": 9,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg0",
+            "msg1"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg3",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg5",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg1",
+          "op": "form_set_pos",
+          "xy": [
+            76,
+            146
+          ]
+        },
+        {
+          "cursor": 0,
+          "op": "message_cursor",
+          "window": 1
+        }
+      ],
+      "name": "MSG_INIT"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 1
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 1
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 6
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 1
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "itemmsg_defaultfuchi",
+          "window": 5
+        },
+        {
+          "message": 2421,
+          "op": "make_message",
+          "window": 0
+        },
+        {
+          "message": 9,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg0",
+            "msg1"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "form": "msg2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg3",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg4",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg5",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "form": "msg1",
+          "op": "form_set_pos",
+          "xy": [
+            54,
+            146
+          ]
+        },
+        {
+          "cursor": 0,
+          "op": "message_cursor",
+          "window": 1
+        }
+      ],
+      "name": "MSG_INITUSA"
+    },
+    {
+      "commands": [
+        {
+          "form": "msg2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "MSG_ISMOVE_INIT"
+    },
+    {
+      "commands": [
+        {
+          "form": "msg2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 2403,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 2
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "MSG_ISMOVE_COMFIRM"
+    },
+    {
+      "commands": [
+        {
+          "form": "msg2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 2
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 2
+        },
+        {
+          "message": 2405,
+          "op": "make_message",
+          "window": 2
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 2
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "MSG_IS_RETURN_TRAIN"
+    },
+    {
+      "commands": [
+        {
+          "form": "msg2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg1"
+          ],
+          "op": "form_draw_flag"
+        }
+      ],
+      "name": "MSG_RETURN_TRAIN_AFTER"
+    },
+    {
+      "commands": [
+        {
+          "form": "msg2",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ]
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "MSG_ISMOVE_END"
+    },
+    {
+      "commands": [
+        {
+          "form": "polywin_chrhide",
+          "op": "form_rgba",
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ]
+        },
+        {
+          "channel": 3,
+          "form": "polywin_chrhide",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        }
+      ],
+      "name": "FADEINIT_CHR"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "polywin_chrhide",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        }
+      ],
+      "name": "FADEIN_CHR"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "bg",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "移住タイトル",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg1",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg4",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "質問板",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "action": "外へ",
+          "form": "家情報",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "質問板",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "CPVIEW",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "polywin_bg",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "polywin_chrhide",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "polywin",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "候補リスト",
+          "op": "form_set_action"
+        },
+        {
+          "message": 2404,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "fade_in": 1,
+          "op": "cursor_fade",
+          "speed": 10
+        }
+      ],
+      "name": "TO_NPCSEL"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "bg",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "移住タイトル",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg1",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "channel": 3,
+          "form": "msg3",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg4",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg5",
+          "op": "form_calc_rgba",
+          "step": -8,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "質問板",
+          "op": "form_calc_rgba",
+          "step": 8,
+          "target": 128
+        },
+        {
+          "action": "中へ",
+          "form": "家情報",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "質問板",
+          "op": "form_set_action"
+        },
+        {
+          "action": "中へ",
+          "form": "CPVIEW",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "polywin_bg",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "polywin_chrhide",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "polywin",
+          "op": "form_set_action"
+        },
+        {
+          "action": "外へ",
+          "form": "候補リスト",
+          "op": "form_set_action"
+        },
+        {
+          "fade_in": 0,
+          "op": "cursor_fade",
+          "speed": 10
+        }
+      ],
+      "name": "BACK_FROM_NPCSEL"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "talk",
+          "window": 6
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 6
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "NOT_移住"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg6"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "NOT_移住END"
+    },
+    {
+      "commands": [
+        {
+          "channel": 3,
+          "form": "bg",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg0",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "msg1",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "GUIDE_LR",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "家情報",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "質問板",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "channel": 3,
+          "form": "CPVIEW",
+          "op": "form_calc_rgba",
+          "step": -10,
+          "target": 0
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "mainpureimage"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "channel": 0,
+          "form": "mainpureimage",
+          "op": "form_calc_rgba",
+          "step": 7,
+          "target": 128
+        },
+        {
+          "channel": 1,
+          "form": "mainpureimage",
+          "op": "form_calc_rgba",
+          "step": 7,
+          "target": 128
+        },
+        {
+          "channel": 2,
+          "form": "mainpureimage",
+          "op": "form_calc_rgba",
+          "step": 7,
+          "target": 128
+        }
+      ],
+      "name": "終了処理"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

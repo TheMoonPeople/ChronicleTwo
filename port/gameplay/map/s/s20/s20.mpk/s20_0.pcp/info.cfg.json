@@ -1,0 +1,70 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s2001-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s2001-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s2002-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s2003-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 3000.0,
+        "fade": 1
+      },
+      "model": "s2004-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s2004-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s2004-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s2001-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s2002-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s2005-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s2005-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s2006-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s2005-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "e512_firesquall.gltf",
+      "type": 3
+    },
+    {
+      "model": "s2007-a.gltf",
+      "type": 1
+    }
+  ],
+  "schema_version": 2
+}

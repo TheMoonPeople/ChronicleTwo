@@ -1,0 +1,2661 @@
+{
+  "characters": [
+    {
+      "ability_cost": [
+        12,
+        18,
+        64,
+        0
+      ],
+      "ability_num": 3,
+      "debug_flag": 1,
+      "id": 1,
+      "max_npc_point": 64,
+      "model": "p01_03a",
+      "name": "[Uc2a4][Ud0c0][Ube14]",
+      "unk_31": 2
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        4
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 2,
+      "max_npc_point": 0,
+      "model": "p01_06a",
+      "name": "[Ubcf4][Ub974][Ub124][Uc624]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 3,
+      "max_npc_point": 0,
+      "model": "p01_18a",
+      "name": "[Uadf8][Ub9b0]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 4,
+      "max_npc_point": 0,
+      "model": "p01_04a",
+      "name": "[Ub3c4][Ub2c8]",
+      "unk_31": 2
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 5,
+      "max_npc_point": 72,
+      "model": "p01_10a",
+      "name": "[Ud30c][Ud2b8][Ub9ac]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 6,
+      "max_npc_point": 96,
+      "model": "p01_17a",
+      "name": "[Ub355] [Uc120][Uc0dd][Ub2d8]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        24,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 7,
+      "max_npc_point": 64,
+      "model": "p01_15a",
+      "name": "[Ud3ec][Ud06c]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 8,
+      "max_npc_point": 0,
+      "model": "p01_16a",
+      "name": "[Ud074][Ub808][Uc5b4]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 9,
+      "max_npc_point": 0,
+      "model": "p00_13a",
+      "name": "[Ud30c][Uc6b0]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 10,
+      "max_npc_point": 52,
+      "model": "p01_08a",
+      "name": "[Uc2a4][Ud29c][Uc5b4][Ud2b8]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 11,
+      "max_npc_point": 48,
+      "model": "p01_09a",
+      "name": "[Ub974][Ub124]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        12,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 12,
+      "max_npc_point": 64,
+      "model": "p01_02a",
+      "name": "[Ud3f4][Ub9ac] [Uc544][Uc90c][Ub9c8]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 13,
+      "max_npc_point": 64,
+      "model": "p01_07a",
+      "name": "[Ud1b0]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 14,
+      "max_npc_point": 0,
+      "model": "p01_05a",
+      "name": "[Ud30c][Ucee4] [Ubcf4][Uc548][Uad00]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 15,
+      "max_npc_point": 0,
+      "model": "p01_14a",
+      "name": "[Ubc00][Ub808][Ub290]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 16,
+      "max_npc_point": 0,
+      "model": "p01_11a",
+      "name": "[Uc81c][Ub7f4][Ub4dc]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 17,
+      "max_npc_point": 0,
+      "model": "p01_01a",
+      "name": "[Ub2c8][Ub4dc] [Uc2dc][Uc7a5]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        48,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 18,
+      "max_npc_point": 72,
+      "model": "p01_27a",
+      "name": "[Ube0c][Ub8e8][Ub178] [Uc2e0][Ubd80]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 19,
+      "max_npc_point": 0,
+      "model": "p01_32a",
+      "name": "[Ub8e8][Uc2dc][Uc624]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        18,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 20,
+      "max_npc_point": 64,
+      "model": "p01_30a",
+      "name": "[Ud50c][Ub77c][Ube48]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        32,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 21,
+      "max_npc_point": 64,
+      "model": "p01_31a",
+      "name": "[Uc62c][Ub9ac][Ube44]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        21,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 22,
+      "max_npc_point": 48,
+      "model": "p01_25a",
+      "name": "[Uc904][Ub9ac][Uc544]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        64,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 23,
+      "max_npc_point": 64,
+      "model": "p01_12a",
+      "name": "[Ubbf8][Ub098]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 24,
+      "max_npc_point": 0,
+      "model": "p01_13a",
+      "name": "[Ucf54][Ub9b0]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        24,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 1,
+      "debug_flag": 1,
+      "id": 25,
+      "max_npc_point": 72,
+      "model": "p01_29a",
+      "name": "[Ub85c][Uc790] [Ud560][Uba38][Ub2c8]",
+      "unk_31": 1
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 1,
+      "id": 26,
+      "max_npc_point": 0,
+      "model": "p00_28a",
+      "name": "[Ub9b0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 32,
+      "max_npc_point": 0,
+      "model": "e105_steve",
+      "name": "[Uc2a4][Ud2f0][Ube0c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 33,
+      "max_npc_point": 0,
+      "model": "p01_26a",
+      "name": "[Ubaa8][Ud2bc]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 34,
+      "max_npc_point": 0,
+      "model": "p02_01a",
+      "name": "[Ucf58][Ub2e4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 39,
+      "max_npc_point": 0,
+      "model": "p03_33a",
+      "name": "[Ubc14][Ud150][Ub354]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 40,
+      "max_npc_point": 0,
+      "model": "p03_26a",
+      "name": "[Ud478][Ub178]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 41,
+      "max_npc_point": 0,
+      "model": "p03_27a",
+      "name": "[Uc544][Ub514][Uc2a4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 42,
+      "max_npc_point": 0,
+      "model": "p03_28a",
+      "name": "[Uc6b0][Ud504][Ud0c0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 50,
+      "max_npc_point": 0,
+      "model": "p00_03a",
+      "name": "[Ud53c][Uc5d0][Ub85c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 51,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uc9c0][Ub974][Uc2a4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 52,
+      "max_npc_point": 0,
+      "model": "p01_21a",
+      "name": "[Ub2e4][Uc778]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 53,
+      "max_npc_point": 0,
+      "model": "p01_23a",
+      "name": "[Uc628][Uae00]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 54,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uc774][Uc9c0][Ub77c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 55,
+      "max_npc_point": 0,
+      "model": "p01_22a",
+      "name": "[Ud504][Ub8e8][Ub124]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 56,
+      "max_npc_point": 0,
+      "model": "p01_24a",
+      "name": "[Ub9c8][Uc820][Ub290]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 57,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uc544][Ud53c][Uc544]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 58,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ucf54][Ucf54][Uc2a4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 59,
+      "max_npc_point": 0,
+      "model": "p01_21a",
+      "name": "[Ucf54][Uc13c][Ud2b8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 60,
+      "max_npc_point": 0,
+      "model": "p01_22a",
+      "name": "[Uc2a4][Ud0c0][Ub77c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 61,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "[Uc544][Uc774][Uc13c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 62,
+      "max_npc_point": 0,
+      "model": "p01_24a",
+      "name": "[Ud2f0][Ud0a4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 63,
+      "max_npc_point": 0,
+      "model": "p03_32a",
+      "name": "[Uc544][Uc2a4][Uc644] [Uc5ed][Uc7a5]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 64,
+      "max_npc_point": 0,
+      "model": "p03_20a",
+      "name": "[Ub4dc][Ub9ac][Ub2c8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 65,
+      "max_npc_point": 0,
+      "model": "p03_30a",
+      "name": "[Ub8e8][Uce74]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 66,
+      "max_npc_point": 0,
+      "model": "p03_33a",
+      "name": "[Ubc14][Ud150][Ub354]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 67,
+      "max_npc_point": 0,
+      "model": "p03_30a",
+      "name": "[Ucfe0][Uc5d0][Ud0c0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 68,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ube44][Uc81c][Ub974][Ud2b8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 69,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ud30c][Ucd94][Uce74]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 70,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ub77c][Ub974]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 71,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uc5d8][Ud06c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 72,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "[Ubb34][Ud06c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 73,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uc544][Ub974][Ubc14][Ub4dc]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 74,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uc140][Ub9c8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 75,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uc5d8][Ub85c][Ub4dc]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 76,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uc544][Ubc1c][Ub8e8][Uc544]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 77,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uc544][Ub09c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 78,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "[Uc774][Ud53c][Ub77c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 79,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ud06c][Ub808][Ub124]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 80,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uc870][Ud504][Ub9ac]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 81,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ud14c][Ubca0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 82,
+      "max_npc_point": 0,
+      "model": "p03_40a",
+      "name": "[Ube0c][Ub9b0][Ub514]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 83,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ub8e8][Uc548]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 84,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uc54c][Ub8e8][Uc2dc][Uc544]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 85,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "[Uc5d0][Uc288][Uce74]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 86,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ub4dc][Ub860]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 87,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ub098][Ub974][Ubc14]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 88,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ud398][Uce04]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 89,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uce7c][Ub860][Ub290]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 90,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uc54c][Ubca0][Ub974]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 91,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ud0a4][Uc5d0][Ud504]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 92,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "[Ubc14][Uc0ac][Ud06c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 93,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ucf00][Uc824]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 94,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ubbf8][Ud2f0][Ub098]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 95,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ud398][Ub17c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 96,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "[Ub9c8][Ud06c][Ub9ac][Uc544]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 97,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ud14c][Ub514][Uc544]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 98,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Uce74][Ud1a0][Ub2c8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 99,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ud53c][Uc2a4][Ucf54]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 100,
+      "max_npc_point": 0,
+      "model": "p03_01a",
+      "name": "[Uc720][Ub780]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 101,
+      "max_npc_point": 0,
+      "model": "p03_02a",
+      "name": "[Ub8e8][Uc138]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 102,
+      "max_npc_point": 0,
+      "model": "p03_03a",
+      "name": "[Ub77c][Uc6b8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 103,
+      "max_npc_point": 0,
+      "model": "p03_04a",
+      "name": "[Ud30c][Ub8ec]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 104,
+      "max_npc_point": 0,
+      "model": "p03_02a",
+      "name": "[Uc2a4][Ucf5c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 105,
+      "max_npc_point": 0,
+      "model": "p03_03a",
+      "name": "[Ud398][Ub9b4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 150,
+      "max_npc_point": 0,
+      "model": "p02_02a",
+      "name": "[Ubaa8][Uadf8][Ub9b0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 151,
+      "max_npc_point": 0,
+      "model": "p02_03a",
+      "name": "[Ub85c][Ucf54][Ucf54]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 152,
+      "max_npc_point": 0,
+      "model": "p02_04a",
+      "name": "[Uc704][Ud0a4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 153,
+      "max_npc_point": 0,
+      "model": "p02_05a",
+      "name": "[Ub178][Uc634]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 154,
+      "max_npc_point": 0,
+      "model": "p02_06a",
+      "name": "[Ud1a0][Ubcf4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 155,
+      "max_npc_point": 0,
+      "model": "p02_07a",
+      "name": "[Uc7ad]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 156,
+      "max_npc_point": 0,
+      "model": "p01_28a",
+      "name": "[Uc0ac][Ud68c][Uc790] [Uc62c][Ube7c][Ubbf8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 157,
+      "max_npc_point": 0,
+      "model": "p03_20a",
+      "name": "[Uc5d8][Ud06c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 158,
+      "max_npc_point": 0,
+      "model": "p03_20a",
+      "name": "[Ub85c][Uc774]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 159,
+      "max_npc_point": 0,
+      "model": "p01_23a",
+      "name": "[Ubc25]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 160,
+      "max_npc_point": 0,
+      "model": "p03_40a",
+      "name": "[Ube0c][Ub77c][Uc774]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 161,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "[Ubca4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 162,
+      "max_npc_point": 0,
+      "model": "p03_39a",
+      "name": "[Ube45]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 163,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "[Uace0][Ub4e0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 164,
+      "max_npc_point": 0,
+      "model": "p03_24a",
+      "name": "[Uac8c][Uc774][Ube14]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 165,
+      "max_npc_point": 0,
+      "model": "p03_24a",
+      "name": "[Ucf54][Ub4dc]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 166,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ub515]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 167,
+      "max_npc_point": 0,
+      "model": "p03_22a",
+      "name": "[Uc5d0][Uc774][Ub2e4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 168,
+      "max_npc_point": 0,
+      "model": "p01_22a",
+      "name": "[Ub808][Ub2c8][Ud0c0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 169,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uc6ec][Uc800]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 170,
+      "max_npc_point": 0,
+      "model": "p03_38a",
+      "name": "[Ub098][Ud0c0][Uc0e4]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 171,
+      "max_npc_point": 0,
+      "model": "p03_38a",
+      "name": "[Uc18c][Ud2f0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 172,
+      "max_npc_point": 0,
+      "model": "p01_24a",
+      "name": "[Ub808][Ub098]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 200,
+      "max_npc_point": 0,
+      "model": "p00_19a",
+      "name": "[Ub77c][Uc624][Ucc28][Uc624]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 201,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "[Ud53c][Ub9ac][Uc628]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 202,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "[Ud03c][Ud504]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 203,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "[Uc624][Ud2f0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 204,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "[Uc544][Ub134]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 205,
+      "max_npc_point": 0,
+      "model": "p00_16a",
+      "name": "[Ub300][Ud604][Uc790] [Ud06c][Ub808][Uc2a4][Ud2b8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 206,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "[Ucf00][Ub974][Uba54]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 207,
+      "max_npc_point": 0,
+      "model": "p03_37a",
+      "name": "[Ub860]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 208,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ub9c8][Ub9ac]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 209,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "[Uc54c][Ub80c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 210,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "[Ucf5c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 211,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "[Ub8e8][Ud0c0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 212,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "[Ud15c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 213,
+      "max_npc_point": 0,
+      "model": "p03_07a",
+      "name": "[Uc9c8]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 214,
+      "max_npc_point": 0,
+      "model": "p03_08a",
+      "name": "[Ubbf8][Ud0c0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 250,
+      "max_npc_point": 0,
+      "model": "p00_25a",
+      "name": "[Uc2dc][Ub85c][Uc790]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 251,
+      "max_npc_point": 0,
+      "model": "p00_28a",
+      "name": "[Ub9b0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 260,
+      "max_npc_point": 0,
+      "model": "dmy",
+      "name": "[Ubaa8][Ub2c8][Uce74]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 300,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Uc54c][Ub809] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 301,
+      "max_npc_point": 0,
+      "model": "p00_31a",
+      "name": "[Uc624][Uc2a4][Ubaac][Ub4dc]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 302,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub9ac][Uac00][Uc9c0] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 303,
+      "max_npc_point": 0,
+      "model": "p00_32a",
+      "name": "Dr.[Uccb4][Ud504]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 304,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "[Ud314][Ub9ac] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 305,
+      "max_npc_point": 0,
+      "model": "p03_35a",
+      "name": "[Uc774][Uc5b8] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 306,
+      "max_npc_point": 0,
+      "model": "p03_36a",
+      "name": "[Ubc14][Ud2b8][Ub77c] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 307,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "[Ub85c][Uc9c0][Uc2a4] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 308,
+      "max_npc_point": 0,
+      "model": "p03_35a",
+      "name": "[Ud3f4][Ub77c][Ub9ac][Uc2a4] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 309,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ube44][Ub974][Ub098] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 310,
+      "max_npc_point": 0,
+      "model": "p03_36a",
+      "name": "[Uc544][Ud0c8] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 311,
+      "max_npc_point": 0,
+      "model": "p03_36a",
+      "name": "[Ucf54][Ub7f4] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 312,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Uc625][Ud2b8] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 313,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ubaa8][Uc0bc] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 314,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "[Ud504][Ub7fc] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 315,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "[Ub77c][Ud2f1] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 316,
+      "max_npc_point": 0,
+      "model": "p03_35a",
+      "name": "[Ub8ec] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 317,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub9ac][Uc544][Ub4dc] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 318,
+      "max_npc_point": 0,
+      "model": "p03_34a",
+      "name": "[Uc9c0][Ubc84][Uc2a4] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 319,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub9c8][Uc190] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 320,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ud558][Uc774][Ube0c][Uc2a4] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 321,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ud2b8][Ub808][Uc774][Uc2dc] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 322,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub178][Ub978] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 323,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Uc81c][Ud0c0] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 324,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub9ac][Uc5b4][Uc2a4] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 325,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub77c][Uc288] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 326,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ud328][Ud074] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 327,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ubca0][Ud06c] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 328,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub9e4][Ud2b8] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 329,
+      "max_npc_point": 0,
+      "model": "p03_11a",
+      "name": "[Ub9ac][Ubc84][Uc2a4] [Uc5f0][Uad6c][Uc6d0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 400,
+      "max_npc_point": 0,
+      "model": "p00_05a",
+      "name": "[Ub3c4][Ub098] [Ud63c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 401,
+      "max_npc_point": 0,
+      "model": "p00_29a",
+      "name": "[Uad6c][Uc774][Uc2a4][Ucf58]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 402,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "[Ub2c8][Ud14c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 403,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "[Ub290][Uc640][Ub77c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 404,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "[Ub124][Ubca8][Ub9ac]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 405,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "[Ubcf4][Ub974][Uac00]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 406,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "[Uce74][Uc778]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 407,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "[Ubca0][Uc774][Uc624]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 408,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "[Uc5d0][Ud06c][Ub780]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 409,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "[Ud30c][Ub974][Ub098]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 410,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "[Uc544][Ud06c][Ub808]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 411,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "[Ubc14][Ud55c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 412,
+      "max_npc_point": 0,
+      "model": "p03_05a",
+      "name": "[Uc5d0][Uc9c0]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 413,
+      "max_npc_point": 0,
+      "model": "p03_06a",
+      "name": "[Ud074][Ub77c][Ud06c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 1012,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Ubc14][Uc81c]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 1015,
+      "max_npc_point": 0,
+      "model": "p01_20a",
+      "name": "[Uce58][Ud2b8][Ub784]",
+      "unk_31": 0
+    },
+    {
+      "ability_cost": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "ability_num": 0,
+      "debug_flag": 0,
+      "id": 1018,
+      "max_npc_point": 0,
+      "model": "p01_19a",
+      "name": "[Ub85c][Ud2f4]",
+      "unk_31": 0
+    }
+  ],
+  "kind": "party_characters",
+  "schema_version": 2
+}

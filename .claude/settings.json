@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tasklist)",
+      "Bash(tasklist *)",
+      "mcp__ccd_session_mgmt__get_usage"
+    ]
+  }
+}

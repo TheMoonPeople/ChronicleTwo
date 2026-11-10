@@ -131,6 +131,7 @@ struct PACK_ENTRY {
 };
 
 STATIC_ASSERT(sizeof(PACK_ENTRY) == 0x4C);
+PORT_RECORD_ASSERT(sizeof(PACK_ENTRY) == 0x4C);
 
 /**
  *

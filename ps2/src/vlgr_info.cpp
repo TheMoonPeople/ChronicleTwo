@@ -461,7 +461,7 @@ static int niNPC_INFO_NUM(SPI_STACK *stack, int argument_count) {
         blocks = size >> 4;
     }
 
-    VlgrInfo = (CVillagerInfo *) (int) new (niStack->Alloc(blocks + 2)) CVillagerInfo[count];
+    VlgrInfo = (CVillagerInfo *) (uptr) new (niStack->Alloc(blocks + 2)) CVillagerInfo[count];
 
     if (VlgrInfo == NULL) {
         VlgrInfoNum = 0;

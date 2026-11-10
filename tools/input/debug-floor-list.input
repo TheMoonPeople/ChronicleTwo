@@ -1,0 +1,11 @@
+# Run with --jump dungeon:0:1 --fast-load and a fresh save root.
+# R3 on the floor list shows the floor debug panel, which then sets a floor flag and opens every floor.
+300 r3
+304
+340 down
+343
+360 right
+363
+380 triangle
+383
+600

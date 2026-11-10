@@ -500,7 +500,7 @@ void InitCDFile() {
     sceCdlFILE file;
     int        fd;
     int        header_size;
-    int        base;
+    uptr       base;
     int        i;
     int        offset;
     char      *name;
@@ -529,7 +529,7 @@ void InitCDFile() {
     sceRead(fd, header_buff, header_size);
     sceClose(fd);
     printf("head size = %d/%d\n", header_size, sizeof(header_buff));
-    base = (int) header_buff;
+    base = (uptr) header_buff;
     i = 0;
     offset = 0;
     header_num = *(u32 *) base / sizeof(DATA_HEADER);
@@ -923,7 +923,7 @@ void InitFileCache(u_long128 *address, int type) {
     }
 
     if (type == FILE_CACHE_DOWN || type == FILE_CACHE_UP) {
-        CacheAddress = (u_long128 *) align_size((u_int) address, 64);
+        CacheAddress = (u_long128 *) align_size((uptr) address, 64);
         NowCacheAddress = CacheAddress;
 
         if (type == FILE_CACHE_DOWN) {

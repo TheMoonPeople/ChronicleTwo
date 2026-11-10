@@ -1,0 +1,84 @@
+{
+  "kind": "villager_schedule",
+  "progress_info": [
+    {
+      "chapter": 0,
+      "name": "ゲーム開始前・デフォルト",
+      "order": 0,
+      "progress": 1,
+      "section": 0
+    },
+    {
+      "chapter": 1,
+      "name": "１章オープニング",
+      "order": 1,
+      "progress": 2,
+      "section": 0
+    },
+    {
+      "chapter": 1,
+      "name": "１章E104発生後（象に負ける）",
+      "order": 2,
+      "progress": 3,
+      "section": 1
+    },
+    {
+      "chapter": 2,
+      "name": "2章",
+      "order": 3,
+      "progress": 4,
+      "section": 0
+    },
+    {
+      "chapter": 3,
+      "name": "3章",
+      "order": 4,
+      "progress": 5,
+      "section": 0
+    },
+    {
+      "chapter": 4,
+      "name": "4章",
+      "order": 5,
+      "progress": 6,
+      "section": 0
+    },
+    {
+      "chapter": 5,
+      "name": "5章",
+      "order": 6,
+      "progress": 7,
+      "section": 0
+    },
+    {
+      "chapter": 6,
+      "name": "6章",
+      "order": 7,
+      "progress": 8,
+      "section": 0
+    },
+    {
+      "chapter": 7,
+      "name": "7章",
+      "order": 8,
+      "progress": 9,
+      "section": 0
+    },
+    {
+      "chapter": 8,
+      "name": "8章",
+      "order": 9,
+      "progress": 10,
+      "section": 0
+    },
+    {
+      "chapter": 99,
+      "name": "体験版",
+      "order": 10,
+      "progress": 100,
+      "section": 0
+    }
+  ],
+  "schema_version": 2,
+  "villagers": []
+}

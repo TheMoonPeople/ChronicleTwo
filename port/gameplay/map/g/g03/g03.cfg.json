@@ -1,0 +1,39 @@
+{
+  "draw_off_rects": [],
+  "event_points": [],
+  "georama": {
+    "fixed_parts": {
+      "count": 2,
+      "parts": [
+        {
+          "angle": 0,
+          "id": 52,
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "angle": 0,
+          "id": 83,
+          "position": [
+            250.0,
+            -14.0,
+            1600.0
+          ]
+        }
+      ]
+    },
+    "mask_parts": [],
+    "river_parts": [],
+    "water_parts_models": []
+  },
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

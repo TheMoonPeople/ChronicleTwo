@@ -236,7 +236,7 @@ int mgC3DSprite::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *manager) {
     }
 
     mgCMemory *data_memory = (mgCMemory *) manager->data_memory;
-    int        buffer = (int) data_memory->stAllocTest(0x3C);
+    uptr       buffer = (uptr) data_memory->stAllocTest(0x3C);
     data_memory->Alloc(CreateRenderInfoPacket((u_int *) buffer, matrix, render_info));
 
     if (tag != NULL) {
@@ -247,7 +247,7 @@ int mgC3DSprite::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *manager) {
         tag[3] = 0;
         cursor += mgSendVuProg(cursor, 2);
         cursor[0] = 0x50000000;
-        cursor[1] = (u_int) packet;
+        cursor[1] = (uptr) packet;
         cursor[2] = 0;
         cursor[3] = 0;
         return (int) (cursor + 4 - tag) / 4;
@@ -263,7 +263,7 @@ void mgC3DSprite::BeginCreatePacket(int mode, mgCDrawManager *manager) {
 
     memory = manager->data_memory;
     packet = &memory->stack[memory->stack_used];
-    packet_start = (u_long128 *) ((u_int) packet | MG_UNCACHED);
+    packet_start = (u_long128 *) ((uptr) packet | MG_UNCACHED);
     packet_cur = packet_start;
     this->mode = mode;
     prog_started = 0;
@@ -455,7 +455,7 @@ void mgCSprite::SetColor(int r, int g, int b, int a) {
 
 #pragma optimization_level 4
 
-u_int mgCSprite::CreatePacket(mgCDrawManager *manager) {
+uptr mgCSprite::CreatePacket(mgCDrawManager *manager) {
     u_char    *cursor;
     long long *data;
     mgCMemory *packet_memory;
@@ -521,9 +521,9 @@ u_int mgCSprite::CreatePacket(mgCDrawManager *manager) {
     end_tag[1] = 0;
     end_tag[2] = 0;
     end_tag[3] = 0;
-    packet_memory->Alloc(((int) (end_tag + 4) - (int) start) / 16);
+    packet_memory->Alloc(((sptr) (end_tag + 4) - (sptr) start) / 16);
     data_memory->Alloc(0);
-    return (u_int) start & 0xFFFFFFF;
+    return (uptr) start & 0xFFFFFFF;
 }
 
 #pragma optimization_level reset
@@ -536,9 +536,9 @@ int mgCSprite::Draw(u_int *tag, float (*matrix)[4], mgCDrawManager *manager) {
     mgRENDER_INFO *render_info = manager->render_info;
     texture_manager = manager->texture_manager;
     mgCMemory *memory = (mgCMemory *) manager->data_memory;
-    int        buffer = (int) memory->stAllocTest(0x3C);
+    uptr       buffer = (uptr) memory->stAllocTest(0x3C);
     memory->Alloc(CreateRenderInfoPacket((u_int *) buffer, matrix, render_info));
-    int render_packet = CreatePacket(manager);
+    uptr render_packet = CreatePacket(manager);
 
     if (tag != NULL) {
         tag[0] = 0x50000000;

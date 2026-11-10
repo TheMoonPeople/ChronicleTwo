@@ -1,0 +1,26 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s46_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s46_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s46_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s46_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s46_04-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

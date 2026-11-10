@@ -23,7 +23,7 @@
  */
 struct AlbumFile {
     u8   data[0x64000];     /**< Album payload. */
-    char digit_data[0x4B0]; /**< Album bytes used to calculate the check digits. */
+    char digit_data[sizeof(USER_PICTURE_INFO) * INVENT_ALBUM_PHOTO_NUM]; /**< Album bytes used to calculate the check digits. */
     int  checksum;          /**< First album check digit. */
     int  trailer;           /**< Second album check digit. */
 };
@@ -354,7 +354,7 @@ int CMemoryCardManager::GetSaveDataSize(int type) {
     }
 
     if (type == MC_SIZE_ALBUM_FILE) {
-        size = 0x64CB0;
+        size = sizeof(CDC2AlbumData);
     }
 
     if (type == MC_SIZE_ICONS) {
@@ -362,7 +362,7 @@ int CMemoryCardManager::GetSaveDataSize(int type) {
     }
 
     if (type == MC_SIZE_ALBUM_TOTAL) {
-        size = (GetIconDataSize() << 0xA) + 0x654B0;
+        size = (GetIconDataSize() << 0xA) + (sizeof(CDC2AlbumData) + 0x800);
     }
 
     if (type == MC_SIZE_SAVE_KB) {
@@ -378,7 +378,7 @@ int CMemoryCardManager::GetSaveDataSize(int type) {
     }
 
     if (type == MC_SIZE_OMAKE_TOTAL) {
-        size = (GetIconDataSize() << 0xA) + 0x5C70;
+        size = (GetIconDataSize() << 0xA) + (sizeof(CSubGameData) + 0x800);
     }
 
     if (type == MC_SIZE_OMAKE_KB) {
@@ -1078,7 +1078,7 @@ int CMemoryCardManager::SaveToMc(int file_no) {
                 memcpy(&save_buffer->save_data, save, sizeof(CSaveData));
                 save_buffer->unk_20 = 0;
                 save_buffer->unk_24 = 0;
-                save_buffer->check_digit_half = MakeCheckDigit(0, (char *) &save_buffer->save_data, 0x32C98);
+                save_buffer->check_digit_half = MakeCheckDigit(0, (char *) &save_buffer->save_data, sizeof(CSaveData) / 2);
                 save_buffer->check_digit = 0;
                 save_buffer->check_digit = MakeCheckDigit(0, (char *) &save_buffer->save_data, sizeof(CSaveData));
                 printf("checkbit : %d  ,%d\n", save_buffer->check_digit, save_buffer->check_digit_half);
@@ -1310,7 +1310,7 @@ int CMemoryCardManager::LoadFromMc(int file_no) {
                     }
 
                     int saved_digit_half = save_buffer->check_digit_half;
-                    int digit_half = MakeCheckDigit(0, (char *) &save_buffer->save_data, 0x32C98);
+                    int digit_half = MakeCheckDigit(0, (char *) &save_buffer->save_data, sizeof(CSaveData) / 2);
 
                     if (saved_digit_half != 0 && digit_half != saved_digit_half) {
                         bad = 1;
@@ -1901,7 +1901,7 @@ int CMemoryCardManager::LoadOmakeFile() {
                 }
 
                 sub_game->Initialize();
-                transfer_size = 0x5470;
+                transfer_size = sizeof(CSubGameData);
                 memset(sub_game, 0, transfer_size);
                 transfer_result = 0;
                 transferred = 0;

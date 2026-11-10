@@ -1,0 +1,35 @@
+# --jump dungeon:0:1 --fast-load; input.mouse_zoom must be true.
+300 cross
+306
+520 cross
+526
+900 start
+906
+940 triangle
+946
+1100 cross
+1106
+1250 cross
+1256
+1400 cross
+1406
+1550 cross
+1556
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2200 128 0 128 128
+2260
+# Turn toward the corridor wall, extend into it, then reverse and reset.
+# Capture 2650 (far, collision limited), 2850 (close), 3050 (reset).
+2400 mouse:900,0
+2401
+2450 wheel:-100
+2451
+2700 wheel:100
+2701
+2900 mouse3
+2901

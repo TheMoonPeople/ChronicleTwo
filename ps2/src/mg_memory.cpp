@@ -231,7 +231,7 @@ void mgCMemory::stAlign64() {
         return;
     }
 
-    misalign = (u_int) &stack[stack_used] & 0x3F;
+    misalign = (uptr) &stack[stack_used] & 0x3F;
 
     if (misalign != 0) {
         stack_used += (int) (64 - misalign) / 16;
@@ -249,7 +249,7 @@ void mgCMemory::Align64() {
         return;
     }
 
-    misalign = (u_int) &stack[stack_used] & 0x3F;
+    misalign = (uptr) &stack[stack_used] & 0x3F;
 
     if (misalign != 0) {
         stack_used += (int) (64 - misalign) / 16;

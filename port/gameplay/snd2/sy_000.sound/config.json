@@ -1,0 +1,218 @@
+{
+  "entries": [
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_001.json",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 2
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 3
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 4
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_005.json",
+      "flag": false,
+      "key": 60,
+      "program": 5
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 6
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 7
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 8
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 9
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_010.json",
+      "flag": false,
+      "key": 60,
+      "program": 10
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 11
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 12
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_013.json",
+      "flag": false,
+      "key": 60,
+      "program": 13
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_014.json",
+      "flag": false,
+      "key": 60,
+      "program": 14
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 15
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 16
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 17
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_018.json",
+      "flag": false,
+      "key": 60,
+      "program": 18
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_019.json",
+      "flag": false,
+      "key": 60,
+      "program": 19
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_020.json",
+      "flag": false,
+      "key": 60,
+      "program": 20
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 21
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 22
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_023.json",
+      "flag": false,
+      "key": 60,
+      "program": 23
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_024.json",
+      "flag": false,
+      "key": 60,
+      "program": 24
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_025.json",
+      "flag": false,
+      "key": 60,
+      "program": 25
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 26
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 27
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_028.json",
+      "flag": false,
+      "key": 60,
+      "program": 28
+    },
+    {
+      "filename": "Keyon",
+      "flag": false,
+      "key": 60,
+      "program": 29
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_030.json",
+      "flag": false,
+      "key": 60,
+      "program": 30
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_031.json",
+      "flag": false,
+      "key": 60,
+      "program": 31
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_032.json",
+      "flag": false,
+      "key": 60,
+      "program": 32
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_033.json",
+      "flag": false,
+      "key": 60,
+      "program": 33
+    },
+    {
+      "filename": "snd2/sy_000.sound/effects/sy_000_034.json",
+      "flag": false,
+      "key": 60,
+      "program": 34
+    }
+  ],
+  "entry_count": 36,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

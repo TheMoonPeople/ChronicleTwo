@@ -1,0 +1,1121 @@
+{
+  "kind": "georama_analysis",
+  "schema_version": 2,
+  "sources": [
+    {
+      "conditions": [
+        {
+          "geo_floor": 108,
+          "index": 0,
+          "name": "15 River Parts placed"
+        },
+        {
+          "geo_floor": 113,
+          "index": 1,
+          "name": "Nose Tree between Eye Trees"
+        },
+        {
+          "geo_floor": 114,
+          "index": 2,
+          "name": "Nose and Eye Trees near River"
+        },
+        {
+          "geo_floor": 108,
+          "index": 3,
+          "name": "Withered Tree restored"
+        },
+        {
+          "geo_floor": 108,
+          "index": 4,
+          "name": "Forest Lake restored"
+        },
+        {
+          "geo_floor": 108,
+          "index": 5,
+          "name": "Gordon resides in Sindain"
+        },
+        {
+          "geo_floor": 114,
+          "index": 6,
+          "name": "Elder Jurak revived"
+        },
+        {
+          "index": 7,
+          "name": "30 Culture Points obtained"
+        },
+        {
+          "geo_floor": 113,
+          "index": 8,
+          "name": "Adel resides in Sindain"
+        },
+        {
+          "geo_floor": 108,
+          "index": 9,
+          "name": "Polly resides in Sindain"
+        },
+        {
+          "geo_floor": 108,
+          "index": 10,
+          "name": "Milane resides in Sindain"
+        },
+        {
+          "geo_floor": 113,
+          "index": 11,
+          "name": "10 Trees placed"
+        },
+        {
+          "geo_floor": 114,
+          "index": 12,
+          "name": "Elder Jurak's Branch restored"
+        },
+        {
+          "geo_floor": 111,
+          "index": 13,
+          "name": "Resident in Straw House"
+        },
+        {
+          "geo_floor": 110,
+          "index": 14,
+          "name": "Dwarves' house at top of hill"
+        },
+        {
+          "geo_floor": 111,
+          "index": 15,
+          "name": "Fence around Firbits' House"
+        },
+        {
+          "index": 16,
+          "name": "40 Culture Points obtained"
+        },
+        {
+          "index": 17,
+          "name": "50 Culture Points obtained"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 104,
+          "index": 0,
+          "message": "Forest Lake restored",
+          "on_parts": "p10_f0101",
+          "percent": 10,
+          "unk_10": 1
+        },
+        {
+          "condition_numbers": [
+            6,
+            11
+          ],
+          "geo_floor": 104,
+          "index": 1,
+          "message": "Glowing Mushrooms restored",
+          "on_parts": "p09_f0101;hotaru",
+          "percent": 10,
+          "unk_10": 2
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 105,
+          "index": 2,
+          "message": "Withered Tree restored",
+          "on_parts": "p07_f0101-1",
+          "percent": 15,
+          "unk_10": 3
+        },
+        {
+          "condition_numbers": [
+            3,
+            4,
+            5
+          ],
+          "index": 3,
+          "message": "Elder Jurak revived",
+          "on_parts": "p07_f0101;jyuraku",
+          "percent": 15,
+          "unk_10": 4
+        },
+        {
+          "condition_numbers": [
+            6,
+            8,
+            7
+          ],
+          "geo_floor": 107,
+          "index": 4,
+          "message": "Tailor Shop restored",
+          "on_parts": "p01_f0104;p02_f0104",
+          "percent": 10,
+          "unk_10": 5
+        },
+        {
+          "condition_numbers": [
+            6,
+            9,
+            16
+          ],
+          "geo_floor": 108,
+          "index": 5,
+          "message": "Eatery restored",
+          "off_parts": "p13_f0101",
+          "on_parts": "p01_f0103;p02_f0103",
+          "percent": 10,
+          "unk_10": 6
+        },
+        {
+          "condition_numbers": [
+            6,
+            10,
+            12,
+            17
+          ],
+          "geo_floor": 108,
+          "index": 6,
+          "message": "Weapon Shop restored",
+          "off_parts": "p12_f0101",
+          "on_parts": "p01_f0102",
+          "percent": 10,
+          "unk_10": 7
+        },
+        {
+          "condition_numbers": [
+            11,
+            15
+          ],
+          "geo_floor": 113,
+          "index": 7,
+          "message": "Elder Jurak's Branch restored",
+          "on_parts": "p08_f0101",
+          "percent": 10,
+          "unk_10": 8
+        },
+        {
+          "condition_numbers": [
+            12,
+            13
+          ],
+          "geo_floor": 109,
+          "index": 8,
+          "message": "Golden Eggs restored",
+          "on_parts": "p14_f0101",
+          "percent": 10,
+          "unk_10": 9
+        }
+      ],
+      "id": 0
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 201,
+          "index": 0,
+          "name": "All 4 Plateaus at same height"
+        },
+        {
+          "geo_floor": 206,
+          "index": 1,
+          "name": "20 Culture Points obtained"
+        },
+        {
+          "geo_floor": 203,
+          "index": 2,
+          "name": "Lower Prayer Site restored"
+        },
+        {
+          "geo_floor": 205,
+          "index": 3,
+          "name": "15 Trees placed"
+        },
+        {
+          "geo_floor": 209,
+          "index": 4,
+          "name": "30 Culture Points obtained"
+        },
+        {
+          "geo_floor": 205,
+          "index": 5,
+          "name": "Starlight Temple restored"
+        },
+        {
+          "geo_floor": 219,
+          "index": 6,
+          "name": "4 Pot Torches placed"
+        },
+        {
+          "geo_floor": 217,
+          "index": 7,
+          "name": "Priest Bruno resides in Village"
+        },
+        {
+          "geo_floor": 207,
+          "index": 8,
+          "name": "Stewart resides in Valley"
+        },
+        {
+          "geo_floor": 221,
+          "index": 9,
+          "name": "40 Culture Points obtained"
+        },
+        {
+          "geo_floor": 206,
+          "index": 10,
+          "name": "Ferdinand at the Chinese Stand"
+        },
+        {
+          "geo_floor": 211,
+          "index": 11,
+          "name": "Lin helped"
+        },
+        {
+          "geo_floor": 217,
+          "index": 12,
+          "name": "Parn resides in Valley"
+        },
+        {
+          "geo_floor": 222,
+          "index": 13,
+          "name": "Lighthouse Moon Crystal restored"
+        },
+        {
+          "geo_floor": 204,
+          "index": 14,
+          "name": "Prayer Site and Bridge restored"
+        },
+        {
+          "geo_floor": 206,
+          "index": 15,
+          "name": "2 People reside in Valley"
+        },
+        {
+          "geo_floor": 210,
+          "index": 16,
+          "name": "Star Lamp on Brick House"
+        },
+        {
+          "geo_floor": 219,
+          "index": 17,
+          "name": "Blinkhorn  resides in Valley"
+        },
+        {
+          "geo_floor": 216,
+          "index": 18,
+          "name": "50 Culture Points obtained"
+        },
+        {
+          "geo_floor": 204,
+          "index": 19,
+          "name": "Crystal Prayer Site restored"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1
+          ],
+          "index": 0,
+          "message": "Lower Prayer Site restored",
+          "on_parts": "p01_f0202-0",
+          "percent": 10,
+          "unk_10": 100
+        },
+        {
+          "condition_numbers": [
+            2,
+            3
+          ],
+          "geo_floor": 202,
+          "index": 1,
+          "message": "Suspension Bridge restored",
+          "off_parts": "p02_f0201-0",
+          "on_parts": "p02_f0202-0;p01_f0205-0;p01_f0205-1;p01_f0205-2;p02_f0205-0;",
+          "percent": 10,
+          "unk_10": 101
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            19
+          ],
+          "index": 2,
+          "message": "Starlight Temple restored",
+          "percent": 10,
+          "unk_10": 102
+        },
+        {
+          "condition_numbers": [
+            5,
+            6
+          ],
+          "geo_floor": 210,
+          "index": 3,
+          "message": "Scared Torch restored",
+          "on_parts": "p01_f0209-0",
+          "percent": 10,
+          "unk_10": 103
+        },
+        {
+          "condition_numbers": [
+            2,
+            7
+          ],
+          "geo_floor": 204,
+          "index": 4,
+          "message": "Crystal Prayer Site restored",
+          "on_parts": "p01_f0203-0;",
+          "percent": 10,
+          "unk_10": 104
+        },
+        {
+          "condition_numbers": [
+            5,
+            8,
+            9
+          ],
+          "geo_floor": 203,
+          "index": 5,
+          "message": "Sacred Gate restored",
+          "on_parts": "p01_f0211-0",
+          "percent": 10,
+          "unk_10": 105
+        },
+        {
+          "condition_numbers": [
+            5,
+            10,
+            4
+          ],
+          "index": 6,
+          "message": "Lao Chao's Bistro restored",
+          "on_parts": "p01_f0208-0",
+          "percent": 10,
+          "unk_10": 106
+        },
+        {
+          "condition_numbers": [
+            11,
+            16,
+            12,
+            5
+          ],
+          "geo_floor": 205,
+          "index": 7,
+          "message": "Tool Shop restored",
+          "on_parts": "p01_f0206-0",
+          "percent": 10,
+          "unk_10": 107
+        },
+        {
+          "condition_numbers": [
+            5,
+            17,
+            4
+          ],
+          "geo_floor": 217,
+          "index": 8,
+          "message": "Weapon Shop restored",
+          "on_parts": "p01_f0207-0",
+          "percent": 10,
+          "unk_10": 108
+        },
+        {
+          "condition_numbers": [
+            5,
+            13
+          ],
+          "geo_floor": 219,
+          "index": 9,
+          "message": "Moon Crystal and Crest revived",
+          "on_parts": "p01_f0204-0;moon_crystal",
+          "percent": 10,
+          "unk_10": 109
+        }
+      ],
+      "id": 1
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 302,
+          "index": 0,
+          "name": "8 blocks of Pier Parts placed"
+        },
+        {
+          "geo_floor": 306,
+          "index": 1,
+          "name": "Someone resides in Veniccio"
+        },
+        {
+          "geo_floor": 302,
+          "index": 2,
+          "name": "Luna Lab foundation restored"
+        },
+        {
+          "geo_floor": 303,
+          "index": 3,
+          "name": "Red Iron House placed"
+        },
+        {
+          "geo_floor": 304,
+          "index": 4,
+          "name": "Claire lives in Red Iron House"
+        },
+        {
+          "geo_floor": 307,
+          "index": 5,
+          "name": "Boat near Red Iron House"
+        },
+        {
+          "geo_floor": 304,
+          "index": 6,
+          "name": "Blue Iron House placed"
+        },
+        {
+          "geo_floor": 305,
+          "index": 7,
+          "name": "Donny lives in Blue Iron House"
+        },
+        {
+          "geo_floor": 308,
+          "index": 8,
+          "name": "Boat near Blue Iron House"
+        },
+        {
+          "geo_floor": 310,
+          "index": 9,
+          "name": "Purple Iron House placed"
+        },
+        {
+          "geo_floor": 316,
+          "index": 10,
+          "name": "Boat near Purple Iron House"
+        },
+        {
+          "geo_floor": 317,
+          "index": 11,
+          "name": "Green Iron House placed"
+        },
+        {
+          "geo_floor": 318,
+          "index": 12,
+          "name": "Boat near Green Iron House"
+        },
+        {
+          "geo_floor": 303,
+          "index": 13,
+          "name": "All 4 Labs restored"
+        },
+        {
+          "geo_floor": 310,
+          "index": 14,
+          "name": "Shigura Village saved"
+        },
+        {
+          "geo_floor": 315,
+          "index": 15,
+          "name": "Luna Lab restored"
+        },
+        {
+          "geo_floor": 316,
+          "index": 16,
+          "name": "8 Luna Stone Lights placed"
+        },
+        {
+          "geo_floor": 318,
+          "index": 17,
+          "name": "Windmill placed"
+        },
+        {
+          "index": 18,
+          "name": "30 Culture Points obtained"
+        },
+        {
+          "index": 19,
+          "name": "50 Culture Points obtained"
+        },
+        {
+          "index": 20,
+          "name": "60 Culture Points obtained"
+        },
+        {
+          "geo_floor": 319,
+          "index": 21,
+          "name": "80 Culture Points obtained"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            1,
+            18
+          ],
+          "geo_floor": 301,
+          "index": 0,
+          "message": "Luna Lab foundation restored",
+          "off_parts": "p13_f0301",
+          "on_parts": "p03_f0301;p04_f0301",
+          "percent": 15,
+          "unk_10": 200
+        },
+        {
+          "condition_numbers": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "geo_floor": 302,
+          "index": 1,
+          "message": "Lab 1 restored",
+          "off_parts": "p14_f0301",
+          "on_parts": "p05_f0301",
+          "percent": 10,
+          "unk_10": 201
+        },
+        {
+          "condition_numbers": [
+            2,
+            6,
+            7,
+            8
+          ],
+          "geo_floor": 302,
+          "index": 2,
+          "message": "Lab 2 restored",
+          "off_parts": "p15_f0301",
+          "on_parts": "p06_f0301",
+          "percent": 10,
+          "unk_10": 202
+        },
+        {
+          "condition_numbers": [
+            2,
+            9,
+            10
+          ],
+          "geo_floor": 302,
+          "index": 3,
+          "message": "Lab 3 restored",
+          "off_parts": "p16_f0301",
+          "on_parts": "p07_f0301",
+          "percent": 10,
+          "unk_10": 203
+        },
+        {
+          "condition_numbers": [
+            2,
+            11,
+            12
+          ],
+          "geo_floor": 302,
+          "index": 4,
+          "message": "Lab 4 restored",
+          "off_parts": "p17_f0301",
+          "on_parts": "p08_f0301",
+          "percent": 10,
+          "unk_10": 204
+        },
+        {
+          "condition_numbers": [
+            13,
+            14,
+            19
+          ],
+          "geo_floor": 301,
+          "index": 5,
+          "message": "Luna Lab restored",
+          "on_parts": "p09_f0301",
+          "percent": 10,
+          "unk_10": 205
+        },
+        {
+          "condition_numbers": [
+            15,
+            16,
+            20
+          ],
+          "geo_floor": 308,
+          "index": 6,
+          "message": "Search Lights restored",
+          "on_parts": "p12_f0301",
+          "percent": 10,
+          "unk_10": 206
+        },
+        {
+          "condition_numbers": [
+            15,
+            17
+          ],
+          "geo_floor": 315,
+          "index": 7,
+          "message": "Weather Vanes restored",
+          "on_parts": "p11_f0301",
+          "percent": 10,
+          "unk_10": 207
+        },
+        {
+          "condition_numbers": [
+            15,
+            21
+          ],
+          "geo_floor": 316,
+          "index": 8,
+          "message": "Symbol of Luna Lab restored",
+          "on_parts": "p10_f0301",
+          "percent": 15,
+          "unk_10": 208
+        }
+      ],
+      "id": 2
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 402,
+          "index": 0,
+          "name": "3 sturdy houses placed"
+        },
+        {
+          "geo_floor": 403,
+          "index": 1,
+          "name": "House placed 3 blocks high"
+        },
+        {
+          "geo_floor": 404,
+          "index": 2,
+          "name": "2nd Floor of Workshop restored"
+        },
+        {
+          "geo_floor": 409,
+          "index": 3,
+          "name": "3rd Floor of Workshop restored"
+        },
+        {
+          "geo_floor": 415,
+          "index": 4,
+          "name": "Borneo resides in Heim Rada"
+        },
+        {
+          "geo_floor": 414,
+          "index": 5,
+          "name": "Work Crane and Arm restored"
+        },
+        {
+          "geo_floor": 413,
+          "index": 6,
+          "name": "Generator placed"
+        },
+        {
+          "geo_floor": 418,
+          "index": 7,
+          "name": "Cedric resides in Heim Rada"
+        },
+        {
+          "geo_floor": 417,
+          "index": 8,
+          "name": "Gundorada Workshop restored"
+        },
+        {
+          "geo_floor": 412,
+          "index": 9,
+          "name": "Resident in house with Crane"
+        },
+        {
+          "geo_floor": 415,
+          "index": 10,
+          "name": "Windmill placed"
+        },
+        {
+          "geo_floor": 412,
+          "index": 11,
+          "name": "Resident in house with Arm"
+        },
+        {
+          "geo_floor": 417,
+          "index": 12,
+          "name": "Operations Room restored"
+        },
+        {
+          "geo_floor": 413,
+          "index": 13,
+          "name": "10 Pots placed"
+        },
+        {
+          "geo_floor": 401,
+          "index": 14,
+          "name": "Fire Squall destroyed"
+        },
+        {
+          "geo_floor": 420,
+          "index": 15,
+          "name": "Gerald resides in Heim Rada"
+        },
+        {
+          "geo_floor": 419,
+          "index": 16,
+          "name": "Inhabited house 4 blocks tall"
+        },
+        {
+          "geo_floor": 409,
+          "index": 17,
+          "name": "Resident in house with Chimney"
+        },
+        {
+          "geo_floor": 419,
+          "index": 18,
+          "name": "Erik in house near Windmill"
+        },
+        {
+          "geo_floor": 421,
+          "index": 19,
+          "name": "Gaspard defeated"
+        },
+        {
+          "index": 20,
+          "name": "30 Culture Points obtained"
+        },
+        {
+          "index": 21,
+          "name": "60 Culture Points obtained"
+        },
+        {
+          "index": 22,
+          "name": "70 Culture Points obtained"
+        },
+        {
+          "index": 23,
+          "name": "80 Culture Points obtained"
+        },
+        {
+          "geo_floor": 410,
+          "index": 24,
+          "name": "100 Culture Points obtained"
+        },
+        {
+          "geo_floor": 404,
+          "index": 25,
+          "name": "Workshop Elevator restored"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0,
+            20
+          ],
+          "geo_floor": 401,
+          "index": 0,
+          "message": "2nd Floor of Workshop restored",
+          "on_parts": "p02_f0401;p07_f0401-2;p07_f0401-3;p18_f0401;p21_f0401-1",
+          "percent": 5,
+          "unk_10": 300
+        },
+        {
+          "condition_numbers": [
+            1,
+            2
+          ],
+          "geo_floor": 402,
+          "index": 1,
+          "message": "3rd Floor of Workshop restored",
+          "on_parts": "p05_f0401;p19_f0401-2;p19_f0401-3",
+          "percent": 5,
+          "unk_10": 301
+        },
+        {
+          "condition_numbers": [
+            17,
+            3,
+            21
+          ],
+          "geo_floor": 403,
+          "index": 2,
+          "message": "Workshop Elevator restored",
+          "on_parts": "p04_f0401;p09_f0401;p09_f0401-1;p24_f0401",
+          "percent": 10,
+          "unk_10": 302
+        },
+        {
+          "condition_numbers": [
+            25,
+            4,
+            5,
+            6
+          ],
+          "geo_floor": 404,
+          "index": 3,
+          "message": "Gundorada Workshop restored",
+          "percent": 10,
+          "unk_10": 303
+        },
+        {
+          "condition_numbers": [
+            9,
+            3,
+            10
+          ],
+          "geo_floor": 410,
+          "index": 4,
+          "message": "Work Crane restored",
+          "on_parts": "p11_f0401",
+          "percent": 10,
+          "unk_10": 304
+        },
+        {
+          "condition_numbers": [
+            11,
+            2,
+            13
+          ],
+          "geo_floor": 411,
+          "index": 5,
+          "message": "Work Arm restored",
+          "on_parts": "p10_f0401",
+          "percent": 10,
+          "unk_10": 305
+        },
+        {
+          "condition_numbers": [
+            14,
+            15,
+            8,
+            24
+          ],
+          "geo_floor": 412,
+          "index": 6,
+          "message": "Operations Room restored",
+          "on_parts": "p12_f0401",
+          "percent": 10,
+          "unk_10": 306
+        },
+        {
+          "condition_numbers": [
+            7,
+            8,
+            22
+          ],
+          "geo_floor": 414,
+          "index": 7,
+          "message": "Parts Shop restored",
+          "on_parts": "p01_f0404",
+          "percent": 10,
+          "unk_10": 307
+        },
+        {
+          "condition_numbers": [
+            17,
+            8,
+            22
+          ],
+          "geo_floor": 417,
+          "index": 8,
+          "message": "Item Shop restored",
+          "on_parts": "p01_f0405",
+          "percent": 10,
+          "unk_10": 308
+        },
+        {
+          "condition_numbers": [
+            18,
+            8,
+            22
+          ],
+          "geo_floor": 418,
+          "index": 9,
+          "message": "Weapon Shop restored",
+          "on_parts": "p01_f0403",
+          "percent": 10,
+          "unk_10": 309
+        },
+        {
+          "condition_numbers": [
+            19,
+            12
+          ],
+          "index": 10,
+          "message": "Paznos completed",
+          "on_parts": "p20_f0401;p22_f0401;p23_f0401",
+          "percent": 10,
+          "unk_10": 310
+        }
+      ],
+      "id": 3
+    },
+    {
+      "conditions": [
+        {
+          "geo_floor": 501,
+          "index": 0,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 502,
+          "index": 1,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 503,
+          "index": 2,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 504,
+          "index": 3,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 505,
+          "index": 4,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 505,
+          "index": 5,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 506,
+          "index": 6,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 507,
+          "index": 7,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 507,
+          "index": 8,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 508,
+          "index": 9,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 509,
+          "index": 10,
+          "name": "Locked by mysterious power"
+        },
+        {
+          "geo_floor": 510,
+          "index": 11,
+          "name": "Locked by mysterious power"
+        }
+      ],
+      "entries": [
+        {
+          "condition_numbers": [
+            0
+          ],
+          "geo_floor": 501,
+          "index": 0,
+          "message": "The Scent of Water in the Sun",
+          "percent": 10,
+          "unk_10": 400
+        },
+        {
+          "condition_numbers": [
+            1
+          ],
+          "geo_floor": 502,
+          "index": 1,
+          "message": "The Path of Flowers we walked",
+          "percent": 10,
+          "unk_10": 401
+        },
+        {
+          "condition_numbers": [
+            2
+          ],
+          "geo_floor": 503,
+          "index": 2,
+          "message": "The Door and the Moon Column",
+          "percent": 10,
+          "unk_10": 402
+        },
+        {
+          "condition_numbers": [
+            3
+          ],
+          "geo_floor": 504,
+          "index": 3,
+          "message": "The Path of the Sun",
+          "percent": 10,
+          "unk_10": 403
+        },
+        {
+          "condition_numbers": [
+            4,
+            5
+          ],
+          "geo_floor": 505,
+          "index": 4,
+          "message": "A Stream and a Starlight Stair",
+          "percent": 10,
+          "unk_10": 404
+        },
+        {
+          "condition_numbers": [
+            6
+          ],
+          "geo_floor": 506,
+          "index": 5,
+          "message": "Flower Bed of Recollections",
+          "percent": 10,
+          "unk_10": 405
+        },
+        {
+          "condition_numbers": [
+            7,
+            8
+          ],
+          "geo_floor": 507,
+          "index": 6,
+          "message": "You, sitting by the stairs",
+          "percent": 10,
+          "unk_10": 406
+        },
+        {
+          "condition_numbers": [
+            9
+          ],
+          "geo_floor": 508,
+          "index": 7,
+          "message": "The end of the Hall of Sorrow",
+          "percent": 10,
+          "unk_10": 407
+        },
+        {
+          "condition_numbers": [
+            10
+          ],
+          "geo_floor": 509,
+          "index": 8,
+          "message": "Feelings deep in Stardust Pond",
+          "percent": 10,
+          "unk_10": 408
+        },
+        {
+          "condition_numbers": [
+            11
+          ],
+          "geo_floor": 510,
+          "index": 9,
+          "message": "The Murmur of the Trees",
+          "percent": 10,
+          "unk_10": 409
+        }
+      ],
+      "id": 4
+    }
+  ]
+}

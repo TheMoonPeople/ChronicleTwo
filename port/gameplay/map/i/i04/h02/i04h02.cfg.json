@@ -1,0 +1,11 @@
+{
+  "draw_off_rects": [],
+  "event_points": [],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

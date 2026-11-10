@@ -1,0 +1,33 @@
+# With --jump dungeon:0:1 --fast-load. Enter and skip the first communication.
+# Chest approach: 2390; camera turn: 2490; sideways motion: 2640.
+300 cross
+306
+520 cross
+526
+900 start
+906
+940 triangle
+946
+1100 cross
+1106
+1250 cross
+1256
+1400 cross
+1406
+1550 cross
+1556
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2100 128 0 128 128
+2420
+2460 128 128 220 128
+2560
+2600 0 128 128 128
+2740
+2780 cross 128 128 220 128
+2786 128 128 220 128
+2900

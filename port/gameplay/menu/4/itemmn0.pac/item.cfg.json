@@ -1,0 +1,5734 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "from": 30,
+      "op": "clear_etc_info"
+    },
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "cur_off0",
+          "values": [
+            -20,
+            20
+          ]
+        },
+        {
+          "name": "cur_off1",
+          "values": [
+            -20,
+            26
+          ]
+        },
+        {
+          "name": "cur_off2",
+          "values": [
+            -46,
+            18
+          ]
+        },
+        {
+          "name": "cur_off3",
+          "values": [
+            -20,
+            -6
+          ]
+        },
+        {
+          "name": "cur_off4",
+          "values": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "cur_off5",
+          "values": [
+            -48,
+            0
+          ]
+        },
+        {
+          "name": "cur_off6",
+          "values": [
+            10,
+            34
+          ]
+        },
+        {
+          "name": "cur_off7",
+          "values": [
+            -20,
+            26
+          ]
+        },
+        {
+          "name": "cur_off8",
+          "values": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "cur_off9",
+          "values": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "cur_off10",
+          "values": [
+            -48,
+            0
+          ]
+        },
+        {
+          "name": "cur_off11",
+          "values": [
+            -36,
+            18
+          ]
+        }
+      ],
+      "op": "etc_info"
+    },
+    {
+      "from": 10,
+      "op": "clear_etc_info2"
+    },
+    {
+      "index": 10,
+      "op": "etc_info2_offset"
+    },
+    {
+      "entries": [
+        {
+          "name": "test00",
+          "values": [
+            14.5,
+            -2.0,
+            4.0
+          ]
+        },
+        {
+          "name": "test01",
+          "values": [
+            9.9,
+            -1.3,
+            7.4
+          ]
+        },
+        {
+          "name": "test02",
+          "values": [
+            9.2,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "name": "test03",
+          "values": [
+            12.8,
+            3.0,
+            7.4
+          ]
+        },
+        {
+          "name": "ttest00",
+          "values": [
+            -48.0,
+            8.0,
+            85.0
+          ]
+        },
+        {
+          "name": "ttest01",
+          "values": [
+            10.0,
+            7.0,
+            64.0
+          ]
+        },
+        {
+          "name": "ttest02",
+          "values": [
+            8.0,
+            16.0,
+            60.0
+          ]
+        },
+        {
+          "name": "ttest03",
+          "values": [
+            8.0,
+            12.0,
+            76.0
+          ]
+        },
+        {
+          "name": "test10",
+          "values": [
+            9.0,
+            -3.0,
+            3.0
+          ]
+        },
+        {
+          "name": "test11",
+          "values": [
+            9.2,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "test12",
+          "values": [
+            8.9,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "test13",
+          "values": [
+            11.3,
+            4.0,
+            5.5
+          ]
+        },
+        {
+          "name": "ttest10",
+          "values": [
+            14.0,
+            8.0,
+            98.0
+          ]
+        },
+        {
+          "name": "ttest11",
+          "values": [
+            6.6,
+            4.0,
+            54.0
+          ]
+        },
+        {
+          "name": "ttest12",
+          "values": [
+            0.0,
+            0.0,
+            62.0
+          ]
+        },
+        {
+          "name": "ttest13",
+          "values": [
+            -2.9,
+            10.0,
+            68.0
+          ]
+        },
+        {
+          "name": "test20",
+          "values": [
+            6.4,
+            -2.0,
+            -4.0
+          ]
+        },
+        {
+          "name": "test21",
+          "values": [
+            6.4,
+            -2.0,
+            -4.0
+          ]
+        },
+        {
+          "name": "test22",
+          "values": [
+            6.4,
+            -2.0,
+            -4.0
+          ]
+        },
+        {
+          "name": "test23",
+          "values": [
+            6.4,
+            -2.0,
+            -4.0
+          ]
+        },
+        {
+          "name": "ttest20",
+          "values": [
+            48.0,
+            -12.0,
+            85.0
+          ]
+        },
+        {
+          "name": "ttest21",
+          "values": [
+            -108.0,
+            10.0,
+            7.0
+          ]
+        },
+        {
+          "name": "ttest22",
+          "values": [
+            8.0,
+            28.0,
+            40.0
+          ]
+        },
+        {
+          "name": "ttest23",
+          "values": [
+            5.0,
+            45.0,
+            16.0
+          ]
+        },
+        {
+          "name": "camref",
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "campos",
+          "values": [
+            0.0,
+            0.0,
+            100.0
+          ]
+        }
+      ],
+      "op": "etc_info2"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "item0",
+      "textures": [
+        {
+          "name": "num3",
+          "rect": [
+            0,
+            92,
+            12,
+            12
+          ]
+        },
+        {
+          "name": "num_slu",
+          "rect": [
+            120,
+            92,
+            12,
+            12
+          ]
+        },
+        {
+          "name": "NUM4",
+          "rect": [
+            190,
+            18,
+            12,
+            18
+          ]
+        },
+        {
+          "name": "名_攻",
+          "rect": [
+            0,
+            0,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_炎",
+          "rect": [
+            0,
+            18,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_稲",
+          "rect": [
+            0,
+            36,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_粉砕",
+          "rect": [
+            0,
+            54,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_ケモ",
+          "rect": [
+            0,
+            72,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_耐久",
+          "rect": [
+            60,
+            0,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_冷",
+          "rect": [
+            60,
+            18,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_退魔",
+          "rect": [
+            60,
+            36,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_かま",
+          "rect": [
+            60,
+            54,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "名_うろ",
+          "rect": [
+            60,
+            72,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "合成P",
+          "rect": [
+            120,
+            0,
+            128,
+            18
+          ]
+        },
+        {
+          "name": "名_飛距",
+          "rect": [
+            120,
+            18,
+            70,
+            18
+          ]
+        },
+        {
+          "name": "名_強度",
+          "rect": [
+            120,
+            36,
+            80,
+            18
+          ]
+        },
+        {
+          "name": "名_しなり",
+          "rect": [
+            120,
+            54,
+            80,
+            18
+          ]
+        },
+        {
+          "name": "名_にぎり",
+          "rect": [
+            120,
+            72,
+            38,
+            18
+          ]
+        },
+        {
+          "name": "名_運",
+          "rect": [
+            158,
+            72,
+            42,
+            18
+          ]
+        },
+        {
+          "name": "ＦＰ",
+          "rect": [
+            150,
+            90,
+            140,
+            18
+          ]
+        },
+        {
+          "name": "ST_WK0",
+          "rect": [
+            208,
+            118,
+            10,
+            24
+          ]
+        },
+        {
+          "name": "ST_WK1",
+          "rect": [
+            218,
+            118,
+            10,
+            24
+          ]
+        },
+        {
+          "name": "ST_WK2",
+          "rect": [
+            228,
+            118,
+            10,
+            24
+          ]
+        },
+        {
+          "name": "エサ板",
+          "rect": [
+            344,
+            140,
+            72,
+            36
+          ]
+        },
+        {
+          "name": "エサ",
+          "rect": [
+            346,
+            192,
+            36,
+            16
+          ]
+        },
+        {
+          "name": "ルアー",
+          "rect": [
+            346,
+            176,
+            36,
+            16
+          ]
+        },
+        {
+          "name": "col緑",
+          "rect": [
+            132,
+            92,
+            8,
+            5
+          ]
+        },
+        {
+          "name": "col赤",
+          "rect": [
+            132,
+            97,
+            8,
+            4
+          ]
+        },
+        {
+          "name": "col青",
+          "rect": [
+            132,
+            101,
+            8,
+            3
+          ]
+        },
+        {
+          "name": "col緑太",
+          "rect": [
+            140,
+            92,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "col赤太",
+          "rect": [
+            140,
+            98,
+            8,
+            5
+          ]
+        },
+        {
+          "name": "col黄",
+          "rect": [
+            368,
+            250,
+            8,
+            5
+          ]
+        },
+        {
+          "name": "wep_hpbar",
+          "rect": [
+            378,
+            232,
+            134,
+            24
+          ]
+        },
+        {
+          "name": "武器STバー",
+          "rect": [
+            192,
+            142,
+            63,
+            8
+          ]
+        },
+        {
+          "name": "ＨＰフレーム",
+          "rect": [
+            150,
+            234,
+            204,
+            22
+          ]
+        },
+        {
+          "name": "アイテムフレーム",
+          "rect": [
+            0,
+            104,
+            148,
+            46
+          ]
+        },
+        {
+          "name": "wepfrm",
+          "rect": [
+            0,
+            198,
+            206,
+            59
+          ]
+        },
+        {
+          "name": "武器フレームＬ",
+          "rect": [
+            0,
+            152,
+            150,
+            52
+          ]
+        },
+        {
+          "name": "武器フレームＲ",
+          "rect": [
+            0,
+            204,
+            150,
+            52
+          ]
+        },
+        {
+          "name": "mosfrm_hp",
+          "rect": [
+            310,
+            0,
+            202,
+            22
+          ]
+        },
+        {
+          "name": "mosfrm_po",
+          "rect": [
+            312,
+            22,
+            200,
+            36
+          ]
+        },
+        {
+          "name": "rbfrm_hp",
+          "rect": [
+            320,
+            58,
+            192,
+            42
+          ]
+        },
+        {
+          "name": "rbfrm_hp0",
+          "rect": [
+            312,
+            58,
+            8,
+            24
+          ]
+        },
+        {
+          "name": "rbfrm_wep",
+          "rect": [
+            336,
+            100,
+            176,
+            40
+          ]
+        },
+        {
+          "name": "rbfrm_pt",
+          "rect": [
+            416,
+            140,
+            96,
+            46
+          ]
+        },
+        {
+          "name": "capacity",
+          "rect": [
+            418,
+            186,
+            94,
+            40
+          ]
+        },
+        {
+          "name": "矢印小1",
+          "rect": [
+            370,
+            200,
+            24,
+            32
+          ]
+        },
+        {
+          "name": "矢印小2",
+          "rect": [
+            394,
+            200,
+            24,
+            32
+          ]
+        },
+        {
+          "name": "VOICE",
+          "rect": [
+            300,
+            140,
+            44,
+            38
+          ]
+        },
+        {
+          "name": "盾",
+          "rect": [
+            396,
+            176,
+            20,
+            22
+          ]
+        },
+        {
+          "name": "？",
+          "rect": [
+            298,
+            0,
+            12,
+            18
+          ]
+        },
+        {
+          "name": "剣",
+          "rect": [
+            316,
+            100,
+            20,
+            22
+          ]
+        },
+        {
+          "name": "RCORE",
+          "rect": [
+            268,
+            0,
+            30,
+            18
+          ]
+        },
+        {
+          "name": "RBODY",
+          "rect": [
+            306,
+            122,
+            30,
+            18
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mt0",
+      "textures": [
+        {
+          "name": "お金袋",
+          "rect": [
+            102,
+            236,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "ギルダ",
+          "rect": [
+            122,
+            236,
+            36,
+            16
+          ]
+        },
+        {
+          "name": "故障X",
+          "rect": [
+            96,
+            206,
+            14,
+            14
+          ]
+        }
+      ]
+    },
+    {
+      "from": 10,
+      "op": "clear_forms",
+      "to": 70
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "poly_chr0",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "poly"
+        }
+      ]
+    },
+    {
+      "name": "poly_chr_dmy",
+      "op": "form",
+      "parts": [],
+      "settings": []
+    },
+    {
+      "name": "poly_chr1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "poly"
+        }
+      ]
+    },
+    {
+      "name": "form_view00",
+      "op": "form",
+      "parts": [
+        {
+          "name": "name",
+          "part": "funcinfo",
+          "xy": [
+            14,
+            -12
+          ]
+        },
+        {
+          "name": "c_i0",
+          "part": "funcinfo",
+          "xy": [
+            5,
+            -302
+          ]
+        },
+        {
+          "name": "c_i1",
+          "part": "funcinfo",
+          "xy": [
+            46,
+            -302
+          ]
+        },
+        {
+          "name": "c_i2",
+          "part": "funcinfo",
+          "xy": [
+            88,
+            -302
+          ]
+        },
+        {
+          "name": "chara",
+          "part": "funcinfo",
+          "xy": [
+            60,
+            -170
+          ]
+        },
+        {
+          "name": "chr_cur",
+          "part": "funcinfo",
+          "xy": [
+            60,
+            -120
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                29,
+                45,
+                30,
+                128
+              ]
+            }
+          ],
+          "name": "hpbgfil",
+          "part": "fillbox",
+          "size": [
+            197,
+            10
+          ],
+          "style": 0,
+          "xy": [
+            6,
+            18
+          ]
+        },
+        {
+          "name": "hp_bar",
+          "part": "normal",
+          "size": [
+            30,
+            5
+          ],
+          "texture": "col緑",
+          "xy": [
+            23,
+            20
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "hpbar",
+          "part": "normal",
+          "texture": "ＨＰフレーム",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "itemfrm",
+          "part": "normal",
+          "texture": "アイテムフレーム",
+          "xy": [
+            20,
+            -294
+          ]
+        },
+        {
+          "name": "hp0",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 1,
+          "xy": [
+            149,
+            28
+          ]
+        },
+        {
+          "name": "slu0",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            158,
+            28
+          ]
+        },
+        {
+          "name": "hp1",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 1,
+          "xy": [
+            186,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "wepfrm0",
+          "part": "normal",
+          "texture": "武器フレームＬ",
+          "xy": [
+            -1,
+            38
+          ]
+        },
+        {
+          "name": "whp0",
+          "part": "normal",
+          "size": [
+            35,
+            3
+          ],
+          "texture": "col赤",
+          "xy": [
+            36,
+            45
+          ]
+        },
+        {
+          "name": "abs0",
+          "part": "normal",
+          "size": [
+            35,
+            4
+          ],
+          "texture": "col青",
+          "xy": [
+            38,
+            49
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "エサ板",
+          "part": "normal",
+          "texture": "エサ板",
+          "xy": [
+            -11,
+            80
+          ]
+        },
+        {
+          "name": "エサ",
+          "part": "normal",
+          "texture": "エサ",
+          "xy": [
+            -10,
+            99
+          ]
+        },
+        {
+          "name": "ルアー",
+          "part": "normal",
+          "texture": "ルアー",
+          "xy": [
+            -10,
+            99
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "盾",
+          "part": "normal",
+          "texture": "盾",
+          "xy": [
+            140,
+            -10
+          ]
+        },
+        {
+          "name": "whp00",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            66,
+            58
+          ]
+        },
+        {
+          "name": "slu1",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            65,
+            58
+          ]
+        },
+        {
+          "name": "whp01",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 2,
+          "xy": [
+            82,
+            58
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "wepfrm1",
+          "part": "normal",
+          "texture": "武器フレームＲ",
+          "xy": [
+            56,
+            47
+          ]
+        },
+        {
+          "name": "whp1",
+          "part": "normal",
+          "size": [
+            35,
+            3
+          ],
+          "texture": "col赤",
+          "xy": [
+            74,
+            86
+          ]
+        },
+        {
+          "name": "abs1",
+          "part": "normal",
+          "size": [
+            35,
+            3
+          ],
+          "texture": "col青",
+          "xy": [
+            77,
+            90
+          ]
+        },
+        {
+          "name": "whp10",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            131,
+            67
+          ]
+        },
+        {
+          "name": "slu2",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            129,
+            67
+          ]
+        },
+        {
+          "name": "whp11",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 2,
+          "xy": [
+            147,
+            67
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item0",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            26,
+            -294
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item1",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            68,
+            -294
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item2",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            110,
+            -294
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "wep0",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            6,
+            48
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "wep1",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            172,
+            48
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "esa0",
+          "part": "item",
+          "size": [
+            24,
+            30
+          ],
+          "xy": [
+            31,
+            84
+          ]
+        },
+        {
+          "name": "esac",
+          "part": "funcinfo",
+          "xy": [
+            10,
+            66
+          ]
+        },
+        {
+          "name": "wep2",
+          "part": "funcinfo",
+          "xy": [
+            120,
+            -180
+          ]
+        },
+        {
+          "name": "wep3",
+          "part": "funcinfo",
+          "xy": [
+            120,
+            -20
+          ]
+        },
+        {
+          "name": "wep4",
+          "part": "funcinfo",
+          "xy": [
+            110,
+            -90
+          ]
+        },
+        {
+          "name": "c_w0",
+          "part": "funcinfo",
+          "xy": [
+            -21,
+            27
+          ]
+        },
+        {
+          "name": "c_w1",
+          "part": "funcinfo",
+          "xy": [
+            145,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 2,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "item0num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            54,
+            -268
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 2,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "item1num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            94,
+            -268
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 2,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "item2num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            138,
+            -268
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 2,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "esanum",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            56,
+            104
+          ]
+        },
+        {
+          "name": "DEF",
+          "part": "number2",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num0",
+          "value": 2,
+          "xy": [
+            181,
+            -4
+          ]
+        },
+        {
+          "name": "batu0",
+          "part": "normal",
+          "texture": "故障X",
+          "xy": [
+            20,
+            68
+          ]
+        },
+        {
+          "name": "batu1",
+          "part": "normal",
+          "texture": "故障X",
+          "xy": [
+            186,
+            68
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 48,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -380,
+            352
+          ]
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -300.0,
+                352.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                24.0,
+                352.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "form_view01",
+      "op": "form",
+      "parts": [
+        {
+          "name": "name",
+          "part": "funcinfo",
+          "xy": [
+            14,
+            -12
+          ]
+        },
+        {
+          "name": "c_i0",
+          "part": "funcinfo",
+          "xy": [
+            5,
+            -302
+          ]
+        },
+        {
+          "name": "c_i1",
+          "part": "funcinfo",
+          "xy": [
+            45,
+            -302
+          ]
+        },
+        {
+          "name": "c_i2",
+          "part": "funcinfo",
+          "xy": [
+            88,
+            -302
+          ]
+        },
+        {
+          "name": "chara",
+          "part": "funcinfo",
+          "xy": [
+            60,
+            -170
+          ]
+        },
+        {
+          "name": "chr_cur",
+          "part": "funcinfo",
+          "xy": [
+            60,
+            -120
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "itemfrm",
+          "part": "normal",
+          "texture": "アイテムフレーム",
+          "xy": [
+            20,
+            -294
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "wepfrm0",
+          "part": "normal",
+          "texture": "武器フレームＬ",
+          "xy": [
+            -1,
+            38
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "wepfrm1",
+          "part": "normal",
+          "texture": "武器フレームＲ",
+          "xy": [
+            56,
+            47
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                29,
+                45,
+                30,
+                128
+              ]
+            }
+          ],
+          "name": "hpbgfil",
+          "part": "fillbox",
+          "size": [
+            197,
+            10
+          ],
+          "style": 0,
+          "xy": [
+            6,
+            18
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": -6
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "hp_bar",
+          "part": "normal2",
+          "size": [
+            30,
+            5
+          ],
+          "texture": "col緑",
+          "xy": [
+            25,
+            20
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "hpbar",
+          "part": "normal",
+          "texture": "ＨＰフレーム",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "name": "hp0",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 1,
+          "xy": [
+            149,
+            28
+          ]
+        },
+        {
+          "name": "slu0",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            158,
+            28
+          ]
+        },
+        {
+          "name": "hp1",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 1,
+          "xy": [
+            186,
+            28
+          ]
+        },
+        {
+          "name": "whp0",
+          "part": "normal",
+          "size": [
+            35,
+            3
+          ],
+          "texture": "col赤",
+          "xy": [
+            36,
+            45
+          ]
+        },
+        {
+          "name": "abs0",
+          "part": "normal",
+          "size": [
+            35,
+            4
+          ],
+          "texture": "col青",
+          "xy": [
+            38,
+            49
+          ]
+        },
+        {
+          "name": "whp1",
+          "part": "normal",
+          "size": [
+            35,
+            3
+          ],
+          "texture": "col赤",
+          "xy": [
+            74,
+            86
+          ]
+        },
+        {
+          "name": "abs1",
+          "part": "normal",
+          "size": [
+            35,
+            3
+          ],
+          "texture": "col青",
+          "xy": [
+            77,
+            90
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "盾",
+          "part": "normal",
+          "texture": "盾",
+          "xy": [
+            140,
+            -10
+          ]
+        },
+        {
+          "name": "whp00",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            66,
+            58
+          ]
+        },
+        {
+          "name": "slu1",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            65,
+            58
+          ]
+        },
+        {
+          "name": "whp01",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 2,
+          "xy": [
+            82,
+            58
+          ]
+        },
+        {
+          "name": "whp10",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            131,
+            67
+          ]
+        },
+        {
+          "name": "slu2",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            129,
+            67
+          ]
+        },
+        {
+          "name": "whp11",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 2,
+          "xy": [
+            147,
+            67
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item0",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            26,
+            -294
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item1",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            68,
+            -294
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "item2",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            110,
+            -294
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "wep0",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            6,
+            48
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "wep1",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            172,
+            48
+          ]
+        },
+        {
+          "name": "wep2",
+          "part": "funcinfo",
+          "xy": [
+            130,
+            -150
+          ]
+        },
+        {
+          "name": "wep3",
+          "part": "funcinfo",
+          "xy": [
+            130,
+            -30
+          ]
+        },
+        {
+          "name": "wep4",
+          "part": "funcinfo",
+          "xy": [
+            120,
+            -100
+          ]
+        },
+        {
+          "name": "c_w0",
+          "part": "funcinfo",
+          "xy": [
+            -21,
+            27
+          ]
+        },
+        {
+          "name": "c_w1",
+          "part": "funcinfo",
+          "xy": [
+            145,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 2,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "item0num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 0,
+          "xy": [
+            54,
+            -268
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 2,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "item1num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 0,
+          "xy": [
+            94,
+            -268
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 2,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "item2num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 0,
+          "xy": [
+            138,
+            -268
+          ]
+        },
+        {
+          "name": "DEF",
+          "part": "number2",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num0",
+          "value": 2,
+          "xy": [
+            181,
+            -4
+          ]
+        },
+        {
+          "name": "batu0",
+          "part": "normal",
+          "texture": "故障X",
+          "xy": [
+            20,
+            68
+          ]
+        },
+        {
+          "name": "batu1",
+          "part": "normal",
+          "texture": "故障X",
+          "xy": [
+            186,
+            68
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 43,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -380,
+            352
+          ]
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -300.0,
+                352.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                24.0,
+                352.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "form_view1",
+      "op": "form",
+      "parts": [
+        {
+          "name": "chrpos",
+          "part": "funcinfo",
+          "xy": [
+            46,
+            -96
+          ]
+        },
+        {
+          "name": "b0",
+          "part": "normal",
+          "texture": "brdb0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "b1",
+          "part": "normal",
+          "size": [
+            182,
+            32
+          ],
+          "texture": "brdb1",
+          "xy": [
+            32,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b2",
+          "part": "normal",
+          "texture": "brdb2",
+          "xy": [
+            214,
+            0
+          ]
+        },
+        {
+          "name": "b3",
+          "part": "normal",
+          "size": [
+            32,
+            140
+          ],
+          "texture": "brdb3",
+          "xy": [
+            0,
+            32
+          ]
+        },
+        {
+          "name": "b4",
+          "part": "normal",
+          "size": [
+            182,
+            140
+          ],
+          "texture": "brdb4",
+          "xy": [
+            32,
+            32
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b5",
+          "part": "normal",
+          "size": [
+            32,
+            140
+          ],
+          "texture": "brdb5",
+          "xy": [
+            214,
+            32
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b6",
+          "part": "normal",
+          "texture": "brdb6",
+          "xy": [
+            0,
+            172
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b7",
+          "part": "normal",
+          "size": [
+            182,
+            32
+          ],
+          "texture": "brdb7",
+          "xy": [
+            32,
+            172
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b8",
+          "part": "normal",
+          "texture": "brdb8",
+          "xy": [
+            214,
+            172
+          ]
+        },
+        {
+          "name": "c",
+          "part": "normal",
+          "texture": "mt_circle",
+          "xy": [
+            -34,
+            10
+          ]
+        },
+        {
+          "name": "nameline",
+          "part": "normal",
+          "size": [
+            190,
+            4
+          ],
+          "texture": "brdline",
+          "xy": [
+            22,
+            37
+          ]
+        },
+        {
+          "name": "name",
+          "part": "funcinfo",
+          "xy": [
+            30,
+            10
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                29,
+                45,
+                30,
+                128
+              ]
+            }
+          ],
+          "name": "hpbgfil",
+          "part": "fillbox",
+          "size": [
+            70,
+            14
+          ],
+          "style": 0,
+          "xy": [
+            22,
+            -18
+          ]
+        },
+        {
+          "name": "hpbar",
+          "part": "normal",
+          "texture": "wep_hpbar",
+          "xy": [
+            14,
+            -20
+          ]
+        },
+        {
+          "name": "hp_bar",
+          "part": "normal",
+          "texture": "col赤",
+          "xy": [
+            36,
+            -12
+          ]
+        },
+        {
+          "name": "abs_bar",
+          "part": "normal",
+          "texture": "col青",
+          "xy": [
+            37,
+            -7
+          ]
+        },
+        {
+          "name": "hp0",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            176,
+            -14
+          ]
+        },
+        {
+          "name": "slu",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            174,
+            -14
+          ]
+        },
+        {
+          "name": "hp1",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 2,
+          "xy": [
+            192,
+            -14
+          ]
+        },
+        {
+          "name": "wl",
+          "part": "normal",
+          "size": [
+            230,
+            4
+          ],
+          "texture": "brdline",
+          "xy": [
+            12,
+            164
+          ]
+        },
+        {
+          "name": "00",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            52,
+            42
+          ]
+        },
+        {
+          "name": "01",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            62,
+            42
+          ]
+        },
+        {
+          "name": "02",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            131,
+            42
+          ]
+        },
+        {
+          "name": "10",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            141,
+            42
+          ]
+        },
+        {
+          "name": "11",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            151,
+            42
+          ]
+        },
+        {
+          "name": "12",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            220,
+            42
+          ]
+        },
+        {
+          "name": "20",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            52,
+            66
+          ]
+        },
+        {
+          "name": "21",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            62,
+            66
+          ]
+        },
+        {
+          "name": "22",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            131,
+            66
+          ]
+        },
+        {
+          "name": "30",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            141,
+            66
+          ]
+        },
+        {
+          "name": "31",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            151,
+            66
+          ]
+        },
+        {
+          "name": "32",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            220,
+            66
+          ]
+        },
+        {
+          "name": "40",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            52,
+            90
+          ]
+        },
+        {
+          "name": "41",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            62,
+            90
+          ]
+        },
+        {
+          "name": "42",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            131,
+            90
+          ]
+        },
+        {
+          "name": "50",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            141,
+            90
+          ]
+        },
+        {
+          "name": "51",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            151,
+            90
+          ]
+        },
+        {
+          "name": "52",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            220,
+            90
+          ]
+        },
+        {
+          "name": "60",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            52,
+            114
+          ]
+        },
+        {
+          "name": "61",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            62,
+            114
+          ]
+        },
+        {
+          "name": "62",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            131,
+            114
+          ]
+        },
+        {
+          "name": "70",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            141,
+            114
+          ]
+        },
+        {
+          "name": "71",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            151,
+            114
+          ]
+        },
+        {
+          "name": "72",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            220,
+            114
+          ]
+        },
+        {
+          "name": "80",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            52,
+            138
+          ]
+        },
+        {
+          "name": "81",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            62,
+            138
+          ]
+        },
+        {
+          "name": "82",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            131,
+            138
+          ]
+        },
+        {
+          "name": "90",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            141,
+            138
+          ]
+        },
+        {
+          "name": "91",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            151,
+            138
+          ]
+        },
+        {
+          "name": "92",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            220,
+            138
+          ]
+        },
+        {
+          "name": "index0",
+          "part": "normal",
+          "texture": "名_攻",
+          "xy": [
+            53,
+            45
+          ]
+        },
+        {
+          "name": "index1",
+          "part": "normal",
+          "texture": "名_耐久",
+          "xy": [
+            142,
+            45
+          ]
+        },
+        {
+          "name": "index2",
+          "part": "normal",
+          "texture": "名_炎",
+          "xy": [
+            53,
+            69
+          ]
+        },
+        {
+          "name": "index3",
+          "part": "normal",
+          "texture": "名_冷",
+          "xy": [
+            142,
+            69
+          ]
+        },
+        {
+          "name": "index4",
+          "part": "normal",
+          "texture": "名_稲",
+          "xy": [
+            53,
+            93
+          ]
+        },
+        {
+          "name": "index5",
+          "part": "normal",
+          "texture": "名_かま",
+          "xy": [
+            142,
+            93
+          ]
+        },
+        {
+          "name": "index6",
+          "part": "normal",
+          "texture": "名_粉砕",
+          "xy": [
+            53,
+            117
+          ]
+        },
+        {
+          "name": "index7",
+          "part": "normal",
+          "texture": "名_退魔",
+          "xy": [
+            142,
+            117
+          ]
+        },
+        {
+          "name": "index8",
+          "part": "normal",
+          "texture": "名_ケモ",
+          "xy": [
+            53,
+            141
+          ]
+        },
+        {
+          "name": "index9",
+          "part": "normal",
+          "texture": "名_うろ",
+          "xy": [
+            142,
+            141
+          ]
+        },
+        {
+          "name": "fup",
+          "part": "normal",
+          "texture": "合成P",
+          "xy": [
+            48,
+            171
+          ]
+        },
+        {
+          "name": "st0",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            136,
+            44
+          ]
+        },
+        {
+          "name": "st1",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            225,
+            44
+          ]
+        },
+        {
+          "name": "el0",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            136,
+            68
+          ]
+        },
+        {
+          "name": "el1",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            225,
+            68
+          ]
+        },
+        {
+          "name": "el2",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            136,
+            92
+          ]
+        },
+        {
+          "name": "el3",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            225,
+            92
+          ]
+        },
+        {
+          "name": "el4",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            136,
+            116
+          ]
+        },
+        {
+          "name": "el5",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            225,
+            116
+          ]
+        },
+        {
+          "name": "el6",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            136,
+            140
+          ]
+        },
+        {
+          "name": "el7",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            225,
+            140
+          ]
+        },
+        {
+          "name": "funum",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            210,
+            170
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 97,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -380,
+            258
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -300.0,
+                258.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -10.0,
+                258.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "form_view4",
+      "op": "form",
+      "parts": [
+        {
+          "name": "chrpos",
+          "part": "funcinfo",
+          "xy": [
+            46,
+            -66
+          ]
+        },
+        {
+          "name": "b0",
+          "part": "normal",
+          "texture": "brdb0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "b1",
+          "part": "normal",
+          "size": [
+            182,
+            32
+          ],
+          "texture": "brdb1",
+          "xy": [
+            32,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b2",
+          "part": "normal",
+          "texture": "brdb2",
+          "xy": [
+            214,
+            0
+          ]
+        },
+        {
+          "name": "b3",
+          "part": "normal",
+          "size": [
+            32,
+            140
+          ],
+          "texture": "brdb3",
+          "xy": [
+            0,
+            32
+          ]
+        },
+        {
+          "name": "b4",
+          "part": "normal",
+          "size": [
+            182,
+            140
+          ],
+          "texture": "brdb4",
+          "xy": [
+            32,
+            32
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b5",
+          "part": "normal",
+          "size": [
+            32,
+            140
+          ],
+          "texture": "brdb5",
+          "xy": [
+            214,
+            32
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b6",
+          "part": "normal",
+          "texture": "brdb6",
+          "xy": [
+            0,
+            172
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b7",
+          "part": "normal",
+          "size": [
+            182,
+            32
+          ],
+          "texture": "brdb7",
+          "xy": [
+            32,
+            172
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b8",
+          "part": "normal",
+          "texture": "brdb8",
+          "xy": [
+            214,
+            172
+          ]
+        },
+        {
+          "name": "circle",
+          "part": "normal",
+          "texture": "mt_circle",
+          "xy": [
+            -34,
+            16
+          ]
+        },
+        {
+          "name": "nameline",
+          "part": "normal",
+          "size": [
+            150,
+            4
+          ],
+          "texture": "brdline",
+          "xy": [
+            22,
+            36
+          ]
+        },
+        {
+          "name": "name",
+          "part": "funcinfo",
+          "xy": [
+            46,
+            10
+          ]
+        },
+        {
+          "name": "wl",
+          "part": "normal",
+          "size": [
+            230,
+            4
+          ],
+          "texture": "brdline",
+          "xy": [
+            12,
+            164
+          ]
+        },
+        {
+          "name": "名_飛距0",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            72,
+            42
+          ]
+        },
+        {
+          "name": "名_飛距1",
+          "part": "normal",
+          "size": [
+            99,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            82,
+            42
+          ]
+        },
+        {
+          "name": "名_飛距2",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            181,
+            42
+          ]
+        },
+        {
+          "name": "名_強度0",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            72,
+            66
+          ]
+        },
+        {
+          "name": "名_強度1",
+          "part": "normal",
+          "size": [
+            99,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            82,
+            66
+          ]
+        },
+        {
+          "name": "名_強度2",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            181,
+            66
+          ]
+        },
+        {
+          "name": "名_しなり0",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            72,
+            90
+          ]
+        },
+        {
+          "name": "名_しなり1",
+          "part": "normal",
+          "size": [
+            99,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            82,
+            90
+          ]
+        },
+        {
+          "name": "名_しなり2",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            181,
+            90
+          ]
+        },
+        {
+          "name": "名_にぎり0",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            72,
+            114
+          ]
+        },
+        {
+          "name": "名_にぎり1",
+          "part": "normal",
+          "size": [
+            99,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            82,
+            114
+          ]
+        },
+        {
+          "name": "名_にぎり2",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            181,
+            114
+          ]
+        },
+        {
+          "name": "名_運0",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            72,
+            138
+          ]
+        },
+        {
+          "name": "名_運1",
+          "part": "normal",
+          "size": [
+            99,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            82,
+            138
+          ]
+        },
+        {
+          "name": "名_運2",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            181,
+            138
+          ]
+        },
+        {
+          "name": "index0",
+          "part": "normal",
+          "texture": "名_飛距",
+          "xy": [
+            78,
+            45
+          ]
+        },
+        {
+          "name": "index1",
+          "part": "normal",
+          "texture": "名_強度",
+          "xy": [
+            78,
+            69
+          ]
+        },
+        {
+          "name": "index2",
+          "part": "normal",
+          "texture": "名_しなり",
+          "xy": [
+            78,
+            93
+          ]
+        },
+        {
+          "name": "index3",
+          "part": "normal",
+          "texture": "名_にぎり",
+          "xy": [
+            78,
+            117
+          ]
+        },
+        {
+          "name": "index4",
+          "part": "normal",
+          "texture": "名_運",
+          "xy": [
+            78,
+            141
+          ]
+        },
+        {
+          "name": "fip",
+          "part": "normal",
+          "texture": "ＦＰ",
+          "xy": [
+            27,
+            172
+          ]
+        },
+        {
+          "name": "fps0",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            182,
+            44
+          ]
+        },
+        {
+          "name": "fps1",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            182,
+            68
+          ]
+        },
+        {
+          "name": "fps2",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            182,
+            92
+          ]
+        },
+        {
+          "name": "fps3",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            182,
+            116
+          ]
+        },
+        {
+          "name": "fps4",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            182,
+            140
+          ]
+        },
+        {
+          "name": "funum",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            212,
+            170
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 50,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -380,
+            80
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -300.0,
+                258.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -10.0,
+                258.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "form_view2",
+      "op": "form",
+      "parts": [
+        {
+          "name": "name",
+          "part": "funcinfo",
+          "xy": [
+            0,
+            -16
+          ]
+        },
+        {
+          "name": "chara",
+          "part": "funcinfo",
+          "xy": [
+            74,
+            -140
+          ]
+        },
+        {
+          "name": "chr_cur",
+          "part": "funcinfo",
+          "xy": [
+            18,
+            -178
+          ]
+        },
+        {
+          "name": "c_w0",
+          "part": "funcinfo",
+          "xy": [
+            -16,
+            0
+          ]
+        },
+        {
+          "name": "c_w1",
+          "part": "funcinfo",
+          "xy": [
+            134,
+            45
+          ]
+        },
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                29,
+                45,
+                30,
+                128
+              ]
+            }
+          ],
+          "name": "hpbgfil",
+          "part": "fillbox",
+          "size": [
+            174,
+            8
+          ],
+          "style": 0,
+          "xy": [
+            6,
+            18
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "hpbar",
+          "part": "normal",
+          "texture": "rbfrm_hp",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "name": "needle",
+          "part": "normal",
+          "texture": "rbfrm_hp0",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "wepfrm",
+          "part": "normal",
+          "texture": "rbfrm_wep",
+          "xy": [
+            14,
+            60
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "absfrm",
+          "part": "normal",
+          "texture": "rbfrm_pt",
+          "xy": [
+            -2,
+            -302
+          ]
+        },
+        {
+          "name": "corep",
+          "part": "number2",
+          "size": [
+            3,
+            0
+          ],
+          "texture": "num3",
+          "value": 5,
+          "xy": [
+            84,
+            -282
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "capbrd",
+          "part": "normal",
+          "texture": "capacity",
+          "xy": [
+            104,
+            -298
+          ]
+        },
+        {
+          "name": "capslu",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            144,
+            -280
+          ]
+        },
+        {
+          "name": "capuse",
+          "part": "number2",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num3",
+          "value": 3,
+          "xy": [
+            146,
+            -280
+          ]
+        },
+        {
+          "name": "capmax",
+          "part": "number2",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num3",
+          "value": 3,
+          "xy": [
+            186,
+            -280
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "VOICE",
+          "part": "normal",
+          "texture": "VOICE",
+          "xy": [
+            150,
+            -302
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": -6
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "hp_bar",
+          "part": "normal2",
+          "size": [
+            30,
+            4
+          ],
+          "texture": "col黄",
+          "xy": [
+            43,
+            19
+          ]
+        },
+        {
+          "name": "hp0",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            96,
+            32
+          ]
+        },
+        {
+          "name": "slu0",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            94,
+            32
+          ]
+        },
+        {
+          "name": "hp1",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num3",
+          "value": 2,
+          "xy": [
+            114,
+            32
+          ]
+        },
+        {
+          "name": "whp_bar",
+          "part": "normal",
+          "size": [
+            35,
+            4
+          ],
+          "texture": "col赤",
+          "xy": [
+            30,
+            67
+          ]
+        },
+        {
+          "name": "whp00",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            116,
+            78
+          ]
+        },
+        {
+          "name": "slu1",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            114,
+            78
+          ]
+        },
+        {
+          "name": "whp01",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 2,
+          "xy": [
+            131,
+            78
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "wep0",
+          "part": "item",
+          "size": [
+            28,
+            36
+          ],
+          "xy": [
+            154,
+            60
+          ]
+        },
+        {
+          "kind": "trs",
+          "name": "wep2",
+          "part": "item",
+          "size": [
+            28,
+            36
+          ],
+          "xy": [
+            4,
+            14
+          ]
+        },
+        {
+          "name": "wep1",
+          "part": "funcinfo",
+          "xy": [
+            74,
+            -140
+          ]
+        },
+        {
+          "name": "wep3",
+          "part": "funcinfo",
+          "xy": [
+            74,
+            -140
+          ]
+        },
+        {
+          "name": "DEF",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            62,
+            -231
+          ]
+        },
+        {
+          "name": "SH",
+          "part": "normal",
+          "texture": "盾",
+          "xy": [
+            -4,
+            -256
+          ]
+        },
+        {
+          "name": "SH2",
+          "part": "normal",
+          "texture": "盾",
+          "xy": [
+            -4,
+            -236
+          ]
+        },
+        {
+          "name": "SHC",
+          "part": "normal",
+          "texture": "RCORE",
+          "xy": [
+            15,
+            -255
+          ]
+        },
+        {
+          "name": "SHB",
+          "part": "normal",
+          "texture": "RBODY",
+          "xy": [
+            14,
+            -236
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                110,
+                110,
+                110,
+                128
+              ]
+            }
+          ],
+          "name": "shkisl",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            60,
+            -251
+          ]
+        },
+        {
+          "name": "shkitn",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num0",
+          "value": 0,
+          "xy": [
+            62,
+            -251
+          ]
+        },
+        {
+          "name": "shkitm",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            84,
+            -251
+          ]
+        },
+        {
+          "name": "batu0",
+          "part": "normal",
+          "texture": "故障X",
+          "xy": [
+            170,
+            78
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 49,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -380,
+            352
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -300.0,
+                352.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                24.0,
+                352.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "form_view3",
+      "op": "form",
+      "parts": [
+        {
+          "name": "name",
+          "part": "funcinfo",
+          "xy": [
+            12,
+            -14
+          ]
+        },
+        {
+          "name": "chara",
+          "part": "funcinfo",
+          "xy": [
+            4,
+            -178
+          ]
+        },
+        {
+          "name": "chr_cur",
+          "part": "funcinfo",
+          "xy": [
+            4,
+            -178
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "hpbar",
+          "part": "normal",
+          "texture": "mosfrm_hp",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            },
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "powbar",
+          "part": "normal",
+          "texture": "mosfrm_po",
+          "xy": [
+            0,
+            46
+          ]
+        },
+        {
+          "name": "剣",
+          "part": "normal",
+          "texture": "剣",
+          "xy": [
+            10,
+            -252
+          ]
+        },
+        {
+          "name": "盾",
+          "part": "normal",
+          "texture": "盾",
+          "xy": [
+            10,
+            -232
+          ]
+        },
+        {
+          "name": "at",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num0",
+          "value": 0,
+          "xy": [
+            52,
+            -246
+          ]
+        },
+        {
+          "name": "def",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num0",
+          "value": 0,
+          "xy": [
+            52,
+            -226
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": -6
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "hp_bar",
+          "part": "normal2",
+          "size": [
+            30,
+            6
+          ],
+          "texture": "col緑太",
+          "xy": [
+            23,
+            19
+          ]
+        },
+        {
+          "name": "hp0",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 1,
+          "xy": [
+            124,
+            30
+          ]
+        },
+        {
+          "name": "slu",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            134,
+            30
+          ]
+        },
+        {
+          "name": "hp1",
+          "part": "number1",
+          "size": [
+            -2,
+            0
+          ],
+          "texture": "num3",
+          "value": 1,
+          "xy": [
+            162,
+            30
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": 2
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "whp_bar",
+          "part": "normal2",
+          "size": [
+            35,
+            4
+          ],
+          "texture": "col赤太",
+          "xy": [
+            40,
+            51
+          ]
+        },
+        {
+          "name": "whp0",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            76,
+            66
+          ]
+        },
+        {
+          "name": "slu",
+          "part": "normal",
+          "texture": "num_slu",
+          "xy": [
+            74,
+            67
+          ]
+        },
+        {
+          "name": "whp1",
+          "part": "number1",
+          "size": [
+            -1,
+            0
+          ],
+          "texture": "num3",
+          "value": 0,
+          "xy": [
+            106,
+            66
+          ]
+        },
+        {
+          "name": "abs",
+          "part": "normal",
+          "size": [
+            35,
+            5
+          ],
+          "texture": "col青",
+          "xy": [
+            42,
+            55
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 30,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -380,
+            352
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -300.0,
+                352.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                24.0,
+                352.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "itembrd",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "itembrd"
+        },
+        {
+          "set": "position",
+          "xy": [
+            560,
+            24
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                560.0,
+                24.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                3.0
+              ],
+              "xy": [
+                226.0,
+                24.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "giftview",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            200,
+            200
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "giftview"
+        }
+      ]
+    },
+    {
+      "name": "itemclip1",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            50
+          ]
+        },
+        {
+          "set": "clip",
+          "size": [
+            511,
+            410
+          ]
+        }
+      ]
+    },
+    {
+      "name": "moveitem0",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "moveitem1",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "trs",
+          "name": "item",
+          "part": "item",
+          "size": [
+            32,
+            40
+          ],
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "num0",
+          "value": 1,
+          "xy": [
+            32,
+            26
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 2,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "rate": [
+            3.0,
+            3.0
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "itemclip2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "clip"
+        }
+      ]
+    },
+    {
+      "name": "moneybrd",
+      "op": "form",
+      "parts": [
+        {
+          "name": "left0",
+          "part": "normal",
+          "texture": "brdc0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "right0",
+          "part": "normal",
+          "texture": "brdc2",
+          "xy": [
+            168,
+            0
+          ]
+        },
+        {
+          "name": "cen0",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc1",
+          "xy": [
+            16,
+            0
+          ]
+        },
+        {
+          "name": "left1",
+          "part": "normal",
+          "size": [
+            16,
+            8
+          ],
+          "texture": "brdc3",
+          "xy": [
+            0,
+            14
+          ]
+        },
+        {
+          "name": "right1",
+          "part": "normal",
+          "size": [
+            16,
+            8
+          ],
+          "texture": "brdc5",
+          "xy": [
+            168,
+            14
+          ]
+        },
+        {
+          "name": "cen1",
+          "part": "normal",
+          "size": [
+            160,
+            8
+          ],
+          "texture": "brdc4",
+          "xy": [
+            16,
+            14
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "left2",
+          "part": "normal",
+          "texture": "brdc6",
+          "xy": [
+            2,
+            24
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "right2",
+          "part": "normal",
+          "texture": "brdc8",
+          "xy": [
+            170,
+            24
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                0,
+                0,
+                0,
+                48
+              ]
+            }
+          ],
+          "name": "cen2",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc7",
+          "xy": [
+            18,
+            24
+          ]
+        },
+        {
+          "name": "left2",
+          "part": "normal",
+          "texture": "brdc6",
+          "xy": [
+            0,
+            22
+          ]
+        },
+        {
+          "name": "cen2",
+          "part": "normal",
+          "size": [
+            160,
+            14
+          ],
+          "texture": "brdc7",
+          "xy": [
+            16,
+            22
+          ]
+        },
+        {
+          "name": "right2",
+          "part": "normal",
+          "texture": "brdc8",
+          "xy": [
+            168,
+            22
+          ]
+        },
+        {
+          "name": "icon",
+          "part": "normal",
+          "texture": "お金袋",
+          "xy": [
+            10,
+            8
+          ]
+        },
+        {
+          "name": "gilda",
+          "part": "normal",
+          "texture": "ギルダ",
+          "xy": [
+            126,
+            11
+          ]
+        },
+        {
+          "name": "num",
+          "part": "number1",
+          "texture": "numtime",
+          "value": 0,
+          "xy": [
+            118,
+            8
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 20,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            520,
+            6
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                520.0,
+                6.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                300.0,
+                6.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "rate": [
+            4.1,
+            1.1
+          ],
+          "set": "move_rate"
+        }
+      ]
+    },
+    {
+      "name": "infocur",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "infocur"
+        }
+      ]
+    },
+    {
+      "name": "SPEFADE",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                0,
+                0,
+                0,
+                84
+              ]
+            }
+          ],
+          "name": "hpbgfil",
+          "part": "fillbox",
+          "size": [
+            512,
+            480
+          ],
+          "style": 0,
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "msg5",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "msg6",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "ビルドアップ",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "buildup"
+        }
+      ]
+    },
+    {
+      "name": "msg7",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        },
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "SPECHECK",
+      "op": "form",
+      "parts": [
+        {
+          "name": "b0",
+          "part": "normal",
+          "texture": "brdb0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "b1",
+          "part": "normal",
+          "size": [
+            172,
+            32
+          ],
+          "texture": "brdb1",
+          "xy": [
+            32,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b2",
+          "part": "normal",
+          "texture": "brdb2",
+          "xy": [
+            204,
+            0
+          ]
+        },
+        {
+          "name": "b3",
+          "part": "normal",
+          "size": [
+            32,
+            100
+          ],
+          "texture": "brdb3",
+          "xy": [
+            0,
+            32
+          ]
+        },
+        {
+          "name": "b4",
+          "part": "normal",
+          "size": [
+            172,
+            100
+          ],
+          "texture": "brdb4",
+          "xy": [
+            32,
+            32
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b5",
+          "part": "normal",
+          "size": [
+            32,
+            100
+          ],
+          "texture": "brdb5",
+          "xy": [
+            204,
+            32
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b6",
+          "part": "normal",
+          "texture": "brdb6",
+          "xy": [
+            0,
+            132
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b7",
+          "part": "normal",
+          "size": [
+            172,
+            32
+          ],
+          "texture": "brdb7",
+          "xy": [
+            32,
+            132
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "b8",
+          "part": "normal",
+          "texture": "brdb8",
+          "xy": [
+            204,
+            132
+          ]
+        },
+        {
+          "name": "00",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            30,
+            22
+          ]
+        },
+        {
+          "name": "01",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            40,
+            22
+          ]
+        },
+        {
+          "name": "02",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            109,
+            22
+          ]
+        },
+        {
+          "name": "10",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            119,
+            22
+          ]
+        },
+        {
+          "name": "11",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            129,
+            22
+          ]
+        },
+        {
+          "name": "12",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            198,
+            22
+          ]
+        },
+        {
+          "name": "20",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            30,
+            46
+          ]
+        },
+        {
+          "name": "21",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            40,
+            46
+          ]
+        },
+        {
+          "name": "22",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            109,
+            46
+          ]
+        },
+        {
+          "name": "30",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            119,
+            46
+          ]
+        },
+        {
+          "name": "31",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            129,
+            46
+          ]
+        },
+        {
+          "name": "32",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            198,
+            46
+          ]
+        },
+        {
+          "name": "40",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            30,
+            70
+          ]
+        },
+        {
+          "name": "41",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            40,
+            70
+          ]
+        },
+        {
+          "name": "42",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            109,
+            70
+          ]
+        },
+        {
+          "name": "50",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            119,
+            70
+          ]
+        },
+        {
+          "name": "51",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            129,
+            70
+          ]
+        },
+        {
+          "name": "52",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            198,
+            70
+          ]
+        },
+        {
+          "name": "60",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            30,
+            94
+          ]
+        },
+        {
+          "name": "61",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            40,
+            94
+          ]
+        },
+        {
+          "name": "62",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            109,
+            94
+          ]
+        },
+        {
+          "name": "70",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            119,
+            94
+          ]
+        },
+        {
+          "name": "71",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            129,
+            94
+          ]
+        },
+        {
+          "name": "72",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            198,
+            94
+          ]
+        },
+        {
+          "name": "80",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            30,
+            118
+          ]
+        },
+        {
+          "name": "81",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            40,
+            118
+          ]
+        },
+        {
+          "name": "82",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            109,
+            118
+          ]
+        },
+        {
+          "name": "90",
+          "part": "normal",
+          "texture": "ST_WK0",
+          "xy": [
+            119,
+            118
+          ]
+        },
+        {
+          "name": "91",
+          "part": "normal",
+          "size": [
+            69,
+            24
+          ],
+          "texture": "ST_WK1",
+          "xy": [
+            129,
+            118
+          ]
+        },
+        {
+          "name": "92",
+          "part": "normal",
+          "texture": "ST_WK2",
+          "xy": [
+            198,
+            118
+          ]
+        },
+        {
+          "name": "index0",
+          "part": "normal",
+          "texture": "名_攻",
+          "xy": [
+            31,
+            24
+          ]
+        },
+        {
+          "name": "index1",
+          "part": "normal",
+          "texture": "名_耐久",
+          "xy": [
+            120,
+            24
+          ]
+        },
+        {
+          "name": "index2",
+          "part": "normal",
+          "texture": "名_炎",
+          "xy": [
+            31,
+            48
+          ]
+        },
+        {
+          "name": "index3",
+          "part": "normal",
+          "texture": "名_冷",
+          "xy": [
+            120,
+            48
+          ]
+        },
+        {
+          "name": "index4",
+          "part": "normal",
+          "texture": "名_稲",
+          "xy": [
+            31,
+            72
+          ]
+        },
+        {
+          "name": "index5",
+          "part": "normal",
+          "texture": "名_かま",
+          "xy": [
+            120,
+            72
+          ]
+        },
+        {
+          "name": "index6",
+          "part": "normal",
+          "texture": "名_粉砕",
+          "xy": [
+            31,
+            96
+          ]
+        },
+        {
+          "name": "index7",
+          "part": "normal",
+          "texture": "名_退魔",
+          "xy": [
+            120,
+            96
+          ]
+        },
+        {
+          "name": "index8",
+          "part": "normal",
+          "texture": "名_ケモ",
+          "xy": [
+            31,
+            120
+          ]
+        },
+        {
+          "name": "index9",
+          "part": "normal",
+          "texture": "名_うろ",
+          "xy": [
+            120,
+            120
+          ]
+        },
+        {
+          "name": "st0",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            114,
+            24
+          ]
+        },
+        {
+          "name": "st1",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            203,
+            24
+          ]
+        },
+        {
+          "name": "el0",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            114,
+            48
+          ]
+        },
+        {
+          "name": "el1",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            203,
+            48
+          ]
+        },
+        {
+          "name": "el2",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            114,
+            72
+          ]
+        },
+        {
+          "name": "el3",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            203,
+            72
+          ]
+        },
+        {
+          "name": "el4",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            114,
+            96
+          ]
+        },
+        {
+          "name": "el5",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            203,
+            96
+          ]
+        },
+        {
+          "name": "el6",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            114,
+            120
+          ]
+        },
+        {
+          "name": "el7",
+          "part": "number1",
+          "size": [
+            -3,
+            0
+          ],
+          "texture": "NUM4",
+          "value": 0,
+          "xy": [
+            203,
+            120
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "rgba",
+              "rgba": [
+                84,
+                84,
+                164,
+                128
+              ]
+            }
+          ],
+          "name": "？",
+          "part": "normal",
+          "texture": "？",
+          "xy": [
+            98,
+            24
+          ]
+        },
+        {
+          "kind": "trs",
+          "modifiers": [
+            {
+              "count": 8,
+              "mod": "effect_capacity"
+            }
+          ],
+          "name": "item",
+          "part": "item",
+          "size": [
+            28,
+            35
+          ],
+          "xy": [
+            0,
+            -6
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                -260.0,
+                296.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.3
+              ],
+              "xy": [
+                7.0,
+                296.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "set": "position",
+          "xy": [
+            -260,
+            296
+          ]
+        },
+        {
+          "count": 66,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,20 @@
+{
+  "entries": [
+    {
+      "filename": "snd2/mon/en_362.sound/effects/en_362_000.json",
+      "flag": true,
+      "key": 60,
+      "program": 0
+    },
+    {
+      "filename": "KeyOn",
+      "flag": false,
+      "key": 60,
+      "program": 1
+    }
+  ],
+  "entry_count": 3,
+  "kind": "sound_config",
+  "reverb": [],
+  "schema_version": 1
+}

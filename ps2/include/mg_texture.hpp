@@ -142,6 +142,7 @@ struct mgIMG_FILE_HEADER {
 };
 
 STATIC_ASSERT(sizeof(mgIMG_FILE_HEADER) == 0x10);
+PORT_RECORD_ASSERT(sizeof(mgIMG_FILE_HEADER) == 0x10);
 
 /**
  *
@@ -155,6 +156,7 @@ struct mgIMG1_HEADER {
 };
 
 STATIC_ASSERT(sizeof(mgIMG1_HEADER) == 0x30);
+PORT_RECORD_ASSERT(sizeof(mgIMG1_HEADER) == 0x30);
 
 /**
  *
@@ -191,6 +193,7 @@ struct mgIMG_HEADER {
 };
 
 STATIC_ASSERT(sizeof(mgIMG_HEADER) == 0x40);
+PORT_RECORD_ASSERT(sizeof(mgIMG_HEADER) == 0x40);
 
 /**
  *

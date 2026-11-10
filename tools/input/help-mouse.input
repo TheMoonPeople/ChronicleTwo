@@ -1,0 +1,53 @@
+# --jump dungeon:0:1 --fast-load --window 1920x1080; use --screenshot-fps to see the pointer.
+# Hover entry 3 (2610), wheel down 12 rows (2660), hover entry 22 (2690), click it for its
+# picture pages (2850), wheel to page 2 (2920) and back (2960), right click to the list (3100).
+300 cross
+306
+520 cross
+526
+900 start
+906
+940 triangle
+946
+1100 cross
+1106
+1250 cross
+1256
+1400 cross
+1406
+1550 cross
+1556
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2400 triangle
+2401
+2470 down
+2471
+2482 down
+2483
+2494 down
+2495
+2506 down
+2507
+2518 down
+2519
+2520 cross
+2526
+2600 mouse:-160,-202
+2601
+2620 wheel:-12
+2621
+2680 mouse:0,378
+2681
+2700 mouse1
+2702
+2900 wheel:-1
+2901
+2940 wheel:1
+2941
+2980 mouse2
+2982

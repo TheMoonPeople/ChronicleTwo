@@ -1,0 +1,926 @@
+{
+  "blocks": [
+    {
+      "commands": [
+        {
+          "fade_in": 1,
+          "frames": 40,
+          "op": "scene_fade"
+        },
+        {
+          "enable": 0,
+          "op": "input_key"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "action": "中へ",
+          "form": "msg0",
+          "op": "form_set_action"
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 0
+        },
+        {
+          "op": "message_env",
+          "preset": "system",
+          "window": 0
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 1
+        },
+        {
+          "buffer": 2,
+          "op": "message_system_buffer",
+          "window": 1
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 1
+        },
+        {
+          "op": "message_outline",
+          "style": "default",
+          "window": 1
+        },
+        {
+          "message": 1,
+          "op": "make_message",
+          "window": 1
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "no_win",
+          "window": 3
+        },
+        {
+          "op": "message_outline",
+          "style": "default",
+          "window": 3
+        },
+        {
+          "draw": 0,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_outline",
+          "style": "default",
+          "window": 4
+        }
+      ],
+      "name": "INIT"
+    },
+    {
+      "commands": [
+        {
+          "enable": 1,
+          "op": "input_key"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "fade_in": 1,
+          "op": "cursor_fade"
+        }
+      ],
+      "name": "INIT_END"
+    },
+    {
+      "commands": [
+        {
+          "fade_in": 0,
+          "op": "scene_fade"
+        }
+      ],
+      "name": "PREEND"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "EXPBRD",
+            "MEDALBRD"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "EXP1",
+            "EXP2",
+            "枚1",
+            "枚2"
+          ]
+        },
+        {
+          "draw": 0,
+          "form": "品物ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "SP"
+          ]
+        }
+      ],
+      "name": "通常"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "moneybrd",
+            "MEDALBRD"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "ギルダ１",
+            "ギルダ２",
+            "枚1",
+            "枚2",
+            "each"
+          ]
+        },
+        {
+          "draw": 0,
+          "form": "品物ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "SP"
+          ]
+        }
+      ],
+      "name": "スターブル"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "EXPBRD",
+            "moneybrd"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "ギルダ１",
+            "ギルダ２",
+            "EXP1",
+            "EXP2"
+          ]
+        },
+        {
+          "draw": 0,
+          "form": "品物ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "SP"
+          ]
+        }
+      ],
+      "name": "ニード"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "EXPBRD",
+            "MEDALBRD"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "EXP1",
+            "EXP2",
+            "枚1",
+            "枚2"
+          ]
+        },
+        {
+          "draw": 1,
+          "form": "品物ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "SP"
+          ]
+        }
+      ],
+      "name": "ドニー"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg3",
+            "msg4",
+            "売買ボード"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "アイテム選択にもどる"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1011,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "お金不足"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1031,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "EXE不足"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1061,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "メダル不足"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1012,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "空きスペース無し"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1003,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "アイテム限界"
+    },
+    {
+      "commands": [
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1004,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "最後の武器"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "売買ボード",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "message": 1010,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "かう設定"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "売買ボード",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "message": 1030,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "かう設定ROBO"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "売買ボード",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "message": 1060,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "かう設定メダル"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 3
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 3
+        },
+        {
+          "message": 1080,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 3
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        }
+      ],
+      "name": "もらう設定"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "VOICEUNIT"
+          ]
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "ヒマーラ"
+          ]
+        },
+        {
+          "draw": 1,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "item"
+          ]
+        }
+      ],
+      "name": "VOICEOFF"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "VOICEUNIT"
+          ]
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "ヒマーラ"
+          ]
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "item"
+          ]
+        }
+      ],
+      "name": "VOICEON"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "VOICEUNIT"
+          ]
+        },
+        {
+          "draw": 1,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "ヒマーラ"
+          ]
+        },
+        {
+          "draw": 0,
+          "form": "売買ボード",
+          "op": "parts_draw_flag",
+          "parts": [
+            "item"
+          ]
+        }
+      ],
+      "name": "ヒマーラON"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1013,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "かう？"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1033,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "かう？ROBO"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1063,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "かう？メダル"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "売買ボード",
+            "msg3"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "no_win",
+          "window": 3
+        },
+        {
+          "op": "message_outline",
+          "style": "default",
+          "window": 3
+        },
+        {
+          "message": 1020,
+          "op": "make_message",
+          "window": 3
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "うる設定"
+    },
+    {
+      "commands": [
+        {
+          "draw": 1,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 4
+        },
+        {
+          "op": "message_abs_pos",
+          "value": 5,
+          "window": 4
+        },
+        {
+          "message": 1014,
+          "op": "make_message",
+          "window": 4
+        },
+        {
+          "cursor": 1,
+          "op": "message_cursor",
+          "window": 4
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 0
+        },
+        {
+          "name": "OK",
+          "op": "play_se"
+        }
+      ],
+      "name": "うる？"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg3",
+            "msg4",
+            "売買ボード"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        }
+      ],
+      "name": "売買成立"
+    },
+    {
+      "commands": [
+        {
+          "draw": 0,
+          "forms": [
+            "msg4"
+          ],
+          "op": "form_draw_flag"
+        },
+        {
+          "op": "cursor_on_off",
+          "show": 1
+        },
+        {
+          "name": "CANCEL",
+          "op": "play_se"
+        }
+      ],
+      "name": "やっぱやめ"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

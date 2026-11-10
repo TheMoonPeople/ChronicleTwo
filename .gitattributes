@@ -4,6 +4,3 @@
 *.exe binary
 *.dll binary
 *.DLL binary
-# Empty TSV fields and unified-diff blank context lines carry required trailing separators.
-docs/port/compatibility_decisions.tsv whitespace=-blank-at-eol
-scripts/port/upstream_host_fixups.patch whitespace=-blank-at-eol

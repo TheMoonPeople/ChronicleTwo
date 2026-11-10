@@ -1,0 +1,81 @@
+--!strict
+-- Shared event helper used by 6 scripts, translated by tools/luau/stb2luau.
+
+--- Helper function.
+local function helper_66ee0e0a(arg0: s32)
+	event.attach_object_handle_to_map_part_2(10, "p05_d02b01")
+	event.attach_object_handle_to_map_part_2(11, "p02_d02b01")
+	event.attach_object_handle_to_map_part_2(14, "p03_d02b01")
+	event.attach_object_handle_to_map_part_2(17, "p04_d02b01")
+	event.attach_object_handle_to_map_part_3(20, "bero", "03bossbero")
+	event.attach_object_handle_to_map_part_3(21, "bero-1", "03bossbero")
+	event.attach_object_handle_to_map_part_3(22, "bero-2", "03bossbero")
+	event.attach_object_handle_to_map_part_3(23, "bero-3", "03bossbero")
+	event.attach_object_handle_to_map_part_3(24, "bero-4", "03bossbero")
+	event.attach_object_handle_to_map_part_3(25, "bero-5", "03bossbero")
+	event.attach_object_handle_to_map_part_3(26, "bero-6", "03bossbero")
+	event.attach_object_handle_to_map_part_3(27, "bero-7", "03bossbero")
+	event.attach_object_handle_to_map_part_3(28, "neba", "neba3")
+	if arg0 == 0 then
+		event.set_object_handle_visible(10, 1)
+		event.set_object_handle_visible(11, 0)
+		event.set_object_handle_visible(14, 0)
+		event.set_object_handle_visible(17, 1)
+		event.set_object_handle_visible(20, 0)
+		event.set_object_handle_visible(21, 0)
+		event.set_object_handle_visible(22, 0)
+		event.set_object_handle_visible(23, 0)
+		event.set_object_handle_visible(24, 0)
+		event.set_object_handle_visible(25, 0)
+		event.set_object_handle_visible(26, 0)
+		event.set_object_handle_visible(27, 0)
+		event.set_object_handle_visible(28, 0)
+	end
+	if arg0 == 1 then
+		event.set_object_handle_visible(10, 0)
+		event.set_object_handle_visible(11, 1)
+		event.set_object_handle_visible(14, 1)
+		event.set_object_handle_visible(17, 0)
+		event.set_object_handle_visible(20, 1)
+		event.set_object_handle_visible(21, 1)
+		event.set_object_handle_visible(22, 1)
+		event.set_object_handle_visible(23, 1)
+		event.set_object_handle_visible(24, 1)
+		event.set_object_handle_visible(25, 1)
+		event.set_object_handle_visible(26, 1)
+		event.set_object_handle_visible(27, 1)
+		event.set_object_handle_visible(28, 0)
+	end
+	if arg0 == 2 then
+		event.set_object_handle_visible(10, 0)
+		event.set_object_handle_visible(11, 1)
+		event.set_object_handle_visible(14, 1)
+		event.set_object_handle_visible(17, 0)
+		event.set_object_handle_visible(20, 1)
+		event.set_object_handle_visible(21, 1)
+		event.set_object_handle_visible(22, 1)
+		event.set_object_handle_visible(23, 1)
+		event.set_object_handle_visible(24, 1)
+		event.set_object_handle_visible(25, 1)
+		event.set_object_handle_visible(26, 1)
+		event.set_object_handle_visible(27, 1)
+		event.set_object_handle_visible(28, 1)
+	end
+	if arg0 == 3 then
+		event.set_object_handle_visible(10, 0)
+		event.set_object_handle_visible(11, 0)
+		event.set_object_handle_visible(14, 0)
+		event.set_object_handle_visible(17, 1)
+		event.set_object_handle_visible(20, 0)
+		event.set_object_handle_visible(21, 0)
+		event.set_object_handle_visible(22, 0)
+		event.set_object_handle_visible(23, 0)
+		event.set_object_handle_visible(24, 0)
+		event.set_object_handle_visible(25, 0)
+		event.set_object_handle_visible(26, 0)
+		event.set_object_handle_visible(27, 0)
+		event.set_object_handle_visible(28, 0)
+	end
+end
+
+return helper_66ee0e0a

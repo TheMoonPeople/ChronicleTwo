@@ -1,0 +1,62 @@
+{
+  "draw_off_rects": [],
+  "event_points": [
+    {
+      "event": {
+        "mode": "every",
+        "point_no": 200
+      },
+      "name": "d06e01",
+      "transform": {
+        "position": [
+          0.0,
+          140.0,
+          -955.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          80.0,
+          10.0,
+          10.0
+        ]
+      },
+      "type": "event"
+    },
+    {
+      "event": {
+        "mode": "check",
+        "point_no": 210
+      },
+      "name": "s31",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          2460.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          120.0,
+          15.0,
+          15.0
+        ]
+      },
+      "type": "event"
+    }
+  ],
+  "kind": "scene_config",
+  "occlusion_planes": [],
+  "schema_version": 2,
+  "water": {
+    "draws": [],
+    "surfaces": []
+  }
+}

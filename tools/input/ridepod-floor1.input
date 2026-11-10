@@ -1,0 +1,37 @@
+# --jump dungeon:0:1 --fast-load --give 135,145,155,165,246 (Ridepod parts, then the Core). Replay endpoint: --frames 2850.
+# Enter floor 1 as jump-dungeon-floor1 does; the shoulder chord with R3 at 2301 clears DebugFlag and boards the Ridepod, which walks and attacks.
+300 cross
+306
+520 cross
+526
+900 start
+906
+940 triangle
+946
+1100 cross
+1106
+1250 cross
+1256
+1400 cross
+1406
+1550 cross
+1556
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2200 128 0 128 128
+2260
+2300 l1 l2 r1 r2
+2301 l1 l2 r1 r2 r3
+2302
+2500 128 0 128 128
+2580
+2620 cross
+2626
+2680 cross
+2686
+2740 square
+2746

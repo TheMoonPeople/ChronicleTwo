@@ -1,0 +1,13 @@
+# Addendum from Wave 0 (binding; overrides SCHEDULE.md where they differ)
+
+- Base commits: ChronicleTwo `s/p2-base` = 0a3c4ac (includes the CMake stream-include hook and the build.bat JOBS fix); Kazarov `kz/p2-base` = c937490. Branch your worktrees from these.
+- Worktree setup is yours: you may run the `git worktree add` / `submodule update` / branch-creation commands of SCHEDULE.md 4.1 against the main ChronicleTwo / Kazarov repos for YOUR worktrees only. That is the only git you run there.
+- Junctions do not resolve inside the Linux container. In a worktree, Linux headless runs see 0 files and data-dependent Linux tests skip. Do data-dependent runtime checks on Windows (the `darkchronicle.exe --headless --data data` run sees the junction fine). Linux data-dependent checks are run by the integrator in the main checkout. Report which checks you could only do on Windows.
+- `rom/` cannot be a junction (rom/pal/*.sha256 are tracked). Streams needing the ISO (data, boot for ps2-pal): create `rom/pal/` in the worktree and hardlink the ISO: `cmd /c mklink /H "<wt>\rom\pal\Dark Chronicle (PAL).iso" "C:\Users\Adubbz\Development\PS2\Projects\ChronicleTwo\rom\pal\Dark Chronicle (PAL).iso"`. ps2-pal then extracts its own copy.
+- Saves: use `--save port/build/<config>-save` (NOT a save/ folder beside the executable; that breaks DataRead.PathsDefaultToWorkingDirectory).
+- Windows test gate: run the tools/windows scripts from pwsh (PowerShell 7) with the worktree as the working directory. Windows PowerShell 5.1 aborts on cmake stderr and resolves relative paths against the main checkout.
+- pytest is not installed. Install it on the host once if you need it: `py -m pip install --user pytest` (then `py -m pytest tests -q` in the Kazarov worktree).
+- Docker: image kazarov-dev:e425e267ff38 exists. If Docker Desktop fails to start, a stale com.docker.extensions process may hold its pipe: stop it and restart Docker. Five streams run concurrently on this machine: JOBS=8, one build at a time, and prefer incremental `kazarov shell ninja -C port/build/pc <target>` over full ./build.sh until acceptance.
+- Known Windows link warnings hidden by --allow-multiple-definition (ClsMes::Init x6, CMapParts::CMapParts x2, CTreasureBox vtable/Initialize) and `duplicate symbol: CreateThread` vs kernel32 belong to `boot` (inline/ODR) and `time` (CreateThread) respectively.
+- data/ holds 8764 files, the plan expected 8753: stream `data` determines the correct count and the expectations follow the disc.
+- Long-running commands: use generous timeouts or Bash run_in_background and wait for completion; never end your turn while a build or subagent is outstanding.

@@ -1,0 +1,639 @@
+{
+  "family": "ChronicleTwoBoard",
+  "kind": "board",
+  "description": "Dark Chronicle's time board lettering as outlines, made from Yanone Kaffeesatz, Roboto Condensed, Sawarabi Gothic, Fjalla One, Antonio and M+ 1p for the ChronicleTwo port.",
+  "copyright": "Copyright 2010 The Yanone Kaffeesatz Project Authors (https://github.com/yanone/kaffeesatz). Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic). Copyright 2012 The Fjalla One Project Authors (https://github.com/SorkinType/FjallaOne). Copyright 2013 The Antonio Project Authors (https://github.com/googlefonts/antonioFont). Copyright 2016 The Sawarabi Gothic Project Authors. Copyright 2016 The M+ Project Authors. Modified for ChronicleTwo; see NOTICE.",
+  "default_source": "yanone_kaffeesatz",
+  "sources": {
+    "yanone_kaffeesatz": 400,
+    "roboto_condensed": {
+      "weight": 400,
+      "em": 23.0,
+      "stretch": 1.12
+    },
+    "fjalla_one": {
+      "weight": null,
+      "em": 17.7,
+      "stretch": 1.38
+    },
+    "antonio": {
+      "weight": 400,
+      "em": 18.5,
+      "stretch": 1.77
+    },
+    "sawarabi_gothic": {
+      "weight": null,
+      "em": 21.6,
+      "stretch": 1.12
+    },
+    "mplus_1p": {
+      "weight": null,
+      "em": 21.6,
+      "stretch": 1.04
+    }
+  },
+  "flare": null,
+  "rounding": {},
+  "global": {
+    "em": 17.9,
+    "stretch": 1.42,
+    "weight": -14.0,
+    "start": 1.125,
+    "baseline": 16.5,
+    "stem": 80.0
+  },
+  "words": {
+    "AM": [
+      -1.312,
+      -2.875
+    ],
+    "PM": [
+      0.188,
+      -2.875
+    ],
+    "0": [
+      0.312,
+      0.938
+    ],
+    "1": [
+      0.0,
+      1.0
+    ],
+    "2": [
+      0.125,
+      1.125
+    ],
+    "3": [
+      0.0,
+      1.0
+    ],
+    "4": [
+      -0.188,
+      1.125
+    ],
+    "5": [
+      -0.688,
+      0.938
+    ],
+    "6": [
+      -0.062,
+      1.125
+    ],
+    "7": [
+      0.188,
+      0.938
+    ],
+    "8": [
+      -0.438,
+      1.0
+    ],
+    "9": [
+      0.5,
+      0.938
+    ],
+    "Day": [
+      1.438,
+      -0.625
+    ],
+    "Future": [
+      0.125,
+      0.125
+    ],
+    ":": [
+      -0.562,
+      -0.75
+    ]
+  },
+  "glyphs": {
+    "0": {
+      "kx": 1.21,
+      "ky": 0.985,
+      "tx": 8.0,
+      "weight": 6.0,
+      "shear": 0.06,
+      "source": "roboto_condensed"
+    },
+    "1": {
+      "kx": 0.715,
+      "tx": -8.0,
+      "weight": 36.0,
+      "shear": 0.12,
+      "warp": [
+        {
+          "region": [
+            0,
+            650,
+            385,
+            900
+          ],
+          "scale": [
+            0.6,
+            1.0
+          ],
+          "about": [
+            390,
+            0
+          ]
+        }
+      ],
+      "source": "sawarabi_gothic"
+    },
+    "2": {
+      "kx": 0.79,
+      "tx": -28.0,
+      "weight": 14.0,
+      "shear": 0.06,
+      "source": "roboto_condensed"
+    },
+    "3": {
+      "kx": 0.955,
+      "ky": 0.995,
+      "tx": -8.0,
+      "weight": 18.0,
+      "shear": 0.06,
+      "source": "roboto_condensed"
+    },
+    "4": {
+      "kx": 1.105,
+      "ky": 1.186,
+      "tx": 20.0,
+      "weight": -29.0,
+      "shear": 0.06,
+      "source": "fjalla_one"
+    },
+    "5": {
+      "kx": 1.06,
+      "tx": 12.0,
+      "weight": -47.0,
+      "ky": 1.086,
+      "shear": 0.06,
+      "warp": [
+        {
+          "region": [
+            -1000,
+            960,
+            2000,
+            1010
+          ],
+          "scale": [
+            1.0,
+            2.29
+          ],
+          "about": [
+            0,
+            1037
+          ]
+        },
+        {
+          "region": [
+            298,
+            606,
+            306,
+            614
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            308,
+            700
+          ]
+        },
+        {
+          "region": [
+            374,
+            682,
+            382,
+            690
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            380,
+            725
+          ]
+        },
+        {
+          "region": [
+            455,
+            703,
+            463,
+            711
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            459,
+            730
+          ]
+        },
+        {
+          "region": [
+            506,
+            703,
+            514,
+            711
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            510,
+            730
+          ]
+        },
+        {
+          "region": [
+            591,
+            703,
+            599,
+            711
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            598,
+            726
+          ]
+        },
+        {
+          "region": [
+            529,
+            660,
+            537,
+            668
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            533,
+            650
+          ]
+        },
+        {
+          "region": [
+            443,
+            660,
+            451,
+            668
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            447,
+            648
+          ]
+        },
+        {
+          "region": [
+            377,
+            660,
+            385,
+            668
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            381,
+            648
+          ]
+        },
+        {
+          "region": [
+            286,
+            587,
+            294,
+            595
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            292,
+            580
+          ]
+        }
+      ],
+      "source": "antonio"
+    },
+    "6": {
+      "kx": 0.82,
+      "ky": 0.985,
+      "tx": -56.0,
+      "weight": 32.0,
+      "shear": 0.06,
+      "warp": [
+        {
+          "region": [
+            92,
+            656,
+            100,
+            664
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            96,
+            626
+          ]
+        },
+        {
+          "region": [
+            349,
+            999,
+            357,
+            1007
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            340,
+            907
+          ]
+        },
+        {
+          "region": [
+            577,
+            1023,
+            585,
+            1031
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            451,
+            1035
+          ]
+        },
+        {
+          "region": [
+            594,
+            913,
+            602,
+            921
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            591,
+            960
+          ]
+        },
+        {
+          "region": [
+            315,
+            879,
+            323,
+            887
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            495,
+            850
+          ]
+        },
+        {
+          "region": [
+            220,
+            570,
+            228,
+            578
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            400,
+            740
+          ]
+        },
+        {
+          "region": [
+            215,
+            569,
+            223,
+            577
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            400,
+            740
+          ]
+        },
+        {
+          "region": [
+            293,
+            682,
+            301,
+            690
+          ],
+          "scale": [
+            0.0,
+            0.0
+          ],
+          "about": [
+            362,
+            697
+          ]
+        }
+      ],
+      "source": "mplus_1p"
+    },
+    "7": {
+      "kx": 0.76,
+      "ky": 0.97,
+      "weight": 28.0,
+      "shear": 0.06,
+      "source": "roboto_condensed"
+    },
+    "8": {
+      "ky": 1.01,
+      "weight": 6.0,
+      "shear": 0.06,
+      "source": "roboto_condensed"
+    },
+    "9": {
+      "kx": 0.985,
+      "ky": 1.01,
+      "tx": -16.0,
+      "shear": 0.165,
+      "source": "roboto_condensed"
+    },
+    ":": {
+      "kx": 0.97,
+      "ky": 0.98,
+      "tx": -28.0,
+      "weight": 48.0,
+      "source": "roboto_condensed"
+    },
+    "A": {
+      "kx": 0.94,
+      "ky": 0.965,
+      "shear": 0.015,
+      "weight": 6.0,
+      "advance": -16.0
+    },
+    "D": {
+      "kx": 1.03,
+      "ky": 1.02,
+      "tx": 12.0,
+      "weight": -6.0,
+      "advance": -64.0
+    },
+    "F": {
+      "kx": 1.195,
+      "ky": 1.03,
+      "tx": -32.0,
+      "shear": 0.03,
+      "weight": 10.0,
+      "advance": 32.0
+    },
+    "M": {
+      "kx": 0.925,
+      "ky": 0.96,
+      "tx": -12.0,
+      "shear": 0.03,
+      "weight": 4.0
+    },
+    "P": {
+      "kx": 1.15,
+      "tx": 24.0,
+      "shear": 0.015,
+      "weight": -2.0,
+      "advance": 12.0,
+      "warp": [
+        {
+          "region": [
+            60,
+            300,
+            600,
+            790
+          ],
+          "scale": [
+            1.0,
+            1.165
+          ],
+          "about": [
+            0,
+            786
+          ]
+        }
+      ]
+    },
+    "a": {
+      "kx": 0.925,
+      "ky": 1.035,
+      "tx": 20.0,
+      "shear": 0.015,
+      "weight": -12.0,
+      "advance": -56.0,
+      "warp": [
+        {
+          "region": [
+            0,
+            270,
+            10000,
+            10000
+          ],
+          "scale": [
+            1.0,
+            0.75
+          ],
+          "about": [
+            0,
+            576
+          ]
+        },
+        {
+          "region": [
+            0,
+            400,
+            300,
+            10000
+          ],
+          "scale": [
+            0.75,
+            1.0
+          ],
+          "about": [
+            330,
+            0
+          ]
+        }
+      ]
+    },
+    "e": {
+      "kx": 0.865,
+      "ky": 1.04,
+      "tx": -20.0,
+      "shear": -0.015,
+      "weight": 4.0
+    },
+    "r": {
+      "kx": 0.97,
+      "ky": 1.03,
+      "shear": 0.06,
+      "weight": 16.0,
+      "advance": 72.0
+    },
+    "t": {
+      "kx": 0.955,
+      "ky": 0.995,
+      "tx": 16.0,
+      "shear": 0.06,
+      "weight": -4.0,
+      "advance": -64.0
+    },
+    "u": {
+      "kx": 0.97,
+      "ky": 1.04,
+      "tx": 8.0,
+      "shear": 0.06,
+      "advance": -4.0,
+      "weight": 2.0
+    },
+    "y": {
+      "kx": 0.775,
+      "ky": 0.795,
+      "tx": -60.0,
+      "weight": -44.0,
+      "clip": [
+        -1000,
+        -130,
+        2000,
+        2000
+      ],
+      "source": "roboto_condensed"
+    }
+  }
+}

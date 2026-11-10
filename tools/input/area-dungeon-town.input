@@ -1,0 +1,79 @@
+# Requires game.debug_mode=true in the replay save root config.json.
+# Replay endpoint: --frames 5300.
+# Launch with --give 293 (Escape Powder).
+# Title -> retail debug event menu -> chapter one normal -> floor 1.
+300 circle
+306
+320 cross
+326
+500 l1 l2 r1 r2 r3
+506
+520 start select
+526
+580 circle
+586
+620 down
+626
+660 circle
+666
+1000 cross
+1006
+1250 cross
+1256
+1500 start
+1506
+1540 triangle
+1546
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2150 cross
+2156
+2300 cross
+2306
+2450 cross
+2456
+2600 cross
+2606
+
+# Open the inventory and select Escape Powder.
+2900 triangle
+2906
+3050 cross
+3056
+3200 right
+3206
+3240 right
+3246
+3280 right
+3286
+3320 right
+3326
+3360 right
+3366
+3450 cross
+3456
+3550 cross
+3556
+# Confirm leaving the dungeon.
+3650 left
+3656
+3710 cross
+3716
+# Walk to the lobby ladder.
+4500 128 255 128 128
+4607 70 255 128 128
+4608 59 253 128 128
+4609 46 248 128 128
+4610 39 245 128 128
+4611 33 241 128 128
+4612 25 235 128 128
+4613 128 128 128 128
+# Climb to the upper platform.
+4750 cross
+4756
+4850 128 0 128 128
+4950

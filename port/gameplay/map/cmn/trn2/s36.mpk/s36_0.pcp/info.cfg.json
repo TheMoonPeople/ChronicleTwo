@@ -1,0 +1,82 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s3601_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s3601_01-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s3601_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_15-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_16-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s3601_17-m.gltf",
+      "type": 0
+    }
+  ],
+  "schema_version": 2
+}

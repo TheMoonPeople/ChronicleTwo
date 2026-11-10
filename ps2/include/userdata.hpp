@@ -250,6 +250,7 @@ struct CHARA_DATA {
 };
 
 STATIC_ASSERT(sizeof(CHARA_DATA) == 0x38C);
+PORT_RECORD_ASSERT(sizeof(CHARA_DATA) == 0x38C);
 
 /**
  *
@@ -304,6 +305,7 @@ struct ROBO_DATA {
 };
 
 STATIC_ASSERT(sizeof(ROBO_DATA) == 0x220);
+PORT_RECORD_ASSERT(sizeof(ROBO_DATA) == 0x220);
 
 /**
  *
@@ -394,6 +396,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(MOS_CHANGE_PARAM) == 0xBC);
+PORT_RECORD_ASSERT(sizeof(MOS_CHANGE_PARAM) == 0xBC);
 
 /**
  *
@@ -466,6 +469,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CMonsterBox) == 0x2F00);
+PORT_RECORD_ASSERT(sizeof(CMonsterBox) == 0x2F00);
 
 /**
  *
@@ -575,6 +579,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CFishAquarium) == 0x530);
+PORT_RECORD_ASSERT(sizeof(CFishAquarium) == 0x530);
 
 /**
  *
@@ -591,6 +596,7 @@ struct FISH_RECORD {
 };
 
 STATIC_ASSERT(sizeof(FISH_RECORD) == 0x20);
+PORT_RECORD_ASSERT(sizeof(FISH_RECORD) == 0x20);
 
 /**
  *
@@ -634,6 +640,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CFishingRecord) == 0x340);
+PORT_RECORD_ASSERT(sizeof(CFishingRecord) == 0x340);
 
 /**
  *
@@ -648,6 +655,7 @@ struct FISH_TOURNAMENT_ENTRY {
 };
 
 STATIC_ASSERT(sizeof(FISH_TOURNAMENT_ENTRY) == 0x8);
+PORT_RECORD_ASSERT(sizeof(FISH_TOURNAMENT_ENTRY) == 0x8);
 
 /**
  *
@@ -750,6 +758,7 @@ public:
 };
 
 STATIC_ASSERT(sizeof(CFishingTournament) == 0x70);
+PORT_RECORD_ASSERT(sizeof(CFishingTournament) == 0x70);
 
 /**
  *
@@ -764,6 +773,7 @@ struct PARTY_CHARA_INFO {
 };
 
 STATIC_ASSERT(sizeof(PARTY_CHARA_INFO) == 0xC);
+PORT_RECORD_ASSERT(sizeof(PARTY_CHARA_INFO) == 0xC);
 
 /**
  *
@@ -795,6 +805,7 @@ struct INVENT_CREATED_ITEM {
 };
 
 STATIC_ASSERT(sizeof(INVENT_CREATED_ITEM) == 0x4);
+PORT_RECORD_ASSERT(sizeof(INVENT_CREATED_ITEM) == 0x4);
 
 /**
  *
@@ -808,6 +819,7 @@ struct SCOOP_INFO {
 };
 
 STATIC_ASSERT(sizeof(SCOOP_INFO) == 0x4);
+PORT_RECORD_ASSERT(sizeof(SCOOP_INFO) == 0x4);
 
 /**
  *

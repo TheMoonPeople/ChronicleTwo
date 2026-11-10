@@ -1,7 +1,35 @@
 #pragma once
 
-// mainloop.cpp redeclares MainBuffer static after a header declares it extern, so MWCC
-// gives this unit its own copy (MainBuffer__2 in the retail table). clang's -fms-extensions
-// keeps it global, where it collides with dng_main.cpp's MainBuffer in the merge; renamed
-// apart here.
-#define MainBuffer MainLoop_MainBuffer
+class CSaveData;
+class CSubGameData;
+
+extern int           NextLoopNo asm("MainLoop_NextLoopNo");
+extern int           LoopNo asm("MainLoop_LoopNo");
+extern int           PrevLoopNo asm("MainLoop_PrevLoopNo");
+extern int           CaptureMode asm("MainLoop_CaptureMode");
+extern int           CaptureScreen asm("MainLoop_CaptureScreen");
+extern int           PlayTimeCountFlag asm("MainLoop_PlayTimeCountFlag");
+extern CSaveData    *ActiveSaveData asm("MainLoop_ActiveSaveData");
+extern CSubGameData *SubGameSaveData asm("MainLoop_SubGameSaveData");
+extern u_long128     SystemSeBuff[400] asm("MainLoop_SystemSeBuff");
+extern u_long128     InfoBuff[5000] asm("MainLoop_InfoBuff");
+
+static void InitPadTable(int language);
+static void VSyncCallBack(int unused);
+
+void PortInitPadTable(int language) asm("MainLoop_InitPadTable");
+
+void PortInitPadTable(int language) {
+    InitPadTable(language);
+}
+
+// mgInitVSyncCallBack takes an int(int) callback and never reads its result; the retail function is void.
+int PortVSyncCallBack(int unused) asm("MainLoop_VSyncCallBack");
+
+int PortVSyncCallBack(int unused) {
+    VSyncCallBack(unused);
+    return 0;
+}
+
+/** Native game configuration loading sets the debug menu rows the retail tags set. */
+extern int SelectArg[32] asm("MainLoop_SelectArg");

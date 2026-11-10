@@ -164,6 +164,7 @@ struct vmcode_t {
 };
 
 STATIC_ASSERT(sizeof(vmcode_t) == 0xC);
+PORT_RECORD_ASSERT(sizeof(vmcode_t) == 0xC);
 
 /**
  *
@@ -173,12 +174,13 @@ STATIC_ASSERT(sizeof(vmcode_t) == 0xC);
  */
 struct funcdata {
     u32   addr;  /**< Nonnegative byte offset of the function's first instruction in the code section. */
-    char *name;  /**< Name of the function, for runtime error messages. */
+    u32   name;  /**< Script compiler's name word; unresolved and zero on the disc, 32-bit because the struct is read in place. */
     int   local; /**< Number of frame slots, arguments included. */
     int   arg;   /**< Number of argument slots. */
 };
 
 STATIC_ASSERT(sizeof(funcdata) == 0x10);
+PORT_RECORD_ASSERT(sizeof(funcdata) == 0x10);
 
 /**
  *
@@ -204,6 +206,7 @@ struct RS_PROGDATA {
 };
 
 STATIC_ASSERT(sizeof(RS_PROGDATA) == 0x8);
+PORT_RECORD_ASSERT(sizeof(RS_PROGDATA) == 0x8);
 
 /**
  *

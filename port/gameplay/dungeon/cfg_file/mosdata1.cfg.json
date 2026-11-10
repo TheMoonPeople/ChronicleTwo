@@ -1,0 +1,1378 @@
+{
+  "kind": "monster_names",
+  "names": [
+    {
+      "id": 0,
+      "name": "Sewer Rat"
+    },
+    {
+      "id": 1,
+      "name": "Beach Rat"
+    },
+    {
+      "id": 2,
+      "name": "Castle Eater"
+    },
+    {
+      "id": 3,
+      "name": "Death Mouse"
+    },
+    {
+      "id": 4,
+      "name": "Vanguard"
+    },
+    {
+      "id": 5,
+      "name": "Neo Vanguard "
+    },
+    {
+      "id": 6,
+      "name": "Vanguard Mk 2"
+    },
+    {
+      "id": 7,
+      "name": "Nail Burst"
+    },
+    {
+      "id": 8,
+      "name": "Froggy"
+    },
+    {
+      "id": 9,
+      "name": "Geron"
+    },
+    {
+      "id": 10,
+      "name": "Gamal"
+    },
+    {
+      "id": 11,
+      "name": "Putos"
+    },
+    {
+      "id": 12,
+      "name": "Tore"
+    },
+    {
+      "id": 13,
+      "name": "Steam Tore"
+    },
+    {
+      "id": 14,
+      "name": "Mad Tore"
+    },
+    {
+      "id": 15,
+      "name": "Great Tree"
+    },
+    {
+      "id": 16,
+      "name": "Kotore"
+    },
+    {
+      "id": 17,
+      "name": "Steam Kotore"
+    },
+    {
+      "id": 18,
+      "name": "Dorone"
+    },
+    {
+      "id": 19,
+      "name": "Small Tree"
+    },
+    {
+      "id": 20,
+      "name": "Hunter Fox"
+    },
+    {
+      "id": 21,
+      "name": "Red Fox"
+    },
+    {
+      "id": 22,
+      "name": "Rifle Wolf"
+    },
+    {
+      "id": 23,
+      "name": "Smiling Wolf"
+    },
+    {
+      "id": 24,
+      "name": "Baron Balloon"
+    },
+    {
+      "id": 25,
+      "name": "Flotsam Balloon"
+    },
+    {
+      "id": 26,
+      "name": "Count Balloon"
+    },
+    {
+      "id": 27,
+      "name": "Duke Balloon"
+    },
+    {
+      "id": 28,
+      "name": "Tortoise"
+    },
+    {
+      "id": 29,
+      "name": "Sea Tortoise"
+    },
+    {
+      "id": 30,
+      "name": "Star Tortoise"
+    },
+    {
+      "id": 31,
+      "name": "Ebony Tortoise"
+    },
+    {
+      "id": 32,
+      "name": "Turtle"
+    },
+    {
+      "id": 33,
+      "name": "Fintol"
+    },
+    {
+      "id": 34,
+      "name": "Arkerath"
+    },
+    {
+      "id": 35,
+      "name": "Bolter"
+    },
+    {
+      "id": 36,
+      "name": "Clown"
+    },
+    {
+      "id": 37,
+      "name": "Griffon Soldier"
+    },
+    {
+      "id": 38,
+      "name": "Evil Performer"
+    },
+    {
+      "id": 39,
+      "name": "Dark Alchemist"
+    },
+    {
+      "id": 40,
+      "name": "Tigriff"
+    },
+    {
+      "id": 41,
+      "name": "Chimera"
+    },
+    {
+      "id": 42,
+      "name": "Leogriff"
+    },
+    {
+      "id": 43,
+      "name": "Sphinx"
+    },
+    {
+      "id": 44,
+      "name": "Pixie"
+    },
+    {
+      "id": 45,
+      "name": "Sylph"
+    },
+    {
+      "id": 46,
+      "name": "Faerie"
+    },
+    {
+      "id": 47,
+      "name": "Imp"
+    },
+    {
+      "id": 48,
+      "name": "Linda"
+    },
+    {
+      "id": 49,
+      "name": "Elfas"
+    },
+    {
+      "id": 50,
+      "name": "Moonflowephant"
+    },
+    {
+      "id": 51,
+      "name": "Behemoth"
+    },
+    {
+      "id": 52,
+      "name": "Himarra"
+    },
+    {
+      "id": 53,
+      "name": "Balalla"
+    },
+    {
+      "id": 54,
+      "name": "Stormflower"
+    },
+    {
+      "id": 55,
+      "name": "Mandora"
+    },
+    {
+      "id": 56,
+      "name": "Gyumo"
+    },
+    {
+      "id": 57,
+      "name": "Blumo"
+    },
+    {
+      "id": 58,
+      "name": "Cabuble"
+    },
+    {
+      "id": 59,
+      "name": "Minotaurus"
+    },
+    {
+      "id": 60,
+      "name": "Night Stalker"
+    },
+    {
+      "id": 61,
+      "name": "Ragstink"
+    },
+    {
+      "id": 62,
+      "name": "Leach"
+    },
+    {
+      "id": 63,
+      "name": "Wraith"
+    },
+    {
+      "id": 64,
+      "name": "Dragon"
+    },
+    {
+      "id": 65,
+      "name": "Red Dragon"
+    },
+    {
+      "id": 66,
+      "name": "Earth Dragon"
+    },
+    {
+      "id": 67,
+      "name": "Tiamat"
+    },
+    {
+      "id": 68,
+      "name": "Memo Eater"
+    },
+    {
+      "id": 69,
+      "name": "Burger"
+    },
+    {
+      "id": 70,
+      "name": "Stormy"
+    },
+    {
+      "id": 71,
+      "name": "Ladha"
+    },
+    {
+      "id": 72,
+      "name": "Spider Lady"
+    },
+    {
+      "id": 73,
+      "name": "Shiva"
+    },
+    {
+      "id": 74,
+      "name": "Spider Lady"
+    },
+    {
+      "id": 75,
+      "name": "Bambamchoo"
+    },
+    {
+      "id": 76,
+      "name": "Fire Element"
+    },
+    {
+      "id": 77,
+      "name": "Fire Spirit"
+    },
+    {
+      "id": 78,
+      "name": "Fire Ghost"
+    },
+    {
+      "id": 79,
+      "name": "Magma Servant"
+    },
+    {
+      "id": 80,
+      "name": "Ice Element"
+    },
+    {
+      "id": 81,
+      "name": "Ice Spirit"
+    },
+    {
+      "id": 82,
+      "name": "Snow Ghost"
+    },
+    {
+      "id": 83,
+      "name": "Snow Servant"
+    },
+    {
+      "id": 84,
+      "name": "Zappy"
+    },
+    {
+      "id": 85,
+      "name": "Thunder Spirit"
+    },
+    {
+      "id": 86,
+      "name": "Thunder Ghost"
+    },
+    {
+      "id": 87,
+      "name": "Thunder Servant"
+    },
+    {
+      "id": 88,
+      "name": "Aqua Element"
+    },
+    {
+      "id": 89,
+      "name": "Water Spirit"
+    },
+    {
+      "id": 90,
+      "name": "Rain Ghost"
+    },
+    {
+      "id": 91,
+      "name": "Tempest Servant"
+    },
+    {
+      "id": 92,
+      "name": "Wind Element"
+    },
+    {
+      "id": 93,
+      "name": "Spirit Flyer"
+    },
+    {
+      "id": 94,
+      "name": "Storm Ghost"
+    },
+    {
+      "id": 95,
+      "name": "Wind Servant"
+    },
+    {
+      "id": 96,
+      "name": "Masked Tribesman"
+    },
+    {
+      "id": 97,
+      "name": "Lava Runner"
+    },
+    {
+      "id": 98,
+      "name": "Stone Guard"
+    },
+    {
+      "id": 99,
+      "name": "Last Guardian"
+    },
+    {
+      "id": 100,
+      "name": "Pumpkinhead"
+    },
+    {
+      "id": 101,
+      "name": "Zucky"
+    },
+    {
+      "id": 102,
+      "name": "Mallone"
+    },
+    {
+      "id": 103,
+      "name": "Scarecrow"
+    },
+    {
+      "id": 104,
+      "name": "Mummy"
+    },
+    {
+      "id": 105,
+      "name": "Bundy"
+    },
+    {
+      "id": 106,
+      "name": "Ghoul"
+    },
+    {
+      "id": 107,
+      "name": "Revenant"
+    },
+    {
+      "id": 108,
+      "name": "Man-Eating Grass"
+    },
+    {
+      "id": 109,
+      "name": "Cursed Rose"
+    },
+    {
+      "id": 110,
+      "name": "Dark Flower"
+    },
+    {
+      "id": 111,
+      "name": "Mystery Plant"
+    },
+    {
+      "id": 112,
+      "name": "Fire Gemron"
+    },
+    {
+      "id": 113,
+      "name": "Fire Gundron"
+    },
+    {
+      "id": 114,
+      "name": "Fire Drake"
+    },
+    {
+      "id": 115,
+      "name": "Fire Wyrm"
+    },
+    {
+      "id": 116,
+      "name": "Ice Gemron"
+    },
+    {
+      "id": 117,
+      "name": "Ice Gundron"
+    },
+    {
+      "id": 118,
+      "name": "Ice Drake"
+    },
+    {
+      "id": 119,
+      "name": "Ice Wyrm"
+    },
+    {
+      "id": 120,
+      "name": "Thunder Gemron"
+    },
+    {
+      "id": 121,
+      "name": "Thunder Gundron"
+    },
+    {
+      "id": 122,
+      "name": "Thunder Drake"
+    },
+    {
+      "id": 123,
+      "name": "Thunder Wyrm"
+    },
+    {
+      "id": 124,
+      "name": "Wind Gemron"
+    },
+    {
+      "id": 125,
+      "name": "Wind Gundron"
+    },
+    {
+      "id": 126,
+      "name": "Wind Drake"
+    },
+    {
+      "id": 127,
+      "name": "Wind Wyrm"
+    },
+    {
+      "id": 128,
+      "name": "Holy Gemron"
+    },
+    {
+      "id": 129,
+      "name": "Holy Gundron"
+    },
+    {
+      "id": 130,
+      "name": "Holy Drake"
+    },
+    {
+      "id": 131,
+      "name": "Holy Wyrm"
+    },
+    {
+      "id": 132,
+      "name": "Nikapous"
+    },
+    {
+      "id": 133,
+      "name": "Iron Mask"
+    },
+    {
+      "id": 134,
+      "name": "Ummagumma"
+    },
+    {
+      "id": 135,
+      "name": "Incuder"
+    },
+    {
+      "id": 136,
+      "name": "Ram"
+    },
+    {
+      "id": 137,
+      "name": "Savage Ram"
+    },
+    {
+      "id": 138,
+      "name": "Ram Z"
+    },
+    {
+      "id": 139,
+      "name": "Bandou"
+    },
+    {
+      "id": 140,
+      "name": "Moler"
+    },
+    {
+      "id": 141,
+      "name": "Sand Moler"
+    },
+    {
+      "id": 142,
+      "name": "Mine Moler"
+    },
+    {
+      "id": 143,
+      "name": "Busy Moler"
+    },
+    {
+      "id": 144,
+      "name": "Killer Snake"
+    },
+    {
+      "id": 145,
+      "name": "Sea Serpent"
+    },
+    {
+      "id": 146,
+      "name": "Sand Dragon"
+    },
+    {
+      "id": 147,
+      "name": "Dead Rope"
+    },
+    {
+      "id": 148,
+      "name": "Goyone"
+    },
+    {
+      "id": 149,
+      "name": "Steam Goyone"
+    },
+    {
+      "id": 150,
+      "name": "Moon Goyone"
+    },
+    {
+      "id": 151,
+      "name": "Mariner"
+    },
+    {
+      "id": 152,
+      "name": "Auntie Medusa"
+    },
+    {
+      "id": 153,
+      "name": "Fat Naga"
+    },
+    {
+      "id": 154,
+      "name": "Miss Gourgon"
+    },
+    {
+      "id": 155,
+      "name": "Mrs. Gourgon"
+    },
+    {
+      "id": 156,
+      "name": "Dog Statue"
+    },
+    {
+      "id": 157,
+      "name": "Coral Dog"
+    },
+    {
+      "id": 158,
+      "name": "Toy Rock"
+    },
+    {
+      "id": 159,
+      "name": "Cerberus"
+    },
+    {
+      "id": 160,
+      "name": "Ivanoff"
+    },
+    {
+      "id": 161,
+      "name": "Magmanoff"
+    },
+    {
+      "id": 162,
+      "name": "Rock Face"
+    },
+    {
+      "id": 163,
+      "name": "Iwanosuke"
+    },
+    {
+      "id": 164,
+      "name": "Statue"
+    },
+    {
+      "id": 165,
+      "name": "Living Armor"
+    },
+    {
+      "id": 166,
+      "name": "Guardia"
+    },
+    {
+      "id": 167,
+      "name": "Dark Keeper"
+    },
+    {
+      "id": 168,
+      "name": "Golem"
+    },
+    {
+      "id": 169,
+      "name": "Lava Golem"
+    },
+    {
+      "id": 170,
+      "name": "Rock Taster"
+    },
+    {
+      "id": 171,
+      "name": "Titan"
+    },
+    {
+      "id": 172,
+      "name": "Bone Lord"
+    },
+    {
+      "id": 173,
+      "name": "Flaming Nail"
+    },
+    {
+      "id": 174,
+      "name": "Evil Nail"
+    },
+    {
+      "id": 175,
+      "name": "Bone King"
+    },
+    {
+      "id": 176,
+      "name": "Skeleton Soldier"
+    },
+    {
+      "id": 177,
+      "name": "Hornhead"
+    },
+    {
+      "id": 178,
+      "name": "Silver Gear"
+    },
+    {
+      "id": 179,
+      "name": "Platinum Gear"
+    },
+    {
+      "id": 180,
+      "name": "Master Jacket"
+    },
+    {
+      "id": 181,
+      "name": "Heat Wear"
+    },
+    {
+      "id": 182,
+      "name": "Skull Chief"
+    },
+    {
+      "id": 183,
+      "name": "Rare Jacket"
+    },
+    {
+      "id": 184,
+      "name": "Captain"
+    },
+    {
+      "id": 185,
+      "name": "Blackbeard"
+    },
+    {
+      "id": 186,
+      "name": "Whitebeard"
+    },
+    {
+      "id": 187,
+      "name": "Oyakata"
+    },
+    {
+      "id": 188,
+      "name": "Corsair"
+    },
+    {
+      "id": 189,
+      "name": "Zombie Pirate"
+    },
+    {
+      "id": 190,
+      "name": "Ore Robber"
+    },
+    {
+      "id": 191,
+      "name": "Elite Corsair"
+    },
+    {
+      "id": 192,
+      "name": "Face of Prajna"
+    },
+    {
+      "id": 193,
+      "name": "Alexander"
+    },
+    {
+      "id": 194,
+      "name": "Face of Yaksa"
+    },
+    {
+      "id": 195,
+      "name": "Demon Puppet"
+    },
+    {
+      "id": 196,
+      "name": "Smiling Fairy"
+    },
+    {
+      "id": 197,
+      "name": "Heat Fairy"
+    },
+    {
+      "id": 198,
+      "name": "Fairy Helper"
+    },
+    {
+      "id": 199,
+      "name": "Hell Fairy"
+    },
+    {
+      "id": 200,
+      "name": "Crescent Baron"
+    },
+    {
+      "id": 201,
+      "name": "Stick Joe"
+    },
+    {
+      "id": 202,
+      "name": "Moon Joe"
+    },
+    {
+      "id": 203,
+      "name": "Moonlight Hulk"
+    },
+    {
+      "id": 204,
+      "name": "Darkness"
+    },
+    {
+      "id": 205,
+      "name": "Sooty"
+    },
+    {
+      "id": 206,
+      "name": "Darker"
+    },
+    {
+      "id": 207,
+      "name": "Shadow"
+    },
+    {
+      "id": 208,
+      "name": "Priest of Rama"
+    },
+    {
+      "id": 209,
+      "name": "Sleeber"
+    },
+    {
+      "id": 210,
+      "name": "Crow Priest"
+    },
+    {
+      "id": 211,
+      "name": "Garuda"
+    },
+    {
+      "id": 212,
+      "name": "Arthur"
+    },
+    {
+      "id": 213,
+      "name": "Lancer"
+    },
+    {
+      "id": 214,
+      "name": "Iron Spear"
+    },
+    {
+      "id": 215,
+      "name": "Flying Steel"
+    },
+    {
+      "id": 216,
+      "name": "Pirate Tank"
+    },
+    {
+      "id": 217,
+      "name": "Pirate Eye"
+    },
+    {
+      "id": 218,
+      "name": "Angry Canon"
+    },
+    {
+      "id": 219,
+      "name": "Iron Ghost"
+    },
+    {
+      "id": 220,
+      "name": "Bomber Head"
+    },
+    {
+      "id": 221,
+      "name": "Triple Cracker"
+    },
+    {
+      "id": 222,
+      "name": "Danger Bomb"
+    },
+    {
+      "id": 223,
+      "name": "Sweet Dynamite"
+    },
+    {
+      "id": 224,
+      "name": "Club"
+    },
+    {
+      "id": 225,
+      "name": "S. Club"
+    },
+    {
+      "id": 226,
+      "name": "R. Club"
+    },
+    {
+      "id": 227,
+      "name": "RSF Club"
+    },
+    {
+      "id": 228,
+      "name": "Heart"
+    },
+    {
+      "id": 229,
+      "name": "S. Heart"
+    },
+    {
+      "id": 230,
+      "name": "R. Heart"
+    },
+    {
+      "id": 231,
+      "name": "RSF Heart"
+    },
+    {
+      "id": 232,
+      "name": "Spade"
+    },
+    {
+      "id": 233,
+      "name": "S. Spade"
+    },
+    {
+      "id": 234,
+      "name": "R. Spade"
+    },
+    {
+      "id": 235,
+      "name": "RSF Spade"
+    },
+    {
+      "id": 236,
+      "name": "Diamond"
+    },
+    {
+      "id": 237,
+      "name": "S. Diamond"
+    },
+    {
+      "id": 238,
+      "name": "R. Diamond"
+    },
+    {
+      "id": 239,
+      "name": "RSF Diamond"
+    },
+    {
+      "id": 240,
+      "name": "Joker"
+    },
+    {
+      "id": 241,
+      "name": "S. Joker"
+    },
+    {
+      "id": 242,
+      "name": "R. Joker"
+    },
+    {
+      "id": 243,
+      "name": "RSF Joker"
+    },
+    {
+      "id": 245,
+      "name": "Mimic"
+    },
+    {
+      "id": 246,
+      "name": "King Mimic"
+    },
+    {
+      "id": 247,
+      "name": "Mimic"
+    },
+    {
+      "id": 248,
+      "name": "King Mimic"
+    },
+    {
+      "id": 249,
+      "name": "Mimic"
+    },
+    {
+      "id": 250,
+      "name": "King Mimic"
+    },
+    {
+      "id": 251,
+      "name": "Mimic"
+    },
+    {
+      "id": 252,
+      "name": "King Mimic"
+    },
+    {
+      "id": 253,
+      "name": "Mimic"
+    },
+    {
+      "id": 254,
+      "name": "King Mimic"
+    },
+    {
+      "id": 255,
+      "name": "Mimic"
+    },
+    {
+      "id": 256,
+      "name": "King Mimic"
+    },
+    {
+      "id": 257,
+      "name": "Mimic"
+    },
+    {
+      "id": 258,
+      "name": "King Mimic"
+    },
+    {
+      "id": 259,
+      "name": "Mimic"
+    },
+    {
+      "id": 260,
+      "name": "King Mimic"
+    },
+    {
+      "id": 261,
+      "name": "Mimic"
+    },
+    {
+      "id": 262,
+      "name": "King Mimic"
+    },
+    {
+      "id": 263,
+      "name": "Mimic"
+    },
+    {
+      "id": 264,
+      "name": "King Mimic"
+    },
+    {
+      "id": 265,
+      "name": "Mimic"
+    },
+    {
+      "id": 266,
+      "name": "King Mimic"
+    },
+    {
+      "id": 267,
+      "name": "Mimic"
+    },
+    {
+      "id": 268,
+      "name": "King Mimic"
+    },
+    {
+      "id": 269,
+      "name": "Sonic Bomber"
+    },
+    {
+      "id": 270,
+      "name": "Ultrasonic Bomb"
+    },
+    {
+      "id": 271,
+      "name": "Metal Bomber"
+    },
+    {
+      "id": 272,
+      "name": "Krau Mauness"
+    },
+    {
+      "id": 273,
+      "name": "Yo-yo Barrel"
+    },
+    {
+      "id": 274,
+      "name": "Rolling Rocks"
+    },
+    {
+      "id": 275,
+      "name": "Clock Knight"
+    },
+    {
+      "id": 276,
+      "name": "Spinning Saucer"
+    },
+    {
+      "id": 277,
+      "name": "Bat"
+    },
+    {
+      "id": 278,
+      "name": "Sea Bat"
+    },
+    {
+      "id": 279,
+      "name": "Lava Bat"
+    },
+    {
+      "id": 280,
+      "name": "Evil Bat"
+    },
+    {
+      "id": 500,
+      "name": "Halloween"
+    },
+    {
+      "id": 501,
+      "name": "Butterfly"
+    },
+    {
+      "id": 502,
+      "name": "Butterfly"
+    },
+    {
+      "id": 503,
+      "name": "Butterfly"
+    },
+    {
+      "id": 504,
+      "name": "Butterfly"
+    },
+    {
+      "id": 505,
+      "name": "Butterfly"
+    },
+    {
+      "id": 506,
+      "name": "Butterfly"
+    },
+    {
+      "id": 507,
+      "name": "Butterfly"
+    },
+    {
+      "id": 508,
+      "name": "Butterfly"
+    },
+    {
+      "id": 509,
+      "name": "Lafrescia Pistil"
+    },
+    {
+      "id": 510,
+      "name": "Gaspard"
+    },
+    {
+      "id": 511,
+      "name": "Monster Gaspard"
+    },
+    {
+      "id": 512,
+      "name": "Gaspard"
+    },
+    {
+      "id": 513,
+      "name": "Evil Flame"
+    },
+    {
+      "id": 514,
+      "name": "Puppet Shigura"
+    },
+    {
+      "id": 515,
+      "name": "???"
+    },
+    {
+      "id": 516,
+      "name": "Shingala"
+    },
+    {
+      "id": 517,
+      "name": "Death Ark"
+    },
+    {
+      "id": 518,
+      "name": "Armory"
+    },
+    {
+      "id": 519,
+      "name": "Machine Gun"
+    },
+    {
+      "id": 520,
+      "name": "Mini Armory"
+    },
+    {
+      "id": 522,
+      "name": "Jaming"
+    },
+    {
+      "id": 523,
+      "name": "Griffon Soldier"
+    },
+    {
+      "id": 600,
+      "name": "Clown"
+    },
+    {
+      "id": 601,
+      "name": "Linda"
+    },
+    {
+      "id": 602,
+      "name": "Lin"
+    },
+    {
+      "id": 603,
+      "name": "Mammo"
+    },
+    {
+      "id": 604,
+      "name": "Nightmare"
+    },
+    {
+      "id": 605,
+      "name": "Black Dragon"
+    },
+    {
+      "id": 606,
+      "name": "Uther"
+    },
+    {
+      "id": 607,
+      "name": "Gaja Ein"
+    },
+    {
+      "id": 608,
+      "name": "Gaja Zwei"
+    },
+    {
+      "id": 609,
+      "name": "Trentos"
+    },
+    {
+      "id": 610,
+      "name": "Kortlenn"
+    },
+    {
+      "id": 611,
+      "name": "Lapis Garter"
+    },
+    {
+      "id": 612,
+      "name": "Sea Dragon"
+    },
+    {
+      "id": 613,
+      "name": "Inferno"
+    },
+    {
+      "id": 614,
+      "name": "Linda"
+    },
+    {
+      "id": 615,
+      "name": "Emperor Griffon"
+    },
+    {
+      "id": 616,
+      "name": "Emperor Griffon"
+    },
+    {
+      "id": 617,
+      "name": "Emperor Griffon"
+    },
+    {
+      "id": 618,
+      "name": "Atramilia"
+    },
+    {
+      "id": 619,
+      "name": "Atramilia"
+    },
+    {
+      "id": 620,
+      "name": "Atramilia"
+    },
+    {
+      "id": 621,
+      "name": "Dark Element"
+    },
+    {
+      "id": 622,
+      "name": "Moon"
+    },
+    {
+      "id": 628,
+      "name": "Metal Flotsam"
+    },
+    {
+      "id": 629,
+      "name": "Dark Genie"
+    },
+    {
+      "id": 630,
+      "name": "Dark Genie"
+    },
+    {
+      "id": 700,
+      "name": "Himara"
+    },
+    {
+      "id": 701,
+      "name": "Spider Lady"
+    },
+    {
+      "id": 702,
+      "name": "Gyumo"
+    },
+    {
+      "id": 703,
+      "name": "Hunter Fox"
+    },
+    {
+      "id": 704,
+      "name": "Pixie"
+    },
+    {
+      "id": 1000,
+      "name": "RoBomb"
+    },
+    {
+      "id": 1001,
+      "name": "Electric Fish"
+    },
+    {
+      "id": 1002,
+      "name": "Bomb"
+    },
+    {
+      "id": 1003,
+      "name": "Bomb"
+    },
+    {
+      "id": 1004,
+      "name": "Bomb"
+    },
+    {
+      "id": 1005,
+      "name": "Bomb"
+    },
+    {
+      "id": 1006,
+      "name": "Bomb"
+    },
+    {
+      "id": 1500,
+      "name": "Monster"
+    },
+    {
+      "id": 1501,
+      "name": "Monster"
+    }
+  ],
+  "schema_version": 2
+}

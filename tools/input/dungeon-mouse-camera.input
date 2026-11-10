@@ -1,0 +1,37 @@
+300 cross
+306
+520 cross
+526
+900 start
+906
+940 triangle
+946
+1100 cross
+1106
+1250 cross
+1256
+1400 cross
+1406
+1550 cross
+1556
+1700 cross
+1706
+1850 cross
+1856
+2000 cross
+2006
+2200 128 0 128 128
+2260
+# Dungeon follow yaw and pitch, followed by a menu interruption.
+2400 mouse:30,0
+2412
+2460 mouse:0,15
+2472
+2520 mouse:0,-15
+2532
+2600 triangle
+2606
+2640 mouse:60,30
+2652
+2700 circle
+2706

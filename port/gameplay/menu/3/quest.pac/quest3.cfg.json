@@ -1,0 +1,187 @@
+{
+  "count": 20,
+  "kind": "quests",
+  "quests": [
+    {
+      "comment": "Gordon liebt Pflanzen.\\nEr m[UNI00f6]chte seinen Baum mit Priester\\nBrunos Weihwasser behandeln.",
+      "id": 0,
+      "name": "Gordons Sorgen",
+      "reactions": [
+        "Gehen wir zu Priester Bruno!\\nIst er in der Kirche?",
+        "Gordon k[UNI00fc]mmert sich echt\\ngern um Pflanzen, was?"
+      ]
+    },
+    {
+      "comment": "Parns Gem[UNI00e4]lde seiner Traumfrau,\\nJulia. Er sagt, mit Goldener Farbe k[UNI00f6]nnte\\ner es zum Leben erwecken.",
+      "id": 1,
+      "name": "Die bildsch[UNI00f6]ne Braut",
+      "reactions": [
+        "Aber wo kriege ich Goldene\\nFarbe her?",
+        "Ich glaub einfach nicht, dass ein\\nGem[UNI00e4]lde lebendig werden kann."
+      ]
+    },
+    {
+      "comment": "Donny will seine M[UNI00fc]nzsammlung vollenden.\\nEr braucht nur die Panzer-M[UNI00fc]nze\\nund die Dunkle M[UNI00fc]nze.",
+      "id": 2,
+      "name": "Bare M[UNI00fc]nze",
+      "reactions": [
+        "Wir brauchen ein paar M[UNI00fc]nzen.",
+        "Soll Donny es doch selber machen."
+      ]
+    },
+    {
+      "comment": "Castagnaccio, das mysteri[UNI00f6]se Gericht.\\nWir wissen, dass man Kastanien braucht,\\naber jetzt sitzen wir fest.",
+      "id": 3,
+      "name": "Castagnaccio",
+      "reactions": [
+        "Wir brauchen Kastanien.",
+        "Ob Castagnaccio wohl schmeckt?"
+      ]
+    },
+    {
+      "comment": "Claire kommt einfach nicht raus.\\nZeig ihr etwas, das sie lockt, dann\\n[UNI00fc]berlegt sie es sich vielleicht.",
+      "id": 4,
+      "name": "Neugier",
+      "reactions": [
+        "Wir m[UNI00fc]ssen ein paar seltene\\nBlumen fotografieren.",
+        "Claire ist unglaublich neugierig,\\nnicht wahr?"
+      ]
+    },
+    {
+      "comment": "Ich glaube, Pau ist bereit, uns zu\\nhelfen. Jetzt brauchen wir nur etwas\\nzu Essen, das ihn motiviert ...",
+      "id": 5,
+      "name": "Leckeres orangenes Essen",
+      "reactions": [
+        "Orangenes Essen, ja?\\nKarotten vielleicht?",
+        "Ich hasse Karotten! Und Paprika auch!"
+      ]
+    },
+    {
+      "comment": "Stewart liest gern. Er will bei einer\\nAuktion f[UNI00fc]r ein Buch bieten, hat\\naber nicht genug Geld.",
+      "id": 6,
+      "name": "Die Auktion",
+      "reactions": [
+        "Wir m[UNI00fc]ssen etwas Geld\\nzusammenbekommen.",
+        "Liest er das Buch [UNI00fc]berhaupt,\\nf[UNI00fc]r das wir so geschuftet haben?"
+      ]
+    },
+    {
+      "comment": "Adel hat kein Selbstvertrauen, weil sie\\nnicht schneidern kann. Sie braucht Tier-\\nhaut, etwas Kupfer und starken Stoff.",
+      "id": 7,
+      "name": "Mein Traum vom Traum",
+      "reactions": [
+        "Diesmal bring ich's bestimmt zu Ende\\nund bekomme mein Selbstvertrauen zur[UNI00fc]ck.",
+        "Wenn man etwas zu Ende bringt,\\ngewinnt man Selbstvertrauen."
+      ]
+    },
+    {
+      "comment": "Morton etwas Brot bringen?\\nKlingt einfach. Aber irgendwas sagt\\nmir, dass es das nicht ist.",
+      "id": 8,
+      "name": "Pollys Magd",
+      "reactions": [
+        "Wir m[UNI00fc]ssen tun, was\\nwir gesagt bekommen haben.",
+        "Dieser Morton denkt nur an sich!"
+      ]
+    },
+    {
+      "comment": "Sheriff Blinkhorn zweifelt an mir.\\nIch muss schnell rennen,\\num ihn zu [UNI00fc]berzeugen.",
+      "id": 9,
+      "name": "Palm Brinks auf Zeit!",
+      "reactions": [
+        "Lauf die k[UNI00fc]rzeste Strecke, um\\neine gute Zeit zu erzielen.",
+        "Ob Blinkhorn diese Zeit\\nschlagen kann?"
+      ]
+    },
+    {
+      "comment": "Milane ist eine Schwertk[UNI00e4]mpferin,\\nalso m[UNI00fc]ssen wir an unsere Schwertk[UNI00fc]nste\\ndenken. Wir m[UNI00fc]ssen uns beweisen.",
+      "id": 10,
+      "name": "Milane zeigt, was sie kann",
+      "reactions": [
+        "Mit dem Schwert [UNI00fc]ben, ja?\\nOb ich das schaffe?",
+        "Monica und Milane w[UNI00fc]rden sich\\nbestimmt gut verstehen."
+      ]
+    },
+    {
+      "comment": "Ich bitte meinen Vater sehr ungern,\\naber ich brauche Gef[UNI00e4]hrten. Meine Schuss-\\nStufen kann ich leicht verbessern.",
+      "id": 11,
+      "name": "Die Meinung des Vaters",
+      "reactions": [
+        "Ich werde hart arbeiten, um die\\nKlingel-Abzug-Stufe zu erreichen!",
+        "Ob mein Vater wohl langsam anf[UNI00e4]ngt,\\nmich in einem anderen Licht zu sehen?"
+      ]
+    },
+    {
+      "comment": "B[UNI00fc]rgermeister Need hat die Kombination\\nzu seinem Safe vergessen. Ohne uns\\nkommt er nicht mehr an seine Papiere.",
+      "id": 12,
+      "name": "Der unm[UNI00f6]gliche Safe",
+      "reactions": [
+        "Mit dem, was der B[UNI00fc]rgermeister gesagt\\nhat, m[UNI00fc]ssten wir es herausbekommen.",
+        "Ist es wirklich richtig,\\nMorton die Stadt zu [UNI00fc]berlassen?"
+      ]
+    },
+    {
+      "comment": "Warum ist die Kirche so ausgestattet,\\nwenn man doch auch einfach\\nalle Kerzen ausblasen k[UNI00f6]nnte?",
+      "id": 13,
+      "name": "Die Probe des Priesters",
+      "reactions": [
+        "Die Antwort ist eigentlich\\nunglaublich einfach.",
+        "Was f[UNI00fc]r eine Ausstattung\\nf[UNI00fc]r eine Kirche!"
+      ]
+    },
+    {
+      "comment": "Rufio lebt seit kurzem im Park.\\nEr sagt, er will den Mond\\nimmer sehen k[UNI00f6]nnen.",
+      "id": 14,
+      "name": "Ein Mond, der nie untergeht",
+      "reactions": [
+        "Wir k[UNI00f6]nnen den Mond nur\\nnachts fotografieren.",
+        "Rufio k[UNI00f6]nnte tats[UNI00e4]chlich vom\\nMond stammen."
+      ]
+    },
+    {
+      "comment": "Fabio liebt das Angeln.\\nWenn er wirklich mal einen Riesenfang\\nmacht, erz[UNI00e4]hlt er bestimmt ewig davon.",
+      "id": 15,
+      "name": "Keine kleinen Fische",
+      "reactions": [
+        "Ich denke, ein Nonky von 60 cm oder mehr\\nm[UNI00fc]sste reichen.",
+        "Was ist das Geheimnis beim Angeln?\\nIch w[UNI00fc]sste es zu gern."
+      ]
+    },
+    {
+      "comment": "Die Fischz[UNI00fc]chterin Olivie hat vom\\nFlossen-Fieber geh[UNI00f6]rt.\\nWidmen wir ihr einen Sieg!",
+      "id": 16,
+      "name": "Im Kreis der Sieger",
+      "reactions": [
+        "Wir m[UNI00fc]ssen das Flossen-Fieber gewinnen!",
+        "Um Fische muss man sich wirklich\\nganz besonders gut k[UNI00fc]mmern."
+      ]
+    },
+    {
+      "comment": "Mina geht es nicht gut,\\nund daran ist die Zeitverzerrung schuld.\\nWir m[UNI00fc]ssen sie verringern ...",
+      "id": 17,
+      "name": "Die Spheda-Herausforderung",
+      "reactions": [
+        "Zehn Runden Spheda zu schaffen,\\nist nicht leicht.",
+        "Dass Zeitverzerrungen auch solche Be-\\nschwerden verursachen, wusste ich nicht."
+      ]
+    },
+    {
+      "comment": "Corinne glaubt, sie hat immer Gl[UNI00fc]ck.\\nWenn wir Verstecken mit ihr spielen,\\nwird sie vielleicht unsere Freundin.",
+      "id": 18,
+      "name": "Corinnes Versteckspiel",
+      "reactions": [
+        "Na komm, Corinne! Wo steckst\\ndu denn?",
+        "Sie mag zwar frech sein,\\naber sie ist ja nur ein Kind."
+      ]
+    },
+    {
+      "comment": "Rosa ist fast v[UNI00f6]llig taub.\\nSie k[UNI00f6]nnte sich uns anschlie[UNI00df]en, wenn\\nsie uns nur h[UNI00f6]ren w[UNI00fc]rde.",
+      "id": 19,
+      "name": "Ohne Worte",
+      "reactions": [
+        "Solange wir unsere Gef[UNI00fc]hle richtig\\nvermitteln k[UNI00f6]nnen, ist alles klar.",
+        "Beim n[UNI00e4]chsten Mal besorgen wir ihr\\nbesser ein H[UNI00f6]rger[UNI00e4]t."
+      ]
+    }
+  ],
+  "schema_version": 2
+}

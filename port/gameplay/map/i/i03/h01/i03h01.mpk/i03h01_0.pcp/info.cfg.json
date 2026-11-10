@@ -1,0 +1,82 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "i03h01_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "i03h01_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_12-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_14-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_15-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_16-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_17-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i03h01_01-c.gltf",
+      "type": 2
+    }
+  ],
+  "schema_version": 2
+}

@@ -1,0 +1,70 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "d03b01_1-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_3-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_4-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_5-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_6-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_7-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_8-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_9-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "moon_crystal_m.gltf",
+      "type": 3
+    },
+    {
+      "model": "d03b01_13-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_11-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_2-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "d03b01_1-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "d03b01_1-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "d03b01_15-a.gltf",
+      "type": 1
+    }
+  ],
+  "schema_version": 2
+}

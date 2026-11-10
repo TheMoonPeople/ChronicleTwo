@@ -1,0 +1,9 @@
+# --jump dungeon:0 --fast-load: Cross opens floor 1's information, which lists no Georama materials; Triangle opens
+# the monster list and Triangle goes back. Capture frames: 380 information, 480 monsters, 580.
+# Needs "game": {"floor_info_monsters": true} in the save root's config.json.
+300 cross
+306
+400 triangle
+406
+500 triangle
+506

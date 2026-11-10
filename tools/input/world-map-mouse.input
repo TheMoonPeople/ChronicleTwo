@@ -1,0 +1,145 @@
+# --jump town:10 --fast-load --window 1920x1080: world map and floor map mouse selection.
+# At 1920x1080 one logical unit is 2.8125 counts across and 2.25 down.
+300 start select
+301
+320 up
+321
+340 up
+341
+360 up
+361
+380 circle
+381
+400 down
+401
+420 down
+421
+440 r1
+441
+460 r1
+461
+480 r1
+481
+500 r1
+501
+520 r1
+521
+540 right
+541
+560 right
+561
+580 right
+581
+600 right
+601
+620 circle
+621
+640 cross
+641
+660 up
+661
+680 up
+681
+700 up
+701
+720 up
+721
+740 up
+741
+760 up
+761
+780 up
+781
+800 up
+801
+820 up
+821
+840 up
+841
+860 r1
+861
+880 circle
+881
+1100 triangle
+1101
+1200 down
+1201
+1220 down
+1221
+1240 down
+1241
+1300 cross
+1301
+1800 r3
+1801
+1820 circle
+1821
+1840 r3
+1841
+# World map with every area opened by the save-data editor (as area-town-map.input).
+# Hover the Sindain mark (capture 1930), then click it to open its place list (capture 2000).
+1900 mouse:-17,52
+1901
+1960 mouse1
+1961
+# Keys choose Rainbow Butterfly Wood and confirm; its floor map opens by 2400.
+2100 down
+2101
+2140 down
+2141
+2180 cross
+2181
+2300 cross
+2301
+# Hover floor 2 (capture 2470). The wheel walks five floors along the path and scrolls (capture 2640),
+# then back to floor 1 (capture 2700).
+2450 mouse:288,-144
+2451
+2500 wheel:-1
+2501
+2520 wheel:-1
+2521
+2540 wheel:-1
+2541
+2560 wheel:-1
+2561
+2580 wheel:-1
+2581
+2660 wheel:6
+2661
+# Click Back to Map (capture 2800: world map, Sindain selected).
+2700 mouse:-605,538
+2701
+2720 mouse1
+2721
+# Click Sindain again and reopen the same floor map with keys.
+2860 mouse:314,-394
+2861
+2880 mouse1
+2881
+2980 down
+2981
+3020 down
+3021
+3060 cross
+3061
+3180 cross
+3181
+# Click floor 1 to open its information (capture 3400), click Cancel (capture 3480),
+# click floor 1 again (capture 3600) and click Move to this floor (capture 4400: floor 1).
+3320 mouse:68,-144
+3321
+3340 mouse1
+3341
+3420 mouse:301,542
+3421
+3440 mouse1
+3441
+3520 mouse:-298,-542
+3521
+3540 mouse1
+3541
+3640 mouse:-433,542
+3641
+3660 mouse1
+3661

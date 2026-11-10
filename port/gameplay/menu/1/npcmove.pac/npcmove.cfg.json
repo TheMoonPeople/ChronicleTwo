@@ -1,0 +1,2248 @@
+{
+  "kind": "menu_layout",
+  "operations": [
+    {
+      "from": 30,
+      "op": "clear_etc_info"
+    },
+    {
+      "index": 30,
+      "op": "etc_info_offset"
+    },
+    {
+      "from": 100,
+      "op": "clear_textures"
+    },
+    {
+      "index": 100,
+      "op": "texture_offset"
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "geobg3",
+      "textures": [
+        {
+          "name": "geobg",
+          "rect": [
+            0,
+            0,
+            128,
+            128
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "geo",
+      "textures": [
+        {
+          "name": "ListBoard00",
+          "rect": [
+            0,
+            306,
+            120,
+            94
+          ]
+        },
+        {
+          "name": "ListBoard01",
+          "rect": [
+            120,
+            306,
+            40,
+            94
+          ]
+        },
+        {
+          "name": "ListBoard02",
+          "rect": [
+            162,
+            306,
+            80,
+            94
+          ]
+        },
+        {
+          "name": "ListBoard10",
+          "rect": [
+            0,
+            400,
+            120,
+            64
+          ]
+        },
+        {
+          "name": "ListBoard11",
+          "rect": [
+            120,
+            400,
+            40,
+            64
+          ]
+        },
+        {
+          "name": "ListBoard12",
+          "rect": [
+            162,
+            400,
+            80,
+            64
+          ]
+        },
+        {
+          "name": "ListBoard20",
+          "rect": [
+            0,
+            464,
+            120,
+            89
+          ]
+        },
+        {
+          "name": "ListBoard21",
+          "rect": [
+            120,
+            464,
+            40,
+            89
+          ]
+        },
+        {
+          "name": "ListBoard22",
+          "rect": [
+            162,
+            464,
+            80,
+            89
+          ]
+        },
+        {
+          "name": "ScrlBar0",
+          "rect": [
+            356,
+            234,
+            8,
+            10
+          ]
+        },
+        {
+          "name": "ScrlBar1",
+          "rect": [
+            356,
+            242,
+            8,
+            10
+          ]
+        },
+        {
+          "name": "暗板",
+          "rect": [
+            352,
+            366,
+            82,
+            36
+          ]
+        },
+        {
+          "name": "明板",
+          "rect": [
+            352,
+            402,
+            82,
+            36
+          ]
+        },
+        {
+          "name": "ListLine",
+          "rect": [
+            0,
+            553,
+            192,
+            6
+          ]
+        },
+        {
+          "name": "移住者のせんたく",
+          "rect": [
+            120,
+            636,
+            178,
+            24
+          ]
+        },
+        {
+          "name": "キャラリスト",
+          "rect": [
+            380,
+            674,
+            124,
+            18
+          ]
+        },
+        {
+          "name": "％",
+          "rect": [
+            436,
+            746,
+            18,
+            22
+          ]
+        },
+        {
+          "name": "％数字",
+          "rect": [
+            0,
+            710,
+            26,
+            34
+          ]
+        },
+        {
+          "name": "CP数字",
+          "rect": [
+            260,
+            716,
+            20,
+            28
+          ]
+        },
+        {
+          "name": "建物情報",
+          "rect": [
+            364,
+            674,
+            60,
+            18
+          ]
+        },
+        {
+          "name": "住人",
+          "rect": [
+            466,
+            692,
+            32,
+            18
+          ]
+        },
+        {
+          "name": "建物窓0",
+          "rect": [
+            242,
+            306,
+            36,
+            224
+          ]
+        },
+        {
+          "name": "建物窓1",
+          "rect": [
+            278,
+            306,
+            36,
+            224
+          ]
+        },
+        {
+          "name": "建物窓2",
+          "rect": [
+            314,
+            306,
+            36,
+            224
+          ]
+        },
+        {
+          "name": "CP窓0",
+          "rect": [
+            404,
+            444,
+            36,
+            28
+          ]
+        },
+        {
+          "name": "CP窓1",
+          "rect": [
+            440,
+            444,
+            36,
+            28
+          ]
+        },
+        {
+          "name": "CP窓2",
+          "rect": [
+            476,
+            444,
+            36,
+            28
+          ]
+        },
+        {
+          "name": "CP窓3",
+          "rect": [
+            404,
+            472,
+            36,
+            20
+          ]
+        },
+        {
+          "name": "CP窓4",
+          "rect": [
+            440,
+            472,
+            36,
+            20
+          ]
+        },
+        {
+          "name": "CP窓5",
+          "rect": [
+            476,
+            472,
+            36,
+            20
+          ]
+        },
+        {
+          "name": "CP窓6",
+          "rect": [
+            404,
+            492,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "CP窓7",
+          "rect": [
+            440,
+            492,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "CP窓8",
+          "rect": [
+            476,
+            492,
+            36,
+            26
+          ]
+        },
+        {
+          "name": "カルチャーＰ",
+          "rect": [
+            328,
+            692,
+            138,
+            18
+          ]
+        },
+        {
+          "name": "①",
+          "rect": [
+            0,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "②",
+          "rect": [
+            20,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "③",
+          "rect": [
+            40,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "④",
+          "rect": [
+            60,
+            606,
+            20,
+            20
+          ]
+        },
+        {
+          "name": "⑤",
+          "rect": [
+            80,
+            606,
+            20,
+            20
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 3,
+      "op": "texture_sheet",
+      "sheet": "chr0",
+      "textures": [
+        {
+          "name": "npcwd0",
+          "rect": [
+            193,
+            0,
+            36,
+            75
+          ]
+        },
+        {
+          "name": "npcwd1",
+          "rect": [
+            229,
+            0,
+            8,
+            75
+          ]
+        },
+        {
+          "name": "npcwd2",
+          "rect": [
+            237,
+            0,
+            34,
+            75
+          ]
+        },
+        {
+          "name": "npcwd3",
+          "rect": [
+            193,
+            75,
+            36,
+            6
+          ]
+        },
+        {
+          "name": "npcwd4",
+          "rect": [
+            229,
+            75,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "npcwd5",
+          "rect": [
+            237,
+            75,
+            34,
+            6
+          ]
+        },
+        {
+          "name": "npcwd6",
+          "rect": [
+            193,
+            81,
+            36,
+            19
+          ]
+        },
+        {
+          "name": "npcwd7",
+          "rect": [
+            229,
+            81,
+            8,
+            19
+          ]
+        },
+        {
+          "name": "npcwd8",
+          "rect": [
+            237,
+            81,
+            34,
+            19
+          ]
+        },
+        {
+          "name": "npcwd9",
+          "rect": [
+            193,
+            100,
+            36,
+            6
+          ]
+        },
+        {
+          "name": "npcwd10",
+          "rect": [
+            229,
+            100,
+            8,
+            6
+          ]
+        },
+        {
+          "name": "npcwd11",
+          "rect": [
+            237,
+            100,
+            34,
+            6
+          ]
+        },
+        {
+          "name": "npcwd12",
+          "rect": [
+            193,
+            106,
+            36,
+            31
+          ]
+        },
+        {
+          "name": "npcwd13",
+          "rect": [
+            229,
+            106,
+            8,
+            31
+          ]
+        },
+        {
+          "name": "npcwd14",
+          "rect": [
+            237,
+            106,
+            34,
+            31
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 1,
+      "op": "texture_sheet",
+      "sheet": "mnmain",
+      "textures": [
+        {
+          "name": "waku_orange",
+          "rect": [
+            0,
+            162,
+            16,
+            16
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 0,
+      "op": "texture_sheet",
+      "sheet": "gaiji",
+      "textures": [
+        {
+          "name": "g_L1",
+          "rect": [
+            32,
+            132,
+            32,
+            23
+          ]
+        },
+        {
+          "name": "g_R1",
+          "rect": [
+            64,
+            132,
+            32,
+            23
+          ]
+        }
+      ]
+    },
+    {
+      "block_slot": 0,
+      "op": "texture_sheet",
+      "sheet": "menuwork2",
+      "textures": [
+        {
+          "name": "menuwork2",
+          "rect": [
+            0,
+            0,
+            256,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "op": "form_offset"
+    },
+    {
+      "name": "ジオラマ終了図",
+      "op": "form",
+      "parts": [
+        {
+          "name": "work",
+          "part": "normal",
+          "size": [
+            512,
+            480
+          ],
+          "texture": "menuwork2",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "bg",
+      "op": "form",
+      "parts": [
+        {
+          "modifiers": [
+            {
+              "entries": [
+                {
+                  "index": 0,
+                  "value": 1
+                },
+                {
+                  "index": 1,
+                  "value": 1
+                }
+              ],
+              "mod": "etc_info"
+            }
+          ],
+          "name": "geobg",
+          "part": "normal",
+          "texture": "geobg",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "bg_tile"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "移住タイトル",
+      "op": "form",
+      "parts": [
+        {
+          "name": "Title",
+          "part": "normal",
+          "texture": "移住者のせんたく",
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            30,
+            24
+          ]
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            0
+          ],
+          "set": "rgba"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "polywin_bg",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                40,
+                29,
+                42,
+                128
+              ]
+            }
+          ],
+          "name": "stbg0",
+          "part": "fillbox",
+          "size": [
+            236,
+            170
+          ],
+          "style": 0,
+          "xy": [
+            14,
+            52
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            530,
+            60
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                60.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                240.0,
+                60.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "count": 3,
+          "set": "parts_capacity"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        }
+      ]
+    },
+    {
+      "name": "polychr",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "poly"
+        },
+        {
+          "draw": 1,
+          "set": "draw_flag"
+        }
+      ]
+    },
+    {
+      "name": "polywin_chrhide",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                40,
+                29,
+                42,
+                128
+              ]
+            }
+          ],
+          "name": "stbg0",
+          "part": "fillbox",
+          "size": [
+            236,
+            170
+          ],
+          "style": 0,
+          "xy": [
+            14,
+            52
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            530,
+            60
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                60.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                240.0,
+                60.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "set": "rgba"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        }
+      ]
+    },
+    {
+      "name": "polywin",
+      "op": "form",
+      "parts": [
+        {
+          "name": "pname",
+          "part": "funcinfo",
+          "xy": [
+            130,
+            23
+          ]
+        },
+        {
+          "name": "setu0",
+          "part": "funcinfo",
+          "xy": [
+            28,
+            242
+          ]
+        },
+        {
+          "name": "setu1",
+          "part": "funcinfo",
+          "xy": [
+            28,
+            272
+          ]
+        },
+        {
+          "name": "setu2",
+          "part": "funcinfo",
+          "xy": [
+            28,
+            302
+          ]
+        },
+        {
+          "name": "setu3",
+          "part": "funcinfo",
+          "xy": [
+            28,
+            332
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd0",
+          "part": "normal",
+          "size": [
+            36,
+            75
+          ],
+          "texture": "npcwd0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd1",
+          "part": "normal",
+          "size": [
+            190,
+            75
+          ],
+          "texture": "npcwd1",
+          "xy": [
+            36,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "npcwd2",
+          "part": "normal",
+          "size": [
+            34,
+            75
+          ],
+          "texture": "npcwd2",
+          "xy": [
+            226,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd3",
+          "part": "normal",
+          "size": [
+            36,
+            140
+          ],
+          "texture": "npcwd3",
+          "xy": [
+            0,
+            75
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd4",
+          "part": "normal",
+          "size": [
+            190,
+            140
+          ],
+          "texture": "npcwd4",
+          "xy": [
+            36,
+            75
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "npcwd5",
+          "part": "normal",
+          "size": [
+            34,
+            140
+          ],
+          "texture": "npcwd5",
+          "xy": [
+            226,
+            75
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd6",
+          "part": "normal",
+          "size": [
+            36,
+            19
+          ],
+          "texture": "npcwd6",
+          "xy": [
+            0,
+            215
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd7",
+          "part": "normal",
+          "size": [
+            190,
+            19
+          ],
+          "texture": "npcwd7",
+          "xy": [
+            36,
+            215
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "npcwd8",
+          "part": "normal",
+          "size": [
+            34,
+            19
+          ],
+          "texture": "npcwd8",
+          "xy": [
+            226,
+            215
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd9",
+          "part": "normal",
+          "size": [
+            36,
+            110
+          ],
+          "texture": "npcwd9",
+          "xy": [
+            0,
+            234
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            }
+          ],
+          "name": "npcwd10",
+          "part": "normal",
+          "size": [
+            190,
+            110
+          ],
+          "texture": "npcwd10",
+          "xy": [
+            36,
+            234
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "npcwd11",
+          "part": "normal",
+          "size": [
+            34,
+            110
+          ],
+          "texture": "npcwd11",
+          "xy": [
+            226,
+            234
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "npcwd12",
+          "part": "normal",
+          "size": [
+            36,
+            31
+          ],
+          "texture": "npcwd12",
+          "xy": [
+            0,
+            344
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "npcwd13",
+          "part": "normal",
+          "size": [
+            190,
+            31
+          ],
+          "texture": "npcwd13",
+          "xy": [
+            36,
+            344
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "bilinear"
+            },
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "npcwd14",
+          "part": "normal",
+          "size": [
+            34,
+            31
+          ],
+          "texture": "npcwd14",
+          "xy": [
+            226,
+            344
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "count": 20,
+          "set": "parts_capacity"
+        },
+        {
+          "set": "position",
+          "xy": [
+            530,
+            60
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                60.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                240.0,
+                60.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "rgba": [
+            128,
+            128,
+            128,
+            128
+          ],
+          "set": "rgba"
+        }
+      ]
+    },
+    {
+      "name": "候補リスト",
+      "op": "form",
+      "parts": [
+        {
+          "name": "infomsg",
+          "part": "funcinfo",
+          "xy": [
+            40,
+            54
+          ]
+        },
+        {
+          "name": "clippos",
+          "part": "funcinfo",
+          "xy": [
+            40,
+            52
+          ]
+        },
+        {
+          "name": "btnmsg",
+          "part": "funcinfo",
+          "xy": [
+            40,
+            280
+          ]
+        },
+        {
+          "name": "B00",
+          "part": "normal",
+          "texture": "ListBoard00",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "B01",
+          "part": "normal",
+          "texture": "ListBoard01",
+          "xy": [
+            120,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "B02",
+          "part": "normal",
+          "texture": "ListBoard02",
+          "xy": [
+            150,
+            0
+          ]
+        },
+        {
+          "name": "B10",
+          "part": "normal",
+          "size": [
+            120,
+            154
+          ],
+          "texture": "ListBoard10",
+          "xy": [
+            0,
+            94
+          ]
+        },
+        {
+          "name": "B11",
+          "part": "normal",
+          "size": [
+            30,
+            154
+          ],
+          "texture": "ListBoard11",
+          "xy": [
+            120,
+            94
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "B12",
+          "part": "normal",
+          "size": [
+            80,
+            154
+          ],
+          "texture": "ListBoard12",
+          "xy": [
+            150,
+            94
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "B20",
+          "part": "normal",
+          "texture": "ListBoard20",
+          "xy": [
+            0,
+            244
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "B21",
+          "part": "normal",
+          "size": [
+            30,
+            89
+          ],
+          "texture": "ListBoard21",
+          "xy": [
+            120,
+            244
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "B22",
+          "part": "normal",
+          "texture": "ListBoard22",
+          "xy": [
+            150,
+            244
+          ]
+        },
+        {
+          "name": "ULine0",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            86
+          ]
+        },
+        {
+          "name": "ULine1",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            110
+          ]
+        },
+        {
+          "name": "ULine2",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            134
+          ]
+        },
+        {
+          "name": "ULine3",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            158
+          ]
+        },
+        {
+          "name": "ULine4",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            182
+          ]
+        },
+        {
+          "name": "ULine5",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            110
+          ]
+        },
+        {
+          "name": "ULine6",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            134
+          ]
+        },
+        {
+          "name": "ULine7",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            158
+          ]
+        },
+        {
+          "name": "ULine8",
+          "part": "normal",
+          "size": [
+            166,
+            6
+          ],
+          "texture": "ListLine",
+          "xy": [
+            32,
+            182
+          ]
+        },
+        {
+          "name": "Title",
+          "part": "normal",
+          "texture": "キャラリスト",
+          "xy": [
+            54,
+            11
+          ]
+        },
+        {
+          "name": "bar0",
+          "part": "normal",
+          "texture": "ScrlBar0",
+          "xy": [
+            216,
+            0
+          ]
+        },
+        {
+          "name": "bar1",
+          "part": "normal",
+          "texture": "ScrlBar1",
+          "xy": [
+            216,
+            0
+          ]
+        },
+        {
+          "name": "bar2",
+          "part": "normal",
+          "texture": "ScrlBar2",
+          "xy": [
+            216,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            -260,
+            90
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                -260.0,
+                90.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                14.0,
+                90.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "外へ",
+          "set": "action"
+        },
+        {
+          "count": 29,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "家情報",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            248,
+            88
+          ]
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                88.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                248.0,
+                88.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        },
+        {
+          "set": "draw_type",
+          "type": "house"
+        }
+      ]
+    },
+    {
+      "name": "CPVIEW",
+      "op": "form",
+      "parts": [
+        {
+          "name": "win0",
+          "part": "normal",
+          "texture": "CP窓0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "win1",
+          "part": "normal",
+          "size": [
+            170,
+            28
+          ],
+          "texture": "CP窓1",
+          "xy": [
+            36,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win2",
+          "part": "normal",
+          "texture": "CP窓2",
+          "xy": [
+            206,
+            0
+          ]
+        },
+        {
+          "name": "win3",
+          "part": "normal",
+          "size": [
+            36,
+            30
+          ],
+          "texture": "CP窓3",
+          "xy": [
+            0,
+            28
+          ]
+        },
+        {
+          "name": "win4",
+          "part": "normal",
+          "size": [
+            170,
+            30
+          ],
+          "texture": "CP窓4",
+          "xy": [
+            36,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win5",
+          "part": "normal",
+          "size": [
+            36,
+            30
+          ],
+          "texture": "CP窓5",
+          "xy": [
+            206,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win6",
+          "part": "normal",
+          "size": [
+            36,
+            26
+          ],
+          "texture": "CP窓6",
+          "xy": [
+            0,
+            58
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win7",
+          "part": "normal",
+          "size": [
+            170,
+            26
+          ],
+          "texture": "CP窓7",
+          "xy": [
+            36,
+            58
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win8",
+          "part": "normal",
+          "size": [
+            36,
+            26
+          ],
+          "texture": "CP窓8",
+          "xy": [
+            206,
+            58
+          ]
+        },
+        {
+          "name": "CPINDEX",
+          "part": "normal",
+          "texture": "カルチャーＰ",
+          "xy": [
+            20,
+            30
+          ]
+        },
+        {
+          "name": "CP",
+          "part": "number1",
+          "texture": "CP数字",
+          "value": 0,
+          "xy": [
+            220,
+            28
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "position",
+          "xy": [
+            240,
+            318
+          ]
+        },
+        {
+          "actions": [
+            {
+              "move_type": 2,
+              "name": "外へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                540.0,
+                318.0
+              ]
+            },
+            {
+              "move_type": 2,
+              "name": "中へ",
+              "rate": [
+                4.0,
+                1.1
+              ],
+              "xy": [
+                241.0,
+                318.0
+              ]
+            }
+          ],
+          "capacity": 2,
+          "set": "actions"
+        },
+        {
+          "name": "中へ",
+          "set": "action"
+        },
+        {
+          "count": 12,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "質問板",
+      "op": "form",
+      "parts": [
+        {
+          "name": "msg1",
+          "part": "funcinfo",
+          "xy": [
+            26,
+            16
+          ]
+        },
+        {
+          "name": "win0",
+          "part": "normal",
+          "texture": "CP窓0",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "win1",
+          "part": "normal",
+          "size": [
+            140,
+            28
+          ],
+          "texture": "CP窓1",
+          "xy": [
+            36,
+            0
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win2",
+          "part": "normal",
+          "texture": "CP窓2",
+          "xy": [
+            176,
+            0
+          ]
+        },
+        {
+          "name": "win3",
+          "part": "normal",
+          "size": [
+            36,
+            60
+          ],
+          "texture": "CP窓3",
+          "xy": [
+            0,
+            28
+          ]
+        },
+        {
+          "name": "win4",
+          "part": "normal",
+          "size": [
+            140,
+            60
+          ],
+          "texture": "CP窓4",
+          "xy": [
+            36,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win5",
+          "part": "normal",
+          "size": [
+            36,
+            60
+          ],
+          "texture": "CP窓5",
+          "xy": [
+            176,
+            28
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win6",
+          "part": "normal",
+          "size": [
+            36,
+            26
+          ],
+          "texture": "CP窓6",
+          "xy": [
+            0,
+            88
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win7",
+          "part": "normal",
+          "size": [
+            140,
+            26
+          ],
+          "texture": "CP窓7",
+          "xy": [
+            36,
+            88
+          ]
+        },
+        {
+          "modifiers": [
+            {
+              "mod": "shadow"
+            }
+          ],
+          "name": "win8",
+          "part": "normal",
+          "size": [
+            36,
+            26
+          ],
+          "texture": "CP窓8",
+          "xy": [
+            176,
+            88
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            32,
+            114
+          ]
+        },
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "count": 10,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "fade_black",
+      "op": "form",
+      "parts": [
+        {
+          "kind": "sq_beta",
+          "modifiers": [
+            {
+              "mod": "fill",
+              "rgba": [
+                0,
+                0,
+                0,
+                32
+              ]
+            }
+          ],
+          "name": "fill0",
+          "part": "fillbox",
+          "size": [
+            512,
+            480
+          ],
+          "style": 0,
+          "xy": [
+            0,
+            0
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "count": 1,
+          "set": "parts_capacity"
+        }
+      ]
+    },
+    {
+      "name": "msg2",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg3",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "ListClip",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "clip",
+          "size": [
+            300,
+            194
+          ]
+        }
+      ]
+    },
+    {
+      "name": "msg4",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "DefClip",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "set": "position",
+          "xy": [
+            0,
+            0
+          ]
+        },
+        {
+          "set": "draw_type",
+          "type": "clip"
+        },
+        {
+          "set": "clip"
+        }
+      ]
+    },
+    {
+      "name": "msg5",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "channels": "a",
+          "set": "rgba_bits"
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "name": "msg6",
+      "op": "form",
+      "parts": [],
+      "settings": [
+        {
+          "draw": 0,
+          "set": "draw_flag"
+        },
+        {
+          "set": "draw_type",
+          "type": "msgform"
+        }
+      ]
+    },
+    {
+      "op": "init_drawlist"
+    }
+  ],
+  "schema_version": 2
+}

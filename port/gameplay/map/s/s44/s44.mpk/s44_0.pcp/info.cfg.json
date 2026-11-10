@@ -1,0 +1,282 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "s440101-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440101-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440201-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440202-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440203-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440206-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440205-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440204-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440207-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440208-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440301-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440301-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440301-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440302-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440302-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440302-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440303-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440303-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440303-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440304-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440304-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440304-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440305-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440305-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440305-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440306-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440306-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440306-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440307-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440307-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440307-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440308-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440308-c.gltf",
+      "type": 2
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "s440308-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440309-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440310-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "s440309-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440309-c.gltf",
+      "type": 2
+    },
+    {
+      "model": "s440310-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "s440311-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "s440312-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "s440313-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "s440318-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "s440316-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1200.0,
+        "fade": 1
+      },
+      "model": "s440317-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1000.0,
+        "fade": 1
+      },
+      "model": "s440314-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440319-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440320-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440321-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440324-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440323-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440322-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440325-m.gltf",
+      "type": 0
+    },
+    {
+      "far_clip": {
+        "distance": 1500.0,
+        "fade": 1
+      },
+      "model": "s440326-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440330-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440401-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440404-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440403-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440402-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "s440102-m.gltf",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

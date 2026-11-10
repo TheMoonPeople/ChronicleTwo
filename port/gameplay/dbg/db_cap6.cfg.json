@@ -1,0 +1,68 @@
+{
+  "actions": [
+    {
+      "action": "progress",
+      "value": 8
+    },
+    {
+      "action": "item_set",
+      "set": 0
+    },
+    {
+      "action": "get_items",
+      "items": [
+        7,
+        27
+      ]
+    },
+    {
+      "action": "get_items",
+      "items": [
+        71,
+        100
+      ]
+    },
+    {
+      "action": "equip",
+      "chara": 0,
+      "item": 7
+    },
+    {
+      "action": "equip",
+      "chara": 0,
+      "item": 27
+    },
+    {
+      "action": "equip",
+      "chara": 1,
+      "item": 71
+    },
+    {
+      "action": "equip",
+      "chara": 1,
+      "item": 100
+    },
+    {
+      "action": "defense",
+      "chara": 0,
+      "value": 50
+    },
+    {
+      "action": "defense",
+      "chara": 1,
+      "value": 50
+    },
+    {
+      "action": "hp",
+      "chara": 0,
+      "value": 160
+    },
+    {
+      "action": "hp",
+      "chara": 1,
+      "value": 160
+    }
+  ],
+  "kind": "game_setup",
+  "schema_version": 2
+}

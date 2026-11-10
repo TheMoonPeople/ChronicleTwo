@@ -1,0 +1,145 @@
+{
+  "blocks": [
+    {
+      "commands": [],
+      "name": "INIT_END"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 0,
+          "op": "message_system_buffer",
+          "window": 6
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 2
+        },
+        {
+          "op": "message_env",
+          "preset": "yesno",
+          "window": 3
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 4
+        },
+        {
+          "op": "message_env",
+          "preset": "general",
+          "window": 5
+        },
+        {
+          "op": "message_env",
+          "preset": "name",
+          "window": 6
+        }
+      ],
+      "name": "MSG_INIT"
+    },
+    {
+      "commands": [
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_buffer",
+          "window": 6
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 2
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 3
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 4
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 5
+        },
+        {
+          "buffer": 1,
+          "op": "message_system_buffer",
+          "window": 6
+        }
+      ],
+      "name": "MSG_END"
+    }
+  ],
+  "kind": "menu_commands",
+  "schema_version": 2
+}

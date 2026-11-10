@@ -136,7 +136,7 @@ struct SPI_STACK {
      */
     SPI_STACK &operator=(const SPI_STACK &other) {
         type = other.type;
-        value.integer = other.value.integer;
+        value.string = other.value.string;
         return *this;
     }
 };

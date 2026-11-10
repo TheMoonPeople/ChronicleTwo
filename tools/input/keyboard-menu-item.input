@@ -1,0 +1,13 @@
+# With --jump town:10 --fast-load, open Item and navigate the bag in four directions.
+180 key:Tab
+186
+400 key:Space
+406
+550 key:D
+556
+650 key:S
+656
+750 key:A
+756
+850 key:W
+856

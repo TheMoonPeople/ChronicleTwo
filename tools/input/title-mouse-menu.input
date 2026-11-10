@@ -1,0 +1,17 @@
+# --window 1280x960: boot to the title, hover Continue, click it.
+300 circle
+306
+320 cross
+326
+900 start
+906
+1200 circle
+1206
+1500 cross
+1506
+2450 start
+2456
+2600 mouse:0,-110
+2601
+2650 mouse1
+2651

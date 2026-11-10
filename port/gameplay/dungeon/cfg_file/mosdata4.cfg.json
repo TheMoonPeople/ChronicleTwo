@@ -1,0 +1,1378 @@
+{
+  "kind": "monster_names",
+  "names": [
+    {
+      "id": 0,
+      "name": "Ratto di fogna"
+    },
+    {
+      "id": 1,
+      "name": "Ratto marino"
+    },
+    {
+      "id": 2,
+      "name": "Divora-castelli"
+    },
+    {
+      "id": 3,
+      "name": "Topo della Morte"
+    },
+    {
+      "id": 4,
+      "name": "Vanguard"
+    },
+    {
+      "id": 5,
+      "name": "Neo-Vanguard"
+    },
+    {
+      "id": 6,
+      "name": "Vanguard Mk 2"
+    },
+    {
+      "id": 7,
+      "name": "Spacca-unghie"
+    },
+    {
+      "id": 8,
+      "name": "Rana"
+    },
+    {
+      "id": 9,
+      "name": "Geron"
+    },
+    {
+      "id": 10,
+      "name": "Gamal"
+    },
+    {
+      "id": 11,
+      "name": "Putos"
+    },
+    {
+      "id": 12,
+      "name": "Tore"
+    },
+    {
+      "id": 13,
+      "name": "Tore di vapore"
+    },
+    {
+      "id": 14,
+      "name": "Tore pazzo"
+    },
+    {
+      "id": 15,
+      "name": "Grande Albero"
+    },
+    {
+      "id": 16,
+      "name": "Kotore"
+    },
+    {
+      "id": 17,
+      "name": "Kotore vaporoso"
+    },
+    {
+      "id": 18,
+      "name": "Dorone"
+    },
+    {
+      "id": 19,
+      "name": "Piccolo Albero"
+    },
+    {
+      "id": 20,
+      "name": "Volpe da Caccia"
+    },
+    {
+      "id": 21,
+      "name": "Volpe Rossa"
+    },
+    {
+      "id": 22,
+      "name": "Lupo Assassino"
+    },
+    {
+      "id": 23,
+      "name": "Lupo Sorridente"
+    },
+    {
+      "id": 24,
+      "name": "Barone Aerostato"
+    },
+    {
+      "id": 25,
+      "name": "Aerostato dei Relitti"
+    },
+    {
+      "id": 26,
+      "name": "Conte Aerostato"
+    },
+    {
+      "id": 27,
+      "name": "Duca Aerostato"
+    },
+    {
+      "id": 28,
+      "name": "Testuggine"
+    },
+    {
+      "id": 29,
+      "name": "Tartaruga Marina"
+    },
+    {
+      "id": 30,
+      "name": "Tartaruga Stella"
+    },
+    {
+      "id": 31,
+      "name": "Tartaruga di Ebano"
+    },
+    {
+      "id": 32,
+      "name": "Tartaruga"
+    },
+    {
+      "id": 33,
+      "name": "Fintol"
+    },
+    {
+      "id": 34,
+      "name": "Arkerath"
+    },
+    {
+      "id": 35,
+      "name": "Tartafuga"
+    },
+    {
+      "id": 36,
+      "name": "Clown"
+    },
+    {
+      "id": 37,
+      "name": "Soldato Grifone"
+    },
+    {
+      "id": 38,
+      "name": "Artista Maligno"
+    },
+    {
+      "id": 39,
+      "name": "Alchimista Oscuro"
+    },
+    {
+      "id": 40,
+      "name": "Tigrifo"
+    },
+    {
+      "id": 41,
+      "name": "Chimera"
+    },
+    {
+      "id": 42,
+      "name": "Leogrifo"
+    },
+    {
+      "id": 43,
+      "name": "Sfinge"
+    },
+    {
+      "id": 44,
+      "name": "Folletto"
+    },
+    {
+      "id": 45,
+      "name": "Ninfetta"
+    },
+    {
+      "id": 46,
+      "name": "Fata"
+    },
+    {
+      "id": 47,
+      "name": "Diavoletto"
+    },
+    {
+      "id": 48,
+      "name": "Linda"
+    },
+    {
+      "id": 49,
+      "name": "Elfas"
+    },
+    {
+      "id": 50,
+      "name": "Elefiordiluna"
+    },
+    {
+      "id": 51,
+      "name": "Behemoth"
+    },
+    {
+      "id": 52,
+      "name": "Himarra"
+    },
+    {
+      "id": 53,
+      "name": "Balalla"
+    },
+    {
+      "id": 54,
+      "name": "Fiore delle Tempeste"
+    },
+    {
+      "id": 55,
+      "name": "Mandora"
+    },
+    {
+      "id": 56,
+      "name": "Gyumo"
+    },
+    {
+      "id": 57,
+      "name": "Blumo"
+    },
+    {
+      "id": 58,
+      "name": "Cabuble"
+    },
+    {
+      "id": 59,
+      "name": "Minotauro"
+    },
+    {
+      "id": 60,
+      "name": "Cacciatore Notturno"
+    },
+    {
+      "id": 61,
+      "name": "Ragstink"
+    },
+    {
+      "id": 62,
+      "name": "Lisciavatore"
+    },
+    {
+      "id": 63,
+      "name": "Fantasma"
+    },
+    {
+      "id": 64,
+      "name": "Drago"
+    },
+    {
+      "id": 65,
+      "name": "Drago Rosso"
+    },
+    {
+      "id": 66,
+      "name": "Drago di Terra"
+    },
+    {
+      "id": 67,
+      "name": "Tiamat"
+    },
+    {
+      "id": 68,
+      "name": "Divoraricordi"
+    },
+    {
+      "id": 69,
+      "name": "Salsiccetto"
+    },
+    {
+      "id": 70,
+      "name": "Tempestoso"
+    },
+    {
+      "id": 71,
+      "name": "Ladha"
+    },
+    {
+      "id": 72,
+      "name": "Lady Ragno"
+    },
+    {
+      "id": 73,
+      "name": "Shiva"
+    },
+    {
+      "id": 74,
+      "name": "Lady Ragno"
+    },
+    {
+      "id": 75,
+      "name": "Bambamchoo"
+    },
+    {
+      "id": 76,
+      "name": "Elementale di Fuoco"
+    },
+    {
+      "id": 77,
+      "name": "Spirito di Fuoco"
+    },
+    {
+      "id": 78,
+      "name": "Spettro di Fuoco"
+    },
+    {
+      "id": 79,
+      "name": "Servo del Magma"
+    },
+    {
+      "id": 80,
+      "name": "Elementale di Ghiaccio"
+    },
+    {
+      "id": 81,
+      "name": "Spirito di Ghiaccio"
+    },
+    {
+      "id": 82,
+      "name": "Spettro delle Nevi"
+    },
+    {
+      "id": 83,
+      "name": "Servo delle Nevi"
+    },
+    {
+      "id": 84,
+      "name": "Zappy"
+    },
+    {
+      "id": 85,
+      "name": "Spirito del Tuono"
+    },
+    {
+      "id": 86,
+      "name": "Spettro del Tuono"
+    },
+    {
+      "id": 87,
+      "name": "Servo dei Tuoni"
+    },
+    {
+      "id": 88,
+      "name": "Elementale di Acqua"
+    },
+    {
+      "id": 89,
+      "name": "Spirito delle Acque"
+    },
+    {
+      "id": 90,
+      "name": "Spettro della Pioggia"
+    },
+    {
+      "id": 91,
+      "name": "Servo delle Tempeste"
+    },
+    {
+      "id": 92,
+      "name": "Elementale dei Venti"
+    },
+    {
+      "id": 93,
+      "name": "Spirito Volante"
+    },
+    {
+      "id": 94,
+      "name": "Spettro delle Bufere"
+    },
+    {
+      "id": 95,
+      "name": "Servo dei Venti"
+    },
+    {
+      "id": 96,
+      "name": "Indigeno Nascosto"
+    },
+    {
+      "id": 97,
+      "name": "Corridore del Magma"
+    },
+    {
+      "id": 98,
+      "name": "Guardia di Pietra"
+    },
+    {
+      "id": 99,
+      "name": "Ultimo Guardiano"
+    },
+    {
+      "id": 100,
+      "name": "Testadizucca"
+    },
+    {
+      "id": 101,
+      "name": "Zucky"
+    },
+    {
+      "id": 102,
+      "name": "Mallone"
+    },
+    {
+      "id": 103,
+      "name": "Spaventapasseri"
+    },
+    {
+      "id": 104,
+      "name": "Mummia"
+    },
+    {
+      "id": 105,
+      "name": "Bundy"
+    },
+    {
+      "id": 106,
+      "name": "Ghoul"
+    },
+    {
+      "id": 107,
+      "name": "Riemerso"
+    },
+    {
+      "id": 108,
+      "name": "Pianta Carnivora"
+    },
+    {
+      "id": 109,
+      "name": "Rosa Maledetta"
+    },
+    {
+      "id": 110,
+      "name": "Fiore Oscuro"
+    },
+    {
+      "id": 111,
+      "name": "Pianta Misteriosa"
+    },
+    {
+      "id": 112,
+      "name": "Gemron del Fuoco"
+    },
+    {
+      "id": 113,
+      "name": "Gundron del Fuoco"
+    },
+    {
+      "id": 114,
+      "name": "Drago del Fuoco"
+    },
+    {
+      "id": 115,
+      "name": "Dragone del Fuoco"
+    },
+    {
+      "id": 116,
+      "name": "Gemron di Ghiaccio"
+    },
+    {
+      "id": 117,
+      "name": "Gundron di Ghiaccio"
+    },
+    {
+      "id": 118,
+      "name": "Drago del Ghiaccio"
+    },
+    {
+      "id": 119,
+      "name": "Dragone del Ghiaccio"
+    },
+    {
+      "id": 120,
+      "name": "Gemron del Tuono"
+    },
+    {
+      "id": 121,
+      "name": "Gundron del Tuono"
+    },
+    {
+      "id": 122,
+      "name": "Drago del Tuono"
+    },
+    {
+      "id": 123,
+      "name": "Dragone del Tuono"
+    },
+    {
+      "id": 124,
+      "name": "Gemron del Vento"
+    },
+    {
+      "id": 125,
+      "name": "Gundron del Vento"
+    },
+    {
+      "id": 126,
+      "name": "Drago del Vento"
+    },
+    {
+      "id": 127,
+      "name": "Dragone del Vento"
+    },
+    {
+      "id": 128,
+      "name": "Gemron Sacro"
+    },
+    {
+      "id": 129,
+      "name": "Gundron Sacro"
+    },
+    {
+      "id": 130,
+      "name": "Drago Sacro"
+    },
+    {
+      "id": 131,
+      "name": "Dragone sacro"
+    },
+    {
+      "id": 132,
+      "name": "Nikapous"
+    },
+    {
+      "id": 133,
+      "name": "Maschera di Ferro"
+    },
+    {
+      "id": 134,
+      "name": "Ummagumma"
+    },
+    {
+      "id": 135,
+      "name": "Incutore"
+    },
+    {
+      "id": 136,
+      "name": "Ariete"
+    },
+    {
+      "id": 137,
+      "name": "Ariete Selvaggio"
+    },
+    {
+      "id": 138,
+      "name": "Ariete Z"
+    },
+    {
+      "id": 139,
+      "name": "Bandou"
+    },
+    {
+      "id": 140,
+      "name": "Talpide"
+    },
+    {
+      "id": 141,
+      "name": "Talpide da Rena"
+    },
+    {
+      "id": 142,
+      "name": "Talpide Minatore"
+    },
+    {
+      "id": 143,
+      "name": "Talpide Occupato"
+    },
+    {
+      "id": 144,
+      "name": "Serpente Assassino"
+    },
+    {
+      "id": 145,
+      "name": "Serpente Marino"
+    },
+    {
+      "id": 146,
+      "name": "Drago di Sabbia"
+    },
+    {
+      "id": 147,
+      "name": "Fune Morta"
+    },
+    {
+      "id": 148,
+      "name": "Goyone"
+    },
+    {
+      "id": 149,
+      "name": "Goyone di Vapore"
+    },
+    {
+      "id": 150,
+      "name": "Goyone Lunare"
+    },
+    {
+      "id": 151,
+      "name": "Marinaio"
+    },
+    {
+      "id": 152,
+      "name": "Zia Medusa"
+    },
+    {
+      "id": 153,
+      "name": "Naga Grasso"
+    },
+    {
+      "id": 154,
+      "name": "Signora Gorgona"
+    },
+    {
+      "id": 155,
+      "name": "Lady Gorgona"
+    },
+    {
+      "id": 156,
+      "name": "Statua di Cane"
+    },
+    {
+      "id": 157,
+      "name": "Cane di Corallo"
+    },
+    {
+      "id": 158,
+      "name": "Roccia Giocattolo"
+    },
+    {
+      "id": 159,
+      "name": "Cerbero"
+    },
+    {
+      "id": 160,
+      "name": "Ivanoff"
+    },
+    {
+      "id": 161,
+      "name": "Magmanoff"
+    },
+    {
+      "id": 162,
+      "name": "Viso di Pietra"
+    },
+    {
+      "id": 163,
+      "name": "Iwanosuke"
+    },
+    {
+      "id": 164,
+      "name": "Statua"
+    },
+    {
+      "id": 165,
+      "name": "Armatura Animate"
+    },
+    {
+      "id": 166,
+      "name": "Guardia"
+    },
+    {
+      "id": 167,
+      "name": "Custode Oscuro"
+    },
+    {
+      "id": 168,
+      "name": "Golem"
+    },
+    {
+      "id": 169,
+      "name": "Golem di Lava"
+    },
+    {
+      "id": 170,
+      "name": "Mordi-roccia"
+    },
+    {
+      "id": 171,
+      "name": "Titano"
+    },
+    {
+      "id": 172,
+      "name": "Lord Osso"
+    },
+    {
+      "id": 173,
+      "name": "Chiodo Fiammeggiante"
+    },
+    {
+      "id": 174,
+      "name": "Chiodo Maligno"
+    },
+    {
+      "id": 175,
+      "name": "Re delle Ossa"
+    },
+    {
+      "id": 176,
+      "name": "Soldato Scheletro"
+    },
+    {
+      "id": 177,
+      "name": "Testa di Corno"
+    },
+    {
+      "id": 178,
+      "name": "Congegno d'Argento"
+    },
+    {
+      "id": 179,
+      "name": "Congegno di Platino"
+    },
+    {
+      "id": 180,
+      "name": "Maestro Scheletro"
+    },
+    {
+      "id": 181,
+      "name": "Veste Ardente"
+    },
+    {
+      "id": 182,
+      "name": "Capo dei Teschi"
+    },
+    {
+      "id": 183,
+      "name": "Giacca Rara"
+    },
+    {
+      "id": 184,
+      "name": "Capitano"
+    },
+    {
+      "id": 185,
+      "name": "Barbanera"
+    },
+    {
+      "id": 186,
+      "name": "Barbabianca"
+    },
+    {
+      "id": 187,
+      "name": "Oyakata"
+    },
+    {
+      "id": 188,
+      "name": "Corsaro"
+    },
+    {
+      "id": 189,
+      "name": "Pirata Zombi"
+    },
+    {
+      "id": 190,
+      "name": "Ladro di Minerali"
+    },
+    {
+      "id": 191,
+      "name": "Corsaro d’[UNI00c9]lite"
+    },
+    {
+      "id": 192,
+      "name": "Viso di Prajna"
+    },
+    {
+      "id": 193,
+      "name": "Alexander"
+    },
+    {
+      "id": 194,
+      "name": "Viso di Yaksa"
+    },
+    {
+      "id": 195,
+      "name": "Pupazzo Demoniaco"
+    },
+    {
+      "id": 196,
+      "name": "Fata Sorridente"
+    },
+    {
+      "id": 197,
+      "name": "Fata Ardente"
+    },
+    {
+      "id": 198,
+      "name": "Fata Guida"
+    },
+    {
+      "id": 199,
+      "name": "Fata Infernale"
+    },
+    {
+      "id": 200,
+      "name": "Barone Mezzaluna"
+    },
+    {
+      "id": 201,
+      "name": "Joe Appiccicoso"
+    },
+    {
+      "id": 202,
+      "name": "Joe Lunare"
+    },
+    {
+      "id": 203,
+      "name": "Gigante Lunare"
+    },
+    {
+      "id": 204,
+      "name": "Oscurit[UNI00e0]"
+    },
+    {
+      "id": 205,
+      "name": "Fuligginoso"
+    },
+    {
+      "id": 206,
+      "name": "L’Oscuro"
+    },
+    {
+      "id": 207,
+      "name": "Ombra"
+    },
+    {
+      "id": 208,
+      "name": "Sacerdote di Rama"
+    },
+    {
+      "id": 209,
+      "name": "Sleeber"
+    },
+    {
+      "id": 210,
+      "name": "Sacerdote Corvo"
+    },
+    {
+      "id": 211,
+      "name": "Garuda"
+    },
+    {
+      "id": 212,
+      "name": "Arthur"
+    },
+    {
+      "id": 213,
+      "name": "Lanciere"
+    },
+    {
+      "id": 214,
+      "name": "Lancia di Ferro"
+    },
+    {
+      "id": 215,
+      "name": "Acciaio Volante"
+    },
+    {
+      "id": 216,
+      "name": "Carro del Pirata"
+    },
+    {
+      "id": 217,
+      "name": "Occhio-pirata"
+    },
+    {
+      "id": 218,
+      "name": "Cannone Furioso"
+    },
+    {
+      "id": 219,
+      "name": "Spettro di Ferro"
+    },
+    {
+      "id": 220,
+      "name": "Bombardiere"
+    },
+    {
+      "id": 221,
+      "name": "Triplo Petardo"
+    },
+    {
+      "id": 222,
+      "name": "Bomba Pericolosa"
+    },
+    {
+      "id": 223,
+      "name": "Dinamite Dolce"
+    },
+    {
+      "id": 224,
+      "name": "Fiori"
+    },
+    {
+      "id": 225,
+      "name": "S. Fiori"
+    },
+    {
+      "id": 226,
+      "name": "R. Fiori"
+    },
+    {
+      "id": 227,
+      "name": "C. Fiori"
+    },
+    {
+      "id": 228,
+      "name": "Cuori"
+    },
+    {
+      "id": 229,
+      "name": "S. Cuori"
+    },
+    {
+      "id": 230,
+      "name": "R. Cuori"
+    },
+    {
+      "id": 231,
+      "name": "C. Cuori"
+    },
+    {
+      "id": 232,
+      "name": "Picche"
+    },
+    {
+      "id": 233,
+      "name": "S. Picche"
+    },
+    {
+      "id": 234,
+      "name": "R. Picche"
+    },
+    {
+      "id": 235,
+      "name": "C. Picche"
+    },
+    {
+      "id": 236,
+      "name": "Quadri"
+    },
+    {
+      "id": 237,
+      "name": "S. Quadri"
+    },
+    {
+      "id": 238,
+      "name": "R. Quadri"
+    },
+    {
+      "id": 239,
+      "name": "C. Quadri"
+    },
+    {
+      "id": 240,
+      "name": "Jolly"
+    },
+    {
+      "id": 241,
+      "name": "S. Jolly"
+    },
+    {
+      "id": 242,
+      "name": "R. Jolly"
+    },
+    {
+      "id": 243,
+      "name": "C. Jolly"
+    },
+    {
+      "id": 245,
+      "name": "Mimetico"
+    },
+    {
+      "id": 246,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 247,
+      "name": "Mimetico"
+    },
+    {
+      "id": 248,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 249,
+      "name": "Mimetico"
+    },
+    {
+      "id": 250,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 251,
+      "name": "Mimetico"
+    },
+    {
+      "id": 252,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 253,
+      "name": "Mimetico"
+    },
+    {
+      "id": 254,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 255,
+      "name": "Mimetico"
+    },
+    {
+      "id": 256,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 257,
+      "name": "Mimetico"
+    },
+    {
+      "id": 258,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 259,
+      "name": "Mimetico"
+    },
+    {
+      "id": 260,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 261,
+      "name": "Mimetico"
+    },
+    {
+      "id": 262,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 263,
+      "name": "Mimetico"
+    },
+    {
+      "id": 264,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 265,
+      "name": "Mimetico"
+    },
+    {
+      "id": 266,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 267,
+      "name": "Mimetico"
+    },
+    {
+      "id": 268,
+      "name": "Re Mimetico"
+    },
+    {
+      "id": 269,
+      "name": "Bombardiere sonico"
+    },
+    {
+      "id": 270,
+      "name": "Bomba Ultrasonica"
+    },
+    {
+      "id": 271,
+      "name": "Bombardiere Metallico"
+    },
+    {
+      "id": 272,
+      "name": "Krau Mauness"
+    },
+    {
+      "id": 273,
+      "name": "Barile Yo-Yo"
+    },
+    {
+      "id": 274,
+      "name": "Pietre Rotolanti"
+    },
+    {
+      "id": 275,
+      "name": "Cavalcatempo"
+    },
+    {
+      "id": 276,
+      "name": "Disco Rotante"
+    },
+    {
+      "id": 277,
+      "name": "Pipistrello"
+    },
+    {
+      "id": 278,
+      "name": "Pipistrello Marino"
+    },
+    {
+      "id": 279,
+      "name": "Pipistrello di Lava"
+    },
+    {
+      "id": 280,
+      "name": "Pipistrello Maligno"
+    },
+    {
+      "id": 500,
+      "name": "Halloween"
+    },
+    {
+      "id": 501,
+      "name": "Farfalla"
+    },
+    {
+      "id": 502,
+      "name": "Farfalla"
+    },
+    {
+      "id": 503,
+      "name": "Farfalla"
+    },
+    {
+      "id": 504,
+      "name": "Farfalla"
+    },
+    {
+      "id": 505,
+      "name": "Farfalla"
+    },
+    {
+      "id": 506,
+      "name": "Farfalla"
+    },
+    {
+      "id": 507,
+      "name": "Farfalla"
+    },
+    {
+      "id": 508,
+      "name": "Farfalla"
+    },
+    {
+      "id": 509,
+      "name": "Pistillo Lafres."
+    },
+    {
+      "id": 510,
+      "name": "Gaspard"
+    },
+    {
+      "id": 511,
+      "name": "Mostro Gaspard"
+    },
+    {
+      "id": 512,
+      "name": "Gaspard"
+    },
+    {
+      "id": 513,
+      "name": "Fuoco maligno"
+    },
+    {
+      "id": 514,
+      "name": "Pupazzo Shigura"
+    },
+    {
+      "id": 515,
+      "name": "???"
+    },
+    {
+      "id": 516,
+      "name": "Shingala"
+    },
+    {
+      "id": 517,
+      "name": "Arca della Morte"
+    },
+    {
+      "id": 518,
+      "name": "Araldica"
+    },
+    {
+      "id": 519,
+      "name": "Mitragliatrice"
+    },
+    {
+      "id": 520,
+      "name": "Mini Araldica"
+    },
+    {
+      "id": 522,
+      "name": "Jaming"
+    },
+    {
+      "id": 523,
+      "name": "Soldato Grifone"
+    },
+    {
+      "id": 600,
+      "name": "Clown"
+    },
+    {
+      "id": 601,
+      "name": "Linda"
+    },
+    {
+      "id": 602,
+      "name": "Lin"
+    },
+    {
+      "id": 603,
+      "name": "Mammo"
+    },
+    {
+      "id": 604,
+      "name": "Incubo"
+    },
+    {
+      "id": 605,
+      "name": "Drago nero"
+    },
+    {
+      "id": 606,
+      "name": "Uther"
+    },
+    {
+      "id": 607,
+      "name": "Gaja Uno"
+    },
+    {
+      "id": 608,
+      "name": "Gaja Due"
+    },
+    {
+      "id": 609,
+      "name": "Trentos"
+    },
+    {
+      "id": 610,
+      "name": "Kortlenn"
+    },
+    {
+      "id": 611,
+      "name": "Guardiano Lapis"
+    },
+    {
+      "id": 612,
+      "name": "Drago marino"
+    },
+    {
+      "id": 613,
+      "name": "Inferno"
+    },
+    {
+      "id": 614,
+      "name": "Linda"
+    },
+    {
+      "id": 615,
+      "name": "Imper. Grifone"
+    },
+    {
+      "id": 616,
+      "name": "Imper. Grifone"
+    },
+    {
+      "id": 617,
+      "name": "Imper. Grifone"
+    },
+    {
+      "id": 618,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 619,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 620,
+      "name": "Atlamillia"
+    },
+    {
+      "id": 621,
+      "name": "Elemento oscuro"
+    },
+    {
+      "id": 622,
+      "name": "Luna"
+    },
+    {
+      "id": 628,
+      "name": "Flotsam metal."
+    },
+    {
+      "id": 629,
+      "name": "Genio oscuro"
+    },
+    {
+      "id": 630,
+      "name": "Genio oscuro"
+    },
+    {
+      "id": 700,
+      "name": "Himarra"
+    },
+    {
+      "id": 701,
+      "name": "Lady Ragno"
+    },
+    {
+      "id": 702,
+      "name": "Gyumo"
+    },
+    {
+      "id": 703,
+      "name": "Volpe da Caccia"
+    },
+    {
+      "id": 704,
+      "name": "Folletto"
+    },
+    {
+      "id": 1000,
+      "name": "RoBomba"
+    },
+    {
+      "id": 1001,
+      "name": "Pesce elettrico"
+    },
+    {
+      "id": 1002,
+      "name": "Bomba"
+    },
+    {
+      "id": 1003,
+      "name": "Bomba"
+    },
+    {
+      "id": 1004,
+      "name": "Bomba"
+    },
+    {
+      "id": 1005,
+      "name": "Bomba"
+    },
+    {
+      "id": 1006,
+      "name": "Bomba"
+    },
+    {
+      "id": 1500,
+      "name": "Monster"
+    },
+    {
+      "id": 1501,
+      "name": "Monster"
+    }
+  ],
+  "schema_version": 2
+}

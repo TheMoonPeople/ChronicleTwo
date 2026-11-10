@@ -1,0 +1,54 @@
+{
+  "kind": "model_list",
+  "models": [
+    {
+      "model": "i04h03_03-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_01-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_01-a.gltf",
+      "type": 1
+    },
+    {
+      "model": "i04h03_02-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_04-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_05-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_06-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_10-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_08-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_09-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "i04h03_07-m.gltf",
+      "type": 0
+    },
+    {
+      "model": "penki_paple02.gltf",
+      "type": 3
+    }
+  ],
+  "schema_version": 2
+}

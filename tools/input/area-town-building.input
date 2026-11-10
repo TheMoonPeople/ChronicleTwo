@@ -1,0 +1,7 @@
+# --jump town:10 --fast-load: enter Morton's shop at 365, leave at 600.
+# Frame 500: interior. Frame 950: back outside.
+300 128 0 128 128
+365 cross 128 0 128 128
+366
+600 cross
+606

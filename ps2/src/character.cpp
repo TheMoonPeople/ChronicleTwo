@@ -27,6 +27,7 @@
 #include "mglib.hpp"
 #include "object.hpp"
 #include "outline.hpp"
+#include "pal_timing.hpp"
 #include "savedata.hpp"
 #include "scene.hpp"
 #include "sceneload.hpp"
@@ -517,8 +518,8 @@ int CCharacter2::DrawDirect() {
         mgCFrame     *frame;          /**< Frame the outline is drawn around. */
         float         width;          /**< Thickness of the edge. */
         int           depth_from_pos; /**< Non-zero to composite the frame at the screen depth of pos. */
-        float         pos[4];         /**< World position of the character. */
-        float         color[4];       /**< Colour of the edge. */
+        sceVu0FVECTOR pos;            /**< World position of the character. */
+        sceVu0FVECTOR color;          /**< Colour of the edge. */
         int           enable;         /**< Non-zero when the outline is drawn. */
         int           hide_edge;      /**< Non-zero to composite the frame without its edge. */
     };
@@ -742,7 +743,7 @@ int CCharacter2::CheckMotionEnd() {
         return true;
     }
 
-    float margin = 1.2f * step;
+    float margin = PAL_TIMING(1.2f, 1.0f) * step;
 
     if (frame <= now_key->end_frame && !(frame + 2.0f * margin < now_key->end_frame)) {
         return true;
@@ -810,7 +811,7 @@ void CCharacter2::SetMotionPara(char *name, int flags, int keep_seq) {
     } else {
         sequence = GetSeqHeaderPtr(name, &set);
 
-        switch ((int) sequence) {
+        switch ((uptr) sequence) {
             case 0:
                 break;
             default:
@@ -874,7 +875,7 @@ void CCharacter2::SePlay() {
     }
 
     float now = frame;
-    passed = 1.6f * (1.2f * step);
+    passed = PAL_TIMING(1.6f * (1.2f * step), 1.5f * step);
     key = se_list[now_set];
     low = now - passed;
     high = now + passed;
@@ -1190,7 +1191,7 @@ void CCharacter2::ResetFloor() {
 
 void CCharacter2::NormalDrive() {
     float frame_step;
-    float motion_speed = 1.2f;
+    float motion_speed = PAL_TIMING(1.2f, 1.0f);
 
     if (next_key != now_key && next_key != NULL) {
         posed_key = now_key;
@@ -2938,7 +2939,7 @@ static int _EFFECT(SPI_STACK *stack, int count) {
     }
 
     entry = (CHRINFO_EFFECT *) now_stack->stAlloc64(3);
-    manager = (CHARA_EFFECT_MANAGER *) now_stack->stAlloc64(32);
+    manager = (CHARA_EFFECT_MANAGER *) now_stack->stAlloc64(sizeof(CHARA_EFFECT_MANAGER) / 16 + 1);
     manager->Initialize();
     manager->GetBufferNums(script, script_size, &particle_count, &emitter_count);
     manager->particle_pool = (CEffect *) now_stack->Alloc(particle_count * sizeof(CEffect) / 16 + 1);
