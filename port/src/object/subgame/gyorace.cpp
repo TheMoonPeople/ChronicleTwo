@@ -700,7 +700,472 @@ int sgInitGyoRace(SubGameInfo *info) {
     return 1;
 }
 
-int sgLoopGyoRace(SubGameInfo *info);
+int sgLoopGyoRace(SubGameInfo *info) {
+    CScene *scene = info->scene;
+
+    switch ((unsigned int) race_mode) {
+        case GYORACE_MODE_READY:
+            scene->active_camera = camera_id;
+            camera0.SetPos(225.0f, 38.0f, 168.0f);
+            camera0.SetNextPos(225.0f, 38.0f, 168.0f);
+            camera0.SetRef(222.0f, 0.0f, 0.0f);
+            camera0.SetNextRef(222.0f, 0.0f, 0.0f);
+            camera0.SetSpeed(0.0f, 0.0f);
+
+            for (int fish = 0; fish < GR_FISH_MAX; fish++) {
+                CCharacter2 *character = scene->GetCharacter(fish_inf[fish].chara_no);
+                character->SetMotion("\x92\xCA\x8F\xED", 0);
+                character->SetStep(0.3f);
+            }
+
+            race_proc_cnt--;
+
+            if (race_proc_cnt <= 0) {
+                race_proc_cnt = 15;
+                race_mode = GYORACE_MODE_GATE_OPEN;
+                sndSePlay(gyore_snd_id, 0, 0);
+                sndSePlayV(gyore_snd_id, 3, 0, 3);
+                sndSePlayV(gyore_snd_id, 4, 0, 4);
+                sndSePlayV(gyore_snd_id, 5, 0, 5);
+                sndSePlayV(gyore_snd_id, 6, 0, 6);
+                sndSePlayV(gyore_snd_id, 7, 0, 7);
+                sndSePlayV(gyore_snd_id, 8, 0, 8);
+                sndSePlayV(gyore_snd_id, 9, 0, 9);
+                sndSePlayV(gyore_snd_id, 10, 0, 10);
+                sndSePlayV(gyore_snd_id, 11, 0, 11);
+                sndSePlayV(gyore_snd_id, 12, 0, 12);
+                sndSePlayV(gyore_snd_id, 13, 0, 13);
+                sndSePlayV(gyore_snd_id, 14, 0, 14);
+                sndSePlayV(gyore_snd_id, 2, 0, 0);
+            }
+
+            break;
+        case GYORACE_MODE_GATE_OPEN: {
+            scene->active_camera = camera_id;
+            camera0.SetPos(225.0f, 38.0f, 168.0f);
+            camera0.SetNextPos(225.0f, 38.0f, 168.0f);
+            camera0.SetRef(222.0f, 0.0f, 0.0f);
+            camera0.SetNextRef(222.0f, 0.0f, 0.0f);
+            camera0.SetSpeed(0.0f, 0.0f);
+            mgCFrame *gate = scene->GetMap(scene->active_map)->GetParts("p03_i03h05")->SearchPiece("i03h05_03-m")->frame;
+            mgCFrame *left = gate->SearchFrame("saku1");
+            left->SetRotType(2);
+            float rotation[4];
+            left->GetRotation(rotation);
+            rotation[1] += 0.20943952f;
+
+            if (!(rotation[1] <= HALF_PI)) {
+                rotation[1] = HALF_PI;
+            }
+
+            left->SetRotation(rotation[0], rotation[1], rotation[2]);
+            mgCFrame *right = gate->SearchFrame("saku2");
+            right->SetRotType(2);
+            right->GetRotation(rotation);
+            rotation[1] -= 0.20943952f;
+
+            if (rotation[1] < -HALF_PI) {
+                rotation[1] = -HALF_PI;
+            }
+
+            right->SetRotation(rotation[0], rotation[1], rotation[2]);
+            race_proc_cnt--;
+
+            if (race_proc_cnt <= 0) {
+                race_proc_cnt = 0;
+                race_mode = GYORACE_MODE_RACE;
+            }
+
+            break;
+        }
+        case GYORACE_MODE_RACE:
+        case GYORACE_MODE_FINISH: {
+            int fish;
+
+            for (int i = 0; i < GR_FISH_MAX; i++) {
+                scene->GetCharacter(fish_inf[i].chara_no);
+                grGetFishProgress(&RaceInfo, i, race_cnt, &old_prog[i]);
+            }
+
+            race_cnt += 0.1f;
+
+            for (fish = 0; fish < GR_FISH_MAX; fish++) {
+                grRACE_PROGRESS progress;
+                grGetFishProgress(&RaceInfo, fish, race_cnt, &progress);
+                int rank = 1;
+
+                if (progress.state != GR_RACE_STATE_GOAL) {
+                    for (int other = 0; other < GR_FISH_MAX; other++) {
+                        if (other != fish) {
+                            grRACE_PROGRESS other_progress;
+                            grGetFishProgress(&RaceInfo, other, race_cnt, &other_progress);
+
+                            if (other_progress.state != GR_RACE_STATE_GOAL) {
+                                if (progress.pos < other_progress.pos) {
+                                    rank++;
+                                }
+                            } else {
+                                rank++;
+                            }
+                        }
+                    }
+
+                    fish_inf[fish].rank = rank;
+                    fish_rank[rank - 1] = fish;
+                }
+            }
+
+            int unfinished = 6;
+
+            if (OmakeFlag != 0) {
+                hero_no = fish_rank[0];
+            }
+
+            for (fish = 0; fish < GR_FISH_MAX; fish++) {
+                GYORACE_FISH_INF *state = &fish_inf[fish];
+                CCharacter2      *character = scene->GetCharacter(fish_inf[fish].chara_no);
+                grRACE_PROGRESS   progress;
+                grGetFishProgress(&RaceInfo, fish, race_cnt, &progress);
+
+                if (progress.state == GR_RACE_STATE_GOAL) {
+                    unfinished--;
+                }
+
+                if (!(progress.pos < 8.0f)) {
+                    unsigned int  lap = (unsigned int) (progress.pos / 8.0f);
+                    unsigned int *lap_no = &state->lap;
+
+                    if (*lap_no < lap) {
+                        *lap_no = lap;
+
+                        if ((int) *lap_no > 1) {
+                            *lap_no = 1;
+                        } else {
+                            state->second_lap = 1;
+                            GetSaveData();
+                            state->lap_start = race_cnt;
+                        }
+                    }
+                }
+
+                GetSaveData();
+                int hero = hero_no;
+
+                if (fish == hero) {
+                    float *total;
+
+                    if (progress.state != GR_RACE_STATE_GOAL) {
+                        total = &state->time;
+                        *total = 20.0f * race_cnt;
+                        state->lap_time[fish_inf[hero].lap] = *total - 20.0f * state->lap_start;
+                    } else if (progress.state == GR_RACE_STATE_GOAL) {
+                        state->time = 20.0f * RaceInfo.goal_time[fish];
+                        total = &state->time;
+                        float time = state->lap_time[0];
+                        int   count = time / 3600.0f;
+                        float minutes = 3600.0f * count;
+                        time -= minutes;
+                        count = time / 60.0f;
+                        float seconds = 60.0f * count;
+                        count = (100.0f * (time - seconds)) / 60.0f;
+                        state->lap_time[1] = *total - ((60.0f * count) / 100.0f + (minutes + seconds));
+                    }
+                }
+
+                float distance = progress.pos;
+
+                if (!(distance < 8.0f)) {
+                    distance -= 8.0f * (float) ((unsigned int) distance >> 3);
+                }
+
+                float position[4];
+                float matrix[4][4];
+                position[1] = 0.0f;
+
+                if (distance >= 0.0 && distance < 1.0) {
+                    position[0] = 190.0f + 15.0f * progress.lane_pos;
+                    position[2] = -345.0f * distance;
+                }
+
+                if (distance >= 3.0 && distance < 4.0) {
+                    position[0] = -190.0f - 15.0f * progress.lane_pos;
+                    position[2] = -345.0f * (1.0f - (distance - 3.0f));
+                }
+
+                if (distance >= 4.0 && distance < 5.0) {
+                    position[0] = -190.0f - 15.0f * progress.lane_pos;
+                    position[2] = 345.0f * (distance - 4.0f);
+                }
+
+                if (distance >= 7.0 && distance < 8.0) {
+                    position[0] = 190.0f + 15.0f * progress.lane_pos;
+                    position[2] = 345.0f * (1.0f - (distance - 7.0f));
+                }
+
+                if (!(distance < 1.0f) && distance < 3.0f) {
+                    position[0] = 190.0f + 15.0f * progress.lane_pos;
+                    position[2] = 0.0f;
+                    sceVu0UnitMatrix(matrix);
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 1.0f));
+                    sceVu0ApplyMatrix(position, matrix, position);
+                    position[2] -= 345.0f;
+                }
+
+                if (!(distance < 5.0f) && distance < 7.0f) {
+                    position[0] = -190.0f - 15.0f * progress.lane_pos;
+                    position[2] = 0.0f;
+                    sceVu0UnitMatrix(matrix);
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 5.0f));
+                    sceVu0ApplyMatrix(position, matrix, position);
+                    position[2] += 345.0f;
+                }
+
+                position[1] = -15.0f;
+                float delta[4];
+                float forward[4];
+                float rotation[4];
+                float previous[4];
+                float hit_dir[4];
+                character->GetRotation(rotation);
+                character->GetPosition(previous);
+                RaceVector direction = {
+                    {0.0f, -0.5f, 0.0f, 1.0f}
+                };
+                CHitEffectImage *image = &battle_effect[effect_cnt];
+                sceVu0SubVector(hit_dir, previous, position);
+                sceVu0Normalize(hit_dir, hit_dir);
+                direction.f[0] = hit_dir[0];
+                direction.f[2] = hit_dir[2];
+
+                if (progress.state == GR_RACE_STATE_BATTLE) {
+                    image->SethitEffect(position, direction.f, 150.0f, 30.0f, 0.4f, -0.05f, 20, 32);
+                    image->sprite_size = 1.2f + 0.1f * (10.0f * mgRnd());
+                    character->SetMotion("\x83\x6F\x83\x67\x83\x8B\x81\x69\x8C\xB3\x8B\x43\x81\x6A", 0);
+                } else {
+                    image->SethitEffect(position, direction.f, 10.0f, 30.0f, 0.4f, -0.1f, 20, (int) mgDistVector(position, previous));
+                    image->sprite_size = 0.6f + 0.1f * (10.0f * mgRnd());
+                    character->SetMotion("\x92\xCA\x8F\xED", 0);
+                }
+
+                image->kind = 0;
+                image->SetTexRect(mgRect<int>(425, 85, 42, 42));
+                effect_cnt++;
+
+                if (effect_cnt >= GYORACE_EFFECT_NUM) {
+                    effect_cnt = 0;
+                }
+
+                CMap *map = scene->GetMap(scene->active_map);
+                map->water->frame->Shake(position[0], position[2], 0.05f * (4.0f * mgRnd() - 2.0f));
+                character->SetPosition(position);
+                sceVu0SubVector(delta, position, previous);
+                sceVu0Normalize(forward, delta);
+                float angle = atan2f(forward[0], forward[2]);
+                rotation[1] = mgAngleInterpolate(rotation[1], angle, 0.034906585f, 0);
+                character->SetRotation(rotation);
+                character->SetStep(0.3f + mgDistVector(position, previous) / 3.0f);
+            }
+
+            if (race_mode == GYORACE_MODE_FINISH) {
+                race_proc_cnt--;
+
+                if (race_proc_cnt == 30) {
+                    scene->fade.FadeOut(30, 0.0f, 0.0f, 0.0f);
+                }
+
+                if (race_proc_cnt <= 0) {
+                    race_mode = GYORACE_MODE_END;
+                    break;
+                }
+            }
+
+            if (race_mode == GYORACE_MODE_RACE && unfinished == 0) {
+                race_mode = GYORACE_MODE_FINISH;
+                race_proc_cnt = 120;
+            }
+
+            AutoCam(info);
+            break;
+        }
+        case GYORACE_MODE_GOAL_VIEW: {
+            scene->active_camera = camera_id;
+            camera0.SetPos(270.0f, -40.0f, -10.0f);
+            camera0.SetNextPos(270.0f, -40.0f, -10.0f);
+            camera0.SetRef(192.0f, 0.0f, 0.0f);
+            camera0.SetNextRef(192.0f, 0.0f, 0.0f);
+            camera0.SetSpeed(0.0f, 0.0f);
+
+            for (int fish = 0; fish < GR_FISH_MAX; fish++) {
+                CCharacter2    *character = scene->GetCharacter(fish_inf[fish].chara_no);
+                grRACE_PROGRESS progress;
+                grGetFishProgress(&RaceInfo, fish, RaceInfo.goal_time[fish_rank[0]], &progress);
+                float distance = progress.pos;
+
+                if (!(distance < 8.0f)) {
+                    distance -= 8.0f * (float) ((unsigned int) distance >> 3);
+                }
+
+                float position[4];
+                float matrix[4][4];
+                position[1] = 0.0f;
+
+                if (distance >= 0.0 && distance < 1.0) {
+                    position[0] = 190.0f + 15.0f * progress.lane_pos;
+                    position[2] = -345.0f * distance;
+                }
+
+                if (distance >= 3.0 && distance < 4.0) {
+                    position[0] = -190.0f - 15.0f * progress.lane_pos;
+                    position[2] = -345.0f * (1.0f - (distance - 3.0f));
+                }
+
+                if (distance >= 4.0 && distance < 5.0) {
+                    position[0] = -190.0f - 15.0f * progress.lane_pos;
+                    position[2] = 345.0f * (distance - 4.0f);
+                }
+
+                if (distance >= 7.0 && distance < 8.0) {
+                    position[0] = 190.0f + 15.0f * progress.lane_pos;
+                    position[2] = 345.0f * (1.0f - (distance - 7.0f));
+                }
+
+                if (!(distance < 1.0f) && distance < 3.0f) {
+                    position[0] = 190.0f + 15.0f * progress.lane_pos;
+                    position[2] = 0.0f;
+                    sceVu0UnitMatrix(matrix);
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 1.0f));
+                    sceVu0ApplyMatrix(position, matrix, position);
+                    position[2] -= 345.0f;
+                }
+
+                if (!(distance < 5.0f) && distance < 7.0f) {
+                    position[0] = -190.0f - 15.0f * progress.lane_pos;
+                    position[2] = 0.0f;
+                    sceVu0UnitMatrix(matrix);
+                    sceVu0RotMatrixY(matrix, matrix, HALF_PI * (distance - 5.0f));
+                    sceVu0ApplyMatrix(position, matrix, position);
+                    position[2] += 345.0f;
+                }
+
+                position[1] = -15.0f;
+                character->SetPosition(position);
+                RaceVector rotation = {
+                    {0.0f, PI, 0.0f, 1.0f}
+                };
+                character->SetRotation(rotation.f);
+                character->SetRotation(rotation.f);
+                character->SetStep(0.0f);
+            }
+
+            race_proc_cnt--;
+
+            if (race_proc_cnt <= 0) {
+                race_mode = GYORACE_MODE_FINISH;
+                race_proc_cnt = 120;
+            }
+
+            break;
+        }
+        case GYORACE_MODE_END: {
+            scene->active_camera = camera_id;
+            race_mode = GYORACE_MODE_RACE;
+            race_proc_cnt = 0;
+            SetGyoRaceRanking(RaceInfo.rank[hero_no] - 1);
+            mgCTextureManager *textures = &mgTexManager;
+
+            for (int fish = 0; fish < GR_FISH_MAX; fish++) {
+                CCharacter2 *character = scene->GetCharacter(fish_inf[fish].chara_no);
+                textures->DeleteBlock(character->texture_block);
+                GYORACE_RESULT   *result = &fish_game_data[RaceInfo.rank[fish] - 1];
+                const std::size_t length = dc2::text::Copy(result->name, dc2::text::View(game_data[fish]->data.fish.name));
+
+                // Retail pads the name with spaces to 18 characters.
+                if (length < 18) {
+                    dc2::text::Append(result->name, std::string_view("                  ", 18 - length));
+                }
+
+                result->time = 20.0f * RaceInfo.goal_time[fish];
+                result->fish_no = fish_inf[fish].fish_no;
+                result->race_class = race_rank[0];
+                sndSeStop(gyore_snd_id, fish + 3, fish + 3);
+                sndSeStop(gyore_snd_id, fish + 9, fish + 9);
+            }
+
+            for (int place = 0; place < GR_FISH_MAX; place++) {
+                dc2::log::PrintGame("@@@@@@@@@@@@@@@@@@@@@@@@@@@@GYO RACE %d\x88\xCA\x81\x40%s \n", place + 1, fish_game_data[place].name);
+            }
+
+            sndSeStop(gyore_snd_id, 2, 0);
+            textures->DeleteBlock(WindowTexb);
+            textures->DeleteBlock(EffectTexb);
+            mgSetAmbient(old_ambient);
+            scene->SetActive(SCENE_DATA_CHARA, 0);
+            scene->active_camera = scene->before_camera;
+
+            CSceneEventData data;
+            std::memset(&data, 0, sizeof(data));
+            if (OmakeFlag != 0) {
+                scene->RunEvent(352, &data);
+            } else {
+                scene->RunEvent(350, &data);
+            }
+
+            return 1;
+        }
+    }
+
+    for (int fish = 0; fish < GR_FISH_MAX; fish++) {
+        scene->GetCharacter(fish_inf[fish].chara_no)->Step();
+    }
+
+    RaceVector ambient = {
+        {16.0f, 16.0f, 128.0f, 128.0f}
+    };
+    float      camera_matrix[4][4];
+    RaceVector camera_pos = {
+        {0.0f, 0.0f, 100.0f, 0.0f}
+    };
+    camera0.Step(1);
+    camera0.GetCameraMatrix(camera_matrix);
+    camera0.GetPos(camera_pos.f);
+
+    if (camera_pos.f[1] < 0.0f) {
+        mgSetAmbient(ambient.f);
+        water_cam = true;
+    } else {
+        mgSetAmbient(old_ambient);
+        water_cam = false;
+    }
+
+    mgSetViewMatrix(camera_matrix, camera_pos.f);
+
+    for (int fish = 0; fish < GR_FISH_MAX; fish++) {
+        CCharacter2 *character = scene->GetCharacter(fish_inf[fish].chara_no);
+        float        position[4];
+        float        camera_pos[4];
+        float        camera_ref[4];
+        float        volume;
+        float        pan;
+        camera0.GetPos(camera_pos);
+        camera0.GetRef(camera_ref);
+        sceVu0SubVector(camera_ref, camera_ref, camera_pos);
+        sndSetMicPos(camera_pos, camera_ref);
+        character->GetPosition(position);
+        sndGetVolPan(&volume, &pan, position, 20.0f, 1600.0f);
+
+        if (camera_pos[1] < 0.0f) {
+            sndSetSeVolf(gyore_snd_id, fish + 9, volume, fish + 9);
+            sndSetSePanf(gyore_snd_id, fish + 9, pan, fish + 9);
+            sndSetSeVolf(gyore_snd_id, fish + 3, 0.0f, fish + 3);
+        } else {
+            sndSetSeVolf(gyore_snd_id, fish + 3, volume, fish + 3);
+            sndSetSePanf(gyore_snd_id, fish + 3, pan, fish + 3);
+            sndSetSeVolf(gyore_snd_id, fish + 9, 0.0f, fish + 9);
+        }
+    }
+
+    return 0;
+}
 
 void AutoCam(SubGameInfo *info) {
     CScene      *scene = info->scene;
@@ -1417,11 +1882,3 @@ int Jikkyou(SubGameInfo *info) {
  *
  */
 mgCCamera camera0(8.0f);
-
-#include "common.h"
-
-#include "gyorace.hpp"
-
-int sgLoopGyoRace(SubGameInfo * /*info*/) {
-    Ps2Unimplemented(__func__, __FILE__, __LINE__);
-}
