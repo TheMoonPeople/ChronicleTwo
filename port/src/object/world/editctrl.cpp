@@ -384,7 +384,8 @@ char *GetFootEffName(int index) {
     return name[name_id[index]];
 }
 
-void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {
+namespace {
+void EditMoveCharaCore(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {
     CCharacter2      *character = {};
     CEffectScriptMan *effects = {};
     CMap             *map = {};
@@ -644,6 +645,7 @@ void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *inf
         }
     }
 }
+} // namespace
 
 void EditCameraControl(CScene *scene, CPadControl *pad, float (*look_at)[4]) {
     /**
@@ -1687,12 +1689,14 @@ void ResetViewModeCore(CScene *scene) {
 #include "editloop.hpp"
 #include "first_person_walk.hpp"
 #include "mainloop.hpp"
+#include "mglib.hpp"
 #include "object/world/town_control.hpp"
 #include "photo.hpp"
 #include "platform/config.hpp"
 #include "platform/input.hpp"
 #include "render/renderer.hpp"
 #include "scenevillager.hpp"
+#include "sprint.hpp"
 #include "subgame.hpp"
 
 void TownMouseEyeAfterControl(CScene *scene, CPadControl *pad) {
@@ -1734,13 +1738,51 @@ void TownMouseEyeAfterControl(CScene *scene, CPadControl *pad) {
     }
 }
 
+namespace {
+
+bool        g_sprint_move = false;  // set around the retail CharaControl step while sprinting
+SprintTimer g_sprint_r2;
+
+bool SprintAllowed(CScene *scene, CPadControl *pad) {
+    return ConfigGet().sprint && scene && pad && GetNowLoopNo() == LOOP_EDIT && !IsEditMode() &&
+           PortEditViewMode == EDIT_VIEW_MODE_WALK &&
+           PortEditLadderMode == EDIT_LADDER_MODE_NONE && !scene->event_run && !GamePad__2.key_lock &&
+           !SubGameRunning();
+}
+
+// Takes R2 from the retail eye-view toggle while walking: a press starts timing, holding sprints, and
+// a quick release hands the retail toggle its press. Returns whether this frame sprints.
+bool TownSprintInput(CScene *scene, CPadControl *pad) {
+    const bool allowed = SprintAllowed(scene, pad);
+    bool       tap = false;
+    const bool sprint = g_sprint_r2.Step(allowed, allowed && pad->btn[PAD_BTN_R2].value != 0,
+                                         GamePad__2.On(PAD_R2) != 0, GamePad__2.Up(PAD_R2) != 0,
+                                         mgGetNowFrameRate(), tap);
+    if (allowed) {
+        pad->btn[PAD_BTN_R2].value = tap;
+    }
+    return sprint;
+}
+
+} // namespace
+
+void EditMoveChara(CScene *scene, sceVu0FVECTOR velocity, EditMoveCharaInfo *info) {
+    if (g_sprint_move) {
+        velocity[0] *= kSprintSpeed;
+        velocity[2] *= kSprintSpeed;
+    }
+    EditMoveCharaCore(scene, velocity, info);
+}
+
 int EditControl(CScene *scene, CPadControl *pad) {
     // Retail movement, ladder, eye entry/exit and photo behaviour run first; native eye look is
     // granted only once they have settled this frame's owner.
     if (PortEditLadderMode != EDIT_LADDER_MODE_NONE) {
+        g_sprint_r2.tracking = false;
         PortEditLadderControl(scene, pad);
     } else {
         const bool eye_owned = TownFirstPersonOwns(scene, pad);
+        const bool sprint = TownSprintInput(scene, pad);
         if (!TownFirstPersonWalk(scene, pad)) {
             auto         *chara = eye_owned ? scene->GetCharacter(scene->player_chara) : nullptr;
             sceVu0FVECTOR before;
@@ -1748,7 +1790,21 @@ int EditControl(CScene *scene, CPadControl *pad) {
             if (chara) {
                 chara->GetPosition(before);
             }
+            auto         *player = sprint ? scene->GetCharacter(scene->player_chara) : nullptr;
+            sceVu0FVECTOR start;
+            if (player) {
+                player->GetPosition(start);
+            }
+            g_sprint_move = sprint;
             PortEditCharaControl(scene, pad);
+            g_sprint_move = false;
+            if (player) {
+                sceVu0FVECTOR end;
+                player->GetPosition(end);
+                if (end[0] != start[0] || end[2] != start[2]) {
+                    player->SetStep(player->GetStep() * kSprintStep);
+                }
+            }
             if (chara) {
                 chara->GetPosition(after);
                 FirstPersonShiftSavedEye(PortTownSavedEye, before, after);
