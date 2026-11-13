@@ -190,8 +190,8 @@ protected:
     void SetUp() override {
         storage = reinterpret_cast<u_long128 *>(ArenaBlock(this, 8192 * sizeof(u_long128)));
         memory.SetHeapMem(storage, 8192);
-        heal.base_no = BaseNo("n_heal");
-        other.base_no = BaseNo("gun_flash");
+        heal.base_no = BaseNo("normal_heal");
+        other.base_no = BaseNo("muzzle_flash");
         ASSERT_GE(heal.base_no, 0);
         ASSERT_GE(other.base_no, 0);
         for (EFF_SPT_BASE *base : {&heal, &other}) {

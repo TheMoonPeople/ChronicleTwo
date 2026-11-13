@@ -1,26 +1,17 @@
 --!strict
--- map/i/i01/h01/i01h01b.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Cutscenes in the Palm Brinks shop house where Starbre gives the camera, pays for the backpack and explains the Ride Pod.
 
 local vm = require("@lib/vm")
-local helper_0999bd0f = require("@lib/event/helper_0999bd0f")
-local helper_1c04a0eb = require("@lib/event/helper_1c04a0eb")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_3936899e = require("@lib/event/helper_3936899e")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_658b1052 = require("@lib/event/helper_658b1052")
-local helper_662e1f81 = require("@lib/event/helper_662e1f81")
-local helper_6918037c = require("@lib/event/helper_6918037c")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_86e93423 = require("@lib/event/helper_86e93423")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8e5b8087 = require("@lib/event/helper_8e5b8087")
-local helper_d61bc810 = require("@lib/event/helper_d61bc810")
-local helper_ddb81958 = require("@lib/event/helper_ddb81958")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local cutscene = require("@lib/event/cutscene")
+local inventory = require("@lib/event/inventory")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local palm_brinks_shop_house = require("@lib/event/palm_brinks_shop_house")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_e768(arg0: any)
+--- Opens the scene with a camera sweep as the player walks across the room toward Starbre.
+local function walk_player_to_starbre(sound_bank: any)
 	local projection: f32 = 0
 	event.set_camera_sequence_position(-13.56, 50.69, -99.84)
 	event.set_camera_sequence_look_at(47.32, 59.3, -184.47)
@@ -34,68 +25,68 @@ local function helper_e768(arg0: any)
 	event.set_object_sequence_motion(1, "上を見るL", 4)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(50, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 	event.move_camera_sequence_eased(-13.56, 18.54, -99.84, 47.32, 27.15, -184.47, 90, 2, 0.4)
-	wait_camera()
+	camera.wait_until_done()
 	event.set_object_sequence_motion(0, "歩き", 0)
 	event.move_object_sequence(0, 8.7, -0.02, -189.32, 45)
 	event.rotate_object_sequence(0, 0.0, 0.3, 0.0, 45)
 	event.move_object_sequence(0, 16.96, -0.02, -159.01, 45)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.rotate_object_sequence(0, 0.0, 1.74, 0.0, 10)
 	event.delay_object_sequence_motion_track(0, 10)
 	event.set_object_sequence_motion(0, "立ち")
-	wait_objects(0)
-	helper_888ab2a3(10)
+	object.wait_until_done(0)
+	wait.for_frame_count(10)
 	event.set_event_projection(projection)
 end
 
---- Helper function.
-local function helper_eea4(se_id: s32)
+--- Plays the conversation between the player and Starbre about Steve and the machine.
+local function discuss_steve_with_starbre(se_id: s32)
 	event.set_camera_sequence_position(113.96, 46.95, -138.53)
 	event.set_camera_sequence_look_at(50.9, 27.15, -165.35)
 	event.set_object_sequence_rotation(0, 0.0, 2.34, 0.0)
 	event.set_object_sequence_motion(0, "スティーブ見L", 4)
 	event.set_object_sequence_motion(1, "腕組み", 4)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_object_sequence_motion(1, "左を見る", 2)
 	event.queue_object_sequence_next_motion(1, "左を見るL")
-	helper_888ab2a3(9)
+	wait.for_frame_count(9)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050010)
+	message.show_voiced(1050010)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(0, "うなづく（スティーブ）", 2)
 	event.queue_object_sequence_next_motion(0, "スティーブ見L")
 	event.set_mouth_texture_animations(0, "通常口パク")
-	helper_4116e6bb(1050020)
+	message.show_voiced(1050020)
 	event.reset_mouth_texture_animations()
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_object_sequence_motion(0, "右を見る", 2)
 	event.queue_object_sequence_next_motion(0, "右を見るL")
-	helper_888ab2a3(9)
+	wait.for_frame_count(9)
 	event.set_mouth_texture_animations(0, "通常口パク")
-	helper_4116e6bb(1050030)
+	message.show_voiced(1050030)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050040)
+	message.show_voiced(1050040)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050050)
+	message.show_voiced(1050050)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(0, "アトラミリアをさわる", 6)
 	event.queue_object_sequence_next_motion(0, "アトラミリアをさわるL")
-	helper_888ab2a3(24)
+	wait.for_frame_count(24)
 	event.play_sound_effect(se_id, 2)
 	event.set_mouth_texture_animations(0, "通常口パク")
-	helper_4116e6bb(1050060)
+	message.show_voiced(1050060)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050065)
+	message.show_voiced(1050065)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_f6d0(arg0: any)
+--- Plays the cheerful continuation of the conversation between the player and Starbre.
+local function continue_starbre_conversation(sound_bank: any)
 	event.set_camera_sequence_position(-17.27, 17.65, -125.13)
 	event.set_camera_sequence_look_at(49.66, 25.36, -167.46)
 	event.set_object_sequence_position(0, 16.96, -0.02, -159.01)
@@ -104,53 +95,53 @@ local function helper_f6d0(arg0: any)
 	event.set_object_sequence_position(1, 29.23, -0.02, -141.02)
 	event.set_object_sequence_rotation(1, 0.0, 2.13, 0.0)
 	event.set_object_sequence_motion(1, "腕組み", 4)
-	helper_888ab2a3(9)
+	wait.for_frame_count(9)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050070)
+	message.show_voiced(1050070)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050071)
+	message.show_voiced(1050071)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(0, "わらい口パク")
-	helper_4116e6bb(1050080)
+	message.show_voiced(1050080)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050090)
+	message.show_voiced(1050090)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(0, "右を見る", 6)
 	event.queue_object_sequence_next_motion(0, "右を見るL")
 	event.set_mouth_texture_animations(0, "わらい口パク")
-	helper_4116e6bb(1050100)
+	message.show_voiced(1050100)
 	event.reset_mouth_texture_animations()
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_object_sequence_motion(1, "左を見る", 2)
 	event.queue_object_sequence_next_motion(1, "左を見るL")
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050110)
+	message.show_voiced(1050110)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_object_sequence_motion(0, "右を見る会話", 6)
 	event.queue_object_sequence_next_motion(0, "右を見るL")
 	event.set_mouth_texture_animations(0, "わらい口パク")
-	helper_4116e6bb(1050120)
+	message.show_voiced(1050120)
 	event.reset_mouth_texture_animations()
-	wait_objects(0)
+	object.wait_until_done(0)
 end
 
---- Helper function.
-local function helper_ff38(se_id: s32)
+--- Plays the exchange in which Starbre approves and fades the camera sequence out.
+local function play_starbre_approval_exchange(se_id: s32)
 	event.set_camera_sequence_position(-18.7, 18.74, -162.67)
 	event.set_camera_sequence_look_at(41.67, 24.32, -147.28)
 	event.set_object_sequence_rotation(0, 0.0, 0.9, 0.0)
 	event.set_object_sequence_motion(0, "スターブル見L", 4)
 	event.set_object_sequence_rotation(1, 0.0, -2.23, 0.0)
 	event.set_object_sequence_motion(1, "腰に手L", 4)
-	helper_4116e6bb(1050130)
-	helper_888ab2a3(50)
+	message.show_voiced(1050130)
+	wait.for_frame_count(50)
 	event.set_object_sequence_motion(1, "腰に手会話", 6)
 	event.queue_object_sequence_next_motion(1, "腰に手L", 0)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050140)
+	message.show_voiced(1050140)
 	event.reset_mouth_texture_animations()
 	event.play_sound_effect(se_id, 3)
 	event.set_object_sequence_motion(0, "ガッツポーズ", 6)
@@ -158,91 +149,91 @@ local function helper_ff38(se_id: s32)
 	event.delay_object_sequence_motion_track(1, 18)
 	event.set_object_sequence_motion(1, "うなづく", 6)
 	event.queue_object_sequence_next_motion(1, "腰に手L")
-	helper_4116e6bb(1050150)
-	wait_objects(0)
+	message.show_voiced(1050150)
+	object.wait_until_done(0)
 	event.set_object_sequence_motion(1, "腰に手会話", 6)
 	event.queue_object_sequence_next_motion(1, "腰に手L", 0)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050160)
+	message.show_voiced(1050160)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.play_sound_effect(se_id, 4)
 	event.set_object_sequence_motion(0, "うなづく", 6)
 	event.queue_object_sequence_next_motion(0, "スターブル見L")
 	event.set_mouth_texture_animations(0, "通常口パク")
-	helper_4116e6bb(1050170)
+	message.show_voiced(1050170)
 	event.reset_mouth_texture_animations()
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050180)
+	message.show_voiced(1050180)
 	event.reset_mouth_texture_animations()
 	event.mark_camera_sequence_fade_track()
 	event.fade_out_camera_sequence(50, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 end
 
---- Helper function.
-local function helper_10830(se_id: s32)
+--- Plays Starbre explaining over illustrated pictures and then hands over the camera.
+local function show_illustrated_explanation(se_id: s32)
 	event.set_camera_sequence_position(-23.06, 16.81, -167.38)
 	event.set_camera_sequence_look_at(22.88, 29.55, -159.05)
 	event.set_object_sequence_rotation(1, 0.0, -2.35, 0.0)
 	event.set_character_active(0, 0)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(50, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 	event.set_event_sprite_draw_pass(0, 1)
 	event.set_object_sequence_color(3, 128.0, 128.0, 128.0, 128.0, 10)
-	helper_888ab2a3(10)
+	wait.for_frame_count(10)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050190)
+	message.show_voiced(1050190)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050200)
+	message.show_voiced(1050200)
 	event.reset_mouth_texture_animations()
 	event.set_event_sprite_draw_pass(0, 0)
 	event.set_event_sprite_draw_pass(1, 1)
 	event.set_object_sequence_color(4, 128.0, 128.0, 128.0, 128.0, 30)
-	helper_888ab2a3(10)
+	wait.for_frame_count(10)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050210)
+	message.show_voiced(1050210)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050211)
+	message.show_voiced(1050211)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050212)
+	message.show_voiced(1050212)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050213)
+	message.show_voiced(1050213)
 	event.reset_mouth_texture_animations()
 	event.set_event_sprite_draw_pass(1, 0)
 	event.move_camera_sequence(-2.41, 23.65, -165.23, 57.71, 27.49, -130.12, 28)
-	wait_camera()
+	camera.wait_until_done()
 	event.set_object_sequence_motion(1, "カメラを出す", 6)
 	event.queue_object_sequence_next_motion(1, "カメラを出すL")
-	helper_8e5b8087(32, vm.f32(0.206), -1.0, 20)
+	wait.until_motion_progress(32, vm.f32(0.206), -1.0, 20)
 	event.play_sound_effect(se_id, 5)
 	event.set_character_active(1, 33)
 	event.attach_character_to_frame(32, "camera_sta", 33)
-	helper_8e5b8087(32, vm.f32(0.956), -1.0, 20)
-	helper_6918037c(32)
+	wait.until_motion_progress(32, vm.f32(0.956), -1.0, 20)
+	wait.until_motion_finished(32)
 	event.play_sound_effect(se_id, 6)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050220)
+	message.show_voiced(1050220)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050230)
+	message.show_voiced(1050230)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050240)
+	message.show_voiced(1050240)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050241)
+	message.show_voiced(1050241)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_11388(se_id: s32, se_id_2: s32)
+--- Shows the player receiving the camera with its tutorial messages.
+local function play_camera_receive_scene(se_id: s32, se_id_2: s32)
 	event.set_camera_sequence_position(38.3, 34.99, -138.13)
 	event.set_camera_sequence_look_at(16.02, 28.99, -153.84)
 	event.set_character_active(1, 0)
@@ -263,18 +254,18 @@ local function helper_11388(se_id: s32, se_id_2: s32)
 		0,
 		"[(!)]カメラを手に入れた。\n   アイテムメニューで「そうび」して\n   (#)ボタンで使えるぞ。"
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(
 		0,
 		"[(!)]ダンジョン内では、アクティブアイテムの\n   カーソルがカメラに合っていないと使えません。"
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.set_message_window_mode(0, 7)
 	event.play_music(0)
 end
 
---- Helper function.
-local function helper_119dc(arg0: any)
+--- Plays the closing exchange after the camera is received.
+local function play_camera_thanks_exchange(sound_bank: any)
 	event.detach_character_from_frame(33)
 	event.set_character_active(0, 33)
 	event.set_camera_sequence_position(-33.79, 30.18, -157.21)
@@ -285,45 +276,45 @@ local function helper_119dc(arg0: any)
 	event.set_object_sequence_motion(1, "会話2", 6)
 	event.queue_object_sequence_next_motion(1, "立ち", 0)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050250)
+	message.show_voiced(1050250)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050260)
+	message.show_voiced(1050260)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(1, "会話2", 2)
 	event.queue_object_sequence_next_motion(1, "立ち", 0)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050261)
+	message.show_voiced(1050261)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_object_sequence_motion(1, "立ち")
-	wait_objects(1)
-	helper_888ab2a3(10)
+	object.wait_until_done(1)
+	wait.for_frame_count(10)
 	event.set_object_sequence_motion(0, "うなづく", 6)
 	event.wait_object_sequence_motion_end(0)
-	wait_objects(0)
-	helper_888ab2a3(15)
+	object.wait_until_done(0)
+	wait.for_frame_count(15)
 end
 
---- Helper function.
-local function helper_11fcc()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Plays the whole camera gift cutscene and restores the camera afterwards.
+local function play_camera_gift_scene()
+	local sound_bank: s32 = 0
+	local item_sound_bank: s32 = 0
 	local projection: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local block: s32 = 0
+	local camera_x: f32 = 0
+	local camera_y: f32 = 0
+	local camera_z: f32 = 0
+	local look_at_x: f32 = 0
+	local look_at_y: f32 = 0
+	local look_at_z: f32 = 0
+	local image_block: s32 = 0
 	vm.section(function()
 		event.set_save_flag(105, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(1222)
-		var0 = event.load_sound_effect_file_2(1222) or var0
-		var1 = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or var1
+		sound_bank = event.load_sound_effect_file_2(1222) or sound_bank
+		item_sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or item_sound_bank
 		event.load_character(4, "event/e100/e105/e105_steve.gltf", "info", 25)
 		event.set_character_active(1, 25)
 		event.set_character_position(25, 62.85, 11.43, -176.07)
@@ -332,15 +323,15 @@ local function helper_11fcc()
 		event.clear_memory_stack(5)
 		do
 			local out1, out2, out3 = event.get_camera_position()
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			camera_x = out1 or camera_x
+			camera_y = out2 or camera_y
+			camera_z = out3 or camera_z
 		end
 		do
 			local out1, out2, out3 = event.get_camera_look_at()
-			pos_x_2 = out1 or pos_x_2
-			pos_y_2 = out2 or pos_y_2
-			pos_z_2 = out3 or pos_z_2
+			look_at_x = out1 or look_at_x
+			look_at_y = out2 or look_at_y
+			look_at_z = out3 or look_at_z
 		end
 		projection = event.get_event_projection() or projection
 		event.clear_camera_sequence()
@@ -365,10 +356,10 @@ local function helper_11fcc()
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 2)
 		event.set_object_handle_visible(2, 0)
-		block = event.load_event_image_4(5, "textures/event/e100/e105/e105a_2d.json", 0) or block
+		image_block = event.load_event_image_4(5, "textures/event/e100/e105/e105a_2d.json", 0) or image_block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "e105a_2d01", block)
+		event.set_event_sprite_texture(0, "e105a_2d01", image_block)
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 448)
 		event.set_event_sprite_size(0, 512, 448)
@@ -379,7 +370,7 @@ local function helper_11fcc()
 		event.set_object_sequence_object(3, 3)
 		event.reset_event_sprite(1)
 		event.set_event_sprite_type(1, 0)
-		event.set_event_sprite_texture(1, "e105a_2d02", block)
+		event.set_event_sprite_texture(1, "e105a_2d02", image_block)
 		event.set_event_sprite_color(1, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(1, 0, 0, 512, 448)
 		event.set_event_sprite_size(1, 512, 448)
@@ -391,7 +382,7 @@ local function helper_11fcc()
 		event.set_time_of_day(7)
 		event.load_message_file(0, 5, "event/e100/e105/e105a.txt")
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(193)
 		event.play_music(0)
 		event.set_object_handle_footstep_sound(0, 3)
@@ -402,16 +393,16 @@ local function helper_11fcc()
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
 		event.enable_drama_skip()
-		helper_e768(var0)
-		helper_eea4(var0)
-		helper_f6d0(var0)
-		helper_ff38(var0)
-		helper_10830(var0)
-		helper_11388(var0, var1)
-		helper_119dc(var0)
+		walk_player_to_starbre(sound_bank)
+		discuss_steve_with_starbre(sound_bank)
+		continue_starbre_conversation(sound_bank)
+		play_starbre_approval_exchange(sound_bank)
+		show_illustrated_explanation(sound_bank)
+		play_camera_receive_scene(sound_bank, item_sound_bank)
+		play_camera_thanks_exchange(sound_bank)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
 	event.delete_character_extension_packs(0)
@@ -423,18 +414,18 @@ local function helper_11fcc()
 	event.set_event_sprite_draw_pass(1, 0)
 	event.set_save_flag(56, 0)
 	event.stop_music(0)
-	helper_888ab2a3(4)
+	wait.for_frame_count(4)
 	event.load_music(46)
 	event.play_music(0)
-	event.set_camera_position(pos_x, pos_y, pos_z)
-	event.set_camera_look_at(pos_x_2, pos_y_2, pos_z_2)
+	event.set_camera_position(camera_x, camera_y, camera_z)
+	event.set_camera_look_at(look_at_x, look_at_y, look_at_z)
 	event.set_event_projection(projection)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_13634(projection: f32, se_id: s32)
+--- Plays Starbre telling the story over crossfading pictures.
+local function play_flashback_story(projection: f32, se_id: s32)
 	event.set_event_projection(projection)
 	event.set_camera_sequence_position(-15.15, 22.51, -151.72)
 	event.set_camera_sequence_look_at(32.49, 27.39, -162.95)
@@ -442,25 +433,25 @@ local function helper_13634(projection: f32, se_id: s32)
 	event.set_object_sequence_position(1, 38.77, -0.02, -147.68)
 	event.set_object_sequence_rotation(1, 0.0, -2.04, 0.0)
 	event.set_object_sequence_motion(1, "手に腰L", 4)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.fade_in_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 	event.set_object_sequence_texture_animation(1, 1, "目とじ")
 	event.set_object_sequence_motion(1, "下を見る", 2)
 	event.queue_object_sequence_next_motion(1, "下を見るL")
-	helper_888ab2a3(10)
+	wait.for_frame_count(10)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050290)
+	message.show_voiced(1050290)
 	event.reset_mouth_texture_animations()
 	event.set_character_active(0, 25)
 	event.start_crossfade(0, 0, 30)
 	event.set_event_sprite_draw_pass(0, 2)
 	event.set_object_sequence_color(2, 128.0, 128.0, 128.0, 128.0, 0)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050291)
+	message.show_voiced(1050291)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.start_crossfade(30)
 	event.set_object_sequence_color(2, 0.0, 0.0, 0.0, 0.0, 30)
 	event.set_event_sprite_draw_pass(1, 2)
@@ -471,9 +462,9 @@ local function helper_13634(projection: f32, se_id: s32)
 	event.play_sound_effect(se_id, 2)
 	event.set_object_sequence_motion(1, "上を見る", 2)
 	event.queue_object_sequence_next_motion(1, "上を見るL")
-	helper_888ab2a3(16)
+	wait.for_frame_count(16)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050300)
+	message.show_voiced(1050300)
 	event.reset_mouth_texture_animations()
 	event.start_crossfade(30)
 	event.set_object_sequence_color(3, 0.0, 0.0, 0.0, 30)
@@ -483,15 +474,15 @@ local function helper_13634(projection: f32, se_id: s32)
 	event.play_sound_effect(se_id, 3)
 	event.set_object_sequence_motion(1, "頭をかく", 2)
 	event.queue_object_sequence_next_motion(1, "頭をかくL")
-	helper_888ab2a3(28)
+	wait.for_frame_count(28)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_ddb81958(1050310, 32, se_id, 4, vm.f32(0.15))
+	palm_brinks_shop_house.show_voiced_message(1050310, 32, se_id, 4, vm.f32(0.15))
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_ddb81958(1050320, 32, se_id, 4, vm.f32(0.15))
+	palm_brinks_shop_house.show_voiced_message(1050320, 32, se_id, 4, vm.f32(0.15))
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_ddb81958(1050321, 32, se_id, 4, vm.f32(0.15))
+	palm_brinks_shop_house.show_voiced_message(1050321, 32, se_id, 4, vm.f32(0.15))
 	event.reset_mouth_texture_animations()
 	event.set_character_active(0, 32)
 	event.start_crossfade(30)
@@ -500,8 +491,8 @@ local function helper_13634(projection: f32, se_id: s32)
 	event.set_event_sprite_draw_pass(2, 0)
 end
 
---- Helper function.
-local function helper_14444(arg0: any, arg1: any)
+--- Plays the final line that ends the flashback story.
+local function play_flashback_closing_line(projection: any, sound_bank: any)
 	event.set_camera_sequence_position(-38.62, 34.71, -174.94)
 	event.set_camera_sequence_look_at(37.54, 15.45, -157.32)
 	event.set_character_active(1, 0)
@@ -511,15 +502,15 @@ local function helper_14444(arg0: any, arg1: any)
 	event.set_character_active(1, 32)
 	event.set_object_sequence_motion(1, "腰に手L", 4)
 	event.set_character_active(1, 25)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1050330)
+	message.show_voiced(1050330)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_147ac()
-	local var0: s32 = 0
+--- Plays the whole flashback cutscene and restores the camera afterwards.
+local function play_flashback_scene()
+	local sound_bank: s32 = 0
 	local projection: f32 = 0
 	local pos_x: f32 = 0
 	local pos_y: f32 = 0
@@ -534,7 +525,7 @@ local function helper_147ac()
 		event.initialize_event()
 		event.enable_drama_skip()
 		event.set_message_window_mode(0, 7)
-		var0 = event.load_sound_effect_file_3(4, 1225) or var0
+		sound_bank = event.load_sound_effect_file_3(4, 1225) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		projection = event.get_event_projection() or projection
@@ -607,13 +598,13 @@ local function helper_147ac()
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
-		helper_13634(projection, var0)
-		helper_14444(projection, var0)
+		play_flashback_story(projection, sound_bank)
+		play_flashback_closing_line(projection, sound_bank)
 	end)
 	vm.entry(4)
 	event.cancel_drama_scene_skip()
 	event.fade_out_screen(30)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_character_active(1, 0)
 	event.set_character_active(1, 25)
 	event.set_event_projection(projection)
@@ -628,8 +619,8 @@ local function helper_147ac()
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_15a7c(arg0: any)
+--- Plays the opening lines of the backpack request conversation.
+local function open_backpack_conversation(sound_bank: any)
 	event.set_camera_sequence_position(-33.29, 24.37, -167.32)
 	event.set_camera_sequence_look_at(40.27, 15.44, -159.28)
 	event.set_object_sequence_position(0, 18.58, -1.12, -168.14)
@@ -637,26 +628,26 @@ local function helper_15a7c(arg0: any)
 	event.set_object_sequence_motion(0, "スターブル見L", 4, -1.0, 1)
 	event.set_object_sequence_position(1, 38.77, -0.02, -147.68)
 	event.set_object_sequence_rotation(1, 0.0, -2.16, 0.0)
-	helper_888ab2a3(20)
+	wait.for_frame_count(20)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
-	helper_888ab2a3(15)
+	camera.wait_until_done()
+	wait.for_frame_count(15)
 	event.set_object_sequence_motion(1, "会話2", 6)
 	event.queue_object_sequence_next_motion(1, "立ち", 0)
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050340)
+	message.show_voiced(1050340)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050341)
+	message.show_voiced(1050341)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050350)
+	message.show_voiced(1050350)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_16004(se_id: s32)
+--- Plays the line in which Starbre strikes a cheering pose.
+local function play_starbre_cheer_exchange(se_id: s32)
 	event.set_camera_sequence_position(50.99, 20.54, -99.77)
 	event.set_camera_sequence_look_at(50.2, 23.69, -140.94)
 	event.set_object_sequence_position(0, 59.55, -1.12, -135.97)
@@ -667,23 +658,23 @@ local function helper_16004(se_id: s32)
 	event.set_object_sequence_motion(1, "立ち", 4)
 	event.set_object_sequence_position(2, 62.85, 11.43, -176.07)
 	event.set_object_sequence_rotation(2, 0.0, -0.72, 0.0)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.fade_in_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 	event.play_sound_effect(se_id, 2)
 	event.set_object_sequence_motion(1, "ガッツポーズ", 2)
 	event.queue_object_sequence_next_motion(1, "立ち")
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050360)
+	message.show_voiced(1050360)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_1655c(arg0: any)
+--- Plays Starbre explaining the request over an illustrated picture.
+local function show_illustrated_request(sound_bank: any)
 	local block: s32 = 0
 	event.clear_camera_sequence()
 	event.fade_out_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 	event.set_camera_sequence_position(91.52, 19.06, -115.56)
 	event.set_camera_sequence_look_at(36.75, 33.39, -130.18)
 	event.set_character_active(0, 0)
@@ -701,28 +692,28 @@ local function helper_1655c(arg0: any)
 	event.attach_object_handle_to_sprite(10, 0)
 	event.clear_object_sequence(10)
 	event.set_object_sequence_object(10, 10)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.fade_in_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 	event.set_event_sprite_draw_pass(0, 1)
 	event.set_object_sequence_color(10, 128.0, 128.0, 128.0, 128.0, 10)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_object_sequence_motion(1, "腰に手会話", 4)
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050370)
+	message.show_voiced(1050370)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050380)
+	message.show_voiced(1050380)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050390)
+	message.show_voiced(1050390)
 	event.reset_mouth_texture_animations()
 	event.set_event_sprite_draw_pass(0, 0)
 	event.delete_event_image(0)
 end
 
---- Helper function.
-local function helper_16dcc(se_id: s32)
+--- Plays the scene in which the player is paid 400 Gilda.
+local function play_gilda_payment_scene(se_id: s32)
 	event.set_camera_sequence_position(16.09, 22.59, -109.83)
 	event.set_camera_sequence_look_at(50.2, 23.69, -140.94)
 	event.set_character_active(1, 0)
@@ -730,30 +721,30 @@ local function helper_16dcc(se_id: s32)
 	event.set_object_sequence_rotation(0, 0.0, -2.24, 0.0)
 	event.set_object_sequence_motion(0, "スターブル見L", 4, -1.0, 1)
 	event.set_object_sequence_motion(1, "立ち", 4)
-	helper_888ab2a3(15)
+	wait.for_frame_count(15)
 	event.play_sound_effect(se_id, 3)
 	event.set_object_sequence_motion(1, "お金をやる", 6)
 	event.queue_object_sequence_next_motion(1, "お金をやるL")
-	helper_888ab2a3(14)
+	wait.for_frame_count(14)
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050400)
+	message.show_voiced(1050400)
 	event.reset_mouth_texture_animations()
 	event.play_sound_effect(se_id, 4)
 	event.set_object_sequence_motion(0, "お金をもらう", 6)
 	event.reset_object_sequence_dynamic_animation(0)
 	event.queue_object_sequence_next_motion(0, "お金をもらうL")
-	helper_888ab2a3(60)
+	wait.for_frame_count(60)
 	event.set_message_window_mode(0, 8)
 	event.open_message_window_2(0, "４００ギルダを手に入れた。")
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.set_message_window_mode(0, 7)
 	event.set_object_sequence_motion(1, "お金をやる戻り", 6)
 	event.queue_object_sequence_next_motion(1, "立ち")
-	wait_objects(1)
+	object.wait_until_done(1)
 end
 
---- Helper function.
-local function helper_17520(se_id: s32)
+--- Plays the follow-up lines in which Starbre cheers the player on.
+local function play_starbre_cheer_followup(se_id: s32)
 	event.set_camera_sequence_position(35.49, 25.34, -101.59)
 	event.set_camera_sequence_look_at(50.2, 23.69, -140.94)
 	event.set_object_sequence_position(0, 59.55, -1.12, -135.97)
@@ -764,27 +755,27 @@ local function helper_17520(se_id: s32)
 	event.set_object_sequence_motion(1, "立ち", 4)
 	event.set_object_sequence_position(2, 62.85, 11.43, -176.07)
 	event.set_object_sequence_rotation(2, 0.0, -0.72, 0.0)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.fade_in_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
-	helper_888ab2a3(10)
+	camera.wait_until_done()
+	wait.for_frame_count(10)
 	event.play_sound_effect(se_id, 2)
 	event.set_object_sequence_motion(1, "ガッツポーズ", 6)
 	event.queue_object_sequence_next_motion(1, "立ち")
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050420)
+	message.show_voiced(1050420)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050421)
+	message.show_voiced(1050421)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050430)
+	message.show_voiced(1050430)
 	event.reset_mouth_texture_animations()
 	event.reset_object_sequence_motion(1)
 end
 
---- Helper function.
-local function helper_17b9c(se_id: s32)
+--- Plays the player putting the backpack down and the conversation that follows.
+local function deliver_backpack_to_starbre(se_id: s32)
 	event.set_camera_sequence_position(-13.13, 19.21, -128.25)
 	event.set_camera_sequence_look_at(60.53, 17.71, -147.9)
 	event.set_object_sequence_position(0, 77.34, -0.02, -128.37)
@@ -800,77 +791,77 @@ local function helper_17b9c(se_id: s32)
 	event.set_character_active(0, 24)
 	event.fade_in_screen(15)
 	event.move_object_sequence(0, 58.55, -0.02, -130.49, 35)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_object_sequence_motion(0, "バックパック持ち")
-	helper_888ab2a3(15)
+	wait.for_frame_count(15)
 	event.set_mouth_texture_animations(0, "通常口パク")
-	helper_4116e6bb(1050440)
+	message.show_voiced(1050440)
 	event.reset_mouth_texture_animations()
 	event.play_sound_effect(se_id, 2)
 	event.set_object_sequence_motion(1, "ガッツポーズ", 2)
 	event.queue_object_sequence_next_motion(1, "立ち")
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050450)
+	message.show_voiced(1050450)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(0, "バックパックを置く", 2)
 	event.queue_object_sequence_next_motion(0, "スターブル見L")
-	for var1 = 0, 41 do
-		if var1 == 12 then
+	for frame_index = 0, 41 do
+		if frame_index == 12 then
 			event.play_sound_effect(se_id, 5)
 			event.detach_character_from_frame(35)
 			event.set_object_sequence_position(4, 44.54, 6.47, -135.54)
 		end
-		helper_888ab2a3(1)
+		wait.for_frame_count(1)
 	end
 	event.set_object_sequence_texture_animation(0, 1, "ためいき")
-	helper_888ab2a3(70)
+	wait.for_frame_count(70)
 	event.set_object_sequence_texture_animation(0, 0)
 	event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 	event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
 	event.set_object_sequence_motion(1, "腰に手", 2)
 	event.queue_object_sequence_next_motion(1, "腰に手L")
-	helper_888ab2a3(14)
+	wait.for_frame_count(14)
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050460)
+	message.show_voiced(1050460)
 	event.reset_mouth_texture_animations()
 	event.play_sound_effect(se_id, 6)
 	event.set_object_sequence_motion(0, "うなづく", 6)
 	event.reset_object_sequence_dynamic_animation(0)
 	event.queue_object_sequence_next_motion(0, "スターブル見L")
-	helper_888ab2a3(10)
+	wait.for_frame_count(10)
 	event.set_mouth_texture_animations(0, "通常口パク")
-	helper_4116e6bb(1050470)
+	message.show_voiced(1050470)
 	event.reset_mouth_texture_animations()
-	helper_888ab2a3(10)
+	wait.for_frame_count(10)
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050480)
-	event.reset_mouth_texture_animations()
-	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050490)
+	message.show_voiced(1050480)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050491)
+	message.show_voiced(1050490)
+	event.reset_mouth_texture_animations()
+	event.set_mouth_texture_animations(1, "わらい口パク")
+	message.show_voiced(1050491)
 	event.reset_mouth_texture_animations()
 	event.play_sound_effect(se_id, 7)
 	event.set_object_sequence_motion(0, "ガッツポーズ", 6, -1.0, 1)
 	event.queue_object_sequence_next_motion(0, "スターブル見L")
 	event.set_mouth_texture_animations(0, "わらい口パク")
-	helper_4116e6bb(1050500)
+	message.show_voiced(1050500)
 	event.reset_mouth_texture_animations()
 	event.play_sound_effect(se_id, 6)
 	event.set_object_sequence_motion(1, "うなづく", 6)
 	event.queue_object_sequence_next_motion(1, "腰に手L")
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050510)
+	message.show_voiced(1050510)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_18d28(se_id: s32, se_id_2: s32)
-	local var2: s32 = 0
+--- Plays the scene that explains the Ride Pod with a tutorial message.
+local function play_ride_pod_tutorial_scene(se_id: s32, se_id_2: s32)
+	local saved_window_mode: s32 = 0
 	event.mark_camera_sequence_fade_track()
 	event.fade_out_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
+	camera.wait_until_done()
 	event.set_camera_sequence_position(133.98, 56.46, -175.98)
 	event.set_camera_sequence_look_at(64.38, 33.46, -162.4)
 	event.set_object_sequence_position(0, 50.4, -0.02, -124.87)
@@ -888,27 +879,27 @@ local function helper_18d28(se_id: s32, se_id_2: s32)
 	event.set_object_sequence_rotation(5, 0.0, -1.52, 0.0)
 	event.set_object_sequence_motion(5, "発動", 6)
 	event.set_object_handle_visible(5, 1)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.play_sound_effect(se_id_2, 0)
 	event.fade_in_camera_sequence(30, 0.0, 0.0, 0.0)
-	wait_camera()
-	helper_888ab2a3(15)
+	camera.wait_until_done()
+	wait.for_frame_count(15)
 	event.play_sound_effect(se_id, 8)
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050520)
+	message.show_voiced(1050520)
 	event.reset_mouth_texture_animations()
-	var2 = event.get_message_window_frame(0) or var2
+	saved_window_mode = event.get_message_window_frame(0) or saved_window_mode
 	event.set_message_window_mode(0, 8)
 	event.open_message_window_2(
 		0,
 		"[(!)]メインメニューの『キャラクター』でライドポッドを\n   選択すれば、乗り込むことができるぞ。\n   また、(R)を押し込むことでもチェンジできる。"
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
-	event.set_message_window_mode(0, var2)
+	message.show_and_wait(0, -1, 8, 0, 0)
+	event.set_message_window_mode(0, saved_window_mode)
 end
 
---- Helper function.
-local function helper_19648(arg0: any)
+--- Plays Starbre closing the backpack request conversation.
+local function play_backpack_closing_line(sound_bank: any)
 	event.set_camera_sequence_position(51.28, 21.78, -97.62)
 	event.set_camera_sequence_look_at(50.16, 19.92, -141.52)
 	event.set_object_sequence_position(0, 58.4, -0.02, -135.54)
@@ -919,60 +910,60 @@ local function helper_19648(arg0: any)
 	event.set_object_sequence_motion(1, "立ち", 4, -1.0, 1)
 	event.set_character_position(25, 62.85, 11.43, -176.07)
 	event.set_character_rotation(25, 0.0, -0.72, 0.0)
-	helper_888ab2a3(15)
+	wait.for_frame_count(15)
 	event.set_mouth_texture_animations(1, "わらい口パク")
-	helper_4116e6bb(1050530)
+	message.show_voiced(1050530)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_19aa8(arg0: s32)
-	local var1: s32 = 0
-	local var2: s32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
+--- Plays the shop house scene selected by number and restores the camera afterwards.
+local function play_shop_house_scene(scene_number: s32)
+	local sound_bank: s32 = 0
+	local item_sound_bank: s32 = 0
+	local steve_x: f32 = 0
+	local steve_y: f32 = 0
+	local steve_z: f32 = 0
+	local steve_rotation_x: f32 = 0
+	local steve_rotation_y: f32 = 0
+	local steve_rotation_z: f32 = 0
+	local camera_x: f32 = 0
+	local camera_y: f32 = 0
+	local camera_z: f32 = 0
+	local look_at_x: f32 = 0
+	local look_at_y: f32 = 0
+	local look_at_z: f32 = 0
 	vm.section(function()
 		vm.entry(1)
 		do
 			local out1, out2, out3 = event.get_character_position(25)
-			var3 = out1 or var3
-			var4 = out2 or var4
-			var5 = out3 or var5
+			steve_x = out1 or steve_x
+			steve_y = out2 or steve_y
+			steve_z = out3 or steve_z
 		end
 		do
 			local out1, out2, out3 = event.get_character_rotation(25)
-			var6 = out1 or var6
-			var7 = out2 or var7
-			var8 = out3 or var8
+			steve_rotation_x = out1 or steve_rotation_x
+			steve_rotation_y = out2 or steve_rotation_y
+			steve_rotation_z = out3 or steve_rotation_z
 		end
 		event.set_save_flag(105, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var1 = event.load_sound_effect_file_2(1228) or var1
-		var2 = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or var2
+		sound_bank = event.load_sound_effect_file_2(1228) or sound_bank
+		item_sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or item_sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		do
 			local out1, out2, out3 = event.get_camera_position()
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			camera_x = out1 or camera_x
+			camera_y = out2 or camera_y
+			camera_z = out3 or camera_z
 		end
 		do
 			local out1, out2, out3 = event.get_camera_look_at()
-			pos_x_2 = out1 or pos_x_2
-			pos_y_2 = out2 or pos_y_2
-			pos_z_2 = out3 or pos_z_2
+			look_at_x = out1 or look_at_x
+			look_at_y = out2 or look_at_y
+			look_at_z = out3 or look_at_z
 		end
 		event.clear_camera_sequence()
 		event.load_character(5, "event/e100/e105/e105_starbre.gltf", "info", 33)
@@ -985,7 +976,7 @@ local function helper_19aa8(arg0: s32)
 		event.attach_object_handle_to_character(0, 0)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_object_handle_sound_bank(0, var1)
+		event.set_object_handle_sound_bank(0, sound_bank)
 		event.load_character(5, "event/e100/e105/e105_back.gltf", "info", 35)
 		event.set_character_active(1, 35)
 		event.load_character(5, "event/e100/e105/back01.gltf", "info", 36)
@@ -1007,47 +998,47 @@ local function helper_19aa8(arg0: s32)
 		event.set_object_sequence_texture_animation(1, 1, "わらい顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
 		event.enable_drama_skip()
-		if arg0 == 1 then
+		if scene_number == 1 then
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_15a7c(var1)
+			open_backpack_conversation(sound_bank)
 		end
-		if arg0 == 2 then
+		if scene_number == 2 then
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_16004(var1)
+			play_starbre_cheer_exchange(sound_bank)
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_1655c(var1)
+			show_illustrated_request(sound_bank)
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_16dcc(var1)
+			play_gilda_payment_scene(sound_bank)
 		end
-		if arg0 == 3 then
+		if scene_number == 3 then
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_1ef0d4b2()
+			cutscene.noop()
 		end
-		if arg0 == 4 then
+		if scene_number == 4 then
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_17520(var1)
+			play_starbre_cheer_followup(sound_bank)
 		end
-		if arg0 == 5 then
+		if scene_number == 5 then
 			event.stop_music(0)
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_17b9c(var1)
+			deliver_backpack_to_starbre(sound_bank)
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_18d28(var1, var2)
+			play_ride_pod_tutorial_scene(sound_bank, item_sound_bank)
 			event.reset_object_sequence_dynamic_animation(0)
-			helper_19648(var1)
+			play_backpack_closing_line(sound_bank)
 		end
 	end)
 	vm.entry(10)
 	event.cancel_drama_scene_skip()
 	event.fade_out_screen(30)
-	helper_888ab2a3(30)
-	if arg0 == 5 then
+	wait.for_frame_count(30)
+	if scene_number == 5 then
 		event.play_music(0)
 	end
-	event.set_character_position(25, var3, var4, var5)
-	event.set_character_rotation(25, var6, var7, var8)
-	event.set_camera_position(pos_x, pos_y, pos_z)
-	event.set_camera_look_at(pos_x_2, pos_y_2, pos_z_2)
+	event.set_character_position(25, steve_x, steve_y, steve_z)
+	event.set_character_rotation(25, steve_rotation_x, steve_rotation_y, steve_rotation_z)
+	event.set_camera_position(camera_x, camera_y, camera_z)
+	event.set_camera_look_at(look_at_x, look_at_y, look_at_z)
 	event.delete_character_extension_packs(0)
 	event.delete_character(33)
 	event.delete_character(34)
@@ -1064,19 +1055,19 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
 --- Event 200, which map data, a script or the engine runs by number.
-script.event_200 = helper_0999bd0f
+script[200] = palm_brinks_shop_house.exit_to_town
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_86e93423()
+--- Plays the camera gift scene, gives the camera items and returns to the house script.
+function script.start_camera_gift_event()
+	palm_brinks_shop_house.hide_house_owner()
 	event.set_save_flag(18, 1)
 	event.set_save_flag(21, 1)
-	helper_11fcc()
-	helper_658b1052()
+	play_camera_gift_scene()
+	palm_brinks_shop_house.resume_exploration()
 	event.set_character_position(0, 16.25, -0.02, -166.37)
 	event.set_character_rotation(0, 0.0, 1.16, 0.0)
 	event.set_character_motion(0, "立ち")
@@ -1087,22 +1078,23 @@ function script.event_500()
 	event.set_villager_ai_enabled(1, 24)
 	event.set_save_data_value(0, 3)
 	event.add_inventory_item(369, 1)
-	helper_d61bc810(1)
+	inventory.resolve_overflow(1)
 	vm.wait(3)
 	event.load_event_script("i01h01/i01h01.stb", -1)
 end
+script[500] = script.start_camera_gift_event
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	local at: number = 0
+--- Plays the flashback scene and returns to the house script.
+function script.start_flashback_event()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.fade_out_screen(10, 0.0, 0.0, 0.0)
-		at = 1
-		helper_888ab2a3(10)
-		helper_86e93423()
-		at = 2
-		helper_147ac()
-		helper_658b1052()
+		resume_step = 1
+		wait.for_frame_count(10)
+		palm_brinks_shop_house.hide_house_owner()
+		resume_step = 2
+		play_flashback_scene()
+		palm_brinks_shop_house.resume_exploration()
 		event.set_character_position(0, 16.25, -0.02, -166.37)
 		event.set_character_rotation(0, 0.0, 1.16, 0.0)
 		event.set_character_motion(0, "立ち")
@@ -1110,21 +1102,21 @@ function script.event_510()
 		event.set_character_position(24, 38.77, -0.02, -147.68)
 		event.set_character_rotation(24, 0.0, -2.04, 0.0)
 		event.set_character_motion(24, "立ち")
-		at = 3
+		resume_step = 3
 		vm.wait(3)
 		event.set_villager_ai_enabled(1, 24)
-		at = 4
+		resume_step = 4
 		vm.wait(4)
 		event.load_event_script("i01h01/i01h01.stb", -1)
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at <= 1 then
-				helper_1ef0d4b2()
-				at = 2
-				helper_147ac()
+		if resume_step <= 4 then
+			if resume_step <= 1 then
+				cutscene.noop()
+				resume_step = 2
+				play_flashback_scene()
 				return vm.continue_with(function()
-					helper_658b1052()
+					palm_brinks_shop_house.resume_exploration()
 					event.set_character_position(0, 16.25, -0.02, -166.37)
 					event.set_character_rotation(0, 0.0, 1.16, 0.0)
 					event.set_character_motion(0, "立ち")
@@ -1132,45 +1124,46 @@ function script.event_510()
 					event.set_character_position(24, 38.77, -0.02, -147.68)
 					event.set_character_rotation(24, 0.0, -2.04, 0.0)
 					event.set_character_motion(24, "立ち")
-					at = 3
+					resume_step = 3
 					vm.wait(3)
 					event.set_villager_ai_enabled(1, 24)
-					at = 4
+					resume_step = 4
 					vm.wait(4)
 					event.load_event_script("i01h01/i01h01.stb", -1)
 					return
 				end)
 			end
-			if at <= 2 then
-				helper_1ef0d4b2()
+			if resume_step <= 2 then
+				cutscene.noop()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[510] = script.start_flashback_event
 
---- Event 520, which map data, a script or the engine runs by number.
-function script.event_520()
-	local var0: s32 = 0
+--- Plays the backpack request scene that matches the quest progress and returns to the house script.
+function script.handle_backpack_request()
+	local backpack_status: s32 = 0
 	local flag: s32 = 0
-	local argc: s32 = 0
-	local argc_2: s32 = 0
-	local argc_3: s32 = 0
-	local argc_4: s32 = 0
-	local at: number = 0
+	local item_224_count: s32 = 0
+	local item_245_count: s32 = 0
+	local item_227_count: s32 = 0
+	local backpack_invention_state: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.set_character_motion(0, "立ち")
 		event.set_save_flag(21, 0)
 		event.fade_out_screen(30, 0.0, 0.0, 0.0)
-		at = 1
-		helper_888ab2a3(30)
-		helper_86e93423()
+		resume_step = 1
+		wait.for_frame_count(30)
+		palm_brinks_shop_house.hide_house_owner()
 		flag = event.get_save_flag(13) or flag
 		if flag == 1 then
-			at = 2
-			helper_19aa8(5)
-			helper_658b1052()
+			resume_step = 2
+			play_shop_house_scene(5)
+			palm_brinks_shop_house.resume_exploration()
 			event.set_character_position(0, 16.25, -0.02, -166.37)
 			event.set_character_rotation(0, 0.0, 1.16, 0.0)
 			event.set_character_motion(0, "立ち")
@@ -1178,30 +1171,30 @@ function script.event_520()
 			event.set_character_position(24, 38.77, -0.02, -147.68)
 			event.set_character_rotation(24, 0.0, -2.04, 0.0)
 			event.set_character_motion(24, "立ち")
-			at = 3
+			resume_step = 3
 			vm.wait(3)
 			event.set_villager_ai_enabled(1, 24)
 			event.set_save_flag(20, 1)
 			event.set_character_active(1, 26)
 			event.attach_character_to_frame(25, "back", 26)
 			event.remove_item(165, 1)
-			at = 4
+			resume_step = 4
 			vm.wait(4)
 			event.load_event_script("i01h01/i01h01.stb", -1)
 			return
 		else
 			flag = event.get_save_flag(19) or flag
 			if flag == 1 then
-				argc = event.get_item_count(224) or argc
-				argc_2 = event.get_item_count(245) or argc_2
-				argc_3 = event.get_item_count(227) or argc_3
-				if argc >= 20 and argc_2 >= 1 and argc_3 >= 2 then
-					var0 = event.get_item_count(165) or var0
-					print("backpack num =", var0, "---------------\n")
-					if var0 == 0 then
-						at = 5
-						helper_19aa8(4)
-						helper_658b1052()
+				item_224_count = event.get_item_count(224) or item_224_count
+				item_245_count = event.get_item_count(245) or item_245_count
+				item_227_count = event.get_item_count(227) or item_227_count
+				if item_224_count >= 20 and item_245_count >= 1 and item_227_count >= 2 then
+					backpack_status = event.get_item_count(165) or backpack_status
+					print("backpack num =", backpack_status, "---------------\n")
+					if backpack_status == 0 then
+						resume_step = 5
+						play_shop_house_scene(4)
+						palm_brinks_shop_house.resume_exploration()
 						event.set_character_position(0, 59.55, -1.12, -135.97)
 						event.set_character_rotation(0, 0.0, -2.24, 0.0)
 						event.set_character_motion(0, "立ち")
@@ -1209,7 +1202,7 @@ function script.event_520()
 						event.set_character_position(24, 38.77, -0.02, -147.68)
 						event.set_character_rotation(24, 0.0, 0.72, 0.0)
 						event.set_character_motion(24, "立ち")
-						at = 6
+						resume_step = 6
 						vm.wait(6)
 						event.set_villager_ai_enabled(1, 24)
 						event.load_event_script("i01h01/i01h01.stb", -1)
@@ -1222,36 +1215,36 @@ function script.event_520()
 						0,
 						"何をしておる。\nアイテム屋は、うちの目の前じゃ。\n早く買ってくるのじゃ。"
 					)
-					at = 7
-					helper_1c04a0eb(24, -1, 0, 0)
+					resume_step = 7
+					cutscene.talk(24, -1, 0, 0)
 					event.set_villager_ai_enabled(1, 24)
-					at = 8
+					resume_step = 8
 					vm.wait(8)
 					event.load_event_script("i01h01/i01h01.stb", -1)
 				end
 			else
-				var0 = event.has_invention_ideas(165) or var0
-				if var0 == 1 then
-					argc_4 = event.is_invention_created(165) or argc_4
-					if argc_4 ~= -1 then
+				backpack_status = event.has_invention_ideas(165) or backpack_status
+				if backpack_status == 1 then
+					backpack_invention_state = event.is_invention_created(165) or backpack_invention_state
+					if backpack_invention_state ~= -1 then
 						event.set_save_flag(19, 1)
 						event.add_money(400)
-						at = 9
-						helper_19aa8(2)
-						helper_658b1052()
+						resume_step = 9
+						play_shop_house_scene(2)
+						palm_brinks_shop_house.resume_exploration()
 						event.set_villager_ai_enabled(0, 24)
 						event.set_character_position(24, 38.77, -0.02, -147.68)
 						event.set_character_rotation(24, 0.0, 0.72, 0.0)
 						event.set_character_motion(24, "立ち")
-						at = 10
+						resume_step = 10
 						vm.wait(10)
 						event.set_villager_ai_enabled(1, 24)
 						event.load_event_script("i01h01/i01h01.stb", -1)
 						return
 					else
-						at = 11
-						helper_19aa8(1)
-						helper_658b1052()
+						resume_step = 11
+						play_shop_house_scene(1)
+						palm_brinks_shop_house.resume_exploration()
 						event.set_character_position(0, 16.25, -0.02, -166.37)
 						event.set_character_rotation(0, 0.0, 1.16, 0.0)
 						event.set_character_motion(0, "立ち")
@@ -1259,14 +1252,14 @@ function script.event_520()
 						event.set_character_position(24, 38.77, -0.02, -147.68)
 						event.set_character_rotation(24, 0.0, -2.04, 0.0)
 						event.set_character_motion(24, "立ち")
-						at = 12
+						resume_step = 12
 						vm.wait(12)
 						event.set_villager_ai_enabled(1, 24)
 						event.load_event_script("i01h01/i01h01.stb", -1)
 						return
 					end
 				else
-					at = 13
+					resume_step = 13
 					vm.wait(13)
 					event.load_event_script("i01h01/i01h01c.stb", 500)
 					return
@@ -1275,20 +1268,20 @@ function script.event_520()
 		end
 		event.fade_in_screen(15)
 		event.open_message_window_2(0, "ユリス、バイトをサボるんじゃないぞ。\nわかったな！")
-		at = 14
-		helper_1c04a0eb(24, -1, 0, 0)
-		at = 15
+		resume_step = 14
+		cutscene.talk(24, -1, 0, 0)
+		resume_step = 15
 		vm.wait(15)
 		event.load_event_script("i01h01/i01h01.stb", -1)
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at <= 1 then
-				helper_1ef0d4b2()
-				at = 2
-				helper_19aa8(5)
+		if resume_step <= 4 then
+			if resume_step <= 1 then
+				cutscene.noop()
+				resume_step = 2
+				play_shop_house_scene(5)
 				return vm.continue_with(function()
-					helper_658b1052()
+					palm_brinks_shop_house.resume_exploration()
 					event.set_character_position(0, 16.25, -0.02, -166.37)
 					event.set_character_rotation(0, 0.0, 1.16, 0.0)
 					event.set_character_motion(0, "立ち")
@@ -1296,117 +1289,120 @@ function script.event_520()
 					event.set_character_position(24, 38.77, -0.02, -147.68)
 					event.set_character_rotation(24, 0.0, -2.04, 0.0)
 					event.set_character_motion(24, "立ち")
-					at = 3
+					resume_step = 3
 					vm.wait(3)
 					event.set_villager_ai_enabled(1, 24)
 					event.set_save_flag(20, 1)
 					event.set_character_active(1, 26)
 					event.attach_character_to_frame(25, "back", 26)
 					event.remove_item(165, 1)
-					at = 4
+					resume_step = 4
 					vm.wait(4)
 					event.load_event_script("i01h01/i01h01.stb", -1)
 					return
 				end)
 			end
-			if at <= 2 then
-				helper_1ef0d4b2()
+			if resume_step <= 2 then
+				cutscene.noop()
 			end
 			return 0
 		end
-		if at <= 6 then
-			if at <= 5 then
-				helper_1ef0d4b2()
+		if resume_step <= 6 then
+			if resume_step <= 5 then
+				cutscene.noop()
 			end
 			return 0
 		end
-		if at <= 10 then
-			if at <= 8 then
-				at = 9
-				helper_19aa8(2)
+		if resume_step <= 10 then
+			if resume_step <= 8 then
+				resume_step = 9
+				play_shop_house_scene(2)
 				return vm.continue_with(function()
-					helper_658b1052()
+					palm_brinks_shop_house.resume_exploration()
 					event.set_villager_ai_enabled(0, 24)
 					event.set_character_position(24, 38.77, -0.02, -147.68)
 					event.set_character_rotation(24, 0.0, 0.72, 0.0)
 					event.set_character_motion(24, "立ち")
-					at = 10
+					resume_step = 10
 					vm.wait(10)
 					event.set_villager_ai_enabled(1, 24)
 					event.load_event_script("i01h01/i01h01.stb", -1)
 					return
 				end)
 			end
-			if at <= 9 then
-				helper_1ef0d4b2()
+			if resume_step <= 9 then
+				cutscene.noop()
 			end
 			return 0
 		end
-		if at <= 12 then
-			if at <= 11 then
-				helper_1ef0d4b2()
+		if resume_step <= 12 then
+			if resume_step <= 11 then
+				cutscene.noop()
 			end
 			return 0
 		end
-		if at <= 13 then
+		if resume_step <= 13 then
 			return 0
 		end
-		if at <= 15 then
+		if resume_step <= 15 then
 			return 0
 		end
 		return nil
 	end)
 end
+script[520] = script.handle_backpack_request
 
---- Event 521, which map data, a script or the engine runs by number.
-function script.event_521()
+--- Plays the cheer and payment scene and returns to the house script.
+function script.play_cheer_and_payment_scene()
 	event.set_character_active(0, 24)
-	helper_19aa8(2)
+	play_shop_house_scene(2)
 	vm.wait(2)
 	event.load_event_script("i01h01/i01h01.stb", -1)
 end
+script[521] = script.play_cheer_and_payment_scene
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local at: number = 0
+--- Starts the dialogue with Starbre, the house owner.
+function script.talk_to_starbre()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		at = 1
+		resume_step = 1
 		vm.wait(1)
-		at = 2
-		helper_662e1f81()
+		resume_step = 2
+		palm_brinks_shop_house.dispatch_talk_event()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				helper_3936899e()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				palm_brinks_shop_house.handle_talk_event()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[1000] = script.talk_to_starbre
 
---- Event 11053, which map data, a script or the engine runs by number.
-function script.event_11053()
-	local argc: s32 = 0
-	local argc_2: s32 = 0
-	local argc_3: s32 = 0
-	local argc_4: s32 = 0
-	local argc_5: s32 = 0
-	local at: number = 0
+--- Replays the backpack request scene that matches the held items and invention state.
+function script.replay_backpack_request()
+	local backpack_invention_state: s32 = 0
+	local backpack_count: s32 = 0
+	local item_224_count: s32 = 0
+	local item_245_count: s32 = 0
+	local item_227_count: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.set_character_motion(0, "立ち")
 		event.set_save_flag(21, 0)
 		event.fade_out_screen(30)
-		at = 1
-		helper_888ab2a3(30)
-		helper_86e93423()
-		argc_2 = event.get_item_count(165) or argc_2
-		if argc_2 >= 1 then
-			at = 2
-			helper_19aa8(5)
-			helper_658b1052()
+		resume_step = 1
+		wait.for_frame_count(30)
+		palm_brinks_shop_house.hide_house_owner()
+		backpack_count = event.get_item_count(165) or backpack_count
+		if backpack_count >= 1 then
+			resume_step = 2
+			play_shop_house_scene(5)
+			palm_brinks_shop_house.resume_exploration()
 			event.set_character_position(0, 16.25, -0.02, -166.37)
 			event.set_character_rotation(0, 0.0, 1.16, 0.0)
 			event.set_character_motion(0, "立ち")
@@ -1414,24 +1410,24 @@ function script.event_11053()
 			event.set_character_position(24, 38.77, -0.02, -147.68)
 			event.set_character_rotation(24, 0.0, -2.04, 0.0)
 			event.set_character_motion(24, "立ち")
-			at = 3
+			resume_step = 3
 			vm.wait(3)
 			event.set_villager_ai_enabled(1, 24)
 			event.set_save_flag(20, 1)
 			event.set_character_active(1, 26)
 			event.attach_character_to_frame(25, "back", 26)
-			at = 4
+			resume_step = 4
 			vm.wait(4)
 			event.load_event_script("i01h01/i01h01.stb", -1)
 			return
 		end
-		argc_3 = event.get_item_count(224) or argc_3
-		argc_4 = event.get_item_count(245) or argc_4
-		argc_5 = event.get_item_count(227) or argc_5
-		if argc_3 >= 20 and argc_4 >= 1 and argc_5 >= 2 then
-			at = 5
-			helper_19aa8(4)
-			helper_658b1052()
+		item_224_count = event.get_item_count(224) or item_224_count
+		item_245_count = event.get_item_count(245) or item_245_count
+		item_227_count = event.get_item_count(227) or item_227_count
+		if item_224_count >= 20 and item_245_count >= 1 and item_227_count >= 2 then
+			resume_step = 5
+			play_shop_house_scene(4)
+			palm_brinks_shop_house.resume_exploration()
 			event.set_character_position(0, 59.55, -1.12, -135.97)
 			event.set_character_rotation(0, 0.0, -2.24, 0.0)
 			event.set_character_motion(0, "立ち")
@@ -1439,34 +1435,34 @@ function script.event_11053()
 			event.set_character_position(24, 38.77, -0.02, -147.68)
 			event.set_character_rotation(24, 0.0, 0.72, 0.0)
 			event.set_character_motion(24, "立ち")
-			at = 6
+			resume_step = 6
 			vm.wait(6)
 			event.set_villager_ai_enabled(1, 24)
-			at = 7
+			resume_step = 7
 			vm.wait(7)
 			event.load_event_script("i01h01/i01h01.stb", -1)
 			return
 		end
-		argc = event.is_invention_created(165) or argc
-		if argc ~= -1 then
-			at = 8
-			helper_19aa8(2)
+		backpack_invention_state = event.is_invention_created(165) or backpack_invention_state
+		if backpack_invention_state ~= -1 then
+			resume_step = 8
+			play_shop_house_scene(2)
 			event.set_villager_ai_enabled(0, 24)
 			event.set_character_position(24, 38.77, -0.02, -147.68)
 			event.set_character_rotation(24, 0.0, 0.72, 0.0)
 			event.set_character_motion(24, "立ち")
-			at = 9
+			resume_step = 9
 			vm.wait(9)
 			event.set_villager_ai_enabled(1, 24)
-			at = 10
+			resume_step = 10
 			vm.wait(10)
 			event.load_event_script("i01h01/i01h01.stb", -1)
 			return
 		end
-		if argc == -1 then
-			at = 11
-			helper_19aa8(1)
-			helper_658b1052()
+		if backpack_invention_state == -1 then
+			resume_step = 11
+			play_shop_house_scene(1)
+			palm_brinks_shop_house.resume_exploration()
 			event.set_character_position(0, 16.25, -0.02, -166.37)
 			event.set_character_rotation(0, 0.0, 1.16, 0.0)
 			event.set_character_motion(0, "立ち")
@@ -1474,27 +1470,27 @@ function script.event_11053()
 			event.set_character_position(24, 38.77, -0.02, -147.68)
 			event.set_character_rotation(24, 0.0, -2.04, 0.0)
 			event.set_character_motion(24, "立ち")
-			at = 12
+			resume_step = 12
 			vm.wait(12)
 			event.set_villager_ai_enabled(1, 24)
-			at = 13
+			resume_step = 13
 			vm.wait(13)
 			event.load_event_script("i01h01/i01h01.stb", -1)
 			return
 		end
 		event.fade_in_screen(30)
-		at = 14
+		resume_step = 14
 		vm.wait(14)
 		event.load_event_script("i01h01/i01h01.stb", -1)
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at <= 1 then
-				helper_1ef0d4b2()
-				at = 2
-				helper_19aa8(5)
+		if resume_step <= 4 then
+			if resume_step <= 1 then
+				cutscene.noop()
+				resume_step = 2
+				play_shop_house_scene(5)
 				return vm.continue_with(function()
-					helper_658b1052()
+					palm_brinks_shop_house.resume_exploration()
 					event.set_character_position(0, 16.25, -0.02, -166.37)
 					event.set_character_rotation(0, 0.0, 1.16, 0.0)
 					event.set_character_motion(0, "立ち")
@@ -1502,43 +1498,44 @@ function script.event_11053()
 					event.set_character_position(24, 38.77, -0.02, -147.68)
 					event.set_character_rotation(24, 0.0, -2.04, 0.0)
 					event.set_character_motion(24, "立ち")
-					at = 3
+					resume_step = 3
 					vm.wait(3)
 					event.set_villager_ai_enabled(1, 24)
 					event.set_save_flag(20, 1)
 					event.set_character_active(1, 26)
 					event.attach_character_to_frame(25, "back", 26)
-					at = 4
+					resume_step = 4
 					vm.wait(4)
 					event.load_event_script("i01h01/i01h01.stb", -1)
 					return
 				end)
 			end
-			if at <= 2 then
-				helper_1ef0d4b2()
+			if resume_step <= 2 then
+				cutscene.noop()
 			end
 			return 0
 		end
-		if at <= 7 then
-			if at <= 5 then
-				helper_1ef0d4b2()
+		if resume_step <= 7 then
+			if resume_step <= 5 then
+				cutscene.noop()
 			end
 			return 0
 		end
-		if at <= 10 then
+		if resume_step <= 10 then
 			return 0
 		end
-		if at <= 13 then
-			if at <= 11 then
-				helper_1ef0d4b2()
+		if resume_step <= 13 then
+			if resume_step <= 11 then
+				cutscene.noop()
 			end
 			return 0
 		end
-		if at <= 14 then
+		if resume_step <= 14 then
 			return 0
 		end
 		return nil
 	end)
 end
+script[11053] = script.replay_backpack_request
 
 return script

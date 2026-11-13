@@ -1,24 +1,18 @@
 --!strict
--- map/f/f02/i08/f02i08_2.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the Starlight Temple kitchen interior, with the Rao Chao cooking scene that turns a White Windflower into a dish.
 
 local vm = require("@lib/vm")
-local helper_13169207 = require("@lib/event/helper_13169207")
-local helper_152377fe = require("@lib/event/helper_152377fe")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_28199468 = require("@lib/event/helper_28199468")
-local helper_4e19428d = require("@lib/event/helper_4e19428d")
-local helper_4fba7aa8 = require("@lib/event/helper_4fba7aa8")
-local helper_96495cf4 = require("@lib/event/helper_96495cf4")
-local helper_c292fa16 = require("@lib/event/helper_c292fa16")
-local helper_df618068 = require("@lib/event/helper_df618068")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_frames_skipping = require("@lib/event/wait_frames_skipping")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local message = require("@lib/event/message")
+local starlight_temple_interior_i08 = require("@lib/event/starlight_temple_interior_i08")
+local starlight_temple_villagers = require("@lib/event/french/starlight_temple_villagers")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_1c4d8()
-	local var0: s32 = 0
-	local at: number = 0
+--- Asks whether to hand over the White Windflower for cooking and returns 1 when the player agrees.
+local function ask_give_windflower()
+	local answer: s32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
@@ -26,17 +20,17 @@ local function helper_1c4d8()
 			0,
 			"Donnons-lui une Fleur de vent-blanc\npour qu'il fasse son plat miracle.\n(Pour ouvrir le menu : (#))"
 		)
-		at = 1
-		var0 = helper_c292fa16(0, -1, 5, 256, 208, var0)
-		if var0 == 1 then
+		step = 1
+		answer = message.ask_confirmation(0, -1, 5, 256, 208, answer)
+		if answer == 1 then
 			return 1
 		else
 			return 0
 		end
 	end, function(received: { any })
-		if at <= 1 then
-			if at == 1 then
-				var0 = received[2] :: number
+		if step <= 1 then
+			if step == 1 then
+				answer = received[2] :: number
 			end
 			return 1
 		end
@@ -46,132 +40,135 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_1ef0d4b2
+script[99] = cutscene.noop
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the Rao Chao meeting scene or enables the cooking point depending on story flags, then resets the camera.
 function script.default_event()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local flag_3: s32 = 0
-	local argc: s32 = 0
-	helper_1ef0d4b2()
-	flag = event.get_save_flag(320) or flag
-	flag_2 = event.get_save_flag(324) or flag_2
-	flag_3 = event.get_save_flag(364) or flag_3
-	helper_13169207(0)
-	if flag_3 == 1 then
-		if flag == 0 then
-			helper_28199468()
+	local meeting_flag: s32 = 0
+	local cooking_flag: s32 = 0
+	local story_flag_364: s32 = 0
+	local windflower_count: s32 = 0
+	cutscene.noop()
+	meeting_flag = event.get_save_flag(320) or meeting_flag
+	cooking_flag = event.get_save_flag(324) or cooking_flag
+	story_flag_364 = event.get_save_flag(364) or story_flag_364
+	starlight_temple_interior_i08.set_character_200_active(0)
+	if story_flag_364 == 1 then
+		if meeting_flag == 0 then
+			starlight_temple_interior_i08.play_raochao_meeting_scene()
 		else
-			argc = event.get_owned_item_count(363) or argc
-			if flag_2 == 0 and argc >= 1 then
+			windflower_count = event.get_owned_item_count(363) or windflower_count
+			if cooking_flag == 0 and windflower_count >= 1 then
 				event.set_function_point_enabled("", "syumai", 1)
 			end
 		end
 	end
-	helper_13169207(1)
+	starlight_temple_interior_i08.set_character_200_active(1)
 	event.reset_follow_camera(1, 0.0)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the cooking scene when the square button is pressed.
 function script.key_open()
-	helper_13169207(0)
-	helper_96495cf4()
-	helper_13169207(1)
+	starlight_temple_interior_i08.set_character_200_active(0)
+	starlight_temple_interior_i08.play_raochao_cooking_scene()
+	starlight_temple_interior_i08.set_character_200_active(1)
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	local var0: s32 = 0
-	local item: s32 = 0
-	local at: number = 0
+--- Offers Rao Chao the White Windflower and, when it is used, plays the cooking scene and grants the dish.
+function script.talk_to_raochao()
+	local interaction_state: s32 = 0
+	local used_item: s32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		at = 1
+		step = 1
 		vm.wait(1)
 		event.set_character_motion(0, "立ち")
-		var0 = event.get_triggered_event_data_2(6) or var0
-		if var0 == 1 then
-			at = 2
-			if helper_1c4d8() ~= 0 then
-				var0 = 2
+		interaction_state = event.get_triggered_event_data_2(6) or interaction_state
+		if interaction_state == 1 then
+			step = 2
+			if ask_give_windflower() ~= 0 then
+				interaction_state = 2
 			end
 		end
-		if var0 == 2 then
+		if interaction_state == 2 then
 			event.open_use_item_menu(363)
-			at = 3
+			step = 3
 			vm.wait(3)
-			item = vmhost.used_item() or item
-			if item == 363 then
+			used_item = vmhost.used_item() or used_item
+			if used_item == 363 then
 				event.add_inventory_item(364)
 				event.set_function_point_enabled("", "syumai", 0)
 				event.fade_out_music(30)
 				event.fade_out_screen(30)
-				at = 4
-				wait_frames(30)
-				helper_13169207(0)
-				at = 5
-				helper_96495cf4()
-				helper_13169207(1)
-			elseif item > 0 then
-				at = 6
-				helper_df618068()
+				step = 4
+				wait.frames(30)
+				starlight_temple_interior_i08.set_character_200_active(0)
+				step = 5
+				starlight_temple_interior_i08.play_raochao_cooking_scene()
+				starlight_temple_interior_i08.set_character_200_active(1)
+			elseif used_item > 0 then
+				step = 6
+				character.shake_head_at_camera()
 			end
 		end
 		return
 	end, function(received: { any })
-		if at <= 6 then
-			if at == 2 then
+		if step <= 6 then
+			if step == 2 then
 				local _ = received[1] :: number
 			end
-			if at <= 1 then
-				local _ = helper_4e19428d()
+			if step <= 1 then
+				local _ = starlight_temple_interior_i08.run_with_fixed_arguments()
 			end
-			if at <= 2 then
-				local _ = var0 == 1
-				var0 = 2
+			if step <= 2 then
+				local _ = interaction_state == 1
+				interaction_state = 2
 			end
-			if at <= 3 then
-				wait_frames_skipping(30)
+			if step <= 3 then
+				wait.frames_skipping(30)
 			end
-			if at <= 4 then
-				helper_238b5abc(0)
-				at = 5
-				helper_96495cf4()
+			if step <= 4 then
+				cutscene.skip_command(0)
+				step = 5
+				starlight_temple_interior_i08.play_raochao_cooking_scene()
 				return vm.continue_with(function()
-					helper_13169207(1)
+					starlight_temple_interior_i08.set_character_200_active(1)
 					return
 				end)
 			end
-			if at <= 5 then
-				helper_238b5abc(1)
-				helper_4fba7aa8()
+			if step <= 5 then
+				cutscene.skip_command(1)
+				cutscene.do_nothing()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[500] = script.talk_to_raochao
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_152377fe
+script[1000] = starlight_temple_villagers.talk_to_villager
 
---- Event 13200, which map data, a script or the engine runs by number.
-function script.event_13200()
-	helper_13169207(0)
-	helper_28199468()
-	helper_13169207(1)
+--- Replays the meeting scene with Rao Chao.
+function script.replay_raochao_meeting_scene()
+	starlight_temple_interior_i08.set_character_200_active(0)
+	starlight_temple_interior_i08.play_raochao_meeting_scene()
+	starlight_temple_interior_i08.set_character_200_active(1)
 end
+script[13200] = script.replay_raochao_meeting_scene
 
---- Event 13240, which map data, a script or the engine runs by number.
-function script.event_13240()
-	helper_13169207(0)
-	helper_96495cf4()
-	helper_13169207(1)
+--- Replays the cooking scene with Rao Chao.
+function script.replay_raochao_cooking_scene()
+	starlight_temple_interior_i08.set_character_200_active(0)
+	starlight_temple_interior_i08.play_raochao_cooking_scene()
+	starlight_temple_interior_i08.set_character_200_active(1)
 end
+script[13240] = script.replay_raochao_cooking_scene
 
 return script

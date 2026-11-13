@@ -1,0 +1,189 @@
+--!strict
+--- Holds the party NPC comment and duck cutscene helpers for the town i05 house h01.
+
+local vm = require("@lib/vm")
+local message = vm.module("@lib/event/message")
+local object = vm.module("@lib/event/object")
+local wait = vm.module("@lib/event/wait")
+
+local i05_house_h01 = {}
+
+--- Plays the duck cutscene with the playable character and the duck, shows the party NPC comment and then updates the party NPC statuses.
+function i05_house_h01.play_e305_cutscene()
+	local sound_bank: s32 = 0
+	local playable_character: s32 = 0
+	local party_npc_id: s32 = 0
+	local party_status: s32 = 0
+	vm.section(function()
+		event.fade_out_screen(0)
+		event.set_save_flag(305, 1)
+		event.initialize_event()
+		event.set_message_window_mode(0, 7)
+		event.set_event_projection(524.9)
+		event.stop_music(0)
+		wait.frames(4)
+		event.load_music(57)
+		event.play_music(0)
+		sound_bank = event.load_sound_effect_file_2(1249) or sound_bank
+		event.assign_memory_stack(5)
+		event.clear_memory_stack(5)
+		playable_character = event.get_playable_character() or playable_character
+		event.load_message_file(0, 5, "event/e300/e305/e305_1.txt")
+		if playable_character ~= 0 then
+			event.set_character_active(0, 0)
+			event.load_character(5, "chara/c01_base.gltf", "info", 32)
+			event.load_equipment_model(5, 0, 4, "info", 32)
+			event.load_equipment_model(5, 0, 3, "info", 32)
+			event.load_equipment_model(5, 0, 2, "info", 32, 33)
+			event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", 32)
+			event.set_character_active(32)
+			event.set_character_active(33)
+			event.attach_object_handle_to_character(0, 32)
+		else
+			event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", 0)
+			event.set_character_active(0)
+			event.attach_object_handle_to_character(0, 0)
+		end
+		event.clear_object_sequence(0)
+		event.set_object_sequence_object(0, 0)
+		event.load_character(5, "event/e300/e305/e305_duck.gltf", "info", 34)
+		event.set_character_active(34)
+		event.attach_object_handle_to_character(1, 34)
+		event.clear_object_sequence(1)
+		event.set_object_sequence_object(1, 1)
+		event.reset_event_sprite(0)
+		event.set_event_sprite_type(0, 0)
+		event.set_event_sprite_position(0, 256, 208)
+		event.set_event_sprite_size(0, 512, 416)
+		event.set_event_sprite_color(0, 0, 0, 0, 0)
+		event.set_event_sprite_draw_pass(0, 0)
+		event.attach_object_handle_to_sprite(2, 0)
+		event.clear_object_sequence(2)
+		event.set_object_sequence_object(2, 2)
+		event.set_object_handle_position(0, 41.0, 0.0, 44.0)
+		event.set_object_handle_rotation(0, 0.0, -1.57, 0.0)
+		event.set_object_handle_motion(0, "立ち", 4)
+		event.reset_object_handle_dynamic_animation(0)
+		event.set_object_handle_texture_animation(0, 0)
+		event.set_object_handle_texture_animation(0, 1, "デフォルト顔")
+		event.set_object_handle_texture_animation(0, 1, "通常目パチ")
+		event.set_object_handle_footstep_sound(0, 3)
+		event.set_object_handle_position(1, -31.0, 0.0, 90.0)
+		event.set_object_handle_rotation(1, 0.0, 0.0, 0.0)
+		event.set_object_handle_motion(1, "花見立ち", 4)
+		event.set_object_handle_texture_animation(1, 0)
+		event.set_object_handle_texture_animation(1, 1, "目パチ")
+		event.set_object_handle_sound_bank(1, sound_bank)
+		event.enable_drama_skip()
+		event.clear_camera_sequence()
+		event.set_camera_sequence_position(43.93, 53.83, 21.86)
+		event.set_camera_sequence_look_at(-14.62, 23.71, 94.06)
+		event.fade_in_screen(30)
+		wait.frames(30)
+		event.set_object_sequence_motion(1, "振り向く", 2)
+		event.queue_object_sequence_next_motion(1, "振り向くL", 4)
+		object.wait_until_done(1)
+		event.set_mouth_motions(1, "振り向く会話", 0, "振り向くL", 0)
+		message.show_voiced(3050010)
+		event.set_camera_sequence_position(29.17, 40.75, 148.74)
+		event.set_camera_sequence_look_at(-14.4, 16.43, 33.37)
+		event.set_object_sequence_motion(1, "歩き")
+		event.delay_object_sequence_motion_track(1, 40)
+		event.set_object_sequence_motion(1, "立ち")
+		event.move_object_sequence(1, -31.0, 0.0, 49.0, 40)
+		event.rotate_object_sequence(1, 0.0, 3.14, 0.0, 18)
+		event.delay_object_sequence_rotation_track(1, 12)
+		event.rotate_object_sequence(1, 0.0, 1.92, 0.0, 10)
+		event.set_object_sequence_motion(0, "歩き")
+		event.delay_object_sequence_motion_track(0, 50)
+		event.set_object_sequence_motion(0, "立ち")
+		event.move_object_sequence(0, -2.0, 0.0, 44.0, 50)
+		event.delay_object_sequence_rotation_track(0, 40)
+		event.rotate_object_sequence(0, 0.0, -1.11, 0.0, 10)
+		event.set_mouth_texture_animations(0, "通常口パク")
+		message.show_voiced(3050020)
+		object.wait_until_done(1)
+		event.set_object_sequence_motion(1, "会話2", 2)
+		event.queue_object_sequence_next_motion(1, "うなづく", 6)
+		event.queue_object_sequence_next_motion(1, "立ち", 4)
+		event.open_message_window_2(0, 3050030)
+		message.show(0, -1, 8, 0, 0)
+		event.set_object_sequence_motion(0, "歩き")
+		event.move_object_sequence(0, 45.0, 0.0, 44.0, 60)
+		event.rotate_object_sequence(0, 0.0, 1.57, 0.0, 14)
+		wait.frames(10)
+		event.set_object_sequence_motion(1, "歩き")
+		event.move_object_sequence(1, 24.0, 0.0, 49.0, 50)
+		event.rotate_object_sequence(1, 0.0, 1.8, 0.0, 8)
+		wait.frames(20)
+		event.set_event_sprite_draw_pass(0, 1)
+		event.set_object_sequence_color(2, 0.0, 0.0, 0.0, 255.0, 30)
+		wait.frames(30)
+		event.set_object_handle_motion(1, "立ち", 4)
+		event.set_object_handle_motion(0, "立ち", 4)
+		event.play_sound_effect(sound_bank, 3)
+		wait.frames(20)
+		event.play_sound_effect(sound_bank, 4)
+		wait.frames(20)
+	end)
+	event.cancel_drama_scene_skip()
+	event.clear_object_sequence(0)
+	event.clear_object_sequence(1)
+	event.set_object_handle_motion(1, "立ち", 4)
+	event.set_object_handle_motion(0, "立ち", 4)
+	event.set_object_handle_footstep_sound(0, 0)
+	event.set_event_sprite_draw_pass(0, 1)
+	event.set_object_sequence_color(2, 0.0, 0.0, 0.0, 128.0)
+	event.fade_in_screen(0)
+	i05_house_h01.show_party_npc_comment()
+	vm.wait(14)
+	party_npc_id = event.get_party_npc() or party_npc_id
+	party_status = event.get_npc_party_status(party_npc_id) or party_status
+	if bit32.band(party_status, 4) ~= 0 then
+		event.set_npc_party_status(party_npc_id, 4)
+	else
+		event.set_npc_party_status(party_npc_id, 2)
+	end
+	event.set_npc_party_status(6, 128)
+	event.set_npc_party_status(6, 1)
+	event.set_event_sprite_draw_pass(0, 0)
+	event.fade_out_screen(0)
+	if playable_character ~= 0 then
+		event.delete_character(32)
+		event.delete_character(33)
+	else
+		event.delete_character_extension_packs(0)
+	end
+	event.delete_character(34)
+	event.load_message_file(0, -1)
+	event.set_character_active(0)
+	vm.wait(15)
+end
+
+--- Shows message 55 when no NPC is in the party, otherwise message 56 or 57 depending on whether the party NPC has status bit 4 set.
+function i05_house_h01.show_party_npc_comment()
+	local message_id: s32 = 0
+	local party_npc_id: s32 = 0
+	local npc_message_number: s32 = 0
+	local party_status: s32 = 0
+	event.apply_message_window_preset(1, 4)
+	message.set_window_mode(1, 4)
+	event.set_message_window_buffer(1, 1, 1)
+	party_npc_id = event.get_party_npc() or party_npc_id
+	if party_npc_id < 0 then
+		message_id = 55
+	else
+		npc_message_number = event.get_npc_message_number_3(party_npc_id, 0) or npc_message_number
+		event.set_message_item_system_message(1, 2, npc_message_number)
+		party_status = event.get_npc_party_status(party_npc_id) or party_status
+		if bit32.band(party_status, 4) ~= 0 then
+			message_id = 57
+		else
+			message_id = 56
+		end
+	end
+	message.show(1, message_id, 8, 0, 0)
+	event.set_message_window_buffer(1, 1, 0)
+end
+
+return i05_house_h01

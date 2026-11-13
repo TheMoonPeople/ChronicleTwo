@@ -1,107 +1,98 @@
 --!strict
--- map/g/g02/i02/g02i02_5.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for Lin's house in Balance Valley covering the sick Lin scenes and resident dialogue.
 
 local vm = require("@lib/vm")
-local helper_0ffc2526 = require("@lib/event/helper_0ffc2526")
-local helper_4fba7aa8 = require("@lib/event/helper_4fba7aa8")
-local helper_56b874f1 = require("@lib/event/helper_56b874f1")
-local helper_76f23193 = require("@lib/event/helper_76f23193")
-local helper_852ada6a = require("@lib/event/helper_852ada6a")
-local helper_b2dff8b7 = require("@lib/event/helper_b2dff8b7")
-local helper_c292fa16 = require("@lib/event/helper_c292fa16")
-local helper_ca092b2d = require("@lib/event/helper_ca092b2d")
-local helper_db96f504 = require("@lib/event/helper_db96f504")
-local helper_df618068 = require("@lib/event/helper_df618068")
-local helper_e118365e = require("@lib/event/helper_e118365e")
-local helper_fb2f356e = require("@lib/event/helper_fb2f356e")
-local show_message = require("@lib/event/show_message")
-local wait_frames = require("@lib/event/wait_frames")
+local balance_valley_lins_house = require("@lib/event/balance_valley_lins_house")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local message = require("@lib/event/message")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_281b4()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Lets the player use a medicine item on Lin and starts the recovery scene.
+local function give_medicine_to_lin()
+	local interaction_stage: s32 = 0
+	local confirmed: s32 = 0
 	local item: s32 = 0
-	local now_party_chara_id: s32 = 0
-	local var4: s32 = 0
-	local at: number = 0
+	local party_npc_id: s32 = 0
+	local party_status: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
-		var0 = event.get_triggered_event_data_2(6) or var0
-		if var0 == 1 then
+		interaction_stage = event.get_triggered_event_data_2(6) or interaction_stage
+		if interaction_stage == 1 then
 			event.set_message_window_mode(0, 1)
 			event.set_message_bubble_tail(0, 0)
 			event.open_message_window_2(0, "Lin est[UNI00e1] sufriendo.\n(Pulsa el bot[UNI00f3]n (#) para abrir el men[UNI00fa].)")
-			at = 1
-			var1 = helper_c292fa16(0, -1, 5, 0, 0, var1)
-			if var1 == 1 then
-				var0 = 2
+			resume_step = 1
+			confirmed = message.ask_confirmation(0, -1, 5, 0, 0, confirmed)
+			if confirmed == 1 then
+				interaction_stage = 2
 			end
 		end
-		if var0 == 2 then
+		if interaction_stage == 2 then
 			event.open_use_item_menu(364)
-			at = 2
+			resume_step = 2
 			vm.wait(2)
 			item = vmhost.used_item() or item
 			if item == 364 then
 				event.set_function_point_enabled("", "syumai", 0)
 				event.set_function_point_enabled("", "event_550", 0)
-				at = 3
-				helper_ca092b2d()
-				at = 4
-				helper_db96f504()
-				at = 5
+				resume_step = 3
+				balance_valley_lins_house.play_event_330()
+				resume_step = 4
+				balance_valley_lins_house.show_party_npc_message()
+				resume_step = 5
 				vm.wait(5)
-				now_party_chara_id = event.get_party_npc() or now_party_chara_id
-				var4 = event.get_npc_party_status(now_party_chara_id) or var4
-				if bit32.band(var4, 4) ~= 0 then
-					event.set_npc_party_status(now_party_chara_id, 4)
+				party_npc_id = event.get_party_npc() or party_npc_id
+				party_status = event.get_npc_party_status(party_npc_id) or party_status
+				if bit32.band(party_status, 4) ~= 0 then
+					event.set_npc_party_status(party_npc_id, 4)
 				else
-					event.set_npc_party_status(now_party_chara_id, 2)
+					event.set_npc_party_status(party_npc_id, 2)
 				end
 				event.set_npc_party_status(26, 128)
 				event.set_npc_party_status(26, 1)
 			elseif item > 0 then
-				at = 6
-				helper_df618068()
+				resume_step = 6
+				character.shake_head_at_camera()
 			end
 		end
 		return
 	end, function(received: { any })
-		if at <= 6 then
-			if at == 1 then
-				var1 = received[2] :: number
+		if resume_step <= 6 then
+			if resume_step == 1 then
+				confirmed = received[2] :: number
 			end
-			if at <= 1 then
-				local _ = var0 == 1
-				var0 = 2
+			if resume_step <= 1 then
+				local _ = interaction_stage == 1
+				interaction_stage = 2
 			end
-			if at <= 2 then
-				at = 3
-				helper_ca092b2d()
+			if resume_step <= 2 then
+				resume_step = 3
+				balance_valley_lins_house.play_event_330()
 				return vm.continue_with(function()
-					at = 4
-					helper_db96f504()
-					at = 5
+					resume_step = 4
+					balance_valley_lins_house.show_party_npc_message()
+					resume_step = 5
 					vm.wait(5)
-					now_party_chara_id = event.get_party_npc() or now_party_chara_id
-					var4 = event.get_npc_party_status(now_party_chara_id) or var4
-					if bit32.band(var4, 4) ~= 0 then
-						event.set_npc_party_status(now_party_chara_id, 4)
+					party_npc_id = event.get_party_npc() or party_npc_id
+					party_status = event.get_npc_party_status(party_npc_id) or party_status
+					if bit32.band(party_status, 4) ~= 0 then
+						event.set_npc_party_status(party_npc_id, 4)
 					else
-						event.set_npc_party_status(now_party_chara_id, 2)
+						event.set_npc_party_status(party_npc_id, 2)
 					end
 					event.set_npc_party_status(26, 128)
 					event.set_npc_party_status(26, 1)
 					return
 				end)
 			end
-			if at <= 3 then
-				helper_852ada6a()
+			if resume_step <= 3 then
+				balance_valley_lins_house.show_default_message()
 			end
-			if at <= 5 then
-				helper_4fba7aa8()
+			if resume_step <= 5 then
+				cutscene.do_nothing()
 			end
 			return 0
 		end
@@ -111,22 +102,22 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_56b874f1
+script[99] = balance_valley_lins_house.place_residents
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the residents and plays the scene matching the story flags on entering the house.
 function script.default_event()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	local flag_3: s32 = 0
 	local flag_4: s32 = 0
 	local flag_5: s32 = 0
-	local now_party_chara_id: s32 = 0
-	local var7: s32 = 0
-	helper_56b874f1()
+	local party_npc_id: s32 = 0
+	local sound_id: s32 = 0
+	balance_valley_lins_house.place_residents()
 	flag = event.get_save_flag(300) or flag
 	flag_2 = event.get_save_flag(304) or flag_2
 	flag_3 = event.get_save_flag(306) or flag_3
@@ -135,12 +126,12 @@ function script.default_event()
 	event.get_save_flag(330)
 	if flag == 1 then
 		if flag_2 == 0 then
-			helper_fb2f356e()
+			balance_valley_lins_house.play_event_304()
 			return
 		else
-			now_party_chara_id = event.get_party_npc() or now_party_chara_id
-			if flag_3 == 0 and now_party_chara_id == 6 then
-				helper_e118365e()
+			party_npc_id = event.get_party_npc() or party_npc_id
+			if flag_3 == 0 and party_npc_id == 6 then
+				balance_valley_lins_house.play_event_306()
 				event.set_npc_party_status(6, 2)
 				event.skip_next_music_load()
 				event.jump_to_map_3(-1, "g02", 503)
@@ -148,13 +139,13 @@ function script.default_event()
 				return
 			end
 			if flag_4 == 1 and flag_5 == 0 then
-				helper_b2dff8b7()
+				balance_valley_lins_house.play_event_328()
 				return
 			end
 		end
 	end
-	var7 = event.get_sound_id(2) or var7
-	event.play_sound_effect(var7, 61)
+	sound_id = event.get_sound_id(2) or sound_id
+	event.play_sound_effect(sound_id, 61)
 	event.set_character_position(0, 8.0, 0.0, 120.0)
 	event.set_character_rotation(0, 0.0, 3.14, 0.0)
 	event.set_character_motion(0, "立ち", 4)
@@ -163,40 +154,42 @@ function script.default_event()
 	event.fade_in_screen(30)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Shows the party NPC message and restores the party NPC status.
 function script.key_open()
-	local now_party_chara_id: s32 = 0
-	helper_db96f504()
+	local party_npc_id: s32 = 0
+	balance_valley_lins_house.show_party_npc_message()
 	vm.wait(2)
-	now_party_chara_id = event.get_party_npc() or now_party_chara_id
-	event.set_npc_party_status(now_party_chara_id, 2)
+	party_npc_id = event.get_party_npc() or party_npc_id
+	event.set_npc_party_status(party_npc_id, 2)
 	event.set_npc_party_status(26, 128)
 	event.set_npc_party_status(26, 1)
 end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	local now_map_no: s32 = 0
-	now_map_no = event.get_current_map() or now_map_no
-	if now_map_no == 1 then
+--- Leaves the house by outside transition or map jump depending on the current map.
+function script.exit_house()
+	local current_map_number: s32 = 0
+	current_map_number = event.get_current_map() or current_map_number
+	if current_map_number == 1 then
 		event.go_to_outside_map(-1, "g02", 100)
 	else
 		event.jump_to_map_3(-1, "g02", 100)
 	end
 	vm.wait(1)
 end
+script[200] = script.exit_house
 
 --- Event 500, which map data, a script or the engine runs by number.
-script.event_500 = helper_281b4
+script.give_medicine_to_lin = give_medicine_to_lin
+script[500] = script.give_medicine_to_lin
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
-	local player_chara: s32 = 0
-	local var2: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
+--- Turns the player toward Lin and shows her moaning.
+function script.listen_to_lin_moaning()
+	local player_slot: s32 = 0
+	local player_x: f32 = 0
+	local player_z: f32 = 0
+	local npc_x: f32 = 0
+	local npc_z: f32 = 0
+	local target_angle: f32 = 0
 	local flag: s32 = 0
 	print("550-------------------------------------------------")
 	event.fade_out_screen(1)
@@ -205,43 +198,44 @@ function script.event_550()
 	event.set_camera_position(9.08, 28.93, -152.07)
 	event.set_camera_look_at(11.2, 18.91, -112.52)
 	event.fade_in_screen(15)
-	player_chara = event.get_player_character_slot() or player_chara
+	player_slot = event.get_player_character_slot() or player_slot
 	event.set_message_bubble_tail(0, 1)
 	event.apply_message_window_preset(0, 0)
 	do
-		local out1, _, out3 = event.get_character_position(player_chara)
-		var2 = out1 or var2
-		var4 = out3 or var4
+		local out1, _, out3 = event.get_character_position(player_slot)
+		player_x = out1 or player_x
+		player_z = out3 or player_z
 	end
-	var5 = vm.f32(9.52)
-	var7 = vm.f32(-125.12)
-	var8 = event.get_look_angle(var5 - var2, var7 - var4) or var8
-	helper_76f23193(player_chara, var8)
-	event.set_character_rotation(player_chara, 0.0, var8, 0.0)
-	event.set_character_motion(player_chara, "立ち")
+	npc_x = vm.f32(9.52)
+	npc_z = vm.f32(-125.12)
+	target_angle = event.get_look_angle(npc_x - player_x, npc_z - player_z) or target_angle
+	character.turn_to_angle(player_slot, target_angle)
+	event.set_character_rotation(player_slot, 0.0, target_angle, 0.0)
+	event.set_character_motion(player_slot, "立ち")
 	flag = event.get_save_flag(306) or flag
 	if flag == 0 then
 		event.open_message_window_2(0, "Ooooh...\nNnnnn... ahhhh...")
 	else
 		event.open_message_window_2(0, "Ohhh, ohhh...")
 	end
-	show_message(0, -1, 4, 256, 312)
+	message.show(0, -1, 4, 256, 312)
 	event.fade_out_screen(15)
-	wait_frames(15)
+	wait.frames(15)
 	event.reset_follow_camera(1, 3.1415927)
 	event.finish_event()
 	event.fade_in_screen(15)
 end
+script[550] = script.listen_to_lin_moaning
 
---- Event 551, which map data, a script or the engine runs by number.
-function script.event_551()
-	local player_chara: s32 = 0
-	local var1: s32 = 0
-	local var2: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
+--- Turns the player toward Shirooza and shows dialogue matching the story flags.
+function script.talk_to_shirooza()
+	local player_slot: s32 = 0
+	local shirooza_slot: s32 = 0
+	local player_x: f32 = 0
+	local player_z: f32 = 0
+	local npc_x: f32 = 0
+	local npc_z: f32 = 0
+	local target_angle: f32 = 0
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	local flag_3: s32 = 0
@@ -249,24 +243,24 @@ function script.event_551()
 	local flag_5: s32 = 0
 	local flag_6: s32 = 0
 	print("551-------------------------------------------------")
-	player_chara = event.get_player_character_slot() or player_chara
-	var1 = 24
+	player_slot = event.get_player_character_slot() or player_slot
+	shirooza_slot = 24
 	event.set_message_bubble_tail(0, 1)
 	event.apply_message_window_preset(0, 0)
 	do
-		local out1, _, out3 = event.get_character_position(player_chara)
-		var2 = out1 or var2
-		var4 = out3 or var4
+		local out1, _, out3 = event.get_character_position(player_slot)
+		player_x = out1 or player_x
+		player_z = out3 or player_z
 	end
 	do
-		local out1, _, out3 = event.get_character_position(var1)
-		var5 = out1 or var5
-		var7 = out3 or var7
+		local out1, _, out3 = event.get_character_position(shirooza_slot)
+		npc_x = out1 or npc_x
+		npc_z = out3 or npc_z
 	end
-	var8 = event.get_look_angle(var5 - var2, var7 - var4) or var8
-	helper_76f23193(player_chara, var8)
-	event.set_character_rotation(player_chara, 0.0, var8, 0.0)
-	event.set_character_motion(player_chara, "立ち")
+	target_angle = event.get_look_angle(npc_x - player_x, npc_z - player_z) or target_angle
+	character.turn_to_angle(player_slot, target_angle)
+	event.set_character_rotation(player_slot, 0.0, target_angle, 0.0)
+	event.set_character_motion(player_slot, "立ち")
 	flag = event.get_save_flag(356) or flag
 	if flag ~= 0 then
 		event.open_message_window_2(
@@ -285,13 +279,13 @@ function script.event_551()
 				flag_4 = event.get_save_flag(317) or flag_4
 				if flag_4 ~= 0 then
 					event.open_message_window_2(0, "[UNI00bf]Todav[UNI00ed]a no te has hecho con el\nPlato milagroso?")
-					helper_0ffc2526(0, -1, var1, player_chara, 0)
+					message.say_bubble(0, -1, shirooza_slot, player_slot, 0)
 					event.open_message_window_2(0, "Tortuga, hoo, nincompoop.\n[UNI00a1]No vales para nada, hooo!")
 				else
 					flag_5 = event.get_save_flag(320) or flag_5
 					if flag_5 ~= 0 then
 						event.open_message_window_2(0, '[UNI00bf]Todav[UNI00ed]a no tienes, hoo,\nla "Flor del viento"?')
-						helper_0ffc2526(0, -1, var1, player_chara, 0)
+						message.say_bubble(0, -1, shirooza_slot, player_slot, 0)
 						event.open_message_window_2(0, "Tortuga, hoo, nincompoop.\n[UNI00a1]No vales para nada, hooo!")
 					else
 						flag_6 = event.get_save_flag(306) or flag_6
@@ -300,7 +294,7 @@ function script.event_551()
 								0,
 								"Hoo, el restaurante Lao Chao\ntodav[UNI00ed]a no est[UNI00e1] restaurado, hoo."
 							)
-							helper_0ffc2526(0, -1, var1, player_chara, 0)
+							message.say_bubble(0, -1, shirooza_slot, player_slot, 0)
 							event.open_message_window_2(0, "Tortuga, hoo, nincompoop.\n[UNI00a1]No vales para nada, hooo!")
 						else
 							event.open_message_window_2(
@@ -313,81 +307,87 @@ function script.event_551()
 			end
 		end
 	end
-	helper_0ffc2526(0, -1, var1, player_chara, 0)
+	message.say_bubble(0, -1, shirooza_slot, player_slot, 0)
 end
+script[551] = script.talk_to_shirooza
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	local player_chara: s32 = 0
-	local var2: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
+--- Turns the player toward a villager and shows a greeting.
+function script.talk_to_villager()
+	local villager_slot: s32 = 0
+	local player_slot: s32 = 0
+	local player_x: f32 = 0
+	local player_z: f32 = 0
+	local npc_x: f32 = 0
+	local npc_z: f32 = 0
+	local target_angle: f32 = 0
 	print("KITA-------------------------------\n")
-	var0 = event.get_triggered_event_data_2(13) or var0
-	player_chara = event.get_player_character_slot() or player_chara
+	villager_slot = event.get_triggered_event_data_2(13) or villager_slot
+	player_slot = event.get_player_character_slot() or player_slot
 	do
-		local out1, _, out3 = event.get_character_position(player_chara)
-		var2 = out1 or var2
-		var4 = out3 or var4
+		local out1, _, out3 = event.get_character_position(player_slot)
+		player_x = out1 or player_x
+		player_z = out3 or player_z
 	end
 	do
-		local out1, _, out3 = event.get_character_position(var0)
-		var5 = out1 or var5
-		var7 = out3 or var7
+		local out1, _, out3 = event.get_character_position(villager_slot)
+		npc_x = out1 or npc_x
+		npc_z = out3 or npc_z
 	end
-	var8 = event.get_look_angle(var5 - var2, var7 - var4) or var8
-	helper_76f23193(player_chara, var8)
-	event.set_character_rotation(player_chara, 0.0, var8, 0.0)
-	event.set_character_motion(player_chara, "立ち")
+	target_angle = event.get_look_angle(npc_x - player_x, npc_z - player_z) or target_angle
+	character.turn_to_angle(player_slot, target_angle)
+	event.set_character_rotation(player_slot, 0.0, target_angle, 0.0)
+	event.set_character_motion(player_slot, "立ち")
 	event.set_message_bubble_tail(0, 1)
 	event.apply_message_window_preset(0, 0)
 	event.open_message_window_2(0, "Hola.\nQu[UNI00e9] buen tiempo, [UNI00bf]no?")
-	helper_0ffc2526(0, -1, var0, player_chara, 0)
+	message.say_bubble(0, -1, villager_slot, player_slot, 0)
 end
+script[1000] = script.talk_to_villager
 
---- Event 13040, which map data, a script or the engine runs by number.
-function script.event_13040()
+--- Resets the story flags and replays the scene where Lin falls ill.
+function script.replay_first_meeting_scene()
 	event.set_save_flag(304, 0)
 	event.set_save_flag(306, 0)
 	event.set_save_flag(324, 0)
 	event.set_save_flag(330, 0)
-	helper_56b874f1()
-	helper_fb2f356e()
+	balance_valley_lins_house.place_residents()
+	balance_valley_lins_house.play_event_304()
 end
+script[13040] = script.replay_first_meeting_scene
 
---- Event 13060, which map data, a script or the engine runs by number.
-function script.event_13060()
+--- Sets the story flags and replays the scene that recruits the party NPC.
+function script.replay_party_npc_scene()
 	event.set_save_flag(304, 1)
 	event.set_save_flag(306, 0)
 	event.set_save_flag(324, 0)
 	event.set_save_flag(330, 0)
 	event.set_npc_party_status(6, 128)
 	event.set_npc_party_status(6, 1)
-	helper_56b874f1()
-	helper_e118365e()
+	balance_valley_lins_house.place_residents()
+	balance_valley_lins_house.play_event_306()
 	event.jump_to_map_3(-1, "g02", 503)
 	vm.wait(2)
 end
+script[13060] = script.replay_party_npc_scene
 
---- Event 13280, which map data, a script or the engine runs by number.
-function script.event_13280()
+--- Sets the story flags and replays the scene where the party visits Shirooza.
+function script.replay_shirooza_visit_scene()
 	event.set_save_flag(304, 1)
 	event.set_save_flag(306, 1)
 	event.set_save_flag(324, 1)
 	event.set_save_flag(330, 0)
-	helper_56b874f1()
-	helper_b2dff8b7()
+	balance_valley_lins_house.place_residents()
+	balance_valley_lins_house.play_event_328()
 end
+script[13280] = script.replay_shirooza_visit_scene
 
---- Event 13300, which map data, a script or the engine runs by number.
-function script.event_13300()
+--- Sets the story flags and replays the recovery scene.
+function script.replay_medicine_scene()
 	event.set_save_flag(324, 1)
 	event.set_save_flag(330, 0)
-	helper_56b874f1()
-	helper_ca092b2d()
+	balance_valley_lins_house.place_residents()
+	balance_valley_lins_house.play_event_330()
 end
+script[13300] = script.replay_medicine_scene
 
 return script

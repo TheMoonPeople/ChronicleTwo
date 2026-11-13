@@ -1,19 +1,19 @@
 --!strict
--- map/i/i01/h02/i01h02_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Palm Brinks shop interior script that places the player on entry and handles talking to the shopkeeper.
 
-local helper_0499eecb = require("@lib/event/helper_0499eecb")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_47e5dca9 = require("@lib/event/helper_47e5dca9")
-local helper_fe0f3321 = require("@lib/event/helper_fe0f3321")
+local cutscene = require("@lib/event/cutscene")
+local map = require("@lib/event/map")
+local palm_brinks_villagers = require("@lib/event/german/palm_brinks_villagers")
+local villager_dialogue = require("@lib/event/german/villager_dialogue")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the player just inside the entrance and fades in when the shop is entered.
 function script.default_event()
-	helper_1ef0d4b2()
+	cutscene.noop()
 	event.initialize_event()
 	event.set_character_position(0, -5.0, 0.0, 82.0)
 	event.set_character_rotation(0, 0, 3.14, 0)
@@ -24,36 +24,38 @@ function script.default_event()
 end
 
 --- Event 200, which map data, a script or the engine runs by number.
-script.event_200 = helper_0499eecb
+script[200] = map.enter_door_waiting_frames
 
---- Event 400, which map data, a script or the engine runs by number.
-function script.event_400()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Opens the shop greeting with the shopkeeper or shows the villager's regular dialogue depending on story progress.
+function script.talk_to_shopkeeper()
+	local shopkeeper_slot: s32 = 0
+	local story_progress: s32 = 0
 	event.set_event_data_field(14, 12)
-	var0 = 24
-	event.set_event_data_field(13, var0)
-	var1 = event.get_save_data_value(0) or var1
-	if var1 == 100 then
-		helper_47e5dca9()
-		event.set_villager_ai_enabled(1, var0)
+	shopkeeper_slot = 24
+	event.set_event_data_field(13, shopkeeper_slot)
+	story_progress = event.get_save_data_value(0) or story_progress
+	if story_progress == 100 then
+		palm_brinks_villagers.open_shop_after_greeting()
+		event.set_villager_ai_enabled(1, shopkeeper_slot)
 		return
 	end
-	helper_fe0f3321()
+	villager_dialogue.talk_to_triggered_villager()
 end
+script[400] = script.talk_to_shopkeeper
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	var0 = event.get_triggered_event_data_2(13) or var0
-	var1 = event.get_save_data_value(0) or var1
-	if var1 == 100 then
-		helper_47e5dca9()
-		event.set_villager_ai_enabled(1, var0)
+--- Opens the shop greeting or shows the villager's regular dialogue for the character that was spoken to.
+function script.on_talk()
+	local villager_slot: s32 = 0
+	local story_progress: s32 = 0
+	villager_slot = event.get_triggered_event_data_2(13) or villager_slot
+	story_progress = event.get_save_data_value(0) or story_progress
+	if story_progress == 100 then
+		palm_brinks_villagers.open_shop_after_greeting()
+		event.set_villager_ai_enabled(1, villager_slot)
 		return
 	end
-	helper_fe0f3321()
+	villager_dialogue.talk_to_triggered_villager()
 end
+script[1000] = script.on_talk
 
 return script

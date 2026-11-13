@@ -1,174 +1,162 @@
 --!strict
--- map/g/g03/g03_4.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the Veniccio map covering entries, exits to dungeons and scene triggers.
 
 local vm = require("@lib/vm")
-local helper_0855dba8 = require("@lib/event/helper_0855dba8")
-local helper_0befff3d = require("@lib/event/helper_0befff3d")
-local helper_2348941a = require("@lib/event/helper_2348941a")
-local helper_379e93c0 = require("@lib/event/helper_379e93c0")
-local helper_3e566142 = require("@lib/event/helper_3e566142")
-local helper_43f02c95 = require("@lib/event/helper_43f02c95")
-local helper_5bdac642 = require("@lib/event/helper_5bdac642")
-local helper_683d6a71 = require("@lib/event/helper_683d6a71")
-local helper_6be25ed2 = require("@lib/event/helper_6be25ed2")
-local helper_915f68a8 = require("@lib/event/helper_915f68a8")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_b2a07125 = require("@lib/event/helper_b2a07125")
-local helper_b2c84d73 = require("@lib/event/helper_b2c84d73")
-local helper_b794551c = require("@lib/event/helper_b794551c")
-local helper_ca212701 = require("@lib/event/helper_ca212701")
-local helper_ebc222ab = require("@lib/event/helper_ebc222ab")
-local helper_f20e2c61 = require("@lib/event/helper_f20e2c61")
-local helper_f57795f8 = require("@lib/event/helper_f57795f8")
-local show_message = require("@lib/event/show_message")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local georama = require("@lib/event/georama")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local time_gate = require("@lib/event/italian/time_gate")
+local veniccio = require("@lib/event/veniccio")
 
---- Helper function.
-local function helper_1aab4()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: s32 = 0
+--- Walks the player ahead and shows a hint about searching the cave first.
+local function walk_ahead_and_hint_at_cave()
+	local x: f32 = 0
+	local y: f32 = 0
+	local z: f32 = 0
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
+	local frame: s32 = 0
 	event.initialize_event()
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		x = out1 or x
+		y = out2 or y
+		z = out3 or z
 	end
-	var3 = vm.f32(vm.f32(vm.sin(vm.f32(-1.39)) * 30.0) + var0)
-	var4 = var1
-	var5 = vm.f32(vm.f32(vm.cos(vm.f32(-1.39)) * 30.0) + var2)
+	target_x = vm.f32(vm.f32(vm.sin(vm.f32(-1.39)) * 30.0) + x)
+	target_y = y
+	target_z = vm.f32(vm.f32(vm.cos(vm.f32(-1.39)) * 30.0) + z)
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
-	event.move_object_sequence(0, var3, var4, var5, 30, 1)
-	event.turn_object_sequence_toward(0, var3, var4, var5, 10)
+	event.move_object_sequence(0, target_x, target_y, target_z, 30, 1)
+	event.turn_object_sequence_toward(0, target_x, target_y, target_z, 10)
 	event.set_object_sequence_motion(0, "歩き")
-	var6 = 0
-	while var6 < 30 do
+	frame = 0
+	while frame < 30 do
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var0 = out1 or var0
-			var1 = out2 or var1
-			var2 = out3 or var2
+			x = out1 or x
+			y = out2 or y
+			z = out3 or z
 		end
-		var1 = vm.f32(var1 + 30.0)
-		event.set_camera_look_at(var0, var1, var2)
-		var6 = var6 + 1
+		y = vm.f32(y + 30.0)
+		event.set_camera_look_at(x, y, z)
+		frame = frame + 1
 		vm.wait(1)
 	end
 	event.set_object_sequence_motion(0, "立ち")
 	event.set_message_window_mode(0, 1)
 	event.set_message_bubble_tail(0, 0)
 	event.open_message_window_2(0, "Cos'[UNI00e8] stato quel grido?\nIniziamo a cercare nella\ncaverna, d'accordo?")
-	show_message(0, -1, 5, 256, 208)
+	message.show(0, -1, 5, 256, 208)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_3e566142
+script[99] = veniccio.update_map_state
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the entry sequence matching the map the player came from.
 function script.default_event()
-	local mc_load: s32 = 0
-	local old_map_no: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
-	local old_sub_map_no: s32 = 0
-	local var5: s32 = 0
+	local memory_card_load_state: s32 = 0
+	local previous_map_number: s32 = 0
+	local old_map_type: s32 = 0
+	local entry_handled: s32 = 0
+	local previous_submap_number: s32 = 0
+	local old_sub_map_type: s32 = 0
 	local flag: s32 = 0
 	local flag_2: s32 = 0
-	local get_old_interior_map_no: s32 = 0
-	local at: number = 0
+	local previous_interior_map_number: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
-		helper_3e566142()
-		mc_load = event.take_memory_card_load_state() or mc_load
-		if mc_load == 1 then
-			helper_9dafbc83(vm.f32(1832.4), vm.f32(-5.2), vm.f32(-406.6), vm.f32(-1.16))
+		veniccio.update_map_state()
+		memory_card_load_state = event.take_memory_card_load_state() or memory_card_load_state
+		if memory_card_load_state == 1 then
+			character.place_standing_and_reset_cloth(vm.f32(1832.4), vm.f32(-5.2), vm.f32(-406.6), vm.f32(-1.16))
 			event.reset_follow_camera(1, 0.0, 10.0)
 		else
-			old_map_no = event.get_previous_map() or old_map_no
-			var2 = event.get_map_type(old_map_no) or var2
-			print("old_map = ", old_map_no, "\n")
-			print("old_map_type = ", var2, "\n")
-			if var2 ~= -1 then
-				if var2 == 7 or var2 == 8 or old_map_no == 84 then
-					at = 1
-					helper_2348941a()
+			previous_map_number = event.get_previous_map() or previous_map_number
+			old_map_type = event.get_map_type(previous_map_number) or old_map_type
+			print("old_map = ", previous_map_number, "\n")
+			print("old_map_type = ", old_map_type, "\n")
+			if old_map_type ~= -1 then
+				if old_map_type == 7 or old_map_type == 8 or previous_map_number == 84 then
+					resume_step = 1
+					veniccio.run_in_entrance_a()
 				else
-					var3 = 0
-					if old_map_no == 82 then
-						helper_9dafbc83(-140.0, 165.0, 1865.0, vm.f32(2.28))
+					entry_handled = 0
+					if previous_map_number == 82 then
+						character.place_standing_and_reset_cloth(-140.0, 165.0, 1865.0, vm.f32(2.28))
 						event.reset_follow_camera(1, 0.0, 10.0)
 						event.fade_in_screen(30)
-						var3 = 1
+						entry_handled = 1
 					end
-					if old_map_no == 75 then
-						at = 2
-						helper_379e93c0()
-						var3 = 1
+					if previous_map_number == 75 then
+						resume_step = 2
+						veniccio.run_in_entrance_b()
+						entry_handled = 1
 					end
-					old_sub_map_no = event.get_previous_submap() or old_sub_map_no
-					var5 = event.get_map_type(old_sub_map_no) or var5
-					if var3 == 0 and not (old_map_no == 2 and var5 == 2) then
+					previous_submap_number = event.get_previous_submap() or previous_submap_number
+					old_sub_map_type = event.get_map_type(previous_submap_number) or old_sub_map_type
+					if entry_handled == 0 and not (previous_map_number == 2 and old_sub_map_type == 2) then
 						flag = event.get_save_flag(402) or flag
 						flag_2 = event.get_save_flag(360) or flag_2
 						if flag == 0 and flag_2 == 1 then
-							at = 3
-							helper_683d6a71()
+							resume_step = 3
+							veniccio.play_scene_e402()
 						else
-							at = 4
-							helper_915f68a8()
+							resume_step = 4
+							veniccio.run_in_entrance_c()
 						end
 					end
 				end
 			else
 				print("------  <START EVENT> OLD MAP ERR   ------\n")
-				get_old_interior_map_no = event.get_previous_interior_map() or get_old_interior_map_no
-				if 0 <= get_old_interior_map_no then
+				previous_interior_map_number = event.get_previous_interior_map() or previous_interior_map_number
+				if 0 <= previous_interior_map_number then
 				else
-					at = 5
-					helper_915f68a8()
+					resume_step = 5
+					veniccio.run_in_entrance_c()
 				end
 			end
 		end
-		at = 6
-		helper_5bdac642(1)
+		resume_step = 6
+		veniccio.show_default_hint_message(1)
 		return
 	end, function(received: { any })
-		if at <= 6 then
-			if at <= 1 then
-				var3 = 0
-				helper_43f02c95(-140.0, 165.0, 1865.0, vm.f32(2.28))
-				var3 = 1
-				helper_0855dba8()
+		if resume_step <= 6 then
+			if resume_step <= 1 then
+				entry_handled = 0
+				cutscene.ignore_coordinates(-140.0, 165.0, 1865.0, vm.f32(2.28))
+				entry_handled = 1
+				veniccio.run_unused_look_at_loop()
 			end
-			if at <= 2 then
-				var3 = 1
-				at = 3
-				helper_683d6a71()
+			if resume_step <= 2 then
+				entry_handled = 1
+				resume_step = 3
+				veniccio.play_scene_e402()
 				return vm.continue_with(function()
-					at = 6
-					helper_5bdac642(1)
+					resume_step = 6
+					veniccio.show_default_hint_message(1)
 					return
 				end)
 			end
-			if at <= 3 then
-				helper_b2a07125()
+			if resume_step <= 3 then
+				veniccio.run_unused_look_at_loop_short()
 			end
-			if at <= 4 then
+			if resume_step <= 4 then
 				print("------  <START EVENT> OLD MAP ERR   ------\n")
-				helper_b2a07125()
+				veniccio.run_unused_look_at_loop_short()
 			end
-			if at <= 5 then
-				helper_ebc222ab(1)
+			if resume_step <= 5 then
+				message.clear_window_option(1)
 			end
 			return 0
 		end
@@ -177,62 +165,63 @@ function script.default_event()
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_915f68a8
+script.key_open = veniccio.run_in_entrance_c
 
---- Event 201, which map data, a script or the engine runs by number.
-function script.event_201()
+--- Shows the blocked path hint or lets the player choose a dungeon floor and enter it.
+function script.choose_dungeon_floor()
 	local flag: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
+	local dungeon_stage: s32 = 0
+	local selected_floor: s32 = 0
 	local flag_2: s32 = 0
 	local flag_3: s32 = 0
-	local var7: s32 = 0
+	local floor_info_value: s32 = 0
 	local flag_4: s32 = 0
 	local flag_5: s32 = 0
 	flag = event.get_save_flag(404) or flag
 	if flag == 0 then
-		helper_1aab4()
-	elseif helper_0befff3d() ~= 0 then
+		walk_ahead_and_hint_at_cave()
+	elseif veniccio.confirm_leave_area_64() ~= 0 then
 		event.set_dungeon_stage_id(3)
 		event.open_event_menu(3, 3)
 		vm.wait(3)
 		do
 			local _, out2, out3, _ = event.get_menu_results_4()
-			var2 = out2 or var2
-			var3 = out3 or var3
+			dungeon_stage = out2 or dungeon_stage
+			selected_floor = out3 or selected_floor
 		end
-		if var3 == 0 then
-			helper_2348941a()
+		if selected_floor == 0 then
+			veniccio.run_in_entrance_a()
 			return
 		end
-		if var3 == 20 then
+		if selected_floor == 20 then
 			flag_2 = event.get_save_flag(438) or flag_2
 			flag_3 = event.get_save_flag(444) or flag_3
 			if flag_2 == 1 and flag_3 == 0 then
-				event.go_to_dungeon(3, var3, 1010)
+				event.go_to_dungeon(3, selected_floor, 1010)
 			else
-				var2 = 3
-				var3 = 20
-				var7 = event.get_dungeon_floor_info(var2, var3, 7) or var7
-				var7 = vm.i32(var7 + 1)
-				event.set_dungeon_floor_info(var2, var3, 7, var7)
+				dungeon_stage = 3
+				selected_floor = 20
+				floor_info_value = event.get_dungeon_floor_info(dungeon_stage, selected_floor, 7) or floor_info_value
+				floor_info_value = vm.i32(floor_info_value + 1)
+				event.set_dungeon_floor_info(dungeon_stage, selected_floor, 7, floor_info_value)
 				event.jump_to_map_3(-1, "d04b01", 100)
 			end
 		else
 			flag_4 = event.get_save_flag(406) or flag_4
 			flag_5 = event.get_save_flag(424) or flag_5
-			if var3 == 2 and flag_4 == 0 or var3 == 17 and flag_5 == 0 or var3 == 19 then
+			if selected_floor == 2 and flag_4 == 0 or selected_floor == 17 and flag_5 == 0 or selected_floor == 19 then
 				event.skip_next_music_load()
 			end
-			event.go_to_dungeon(3, var3, 1010)
+			event.go_to_dungeon(3, selected_floor, 1010)
 		end
 	end
 end
+script[201] = script.choose_dungeon_floor
 
---- Event 202, which map data, a script or the engine runs by number.
-function script.event_202()
+--- Asks to leave and jumps to the s27 map when confirmed.
+function script.exit_to_s27()
 	local flag: s32 = 0
-	if helper_f20e2c61() ~= 0 then
+	if veniccio.confirm_leave_area_75() ~= 0 then
 		flag = event.get_save_flag(404) or flag
 		if flag == 0 then
 			event.skip_next_music_load()
@@ -240,38 +229,42 @@ function script.event_202()
 		event.jump_to_map_2(-1, "s27")
 	end
 end
+script[202] = script.exit_to_s27
 
---- Event 203, which map data, a script or the engine runs by number.
-function script.event_203()
-	if helper_ca212701() ~= 0 then
+--- Asks to leave and jumps to the s09 map when confirmed.
+function script.exit_to_s09()
+	if veniccio.confirm_leave_area_83() ~= 0 then
 		event.jump_to_map_2(-1, "s09")
 	end
 end
+script[203] = script.exit_to_s09
 
---- Event 300, which map data, a script or the engine runs by number.
-function script.event_300()
-	helper_b2c84d73(vm.f32(-136.7), 165.0, vm.f32(1866.8), 0.0)
+--- Plays the red time gate effect and jumps to the f03 map.
+function script.use_time_gate()
+	time_gate.play_red_time_gate(vm.f32(-136.7), 165.0, vm.f32(1866.8), 0.0)
 	event.jump_to_map_2(-1, "f03")
 	vm.wait(2)
 end
+script[300] = script.use_time_gate
 
---- The event run when the edit analysis found changes after a house door step or a Georama mode change.
+--- Shows the default hint message after a georama change.
 function script.edit_analyze_changed()
-	helper_5bdac642(0)
+	veniccio.show_default_hint_message(0)
 end
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_f57795f8
+script[400] = menu.open_with_fade
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_3e566142()
-	helper_b794551c()
+--- Updates the map state and plays scene e404.
+function script.play_scene_e404()
+	veniccio.update_map_state()
+	veniccio.play_scene_e404()
 end
+script[500] = script.play_scene_e404
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	helper_3e566142()
+--- Places the player at the dungeon exit and fades in.
+function script.enter_from_dungeon()
+	veniccio.update_map_state()
 	event.initialize_event()
 	vm.wait(1)
 	event.set_character_position(0, 1425.7, 0.0, 1034.8)
@@ -282,11 +275,12 @@ function script.event_510()
 	event.reset_follow_camera(1, 3.14, 10.0)
 	event.fade_in_screen(30)
 end
+script[510] = script.enter_from_dungeon
 
---- Event 520, which map data, a script or the engine runs by number.
-function script.event_520()
-	local var0: s32 = 0
-	helper_3e566142()
+--- Places the player at the time gate and explains the georama requirement when it is unmet.
+function script.enter_from_time_gate()
+	local is_condition_met: s32 = 0
+	veniccio.update_map_state()
 	event.initialize_event()
 	vm.wait(1)
 	event.set_character_position(0, -140.0, 165.0, 1800.0)
@@ -296,21 +290,23 @@ function script.event_520()
 	event.reset_character_cloth_and_hair(0)
 	event.reset_follow_camera(1, 3.14, 10.0)
 	event.fade_in_screen(30)
-	var0 = helper_6be25ed2()
-	if var0 == 0 then
+	is_condition_met = georama.is_analysis_flag_305_set()
+	if is_condition_met == 0 then
 		event.apply_message_window_preset(0, 4)
 		event.set_message_window_mode(0, 4)
 		event.open_message_window_2(0, "[(!)]Soddisfa i requisiti Diorama e attiva il\n   laboratorio Centrale del Lab-lunatica.")
-		show_message(0, -1, 8, 0, 0)
+		message.show(0, -1, 8, 0, 0)
 		event.apply_message_window_preset(0, 0)
 	end
-	helper_5bdac642(1)
+	veniccio.show_default_hint_message(1)
 end
+script[520] = script.enter_from_time_gate
 
---- Event 14020, which map data, a script or the engine runs by number.
-function script.event_14020()
-	helper_3e566142()
-	helper_683d6a71()
+--- Updates the map state and plays scene e402.
+function script.play_scene_e402()
+	veniccio.update_map_state()
+	veniccio.play_scene_e402()
 end
+script[14020] = script.play_scene_e402
 
 return script

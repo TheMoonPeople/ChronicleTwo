@@ -1,12 +1,12 @@
 --!strict
--- event/e200/e209/e209.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event 209 scene script that lists camera and character placements for the numbered scenes.
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and has nothing to set up.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Lists the camera and character placements for scenes 700 to 3200.
 function script.default_event()
 	event.get_buttons_pressed(700)
 	event.get_buttons_held(47.85, 34.92, -87.81)

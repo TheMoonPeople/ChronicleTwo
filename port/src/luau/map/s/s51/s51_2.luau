@@ -1,25 +1,25 @@
 --!strict
--- map/s/s51/s51_2.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Runs the Raybrandt castle soldier chase and the time gate scene that leads to the Georama.
 
 local vm = require("@lib/vm")
-local helper_0660a773 = require("@lib/event/helper_0660a773")
-local helper_2a1e9b48 = require("@lib/event/helper_2a1e9b48")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_bce61202 = require("@lib/event/helper_bce61202")
-local wait_frames = require("@lib/event/wait_frames")
+local dungeon = require("@lib/event/dungeon")
+local message = require("@lib/event/message")
+local raybrandt_castle = require("@lib/event/raybrandt_castle")
+local wait = require("@lib/event/wait")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the engine runs it in place of its default.
 function script.key_open() end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_bce61202()
+--- Plays the soldier chase scene, places the soldiers and shows the battle controls.
+function script.cutscene_soldier_chase()
+	raybrandt_castle.play_soldier_chase_scene()
 	event.load_dungeon_monster(523, 1)
 	event.place_dungeon_monster(523, -382.5, -0.2, 120.2, 0.0, 1.61, 0.0)
 	event.place_dungeon_monster(523, -428.0, -0.2, 202.7, 0.0, 1.71, 0.0)
@@ -31,23 +31,24 @@ function script.event_500()
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
 	event.open_message_window_2(0, "Viser : (X)\nParer : [r1]\nAttaquer : (O)\nMagie : [l1]+(O)")
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.set_dungeon_pause_flags(1, 0)
 	event.finish_event()
 end
+script[500] = script.cutscene_soldier_chase
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	local at: number = 0
+--- Plays the time gate scene, gives the party its items and goes to the Georama editor.
+function script.cutscene_time_gate()
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.reset_action_character_motion(0)
 		event.fade_out_screen(30)
-		at = 1
-		wait_frames(30)
+		checkpoint = 1
+		wait.frames(30)
 		event.clear_event_battle_monsters(-1)
-		at = 2
-		helper_0660a773()
+		checkpoint = 2
+		raybrandt_castle.play_time_gate_scene()
 		event.give_monica_starting_equipment(1)
 		event.set_playable_character(0)
 		event.set_party_member(0, 1)
@@ -62,14 +63,14 @@ function script.event_510()
 		event.set_save_flag(54, 1)
 		event.skip_next_music_load()
 		event.go_to_georama_edit(19, 151)
-		at = 3
+		checkpoint = 3
 		vm.wait(3)
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_0660a773()
+		if checkpoint <= 3 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				raybrandt_castle.play_time_gate_scene()
 				return vm.continue_with(function()
 					event.give_monica_starting_equipment(1)
 					event.set_playable_character(0)
@@ -85,7 +86,7 @@ function script.event_510()
 					event.set_save_flag(54, 1)
 					event.skip_next_music_load()
 					event.go_to_georama_edit(19, 151)
-					at = 3
+					checkpoint = 3
 					vm.wait(3)
 					return
 				end)
@@ -95,14 +96,16 @@ function script.event_510()
 		return nil
 	end)
 end
+script[510] = script.cutscene_time_gate
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	helper_2a1e9b48(0)
+--- Runs the defeat sequence with a silent message when the party is defeated.
+function script.on_player_defeated()
+	dungeon.run_defeat_sequence_with_message_silent(0)
 end
+script[1200] = script.on_player_defeated
 
---- Event 10500, which map data, a script or the engine runs by number.
-function script.event_10500()
+--- Equips the starting items, switches the main character and starts the soldier chase battle.
+function script.start_soldier_chase_battle()
 	event.add_inventory_item(110)
 	event.add_inventory_item(127)
 	event.add_inventory_item(133)
@@ -112,7 +115,7 @@ function script.event_10500()
 	event.equip_character_item(1, 133)
 	event.equip_character_item(1, 266)
 	event.switch_dungeon_main_character(1)
-	helper_bce61202()
+	raybrandt_castle.play_soldier_chase_scene()
 	event.set_dungeon_pause_flags(16384, 1)
 	event.load_dungeon_monster(523, 1)
 	event.place_dungeon_monster(523, -382.5, -0.2, 120.2, 0.0, 1.61, 0.0)
@@ -123,5 +126,6 @@ function script.event_10500()
 	event.fade_in_screen(20)
 	event.finish_event()
 end
+script[10500] = script.start_soldier_chase_battle
 
 return script

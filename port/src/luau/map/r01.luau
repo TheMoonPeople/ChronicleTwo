@@ -1,15 +1,15 @@
 --!strict
--- map/r01.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the debug map r01 that loads a row of test characters.
 
 local vm = require("@lib/vm")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
+local wait = require("@lib/event/wait")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Loads four test characters and lines them up.
 function script.default_event()
 	event.initialize_event()
 	event.assign_memory_stack(4)
@@ -30,10 +30,10 @@ function script.default_event()
 	event.change_directory("")
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits for a button press.
 function script.key_open()
 	vm.wait(1)
-	helper_c956b4a2(32)
+	wait.until_button_pressed(32)
 end
 
 return script

@@ -1,119 +1,102 @@
 --!strict
--- map/f/f04/f04_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the f04 Gundorada field area, handling its elevators, jump gates and georama analysis event setup.
 
 local vm = require("@lib/vm")
-local close_message = require("@lib/event/close_message")
-local helper_01ecb208 = require("@lib/event/helper_01ecb208")
-local helper_10d6108d = require("@lib/event/helper_10d6108d")
-local helper_257fedcc = require("@lib/event/helper_257fedcc")
-local helper_29585dfe = require("@lib/event/helper_29585dfe")
-local helper_39715509 = require("@lib/event/helper_39715509")
-local helper_43f02c95 = require("@lib/event/helper_43f02c95")
-local helper_60dd4b97 = require("@lib/event/helper_60dd4b97")
-local helper_7cae9347 = require("@lib/event/helper_7cae9347")
-local helper_7d18b8ef = require("@lib/event/helper_7d18b8ef")
-local helper_8c9c4be7 = require("@lib/event/helper_8c9c4be7")
-local helper_9146482d = require("@lib/event/helper_9146482d")
-local helper_981c86d9 = require("@lib/event/helper_981c86d9")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_c0195a7d = require("@lib/event/helper_c0195a7d")
-local helper_c07d0e45 = require("@lib/event/helper_c07d0e45")
-local helper_c790df92 = require("@lib/event/helper_c790df92")
-local helper_d16eef1e = require("@lib/event/helper_d16eef1e")
-local helper_d622cd71 = require("@lib/event/helper_d622cd71")
-local helper_fd37560e = require("@lib/event/helper_fd37560e")
-local helper_ff7b7835 = require("@lib/event/helper_ff7b7835")
-local open_message = require("@lib/event/open_message")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_frames_skipping = require("@lib/event/wait_frames_skipping")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local georama = require("@lib/event/georama")
+local gundorada = require("@lib/event/gundorada")
+local message = require("@lib/event/message")
+local time_gate = require("@lib/event/german/time_gate")
+local wait = require("@lib/event/wait")
+local workshop_villagers = require("@lib/event/german/workshop_villagers")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
-	if helper_c07d0e45() ~= 0 then
+--- Hides the analysis map part when its flag is set and refreshes the analysis character visibility.
+local function hide_analysis_part_and_update_characters()
+	if georama.is_analysis_flag_410_set() ~= 0 then
 		event.attach_object_handle_to_map_part_2(0, "p10_f0401")
 		event.set_object_handle_visible(0, 0)
 	end
-	helper_fd37560e()
+	gundorada.update_analysis_character_visibility()
 end
 
---- Helper function.
-local function helper_2b240()
-	local var0: s32 = 0
-	local value: any = 0
+--- Asks which floor to ride to and returns the chosen floor or -1 when cancelled.
+local function ask_elevator_floor()
+	local current_floor: s32 = 0
+	local selected_floor: any = 0
 	local at: number = 0
 	return vm.guard(function()
-		var0 = event.get_save_counter(14) or var0
+		current_floor = event.get_save_counter(14) or current_floor
 		event.set_message_window_mode(1, 4)
 		event.open_message_window_2(1, "Hier sind Aufzug-Tasten.")
-		open_message(1, -1, 5, 0, 0)
+		message.open(1, -1, 5, 0, 0)
 		event.set_message_window_mode(0, 4)
 		event.set_message_selection_top_line(0, 0)
 		event.set_message_window_option(0, 0, 1)
 		event.set_message_window_option(0, 1, 1)
-		event.set_message_window_option(0, 5, var0, 2)
+		event.set_message_window_option(0, 5, current_floor, 2)
 		event.open_message_window_2(0, "1. Ebene\n2. Ebene\n3. Ebene")
 		at = 1
-		value = helper_bac0e30d(0, -1, 8, 0, 0, 3, var0)
+		selected_floor = message.ask_choice(0, -1, 8, 0, 0, 3, current_floor)
 		event.set_message_window_option(0, 0, 0)
 		event.set_message_window_option(0, 1, 0)
-		event.set_message_window_option(0, 5, var0, -1)
-		close_message(1)
-		if value < 0 or value == var0 then
+		event.set_message_window_option(0, 5, current_floor, -1)
+		message.close(1)
+		if selected_floor < 0 or selected_floor == current_floor then
 			return -1
 		else
-			event.set_save_counter(14, value)
-			return value
+			event.set_save_counter(14, selected_floor)
+			return selected_floor
 		end
 	end, function(received: { any })
 		if at <= 1 then
 			if at == 1 then
-				value = received[1] :: number
+				selected_floor = received[1] :: number
 			end
-			helper_d16eef1e(1)
+			message.close_skipping(1)
 			return -1
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_2c9d8(arg0: s32)
-	local var1: s32 = 0
-	local var2: s32 = 0
-	local var3: any = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: s32 = 0
-	var1 = helper_c07d0e45()
+--- Offers the jump gate destinations, plays the warp effect and moves the player to the chosen one.
+local function use_jump_gate(current_gate: s32)
+	local has_bridge_destination: s32 = 0
+	local destination_count: s32 = 0
+	local choice: any = 0
+	local position_x: f32 = 0
+	local position_y: f32 = 0
+	local position_z: f32 = 0
+	local sound_id: s32 = 0
+	has_bridge_destination = georama.is_analysis_flag_410_set()
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_message_window_mode(0, 4)
 	event.set_message_selection_top_line(0, 1)
 	event.set_message_window_option(0, 0, 1)
 	event.set_message_window_option(0, 1, 1)
-	if var1 ~= 0 then
+	if has_bridge_destination ~= 0 then
 		event.open_message_window_2(
 			0,
 			"Sprungtor-Ziel w[UNI00e4]hlen:\nSprungtor -- Norden\nSprungtor -- Osten\nSprungtor -- Westen\nVor dem Zeit-Tor\nPaznos (Br[UNI00fc]cke)"
 		)
-		var2 = 5
+		destination_count = 5
 	else
 		event.open_message_window_2(
 			0,
 			"Sprungtor-Ziel w[UNI00e4]hlen:\nSprungtor -- Norden\nSprungtor -- Osten\nSprungtor -- Westen\nVor dem Zeit-Tor"
 		)
-		var2 = 4
+		destination_count = 4
 	end
-	var3 = helper_bac0e30d(0, -1, 8, 0, 0, var2, vm.i32(arg0 + 1))
+	choice = message.ask_choice(0, -1, 8, 0, 0, destination_count, vm.i32(current_gate + 1))
 	event.set_message_selection_top_line(0, 0)
 	event.set_message_window_option(0, 0, 0)
 	event.set_message_window_option(0, 1, 0)
-	if var3 == -1 then
+	if choice == -1 then
 		return
 	end
-	if vm.wrap(var3 - 1) == arg0 then
+	if vm.wrap(choice - 1) == current_gate then
 		return
 	end
 	event.assign_memory_stack(5)
@@ -124,39 +107,39 @@ local function helper_2c9d8(arg0: s32)
 	event.create_effect("サンワープ２")
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var4 = out1 or var4
-		var5 = out2 or var5
-		var6 = out3 or var6
+		position_x = out1 or position_x
+		position_y = out2 or position_y
+		position_z = out3 or position_z
 	end
-	event.set_effect_first_vector(var4, var5, var6)
-	var7 = event.get_sound_id(2) or var7
-	event.play_sound_effect(var7, 120)
-	wait_frames(15)
+	event.set_effect_first_vector(position_x, position_y, position_z)
+	sound_id = event.get_sound_id(2) or sound_id
+	event.play_sound_effect(sound_id, 120)
+	wait.frames(15)
 	event.set_character_visible(0, 0, 1, 0.05)
 	event.set_character_visible(1, 0, 1, 0.05)
 	event.set_character_visible(2, 0, 1, 0.05)
 	event.set_character_visible(3, 0, 1, 0.05)
-	wait_frames(30)
+	wait.frames(30)
 	event.fade_out_screen(15)
-	wait_frames(15)
+	wait.frames(15)
 	event.clear_effect_manager()
 	event.set_character_visible(0, 1)
 	event.set_character_visible(1, 1)
 	event.set_character_visible(2, 1)
 	event.set_character_visible(3, 1)
-	if vm.wrap(var3 - 1) == 1 then
-		helper_9dafbc83(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
+	if vm.wrap(choice - 1) == 1 then
+		character.place_standing_and_reset_cloth(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
 	end
-	if vm.wrap(var3 - 1) == 2 then
-		helper_9dafbc83(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
+	if vm.wrap(choice - 1) == 2 then
+		character.place_standing_and_reset_cloth(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
 	end
-	if vm.wrap(var3 - 1) == 3 then
-		helper_9dafbc83(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
+	if vm.wrap(choice - 1) == 3 then
+		character.place_standing_and_reset_cloth(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
 	end
-	if vm.wrap(var3 - 1) == 0 then
-		helper_9dafbc83(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
+	if vm.wrap(choice - 1) == 0 then
+		character.place_standing_and_reset_cloth(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
 	end
-	if vm.wrap(var3 - 1) == 4 then
+	if vm.wrap(choice - 1) == 4 then
 		event.jump_to_map_2(-1, "s30")
 		vm.wait(5)
 		return
@@ -165,19 +148,19 @@ local function helper_2c9d8(arg0: s32)
 	event.fade_in_screen(15)
 end
 
---- Helper function.
-local function helper_2c284()
-	local var0: any = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
+--- Asks to move to Paznos Bridge and, when accepted, plays the warp effect and jumps to map s30.
+local function ask_move_to_paznos_bridge()
+	local choice: any = 0
+	local position_x: f32 = 0
+	local position_y: f32 = 0
+	local position_z: f32 = 0
+	local sound_id: s32 = 0
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_message_window_mode(0, 5)
 	event.open_message_window_2(0, "Zu Paznos (Br[UNI00fc]cke) gehen?")
-	var0 = helper_bac0e30d(0, -1, 8, 256, 208, 2, 1)
-	if var0 ~= 0 then
+	choice = message.ask_choice(0, -1, 8, 256, 208, 2, 1)
+	if choice ~= 0 then
 		return
 	end
 	event.assign_memory_stack(5)
@@ -188,21 +171,21 @@ local function helper_2c284()
 	event.create_effect("サンワープ２")
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var1 = out1 or var1
-		var2 = out2 or var2
-		var3 = out3 or var3
+		position_x = out1 or position_x
+		position_y = out2 or position_y
+		position_z = out3 or position_z
 	end
-	event.set_effect_first_vector(var1, var2, var3)
-	var4 = event.get_sound_id(2) or var4
-	event.play_sound_effect(var4, 120)
-	wait_frames(15)
+	event.set_effect_first_vector(position_x, position_y, position_z)
+	sound_id = event.get_sound_id(2) or sound_id
+	event.play_sound_effect(sound_id, 120)
+	wait.frames(15)
 	event.set_character_visible(0, 0, 1, 0.05)
 	event.set_character_visible(1, 0, 1, 0.05)
 	event.set_character_visible(2, 0, 1, 0.05)
 	event.set_character_visible(3, 0, 1, 0.05)
-	wait_frames(30)
+	wait.frames(30)
 	event.fade_out_screen(15)
-	wait_frames(15)
+	wait.frames(15)
 	event.clear_effect_manager()
 	event.set_character_visible(0, 1)
 	event.set_character_visible(1, 1)
@@ -214,146 +197,147 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing when the script loads.
 function script.setup() end
 
-script.event_99 = event_99
+script.hide_analysis_part_and_update_characters = hide_analysis_part_and_update_characters
+script[99] = script.hide_analysis_part_and_update_characters
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Runs the pending Gundorada scenes on entry and places the player according to the map they came from.
 function script.default_event()
-	local old_map_no: s32 = 0
-	local var1: s32 = 0
+	local previous_map_number: s32 = 0
+	local return_gate_index: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
-		old_map_no = event.get_previous_map() or old_map_no
+		previous_map_number = event.get_previous_map() or previous_map_number
 		event.fade_in_screen(15)
-		if old_map_no == 3 then
+		if previous_map_number == 3 then
 			event.set_save_counter(14, 0)
 		end
-		event_99()
-		helper_9146482d()
-		if helper_d622cd71() ~= 0 then
+		hide_analysis_part_and_update_characters()
+		gundorada.align_lift_parts_to_floor()
+		if georama.can_start_event_548() ~= 0 then
 			at = 1
-			helper_8c9c4be7()
+			gundorada.play_event_548_scene()
 		end
-		if helper_10d6108d() ~= 0 then
+		if georama.can_start_event_552() ~= 0 then
 			at = 2
-			helper_01ecb208()
+			gundorada.play_event_552_scene()
 		end
-		if helper_981c86d9() ~= 0 then
+		if georama.can_start_event_556() ~= 0 then
 			at = 3
-			helper_7cae9347()
+			gundorada.play_event_556_scene()
 		end
-		if old_map_no == 3 then
-			helper_9dafbc83(0.0, 0.0, 0.0, 0.0)
+		if previous_map_number == 3 then
+			character.place_standing_and_reset_cloth(0.0, 0.0, 0.0, 0.0)
 		end
-		if old_map_no == 105 then
-			var1 = event.get_save_counter(18) or var1
+		if previous_map_number == 105 then
+			return_gate_index = event.get_save_counter(18) or return_gate_index
 			event.set_save_counter(14, 0)
-			helper_9146482d()
-			if var1 == 1 then
-				helper_9dafbc83(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
+			gundorada.align_lift_parts_to_floor()
+			if return_gate_index == 1 then
+				character.place_standing_and_reset_cloth(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
 			end
-			if var1 == 2 then
-				helper_9dafbc83(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
+			if return_gate_index == 2 then
+				character.place_standing_and_reset_cloth(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
 			end
-			if var1 == 3 then
-				helper_9dafbc83(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
+			if return_gate_index == 3 then
+				character.place_standing_and_reset_cloth(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
 			end
-			if var1 == 0 then
-				helper_9dafbc83(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
+			if return_gate_index == 0 then
+				character.place_standing_and_reset_cloth(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
 			end
 		end
-		if old_map_no == 107 then
+		if previous_map_number == 107 then
 			event.set_save_counter(14, 2)
-			helper_9146482d()
-			helper_9dafbc83(0.0, 2460.0, 6000.0, vm.f32(3.14))
+			gundorada.align_lift_parts_to_floor()
+			character.place_standing_and_reset_cloth(0.0, 2460.0, 6000.0, vm.f32(3.14))
 		end
 		event.reset_follow_camera(1, 0.0, 10.0)
 		return
 	end, function(received: { any })
 		if at <= 3 then
 			if at <= 1 then
-				local _ = helper_257fedcc()
+				local _ = georama.can_start_placeholder_event_a()
 				at = 2
-				helper_01ecb208()
+				gundorada.play_event_552_scene()
 				return vm.continue_with(function()
-					if helper_981c86d9() ~= 0 then
+					if georama.can_start_event_556() ~= 0 then
 						at = 3
-						helper_7cae9347()
+						gundorada.play_event_556_scene()
 					end
-					if old_map_no == 3 then
-						helper_9dafbc83(0.0, 0.0, 0.0, 0.0)
+					if previous_map_number == 3 then
+						character.place_standing_and_reset_cloth(0.0, 0.0, 0.0, 0.0)
 					end
-					if old_map_no == 105 then
-						var1 = event.get_save_counter(18) or var1
+					if previous_map_number == 105 then
+						return_gate_index = event.get_save_counter(18) or return_gate_index
 						event.set_save_counter(14, 0)
-						helper_9146482d()
-						if var1 == 1 then
-							helper_9dafbc83(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
+						gundorada.align_lift_parts_to_floor()
+						if return_gate_index == 1 then
+							character.place_standing_and_reset_cloth(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
 						end
-						if var1 == 2 then
-							helper_9dafbc83(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
+						if return_gate_index == 2 then
+							character.place_standing_and_reset_cloth(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
 						end
-						if var1 == 3 then
-							helper_9dafbc83(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
+						if return_gate_index == 3 then
+							character.place_standing_and_reset_cloth(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
 						end
-						if var1 == 0 then
-							helper_9dafbc83(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
+						if return_gate_index == 0 then
+							character.place_standing_and_reset_cloth(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
 						end
 					end
-					if old_map_no == 107 then
+					if previous_map_number == 107 then
 						event.set_save_counter(14, 2)
-						helper_9146482d()
-						helper_9dafbc83(0.0, 2460.0, 6000.0, vm.f32(3.14))
+						gundorada.align_lift_parts_to_floor()
+						character.place_standing_and_reset_cloth(0.0, 2460.0, 6000.0, vm.f32(3.14))
 					end
 					event.reset_follow_camera(1, 0.0, 10.0)
 					return
 				end)
 			end
 			if at <= 2 then
-				local _ = helper_257fedcc()
+				local _ = georama.can_start_placeholder_event_a()
 				at = 3
-				helper_7cae9347()
+				gundorada.play_event_556_scene()
 				return vm.continue_with(function()
-					if old_map_no == 3 then
-						helper_9dafbc83(0.0, 0.0, 0.0, 0.0)
+					if previous_map_number == 3 then
+						character.place_standing_and_reset_cloth(0.0, 0.0, 0.0, 0.0)
 					end
-					if old_map_no == 105 then
-						var1 = event.get_save_counter(18) or var1
+					if previous_map_number == 105 then
+						return_gate_index = event.get_save_counter(18) or return_gate_index
 						event.set_save_counter(14, 0)
-						helper_9146482d()
-						if var1 == 1 then
-							helper_9dafbc83(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
+						gundorada.align_lift_parts_to_floor()
+						if return_gate_index == 1 then
+							character.place_standing_and_reset_cloth(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
 						end
-						if var1 == 2 then
-							helper_9dafbc83(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
+						if return_gate_index == 2 then
+							character.place_standing_and_reset_cloth(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
 						end
-						if var1 == 3 then
-							helper_9dafbc83(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
+						if return_gate_index == 3 then
+							character.place_standing_and_reset_cloth(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
 						end
-						if var1 == 0 then
-							helper_9dafbc83(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
+						if return_gate_index == 0 then
+							character.place_standing_and_reset_cloth(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
 						end
 					end
-					if old_map_no == 107 then
+					if previous_map_number == 107 then
 						event.set_save_counter(14, 2)
-						helper_9146482d()
-						helper_9dafbc83(0.0, 2460.0, 6000.0, vm.f32(3.14))
+						gundorada.align_lift_parts_to_floor()
+						character.place_standing_and_reset_cloth(0.0, 2460.0, 6000.0, vm.f32(3.14))
 					end
 					event.reset_follow_camera(1, 0.0, 10.0)
 					return
 				end)
 			end
-			local _ = helper_257fedcc()
-			helper_43f02c95(0.0, 0.0, 0.0, 0.0)
-			helper_c790df92()
-			helper_43f02c95(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
-			helper_43f02c95(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
-			helper_43f02c95(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
-			helper_43f02c95(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
-			helper_c790df92()
-			helper_43f02c95(0.0, 2460.0, 6000.0, vm.f32(3.14))
+			local _ = georama.can_start_placeholder_event_a()
+			cutscene.ignore_coordinates(0.0, 0.0, 0.0, 0.0)
+			gundorada.do_nothing()
+			cutscene.ignore_coordinates(vm.f32(-2079.4), 6.0, vm.f32(5052.4), vm.f32(2.16))
+			cutscene.ignore_coordinates(vm.f32(2011.1), 6.0, 5158.5, vm.f32(-2.23))
+			cutscene.ignore_coordinates(286.5, 6.0, vm.f32(-22.3), vm.f32(-0.16))
+			cutscene.ignore_coordinates(vm.f32(-228.6), 6.0, vm.f32(5828.1), vm.f32(-0.02))
+			gundorada.do_nothing()
+			cutscene.ignore_coordinates(0.0, 2460.0, 6000.0, vm.f32(3.14))
 			return 0
 		end
 		return nil
@@ -361,13 +345,13 @@ function script.default_event()
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_8c9c4be7
+script.key_open = gundorada.play_event_548_scene
 
 --- Event 151, which map data, a script or the engine runs by number.
-script.event_151 = helper_39715509
+script[151] = gundorada.play_event_508_scene
 
---- Event 152, which map data, a script or the engine runs by number.
-function script.event_152()
+--- Resets the georama analysis flags and save flags and plays scene 548.
+function script.reset_analysis_and_play_scene_548()
 	event.set_georama_analyze_flag(3, 3, 0)
 	event.set_georama_analyze_flag(3, 4, 0)
 	event.set_georama_analyze_flag(3, 5, 0)
@@ -381,51 +365,53 @@ function script.event_152()
 	event.set_save_flag(548, 0)
 	event.set_save_flag(552, 1)
 	event.set_save_flag(556, 1)
-	helper_8c9c4be7()
+	gundorada.play_event_548_scene()
 end
+script[152] = script.reset_analysis_and_play_scene_548
 
---- Event 300, which map data, a script or the engine runs by number.
-function script.event_300()
-	helper_60dd4b97(0.0, 0.0, 0.0, vm.f32(6.2831855))
+--- Warps through the time gate and jumps to map g04.
+function script.enter_time_gate()
+	time_gate.warp_through_gate(0.0, 0.0, 0.0, vm.f32(6.2831855))
 	event.jump_to_map_2(-1, "g04")
 	vm.wait(2)
 end
+script[300] = script.enter_time_gate
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
-	local var0: s32 = 0
-	local var1: any = 0
+--- Asks for an elevator floor and places the player on that floor of the first elevator.
+function script.ride_elevator_a()
+	local sound_id: s32 = 0
+	local floor: any = 0
 	local at: number = 0
-	local t0: s32 = 0
+	local played_bomb_gift_scene: s32 = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
-		var0 = event.get_sound_id(2) or var0
+		sound_id = event.get_sound_id(2) or sound_id
 		at = 1
-		var1 = helper_2b240()
-		if var1 >= 0 then
-			event.play_sound_effect(var0, 70)
+		floor = ask_elevator_floor()
+		if floor >= 0 then
+			event.play_sound_effect(sound_id, 70)
 			event.fade_out_screen(10)
 			at = 2
-			wait_frames(10)
-			if var1 == 0 then
-				helper_9dafbc83(vm.f32(684.8), 0.0, vm.f32(6024.3), vm.f32(-2.87))
+			wait.frames(10)
+			if floor == 0 then
+				character.place_standing_and_reset_cloth(vm.f32(684.8), 0.0, vm.f32(6024.3), vm.f32(-2.87))
 			end
-			if var1 == 1 then
-				helper_9dafbc83(vm.f32(684.8), 1160.0, vm.f32(6024.3), vm.f32(-2.87))
+			if floor == 1 then
+				character.place_standing_and_reset_cloth(vm.f32(684.8), 1160.0, vm.f32(6024.3), vm.f32(-2.87))
 				at = 3
-				if helper_c0195a7d() ~= 0 then
-					helper_9146482d()
+				if gundorada.play_bomb_gift_scene_if_pending() ~= 0 then
+					gundorada.align_lift_parts_to_floor()
 					event.reset_follow_camera(1, 0.0, 10.0)
 					event.fade_in_screen(10)
 					return
 				end
 			end
-			if var1 == 2 then
-				helper_9dafbc83(vm.f32(684.8), 2320.0, vm.f32(6024.3), vm.f32(-2.87))
+			if floor == 2 then
+				character.place_standing_and_reset_cloth(vm.f32(684.8), 2320.0, vm.f32(6024.3), vm.f32(-2.87))
 			end
-			event.play_sound_effect(var0, 71)
-			helper_9146482d()
+			event.play_sound_effect(sound_id, 71)
+			gundorada.align_lift_parts_to_floor()
 			event.reset_follow_camera(1, 0.0, 10.0)
 			event.fade_in_screen(10)
 		end
@@ -433,78 +419,79 @@ function script.event_550()
 	end, function(received: { any })
 		if at <= 3 then
 			if at == 1 then
-				var1 = received[1] :: number
+				floor = received[1] :: number
 			end
 			if at == 3 then
-				t0 = received[1] :: number
+				played_bomb_gift_scene = received[1] :: number
 			end
 			if at <= 1 then
-				wait_frames_skipping(10)
+				wait.frames_skipping(10)
 			end
 			if at <= 2 then
-				helper_43f02c95(vm.f32(684.8), 0.0, vm.f32(6024.3), vm.f32(-2.87))
-				helper_43f02c95(vm.f32(684.8), 1160.0, vm.f32(6024.3), vm.f32(-2.87))
+				cutscene.ignore_coordinates(vm.f32(684.8), 0.0, vm.f32(6024.3), vm.f32(-2.87))
+				cutscene.ignore_coordinates(vm.f32(684.8), 1160.0, vm.f32(6024.3), vm.f32(-2.87))
 				at = 3
-				t0 = helper_c0195a7d()
+				played_bomb_gift_scene = gundorada.play_bomb_gift_scene_if_pending()
 				return vm.continue_with(function()
-					if t0 ~= 0 then
-						helper_9146482d()
+					if played_bomb_gift_scene ~= 0 then
+						gundorada.align_lift_parts_to_floor()
 						event.reset_follow_camera(1, 0.0, 10.0)
 						event.fade_in_screen(10)
 						return
 					end
-					if var1 == 2 then
-						helper_9dafbc83(vm.f32(684.8), 2320.0, vm.f32(6024.3), vm.f32(-2.87))
+					if floor == 2 then
+						character.place_standing_and_reset_cloth(vm.f32(684.8), 2320.0, vm.f32(6024.3), vm.f32(-2.87))
 					end
-					event.play_sound_effect(var0, 71)
-					helper_9146482d()
+					event.play_sound_effect(sound_id, 71)
+					gundorada.align_lift_parts_to_floor()
 					event.reset_follow_camera(1, 0.0, 10.0)
 					event.fade_in_screen(10)
 					return
 				end)
 			end
-			helper_c790df92()
+			gundorada.do_nothing()
 			return 0
 		end
 		return nil
 	end)
 end
+script[550] = script.ride_elevator_a
 
---- Event 551, which map data, a script or the engine runs by number.
-function script.event_551()
-	local var0: s32 = 0
-	local var1: any = 0
+--- Asks for an elevator floor and places the player on that floor of the second elevator.
+function script.ride_elevator_b()
+	local sound_id: s32 = 0
+	local floor: any = 0
 	local at: number = 0
-	local t0: s32 = 0
+	local played_bomb_gift_scene: s32 = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
-		var0 = event.get_sound_id(2) or var0
+		sound_id = event.get_sound_id(2) or sound_id
 		at = 1
-		var1 = helper_2b240()
-		if var1 >= 0 then
-			event.play_sound_effect(var0, 70)
+		floor = ask_elevator_floor()
+		if floor >= 0 then
+			event.play_sound_effect(sound_id, 70)
 			event.fade_out_screen(10)
 			at = 2
-			wait_frames(10)
-			if var1 == 0 then
-				helper_9dafbc83(vm.f32(-2553.7), 0.0, vm.f32(3882.6), vm.f32(1.55))
+			wait.frames(10)
+			if floor == 0 then
+				character.place_standing_and_reset_cloth(vm.f32(-2553.7), 0.0, vm.f32(3882.6), vm.f32(1.55))
 			end
-			if var1 == 1 then
-				helper_9dafbc83(vm.f32(-2553.7), 1160.0, vm.f32(3882.6), vm.f32(1.55))
+			if floor == 1 then
+				character.place_standing_and_reset_cloth(vm.f32(-2553.7), 1160.0, vm.f32(3882.6), vm.f32(1.55))
 				at = 3
-				if helper_c0195a7d() ~= 0 then
-					helper_9146482d()
+				if gundorada.play_bomb_gift_scene_if_pending() ~= 0 then
+					gundorada.align_lift_parts_to_floor()
 					event.reset_follow_camera(1, 0.0, 10.0)
 					event.fade_in_screen(10)
 					return
 				end
 			end
-			if var1 == 2 then
-				helper_9dafbc83(vm.f32(-2553.7), 2320.0, vm.f32(3882.6), vm.f32(1.55))
+			if floor == 2 then
+				character.place_standing_and_reset_cloth(vm.f32(-2553.7), 2320.0, vm.f32(3882.6), vm.f32(1.55))
 			end
-			event.play_sound_effect(var0, 71)
-			helper_9146482d()
+			event.play_sound_effect(sound_id, 71)
+			gundorada.align_lift_parts_to_floor()
 			event.reset_follow_camera(1, 0.0, 10.0)
 			event.fade_in_screen(10)
 		end
@@ -512,116 +499,128 @@ function script.event_551()
 	end, function(received: { any })
 		if at <= 3 then
 			if at == 1 then
-				var1 = received[1] :: number
+				floor = received[1] :: number
 			end
 			if at == 3 then
-				t0 = received[1] :: number
+				played_bomb_gift_scene = received[1] :: number
 			end
 			if at <= 1 then
-				wait_frames_skipping(10)
+				wait.frames_skipping(10)
 			end
 			if at <= 2 then
-				helper_43f02c95(vm.f32(-2553.7), 0.0, vm.f32(3882.6), vm.f32(1.55))
-				helper_43f02c95(vm.f32(-2553.7), 1160.0, vm.f32(3882.6), vm.f32(1.55))
+				cutscene.ignore_coordinates(vm.f32(-2553.7), 0.0, vm.f32(3882.6), vm.f32(1.55))
+				cutscene.ignore_coordinates(vm.f32(-2553.7), 1160.0, vm.f32(3882.6), vm.f32(1.55))
 				at = 3
-				t0 = helper_c0195a7d()
+				played_bomb_gift_scene = gundorada.play_bomb_gift_scene_if_pending()
 				return vm.continue_with(function()
-					if t0 ~= 0 then
-						helper_9146482d()
+					if played_bomb_gift_scene ~= 0 then
+						gundorada.align_lift_parts_to_floor()
 						event.reset_follow_camera(1, 0.0, 10.0)
 						event.fade_in_screen(10)
 						return
 					end
-					if var1 == 2 then
-						helper_9dafbc83(vm.f32(-2553.7), 2320.0, vm.f32(3882.6), vm.f32(1.55))
+					if floor == 2 then
+						character.place_standing_and_reset_cloth(vm.f32(-2553.7), 2320.0, vm.f32(3882.6), vm.f32(1.55))
 					end
-					event.play_sound_effect(var0, 71)
-					helper_9146482d()
+					event.play_sound_effect(sound_id, 71)
+					gundorada.align_lift_parts_to_floor()
 					event.reset_follow_camera(1, 0.0, 10.0)
 					event.fade_in_screen(10)
 					return
 				end)
 			end
-			helper_c790df92()
+			gundorada.do_nothing()
 			return 0
 		end
 		return nil
 	end)
 end
+script[551] = script.ride_elevator_b
 
---- Event 552, which map data, a script or the engine runs by number.
-function script.event_552()
+--- Fades out and jumps to map s39.
+function script.leave_to_s39()
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.fade_out_screen(15)
-	wait_frames(15)
+	wait.frames(15)
 	event.jump_to_map_2(-1, "s39")
 	vm.wait(2)
 end
+script[552] = script.leave_to_s39
 
---- Event 560, which map data, a script or the engine runs by number.
-function script.event_560()
-	helper_2c9d8(1)
+--- Opens the jump gate menu from gate 1.
+function script.use_jump_gate_1()
+	use_jump_gate(1)
 end
+script[560] = script.use_jump_gate_1
 
---- Event 561, which map data, a script or the engine runs by number.
-function script.event_561()
-	helper_2c9d8(3)
+--- Opens the jump gate menu from gate 3.
+function script.use_jump_gate_3()
+	use_jump_gate(3)
 end
+script[561] = script.use_jump_gate_3
 
---- Event 562, which map data, a script or the engine runs by number.
-function script.event_562()
+--- Sets counter 13 to 2 and asks to move to Paznos Bridge.
+function script.use_paznos_gate_2()
 	event.set_save_counter(13, 2)
-	helper_2c284()
+	ask_move_to_paznos_bridge()
 end
+script[562] = script.use_paznos_gate_2
 
---- Event 563, which map data, a script or the engine runs by number.
-function script.event_563()
+--- Sets counter 13 to 3 and asks to move to Paznos Bridge.
+function script.use_paznos_gate_3()
 	event.set_save_counter(13, 3)
-	helper_2c284()
+	ask_move_to_paznos_bridge()
 end
+script[563] = script.use_paznos_gate_3
 
---- Event 564, which map data, a script or the engine runs by number.
-function script.event_564()
+--- Sets counter 13 to 4 and asks to move to Paznos Bridge.
+function script.use_paznos_gate_4()
 	event.set_save_counter(13, 4)
-	helper_2c284()
+	ask_move_to_paznos_bridge()
 end
+script[564] = script.use_paznos_gate_4
 
---- Event 565, which map data, a script or the engine runs by number.
-function script.event_565()
+--- Sets counter 13 to 5 and asks to move to Paznos Bridge.
+function script.use_paznos_gate_5()
 	event.set_save_counter(13, 5)
-	helper_2c284()
+	ask_move_to_paznos_bridge()
 end
+script[565] = script.use_paznos_gate_5
 
---- Event 566, which map data, a script or the engine runs by number.
-function script.event_566()
-	helper_2c9d8(2)
+--- Opens the jump gate menu from gate 2.
+function script.use_jump_gate_2()
+	use_jump_gate(2)
 end
+script[566] = script.use_jump_gate_2
 
---- Event 567, which map data, a script or the engine runs by number.
-function script.event_567()
-	helper_2c9d8(0)
+--- Opens the jump gate menu from gate 0.
+function script.use_jump_gate_0()
+	use_jump_gate(0)
 end
+script[567] = script.use_jump_gate_0
 
---- Event 600, which map data, a script or the engine runs by number.
-function script.event_600()
-	helper_7d18b8ef()
+--- Plays the jet launch scene and jumps to map s30.
+function script.launch_jet_to_s30()
+	gundorada.play_jet_launch_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s30", 600)
 end
+script[600] = script.launch_jet_to_s30
 
---- Event 601, which map data, a script or the engine runs by number.
-function script.event_601()
-	helper_ff7b7835()
+--- Plays the jet flyover scene and jumps to map s55.
+function script.fly_jet_to_s55()
+	gundorada.play_jet_flyover_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s55", 600)
 end
+script[601] = script.fly_jet_to_s55
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_29585dfe
+script[1000] = workshop_villagers.talk_to_villager
 
---- Event 15080, which map data, a script or the engine runs by number.
-function script.event_15080()
+--- Resets the georama analysis flags and jumps to map 102 for event 151.
+function script.reset_analysis_for_scene_508()
 	event.set_georama_analyze_flag(3, 3, 0)
 	event.set_georama_analyze_flag(3, 4, 0)
 	event.set_georama_analyze_flag(3, 5, 0)
@@ -636,19 +635,21 @@ function script.event_15080()
 	event.jump_to_map_3(-1, 102, 151)
 	vm.wait(1)
 end
+script[15080] = script.reset_analysis_for_scene_508
 
---- Event 15220, which map data, a script or the engine runs by number.
-function script.event_15220()
+--- Sets the story flags, clears the party member and warps through the time gate to map g04.
+function script.warp_to_g04_after_flag_change()
 	event.set_save_flag(520, 1)
 	event.set_save_flag(522, 0)
 	event.set_party_member(1, 0)
-	helper_60dd4b97(0.0, 0.0, 0.0, vm.f32(6.2831855))
+	time_gate.warp_through_gate(0.0, 0.0, 0.0, vm.f32(6.2831855))
 	event.jump_to_map_2(-1, "g04")
 	vm.wait(2)
 end
+script[15220] = script.warp_to_g04_after_flag_change
 
---- Event 15480, which map data, a script or the engine runs by number.
-function script.event_15480()
+--- Resets the analysis flags, plays scene 548 and jumps to map 102.
+function script.reset_analysis_and_play_scene_548_then_jump()
 	event.set_georama_analyze_flag(3, 3, 0)
 	event.set_georama_analyze_flag(3, 4, 0)
 	event.set_georama_analyze_flag(3, 5, 0)
@@ -662,13 +663,14 @@ function script.event_15480()
 	event.set_save_flag(548, 0)
 	event.set_save_flag(552, 1)
 	event.set_save_flag(556, 1)
-	helper_8c9c4be7()
+	gundorada.play_event_548_scene()
 	event.jump_to_map_3(-1, 102, 100)
 	vm.wait(2)
 end
+script[15480] = script.reset_analysis_and_play_scene_548_then_jump
 
---- Event 15520, which map data, a script or the engine runs by number.
-function script.event_15520()
+--- Sets the analysis flags for scene 552 and jumps to map 102.
+function script.set_analysis_for_scene_552()
 	event.set_georama_analyze_flag(3, 7, 0)
 	event.set_georama_analyze_flag(3, 8, 0)
 	event.set_georama_analyze_flag(3, 9, 0)
@@ -685,9 +687,10 @@ function script.event_15520()
 	event.jump_to_map_3(-1, 102, 100)
 	vm.wait(1)
 end
+script[15520] = script.set_analysis_for_scene_552
 
---- Event 15560, which map data, a script or the engine runs by number.
-function script.event_15560()
+--- Sets the analysis flags for scene 556 and jumps to map 102.
+function script.set_analysis_for_scene_556()
 	event.set_georama_analyze_flag(3, 0, 1)
 	event.set_georama_analyze_flag(3, 1, 1)
 	event.set_georama_analyze_flag(3, 2, 1)
@@ -705,5 +708,6 @@ function script.event_15560()
 	event.jump_to_map_3(-1, 102, 100)
 	vm.wait(1)
 end
+script[15560] = script.set_analysis_for_scene_556
 
 return script

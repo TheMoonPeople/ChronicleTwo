@@ -1,19 +1,19 @@
 --!strict
--- map/s/s35/s35.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Moon Flower Palace surfacing scenes leading into the dungeon.
 
 local vm = require("@lib/vm")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local wait_objects = require("@lib/event/wait_objects")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_db10()
-	local var0: s32 = 0
+--- Plays the first part of event 612, in which a ring and smoke rise over the palace as the camera follows.
+local function play_e612_ring_cutscene()
+	local sound_bank: s32 = 0
 	vm.section(function()
 		event.set_save_flag(612, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(7811)
-		var0 = event.load_sound_effect_file_2(7811) or var0
+		sound_bank = event.load_sound_effect_file_2(7811) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.get_playable_character()
@@ -71,29 +71,29 @@ local function helper_db10()
 		event.set_object_handle_visible(4, 0)
 		event.fade_in_screen(30)
 		event.shake_camera_sequence(1.0, 2.0, 0.0, -1)
-		event.play_sound_effect(var0, 2)
-		helper_888ab2a3(90)
+		event.play_sound_effect(sound_bank, 2)
+		wait.for_frame_count(90)
 		event.set_object_handle_visible(4, 1)
 		event.set_object_sequence_motion(4, "煙", 6)
-		helper_888ab2a3(90)
+		wait.for_frame_count(90)
 		event.set_object_handle_visible(8, 0)
-		helper_888ab2a3(90)
-		helper_888ab2a3(90)
-		helper_888ab2a3(30)
-		event.play_sound_effect(var0, 3)
+		wait.for_frame_count(90)
+		wait.for_frame_count(90)
+		wait.for_frame_count(30)
+		event.play_sound_effect(sound_bank, 3)
 		event.move_object_sequence_eased(6, 0.0, 500.0, 0.0, 250, 1, 0.7)
 		event.move_object_sequence_eased(6, 0.0, 2500.0, 0.0, 300, 0, 0.7)
 		event.move_object_sequence_eased(5, 0.0, 400.0, 80.0, 250, 1, 0.7)
 		event.move_object_sequence_eased(5, 0.0, 2400.0, 80.0, 300, 0, 0.7)
 		event.move_camera_sequence_eased(19.32, 820.6, 2081.69, 10.34, 650.48, 751.26, 250, 1, 0.7)
 		event.move_camera_sequence_eased(19.15, 1031.57, 2204.36, 9.37, 2011.74, 756.14, 300, 0, 0.7)
-		wait_objects(6)
+		object.wait_until_done(6)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(-375.96, 2538.91, 959.94)
 		event.set_camera_sequence_look_at(-223.29, 2724.85, 329.08)
-		event.stop_sound_effect(var0, 2)
-		helper_888ab2a3(5)
-		event.play_sound_effect(var0, 4)
+		event.stop_sound_effect(sound_bank, 2)
+		wait.for_frame_count(5)
+		event.play_sound_effect(sound_bank, 4)
 		event.set_object_handle_visible(2, 1)
 		event.set_object_sequence_motion(2, "出現", 6)
 		event.set_object_sequence_motion_step(2, 0.1)
@@ -101,23 +101,23 @@ local function helper_db10()
 		event.set_object_sequence_motion_step(2, 0.2)
 		event.queue_object_sequence_next_motion(2, "消える", 6)
 		event.wait_object_sequence_motion_end(2)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_object_handle_visible(7, 1)
-		helper_888ab2a3(90)
-		event.stop_sound_effect(var0, 4)
-		wait_objects(2)
+		wait.for_frame_count(90)
+		event.stop_sound_effect(sound_bank, 4)
+		object.wait_until_done(2)
 		event.set_object_handle_visible(2, 0)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_camera_sequence_position(257.8, 2727.64, 4512.24)
 		event.set_camera_sequence_look_at(248.05, 2708.02, 4303.95)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 2)
-	event.stop_sound_effect(var0, 3)
-	event.stop_sound_effect(var0, 4)
+	event.stop_sound_effect(sound_bank, 2)
+	event.stop_sound_effect(sound_bank, 3)
+	event.stop_sound_effect(sound_bank, 4)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
 	event.skip_next_music_load()
@@ -129,29 +129,29 @@ local function helper_db10()
 	event.set_character_active(0)
 end
 
---- Helper function.
-local function helper_f4a8()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
+--- Plays the second part of event 612, in which a warp effect appears over the surfaced palace and the party is returned to the field.
+local function play_e612_warp_cutscene()
+	local sound_bank: s32 = 0
+	local playable_character: s32 = 0
 	vm.section(function()
 		event.set_save_flag(612, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(7813)
-		var0 = event.load_sound_effect_file_2(7813) or var0
+		sound_bank = event.load_sound_effect_file_2(7813) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		playable_character = event.get_playable_character() or playable_character
 		event.change_directory("event/e600/e612/")
 		event.load_message_file(0, 5, "e612.txt")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e612_mints.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e612_monica.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
@@ -159,7 +159,7 @@ local function helper_f4a8()
 			event.set_object_sequence_object(1, 1)
 		end
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 9)
 			event.load_equipment_model(5, 0, 4, "info", 9)
 			event.load_equipment_model(5, 0, 3, "info", 9)
@@ -228,25 +228,25 @@ local function helper_f4a8()
 		event.set_object_handle_visible(6, 0)
 		event.set_object_handle_visible(3, 0)
 		event.fade_in_screen(30)
-		helper_888ab2a3(60)
-		event.play_sound_effect(var0, 0)
+		wait.for_frame_count(60)
+		event.play_sound_effect(sound_bank, 0)
 		event.set_object_handle_visible(3, 1)
 		event.set_object_sequence_motion(3, "出現", 6)
 		event.queue_object_sequence_next_motion(3, "ループ", 4)
 		event.wait_object_sequence_motion_end(3)
-		wait_objects(3)
-		helper_888ab2a3(60)
+		object.wait_until_done(3)
+		wait.for_frame_count(60)
 		event.start_crossfade(30)
 		event.set_object_handle_visible(4, 0)
-		helper_888ab2a3(60)
-		event.stop_sound_effect(var0, 0)
+		wait.for_frame_count(60)
+		event.stop_sound_effect(sound_bank, 0)
 		event.set_character_visible(12, 0, 1, 0.033333335)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 0)
+	event.stop_sound_effect(sound_bank, 0)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
 	event.skip_next_music_load()
@@ -268,27 +268,30 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_db10()
+--- Plays the ring cutscene and loads d06e01.
+function script.cutscene_ring()
+	play_e612_ring_cutscene()
 	event.load_dungeon_map("d06e01")
 	event.load_event_script("d06e01/d06e01.stb", 506)
 	vm.wait(2)
 end
+script[500] = script.cutscene_ring
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_f4a8()
+--- Plays the warp cutscene and loads d06e01.
+function script.cutscene_warp()
+	play_e612_warp_cutscene()
 	event.load_dungeon_map("d06e01")
 	event.load_event_script("d06e01/d06e01.stb", 508)
 	vm.wait(2)
 end
+script[502] = script.cutscene_warp
 
 return script

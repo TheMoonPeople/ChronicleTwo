@@ -1,40 +1,30 @@
 --!strict
--- map/s/s08/s08.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Locomotive interior script with the crew scene, car doors and the collapse cutscene.
 
 local vm = require("@lib/vm")
-local helper_19b130fb = require("@lib/event/helper_19b130fb")
-local helper_1c04a0eb = require("@lib/event/helper_1c04a0eb")
-local helper_38bce8cf = require("@lib/event/helper_38bce8cf")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_5be5f988 = require("@lib/event/helper_5be5f988")
-local helper_669c752b = require("@lib/event/helper_669c752b")
-local helper_66d374a5 = require("@lib/event/helper_66d374a5")
-local helper_7f754b8f = require("@lib/event/helper_7f754b8f")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8b00b423 = require("@lib/event/helper_8b00b423")
-local helper_8e5b8087 = require("@lib/event/helper_8e5b8087")
-local helper_93cb8168 = require("@lib/event/helper_93cb8168")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_df4094fb = require("@lib/event/helper_df4094fb")
-local helper_ee4287cb = require("@lib/event/helper_ee4287cb")
-local set_window_mode = require("@lib/event/set_window_mode")
-local show_message = require("@lib/event/show_message")
-local wait_camera = require("@lib/event/wait_camera")
+local camera = require("@lib/event/camera")
+local cutscene = require("@lib/event/cutscene")
+local inside_of_locomotive = require("@lib/event/inside_of_locomotive")
+local map = require("@lib/event/map")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local train = require("@lib/event/train")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
+local sound_bank: s32 = 0
 
---- Helper function.
-local function helper_2349c()
-	event.play_sound_effect(global0, 2)
-	event.play_sound_effect(global0, 8)
+--- Plays the locomotive sound effects.
+local function play_locomotive_sounds()
+	event.play_sound_effect(sound_bank, 2)
+	event.play_sound_effect(sound_bank, 8)
 end
 
---- Helper function.
-local function helper_23558()
+--- Loads and places the locomotive crew and starts the locomotive sounds.
+local function place_locomotive_crew()
 	event.initialize_event()
-	global0 = 0
+	sound_bank = 0
 	event.load_map_sounds(2200)
-	global0 = event.load_sound_effect_file_2(2200) or global0
+	sound_bank = event.load_sound_effect_file_2(2200) or sound_bank
 	event.assign_memory_stack(4)
 	event.clear_memory_stack(4)
 	event.load_character(4, "event/e200/e203/e203_starbre.gltf", "info", 9)
@@ -61,18 +51,18 @@ local function helper_23558()
 	event.set_character_position(11, -1.81, 36.1, 72.51)
 	event.set_character_rotation(11, 0.0, -0.48, 0.0)
 	event.set_character_motion(11, "立ち", 4)
-	event.set_object_handle_sound_bank(3, global0)
+	event.set_object_handle_sound_bank(3, sound_bank)
 	event.register_villager(9, 1)
 	event.register_villager(10, 2)
 	event.register_villager(11, 13, 65)
 	event.set_scene_character_number(9, 1)
 	event.set_scene_character_number(10, 2)
 	event.set_scene_character_number(11, 13)
-	helper_2349c()
+	play_locomotive_sounds()
 end
 
---- Helper function.
-local function helper_1fed8()
+--- Loads the party, the locomotive crew, the locomotive part, the picture sprites and the message file for the picture scene.
+local function load_picture_scene_actors()
 	local block: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
@@ -156,91 +146,91 @@ local function helper_1fed8()
 	event.set_scene_status_flags(1, 0, 256, 1)
 end
 
---- Helper function.
-local function helper_1da38(arg0: any)
+--- Fades in on the crew at work and pushes the camera in.
+local function play_picture_scene_opening(sound_bank: any)
 	event.fade_in_screen(30)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_object_sequence_motion(0, "上見立ち", 4)
 	event.reset_object_sequence_dynamic_animation(0)
 	event.set_object_sequence_motion(1, "腰に手", 4)
 	event.set_object_sequence_motion(2, "斜め向き立ち", 4)
 	event.set_object_sequence_motion(3, "石炭", 4)
 	event.move_camera_sequence_eased(41.03, 65.52, -72.49, 1.22, 60.93, 25.12, 60, 0, 1.0)
-	wait_camera()
-	helper_888ab2a3(20)
+	camera.wait_until_done()
+	wait.for_frame_count(20)
 end
 
---- Helper function.
-local function helper_1dcec(arg0: any)
+--- Plays the crew members speaking their first voiced lines.
+local function play_crew_first_lines(sound_bank: any)
 	event.set_object_sequence_motion(0, "上見立ち", 4)
 	event.reset_object_sequence_dynamic_animation(0)
 	event.set_object_sequence_motion(2, "スコップ立ち", 4)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(2030010)
+	message.show_voiced(2030010)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(2030020)
+	message.show_voiced(2030020)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_1e36c(arg0: any)
+--- Fades in the second picture and plays its voiced line.
+local function show_second_picture(sound_bank: any)
 	event.set_character_active(0, 11)
 	event.set_character_active(1, 33)
 	event.set_event_sprite_size(1, 512.0, 416.0)
 	event.set_event_sprite_draw_pass(1, 1)
 	event.set_object_sequence_position(11, 256.0, 208.0, 10.0)
 	event.set_object_sequence_color(11, 128.0, 128.0, 128.0, 128.0, 15)
-	helper_888ab2a3(15)
+	wait.for_frame_count(15)
 	event.set_event_sprite_draw_pass(0, 0)
-	helper_4116e6bb(2030060)
+	message.show_voiced(2030060)
 end
 
---- Helper function.
-local function helper_1e5e4(arg0: any)
+--- Fades in the third picture and plays its voiced lines.
+local function show_third_picture(sound_bank: any)
 	event.set_event_sprite_size(2, 512.0, 416.0)
 	event.set_event_sprite_draw_pass(2, 1)
 	event.set_object_sequence_position(12, 256.0, 208.0, 10.0)
 	event.set_object_sequence_color(12, 128.0, 128.0, 128.0, 128.0, 15)
-	helper_888ab2a3(15)
+	wait.for_frame_count(15)
 	event.set_event_sprite_draw_pass(1, 0)
-	helper_4116e6bb(2030070)
-	helper_4116e6bb(2030073)
+	message.show_voiced(2030070)
+	message.show_voiced(2030073)
 end
 
---- Helper function.
-local function helper_1e820(arg0: any)
+--- Fades in the fourth picture and plays its voiced lines.
+local function show_fourth_picture(sound_bank: any)
 	event.set_event_sprite_size(3, 512.0, 416.0)
 	event.set_event_sprite_draw_pass(3, 1)
 	event.set_object_sequence_position(13, 256.0, 208.0, 0.0)
 	event.set_object_sequence_color(13, 128.0, 128.0, 128.0, 128.0, 15)
-	helper_888ab2a3(15)
+	wait.for_frame_count(15)
 	event.set_event_sprite_draw_pass(2, 0)
-	helper_4116e6bb(2030080)
-	helper_4116e6bb(2030083)
+	message.show_voiced(2030080)
+	message.show_voiced(2030083)
 end
 
---- Helper function.
-local function helper_1ec34(se_id: s32)
+--- Fades out the last picture, plays the closing voiced lines and shakes the camera as the locomotive jolts.
+local function play_locomotive_shake(se_id: s32)
 	event.set_object_sequence_texture_animation(0, 0)
 	event.set_object_sequence_texture_animation(0, 1, "無表情")
 	event.set_object_sequence_texture_animation(0, 1, "目パチ")
 	event.set_object_sequence_motion(0, "上見立ち", 4, -1.0, 1)
 	event.set_object_sequence_color(13, 0.0, 0.0, 0.0, 15)
-	helper_888ab2a3(15)
+	wait.for_frame_count(15)
 	event.set_event_sprite_draw_pass(3, 0)
 	event.move_camera_sequence_eased(10.91, 58.61, 33.87, 1.64, 58.99, 18.19, 300, 2, 0.4)
-	helper_4116e6bb(2030090)
+	message.show_voiced(2030090)
 	event.set_object_sequence_texture_animation(0, 1, "眉真剣")
-	helper_4116e6bb(2030100)
+	message.show_voiced(2030100)
 	event.stop_music(0)
 	event.play_sound_effect(se_id, 5)
 	event.shake_camera_sequence(0.0, 0.8, 0.0, 45)
-	helper_888ab2a3(45)
+	wait.for_frame_count(45)
 end
 
---- Helper function.
-local function helper_1f028(se_id: s32)
+--- Plays the party turning around in surprise.
+local function play_party_turn_around(se_id: s32)
 	event.set_character_active(0, 11)
 	event.set_character_active(1, 35)
 	event.set_object_sequence_texture_animation(0, 0)
@@ -252,11 +242,11 @@ local function helper_1f028(se_id: s32)
 	event.queue_object_sequence_next_motion(0, "振り返るL", 0)
 	event.set_object_sequence_motion(1, "立ち", 4)
 	event.set_object_sequence_motion(3, "立ち", 4)
-	helper_888ab2a3(23)
+	wait.for_frame_count(23)
 end
 
---- Helper function.
-local function helper_1f34c(se_id: s32)
+--- Plays the crew reacting in alarm and the closing voiced exchange.
+local function play_crew_alarm_dialogue(se_id: s32)
 	event.set_object_sequence_texture_animation(0, 0)
 	event.set_object_sequence_texture_animation(0, 1, "おこり顔")
 	event.set_object_sequence_texture_animation(0, 1, "おこり目パチ")
@@ -269,13 +259,13 @@ local function helper_1f34c(se_id: s32)
 	event.queue_object_sequence_next_motion(2, "驚くL", 0)
 	event.set_object_sequence_motion(3, "驚く", 6)
 	event.queue_object_sequence_next_motion(3, "驚くL", 0)
-	helper_888ab2a3(20)
+	wait.for_frame_count(20)
 	event.play_sound_effect(se_id, 8)
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(2030110)
+	message.show_voiced(2030110)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(2, "口パク")
-	helper_4116e6bb(2030120)
+	message.show_voiced(2030120)
 	event.reset_mouth_texture_animations()
 	event.set_camera_sequence_position(23.44, 65.11, 70.77)
 	event.set_camera_sequence_look_at(-17.65, 56.75, -37.19)
@@ -284,31 +274,31 @@ local function helper_1f34c(se_id: s32)
 	event.set_object_sequence_motion(1, "会話2", 6)
 	event.queue_object_sequence_next_motion(1, "立ち", 0)
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(2030130)
+	message.show_voiced(2030130)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(2030135)
+	message.show_voiced(2030135)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(0, "うなづく", 2)
 	event.reset_object_sequence_dynamic_animation(0)
 	event.queue_object_sequence_next_motion(0, "立ち", 4)
-	helper_8e5b8087(0, vm.f32(0.267), -1.0, 30)
+	wait.until_motion_progress(0, vm.f32(0.267), -1.0, 30)
 	event.set_mouth_texture_animations(0, "通常口パク")
-	helper_4116e6bb(2030140)
+	message.show_voiced(2030140)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_211d4()
-	local var0: s32 = 0
+--- Plays the picture scene in the locomotive, with the crew conversation, the pictures and the jolt, then restores the camera.
+local function play_picture_scene()
+	local sound_bank: s32 = 0
 	vm.section(function()
 		event.set_save_flag(203, 1)
 		event.initialize_event()
-		var0 = event.load_sound_effect_file_2(2200) or var0
-		helper_1fed8()
-		event.set_object_handle_sound_bank(3, var0)
+		sound_bank = event.load_sound_effect_file_2(2200) or sound_bank
+		load_picture_scene_actors()
+		event.set_object_handle_sound_bank(3, sound_bank)
 		event.stop_music(0)
-		helper_888ab2a3(6)
+		wait.for_frame_count(6)
 		event.load_music(105)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
@@ -338,32 +328,32 @@ local function helper_211d4()
 		event.set_object_sequence_position(3, -1.81, 36.1, 72.51)
 		event.set_object_sequence_rotation(3, 0.0, -0.48, 0.0)
 		event.reset_object_sequence_dynamic_animation(0)
-		event.play_sound_effect(var0, 2)
-		helper_1da38(var0)
+		event.play_sound_effect(sound_bank, 2)
+		play_picture_scene_opening(sound_bank)
 		event.set_camera_sequence_position(54.99, 53.17, 1.95)
 		event.set_camera_sequence_look_at(-1.12, 50.66, 35.36)
 		event.move_camera_sequence_angle_height_distance_eased(2.64, 2.9, 55.5, 140, 0, 1.0)
 		event.set_object_sequence_position(0, 2.3, 36.08, 14.12)
 		event.set_object_sequence_rotation(0, 0.0, 0.0, 0.0)
 		event.reset_object_sequence_dynamic_animation(0)
-		helper_1dcec(var0)
-		wait_camera()
+		play_crew_first_lines(sound_bank)
+		camera.wait_until_done()
 		event.set_camera_sequence_position(11.36, 60.35, 36.83)
 		event.set_camera_sequence_look_at(-1.48, 59.0, 7.39)
-		helper_66d374a5(var0)
-		helper_38bce8cf(var0)
-		helper_1e36c(var0)
-		helper_1e5e4(var0)
-		helper_1e820(var0)
+		inside_of_locomotive.play_stunned_dialogue(sound_bank)
+		inside_of_locomotive.show_first_picture(sound_bank)
+		show_second_picture(sound_bank)
+		show_third_picture(sound_bank)
+		show_fourth_picture(sound_bank)
 		event.set_character_active(1, 0)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(12.55, 58.61, 36.64)
 		event.set_camera_sequence_look_at(3.28, 58.99, 20.96)
-		helper_1ec34(var0)
+		play_locomotive_shake(sound_bank)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(3.0, 69.45, -14.12)
 		event.set_camera_sequence_look_at(-5.47, 39.58, 58.5)
-		helper_1f028(var0)
+		play_party_turn_around(sound_bank)
 		event.set_camera_sequence_position(29.29, 88.68, -13.52)
 		event.set_camera_sequence_look_at(-6.48, 65.74, 32.61)
 		event.set_object_sequence_position(0, 6.15, 36.08, -1.68)
@@ -371,24 +361,24 @@ local function helper_211d4()
 		event.set_object_sequence_position(2, -18.35, 36.08, 35.6)
 		event.set_object_sequence_rotation(2, 0.0, 1.48, 0.0)
 		event.reset_object_sequence_dynamic_animation(0)
-		helper_1f34c(var0)
+		play_crew_alarm_dialogue(sound_bank)
 	end)
 	event.cancel_drama_scene_skip()
 	event.stop_music(0)
 	event.set_scene_status_flags(1, 0, 256, 0)
-	helper_ee4287cb()
+	inside_of_locomotive.unload_picture_scene_assets()
 	event.set_character_active(1, 9)
 	event.set_character_active(1, 10)
 	event.set_character_active(1, 11)
-	event.stop_sound_effect(var0, 2)
-	event.stop_sound_effect(var0, 8)
+	event.stop_sound_effect(sound_bank, 2)
+	event.stop_sound_effect(sound_bank, 8)
 	event.set_camera_sequence_position(29.29, 88.68, -13.52)
 	event.set_camera_sequence_look_at(-6.48, 65.74, 32.61)
 	event.reset_follow_camera(0)
 end
 
---- Helper function.
-local function helper_224a8()
+--- Loads the characters and message file for the collapse scene.
+local function load_collapse_scene_actors()
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
@@ -411,15 +401,15 @@ local function helper_224a8()
 	event.set_character_active(0, 0)
 end
 
---- Helper function.
-local function helper_2297c()
-	local var0: s32 = 0
+--- Plays the crew collapsing and Starbre scolding them, then fades out.
+local function play_collapse_scene()
+	local sound_bank: s32 = 0
 	vm.section(function()
 		event.set_save_flag(205, 1)
 		event.initialize_event()
 		event.load_map_sounds(2206)
-		var0 = event.load_sound_effect_file_2(2206) or var0
-		helper_224a8()
+		sound_bank = event.load_sound_effect_file_2(2206) or sound_bank
+		load_collapse_scene_actors()
 		event.stop_music(0)
 		event.fade_in_screen(30)
 		event.set_character_active(1, 32)
@@ -441,43 +431,43 @@ local function helper_2297c()
 		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "目パチ")
-		event.play_sound_effect(var0, 0)
+		event.play_sound_effect(sound_bank, 0)
 		event.shake_camera_sequence(0.0, 0.5, 0.1, -1)
 		event.set_mouth_texture_animations(0, "大口パク")
-		helper_4116e6bb(2050010)
+		message.show_voiced(2050010)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(0, "口パク")
-		helper_4116e6bb(2050020)
+		message.show_voiced(2050020)
 		event.reset_mouth_texture_animations()
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 0)
+	event.stop_sound_effect(sound_bank, 0)
 	event.clear_camera_sequence()
-	helper_669c752b()
+	inside_of_locomotive.delete_collapse_scene_characters()
 	event.fade_in_screen(30)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing for this map.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the crew and function points for the story state and fades in.
 function script.default_event()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	local mc_load: s32 = 0
-	helper_19b130fb()
-	helper_8b00b423()
+	inside_of_locomotive.show_characters_by_progress()
+	inside_of_locomotive.disable_saving()
 	flag = event.get_save_flag(203) or flag
 	flag_2 = event.get_save_flag(204) or flag_2
 	if flag == 1 and flag_2 == 0 then
-		helper_7f754b8f(1)
+		inside_of_locomotive.set_function_points_enabled(1)
 		event.set_save_control_bits(1, 1)
 	else
-		helper_7f754b8f(0)
+		inside_of_locomotive.set_function_points_enabled(0)
 	end
 	mc_load = event.take_memory_card_load_state() or mc_load
 	if mc_load == 1 then
@@ -488,49 +478,51 @@ function script.default_event()
 		event.reset_character_cloth_and_hair(0)
 	end
 	if flag == 1 and flag_2 == 0 then
-		helper_23558()
+		place_locomotive_crew()
 	end
 	event.fade_in_screen(30)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Shows the locomotive message after the button is released.
 function script.key_open()
 	vm.wait(1)
-	helper_c956b4a2(32)
-	show_message(0, 1002, 8, 450, 100)
+	wait.until_button_pressed(32)
+	message.show(0, 1002, 8, 450, 100)
 	event.do_nothing(0)
 end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	local var0: s32 = 0
+--- Leaves through the front door to the station when the door is usable.
+function script.exit_front_door()
+	local can_use_door: s32 = 0
 	print("-------event_200----------------------\n")
-	var0 = helper_df4094fb(1)
-	if var0 ~= 0 then
+	can_use_door = train.is_door_usable(1)
+	if can_use_door ~= 0 then
 		event.set_save_control_bits(1, 0)
 		event.set_save_counter(15, 1)
 		event.fade_out_screen(0)
 		event.stop_music(0)
-		helper_5be5f988()
+		map.jump_to_station()
 	end
 end
+script[200] = script.exit_front_door
 
---- Event 201, which map data, a script or the engine runs by number.
-function script.event_201()
-	local var0: s32 = 0
+--- Leaves through the rear door to the station when the door is usable.
+function script.exit_rear_door()
+	local can_use_door: s32 = 0
 	print("-------event_201----------------------\n")
-	var0 = helper_df4094fb(0)
-	if var0 ~= 0 then
+	can_use_door = train.is_door_usable(0)
+	if can_use_door ~= 0 then
 		event.set_save_control_bits(1, 0)
 		event.set_save_counter(15, 0)
 		event.fade_out_screen(0)
 		event.stop_music(0)
-		helper_5be5f988()
+		map.jump_to_station()
 	end
 end
+script[201] = script.exit_rear_door
 
---- Event 203, which map data, a script or the engine runs by number.
-function script.event_203()
+--- Goes back to the passenger car unless the crew scene is active.
+function script.go_to_passenger_car()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	flag = event.get_save_flag(203) or flag
@@ -542,15 +534,16 @@ function script.event_203()
 		event.set_message_window_mode(0, 7)
 		event.set_save_counter(0, 1)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_position(0, 0.0, 36.0, 235.0)
 		event.set_character_rotation(0, 0.0, 3.14, 0.0)
 		event.jump_to_map_2(-1, "s07")
 	end
 end
+script[203] = script.go_to_passenger_car
 
---- Event 204, which map data, a script or the engine runs by number.
-function script.event_204()
+--- Leaves the locomotive for the next area during the crew scene.
+function script.leave_locomotive_for_s03()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	flag = event.get_save_flag(203) or flag
@@ -558,37 +551,40 @@ function script.event_204()
 	if flag ~= 0 and flag_2 == 0 then
 		event.set_save_control_bits(1, 0)
 		event.fade_in_screen(30)
-		event.stop_sound_effect(global0, 2)
-		event.stop_sound_effect(global0, 8)
+		event.stop_sound_effect(sound_bank, 2)
+		event.stop_sound_effect(sound_bank, 8)
 		event.jump_to_map_3(-1, "s03", 501)
 		vm.wait(1)
 	end
 end
+script[204] = script.leave_locomotive_for_s03
 
---- Event 205, which map data, a script or the engine runs by number.
-function script.event_205()
-	local var0: s32 = 0
+--- Requests the town edit event at the front door when it is not usable.
+function script.request_edit_at_front_door()
+	local can_use_door: s32 = 0
 	print("--------------------------event205-------------------------\n")
-	var0 = helper_df4094fb(1)
-	if var0 == 0 then
+	can_use_door = train.is_door_usable(1)
+	if can_use_door == 0 then
 		event.request_town_edit_event(0)
 		vm.wait(1)
 	end
 end
+script[205] = script.request_edit_at_front_door
 
---- Event 206, which map data, a script or the engine runs by number.
-function script.event_206()
-	local var0: s32 = 0
+--- Requests the town edit event at the rear door when it is not usable.
+function script.request_edit_at_rear_door()
+	local can_use_door: s32 = 0
 	print("--------------------------event206-------------------------\n")
-	var0 = helper_df4094fb(0)
-	if var0 == 0 then
+	can_use_door = train.is_door_usable(0)
+	if can_use_door == 0 then
 		event.request_town_edit_event(0)
 		vm.wait(1)
 	end
 end
+script[206] = script.request_edit_at_rear_door
 
---- Event 208, which map data, a script or the engine runs by number.
-function script.event_208()
+--- Requests the town edit event during the crew scene.
+function script.request_edit_during_crew_scene()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	print("--------------------------event208-------------------------\n")
@@ -599,9 +595,10 @@ function script.event_208()
 		vm.wait(1)
 	end
 end
+script[208] = script.request_edit_during_crew_scene
 
---- Event 209, which map data, a script or the engine runs by number.
-function script.event_209()
+--- Requests the town edit event outside the crew scene.
+function script.request_edit_outside_crew_scene()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	print("--------------------------event209-------------------------\n")
@@ -613,70 +610,77 @@ function script.event_209()
 		vm.wait(1)
 	end
 end
+script[209] = script.request_edit_outside_crew_scene
 
---- Event 400, which map data, a script or the engine runs by number.
-function script.event_400()
+--- Opens the menu with its save data value set.
+function script.open_menu()
 	event.set_save_data_value(3, 1)
-	helper_93cb8168()
+	menu.open_type_7()
 	event.set_save_data_value(3, 0)
 end
+script[400] = script.open_menu
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
-	helper_8b00b423()
-	helper_7f754b8f(1)
-	helper_23558()
-	helper_211d4()
+--- Places the crew and plays the picture scene.
+function script.cutscene_picture_scene()
+	inside_of_locomotive.disable_saving()
+	inside_of_locomotive.set_function_points_enabled(1)
+	place_locomotive_crew()
+	play_picture_scene()
 	event.set_save_control_bits(1, 1)
-	helper_2349c()
+	play_locomotive_sounds()
 	event.fade_in_screen(30)
 end
+script[501] = script.cutscene_picture_scene
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_2297c()
+--- Plays the collapse scene and goes to the next area.
+function script.cutscene_collapse()
+	play_collapse_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s03", 512)
 	vm.wait(2)
 end
+script[502] = script.cutscene_collapse
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	var0 = event.get_triggered_event_data_2(13) or var0
-	set_window_mode(0, 1)
-	if var0 == 9 then
+--- Shows what the crew member says to the player.
+function script.talk_to_crew()
+	local character_slot: s32 = 0
+	character_slot = event.get_triggered_event_data_2(13) or character_slot
+	message.set_window_mode(0, 1)
+	if character_slot == 9 then
 		event.open_message_window_2(0, "なにをもたもたしとる！\nはやくはしごをのぼるんじゃ。")
 	end
-	if var0 == 10 then
+	if character_slot == 10 then
 		event.open_message_window_2(
 			0,
 			"今は世界がどうしたとか言ってる場合じゃないな。\nユリス、急いで外の様子を見てきてくれ。"
 		)
 	end
-	if var0 == 11 then
+	if character_slot == 11 then
 		event.open_message_window_2(
 			0,
 			"さっきのゆれ方からすると、\nわりと小さい爆弾と思うっす。<page>でも、当たり所が悪いとヤバいっすよ。"
 		)
 	end
-	helper_1c04a0eb(var0, -1, 0, 0)
+	cutscene.talk(character_slot, -1, 0, 0)
 end
+script[1000] = script.talk_to_crew
 
---- Event 12030, which map data, a script or the engine runs by number.
-function script.event_12030()
-	helper_23558()
-	helper_211d4()
-	helper_2349c()
+--- Replays the picture scene.
+function script.replay_picture_scene()
+	place_locomotive_crew()
+	play_picture_scene()
+	play_locomotive_sounds()
 	event.fade_in_screen(30)
 end
+script[12030] = script.replay_picture_scene
 
---- Event 12050, which map data, a script or the engine runs by number.
-function script.event_12050()
-	helper_2297c()
+--- Replays the collapse scene.
+function script.replay_collapse_scene()
+	play_collapse_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s03", 512)
 	vm.wait(2)
 end
+script[12050] = script.replay_collapse_scene
 
 return script

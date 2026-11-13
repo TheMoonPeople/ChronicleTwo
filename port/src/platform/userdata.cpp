@@ -71,158 +71,158 @@ struct CharaBitTable {
  *
  */
 static MOS_HENGE_PARAM mos_henge_param[57] = {
-    {0,   8,   4,  {0, 0}, "f201a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {1,   22,  12, {0, 0}, "f201a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {2,   64,  24, {0, 0}, "f201a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {3,   96,  42, {0, 0}, "f201a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {8,   7,   3,  {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
-    {9,   23,  11, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
-    {10,  60,  23, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
-    {11,  95,  41, {0, 0}, "f203a", {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
-    {22,  60,  20, {0, 0}, "f206a", {"fox_\x8F"
-                                   "e\x92"
-                                   "e",
-                                   "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83"
-                                   "b\x83V\x83\x85",
-                                   nullptr, nullptr}                                                                                             },
-    {23,  88,  39, {0, 0}, "f206a", {"fox_\x8F"
-                                   "e\x92"
-                                   "e",
-                                   "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83"
-                                   "b\x83V\x83\x85",
-                                   nullptr, nullptr}                                                                                             },
-    {24,  8,   3,  {0, 0}, "f207a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {25,  22,  10, {0, 0}, "f207a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {26,  64,  21, {0, 0}, "f207a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {27,  96,  39, {0, 0}, "f207a", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {44,  7,   3,  {0, 0}, "f213a", {"\x89\xCE\x92"
-                                 "e\x82k\x82R",
-                                 "\x89\xCE\x92"
-                                 "e\x82g",
-                                 nullptr, nullptr}                                                                                               },
-    {45,  23,  10, {0, 0}, "f213a", {"\x95\x97\x92"
-                                   "e\x82k\x82Q",
-                                   "\x95\x97\x92"
-                                   "e\x82g",
-                                   nullptr, nullptr}                                                                                             },
-    {46,  60,  21, {0, 0}, "f213a", {"\x95X\x92"
-                                   "e\x82k\x82Q",
-                                   "\x95X\x92"
-                                   "e\x82g",
-                                   nullptr, nullptr}                                                                                             },
-    {47,  95,  39, {0, 0}, "f213a", {"\x97\x8B\x92"
-                                   "e\x82k\x82Q",
-                                   "\x97\x8B\x92"
-                                   "e\x82g",
-                                   nullptr, nullptr}                                                                                             },
-    {52,  9,   4,  {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
-    {53,  23,  12, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
-    {54,  65,  24, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
-    {55,  99,  42, {0, 0}, "f216a", {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
-    {72,  7,   3,  {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92"
-                                 "e\x82"
-                                 "e",
-                                 "\x8E\xF4\x82\xA2\x92"
-                                 "e\x82k",
-                                 "\x8E\xF4\x82\xA2\x92"
-                                 "e\x82g",
-                                 nullptr}                                                                                                        },
-    {73,  23,  11, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92"
-                                   "e\x82"
-                                   "e",
-                                   "\x8E\xF4\x82\xA2\x92"
-                                   "e\x82k",
-                                   "\x8E\xF4\x82\xA2\x92"
-                                   "e\x82g",
-                                   nullptr}                                                                                                      },
-    {74,  60,  23, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92"
-                                   "e\x82"
-                                   "e",
-                                   "\x8E\xF4\x82\xA2\x92"
-                                   "e\x82k",
-                                   "\x8E\xF4\x82\xA2\x92"
-                                   "e\x82g",
-                                   nullptr}                                                                                                      },
-    {75,  95,  41, {0, 0}, "f221a", {"\x8E\xF4\x82\xA2\x92"
-                                   "e\x82"
-                                   "e",
-                                   "\x8E\xF4\x82\xA2\x92"
-                                   "e\x82k",
-                                   "\x8E\xF4\x82\xA2\x92"
-                                   "e\x82g",
-                                   nullptr}                                                                                                      },
-    {102, 59,  30, {0, 0}, "f10a",  {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92"
-                                   "e",
-                                   "\x82l\x8F\xAC\x94\x9A\x94\xAD", nullptr, nullptr}                                                             },
-    {103, 88,  50, {0, 0}, "f10a",  {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92"
-                                   "e",
-                                   "\x82l\x8F\xAC\x94\x9A\x94\xAD", nullptr, nullptr}                                                             },
-    {112, 80,  26, {0, 0}, "f114a", {"\x89\xCE\x92"
-                                    "e\x82"
-                                    "e",
-                                    "\x89\xCE\x92"
-                                    "e\x82k\x82R",
-                                    nullptr, nullptr}                                                                                            },
-    {116, 44,  22, {0, 0}, "f114a", {"\x95X\x92"
-                                    "e\x82"
-                                    "e",
-                                    "\x95X\x92"
-                                    "e\x82k\x82Q",
-                                    "\x95X\x92"
-                                    "e\x82g",
-                                    nullptr}                                                                                                     },
-    {120, 55,  24, {0, 0}, "f114a", {"\x97\x8B\x92"
-                                    "e\x82"
-                                    "e",
-                                    "\x97\x8B\x92"
-                                    "e\x82k\x82Q",
-                                    "\x97\x8B\x92"
-                                    "e\x82g",
-                                    nullptr}                                                                                                     },
-    {124, 33,  20, {0, 0}, "f114a", {"\x95\x97\x92"
-                                    "e\x82"
-                                    "e",
-                                    "\x95\x97\x92"
-                                    "e\x82k\x82Q",
-                                    "\x95\x97\x92"
-                                    "e\x82g",
-                                    nullptr}                                                                                                     },
-    {128, 75,  28, {0, 0}, "f114a", {"\x90\xB9\x92"
-                                    "e\x82"
-                                    "e",
-                                    "\x90\xB9\x92"
-                                    "e\x82k\x82Q",
-                                    "\x90\xB9\x92"
-                                    "e\x82g",
-                                    nullptr}                                                                                                     },
-    {136, 30,  12, {0, 0}, "f06a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {137, 70,  24, {0, 0}, "f06a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {139, 100, 34, {0, 0}, "f06a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {150, 60,  23, {0, 0}, "f24a",  {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                       },
-    {151, 95,  41, {0, 0}, "f24a",  {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                       },
-    {154, 55,  30, {0, 0}, "f26a",  {"\x90\xCE\x89\xBB\x92"
-                                   "e\x82k",
-                                   "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                                     },
-    {155, 88,  42, {0, 0}, "f26a",  {"\x90\xCE\x89\xBB\x92"
-                                   "e\x82k",
-                                   "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                                     },
-    {166, 65,  40, {0, 0}, "f05a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {167, 85,  60, {0, 0}, "f05a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {176, 7,   3,  {0, 0}, "f03a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {177, 23,  11, {0, 0}, "f03a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {180, 60,  23, {0, 0}, "f03a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {183, 95,  41, {0, 0}, "f03a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {186, 61,  25, {0, 0}, "f03a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {187, 89,  38, {0, 0}, "f03a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {220, 8,   3,  {0, 0}, "f49a",  {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
-    {221, 22,  10, {0, 0}, "f49a",  {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
-    {222, 64,  21, {0, 0}, "f49a",  {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
-    {223, 96,  39, {0, 0}, "f49a",  {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
-    {224, 36,  20, {0, 0}, "f45a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {228, 57,  24, {0, 0}, "f45a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {232, 66,  40, {0, 0}, "f45a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {236, 45,  22, {0, 0}, "f45a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
-    {240, 80,  20, {0, 0}, "f45a",  {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {0,   8,   4,  {0, 0}, "sewer_rat_form",        {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {1,   22,  12, {0, 0}, "sewer_rat_form",        {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {2,   64,  24, {0, 0}, "sewer_rat_form",        {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {3,   96,  42, {0, 0}, "sewer_rat_form",        {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {8,   7,   3,  {0, 0}, "froggy_form",           {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
+    {9,   23,  11, {0, 0}, "froggy_form",           {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
+    {10,  60,  23, {0, 0}, "froggy_form",           {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
+    {11,  95,  41, {0, 0}, "froggy_form",           {"\x93\xC5\x89tL", "\x93\xC5\x89tH", nullptr, nullptr}                                                                                          },
+    {22,  60,  20, {0, 0}, "wolf_form",             {"fox_\x8F"
+                                       "e\x92"
+                                       "e",
+                                       "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83"
+                                       "b\x83V\x83\x85",
+                                       nullptr, nullptr}                                                                                                     },
+    {23,  88,  39, {0, 0}, "wolf_form",             {"fox_\x8F"
+                                       "e\x92"
+                                       "e",
+                                       "\x83}\x83Y\x83\x8B\x83t\x83\x89\x83"
+                                       "b\x83V\x83\x85",
+                                       nullptr, nullptr}                                                                                                     },
+    {24,  8,   3,  {0, 0}, "balloon_form",          {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {25,  22,  10, {0, 0}, "balloon_form",          {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {26,  64,  21, {0, 0}, "balloon_form",          {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {27,  96,  39, {0, 0}, "balloon_form",          {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {44,  7,   3,  {0, 0}, "pixie_form",            {"\x89\xCE\x92"
+                                      "e\x82k\x82R",
+                                      "\x89\xCE\x92"
+                                      "e\x82g",
+                                      nullptr, nullptr}                                                                                                     },
+    {45,  23,  10, {0, 0}, "pixie_form",            {"\x95\x97\x92"
+                                        "e\x82k\x82Q",
+                                        "\x95\x97\x92"
+                                        "e\x82g",
+                                        nullptr, nullptr}                                                                                                   },
+    {46,  60,  21, {0, 0}, "pixie_form",            {"\x95X\x92"
+                                        "e\x82k\x82Q",
+                                        "\x95X\x92"
+                                        "e\x82g",
+                                        nullptr, nullptr}                                                                                                   },
+    {47,  95,  39, {0, 0}, "pixie_form",            {"\x97\x8B\x92"
+                                        "e\x82k\x82Q",
+                                        "\x97\x8B\x92"
+                                        "e\x82g",
+                                        nullptr, nullptr}                                                                                                   },
+    {52,  9,   4,  {0, 0}, "himarra_form",          {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
+    {53,  23,  12, {0, 0}, "himarra_form",          {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
+    {54,  65,  24, {0, 0}, "himarra_form",          {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
+    {55,  99,  42, {0, 0}, "himarra_form",          {"\x83q\x83}\x81[\x83\x89\x89\xF1\x93]\x8DU\x8C\x82", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr}},
+    {72,  7,   3,  {0, 0}, "spider_lady_form",      {"\x8E\xF4\x82\xA2\x92"
+                                            "e\x82"
+                                            "e",
+                                            "\x8E\xF4\x82\xA2\x92"
+                                            "e\x82k",
+                                            "\x8E\xF4\x82\xA2\x92"
+                                            "e\x82g",
+                                            nullptr}                                                                                                  },
+    {73,  23,  11, {0, 0}, "spider_lady_form",      {"\x8E\xF4\x82\xA2\x92"
+                                              "e\x82"
+                                              "e",
+                                              "\x8E\xF4\x82\xA2\x92"
+                                              "e\x82k",
+                                              "\x8E\xF4\x82\xA2\x92"
+                                              "e\x82g",
+                                              nullptr}                                                                                                },
+    {74,  60,  23, {0, 0}, "spider_lady_form",      {"\x8E\xF4\x82\xA2\x92"
+                                              "e\x82"
+                                              "e",
+                                              "\x8E\xF4\x82\xA2\x92"
+                                              "e\x82k",
+                                              "\x8E\xF4\x82\xA2\x92"
+                                              "e\x82g",
+                                              nullptr}                                                                                                },
+    {75,  95,  41, {0, 0}, "spider_lady_form",      {"\x8E\xF4\x82\xA2\x92"
+                                              "e\x82"
+                                              "e",
+                                              "\x8E\xF4\x82\xA2\x92"
+                                              "e\x82k",
+                                              "\x8E\xF4\x82\xA2\x92"
+                                              "e\x82g",
+                                              nullptr}                                                                                                },
+    {102, 59,  30, {0, 0}, "pumpkinhead_form",      {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92"
+                                               "e",
+                                               "\x82l\x8F\xAC\x94\x9A\x94\xAD", nullptr, nullptr}                                                     },
+    {103, 88,  50, {0, 0}, "pumpkinhead_form",      {"\x82\xA9\x82\xDA\x82\xBF\x82\xE1\x94\x9A\x92"
+                                               "e",
+                                               "\x82l\x8F\xAC\x94\x9A\x94\xAD", nullptr, nullptr}                                                     },
+    {112, 80,  26, {0, 0}, "gemron_bullet_form",    {"\x89\xCE\x92"
+                                                 "e\x82"
+                                                 "e",
+                                                 "\x89\xCE\x92"
+                                                 "e\x82k\x82R",
+                                                 nullptr, nullptr}                                                                                  },
+    {116, 44,  22, {0, 0}, "gemron_bullet_form",    {"\x95X\x92"
+                                                 "e\x82"
+                                                 "e",
+                                                 "\x95X\x92"
+                                                 "e\x82k\x82Q",
+                                                 "\x95X\x92"
+                                                 "e\x82g",
+                                                 nullptr}                                                                                           },
+    {120, 55,  24, {0, 0}, "gemron_bullet_form",    {"\x97\x8B\x92"
+                                                 "e\x82"
+                                                 "e",
+                                                 "\x97\x8B\x92"
+                                                 "e\x82k\x82Q",
+                                                 "\x97\x8B\x92"
+                                                 "e\x82g",
+                                                 nullptr}                                                                                           },
+    {124, 33,  20, {0, 0}, "gemron_bullet_form",    {"\x95\x97\x92"
+                                                 "e\x82"
+                                                 "e",
+                                                 "\x95\x97\x92"
+                                                 "e\x82k\x82Q",
+                                                 "\x95\x97\x92"
+                                                 "e\x82g",
+                                                 nullptr}                                                                                           },
+    {128, 75,  28, {0, 0}, "gemron_bullet_form",    {"\x90\xB9\x92"
+                                                 "e\x82"
+                                                 "e",
+                                                 "\x90\xB9\x92"
+                                                 "e\x82k\x82Q",
+                                                 "\x90\xB9\x92"
+                                                 "e\x82g",
+                                                 nullptr}                                                                                           },
+    {136, 30,  12, {0, 0}, "ram_form",              {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {137, 70,  24, {0, 0}, "ram_form",              {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {139, 100, 34, {0, 0}, "ram_form",              {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {150, 60,  23, {0, 0}, "goyone_form",           {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                       },
+    {151, 95,  41, {0, 0}, "goyone_form",           {"\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82k\x82Q", "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                       },
+    {154, 55,  30, {0, 0}, "gourgon_form",          {"\x90\xCE\x89\xBB\x92"
+                                           "e\x82k",
+                                           "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                                     },
+    {155, 88,  42, {0, 0}, "gourgon_form",          {"\x90\xCE\x89\xBB\x92"
+                                           "e\x82k",
+                                           "\x82\xCB\x82\xCE\x82\xCB\x82\xCE\x82g", nullptr, nullptr}                                                     },
+    {166, 65,  40, {0, 0}, "guardia_form",          {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {167, 85,  60, {0, 0}, "guardia_form",          {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {176, 7,   3,  {0, 0}, "skeleton_soldier_form", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {177, 23,  11, {0, 0}, "skeleton_soldier_form", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {180, 60,  23, {0, 0}, "skeleton_soldier_form", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {183, 95,  41, {0, 0}, "skeleton_soldier_form", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {186, 61,  25, {0, 0}, "skeleton_soldier_form", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {187, 89,  38, {0, 0}, "skeleton_soldier_form", {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {220, 8,   3,  {0, 0}, "bomber_head_form",      {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
+    {221, 22,  10, {0, 0}, "bomber_head_form",      {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
+    {222, 64,  21, {0, 0}, "bomber_head_form",      {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
+    {223, 96,  39, {0, 0}, "bomber_head_form",      {"\x83{\x83\x93\x83o\x83w\x8E\xA9\x94\x9A", nullptr, nullptr, nullptr}                                                                          },
+    {224, 36,  20, {0, 0}, "club_form",             {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {228, 57,  24, {0, 0}, "club_form",             {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {232, 66,  40, {0, 0}, "club_form",             {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {236, 45,  22, {0, 0}, "club_form",             {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
+    {240, 80,  20, {0, 0}, "club_form",             {nullptr, nullptr, nullptr, nullptr}                                                                                                            },
 };
 
 /**

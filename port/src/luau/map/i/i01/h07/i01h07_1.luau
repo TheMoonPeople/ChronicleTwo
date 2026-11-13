@@ -1,20 +1,20 @@
 --!strict
--- map/i/i01/h07/i01h07_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Palm Brinks house interior script that runs a grid toggle puzzle and villager dialogue.
 
-local helper_02d91c01 = require("@lib/event/helper_02d91c01")
-local helper_e3fbd10f = require("@lib/event/helper_e3fbd10f")
+local palm_brinks_house_h07 = require("@lib/event/palm_brinks_house_h07")
+local villager_dialogue = require("@lib/event/english/villager_dialogue")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Resets the follow camera when the interior is entered.
 function script.default_event()
 	event.reset_follow_camera(1, 0.0, 10.0)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Prints the current map and submap numbers for debugging.
 function script.key_open()
 	local now_map_no: s32 = 0
 	local now_sub_map_no: s32 = 0
@@ -29,77 +29,92 @@ function script.key_open()
 	)
 end
 
---- Event 401, which map data, a script or the engine runs by number.
-function script.event_401()
-	helper_e3fbd10f(0, 5)
+--- Toggles the puzzle cell at row 0, column 5 and its neighbors.
+function script.toggle_cell_0_5()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(0, 5)
 end
+script[401] = script.toggle_cell_0_5
 
---- Event 402, which map data, a script or the engine runs by number.
-function script.event_402()
-	helper_e3fbd10f(0, 4)
+--- Toggles the puzzle cell at row 0, column 4 and its neighbors.
+function script.toggle_cell_0_4()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(0, 4)
 end
+script[402] = script.toggle_cell_0_4
 
---- Event 403, which map data, a script or the engine runs by number.
-function script.event_403()
-	helper_e3fbd10f(0, 3)
+--- Toggles the puzzle cell at row 0, column 3 and its neighbors.
+function script.toggle_cell_0_3()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(0, 3)
 end
+script[403] = script.toggle_cell_0_3
 
---- Event 404, which map data, a script or the engine runs by number.
-function script.event_404()
-	helper_e3fbd10f(0, 2)
+--- Toggles the puzzle cell at row 0, column 2 and its neighbors.
+function script.toggle_cell_0_2()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(0, 2)
 end
+script[404] = script.toggle_cell_0_2
 
---- Event 405, which map data, a script or the engine runs by number.
-function script.event_405()
-	helper_e3fbd10f(0, 1)
+--- Toggles the puzzle cell at row 0, column 1 and its neighbors.
+function script.toggle_cell_0_1()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(0, 1)
 end
+script[405] = script.toggle_cell_0_1
 
---- Event 406, which map data, a script or the engine runs by number.
-function script.event_406()
-	helper_e3fbd10f(0, 0)
+--- Toggles the puzzle cell at row 0, column 0 and its neighbors.
+function script.toggle_cell_0_0()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(0, 0)
 end
+script[406] = script.toggle_cell_0_0
 
---- Event 407, which map data, a script or the engine runs by number.
-function script.event_407()
-	helper_e3fbd10f(1, 6)
+--- Toggles the puzzle cell at row 1, column 6 and its neighbors.
+function script.toggle_cell_1_6()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(1, 6)
 end
+script[407] = script.toggle_cell_1_6
 
---- Event 408, which map data, a script or the engine runs by number.
-function script.event_408()
-	helper_e3fbd10f(1, 5)
+--- Toggles the puzzle cell at row 1, column 5 and its neighbors.
+function script.toggle_cell_1_5()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(1, 5)
 end
+script[408] = script.toggle_cell_1_5
 
---- Event 409, which map data, a script or the engine runs by number.
-function script.event_409()
-	helper_e3fbd10f(1, 4)
+--- Toggles the puzzle cell at row 1, column 4 and its neighbors.
+function script.toggle_cell_1_4()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(1, 4)
 end
+script[409] = script.toggle_cell_1_4
 
---- Event 410, which map data, a script or the engine runs by number.
-function script.event_410()
-	helper_e3fbd10f(1, 3)
+--- Toggles the puzzle cell at row 1, column 3 and its neighbors.
+function script.toggle_cell_1_3()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(1, 3)
 end
+script[410] = script.toggle_cell_1_3
 
---- Event 411, which map data, a script or the engine runs by number.
-function script.event_411()
-	helper_e3fbd10f(1, 2)
+--- Toggles the puzzle cell at row 1, column 2 and its neighbors.
+function script.toggle_cell_1_2()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(1, 2)
 end
+script[411] = script.toggle_cell_1_2
 
---- Event 412, which map data, a script or the engine runs by number.
-function script.event_412()
-	helper_e3fbd10f(1, 1)
+--- Toggles the puzzle cell at row 1, column 1 and its neighbors.
+function script.toggle_cell_1_1()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(1, 1)
 end
+script[412] = script.toggle_cell_1_1
 
---- Event 413, which map data, a script or the engine runs by number.
-function script.event_413()
-	helper_e3fbd10f(1, 0)
+--- Toggles the puzzle cell at row 1, column 0 and its neighbors.
+function script.toggle_cell_1_0()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(1, 0)
 end
+script[413] = script.toggle_cell_1_0
 
---- Event 414, which map data, a script or the engine runs by number.
-function script.event_414()
-	helper_e3fbd10f(0, 6)
+--- Toggles the puzzle cell at row 0, column 6 and its neighbors.
+function script.toggle_cell_0_6()
+	palm_brinks_house_h07.toggle_cell_and_neighbors(0, 6)
 end
+script[414] = script.toggle_cell_0_6
 
---- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_02d91c01
+--- Starts the dialogue with the villager that was spoken to.
+script.on_talk = villager_dialogue.talk_to_triggered_villager
+script[1000] = script.on_talk
 
 return script

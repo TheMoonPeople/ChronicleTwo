@@ -1,9 +1,0 @@
---!strict
--- Shared monster helper used by 2 scripts, translated by tools/luau/stb2luau.
-
---- Helper function.
-local function helper_84a6a4c4(value: s32)
-	monster.set_variable(20, value)
-end
-
-return helper_84a6a4c4

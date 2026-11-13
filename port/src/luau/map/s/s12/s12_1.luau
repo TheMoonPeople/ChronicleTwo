@@ -1,86 +1,73 @@
 --!strict
--- map/s/s12/s12_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the Moon Flower Palace train stop, covering arrival by train, the Toryon train attack cutscene and boarding the train.
 
 local vm = require("@lib/vm")
-local helper_117e5b58 = require("@lib/event/helper_117e5b58")
-local helper_17957835 = require("@lib/event/helper_17957835")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_201eec5c = require("@lib/event/helper_201eec5c")
-local helper_235ae843 = require("@lib/event/helper_235ae843")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_35e14f02 = require("@lib/event/helper_35e14f02")
-local helper_946c0402 = require("@lib/event/helper_946c0402")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_b47c3b77 = require("@lib/event/helper_b47c3b77")
-local helper_bac5d242 = require("@lib/event/helper_bac5d242")
-local helper_c99744f1 = require("@lib/event/helper_c99744f1")
-local helper_d7295df9 = require("@lib/event/helper_d7295df9")
-local helper_ef680758 = require("@lib/event/helper_ef680758")
-local helper_f4ec8310 = require("@lib/event/helper_f4ec8310")
-local helper_f57795f8 = require("@lib/event/helper_f57795f8")
-local helper_fdad3d3b = require("@lib/event/helper_fdad3d3b")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_frames_skipping = require("@lib/event/wait_frames_skipping")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local menu = require("@lib/event/menu")
+local moon_flower_palace_stop_s12 = require("@lib/event/moon_flower_palace_stop_s12")
+local object = require("@lib/event/object")
+local town_prompt = require("@lib/event/english/town_prompt")
+local train = require("@lib/event/train")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
-local global1: s32 = 0
+local mints_slot: s32 = 0
+local monica_slot: s32 = 0
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
+--- Prints a marker when the map is initialised.
+local function init_map()
 	print("map_init-------------------------\n")
 end
 
---- Helper function.
-local function helper_e7cc()
-	local active_chr_no: s32 = 0
+--- Loads the characters, effects, train parts and messages that the train attack cutscene needs.
+local function load_train_attack_assets()
+	local active_character: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 32
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e600/e616/e616_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		mints_slot = 0
+		monica_slot = 32
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e600/e616/e616_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e600/e616/e616_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e600/e616/e616_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 37)
 	end
-	if active_chr_no == 1 then
-		global0 = 32
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e600/e616/e616_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	if active_character == 1 then
+		mints_slot = 32
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_slot)
+		event.load_equipment_model(5, 0, 4, "info", mints_slot)
+		event.load_equipment_model(5, 0, 3, "info", mints_slot)
+		event.load_equipment_model(5, 0, 2, "info", mints_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e600/e616/e616_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, mints_slot)
 		event.set_character_active(1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e600/e616/e616_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e600/e616/e616_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.load_character(5, "event/e600/e616/e616_osmond.gltf", "info", 38)
 	event.set_character_active(0, 38)
@@ -139,24 +126,24 @@ local function helper_e7cc()
 	event.load_message_file(0, 5, "event/e600/e616/e616.txt")
 end
 
---- Helper function.
-local function helper_e3d4()
-	local active_chr_no: s32 = 0
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+--- Unloads the characters of the train attack cutscene and ends the event.
+local function unload_train_attack_assets()
+	local active_character: s32 = 0
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(37)
 	end
-	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+	if active_character == 1 then
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, mints_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(mints_slot)
 		event.delete_character(37)
 	end
 	event.delete_character(38)
@@ -170,29 +157,29 @@ local function helper_e3d4()
 	vm.wait(1)
 end
 
---- Helper function.
-local function helper_10090()
-	local var6: s32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local var10: s32 = 0
-	local pos_x_2: f32 = 0
-	local var12: f32 = 0
-	local var13: f32 = 0
-	local pos_y_2: f32 = 0
-	local var15: f32 = 0
-	local var16: f32 = 0
-	local pos_z_2: f32 = 0
-	local var18: f32 = 0
-	local var19: f32 = 0
-	local var20: s32 = 0
-	local at: number = 0
+--- Plays the cutscene where Toryon throws rocks and fires beams at the train while the party runs along it, then the train is pushed away.
+local function cutscene_toryon_attacks_train()
+	local sound_bank: s32 = 0
+	local car_x: f32 = 0
+	local car_y: f32 = 0
+	local car_z: f32 = 0
+	local sequence_index: s32 = 0
+	local train_x: f32 = 0
+	local train_velocity_x: f32 = 0
+	local train_acceleration_x: f32 = 0
+	local train_y: f32 = 0
+	local train_velocity_y: f32 = 0
+	local train_acceleration_y: f32 = 0
+	local train_z: f32 = 0
+	local train_velocity_z: f32 = 0
+	local train_acceleration_z: f32 = 0
+	local frame: s32 = 0
+	local resume_step: number = 0
 	vm.section(function()
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var6 = event.load_sound_effect_file_2(7202) or var6
-		helper_e7cc()
+		sound_bank = event.load_sound_effect_file_2(7202) or sound_bank
+		load_train_attack_assets()
 		event.enable_drama_skip()
 		event.set_object_handle_footstep_sound(0, 16)
 		event.set_object_handle_footstep_sound(1, 16)
@@ -207,8 +194,8 @@ local function helper_10090()
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 38)
 		event.set_character_active(1, 39)
 		event.set_object_sequence_position(4, 790.0, 0.0, 4500.0)
@@ -249,12 +236,12 @@ local function helper_10090()
 		event.fade_in_screen(30)
 		event.set_object_sequence_position(11, 395.57, 1007.08, -157.89)
 		event.jump_object_sequence(11, -200.0, 700.0, -1000.0, -1.2, 60)
-		at = 1
-		wait_frames(30)
+		resume_step = 1
+		wait.frames(30)
 		event.set_object_sequence_position(12, 395.57, 1007.08, -157.89)
 		event.jump_object_sequence(12, 200.0, 700.0, -1000.0, -1.2, 60)
-		at = 2
-		wait_frames(30)
+		resume_step = 2
+		wait.frames(30)
 		event.set_character_active(1, 42)
 		event.set_object_sequence_motion(8, "発射", 6)
 		event.set_object_sequence_motion(10, "弾道", 6)
@@ -263,266 +250,267 @@ local function helper_10090()
 		event.set_effect_second_vector(0.0, -0.04, 0.0)
 		event.set_object_sequence_position(11, 395.57, 1007.08, -157.89)
 		event.jump_object_sequence(11, -200.0, 700.0, -1000.0, -1.2, 60)
-		at = 3
-		wait_frames(10)
+		resume_step = 3
+		wait.frames(10)
 		event.move_object_sequence(3, 395.57, 707.08, -157.89, 10)
 		event.set_object_sequence_position(12, 395.57, 1007.08, -157.89)
 		event.jump_object_sequence(12, 200.0, 700.0, -1000.0, -1.2, 60)
-		at = 4
-		wait_frames(20)
+		resume_step = 4
+		wait.frames(20)
 		event.set_character_active(1, 41)
 		event.set_character_motion(41, "ヒット", 6, -1, 1)
-		at = 5
-		wait_frames(30)
+		resume_step = 5
+		wait.frames(30)
 		event.set_object_sequence_position(11, 395.57, 1007.08, -157.89)
 		event.jump_object_sequence(11, -200.0, 700.0, -1000.0, -1.2, 60)
-		at = 6
-		wait_frames(30)
+		resume_step = 6
+		wait.frames(30)
 		event.set_object_sequence_position(12, 395.57, 1007.08, -157.89)
 		event.jump_object_sequence(12, 200.0, 700.0, -1000.0, -1.2, 60)
-		at = 7
-		wait_frames(30)
+		resume_step = 7
+		wait.frames(30)
 		event.set_camera_sequence_position(368.47, 250.27, 3796.05)
 		event.set_camera_sequence_look_at(296.74, 109.55, 4410.1)
-		event.play_sound_effect(var6, 7)
+		event.play_sound_effect(sound_bank, 7)
 		do
 			local out1, out2, out3 = event.get_object_handle_position(13)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			car_x = out1 or car_x
+			car_y = out2 or car_y
+			car_z = out3 or car_z
 		end
 		event.rotate_object_sequence(5, 0.0, 0.0, 1.5707964, 30)
 		event.rotate_object_sequence(6, 0.0, 0.0, 1.5707964, 30)
 		event.rotate_object_sequence(7, 0.0, 0.0, -0.3926991, 30)
 		event.rotate_object_sequence(13, 0.0, 0.0, -0.3926991, 30)
-		at = 8
-		wait_frames(30)
-		event.move_object_sequence(13, pos_x + 45.0, pos_y - 19.0, pos_z, 30)
-		at = 9
-		wait_frames(20)
-		var10 = 2
-		event.clear_object_sequence_path(var10)
-		event.set_object_sequence_path_frames(var10, 120)
-		event.add_object_sequence_path_point(var10, 272.66, 0.0, 4119.88)
-		event.add_object_sequence_path_point(var10, 249.45, 0.0, 4367.87)
-		event.add_object_sequence_path_point(var10, 241.61, 14.02, 4435.0)
-		event.add_object_sequence_path_point(var10, 234.87, 28.2, 4492.6)
-		event.start_object_sequence_path(var10)
-		at = 10
-		wait_frames(10)
-		var10 = 0
-		event.clear_object_sequence_path(var10)
-		event.set_object_sequence_path_frames(var10, 120)
-		event.add_object_sequence_path_point(var10, 272.66, 0.0, 4119.88)
-		event.add_object_sequence_path_point(var10, 249.45, 0.0, 4367.87)
-		event.add_object_sequence_path_point(var10, 241.61, 14.02, 4435.0)
-		event.add_object_sequence_path_point(var10, 234.87, 28.2, 4492.6)
-		event.start_object_sequence_path(var10)
-		at = 11
-		wait_frames(10)
-		var10 = 1
-		event.clear_object_sequence_path(var10)
-		event.set_object_sequence_path_frames(var10, 120)
-		event.add_object_sequence_path_point(var10, 272.66, 0.0, 4119.88)
-		event.add_object_sequence_path_point(var10, 249.45, 0.0, 4367.87)
-		event.add_object_sequence_path_point(var10, 241.61, 14.02, 4435.0)
-		event.add_object_sequence_path_point(var10, 234.87, 28.2, 4492.6)
-		event.start_object_sequence_path(var10)
-		at = 12
-		wait_objects(1)
-		event.set_character_active(0, global0)
-		event.set_character_active(0, global1)
+		resume_step = 8
+		wait.frames(30)
+		event.move_object_sequence(13, car_x + 45.0, car_y - 19.0, car_z, 30)
+		resume_step = 9
+		wait.frames(20)
+		sequence_index = 2
+		event.clear_object_sequence_path(sequence_index)
+		event.set_object_sequence_path_frames(sequence_index, 120)
+		event.add_object_sequence_path_point(sequence_index, 272.66, 0.0, 4119.88)
+		event.add_object_sequence_path_point(sequence_index, 249.45, 0.0, 4367.87)
+		event.add_object_sequence_path_point(sequence_index, 241.61, 14.02, 4435.0)
+		event.add_object_sequence_path_point(sequence_index, 234.87, 28.2, 4492.6)
+		event.start_object_sequence_path(sequence_index)
+		resume_step = 10
+		wait.frames(10)
+		sequence_index = 0
+		event.clear_object_sequence_path(sequence_index)
+		event.set_object_sequence_path_frames(sequence_index, 120)
+		event.add_object_sequence_path_point(sequence_index, 272.66, 0.0, 4119.88)
+		event.add_object_sequence_path_point(sequence_index, 249.45, 0.0, 4367.87)
+		event.add_object_sequence_path_point(sequence_index, 241.61, 14.02, 4435.0)
+		event.add_object_sequence_path_point(sequence_index, 234.87, 28.2, 4492.6)
+		event.start_object_sequence_path(sequence_index)
+		resume_step = 11
+		wait.frames(10)
+		sequence_index = 1
+		event.clear_object_sequence_path(sequence_index)
+		event.set_object_sequence_path_frames(sequence_index, 120)
+		event.add_object_sequence_path_point(sequence_index, 272.66, 0.0, 4119.88)
+		event.add_object_sequence_path_point(sequence_index, 249.45, 0.0, 4367.87)
+		event.add_object_sequence_path_point(sequence_index, 241.61, 14.02, 4435.0)
+		event.add_object_sequence_path_point(sequence_index, 234.87, 28.2, 4492.6)
+		event.start_object_sequence_path(sequence_index)
+		resume_step = 12
+		object.wait_until_done(1)
+		event.set_character_active(0, mints_slot)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(0, 38)
-		at = 13
-		wait_frames(10)
+		resume_step = 13
+		wait.frames(10)
 		event.clear_camera_sequence_path()
 		event.set_camera_sequence_path_frames(200)
 		event.add_camera_sequence_path_point(368.47, 250.27, 3796.05, 296.74, 109.55, 4410.1)
 		event.add_camera_sequence_path_point(368.47, 250.27, 3796.05, 693.41, 109.55, 4324.2)
 		event.start_camera_sequence_path()
-		at = 14
-		wait_camera()
-		at = 15
-		wait_frames(30)
+		resume_step = 14
+		camera.wait_until_done()
+		resume_step = 15
+		wait.frames(30)
 		event.set_object_handle_visible(14, 0)
 		event.set_camera_sequence_position(306.21, 234.45, 6861.67)
 		event.set_camera_sequence_look_at(234.87, 296.89, 4492.6)
-		event.play_sound_effect(var6, 8)
-		at = 16
-		wait_frames(60)
+		event.play_sound_effect(sound_bank, 8)
+		resume_step = 16
+		wait.frames(60)
 		event.set_object_sequence_motion(3, "浮遊", 4)
 		event.rotate_object_sequence_eased(3, -0.209, 1.57, 0.0, 60, 0, 0.4)
 		event.move_object_sequence(3, 8374.23, 2944.08, 3500.0, 360)
-		at = 17
-		wait_frames(30)
-		event.play_sound_effect(var6, 9)
+		resume_step = 17
+		wait.frames(30)
+		event.play_sound_effect(sound_bank, 9)
 		event.move_object_sequence_eased(4, 790.0, 50.0, 4500.0, 60, 0, 1.0)
 		event.move_camera_sequence_look_at(790.0, 100.0, 4500.0, 60)
-		at = 18
-		wait_objects(4)
+		resume_step = 18
+		object.wait_until_done(4)
 		event.rotate_object_sequence_eased(4, -0.209, 1.57, 0.0, 120, 0, 0.4)
-		pos_x_2 = 790.0
-		var12 = 0.0
-		var13 = vm.f32(0.26666668)
-		pos_y_2 = 50.0
-		var15 = 0.0
-		var16 = vm.f32(0.1)
-		pos_z_2 = 4500.0
-		var18 = 0.0
-		var19 = 0.0
-		var20 = 0
-		while var20 < 240 do
-			event.set_object_sequence_position(4, pos_x_2, pos_y_2, pos_z_2)
-			event.set_camera_sequence_look_at(pos_x_2, pos_y_2 + 50.0, pos_z_2)
-			pos_x_2 = vm.f32(pos_x_2 + var12)
-			var12 = vm.f32(var12 + var13)
-			pos_y_2 = vm.f32(pos_y_2 + var15)
-			var15 = vm.f32(var15 + var16)
-			pos_z_2 = vm.f32(pos_z_2 + var18)
-			var18 = vm.f32(var18 + var19)
-			var20 = var20 + 1
-			at = 19
+		train_x = 790.0
+		train_velocity_x = 0.0
+		train_acceleration_x = vm.f32(0.26666668)
+		train_y = 50.0
+		train_velocity_y = 0.0
+		train_acceleration_y = vm.f32(0.1)
+		train_z = 4500.0
+		train_velocity_z = 0.0
+		train_acceleration_z = 0.0
+		frame = 0
+		while frame < 240 do
+			event.set_object_sequence_position(4, train_x, train_y, train_z)
+			event.set_camera_sequence_look_at(train_x, train_y + 50.0, train_z)
+			train_x = vm.f32(train_x + train_velocity_x)
+			train_velocity_x = vm.f32(train_velocity_x + train_acceleration_x)
+			train_y = vm.f32(train_y + train_velocity_y)
+			train_velocity_y = vm.f32(train_velocity_y + train_acceleration_y)
+			train_z = vm.f32(train_z + train_velocity_z)
+			train_velocity_z = vm.f32(train_velocity_z + train_acceleration_z)
+			frame = frame + 1
+			resume_step = 19
 			vm.wait(19)
 		end
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			wait_frames_skipping(30)
+		if resume_step <= 1 then
+			wait.frames_skipping(30)
 		end
-		if at <= 2 then
-			wait_frames_skipping(10)
+		if resume_step <= 2 then
+			wait.frames_skipping(10)
 		end
-		if at <= 3 then
-			wait_frames_skipping(20)
+		if resume_step <= 3 then
+			wait.frames_skipping(20)
 		end
-		if at <= 4 then
-			wait_frames_skipping(30)
+		if resume_step <= 4 then
+			wait.frames_skipping(30)
 		end
-		if at <= 5 then
-			wait_frames_skipping(30)
+		if resume_step <= 5 then
+			wait.frames_skipping(30)
 		end
-		if at <= 6 then
-			wait_frames_skipping(30)
+		if resume_step <= 6 then
+			wait.frames_skipping(30)
 		end
-		if at <= 7 then
-			wait_frames_skipping(30)
+		if resume_step <= 7 then
+			wait.frames_skipping(30)
 		end
-		if at <= 8 then
-			wait_frames_skipping(20)
+		if resume_step <= 8 then
+			wait.frames_skipping(20)
 		end
-		if at <= 9 then
-			var10 = 2
-			wait_frames_skipping(10)
+		if resume_step <= 9 then
+			sequence_index = 2
+			wait.frames_skipping(10)
 		end
-		if at <= 10 then
-			var10 = 0
-			wait_frames_skipping(10)
+		if resume_step <= 10 then
+			sequence_index = 0
+			wait.frames_skipping(10)
 		end
-		if at <= 11 then
-			var10 = 1
-			helper_238b5abc(1)
+		if resume_step <= 11 then
+			sequence_index = 1
+			cutscene.skip_command(1)
 		end
-		if at <= 12 then
-			wait_frames_skipping(10)
+		if resume_step <= 12 then
+			wait.frames_skipping(10)
 		end
-		if at <= 13 then
-			helper_344d6cd8()
+		if resume_step <= 13 then
+			wait.background_load_skipping()
 		end
-		if at <= 14 then
-			wait_frames_skipping(30)
+		if resume_step <= 14 then
+			wait.frames_skipping(30)
 		end
-		if at <= 15 then
-			wait_frames_skipping(60)
+		if resume_step <= 15 then
+			wait.frames_skipping(60)
 		end
-		if at <= 16 then
-			wait_frames_skipping(30)
+		if resume_step <= 16 then
+			wait.frames_skipping(30)
 		end
-		if at <= 17 then
-			helper_238b5abc(4)
+		if resume_step <= 17 then
+			cutscene.skip_command(4)
 		end
-		if at <= 18 then
-			pos_x_2 = 790.0
-			var12 = 0.0
-			var13 = vm.f32(0.26666668)
-			pos_y_2 = 50.0
-			var15 = 0.0
-			var16 = vm.f32(0.1)
-			pos_z_2 = 4500.0
-			var18 = 0.0
-			var19 = 0.0
-			var20 = 0
-			pos_x_2 = vm.f32(pos_x_2 + var12)
-			var12 = vm.f32(var12 + var13)
-			pos_y_2 = vm.f32(pos_y_2 + var15)
-			var15 = vm.f32(var15 + var16)
-			pos_z_2 = vm.f32(pos_z_2 + var18)
-			var18 = vm.f32(var18 + var19)
-			local _ = var20 < 240
-			var20 = var20 + 1
+		if resume_step <= 18 then
+			train_x = 790.0
+			train_velocity_x = 0.0
+			train_acceleration_x = vm.f32(0.26666668)
+			train_y = 50.0
+			train_velocity_y = 0.0
+			train_acceleration_y = vm.f32(0.1)
+			train_z = 4500.0
+			train_velocity_z = 0.0
+			train_acceleration_z = 0.0
+			frame = 0
+			train_x = vm.f32(train_x + train_velocity_x)
+			train_velocity_x = vm.f32(train_velocity_x + train_acceleration_x)
+			train_y = vm.f32(train_y + train_velocity_y)
+			train_velocity_y = vm.f32(train_velocity_y + train_acceleration_y)
+			train_z = vm.f32(train_z + train_velocity_z)
+			train_velocity_z = vm.f32(train_velocity_z + train_acceleration_z)
+			local _ = frame < 240
+			frame = frame + 1
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
 	event.fade_out_music(30)
 	event.fade_out_screen(30)
-	at = 20
-	wait_frames(35)
+	resume_step = 20
+	wait.frames(35)
 	event.stop_music(0)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
 	event.stop_port_sound_effects(4)
 	event.clear_effect_manager()
-	at = 21
+	resume_step = 21
 	vm.wait(21)
-	at = 22
-	helper_e3d4()
+	resume_step = 22
+	unload_train_attack_assets()
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing when the script loads.
 function script.setup() end
 
-script.event_99 = event_99
+script.init_map = init_map
+script[99] = script.init_map
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the player at the station on entry, arriving by train, alighting from a train ride or restoring a loaded save.
 function script.default_event()
-	local mc_load: s32 = 0
-	local old_map_no: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
-	local at: number = 0
+	local memory_card_load_state: s32 = 0
+	local previous_map_id: s32 = 0
+	local previous_map_type: s32 = 0
+	local save_counter: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		event_99()
+		init_map()
 		print("start_event--------------------------------------------\n")
-		mc_load = event.take_memory_card_load_state() or mc_load
-		if mc_load == 1 then
-			helper_35e14f02()
-			helper_9dafbc83(70.0, vm.f32(0.6), 3440.0, vm.f32(3.14))
+		memory_card_load_state = event.take_memory_card_load_state() or memory_card_load_state
+		if memory_card_load_state == 1 then
+			character.load_station_npc()
+			character.place_standing_and_reset_cloth(70.0, vm.f32(0.6), 3440.0, vm.f32(3.14))
 			event.reset_follow_camera(1, 3.14, 10.0)
 			event.fade_in_screen(30)
 		else
 			print("000--------------------------------------------\n")
-			old_map_no = event.get_previous_map() or old_map_no
-			var2 = event.get_map_type(old_map_no) or var2
-			if var2 ~= -1 then
+			previous_map_id = event.get_previous_map() or previous_map_id
+			previous_map_type = event.get_map_type(previous_map_id) or previous_map_type
+			if previous_map_type ~= -1 then
 				print("111--------------------------------------------\n")
-				var3 = event.get_save_counter(1) or var3
-				if (old_map_no == 18 or old_map_no == 23 or old_map_no == 120 or old_map_no == 108) and var3 == 7 then
+				save_counter = event.get_save_counter(1) or save_counter
+				if (previous_map_id == 18 or previous_map_id == 23 or previous_map_id == 120 or previous_map_id == 108) and save_counter == 7 then
 					print("222--------------------------------------------\n")
-					helper_35e14f02()
-					at = 1
-					helper_201eec5c()
-					helper_946c0402()
+					character.load_station_npc()
+					resume_step = 1
+					train.alight()
+					train.place_player_at_saved_platform()
 					event.fade_in_screen(15)
 					event.reset_follow_camera(1, 0.0)
 				else
 					print("333--------------------------------------------\n")
-					at = 2
-					helper_235ae843()
-					helper_35e14f02()
+					resume_step = 2
+					train.arrive_at_station()
+					character.load_station_npc()
 				end
 				print("444--------------------------------------------\n")
 			end
@@ -532,13 +520,13 @@ function script.default_event()
 		print("999--------------------------------------------\n")
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				helper_d7295df9()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				train.skip_place_player_at_saved_platform()
 				print("333--------------------------------------------\n")
-				helper_17957835()
+				wait.skip_long_pause()
 			end
-			helper_1ef0d4b2()
+			cutscene.noop()
 			print("444--------------------------------------------\n")
 			print("555--------------------------------------------\n")
 			print("999--------------------------------------------\n")
@@ -549,12 +537,12 @@ function script.default_event()
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_ef680758
+script.key_open = moon_flower_palace_stop_s12.play_osmond_arrival
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
+--- Asks whether to leave the town and jumps to the next story map or to the world map.
+function script.exit_town()
 	local flag: s32 = 0
-	if helper_b47c3b77() ~= 0 then
+	if menu.confirm_leave() ~= 0 then
 		flag = event.get_save_flag(700) or flag
 		if flag == 0 then
 			event.skip_next_music_load()
@@ -566,80 +554,85 @@ function script.event_200()
 		end
 	end
 end
+script[200] = script.exit_town
 
---- Event 250, which map data, a script or the engine runs by number.
-function script.event_250()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local at: number = 0
+--- Asks whether to board and rides the train to the destination map.
+function script.board_train()
+	local answer: s32 = 0
+	local trigger_data: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
-		at = 1
-		var0 = helper_117e5b58()
-		if var0 ~= 1 then
+		resume_step = 1
+		answer = town_prompt.ask_enter_or_leave()
+		if answer ~= 1 then
 			return
 		end
 		event.set_save_counter(1, 7)
-		var1 = event.get_triggered_event_data_2(3) or var1
-		if var1 <= 1 then
-			at = 2
-			helper_f4ec8310()
+		trigger_data = event.get_triggered_event_data_2(3) or trigger_data
+		if trigger_data <= 1 then
+			resume_step = 2
+			train.board_short_train()
 			event.stop_music(0)
-			at = 3
+			resume_step = 3
 			vm.wait(3)
 			event.jump_to_map_2(-1, "s37")
-			at = 4
+			resume_step = 4
 			vm.wait(4)
 		else
-			at = 5
-			helper_fdad3d3b()
+			resume_step = 5
+			train.board_train_via_gangway()
 			event.stop_music(0)
 			event.jump_to_map_2(100, "s38")
 		end
 		return
 	end, function(received: { any })
-		if at <= 1 then
-			if at == 1 then
-				var0 = received[1] :: number
+		if resume_step <= 1 then
+			if resume_step == 1 then
+				answer = received[1] :: number
 			end
 			return 0
 		end
-		if at <= 5 then
-			if at <= 4 then
-				helper_c99744f1()
+		if resume_step <= 5 then
+			if resume_step <= 4 then
+				train.board_train_via_gangway_skipping()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[250] = script.board_train
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_f57795f8
+script[400] = menu.open_with_fade
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_ef680758()
-	helper_35e14f02()
+--- Plays the cutscene of Osmond's train arriving and places the player at the station.
+function script.cutscene_osmond_arrival()
+	moon_flower_palace_stop_s12.play_osmond_arrival()
+	character.load_station_npc()
 	event.set_character_active(0)
-	helper_9dafbc83(vm.f32(-249.34), 0.0, vm.f32(4318.43), vm.f32(3.14))
+	character.place_standing_and_reset_cloth(vm.f32(-249.34), 0.0, vm.f32(4318.43), vm.f32(3.14))
 	event.reset_follow_camera(1, 0.0, 10.0)
 	event.fade_in_screen(30)
 end
+script[500] = script.cutscene_osmond_arrival
 
---- Event 590, which map data, a script or the engine runs by number.
-function script.event_590()
-	helper_10090()
+--- Plays the train attack cutscene and jumps to the neighbouring map.
+function script.cutscene_train_attack_then_leave()
+	cutscene_toryon_attacks_train()
 	event.jump_to_map_3(-1, "s11", 502)
 	vm.wait(2)
 end
+script[590] = script.cutscene_train_attack_then_leave
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	var0 = event.get_triggered_event_data_2(13) or var0
-	if var0 == 8 then
-		helper_bac5d242()
+--- Has the character who waits outside speak when the player talks to them.
+function script.talk_to_waiting_character()
+	local character_slot: s32 = 0
+	character_slot = event.get_triggered_event_data_2(13) or character_slot
+	if character_slot == 8 then
+		town_prompt.say_waiting_outside()
 	end
 end
+script[1000] = script.talk_to_waiting_character
 
 return script

@@ -1,89 +1,75 @@
 --!strict
--- map/d/d02/b02/d02b02.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Boss floor script for the Rainbow Butterfly fight, with the butterfly arrival and split cutscenes, hint messages and the return to the previous floor.
 
 local vm = require("@lib/vm")
-local close_message = require("@lib/event/close_message")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_4bd7f01a = require("@lib/event/helper_4bd7f01a")
-local helper_6f1a51c5 = require("@lib/event/helper_6f1a51c5")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_786b79f1 = require("@lib/event/helper_786b79f1")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_89dcac54 = require("@lib/event/helper_89dcac54")
-local helper_8cd371d7 = require("@lib/event/helper_8cd371d7")
-local helper_9e49aefe = require("@lib/event/helper_9e49aefe")
-local helper_ad8b424a = require("@lib/event/helper_ad8b424a")
-local helper_d16eef1e = require("@lib/event/helper_d16eef1e")
-local helper_d61bc810 = require("@lib/event/helper_d61bc810")
-local helper_ee1c51d0 = require("@lib/event/helper_ee1c51d0")
-local helper_f018b3c0 = require("@lib/event/helper_f018b3c0")
-local helper_fbd9683d = require("@lib/event/helper_fbd9683d")
-local interpolate = require("@lib/event/interpolate")
-local open_message = require("@lib/event/open_message")
-local set_window_mode = require("@lib/event/set_window_mode")
-local wait_objects = require("@lib/event/wait_objects")
+local calc = require("@lib/event/calc")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local inventory = require("@lib/event/inventory")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local rainbow_butterfly_wood_butterfly_event = require("@lib/event/rainbow_butterfly_wood_butterfly_event")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
-local global1: s32 = 0
+local mints_slot: s32 = 0
+local monica_slot: s32 = 0
 
---- Helper function.
-local function helper_10864(arg0: s32)
-	local active_chr_no: s32 = 0
+--- Loads the characters, boss model, title sprite and message file used by the butterfly arrival cutscene.
+local function load_arrival_cutscene(sound_bank: s32)
+	local active_character: s32 = 0
 	local block: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 8
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e257/e257_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		mints_slot = 0
+		monica_slot = 8
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e257/e257_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 13)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e257/e257_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 13)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e257/e257_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 13)
 	end
-	if active_chr_no == 1 then
-		global0 = 8
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 13)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e257/e257_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	if active_character == 1 then
+		mints_slot = 8
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_slot)
+		event.load_equipment_model(5, 0, 4, "info", mints_slot)
+		event.load_equipment_model(5, 0, 3, "info", mints_slot)
+		event.load_equipment_model(5, 0, 2, "info", mints_slot, 13)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e257/e257_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, mints_slot)
 		event.set_character_active(1, 13)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e257/e257_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e257/e257_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.set_character_visible(1, 0)
 	event.set_character_visible(2, 0)
 	event.load_character(5, "dungeon/monster/b02a.gltf", "info", 11)
 	event.set_character_active(0, 11)
 	event.attach_object_handle_to_character(3, 11)
-	event.set_object_handle_sound_bank(3, arg0)
+	event.set_object_handle_sound_bank(3, sound_bank)
 	event.clear_object_sequence(3, 11)
 	event.set_object_sequence_object(3, 3)
 	block = event.load_event_image_4(5, "textures/event/e200/e257/e257telop01.json", 0) or block
@@ -102,32 +88,32 @@ local function helper_10864(arg0: s32)
 	event.load_message_file(0, 5, "event/e200/e257/e257.txt")
 end
 
---- Helper function.
-local function helper_22300000(arg0: s32)
-	global0 = 0
-	global1 = 8
-	global0 = 8
-	global1 = 0
+--- Reassigns the two party character slots to their post-skip values when the arrival cutscene is skipped.
+local function swap_party_slots_after_arrival_skip(sound_bank: s32)
+	mints_slot = 0
+	monica_slot = 8
+	mints_slot = 8
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_104e4()
-	local active_chr_no: s32 = 0
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+--- Restores the party and deletes the boss model and title sprite loaded for the arrival cutscene.
+local function unload_arrival_cutscene()
+	local active_character: s32 = 0
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(13)
 	end
-	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+	if active_character == 1 then
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, mints_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(mints_slot)
 		event.delete_character(13)
 	end
 	event.set_character_visible(1, 1)
@@ -136,41 +122,41 @@ local function helper_104e4()
 	event.delete_event_image(0)
 end
 
---- Helper function.
-local function helper_119c8()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local rot_y: f32 = 0
-	local pos_x: f32 = 0
-	local pos_z: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local pos_x_3: f32 = 0
-	local pos_z_3: f32 = 0
-	local var15: s32 = 0
-	local stream_open_state: s32 = 0
-	local stream_open_state_2: s32 = 0
-	local var18: f32 = 0
-	local var19: f32 = 0
-	local pos_x_4: f32 = 0
-	local pos_z_4: f32 = 0
-	local rot_y_2: f32 = 0
-	local var23: f32 = 0
-	local var24: f32 = 0
-	local var25: f32 = 0
-	local var26: f32 = 0
-	local pos_x_5: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z_5: f32 = 0
-	local var30: f32 = 0
-	local rot_y_3: f32 = 0
-	local rot_y_4: f32 = 0
+--- Plays the cutscene in which the Rainbow Butterfly flies over the heroes and they react to it.
+local function play_arrival_cutscene()
+	local frame: s32 = 0
+	local sound_bank: s32 = 0
+	local character_angle: f32 = 0
+	local camera_angle: f32 = 0
+	local look_at_angle: f32 = 0
+	local character_radius: f32 = 0
+	local camera_radius: f32 = 0
+	local look_at_radius: f32 = 0
+	local character_rotation: f32 = 0
+	local character_x: f32 = 0
+	local character_z: f32 = 0
+	local camera_x: f32 = 0
+	local camera_z: f32 = 0
+	local look_at_x: f32 = 0
+	local look_at_z: f32 = 0
+	local voice_id: s32 = 0
+	local voice_open_state: s32 = 0
+	local voice_ready_state: s32 = 0
+	local partner_angle: f32 = 0
+	local partner_radius: f32 = 0
+	local partner_x: f32 = 0
+	local partner_z: f32 = 0
+	local partner_rotation: f32 = 0
+	local partner_angle_offset: f32 = 0
+	local butterfly_yaw: f32 = 0
+	local previous_butterfly_x: f32 = 0
+	local previous_butterfly_z: f32 = 0
+	local butterfly_x: f32 = 0
+	local butterfly_y: f32 = 0
+	local butterfly_z: f32 = 0
+	local butterfly_angle: f32 = 0
+	local partner_turn_rotation: f32 = 0
+	local character_turn_rotation: f32 = 0
 	local at: number = 0
 	vm.section(function()
 		event.set_save_flag(257, 1)
@@ -178,14 +164,14 @@ local function helper_119c8()
 		event.set_message_window_mode(0, 7)
 		event.fade_out_screen(30)
 		at = 1
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.load_map_sounds(2833)
-		var1 = event.load_sound_effect_file_2(2833) or var1
+		sound_bank = event.load_sound_effect_file_2(2833) or sound_bank
 		event.stop_music(0)
 		at = 2
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(31)
-		helper_10864(var1)
+		load_arrival_cutscene(sound_bank)
 		event.set_object_sequence_motion(11, "歩き")
 		event.set_character_active(0, 11)
 		event.show_dungeon_status_bar(0, 1.0)
@@ -194,8 +180,8 @@ local function helper_119c8()
 		event.set_camera_sequence_look_at(386.81, 799.84, 241.69)
 		event.fade_in_screen(30)
 		at = 3
-		helper_888ab2a3(60)
-		event.set_character_active(1, global1)
+		wait.for_frame_count(60)
+		event.set_character_active(1, monica_slot)
 		event.set_object_handle_footstep_sound(1, 17)
 		event.set_object_sequence_position(1, 459.65, 700.0, 314.9)
 		event.set_object_sequence_rotation(1, 0.0, -1.63, 0.0)
@@ -221,9 +207,9 @@ local function helper_119c8()
 		event.set_object_sequence_texture_animation(1, 1, "無表情")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
 		at = 4
-		helper_888ab2a3(10)
-		event.play_sound_effect(var1, 0)
-		event.set_character_active(1, global0)
+		wait.for_frame_count(10)
+		event.play_sound_effect(sound_bank, 0)
+		event.set_character_active(1, mints_slot)
 		event.set_object_sequence_position(0, 465.64, 700.0, 251.72)
 		event.set_object_sequence_rotation(0, 0.0, -1.63, 0.0)
 		event.jump_object_sequence(0, 345.04, 787.93, 219.25, -0.6, 30)
@@ -241,59 +227,59 @@ local function helper_119c8()
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "無表情")
 		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
-		event.set_character_cloth_animation_enabled(global0, 0)
+		event.set_character_cloth_animation_enabled(mints_slot, 0)
 		at = 5
-		helper_888ab2a3(20)
-		event.play_sound_effect(var1, 1)
+		wait.for_frame_count(20)
+		event.play_sound_effect(sound_bank, 1)
 		at = 6
-		helper_888ab2a3(10)
-		event.play_sound_effect(var1, 2)
+		wait.for_frame_count(10)
+		event.play_sound_effect(sound_bank, 2)
 		at = 7
-		helper_888ab2a3(30)
-		event.set_character_cloth_animation_enabled(global1, 0)
-		event.set_character_cloth_animation_enabled(global0, 1)
+		wait.for_frame_count(30)
+		event.set_character_cloth_animation_enabled(monica_slot, 0)
+		event.set_character_cloth_animation_enabled(mints_slot, 1)
 		event.enable_drama_skip()
-		var2 = vm.f32(0.116339)
-		var3 = vm.f32(0.074309)
-		var4 = vm.f32(0.124094)
-		var5 = vm.f32(496.65527)
-		var6 = vm.f32(526.85187)
-		var7 = vm.f32(483.53925)
-		rot_y = vm.f32(-1.63)
-		pos_x = vm.f32(vm.f32(vm.sin(var2) * var5) + vm.f32(268.802))
-		pos_z = vm.f32(vm.f32(vm.cos(var2) * var5) + vm.f32(-322.002))
-		pos_x_2 = vm.f32(vm.f32(vm.sin(var3) * var6) + vm.f32(268.802))
-		pos_z_2 = vm.f32(vm.f32(vm.cos(var3) * var6) + vm.f32(-322.002))
-		pos_x_3 = vm.f32(vm.f32(vm.sin(var4) * var7) + vm.f32(268.802))
-		pos_z_3 = vm.f32(vm.f32(vm.cos(var4) * var7) + vm.f32(-322.002))
-		event.set_camera_sequence_position(pos_x_2, 809.42, pos_z_2)
-		event.set_camera_sequence_look_at(pos_x_3, 815.5, pos_z_3)
-		event.set_object_sequence_position(1, pos_x, 791.14, pos_z)
-		event.set_object_sequence_rotation(1, 0.0, rot_y, 0.0)
+		character_angle = vm.f32(0.116339)
+		camera_angle = vm.f32(0.074309)
+		look_at_angle = vm.f32(0.124094)
+		character_radius = vm.f32(496.65527)
+		camera_radius = vm.f32(526.85187)
+		look_at_radius = vm.f32(483.53925)
+		character_rotation = vm.f32(-1.63)
+		character_x = vm.f32(vm.f32(vm.sin(character_angle) * character_radius) + vm.f32(268.802))
+		character_z = vm.f32(vm.f32(vm.cos(character_angle) * character_radius) + vm.f32(-322.002))
+		camera_x = vm.f32(vm.f32(vm.sin(camera_angle) * camera_radius) + vm.f32(268.802))
+		camera_z = vm.f32(vm.f32(vm.cos(camera_angle) * camera_radius) + vm.f32(-322.002))
+		look_at_x = vm.f32(vm.f32(vm.sin(look_at_angle) * look_at_radius) + vm.f32(268.802))
+		look_at_z = vm.f32(vm.f32(vm.cos(look_at_angle) * look_at_radius) + vm.f32(-322.002))
+		event.set_camera_sequence_position(camera_x, 809.42, camera_z)
+		event.set_camera_sequence_look_at(look_at_x, 815.5, look_at_z)
+		event.set_object_sequence_position(1, character_x, 791.14, character_z)
+		event.set_object_sequence_rotation(1, 0.0, character_rotation, 0.0)
 		event.set_object_sequence_motion(1, "着地2Ｌ", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(1, "立ちあがり", 6)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		at = 8
 		vm.wait(8)
-		event.set_character_cloth_animation_enabled(global1, 1)
+		event.set_character_cloth_animation_enabled(monica_slot, 1)
 		event.reset_object_sequence_dynamic_animation(1)
 		event.delay_object_sequence_motion_track(1, 1)
 		event.reset_object_sequence_dynamic_animation(1)
 		event.delay_object_sequence_motion_track(1, 1)
 		event.reset_object_sequence_dynamic_animation(1)
 		at = 9
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_object_sequence_motion(1, "きょろきょろ歩き", 2)
 		event.queue_object_sequence_next_motion(1, "歩き", 4)
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "無表情")
 		event.set_object_sequence_texture_animation(1, 1, "通常目～ひき目")
 		event.set_object_sequence_texture_animation(1, 1, "通常口パク")
-		var15 = 2570010
-		event.open_voice_stream_wave(1, var15)
+		voice_id = 2570010
+		event.open_voice_stream_wave(1, voice_id)
 		while true do
-			stream_open_state = event.get_voice_stream_open_state() or stream_open_state
-			if stream_open_state == 0 then
+			voice_open_state = event.get_voice_stream_open_state() or voice_open_state
+			if voice_open_state == 0 then
 				break
 			else
 				at = 10
@@ -302,8 +288,8 @@ local function helper_119c8()
 		end
 		event.ready_voice_stream(1)
 		while true do
-			stream_open_state_2 = event.get_voice_stream_open_state() or stream_open_state_2
-			if stream_open_state_2 == 0 then
+			voice_ready_state = event.get_voice_stream_open_state() or voice_ready_state
+			if voice_ready_state == 0 then
 				break
 			else
 				at = 11
@@ -311,113 +297,113 @@ local function helper_119c8()
 			end
 		end
 		event.set_message_button_prompt(0, 0)
-		event.open_message_window_2(0, var15)
-		open_message(0, -1, 8, 0, 0)
+		event.open_message_window_2(0, voice_id)
+		message.open(0, -1, 8, 0, 0)
 		event.play_voice_stream(1)
-		var0 = 0
-		while var0 < 180 do
-			pos_x = vm.f32(vm.f32(vm.sin(var2) * var5) + vm.f32(268.802))
-			pos_z = vm.f32(vm.f32(vm.cos(var2) * var5) + vm.f32(-322.002))
-			pos_x_2 = vm.f32(vm.f32(vm.sin(var3) * var6) + vm.f32(268.802))
-			pos_z_2 = vm.f32(vm.f32(vm.cos(var3) * var6) + vm.f32(-322.002))
-			pos_x_3 = vm.f32(vm.f32(vm.sin(var4) * var7) + vm.f32(268.802))
-			pos_z_3 = vm.f32(vm.f32(vm.cos(var4) * var7) + vm.f32(-322.002))
-			event.set_object_sequence_position(1, pos_x, 791.14, pos_z)
-			event.set_object_sequence_rotation(1, 0.0, rot_y, 0.0)
-			event.set_camera_sequence_position(pos_x_2, 809.42, pos_z_2)
-			event.set_camera_sequence_look_at(pos_x_3, 815.5, pos_z_3)
-			var0 = var0 + 1
+		frame = 0
+		while frame < 180 do
+			character_x = vm.f32(vm.f32(vm.sin(character_angle) * character_radius) + vm.f32(268.802))
+			character_z = vm.f32(vm.f32(vm.cos(character_angle) * character_radius) + vm.f32(-322.002))
+			camera_x = vm.f32(vm.f32(vm.sin(camera_angle) * camera_radius) + vm.f32(268.802))
+			camera_z = vm.f32(vm.f32(vm.cos(camera_angle) * camera_radius) + vm.f32(-322.002))
+			look_at_x = vm.f32(vm.f32(vm.sin(look_at_angle) * look_at_radius) + vm.f32(268.802))
+			look_at_z = vm.f32(vm.f32(vm.cos(look_at_angle) * look_at_radius) + vm.f32(-322.002))
+			event.set_object_sequence_position(1, character_x, 791.14, character_z)
+			event.set_object_sequence_rotation(1, 0.0, character_rotation, 0.0)
+			event.set_camera_sequence_position(camera_x, 809.42, camera_z)
+			event.set_camera_sequence_look_at(look_at_x, 815.5, look_at_z)
+			frame = frame + 1
 			at = 12
 			vm.wait(12)
-			var2 = helper_4bd7f01a(vm.f32(var2 - vm.f32(0.002)))
-			rot_y = helper_4bd7f01a(vm.f32(rot_y - vm.f32(0.002)))
-			var3 = helper_4bd7f01a(vm.f32(var3 - vm.f32(0.002)))
-			var4 = helper_4bd7f01a(vm.f32(var4 - vm.f32(0.002)))
-			if var0 == 158 then
+			character_angle = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(character_angle - vm.f32(0.002)))
+			character_rotation = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(character_rotation - vm.f32(0.002)))
+			camera_angle = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(camera_angle - vm.f32(0.002)))
+			look_at_angle = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(look_at_angle - vm.f32(0.002)))
+			if frame == 158 then
 				event.set_object_sequence_texture_animation(1, 0, "通常口パク")
 			end
 		end
-		close_message(0)
+		message.close(0)
 		event.close_voice_stream(1)
 		event.set_message_button_prompt(0, 1)
-		var18 = vm.f32(var2 + 0.0625)
-		var19 = vm.f32(var5 - 100.0)
-		pos_x_4 = vm.f32(vm.f32(vm.sin(var18) * var19) + vm.f32(268.802))
-		pos_z_4 = vm.f32(vm.f32(vm.cos(var18) * var19) + vm.f32(-322.002))
-		rot_y_2 = 2.0
-		event.set_object_sequence_position(0, pos_x_4, 783.25, pos_z_4)
-		event.set_object_sequence_rotation(0, 0.0, rot_y_2, 0.0)
+		partner_angle = vm.f32(character_angle + 0.0625)
+		partner_radius = vm.f32(character_radius - 100.0)
+		partner_x = vm.f32(vm.f32(vm.sin(partner_angle) * partner_radius) + vm.f32(268.802))
+		partner_z = vm.f32(vm.f32(vm.cos(partner_angle) * partner_radius) + vm.f32(-322.002))
+		partner_rotation = 2.0
+		event.set_object_sequence_position(0, partner_x, 783.25, partner_z)
+		event.set_object_sequence_rotation(0, 0.0, partner_rotation, 0.0)
 		event.set_object_sequence_motion(0, "キョロキョロ歩き")
 		event.set_object_handle_footstep_sound(0, 17)
-		var0 = 0
-		while var0 < 90 do
-			var23 = interpolate(-0.125, 0.0625, var0, 90)
-			var18 = helper_4bd7f01a(vm.f32(var2 + var23))
-			pos_x_4 = vm.f32(vm.f32(vm.sin(var18) * var19) + vm.f32(268.802))
-			pos_z_4 = vm.f32(vm.f32(vm.cos(var18) * var19) + vm.f32(-322.002))
-			pos_x = vm.f32(vm.f32(vm.sin(var2) * var5) + vm.f32(268.802))
-			pos_z = vm.f32(vm.f32(vm.cos(var2) * var5) + vm.f32(-322.002))
-			pos_x_2 = vm.f32(vm.f32(vm.sin(var3) * var6) + vm.f32(268.802))
-			pos_z_2 = vm.f32(vm.f32(vm.cos(var3) * var6) + vm.f32(-322.002))
-			pos_x_3 = vm.f32(vm.f32(vm.sin(var4) * var7) + vm.f32(268.802))
-			pos_z_3 = vm.f32(vm.f32(vm.cos(var4) * var7) + vm.f32(-322.002))
-			event.set_object_sequence_position(0, pos_x_4, 783.25, pos_z_4)
-			event.set_object_sequence_rotation(0, 0.0, rot_y_2, 0.0)
-			event.set_object_sequence_position(1, pos_x, 791.14, pos_z)
-			event.set_object_sequence_rotation(1, 0.0, rot_y, 0.0)
-			event.set_camera_sequence_position(pos_x_2, 809.42, pos_z_2)
-			event.set_camera_sequence_look_at(pos_x_3, 815.5, pos_z_3)
-			var0 = var0 + 1
+		frame = 0
+		while frame < 90 do
+			partner_angle_offset = calc.interpolate(-0.125, 0.0625, frame, 90)
+			partner_angle = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(character_angle + partner_angle_offset))
+			partner_x = vm.f32(vm.f32(vm.sin(partner_angle) * partner_radius) + vm.f32(268.802))
+			partner_z = vm.f32(vm.f32(vm.cos(partner_angle) * partner_radius) + vm.f32(-322.002))
+			character_x = vm.f32(vm.f32(vm.sin(character_angle) * character_radius) + vm.f32(268.802))
+			character_z = vm.f32(vm.f32(vm.cos(character_angle) * character_radius) + vm.f32(-322.002))
+			camera_x = vm.f32(vm.f32(vm.sin(camera_angle) * camera_radius) + vm.f32(268.802))
+			camera_z = vm.f32(vm.f32(vm.cos(camera_angle) * camera_radius) + vm.f32(-322.002))
+			look_at_x = vm.f32(vm.f32(vm.sin(look_at_angle) * look_at_radius) + vm.f32(268.802))
+			look_at_z = vm.f32(vm.f32(vm.cos(look_at_angle) * look_at_radius) + vm.f32(-322.002))
+			event.set_object_sequence_position(0, partner_x, 783.25, partner_z)
+			event.set_object_sequence_rotation(0, 0.0, partner_rotation, 0.0)
+			event.set_object_sequence_position(1, character_x, 791.14, character_z)
+			event.set_object_sequence_rotation(1, 0.0, character_rotation, 0.0)
+			event.set_camera_sequence_position(camera_x, 809.42, camera_z)
+			event.set_camera_sequence_look_at(look_at_x, 815.5, look_at_z)
+			frame = frame + 1
 			at = 13
 			vm.wait(13)
-			rot_y_2 = helper_4bd7f01a(vm.f32(rot_y_2 - vm.f32(0.002)))
-			var2 = helper_4bd7f01a(vm.f32(var2 - vm.f32(0.002)))
-			rot_y = helper_4bd7f01a(vm.f32(rot_y - vm.f32(0.002)))
-			var3 = helper_4bd7f01a(vm.f32(var3 - vm.f32(0.002)))
-			var4 = helper_4bd7f01a(vm.f32(var4 - vm.f32(0.002)))
+			partner_rotation = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(partner_rotation - vm.f32(0.002)))
+			character_angle = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(character_angle - vm.f32(0.002)))
+			character_rotation = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(character_rotation - vm.f32(0.002)))
+			camera_angle = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(camera_angle - vm.f32(0.002)))
+			look_at_angle = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(look_at_angle - vm.f32(0.002)))
 		end
 		event.play_music(0)
 		event.set_object_sequence_motion(1, "立ち")
 		event.set_object_sequence_motion(0, "指さす", 2)
 		event.queue_object_sequence_next_motion(0, "指さすL", 4)
 		at = 14
-		helper_4116e6bb(2570020)
+		message.show_voiced(2570020)
 		event.set_object_sequence_motion(1, "右振りかえり180度（ＰＧ）", 2)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
-		rot_y = vm.f32(-2.17)
-		var0 = 0
-		while var0 < 30 do
-			event.set_object_sequence_rotation(1, 0.0, rot_y, 0.0)
+		character_rotation = vm.f32(-2.17)
+		frame = 0
+		while frame < 30 do
+			event.set_object_sequence_rotation(1, 0.0, character_rotation, 0.0)
 			at = 15
 			vm.wait(15)
-			rot_y = helper_4bd7f01a(vm.f32(rot_y - vm.f32(0.07)))
-			var0 = var0 + 1
+			character_rotation = rainbow_butterfly_wood_butterfly_event.wrap_angle(vm.f32(character_rotation - vm.f32(0.07)))
+			frame = frame + 1
 		end
 		at = 16
-		helper_888ab2a3(30)
-		close_message(0)
+		wait.for_frame_count(30)
+		message.close(0)
 		event.close_voice_stream(1)
-		event.set_character_active(0, global0)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, mints_slot)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 11)
 		event.set_camera_sequence_position(356.04, 805.96, -432.95)
 		event.set_camera_sequence_look_at(414.81, 835.96, -493.23)
-		var0 = 0
-		while var0 < 240 do
-			pos_y = interpolate(vm.f32(1691.85), vm.f32(858.57), var0, 240)
-			var30 = interpolate(vm.f32(-3.926991), vm.f32(-1.5707964), var0, 240)
-			pos_x_5 = vm.f32(vm.sin(var30) * vm.f32(1476.7))
-			pos_z_5 = vm.f32(vm.cos(var30) * vm.f32(1476.7))
-			pos_x_5 = vm.f32(pos_x_5 + vm.f32(1970.21))
-			pos_z_5 = vm.f32(pos_z_5 + vm.f32(-576.77))
-			var24 = event.get_look_angle(pos_x_5 - var25, pos_z_5 - var26) or var24
-			event.set_object_sequence_position(3, pos_x_5, pos_y, pos_z_5)
-			event.set_object_sequence_rotation(3, 0.0, var24, 0.0)
+		frame = 0
+		while frame < 240 do
+			butterfly_y = calc.interpolate(vm.f32(1691.85), vm.f32(858.57), frame, 240)
+			butterfly_angle = calc.interpolate(vm.f32(-3.926991), vm.f32(-1.5707964), frame, 240)
+			butterfly_x = vm.f32(vm.sin(butterfly_angle) * vm.f32(1476.7))
+			butterfly_z = vm.f32(vm.cos(butterfly_angle) * vm.f32(1476.7))
+			butterfly_x = vm.f32(butterfly_x + vm.f32(1970.21))
+			butterfly_z = vm.f32(butterfly_z + vm.f32(-576.77))
+			butterfly_yaw = event.get_look_angle(butterfly_x - previous_butterfly_x, butterfly_z - previous_butterfly_z) or butterfly_yaw
+			event.set_object_sequence_position(3, butterfly_x, butterfly_y, butterfly_z)
+			event.set_object_sequence_rotation(3, 0.0, butterfly_yaw, 0.0)
 			at = 17
 			vm.wait(17)
-			var0 = var0 + 1
-			var25 = pos_x_5
-			var26 = pos_z_5
+			frame = frame + 1
+			previous_butterfly_x = butterfly_x
+			previous_butterfly_z = butterfly_z
 		end
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(500.0, 1130.3, -916.4)
@@ -425,16 +411,16 @@ local function helper_119c8()
 		event.move_camera_sequence_eased(500.0, 1100.0, -500.0, 500.0, 1100.0, -1000.0, 150, 2, 1.0)
 		event.set_object_sequence_position(3, 500.0, 1100.0, -1000.0)
 		event.set_object_sequence_rotation(3, 0.0, 0.0, 0.0)
-		event.play_sound_effect(var1, 4)
+		event.play_sound_effect(sound_bank, 4)
 		at = 18
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_event_sprite_draw_pass(0, 1)
 		event.set_object_sequence_color(10, 128.0, 128.0, 128.0, 128.0, 30)
 		at = 19
-		helper_888ab2a3(240)
+		wait.for_frame_count(240)
 		event.set_event_sprite_draw_pass(0, 0)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(0, 11)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(-242.49, 801.47, -239.88)
@@ -447,10 +433,10 @@ local function helper_119c8()
 		event.set_object_sequence_motion(1, "上向くL", 4)
 		event.reset_object_sequence_dynamic_animation(1)
 		at = 20
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 21
-		helper_4116e6bb(2570030)
+		message.show_voiced(2570030)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(1, "上向くL")
 		event.set_object_sequence_texture_animation(0, 0)
@@ -459,16 +445,16 @@ local function helper_119c8()
 		event.set_object_sequence_motion(0, "かまえる", 2)
 		event.queue_object_sequence_next_motion(0, "かまえるL", 4)
 		at = 22
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(1, 1, "おこり目パチ")
 		event.set_mouth_texture_animations(0, "通常口パク")
 		at = 23
-		helper_4116e6bb(2570040)
+		message.show_voiced(2570040)
 		event.reset_mouth_texture_animations()
 		at = 24
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_camera_sequence_position(-212.52, 803.06, -183.32)
 		event.set_camera_sequence_look_at(-203.01, 814.64, -250.93)
 		event.set_object_sequence_position(0, -214.38, 784.37, -234.13)
@@ -488,35 +474,35 @@ local function helper_119c8()
 		event.set_object_sequence_rotation(3, 0.7853982, -0.15, 0.0)
 		event.move_object_sequence(3, -243.09, 926.4, 17.21, 120)
 		at = 25
-		helper_888ab2a3(30)
-		event.play_sound_effect(var1, 5)
+		wait.for_frame_count(30)
+		event.play_sound_effect(sound_bank, 5)
 		at = 26
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(0, "蝶迫る", 2)
 		event.queue_object_sequence_next_motion(0, "蝶迫るL", 4)
 		event.set_object_sequence_motion(1, "構えから顔覆う", 2)
 		event.queue_object_sequence_next_motion(1, "覆うＬ", 4)
 		at = 27
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_motion_blur(96)
 		event.set_wind(40.0, -9.51001, 0.0, 67.609985)
 		at = 28
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_motion_blur(0)
 		event.set_character_active(0, 11)
 		event.set_object_sequence_motion(0, "振り返る", 2)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		event.set_object_sequence_motion(1, "覆いから右回り右180", 2)
 		event.queue_object_sequence_next_motion(1, "上向くL", 4)
-		var0 = 0
-		while var0 < 30 do
-			rot_y_3 = interpolate(vm.f32(3.13), vm.f32(-0.15), var0, 30.0)
-			rot_y_4 = interpolate(vm.f32(-3.07), vm.f32(-0.62), var0, 30.0)
-			event.set_object_sequence_rotation(0, 0.0, rot_y_3, 0.0)
-			event.set_object_sequence_rotation(1, 0.0, rot_y_4, 0.0)
+		frame = 0
+		while frame < 30 do
+			partner_turn_rotation = calc.interpolate(vm.f32(3.13), vm.f32(-0.15), frame, 30.0)
+			character_turn_rotation = calc.interpolate(vm.f32(-3.07), vm.f32(-0.62), frame, 30.0)
+			event.set_object_sequence_rotation(0, 0.0, partner_turn_rotation, 0.0)
+			event.set_object_sequence_rotation(1, 0.0, character_turn_rotation, 0.0)
 			at = 29
 			vm.wait(29)
-			var0 = var0 + 1
+			frame = frame + 1
 		end
 		event.set_wind(-1)
 		event.set_object_sequence_texture_animation(1, 0)
@@ -524,174 +510,174 @@ local function helper_119c8()
 		event.set_object_sequence_texture_animation(1, 1, "おこり目とじ～おこり目あき")
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 30
-		helper_4116e6bb(2570050)
+		message.show_voiced(2570050)
 		event.reset_mouth_texture_animations()
 		event.fade_out_screen(30)
 		at = 31
-		helper_888ab2a3(45)
+		wait.for_frame_count(45)
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 2 then
-			helper_22300000(var1)
-			helper_038a2e4d(60)
+			swap_party_slots_after_arrival_skip(sound_bank)
+			wait.skip_frame_count(60)
 		end
 		if at <= 3 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 4 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 5 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 6 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 7 then
-			var2 = vm.f32(0.116339)
-			var3 = vm.f32(0.074309)
-			var4 = vm.f32(0.124094)
-			var5 = vm.f32(496.65527)
-			var6 = vm.f32(526.85187)
-			var7 = vm.f32(483.53925)
-			rot_y = vm.f32(-1.63)
-			pos_x = vm.f32(vm.f32(vm.sin(var2) * var5) + vm.f32(268.802))
-			pos_z = vm.f32(vm.f32(vm.cos(var2) * var5) + vm.f32(-322.002))
-			pos_x_2 = vm.f32(vm.f32(vm.sin(var3) * var6) + vm.f32(268.802))
-			pos_z_2 = vm.f32(vm.f32(vm.cos(var3) * var6) + vm.f32(-322.002))
-			pos_x_3 = vm.f32(vm.f32(vm.sin(var4) * var7) + vm.f32(268.802))
-			pos_z_3 = vm.f32(vm.f32(vm.cos(var4) * var7) + vm.f32(-322.002))
+			character_angle = vm.f32(0.116339)
+			camera_angle = vm.f32(0.074309)
+			look_at_angle = vm.f32(0.124094)
+			character_radius = vm.f32(496.65527)
+			camera_radius = vm.f32(526.85187)
+			look_at_radius = vm.f32(483.53925)
+			character_rotation = vm.f32(-1.63)
+			character_x = vm.f32(vm.f32(vm.sin(character_angle) * character_radius) + vm.f32(268.802))
+			character_z = vm.f32(vm.f32(vm.cos(character_angle) * character_radius) + vm.f32(-322.002))
+			camera_x = vm.f32(vm.f32(vm.sin(camera_angle) * camera_radius) + vm.f32(268.802))
+			camera_z = vm.f32(vm.f32(vm.cos(camera_angle) * camera_radius) + vm.f32(-322.002))
+			look_at_x = vm.f32(vm.f32(vm.sin(look_at_angle) * look_at_radius) + vm.f32(268.802))
+			look_at_z = vm.f32(vm.f32(vm.cos(look_at_angle) * look_at_radius) + vm.f32(-322.002))
 		end
 		if at <= 8 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 9 then
-			var15 = 2570010
+			voice_id = 2570010
 		end
 		if at <= 11 then
-			helper_f018b3c0(0, -1, 8, 0, 0)
-			var0 = 0
-			pos_x = vm.f32(vm.f32(vm.sin(var2) * var5) + vm.f32(268.802))
-			pos_z = vm.f32(vm.f32(vm.cos(var2) * var5) + vm.f32(-322.002))
-			pos_x_2 = vm.f32(vm.f32(vm.sin(var3) * var6) + vm.f32(268.802))
-			pos_z_2 = vm.f32(vm.f32(vm.cos(var3) * var6) + vm.f32(-322.002))
-			pos_x_3 = vm.f32(vm.f32(vm.sin(var4) * var7) + vm.f32(268.802))
-			pos_z_3 = vm.f32(vm.f32(vm.cos(var4) * var7) + vm.f32(-322.002))
-			local _ = var0 < 180
-			var0 = var0 + 1
+			message.open_skipping(0, -1, 8, 0, 0)
+			frame = 0
+			character_x = vm.f32(vm.f32(vm.sin(character_angle) * character_radius) + vm.f32(268.802))
+			character_z = vm.f32(vm.f32(vm.cos(character_angle) * character_radius) + vm.f32(-322.002))
+			camera_x = vm.f32(vm.f32(vm.sin(camera_angle) * camera_radius) + vm.f32(268.802))
+			camera_z = vm.f32(vm.f32(vm.cos(camera_angle) * camera_radius) + vm.f32(-322.002))
+			look_at_x = vm.f32(vm.f32(vm.sin(look_at_angle) * look_at_radius) + vm.f32(268.802))
+			look_at_z = vm.f32(vm.f32(vm.cos(look_at_angle) * look_at_radius) + vm.f32(-322.002))
+			local _ = frame < 180
+			frame = frame + 1
 		end
 		if at <= 12 then
-			var2 = helper_9e49aefe(vm.f32(var2 - vm.f32(0.002)))
-			rot_y = helper_9e49aefe(vm.f32(rot_y - vm.f32(0.002)))
-			var3 = helper_9e49aefe(vm.f32(var3 - vm.f32(0.002)))
-			var4 = helper_9e49aefe(vm.f32(var4 - vm.f32(0.002)))
-			helper_d16eef1e(0)
-			var18 = vm.f32(var2 + 0.0625)
-			var19 = vm.f32(var5 - 100.0)
-			pos_x_4 = vm.f32(vm.f32(vm.sin(var18) * var19) + vm.f32(268.802))
-			pos_z_4 = vm.f32(vm.f32(vm.cos(var18) * var19) + vm.f32(-322.002))
-			rot_y_2 = 2.0
-			local _ = var0 == 158
-			var0 = 0
-			var23 = interpolate(-0.125, 0.0625, var0, 90)
-			var18 = helper_9e49aefe(vm.f32(var2 + var23))
-			pos_x_4 = vm.f32(vm.f32(vm.sin(var18) * var19) + vm.f32(268.802))
-			pos_z_4 = vm.f32(vm.f32(vm.cos(var18) * var19) + vm.f32(-322.002))
-			pos_x = vm.f32(vm.f32(vm.sin(var2) * var5) + vm.f32(268.802))
-			pos_z = vm.f32(vm.f32(vm.cos(var2) * var5) + vm.f32(-322.002))
-			pos_x_2 = vm.f32(vm.f32(vm.sin(var3) * var6) + vm.f32(268.802))
-			pos_z_2 = vm.f32(vm.f32(vm.cos(var3) * var6) + vm.f32(-322.002))
-			pos_x_3 = vm.f32(vm.f32(vm.sin(var4) * var7) + vm.f32(268.802))
-			pos_z_3 = vm.f32(vm.f32(vm.cos(var4) * var7) + vm.f32(-322.002))
-			local _ = var0 < 90
-			var0 = var0 + 1
+			character_angle = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(character_angle - vm.f32(0.002)))
+			character_rotation = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(character_rotation - vm.f32(0.002)))
+			camera_angle = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(camera_angle - vm.f32(0.002)))
+			look_at_angle = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(look_at_angle - vm.f32(0.002)))
+			message.close_skipping(0)
+			partner_angle = vm.f32(character_angle + 0.0625)
+			partner_radius = vm.f32(character_radius - 100.0)
+			partner_x = vm.f32(vm.f32(vm.sin(partner_angle) * partner_radius) + vm.f32(268.802))
+			partner_z = vm.f32(vm.f32(vm.cos(partner_angle) * partner_radius) + vm.f32(-322.002))
+			partner_rotation = 2.0
+			local _ = frame == 158
+			frame = 0
+			partner_angle_offset = calc.interpolate(-0.125, 0.0625, frame, 90)
+			partner_angle = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(character_angle + partner_angle_offset))
+			partner_x = vm.f32(vm.f32(vm.sin(partner_angle) * partner_radius) + vm.f32(268.802))
+			partner_z = vm.f32(vm.f32(vm.cos(partner_angle) * partner_radius) + vm.f32(-322.002))
+			character_x = vm.f32(vm.f32(vm.sin(character_angle) * character_radius) + vm.f32(268.802))
+			character_z = vm.f32(vm.f32(vm.cos(character_angle) * character_radius) + vm.f32(-322.002))
+			camera_x = vm.f32(vm.f32(vm.sin(camera_angle) * camera_radius) + vm.f32(268.802))
+			camera_z = vm.f32(vm.f32(vm.cos(camera_angle) * camera_radius) + vm.f32(-322.002))
+			look_at_x = vm.f32(vm.f32(vm.sin(look_at_angle) * look_at_radius) + vm.f32(268.802))
+			look_at_z = vm.f32(vm.f32(vm.cos(look_at_angle) * look_at_radius) + vm.f32(-322.002))
+			local _ = frame < 90
+			frame = frame + 1
 		end
 		if at <= 13 then
-			rot_y_2 = helper_9e49aefe(vm.f32(rot_y_2 - vm.f32(0.002)))
-			var2 = helper_9e49aefe(vm.f32(var2 - vm.f32(0.002)))
-			rot_y = helper_9e49aefe(vm.f32(rot_y - vm.f32(0.002)))
-			var3 = helper_9e49aefe(vm.f32(var3 - vm.f32(0.002)))
-			var4 = helper_9e49aefe(vm.f32(var4 - vm.f32(0.002)))
-			helper_8cd371d7(2570020)
+			partner_rotation = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(partner_rotation - vm.f32(0.002)))
+			character_angle = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(character_angle - vm.f32(0.002)))
+			character_rotation = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(character_rotation - vm.f32(0.002)))
+			camera_angle = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(camera_angle - vm.f32(0.002)))
+			look_at_angle = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(look_at_angle - vm.f32(0.002)))
+			message.show_voiced_skipping(2570020)
 		end
 		if at <= 14 then
-			rot_y = vm.f32(-2.17)
-			var0 = 0
+			character_rotation = vm.f32(-2.17)
+			frame = 0
 		end
 		if at <= 15 then
-			rot_y = helper_9e49aefe(vm.f32(rot_y - vm.f32(0.07)))
-			local _ = var0 < 30
-			var0 = var0 + 1
-			helper_038a2e4d(30)
+			character_rotation = rainbow_butterfly_wood_butterfly_event.apply_full_turn_round_trip(vm.f32(character_rotation - vm.f32(0.07)))
+			local _ = frame < 30
+			frame = frame + 1
+			wait.skip_frame_count(30)
 		end
 		if at <= 16 then
-			helper_d16eef1e(0)
-			var0 = 0
-			pos_y = interpolate(vm.f32(1691.85), vm.f32(858.57), var0, 240)
-			var30 = interpolate(vm.f32(-3.926991), vm.f32(-1.5707964), var0, 240)
-			pos_x_5 = vm.f32(vm.sin(var30) * vm.f32(1476.7))
-			pos_z_5 = vm.f32(vm.cos(var30) * vm.f32(1476.7))
-			pos_x_5 = vm.f32(pos_x_5 + vm.f32(1970.21))
-			pos_z_5 = vm.f32(pos_z_5 + vm.f32(-576.77))
+			message.close_skipping(0)
+			frame = 0
+			butterfly_y = calc.interpolate(vm.f32(1691.85), vm.f32(858.57), frame, 240)
+			butterfly_angle = calc.interpolate(vm.f32(-3.926991), vm.f32(-1.5707964), frame, 240)
+			butterfly_x = vm.f32(vm.sin(butterfly_angle) * vm.f32(1476.7))
+			butterfly_z = vm.f32(vm.cos(butterfly_angle) * vm.f32(1476.7))
+			butterfly_x = vm.f32(butterfly_x + vm.f32(1970.21))
+			butterfly_z = vm.f32(butterfly_z + vm.f32(-576.77))
 		end
 		if at <= 17 then
-			local _ = var0 < 240
-			var0 = var0 + 1
-			var25 = pos_x_5
-			var26 = pos_z_5
-			helper_038a2e4d(30)
+			local _ = frame < 240
+			frame = frame + 1
+			previous_butterfly_x = butterfly_x
+			previous_butterfly_z = butterfly_z
+			wait.skip_frame_count(30)
 		end
 		if at <= 18 then
-			helper_038a2e4d(240)
+			wait.skip_frame_count(240)
 		end
 		if at <= 19 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 20 then
-			helper_8cd371d7(2570030)
+			message.show_voiced_skipping(2570030)
 		end
 		if at <= 21 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 22 then
-			helper_8cd371d7(2570040)
+			message.show_voiced_skipping(2570040)
 		end
 		if at <= 23 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 24 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 25 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 26 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 27 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 28 then
-			var0 = 0
-			rot_y_3 = interpolate(vm.f32(3.13), vm.f32(-0.15), var0, 30.0)
-			rot_y_4 = interpolate(vm.f32(-3.07), vm.f32(-0.62), var0, 30.0)
+			frame = 0
+			partner_turn_rotation = calc.interpolate(vm.f32(3.13), vm.f32(-0.15), frame, 30.0)
+			character_turn_rotation = calc.interpolate(vm.f32(-3.07), vm.f32(-0.62), frame, 30.0)
 		end
 		if at <= 29 then
-			local _ = var0 < 30
-			var0 = var0 + 1
-			helper_8cd371d7(2570050)
+			local _ = frame < 30
+			frame = frame + 1
+			message.show_voiced_skipping(2570050)
 		end
 		if at <= 30 then
-			helper_038a2e4d(45)
+			wait.skip_frame_count(45)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
-	event.set_character_cloth_animation_enabled(global1, 1)
+	event.set_character_cloth_animation_enabled(monica_slot, 1)
 	event.set_event_sprite_draw_pass(0, 0)
-	helper_104e4()
+	unload_arrival_cutscene()
 	event.show_dungeon_status_bar(1, 1.0)
 	event.set_motion_blur(0)
 	event.play_music(0)
@@ -699,53 +685,53 @@ local function helper_119c8()
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_17368()
-	local active_chr_no: s32 = 0
+--- Loads the characters, butterfly models, item model, sprites and message file used by the butterfly split cutscene.
+local function load_split_cutscene()
+	local active_character: s32 = 0
 	local block: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 8
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		mints_slot = 0
+		monica_slot = 8
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 14)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e260/e260_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 14)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e260/e260_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 14)
 	end
-	if active_chr_no == 1 then
-		global0 = 8
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 14)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	if active_character == 1 then
+		mints_slot = 8
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_slot)
+		event.load_equipment_model(5, 0, 4, "info", mints_slot)
+		event.load_equipment_model(5, 0, 3, "info", mints_slot)
+		event.load_equipment_model(5, 0, 2, "info", mints_slot, 14)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, mints_slot)
 		event.set_character_active(1, 14)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e260/e260_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e260/e260_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.attach_object_handle_to_character(2, 1)
 	event.set_object_handle_visible(2, 0)
@@ -868,30 +854,30 @@ local function helper_17368()
 	event.load_message_file(0, 5, "event/e200/e260/e260.txt")
 end
 
---- Helper function.
-local function helper_22a00000()
-	global0 = 0
-	global1 = 8
-	global0 = 8
-	global1 = 0
+--- Reassigns the two party character slots to their post-skip values when the split cutscene is skipped.
+local function swap_party_slots_after_split_skip()
+	mints_slot = 0
+	monica_slot = 8
+	mints_slot = 8
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_16d78()
-	local active_chr_no: s32 = 0
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+--- Restores the party and deletes the butterfly models and sprites loaded for the split cutscene.
+local function unload_split_cutscene()
+	local active_character: s32 = 0
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(14)
 	end
-	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+	if active_character == 1 then
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(mints_slot)
 		event.delete_character(14)
 	end
 	event.attach_object_handle_to_character(2, 1)
@@ -917,11 +903,11 @@ local function helper_16d78()
 	event.delete_event_image(0)
 end
 
---- Helper function.
-local function helper_19adc()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local active_chr_no: s32 = 0
+--- Plays the cutscene in which the butterfly splits into seven and the heroes receive the reward item.
+local function play_split_cutscene()
+	local sound_bank: s32 = 0
+	local fanfare_sound_bank: s32 = 0
+	local active_character: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		at = 1
@@ -931,25 +917,25 @@ local function helper_19adc()
 		event.set_message_window_mode(0, 7)
 		event.fade_out_screen(30)
 		at = 2
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.load_map_sounds(2836)
-		var0 = event.load_sound_effect_file_2(2836) or var0
-		var1 = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or var1
+		sound_bank = event.load_sound_effect_file_2(2836) or sound_bank
+		fanfare_sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or fanfare_sound_bank
 		event.stop_music(0)
 		at = 3
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(53)
 		event.set_environment_music_volume(0.6)
-		active_chr_no = event.get_playable_character() or active_chr_no
-		if active_chr_no == 2 then
+		active_character = event.get_playable_character() or active_character
+		if active_character == 2 then
 			event.switch_dungeon_main_character(0)
 		end
-		if active_chr_no == 3 then
+		if active_character == 3 then
 			event.switch_dungeon_main_character(1)
 		end
-		helper_17368()
-		event.set_character_active(0, global0)
-		event.set_character_active(0, global1)
+		load_split_cutscene()
+		event.set_character_active(0, mints_slot)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(0, 11)
 		event.set_character_active(0, 12)
 		event.set_character_active(0, 13)
@@ -968,10 +954,10 @@ local function helper_19adc()
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(0.0, 950.0, 200.0)
 		event.set_camera_sequence_look_at(0.0, 1000.0, 0.0)
-		event.play_sound_effect(var0, 0)
+		event.play_sound_effect(sound_bank, 0)
 		event.fade_in_screen(30)
 		at = 4
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_active(1, 15)
 		event.set_character_active(1, 16)
 		event.set_character_active(1, 17)
@@ -1009,51 +995,51 @@ local function helper_19adc()
 		event.set_object_sequence_motion(12, "飛行", 4)
 		event.move_object_sequence(10, 0.0, 1000.0, 0.0, 120)
 		at = 5
-		helper_888ab2a3(3)
+		wait.for_frame_count(3)
 		event.move_object_sequence(11, 0.0, 1000.0, 0.0, 120)
 		at = 6
-		helper_888ab2a3(3)
+		wait.for_frame_count(3)
 		event.move_object_sequence(6, 0.0, 1000.0, 0.0, 120)
 		at = 7
-		helper_888ab2a3(3)
+		wait.for_frame_count(3)
 		event.move_object_sequence(7, 0.0, 1000.0, 0.0, 120)
 		at = 8
-		helper_888ab2a3(3)
+		wait.for_frame_count(3)
 		event.move_object_sequence(12, 0.0, 1000.0, 0.0, 120)
 		at = 9
-		helper_888ab2a3(3)
+		wait.for_frame_count(3)
 		event.move_object_sequence(9, 0.0, 1000.0, 0.0, 120)
 		at = 10
-		helper_888ab2a3(3)
+		wait.for_frame_count(3)
 		event.move_object_sequence(8, 0.0, 1000.0, 0.0, 120)
 		at = 11
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_character_active(1, 22)
 		event.set_object_sequence_position(13, 0.0, 1000.0, 0.0)
 		event.set_object_sequence_motion(13, "ホーリーの光", 6)
-		event.stop_sound_effect(var0, 0)
+		event.stop_sound_effect(sound_bank, 0)
 		at = 12
-		wait_objects(10)
+		object.wait_until_done(10)
 		event.set_character_active(0, 19)
 		at = 13
-		wait_objects(11)
+		object.wait_until_done(11)
 		event.set_character_active(0, 20)
 		at = 14
-		wait_objects(6)
+		object.wait_until_done(6)
 		event.set_character_active(0, 15)
 		at = 15
-		wait_objects(7)
+		object.wait_until_done(7)
 		event.set_character_active(0, 16)
 		at = 16
-		wait_objects(12)
+		object.wait_until_done(12)
 		event.set_character_active(0, 21)
 		at = 17
-		wait_objects(9)
+		object.wait_until_done(9)
 		event.set_character_active(0, 18)
 		at = 18
-		wait_objects(8)
+		object.wait_until_done(8)
 		event.set_character_active(0, 17)
-		event.play_sound_effect(var0, 1)
+		event.play_sound_effect(sound_bank, 1)
 		event.set_character_active(1, 12)
 		event.set_character_visible(12, 1, 1, 0.05)
 		event.set_object_sequence_position(4, 0.0, 980.0, 0.0)
@@ -1067,10 +1053,10 @@ local function helper_19adc()
 		event.set_object_sequence_rotation(14, 0.0, 0.0, 0.0)
 		event.set_object_sequence_motion(14, "光MAX", 4)
 		at = 19
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_object_sequence_motion(14, "消える", 2)
 		at = 20
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_character_active(0, 22)
 		event.set_character_active(0, 23)
 		event.set_camera_sequence_position(0.0, 1010.0, 35.0)
@@ -1083,20 +1069,20 @@ local function helper_19adc()
 		event.set_object_sequence_texture_animation(4, 1, "目とじ")
 		event.move_camera_sequence(0.0, 1025.0, 35.0, 0.0, 1025.0, 0.0, 150)
 		at = 21
-		helper_888ab2a3(150)
+		wait.for_frame_count(150)
 		event.set_object_sequence_texture_animation(4, 0)
 		event.set_object_sequence_texture_animation(4, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(4, 1, "目とじ～目あき")
 		event.play_music(0)
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 22
-		helper_4116e6bb(2600010)
+		message.show_voiced(2600010)
 		event.reset_mouth_texture_animations()
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(-2.24, 796.76, -510.87)
 		event.set_camera_sequence_look_at(-68.02, 802.26, -509.43)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 14)
 		event.set_character_active(0, 12)
 		event.set_object_sequence_position(0, -42.69, 774.65, -517.65)
@@ -1107,12 +1093,12 @@ local function helper_19adc()
 		event.reset_object_sequence_dynamic_animation(1)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 23
-		helper_4116e6bb(2600020)
+		message.show_voiced(2600020)
 		event.reset_mouth_texture_animations()
 		event.set_camera_sequence_position(19.58, 1019.28, 33.73)
 		event.set_camera_sequence_look_at(-28.59, 1038.2, -27.4)
-		event.set_character_active(0, global0)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, mints_slot)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(0, 14)
 		event.set_character_active(1, 12)
 		event.set_object_sequence_motion(4, "会話2", 2)
@@ -1122,31 +1108,31 @@ local function helper_19adc()
 		event.set_object_sequence_texture_animation(4, 1, "通常目パチ")
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 24
-		helper_4116e6bb(2600030)
+		message.show_voiced(2600030)
 		event.set_object_sequence_motion(4, "立ち")
 		event.reset_mouth_texture_animations()
 		at = 25
-		wait_objects(4)
+		object.wait_until_done(4)
 		event.set_camera_sequence_position(-2.24, 796.76, -510.87)
 		event.set_camera_sequence_look_at(-68.02, 802.26, -509.43)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 14)
 		event.set_character_active(0, 12)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 26
-		helper_4116e6bb(2600040)
+		message.show_voiced(2600040)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(1, "会話", 2)
 		event.queue_object_sequence_next_motion(1, "立ち")
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 27
-		helper_4116e6bb(2600045)
+		message.show_voiced(2600045)
 		event.reset_mouth_texture_animations()
 		event.set_camera_sequence_position(0.0, 1025.0, 35.0)
 		event.set_camera_sequence_look_at(0.0, 1025.0, 0.0)
-		event.set_character_active(0, global0)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, mints_slot)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(0, 14)
 		event.set_character_active(1, 12)
 		event.set_object_sequence_motion(4, "うつむく", 6)
@@ -1161,78 +1147,78 @@ local function helper_19adc()
 		event.set_object_sequence_texture_animation(4, 1, "目とじ～目あき")
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 28
-		helper_4116e6bb(2600050)
+		message.show_voiced(2600050)
 		event.reset_mouth_texture_animations()
 		at = 29
-		wait_objects(4)
+		object.wait_until_done(4)
 		event.set_camera_sequence_position(-2.24, 796.76, -510.87)
 		event.set_camera_sequence_look_at(-68.02, 802.26, -509.43)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 14)
 		event.set_character_active(0, 12)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 30
-		helper_4116e6bb(2600060)
+		message.show_voiced(2600060)
 		event.reset_mouth_texture_animations()
 		event.set_event_sprite_draw_pass(0, 1)
 		event.set_object_sequence_color(20, 128.0, 128.0, 128.0, 128.0, 15)
 		at = 31
-		helper_888ab2a3(15)
-		event.set_character_active(0, global0)
-		event.set_character_active(0, global1)
+		wait.for_frame_count(15)
+		event.set_character_active(0, mints_slot)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(0, 14)
 		event.set_character_active(0, 12)
 		at = 32
-		helper_4116e6bb(2600070)
+		message.show_voiced(2600070)
 		at = 33
-		helper_4116e6bb(2600075)
+		message.show_voiced(2600075)
 		at = 34
-		helper_4116e6bb(2600080)
+		message.show_voiced(2600080)
 		event.set_event_sprite_draw_pass(1, 1)
 		event.set_object_sequence_color(21, 128.0, 128.0, 128.0, 128.0, 15)
 		at = 35
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_event_sprite_draw_pass(0, 0)
 		at = 36
-		helper_4116e6bb(2600090)
+		message.show_voiced(2600090)
 		event.set_event_sprite_draw_pass(2, 1)
 		event.set_object_sequence_color(22, 128.0, 128.0, 128.0, 128.0, 15)
 		at = 37
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_event_sprite_draw_pass(1, 0)
 		at = 38
-		helper_4116e6bb(2600100)
+		message.show_voiced(2600100)
 		at = 39
-		helper_4116e6bb(2600110)
+		message.show_voiced(2600110)
 		at = 40
-		helper_4116e6bb(2600115)
+		message.show_voiced(2600115)
 		event.set_event_sprite_draw_pass(3, 1)
 		event.set_object_sequence_color(23, 128.0, 128.0, 128.0, 128.0, 15)
 		at = 41
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_event_sprite_draw_pass(2, 0)
 		at = 42
-		helper_4116e6bb(2600120)
+		message.show_voiced(2600120)
 		at = 43
-		helper_4116e6bb(2600130)
+		message.show_voiced(2600130)
 		event.set_event_sprite_draw_pass(4, 1)
 		event.set_object_sequence_color(24, 128.0, 128.0, 128.0, 128.0, 15)
 		at = 44
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_event_sprite_draw_pass(3, 0)
 		at = 45
-		helper_4116e6bb(2600140)
+		message.show_voiced(2600140)
 		at = 46
-		helper_4116e6bb(2600145)
+		message.show_voiced(2600145)
 		at = 47
-		helper_4116e6bb(2600150)
+		message.show_voiced(2600150)
 		at = 48
-		helper_4116e6bb(2600160)
+		message.show_voiced(2600160)
 		event.set_camera_sequence_position(19.72, 819.45, -34.3)
 		event.set_camera_sequence_look_at(0.0, 823.12, 0.0)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 14)
 		event.set_character_active(1, 12)
 		event.set_object_sequence_position(0, -15.79, 795.0, 7.98)
@@ -1249,58 +1235,58 @@ local function helper_19adc()
 		event.set_object_sequence_texture_animation(4, 1, "通常目パチ")
 		event.set_object_sequence_color(24, 128.0, 128.0, 128.0, 0.0, 15)
 		at = 49
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_event_sprite_draw_pass(4, 0)
 		event.set_object_sequence_motion(1, "会話", 2)
 		event.queue_object_sequence_next_motion(1, "立ち")
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 50
-		helper_4116e6bb(2600170)
+		message.show_voiced(2600170)
 		event.reset_mouth_texture_animations()
 		event.move_camera_sequence_angle_height_distance(0.79, -4.57, 45.0, 360)
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 51
-		helper_4116e6bb(2600180)
+		message.show_voiced(2600180)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 52
-		helper_4116e6bb(2600190)
+		message.show_voiced(2600190)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 53
-		helper_4116e6bb(2600200)
+		message.show_voiced(2600200)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 54
-		helper_4116e6bb(2600210)
+		message.show_voiced(2600210)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 55
-		helper_4116e6bb(2600220)
+		message.show_voiced(2600220)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 56
-		helper_4116e6bb(2600230)
+		message.show_voiced(2600230)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 57
-		helper_4116e6bb(2600240)
+		message.show_voiced(2600240)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 58
-		helper_4116e6bb(2600250)
+		message.show_voiced(2600250)
 		event.reset_mouth_texture_animations()
 		event.set_character_active(1, 13)
 		event.attach_character_to_frame(12, "letter", 13)
 		event.set_object_sequence_motion(4, "手紙を渡す", 2)
 		event.queue_object_sequence_next_motion(4, "手紙を渡すL", 4)
-		event.play_sound_effect(var0, 2)
+		event.play_sound_effect(sound_bank, 2)
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 59
-		helper_4116e6bb(2600260)
+		message.show_voiced(2600260)
 		event.reset_mouth_texture_animations()
 		at = 60
-		wait_objects(4)
+		object.wait_until_done(4)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(-2.24, 796.76, -510.87)
 		event.set_camera_sequence_look_at(-68.02, 802.26, -509.43)
@@ -1308,7 +1294,7 @@ local function helper_19adc()
 		event.set_object_sequence_position(0, -42.69, 774.65, -517.65)
 		event.set_object_sequence_rotation(0, 0.0, 2.13, 0.0)
 		event.detach_character_from_frame(13)
-		event.attach_character_to_frame(global1, "sword_hand", 13)
+		event.attach_character_to_frame(monica_slot, "sword_hand", 13)
 		event.set_object_sequence_position(1, -28.93, 774.65, -505.13)
 		event.set_object_sequence_rotation(1, 0.0, 2.61, 0.0)
 		event.reset_object_sequence_dynamic_animation(1)
@@ -1317,10 +1303,10 @@ local function helper_19adc()
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
-		event.play_sound_effect(var0, 3)
+		event.play_sound_effect(sound_bank, 3)
 		event.set_mouth_texture_animations(1, "わらい口パク")
 		at = 61
-		helper_4116e6bb(2600270)
+		message.show_voiced(2600270)
 		event.reset_mouth_texture_animations()
 		event.pause_music()
 		event.set_character_active(1, 11)
@@ -1328,16 +1314,16 @@ local function helper_19adc()
 		event.set_character_rotation(11, 0.0, 1.5707964, 0.0)
 		event.set_character_motion(11, "発動", 6)
 		at = 62
-		helper_888ab2a3(2)
-		event.play_sound_effect(var1, 0)
+		wait.for_frame_count(2)
+		event.play_sound_effect(fanfare_sound_bank, 0)
 		at = 63
-		helper_888ab2a3(120)
-		event.play_sound_effect(var0, 4)
+		wait.for_frame_count(120)
+		event.play_sound_effect(sound_bank, 4)
 		event.apply_message_window_preset(1, 4)
-		set_window_mode(1, 4)
+		message.set_window_mode(1, 4)
 		event.set_message_item_name(1, 1, 385)
 		at = 64
-		helper_75684dd8(1, 10, 8, 0, 0)
+		message.show_and_wait(1, 10, 8, 0, 0)
 		event.play_music(0)
 		event.set_character_active(0, 11)
 		event.detach_character_from_frame(13)
@@ -1345,8 +1331,8 @@ local function helper_19adc()
 		event.set_camera_sequence_position(0.0, 1017.78, 76.79)
 		event.set_camera_sequence_look_at(0.0, 1025.0, 0.0)
 		event.move_camera_sequence(0.0, 1025.0, 35.0, 0.0, 1025.0, 0.0, 180)
-		event.set_character_active(0, global0)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, mints_slot)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(0, 14)
 		event.set_character_active(1, 12)
 		event.set_object_sequence_position(4, 0.0, 1000.0, 0.0)
@@ -1354,30 +1340,30 @@ local function helper_19adc()
 		event.set_object_sequence_motion(4, "立ち", 4)
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 65
-		helper_4116e6bb(2600280)
+		message.show_voiced(2600280)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 66
-		helper_4116e6bb(2600290)
+		message.show_voiced(2600290)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(4, "口パク")
 		at = 67
-		helper_4116e6bb(2600300)
+		message.show_voiced(2600300)
 		event.reset_mouth_texture_animations()
 		event.set_character_active(1, 23)
 		event.set_object_sequence_position(14, 0.0, 1000.0, 0.0)
 		event.set_object_sequence_rotation(14, 0.0, 0.0, 0.0)
 		event.set_object_sequence_motion(14, "光る", 6)
 		event.queue_object_sequence_next_motion(14, "光MAX", 4)
-		event.play_sound_effect(var0, 5)
+		event.play_sound_effect(sound_bank, 5)
 		event.fade_out_music(30)
 		at = 68
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(186.87, 1388.53, 256.46)
 		event.set_camera_sequence_look_at(0.0, 1025.0, 0.0)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_object_sequence_position(0, -143.38, 788.23, 56.15)
 		event.set_object_sequence_rotation(0, 0.0, 2.3, 0.0)
 		event.set_object_sequence_position(1, -123.21, 788.97, 62.99)
@@ -1390,7 +1376,7 @@ local function helper_19adc()
 		event.reset_object_sequence_motion(13)
 		event.set_object_sequence_motion(13, "ホーリーの光", 6)
 		at = 69
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_character_active(0, 12)
 		event.set_character_active(0, 23)
 		event.set_character_active(1, 15)
@@ -1421,9 +1407,9 @@ local function helper_19adc()
 		event.move_object_sequence(10, -353.55338, 1000.0, -353.55338, 120)
 		event.move_object_sequence(11, -500.0, 1000.0, 0.0, 120)
 		event.move_object_sequence(12, -353.55338, 1000.0, 353.55338, 120)
-		event.play_sound_effect(var0, 6)
+		event.play_sound_effect(sound_bank, 6)
 		at = 70
-		helper_888ab2a3(150)
+		wait.for_frame_count(150)
 		event.set_character_active(0, 15)
 		event.set_character_active(0, 16)
 		event.set_character_active(0, 17)
@@ -1435,8 +1421,8 @@ local function helper_19adc()
 		event.set_camera_sequence_position(-2.24, 796.76, -510.87)
 		event.set_camera_sequence_look_at(-68.02, 802.26, -509.43)
 		event.set_environment_music_volume(1.0)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 14)
 		event.set_object_sequence_position(0, -42.69, 774.65, -517.65)
 		event.set_object_sequence_rotation(0, 0.0, 2.49, 0.0)
@@ -1446,261 +1432,261 @@ local function helper_19adc()
 		event.reset_object_sequence_dynamic_animation(1)
 		event.set_object_sequence_motion(1, "上から左", 5)
 		at = 71
-		helper_888ab2a3(90)
+		wait.for_frame_count(90)
 		event.set_object_sequence_motion(1, "上から左", 2)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 72
-		helper_4116e6bb(2600310)
+		message.show_voiced(2600310)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(0, "上向く戻り", 2)
 		event.queue_object_sequence_next_motion(0, "右向く", 6)
 		event.wait_object_sequence_motion_end(0)
 		at = 73
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "右向くうなづき", 6)
 		event.queue_object_sequence_next_motion(0, "右向くL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
 		at = 74
-		helper_4116e6bb(2600320)
+		message.show_voiced(2600320)
 		event.reset_mouth_texture_animations()
 		event.fade_out_screen(30)
 		at = 75
-		helper_888ab2a3(45)
+		wait.for_frame_count(45)
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 2 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 3 then
-			helper_22a00000()
-			helper_038a2e4d(30)
+			swap_party_slots_after_split_skip()
+			wait.skip_frame_count(30)
 		end
 		if at <= 4 then
-			helper_038a2e4d(3)
+			wait.skip_frame_count(3)
 		end
 		if at <= 5 then
-			helper_038a2e4d(3)
+			wait.skip_frame_count(3)
 		end
 		if at <= 6 then
-			helper_038a2e4d(3)
+			wait.skip_frame_count(3)
 		end
 		if at <= 7 then
-			helper_038a2e4d(3)
+			wait.skip_frame_count(3)
 		end
 		if at <= 8 then
-			helper_038a2e4d(3)
+			wait.skip_frame_count(3)
 		end
 		if at <= 9 then
-			helper_038a2e4d(3)
+			wait.skip_frame_count(3)
 		end
 		if at <= 10 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 11 then
-			helper_238b5abc(10)
+			cutscene.skip_command(10)
 		end
 		if at <= 12 then
-			helper_238b5abc(11)
+			cutscene.skip_command(11)
 		end
 		if at <= 13 then
-			helper_238b5abc(6)
+			cutscene.skip_command(6)
 		end
 		if at <= 14 then
-			helper_238b5abc(7)
+			cutscene.skip_command(7)
 		end
 		if at <= 15 then
-			helper_238b5abc(12)
+			cutscene.skip_command(12)
 		end
 		if at <= 16 then
-			helper_238b5abc(9)
+			cutscene.skip_command(9)
 		end
 		if at <= 17 then
-			helper_238b5abc(8)
+			cutscene.skip_command(8)
 		end
 		if at <= 18 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 19 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 20 then
-			helper_038a2e4d(150)
+			wait.skip_frame_count(150)
 		end
 		if at <= 21 then
-			helper_8cd371d7(2600010)
+			message.show_voiced_skipping(2600010)
 		end
 		if at <= 22 then
-			helper_8cd371d7(2600020)
+			message.show_voiced_skipping(2600020)
 		end
 		if at <= 23 then
-			helper_8cd371d7(2600030)
+			message.show_voiced_skipping(2600030)
 		end
 		if at <= 24 then
-			helper_238b5abc(4)
+			cutscene.skip_command(4)
 		end
 		if at <= 25 then
-			helper_8cd371d7(2600040)
+			message.show_voiced_skipping(2600040)
 		end
 		if at <= 26 then
-			helper_8cd371d7(2600045)
+			message.show_voiced_skipping(2600045)
 		end
 		if at <= 27 then
-			helper_8cd371d7(2600050)
+			message.show_voiced_skipping(2600050)
 		end
 		if at <= 28 then
-			helper_238b5abc(4)
+			cutscene.skip_command(4)
 		end
 		if at <= 29 then
-			helper_8cd371d7(2600060)
+			message.show_voiced_skipping(2600060)
 		end
 		if at <= 30 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 31 then
-			helper_8cd371d7(2600070)
+			message.show_voiced_skipping(2600070)
 		end
 		if at <= 32 then
-			helper_8cd371d7(2600075)
+			message.show_voiced_skipping(2600075)
 		end
 		if at <= 33 then
-			helper_8cd371d7(2600080)
+			message.show_voiced_skipping(2600080)
 		end
 		if at <= 34 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 35 then
-			helper_8cd371d7(2600090)
+			message.show_voiced_skipping(2600090)
 		end
 		if at <= 36 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 37 then
-			helper_8cd371d7(2600100)
+			message.show_voiced_skipping(2600100)
 		end
 		if at <= 38 then
-			helper_8cd371d7(2600110)
+			message.show_voiced_skipping(2600110)
 		end
 		if at <= 39 then
-			helper_8cd371d7(2600115)
+			message.show_voiced_skipping(2600115)
 		end
 		if at <= 40 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 41 then
-			helper_8cd371d7(2600120)
+			message.show_voiced_skipping(2600120)
 		end
 		if at <= 42 then
-			helper_8cd371d7(2600130)
+			message.show_voiced_skipping(2600130)
 		end
 		if at <= 43 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 44 then
-			helper_8cd371d7(2600140)
+			message.show_voiced_skipping(2600140)
 		end
 		if at <= 45 then
-			helper_8cd371d7(2600145)
+			message.show_voiced_skipping(2600145)
 		end
 		if at <= 46 then
-			helper_8cd371d7(2600150)
+			message.show_voiced_skipping(2600150)
 		end
 		if at <= 47 then
-			helper_8cd371d7(2600160)
+			message.show_voiced_skipping(2600160)
 		end
 		if at <= 48 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 49 then
-			helper_8cd371d7(2600170)
+			message.show_voiced_skipping(2600170)
 		end
 		if at <= 50 then
-			helper_8cd371d7(2600180)
+			message.show_voiced_skipping(2600180)
 		end
 		if at <= 51 then
-			helper_8cd371d7(2600190)
+			message.show_voiced_skipping(2600190)
 		end
 		if at <= 52 then
-			helper_8cd371d7(2600200)
+			message.show_voiced_skipping(2600200)
 		end
 		if at <= 53 then
-			helper_8cd371d7(2600210)
+			message.show_voiced_skipping(2600210)
 		end
 		if at <= 54 then
-			helper_8cd371d7(2600220)
+			message.show_voiced_skipping(2600220)
 		end
 		if at <= 55 then
-			helper_8cd371d7(2600230)
+			message.show_voiced_skipping(2600230)
 		end
 		if at <= 56 then
-			helper_8cd371d7(2600240)
+			message.show_voiced_skipping(2600240)
 		end
 		if at <= 57 then
-			helper_8cd371d7(2600250)
+			message.show_voiced_skipping(2600250)
 		end
 		if at <= 58 then
-			helper_8cd371d7(2600260)
+			message.show_voiced_skipping(2600260)
 		end
 		if at <= 59 then
-			helper_238b5abc(4)
+			cutscene.skip_command(4)
 		end
 		if at <= 60 then
-			helper_8cd371d7(2600270)
+			message.show_voiced_skipping(2600270)
 		end
 		if at <= 61 then
-			helper_038a2e4d(2)
+			wait.skip_frame_count(2)
 		end
 		if at <= 62 then
-			helper_038a2e4d(120)
+			wait.skip_frame_count(120)
 		end
 		if at <= 63 then
-			helper_fbd9683d(1, 4)
-			helper_ee1c51d0(1, 10, 8, 0, 0)
+			message.set_window_mode_skipping(1, 4)
+			message.show_and_wait_skipping(1, 10, 8, 0, 0)
 		end
 		if at <= 64 then
-			helper_8cd371d7(2600280)
+			message.show_voiced_skipping(2600280)
 		end
 		if at <= 65 then
-			helper_8cd371d7(2600290)
+			message.show_voiced_skipping(2600290)
 		end
 		if at <= 66 then
-			helper_8cd371d7(2600300)
+			message.show_voiced_skipping(2600300)
 		end
 		if at <= 67 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 68 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 69 then
-			helper_038a2e4d(150)
+			wait.skip_frame_count(150)
 		end
 		if at <= 70 then
-			helper_038a2e4d(90)
+			wait.skip_frame_count(90)
 		end
 		if at <= 71 then
-			helper_8cd371d7(2600310)
+			message.show_voiced_skipping(2600310)
 		end
 		if at <= 72 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 73 then
-			helper_8cd371d7(2600320)
+			message.show_voiced_skipping(2600320)
 		end
 		if at <= 74 then
-			helper_038a2e4d(45)
+			wait.skip_frame_count(45)
 		end
 		return true
 	end)
 	at = 76
 	vm.entry(76)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 0)
-	event.stop_sound_effect(var1, 0)
+	event.stop_sound_effect(sound_bank, 0)
+	event.stop_sound_effect(fanfare_sound_bank, 0)
 	event.stop_music(0)
-	helper_16d78()
+	unload_split_cutscene()
 	event.show_dungeon_status_bar(1, 1.0)
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
@@ -1708,40 +1694,42 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded.
 function script.setup() end
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
-script.default_event = helper_119c8
+script.default_event = play_arrival_cutscene
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	helper_89dcac54()
-	helper_ad8b424a()
+--- Disables saving, places the boss butterflies, starts the boss music and gives control to the player.
+function script.start_boss_fight()
+	rainbow_butterfly_wood_butterfly_event.disable_saving()
+	rainbow_butterfly_wood_butterfly_event.place_boss_monsters()
 	event.stop_music(0)
-	helper_888ab2a3(4)
+	wait.for_frame_count(4)
 	event.load_music(31)
 	event.play_music(0)
 	event.set_character_position(0, -124.13, 782.88, -644.77)
 	event.fade_in_screen(30)
 	event.reset_follow_camera(0)
 end
+script[200] = script.start_boss_fight
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_119c8()
-	helper_89dcac54()
-	helper_ad8b424a()
+--- Plays the arrival cutscene, then places the boss butterflies and gives control to the player.
+function script.play_arrival_then_start_boss_fight()
+	play_arrival_cutscene()
+	rainbow_butterfly_wood_butterfly_event.disable_saving()
+	rainbow_butterfly_wood_butterfly_event.place_boss_monsters()
 	vm.wait(3)
 	event.set_character_position(0, -124.13, 782.88, -644.77)
 	event.fade_in_screen(30)
 	event.reset_follow_camera(0)
 end
+script[500] = script.play_arrival_then_start_boss_fight
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
+--- Plays the split cutscene, grants the reward item and returns to the previous boss floor.
+function script.finish_boss_fight_and_return()
 	local stage_id: s32 = 0
-	local var1: s32 = 0
+	local floor: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
@@ -1749,16 +1737,16 @@ function script.event_501()
 		event.stop_music(0)
 		event.fade_out_screen(30)
 		at = 1
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.clear_event_battle_monsters(-1)
 		stage_id = event.get_dungeon_stage_id() or stage_id
-		var1 = event.get_dungeon_floor() or var1
-		event.set_dungeon_floor_info(stage_id, var1, 5, 2)
+		floor = event.get_dungeon_floor() or floor
+		event.set_dungeon_floor_info(stage_id, floor, 5, 2)
 		at = 2
-		helper_19adc()
+		play_split_cutscene()
 		event.add_inventory_item(385)
 		at = 3
-		helper_d61bc810(0)
+		inventory.resolve_overflow(0)
 		event.skip_next_music_load()
 		event.load_dungeon_map("d02b01")
 		event.load_event_script("d02b01/d02b01.stb", 201)
@@ -1767,11 +1755,11 @@ function script.event_501()
 		if at <= 3 then
 			if at <= 1 then
 				at = 2
-				helper_19adc()
+				play_split_cutscene()
 				return vm.continue_with(function()
 					event.add_inventory_item(385)
 					at = 3
-					helper_d61bc810(0)
+					inventory.resolve_overflow(0)
 					event.skip_next_music_load()
 					event.load_dungeon_map("d02b01")
 					event.load_event_script("d02b01/d02b01.stb", 201)
@@ -1779,31 +1767,33 @@ function script.event_501()
 				end)
 			end
 			if at <= 2 then
-				helper_6f1a51c5(0)
+				wait.skip_ten_frames(0)
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[501] = script.finish_boss_fight_and_return
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
+--- Shows a hint that the butterfly separated into seven and can be caught one by one.
+function script.show_split_butterflies_hint()
 	event.initialize_event()
 	event.set_dungeon_pause_flags(3, 1)
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
 	event.open_message_window_2(0, "蝶が７匹に分離したぞ。\n今なら一匹ずつ倒すチャンスだ！")
-	helper_75684dd8(0, -1, 5, 0, 0)
+	message.show_and_wait(0, -1, 5, 0, 0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_pause_flags(3, 0)
 	event.finish_event()
 end
+script[502] = script.show_split_butterflies_hint
 
---- Event 503, which map data, a script or the engine runs by number.
-function script.event_503()
+--- Shows a hint that the butterflies flee from noise and movement.
+function script.show_sneak_up_hint()
 	event.initialize_event()
 	event.set_dungeon_pause_flags(3, 1)
 	event.apply_message_window_preset(0, 4)
@@ -1813,55 +1803,59 @@ function script.event_503()
 		0,
 		"蝶は音や動きにびんかんなんだ。\nそっと近づかないと逃げられちゃうぞ。"
 	)
-	helper_75684dd8(0, -1, 5, 0, 0)
+	message.show_and_wait(0, -1, 5, 0, 0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_pause_flags(3, 0)
 	event.finish_event()
 end
+script[503] = script.show_sneak_up_hint
 
---- Event 504, which map data, a script or the engine runs by number.
-function script.event_504()
+--- Shows a hint that the butterflies must be defeated in a certain order.
+function script.show_defeat_order_hint()
 	event.initialize_event()
 	event.set_dungeon_pause_flags(3, 1)
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
 	event.open_message_window_2(0, "蝶には倒す順番があるんだ。\n七色といえば・・・")
-	helper_75684dd8(0, -1, 5, 0, 0)
+	message.show_and_wait(0, -1, 5, 0, 0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_pause_flags(3, 0)
 	event.finish_event()
 end
+script[504] = script.show_defeat_order_hint
 
---- Event 505, which map data, a script or the engine runs by number.
-function script.event_505()
+--- Shows a hint that the butterflies are defeated in rainbow color order starting with red.
+function script.show_rainbow_order_hint()
 	event.initialize_event()
 	event.set_dungeon_pause_flags(3, 1)
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
 	event.open_message_window_2(0, "虹の色の順番にやっつけるんだ。\n最初は赤い奴からだよ。")
-	helper_75684dd8(0, -1, 5, 0, 0)
+	message.show_and_wait(0, -1, 5, 0, 0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_pause_flags(3, 0)
 	event.finish_event()
 end
+script[505] = script.show_rainbow_order_hint
 
---- Event 506, which map data, a script or the engine runs by number.
-function script.event_506()
+--- Holds the camera on an overview of the arena for a few seconds.
+function script.cutscene_overview_camera()
 	event.set_dungeon_pause_flags(3, 1)
 	event.clear_camera_sequence()
 	event.set_camera_sequence_position(665.3, 1226.64, 776.05)
 	event.set_camera_sequence_look_at(426.01, 939.19, -311.58)
-	helper_888ab2a3(300)
+	wait.for_frame_count(300)
 	event.set_dungeon_pause_flags(3, 0)
 end
+script[506] = script.cutscene_overview_camera
 
---- Event 507, which map data, a script or the engine runs by number.
-function script.event_507()
+--- Shows hints that attacks do not work and the Lafrescia flower may hold a clue.
+function script.show_nothing_works_hint()
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_dungeon_pause_flags(1, 1)
@@ -1872,65 +1866,76 @@ function script.event_507()
 		0,
 		"[(!)]七色蝶にはあらゆる攻撃が効かないみたいだ。\n   このままでは手も足も出せない。\n   何か別の方法を考えた方が良さそうだ。"
 	)
-	helper_75684dd8(0, -1, 5, 0, 0)
+	message.show_and_wait(0, -1, 5, 0, 0)
 	event.open_message_window_2(
 		0,
 		"[(!)]ラフレシアが咲いたら、すぐに七色蝶が現れた・・・\n   という事は、この花自体に七色蝶を倒すヒントが\n   隠されているのかも知れない。"
 	)
-	helper_75684dd8(0, -1, 5, 0, 0)
+	message.show_and_wait(0, -1, 5, 0, 0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_pause_flags(1, 0)
 	event.finish_event()
 end
+script[507] = script.show_nothing_works_hint
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
+--- Starts the music on channel 0.
+function script.play_music_channel_0()
 	event.play_music(0)
 end
+script[510] = script.play_music_channel_0
 
---- Event 511, which map data, a script or the engine runs by number.
-function script.event_511()
+--- Starts the music on channel 1.
+function script.play_music_channel_1()
 	event.play_music(1)
 end
+script[511] = script.play_music_channel_1
 
---- Event 512, which map data, a script or the engine runs by number.
-function script.event_512()
+--- Stops the music on channel 0.
+function script.stop_music_channel_0()
 	event.stop_music(0)
 end
+script[512] = script.stop_music_channel_0
 
---- Event 513, which map data, a script or the engine runs by number.
-function script.event_513()
+--- Stops the music on channel 1.
+function script.stop_music_channel_1()
 	event.stop_music(1)
 end
+script[513] = script.stop_music_channel_1
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	helper_786b79f1(0)
+--- Runs the defeat sequence when the player loses the fight.
+function script.on_player_defeated()
+	dungeon.run_defeat_sequence_silent(0)
 end
+script[1200] = script.on_player_defeated
 
---- Event 12551, which map data, a script or the engine runs by number.
-function script.event_12551()
+--- Loads the previous boss floor and runs its event 12551.
+function script.forward_event_12551_to_previous_floor()
 	event.load_dungeon_map("d02b01")
 	event.load_event_script("d02b01/d02b01.stb", 12551)
 end
+script[12551] = script.forward_event_12551_to_previous_floor
 
---- Event 12552, which map data, a script or the engine runs by number.
-function script.event_12552()
+--- Loads the previous boss floor and runs its event 12552.
+function script.forward_event_12552_to_previous_floor()
 	event.load_dungeon_map("d02b01")
 	event.load_event_script("d02b01/d02b01.stb", 12552)
 end
+script[12552] = script.forward_event_12552_to_previous_floor
 
---- Event 12560, which map data, a script or the engine runs by number.
-function script.event_12560()
+--- Loads the previous boss floor and runs its event 12560.
+function script.forward_event_12560_to_previous_floor()
 	event.load_dungeon_map("d02b01")
 	event.load_event_script("d02b01/d02b01.stb", 12560)
 end
+script[12560] = script.forward_event_12560_to_previous_floor
 
 --- Event 12570, which map data, a script or the engine runs by number.
-script.event_12570 = helper_119c8
+script.play_arrival_cutscene = play_arrival_cutscene
+script[12570] = script.play_arrival_cutscene
 
 --- Event 12600, which map data, a script or the engine runs by number.
-script.event_12600 = helper_19adc
+script.play_split_cutscene = play_split_cutscene
+script[12600] = script.play_split_cutscene
 
 return script

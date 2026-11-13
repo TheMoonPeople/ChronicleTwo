@@ -41,6 +41,11 @@ add_test(NAME MenuReplay.EquipBodyReload
         --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case equip-dungeon)
 set_tests_properties(MenuReplay.EquipBodyReload PROPERTIES
     SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
+add_test(NAME MenuReplay.WeaponViewExit
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
+        --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case weapon-view-dungeon)
+set_tests_properties(MenuReplay.WeaponViewExit PROPERTIES
+    SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
 foreach(case IN ITEMS town dungeon)
     add_test(NAME MenuReplay.QuickChange_${case}
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py

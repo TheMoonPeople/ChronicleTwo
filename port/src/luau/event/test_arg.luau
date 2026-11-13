@@ -1,5 +1,5 @@
 --!strict
--- event/test_arg.stb: event argument script, translated from the bytecode by tools/luau/stb2luau.
+--- Test data placing characters along a row and starting a walking motion.
 return {
 	{
 		command = 0,

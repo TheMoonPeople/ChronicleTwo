@@ -1,5 +1,5 @@
 --!strict
--- event/tbox/ntbox_arg.stb: event argument script, translated from the bytecode by tools/luau/stb2luau.
+--- Camera, motion and item-lift data for the treasure box opening scene.
 return {
 	{
 		command = 0,

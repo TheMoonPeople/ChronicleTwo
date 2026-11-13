@@ -1,14 +1,13 @@
 --!strict
--- map/s/s60/s60.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the evening speech scene and the ending movie with captions.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_581cb30c = require("@lib/event/helper_581cb30c")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
+local message = require("@lib/event/message")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_bf3c()
-	local active_chr_no: s32 = 0
+--- Plays the e824 cutscene in which the playable character and the other party member listen to Need speak while the camera pushes in on her.
+local function play_e824_speech_scene()
+	local playable_character: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.set_save_flag(824, 1)
@@ -16,18 +15,18 @@ local function helper_bf3c()
 		event.set_message_window_mode(0, 7)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		playable_character = event.get_playable_character() or playable_character
 		event.set_scene_status_flags(1, 0, 256, 1)
 		event.change_directory("event/e800/e824/")
 		event.load_message_file(0, 5, "e824.txt")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e824_mints.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e824_monica.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
@@ -43,7 +42,7 @@ local function helper_bf3c()
 		event.load_character(5, "e824_hanabi.gltf", "info", 11)
 		event.set_character_active(11)
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 8)
 			event.load_equipment_model(5, 0, 4, "info", 8)
 			event.load_equipment_model(5, 0, 3, "info", 8)
@@ -107,7 +106,7 @@ local function helper_bf3c()
 		event.set_object_sequence_motion(2, "いつか世界に・・・", 4)
 		event.delay_object_sequence_motion_track(2, 60)
 		event.queue_object_sequence_next_motion(2, "いつか世界に・・・Ｌ", 4)
-		helper_0382f327(8240090, 360)
+		message.show_voiced_for_stopping(8240090, 360)
 		event.set_camera_sequence_position(44.2, -3.01, -177.99)
 		event.set_camera_sequence_look_at(35.75, -20.84, -125.36)
 		event.move_camera_sequence(44.2, -3.01, -177.99, 52.28, -20.84, -125.25, 420)
@@ -123,7 +122,7 @@ local function helper_bf3c()
 		event.queue_object_sequence_next_motion(2, "なぜなら１Ｌ", 4)
 		event.queue_object_sequence_next_motion(2, "なぜならＬ～なぜなら２", 4)
 		event.queue_object_sequence_next_motion(2, "なぜなら２Ｌ", 4)
-		helper_0382f327(8240110, 420)
+		message.show_voiced_for_stopping(8240110, 420)
 		event.set_event_map_visible(1)
 	end)
 	vm.entry(4)
@@ -134,24 +133,24 @@ local function helper_bf3c()
 	event.delete_character(9)
 	event.delete_character(10)
 	event.delete_character(11)
-	for var1 = 0, 99 do
-		event.delete_character(12 + var1)
+	for index = 0, 99 do
+		event.delete_character(12 + index)
 	end
 	event.load_message_file(0, -1)
 end
 
---- Helper function.
-local function helper_b8bc()
-	local block: s32 = 0
+--- Plays the ending movie with captions, then shows a still image until a button is pressed and fades out.
+local function play_ending_movie_with_captions()
+	local image_block: s32 = 0
 	event.fade_out_screen(0)
 	event.stop_all_sounds()
-	helper_888ab2a3(6)
+	wait.for_frame_count(6)
 	event.fade_in_screen(0)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	event.play_movie(5, "movie/end2.mp4")
 	vm.wait(2)
-	block = event.load_event_image_4(5, "textures/event/e700/e736/e73601.json", 0) or block
+	image_block = event.load_event_image_4(5, "textures/event/e700/e736/e73601.json", 0) or image_block
 	event.reset_event_sprite(0)
 	event.set_event_sprite_type(0, 0)
 	event.set_event_sprite_color(0, 0, 0, 0, 128)
@@ -160,54 +159,57 @@ local function helper_b8bc()
 	event.set_event_sprite_draw_pass(0, 1)
 	event.reset_event_sprite(1)
 	event.set_event_sprite_type(1, 0)
-	event.set_event_sprite_texture(1, "e73601", block)
+	event.set_event_sprite_texture(1, "e73601", image_block)
 	event.set_event_sprite_color(1, 128, 128, 128, 128)
 	event.set_event_sprite_texture_rect(1, 0, 0, 512, 448)
 	event.set_event_sprite_size(1, 512, 448)
 	event.set_event_sprite_position(1, 256, 224)
 	event.set_event_sprite_draw_pass(1, 1)
 	event.fade_in_screen(60)
-	helper_888ab2a3(90)
+	wait.for_frame_count(90)
 	while true do
-		if helper_581cb30c(0) ~= 0 then
+		if wait.get_button_state(0) ~= 0 then
 			break
 		else
 			vm.wait(4)
 		end
 	end
 	event.fade_out_screen(30)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing, so the engine runs it in place of its default.
+function script.do_nothing() end
+script[99] = script.do_nothing
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the engine runs it in place of its default.
 function script.default_event() end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Sets the evening time of day and plays the speech scene.
 function script.key_open()
-	local at: number = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.set_time_of_day(22.0)
 		event.set_time_of_day_advancing(0)
-		at = 1
-		helper_888ab2a3(30)
-		at = 2
-		helper_bf3c()
+		checkpoint = 1
+		wait.for_frame_count(30)
+		checkpoint = 2
+		play_e824_speech_scene()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_bf3c()
+		if checkpoint <= 2 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				play_e824_speech_scene()
 				return vm.continue_with(function()
 					return
 				end)
@@ -218,10 +220,11 @@ function script.key_open()
 	end)
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_b8bc()
+--- Plays the ending movie with captions and flags the scene to exit.
+function script.cutscene_ending_movie()
+	play_ending_movie_with_captions()
 	event.set_scene_exit_flag(1)
 end
+script[500] = script.cutscene_ending_movie
 
 return script

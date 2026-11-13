@@ -324,6 +324,13 @@ constexpr int monster_body_blocks = 0x6400;
 constexpr int monster_trail_blocks = 0x3C0;
 
 /**
+ *
+ * Sword trail arena for the menu's preview body, kept apart from the scene player's SwordEffectStack.
+ *
+ */
+mgCMemory MenuPreviewSwordEffectStack;
+
+/**
  * Keeps the pending NPC model input alive independently of reusable menu scratch arenas.
  */
 dc2::io::FileRead &PendingNpcModelRead() {
@@ -709,8 +716,8 @@ static char *menu_chara_chrtbl[2] = {
  *
  */
 static char *menu_chara_cfg_chrtbl[2] = {
-    "c01.stb",
-    "c02.stb",
+    "max.stb",
+    "monica.stb",
 };
 
 /**
@@ -5240,7 +5247,8 @@ int MenuItemCharaDataLoad(mgCMemory *stack, int chara_no, MENU_BGREAD_INFO2 **in
  *
  */
 static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CActionChara *body, int part,
-                                      u_int *pack, mgCMemory *stack, int tex_block, int blur_type) {
+                                      u_int *pack, mgCMemory *stack, int tex_block, int blur_type,
+                                      mgCMemory &sword_stack) {
     mgCTextureManager *tex_manager = &mgTexManager;
 
     if ((part == 1 || part == 5) ? body != nullptr : chara != nullptr) {
@@ -5288,8 +5296,8 @@ static void MenuItemCharaDataLoadPack(int chara_no, CActionChara *chara, CAction
 
                 if (body != nullptr && part == 2 && stack != nullptr && CheckBattleLoop()) {
                     int rest = stack->stGetRest();
-                    SwordEffectStack.stShareBuffer(*stack, std::span(stack->stGetTop(), static_cast<std::size_t>(rest)));
-                    SetSwordBlurEffect(body, &SwordEffectStack, blur_type);
+                    sword_stack.stShareBuffer(*stack, std::span(stack->stGetTop(), static_cast<std::size_t>(rest)));
+                    SetSwordBlurEffect(body, &sword_stack, blur_type);
                 }
 
                 break;
@@ -5419,8 +5427,9 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
             case MENU_LOAD_MODE_INVENT:
             case MENU_LOAD_MODE_THINK:
                 dc2::text::Copy(tex_manager->name_suffix, "_menu");
+                // Resharing one trail arena for both bodies would retire whichever body loaded first.
                 MenuItemCharaDataLoadPack(chara_no, info[i]->chara, info[0]->chara, i, reinterpret_cast<u_int *>(read.Bytes().data()), buffer,
-                                          tex_block, -1);
+                                          tex_block, -1, MenuPreviewSwordEffectStack);
                 tex_manager->name_suffix[0] = 0;
                 break;
         }
@@ -5444,7 +5453,7 @@ int MenuItemCharaDataLoadEndCheck(MENU_BGREAD_INFO2 **info, mgCMemory *stack, CA
                     }
                     scene_stack->stReset();
                     MenuItemCharaDataLoadPack(chara_no, scene_target[i], player, i, reinterpret_cast<u_int *>(read.Bytes().data()),
-                                              scene_stack, scene_tex_block, chara_no);
+                                              scene_stack, scene_tex_block, chara_no, SwordEffectStack);
 
                     if (i == 0 && scene_target[0] != nullptr) {
                         player->SetPosition(menu_old_chara_position);
@@ -5634,7 +5643,7 @@ int MenuItemChrLoadEndCheck(MENU_BGREAD_INFO2 *info, CActionChara *chara, mgCMem
         return 0;
     }
     if (info->reading != 0) {
-        dc2::io::FileRead  loaded = dc2::io::FindBackgroundReadInCurrentDir(info->path);
+        dc2::io::FileRead loaded = dc2::io::FindBackgroundReadInCurrentDir(info->path);
         if (!loaded || !loaded.Done() || loaded.Cancelled()) {
             return 0;
         }
@@ -5688,7 +5697,7 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
     }
 
     ROBO_INFO_DATA *robo = GetRoboPartsInfo(MenuUserDataManPtr);
-    int total = 0;
+    int             total = 0;
 
     for (i = 0; i < 6; i++) {
         if (info[i] == nullptr) {
@@ -5737,8 +5746,8 @@ int MenuItemRoboDataLoad(mgCMemory *stack, MENU_BGREAD_INFO2 **info, int restart
     if (MenuLoadInfo.mode == MENU_LOAD_MODE_SCENE || (MenuLoadInfo.load_all == false && MenuLoadInfo.load_phase == 6)) {
         MENU_BGREAD_INFO2 *hat = info[6];
         hat->chara = nullptr;
-        dc2::text::Copy(hat->name, dc2::text::View("robo.stb"));
-        dc2::text::Copy(hat->path, dc2::text::View("dungeon/act_script/robo.stb"));
+        dc2::text::Copy(hat->name, dc2::text::View("ridepod.stb"));
+        dc2::text::Copy(hat->path, dc2::text::View("dungeon/act_script/ridepod.stb"));
         const auto read = dc2::io::QueueBackgroundRead(hat->path);
         hat->reading = read ? 1 : 0;
         total += read.Size();

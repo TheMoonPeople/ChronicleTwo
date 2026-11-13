@@ -1,39 +1,32 @@
 --!strict
--- map/s/s54/s54.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Runs the Zelmite mine boss floor: the curse jet scene, the boss encounter, the curse reaction and the stairs to the next floor.
 
 local vm = require("@lib/vm")
-local helper_2609f66b = require("@lib/event/helper_2609f66b")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_43f02c95 = require("@lib/event/helper_43f02c95")
-local helper_45a6628c = require("@lib/event/helper_45a6628c")
-local helper_61e5dba6 = require("@lib/event/helper_61e5dba6")
-local helper_635196bf = require("@lib/event/helper_635196bf")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_7d7eee8f = require("@lib/event/helper_7d7eee8f")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_9cbdc640 = require("@lib/event/helper_9cbdc640")
-local helper_a9eaf20e = require("@lib/event/helper_a9eaf20e")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_f9968159 = require("@lib/event/helper_f9968159")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local sound = require("@lib/event/sound")
+local wait = require("@lib/event/wait")
+local zelmite_mine_s54 = require("@lib/event/zelmite_mine_s54")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
-	local flag: s32 = 0
+--- Stops the music, loads the floor's sounds and places the door parts once the scene flag is set.
+local function set_up_boss_floor()
+	local curse_scene_flag: s32 = 0
 	event.stop_music(0)
 	event.load_map_sounds(8684)
-	flag = event.get_save_flag(808) or flag
-	if flag == 1 then
-		helper_635196bf()
+	curse_scene_flag = event.get_save_flag(808) or curse_scene_flag
+	if curse_scene_flag == 1 then
+		zelmite_mine_s54.place_door_parts()
 	end
 end
 
---- Helper function.
-local function helper_10690()
+--- Plays the curse jet scene.
+local function play_curse_jet_scene()
 	local active_chr_no: s32 = 0
-	local var1: s32 = 0
+	local sound_effect_handle: s32 = 0
 	local block: s32 = 0
 	vm.section(function()
 		event.set_save_flag(808, 1)
@@ -44,10 +37,10 @@ local function helper_10690()
 		event.clear_memory_stack(5)
 		active_chr_no = event.get_playable_character() or active_chr_no
 		event.stop_music(0)
-		helper_888ab2a3(6)
+		wait.for_frame_count(6)
 		event.load_music(107)
 		event.load_map_sounds(8803)
-		var1 = event.load_sound_effect_file_2(8803) or var1
+		sound_effect_handle = event.load_sound_effect_file_2(8803) or sound_effect_handle
 		event.set_scene_status_flags(1, 0, 256, 1)
 		event.change_directory("event/e800/e808/")
 		event.load_message_file(0, 5, "e808.txt")
@@ -150,23 +143,23 @@ local function helper_10690()
 		event.set_camera_sequence_position(-144.53, 162.53, 269.71)
 		event.set_camera_sequence_look_at(9.57, 6.12, 32.98)
 		event.fade_in_screen(30)
-		helper_888ab2a3(70)
+		wait.for_frame_count(70)
 		event.set_camera_sequence_position(0.0, 20.0, 60.0)
 		event.set_camera_sequence_look_at(0.0, 20.0, 100.0)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(8080010)
+		message.show_voiced(8080010)
 		event.set_object_sequence_motion(0, "上向く", 6)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		event.delay_object_sequence_motion_track(1, 10)
 		event.set_object_sequence_motion(1, "上向く", 6)
 		event.queue_object_sequence_next_motion(1, "上向くL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_4116e6bb(8080020)
+		message.show_voiced(8080020)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(8080030)
-		wait_objects(0)
-		wait_objects(1)
-		event.play_sound_effect(var1, 0)
+		message.show_voiced(8080030)
+		object.wait_until_done(0)
+		object.wait_until_done(1)
+		event.play_sound_effect(sound_effect_handle, 0)
 		event.play_music(0)
 		event.move_camera_sequence_eased(0.0, 55.07, 16.58, 0.0, 132.31, 102.11, 60, 0, 0.4)
 		event.set_object_sequence_rotation(2, 0.8, 3.14, 0.0)
@@ -175,52 +168,52 @@ local function helper_10690()
 		event.delay_object_sequence_motion_track(2, 86)
 		event.set_object_sequence_motion(2, "体返す", 2)
 		event.queue_object_sequence_next_motion(2, "体返すＬ", 4)
-		wait_camera()
-		wait_objects(2)
-		event.stop_sound_effect(var1, 0)
+		camera.wait_until_done()
+		object.wait_until_done(2)
+		event.stop_sound_effect(sound_effect_handle, 0)
 		event.set_object_sequence_rotation(0, 0.0, 0.12, 0.0)
 		event.set_object_sequence_rotation(1, 0.0, -0.12, 0.0)
 		event.set_mouth_motions(2, "体返す会話", 4, "体返すＬ", 0)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(8080040)
+		message.show_voiced(8080040)
 		event.set_mouth_motions(2, "体返す会話", 0, "体返すＬ", 0)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(8080045)
+		message.show_voiced(8080045)
 		event.set_camera_sequence_position(-2.41, 61.81, 165.8)
 		event.set_camera_sequence_look_at(0.11, 17.53, 101.88)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_4116e6bb(8080050)
+		message.show_voiced(8080050)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(8080060)
+		message.show_voiced(8080060)
 		event.set_camera_sequence_position(0.0, 104.52, 45.06)
 		event.set_camera_sequence_look_at(0.0, 124.09, 102.11)
 		event.set_object_sequence_rotation(2, 0.0, 3.14, 0.0)
 		event.set_object_sequence_motion(2, "浮遊立ち会話", 4)
 		event.set_mouth_motions(2, "浮遊立ち会話", 4, "浮遊立ち", 0)
 		event.set_mouth_texture_animations(2, "わらい口パク")
-		helper_4116e6bb(8080070)
+		message.show_voiced(8080070)
 		event.set_mouth_motions(2, "浮遊立ち会話", 0, "浮遊立ち", 0)
 		event.set_mouth_texture_animations(2, "わらい口パク")
-		helper_4116e6bb(8080075)
-		wait_objects(2)
-		event.play_sound_effect(var1, 1)
+		message.show_voiced(8080075)
+		object.wait_until_done(2)
+		event.play_sound_effect(sound_effect_handle, 1)
 		event.set_object_sequence_motion(2, "オーホホホ", 2)
 		event.queue_object_sequence_next_motion(2, "オーホホホＬ", 4)
 		event.set_object_handle_texture_animation(2, 0)
 		event.set_object_handle_texture_animation(2, 1, "通常目～高笑い")
 		event.set_mouth_texture_animations(2, "わらい口パク")
-		helper_4116e6bb(8080080)
+		message.show_voiced(8080080)
 		event.set_camera_sequence_position(-29.09, 25.94, 131.55)
 		event.set_camera_sequence_look_at(5.81, 19.33, 91.49)
 		event.set_object_handle_texture_animation(0, 0)
 		event.set_object_handle_texture_animation(0, 1, "いぶかしげ顔")
 		event.set_object_handle_texture_animation(0, 1, "いぶかしげ目パチ")
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_4116e6bb(8080090)
+		message.show_voiced(8080090)
 		event.set_camera_sequence_position(0.5, 125.0, 60.0)
 		event.set_camera_sequence_look_at(0.5, 125.0, 92.0)
 		event.move_camera_sequence_eased(0.5, 115.0, 20.0, 0.5, 115.0, 92.0, 40, 2, 0.2)
-		event.play_sound_effect(var1, 2)
+		event.play_sound_effect(sound_effect_handle, 2)
 		event.set_object_handle_texture_animation(2, 0)
 		event.set_object_handle_texture_animation(2, 1, "おこり顔")
 		event.set_object_handle_texture_animation(2, 1, "おこり目パチ")
@@ -230,11 +223,11 @@ local function helper_10690()
 		event.set_object_sequence_color(3, 128, 128, 128, 128, 30)
 		event.set_mouth_texture_animations(2, "通常口パク")
 		event.open_voice_stream_wave(1, 8080100)
-		helper_9cbdc640(1)
+		sound.wait_voice_stream_ready(1)
 		event.play_voice_stream(1)
-		helper_61e5dba6(0, 180)
+		message.wait_voice_stopping_for(0, 180)
 		event.close_voice_stream(1)
-		event.play_sound_effect(var1, 3)
+		event.play_sound_effect(sound_effect_handle, 3)
 		event.set_object_sequence_color(3, 128, 128, 128, 0, 10)
 		event.set_object_sequence_motion(2, "ゴゴゴゴ", 6)
 		event.queue_object_sequence_next_motion(2, "ゴゴゴゴＬ", 6)
@@ -245,20 +238,20 @@ local function helper_10690()
 		event.delay_object_sequence_position_track(2, 64)
 		event.move_object_sequence(2, 0.0, 66.0, 0.0, 20)
 		event.move_camera_sequence_eased(0.0, 90.93, -24.95, 0.0, 108.12, 88.77, 40, 0, 0.4)
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_event_sprite_draw_pass(0, 0)
-		helper_888ab2a3(50)
+		wait.for_frame_count(50)
 		event.set_object_handle_texture_animation(2, 1, "歯くいしばり")
 		event.set_motion_blur(64)
-		helper_888ab2a3(21)
+		wait.for_frame_count(21)
 		event.fade_out_screen(3)
-		helper_888ab2a3(3)
+		wait.for_frame_count(3)
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var1, 0)
-	event.stop_sound_effect(var1, 1)
-	event.stop_sound_effect(var1, 2)
-	event.stop_sound_effect(var1, 3)
+	event.stop_sound_effect(sound_effect_handle, 0)
+	event.stop_sound_effect(sound_effect_handle, 1)
+	event.stop_sound_effect(sound_effect_handle, 2)
+	event.stop_sound_effect(sound_effect_handle, 3)
 	event.set_event_sprite_draw_pass(0, 0)
 	event.set_motion_blur(0)
 	event.set_scene_status_flags(1, 0, 256, 0)
@@ -279,19 +272,19 @@ local function helper_10690()
 	event.finish_event()
 end
 
---- Event 28010, which map data, a script or the engine runs by number.
-local function event_28010()
+--- Starts the boss music, loads and places the boss and puts the party at the arena entrance.
+local function begin_boss_encounter()
 	event.initialize_event()
 	event.fade_out_screen(0)
 	vm.wait(1)
 	event.stop_music(0)
-	helper_888ab2a3(6)
+	wait.for_frame_count(6)
 	event.load_music(107)
 	event.play_music(0)
 	event.load_dungeon_monster(628, 1)
 	event.load_dungeon_monster(1006, 0)
 	event.place_dungeon_monster(628, 0.0, 0.0, 800.0, 0.0, 3.14, 0.0)
-	helper_7d7eee8f(0.0, 0.0, 300.0, 0.0)
+	character.place_standing(0.0, 0.0, 300.0, 0.0)
 	event.set_camera_look_at(0.0, 30.0, 300.0)
 	event.set_camera_position(0.0, 40.0, 180.0)
 	event.reset_follow_camera(0)
@@ -299,10 +292,10 @@ local function event_28010()
 	event.finish_event()
 end
 
---- Helper function.
-local function helper_13e98()
+--- Plays the curse reaction scene.
+local function play_curse_reaction_scene()
 	local active_chr_no: s32 = 0
-	local var1: s32 = 0
+	local sound_effect_handle: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.set_save_flag(812, 1)
@@ -313,7 +306,7 @@ local function helper_13e98()
 		event.clear_memory_stack(5)
 		active_chr_no = event.get_playable_character() or active_chr_no
 		event.load_map_sounds(8806)
-		var1 = event.load_sound_effect_file_2(8806) or var1
+		sound_effect_handle = event.load_sound_effect_file_2(8806) or sound_effect_handle
 		event.set_scene_status_flags(1, 0, 256, 1)
 		event.change_directory("event/e800/e812/")
 		event.load_message_file(0, 5, "e812.txt")
@@ -396,46 +389,46 @@ local function helper_13e98()
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(0.0, 20.91, 290.09)
 		event.set_camera_sequence_look_at(0.0, 17.6, 396.09)
-		event.play_sound_effect(var1, 0)
+		event.play_sound_effect(sound_effect_handle, 0)
 		event.fade_in_screen(30)
 		event.set_mouth_texture_animations(2, "やられ口パク")
-		helper_4116e6bb(8120010)
+		message.show_voiced(8120010)
 		event.set_mouth_texture_animations(2, "やられ口パク")
-		helper_4116e6bb(8120015)
+		message.show_voiced(8120015)
 		event.set_camera_sequence_position(-21.92, 23.66, 134.75)
 		event.set_camera_sequence_look_at(-4.36, 20.87, 105.83)
 		event.set_object_sequence_motion(1, "会話", 2)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(8120020)
-		wait_objects(1)
+		message.show_voiced(8120020)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(0, "うなづく", 6)
 		event.queue_object_sequence_next_motion(0, "立ち", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_4116e6bb(8120030)
-		wait_objects(0)
+		message.show_voiced(8120030)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-27.34, 30.34, 365.86)
 		event.set_camera_sequence_look_at(-0.39, 25.21, 399.29)
 		event.set_object_sequence_motion(2, "きっと・・・", 4)
 		event.set_mouth_texture_animations(2, "やられ口パク")
-		helper_4116e6bb(8120040)
+		message.show_voiced(8120040)
 		event.set_object_handle_texture_animation(2, 0)
 		event.set_object_handle_texture_animation(2, 1, "わらい顔")
 		event.move_camera_sequence_eased(-125.62, 18.68, 243.92, -0.39, 25.21, 399.29, 60, 0, 0.2)
 		event.set_object_sequence_motion(2, "ポーズ", 6)
 		event.queue_object_sequence_next_motion(2, "ポーズＬ", 4)
 		event.set_mouth_texture_animations(2, "やられ口パク")
-		helper_4116e6bb(8120045)
-		wait_objects(2)
-		wait_camera()
-		event.stop_sound_effect(var1, 0)
-		event.play_sound_effect(var1, 1)
+		message.show_voiced(8120045)
+		object.wait_until_done(2)
+		camera.wait_until_done()
+		event.stop_sound_effect(sound_effect_handle, 0)
+		event.play_sound_effect(sound_effect_handle, 1)
 		event.set_character_active(1, 11)
 		event.set_character_motion(11, "MP爆発", 6)
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_character_visible(10, 0, 1, 0.1)
 		event.set_character_visible(12, 0, 1, 0.1)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(-91.42, 22.7, -33.42)
 		event.set_camera_sequence_look_at(-1.04, 13.67, 105.35)
 		event.set_character_position(11, -105.44, 0.0, 185.46)
@@ -444,21 +437,21 @@ local function helper_13e98()
 		event.queue_object_sequence_next_motion(1, "左向く会話", 6)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(8120050)
+		message.show_voiced(8120050)
 		event.set_object_sequence_motion(0, "右向く", 6)
 		event.queue_object_sequence_next_motion(0, "右くL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_4116e6bb(8120060)
+		message.show_voiced(8120060)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(17)
 	event.cancel_drama_scene_skip()
 	event.set_scene_status_flags(1, 0, 256, 0)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
-	event.stop_sound_effect(var1, 0)
-	event.stop_sound_effect(var1, 1)
+	event.stop_sound_effect(sound_effect_handle, 0)
+	event.stop_sound_effect(sound_effect_handle, 1)
 	event.delete_character_extension_packs(0)
 	event.delete_character(8)
 	event.delete_character(9)
@@ -474,25 +467,26 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.set_up_boss_floor = set_up_boss_floor
+script[99] = script.set_up_boss_floor
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the party and plays the curse jet scene before the boss encounter on the first visit.
 function script.default_event()
-	local flag: s32 = 0
-	event_99()
-	helper_7d7eee8f(0.0, 0.0, 0.0, 0.0)
+	local curse_scene_flag: s32 = 0
+	set_up_boss_floor()
+	character.place_standing(0.0, 0.0, 0.0, 0.0)
 	event.set_camera_look_at(0.0, 30.0, 0.0)
 	event.set_camera_position(0.0, 40.0, -120.0)
 	event.reset_follow_camera(0)
-	flag = event.get_save_flag(808) or flag
-	if flag == 0 then
-		helper_10690()
+	curse_scene_flag = event.get_save_flag(808) or curse_scene_flag
+	if curse_scene_flag == 0 then
+		play_curse_jet_scene()
 		event.set_save_control_bits(1, 1)
 		vm.wait(2)
-		helper_7d7eee8f(0.0, 0.0, 300.0, 0.0)
+		character.place_standing(0.0, 0.0, 300.0, 0.0)
 		event.set_camera_look_at(0.0, 30.0, 300.0)
 		event.set_camera_position(0.0, 40.0, 180.0)
 		event.reset_follow_camera(0)
@@ -504,32 +498,33 @@ function script.default_event()
 	event.finish_event()
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits a frame and then waits for a button press.
 function script.key_open()
 	vm.wait(1)
-	helper_c956b4a2(32)
+	wait.until_button_pressed(32)
 end
 
 --- Event 151, which map data, a script or the engine runs by number.
-script.event_151 = event_28010
+script.begin_boss_encounter = begin_boss_encounter
+script[151] = script.begin_boss_encounter
 
---- Event 300, which map data, a script or the engine runs by number.
-function script.event_300()
-	local active_chr_no: s32 = 0
-	local var1: any = 0
+--- Asks whether to descend to the next floor and moves the party there on a yes.
+function script.ask_to_go_to_next_floor()
+	local playable_character: s32 = 0
+	local answer: any = 0
 	local stage_id: s32 = 0
-	local var3: s32 = 0
-	local argc: s32 = 0
+	local floor: s32 = 0
+	local next_floor: s32 = 0
 	event.initialize_event()
 	event.reset_action_character_motion(0)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 2 or active_chr_no == 3 then
+	playable_character = event.get_playable_character() or playable_character
+	if playable_character == 2 or playable_character == 3 then
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 1)
-		if active_chr_no == 2 then
-			helper_75684dd8(0, 20, 5, 256, 208)
+		if playable_character == 2 then
+			message.show_and_wait(0, 20, 5, 256, 208)
 		else
-			helper_75684dd8(0, 21, 5, 256, 208)
+			message.show_and_wait(0, 21, 5, 256, 208)
 		end
 		event.finish_event()
 		return
@@ -537,47 +532,48 @@ function script.event_300()
 	event.set_message_selection_top_line(0, 0)
 	event.set_message_window_mode(0, 5)
 	event.set_message_draw_speed(0, 1)
-	var1 = helper_bac0e30d(0, 10, 8, 256, 208, 2, 1)
-	if var1 == 0 then
+	answer = message.ask_choice(0, 10, 8, 256, 208, 2, 1)
+	if answer == 0 then
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		stage_id = event.get_dungeon_stage_id() or stage_id
-		var3 = event.get_dungeon_floor() or var3
-		argc = event.get_dungeon_next_floor(var3, 0) or argc
-		event.set_dungeon_floor(argc)
-		event.set_dungeon_floor_info(stage_id, var3, 5, 2)
-		event.set_dungeon_floor_info(stage_id, argc, 5, 1)
+		floor = event.get_dungeon_floor() or floor
+		next_floor = event.get_dungeon_next_floor(floor, 0) or next_floor
+		event.set_dungeon_floor(next_floor)
+		event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+		event.set_dungeon_floor_info(stage_id, next_floor, 5, 1)
 		event.load_event_script("d07/d07.stb", 1000)
 	else
 		event.finish_event()
 	end
 end
+script[300] = script.ask_to_go_to_next_floor
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	local active_chr_no: s32 = 0
-	local at: number = 0
+--- Fades out, plays the curse reaction scene and returns the party to the arena with the door parts placed.
+function script.cutscene_curse_reaction()
+	local playable_character: s32 = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.reset_action_character_motion(0)
 		event.fade_out_music(20)
 		event.fade_out_screen(20)
-		at = 1
-		helper_888ab2a3(20)
+		checkpoint = 1
+		wait.for_frame_count(20)
 		event.stop_music(0)
 		event.clear_event_battle_monsters(-1)
-		active_chr_no = event.get_playable_character() or active_chr_no
-		if active_chr_no == 2 then
+		playable_character = event.get_playable_character() or playable_character
+		if playable_character == 2 then
 			event.switch_dungeon_main_character(0)
 		end
-		if active_chr_no == 3 then
+		if playable_character == 3 then
 			event.switch_dungeon_main_character(1)
 		end
-		at = 2
-		helper_13e98()
+		checkpoint = 2
+		play_curse_reaction_scene()
 		event.set_save_control_bits(1, 0)
-		helper_635196bf()
-		helper_7d7eee8f(0.0, 0.0, 700.0, 0.0)
+		zelmite_mine_s54.place_door_parts()
+		character.place_standing(0.0, 0.0, 700.0, 0.0)
 		event.set_camera_look_at(0.0, 30.0, 700.0)
 		event.set_camera_position(0.0, 40.0, 580.0)
 		event.reset_follow_camera(0)
@@ -585,14 +581,14 @@ function script.event_500()
 		event.finish_event()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_13e98()
+		if checkpoint <= 2 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				play_curse_reaction_scene()
 				return vm.continue_with(function()
 					event.set_save_control_bits(1, 0)
-					helper_635196bf()
-					helper_7d7eee8f(0.0, 0.0, 700.0, 0.0)
+					zelmite_mine_s54.place_door_parts()
+					character.place_standing(0.0, 0.0, 700.0, 0.0)
 					event.set_camera_look_at(0.0, 30.0, 700.0)
 					event.set_camera_position(0.0, 40.0, 580.0)
 					event.reset_follow_camera(0)
@@ -601,64 +597,68 @@ function script.event_500()
 					return
 				end)
 			end
-			helper_45a6628c()
-			helper_43f02c95(0.0, 0.0, 700.0, 0.0)
+			zelmite_mine_s54.offset_door_angles()
+			cutscene.ignore_coordinates(0.0, 0.0, 700.0, 0.0)
 			return 0
 		end
 		return nil
 	end)
 end
+script[500] = script.cutscene_curse_reaction
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local var2: s32 = 0
-	local at: number = 0
+--- Runs a voiced or silent defeat sequence depending on the scene flags.
+function script.on_player_defeated()
+	local curse_scene_flag: s32 = 0
+	local second_scene_flag: s32 = 0
+	local random_roll: s32 = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
-		flag = event.get_save_flag(808) or flag
-		flag_2 = event.get_save_flag(812) or flag_2
-		if flag ~= 0 and flag_2 == 0 then
-			var2 = 0
-			var2 = vm.float_bits(event.get_random_number(100)) or var2
-			if var2 < 50 then
-				at = 1
-				helper_a9eaf20e(0, 8590060)
+		curse_scene_flag = event.get_save_flag(808) or curse_scene_flag
+		second_scene_flag = event.get_save_flag(812) or second_scene_flag
+		if curse_scene_flag ~= 0 and second_scene_flag == 0 then
+			random_roll = 0
+			random_roll = event.get_random_number_int(100) or random_roll
+			if random_roll < 50 then
+				checkpoint = 1
+				dungeon.handle_defeat_voiced(0, 8590060)
 			else
-				at = 2
-				helper_a9eaf20e(0, 8590070)
+				checkpoint = 2
+				dungeon.handle_defeat_voiced(0, 8590070)
 			end
 			return
 		end
-		at = 3
-		helper_f9968159(0)
+		checkpoint = 3
+		dungeon.handle_defeat_silent(0)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				helper_2609f66b(0, 8590070)
+		if checkpoint <= 2 then
+			if checkpoint <= 1 then
+				dungeon.skip_defeat_sequence_voiced(0, 8590070)
 			end
 			return 0
 		end
-		if at <= 3 then
+		if checkpoint <= 3 then
 			return 0
 		end
 		return nil
 	end)
 end
+script[1200] = script.on_player_defeated
 
---- Event 18080, which map data, a script or the engine runs by number.
-function script.event_18080()
-	event_99()
-	helper_10690()
+--- Sets up the floor and plays the curse jet scene.
+function script.replay_curse_jet_scene()
+	set_up_boss_floor()
+	play_curse_jet_scene()
 end
+script[18080] = script.replay_curse_jet_scene
 
---- Event 18120, which map data, a script or the engine runs by number.
-function script.event_18120()
-	event_99()
-	helper_13e98()
+--- Sets up the floor and plays the curse reaction scene.
+function script.replay_curse_reaction_scene()
+	set_up_boss_floor()
+	play_curse_reaction_scene()
 end
+script[18120] = script.replay_curse_reaction_scene
 
-script.event_28010 = event_28010
+script[28010] = script.begin_boss_encounter
 
 return script

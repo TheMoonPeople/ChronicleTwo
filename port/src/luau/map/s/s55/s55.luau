@@ -1,32 +1,31 @@
 --!strict
--- map/s/s55/s55.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the golem march, stampede, night map and cannon barrage scenes of the Paznos battle.
 
 local vm = require("@lib/vm")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local wait_objects = require("@lib/event/wait_objects")
+local cutscene = require("@lib/event/cutscene")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_16814()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
-	local var5: s32 = 0
-	local var6: s32 = 0
-	local var7: s32 = 0
-	local var8: s32 = 0
-	local var9: s32 = 0
-	local time: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local var14: s32 = 0
-	local at: number = 0
+--- Plays the e540 scene in which the left columns of the golem army run up the slope.
+local function play_golem_stampede_left()
+	local position_x: f32 = 0
+	local position_y: f32 = 0
+	local position_z: f32 = 0
+	local random_value: f32 = 0
+	local random_bits: s32 = 0
+	local index: s32 = 0
+	local column: s32 = 0
+	local row: s32 = 0
+	local row_offset: s32 = 0
+	local row_phase: s32 = 0
+	local saved_time_of_day: f32 = 0
+	local handle_x: f32 = 0
+	local handle_y: f32 = 0
+	local handle_z: f32 = 0
+	local motion_bits: s32 = 0
+	local resume_step: number = 0
 	vm.section(function()
-		at = 1
+		resume_step = 1
 		vm.entry(1)
 		event.set_save_flag(540, 1)
 		event.initialize_event()
@@ -39,90 +38,90 @@ local function helper_16814()
 		event.attach_object_handle_to_map_part_2(0, "p03_s55")
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		var5 = 0
-		var6 = -4
-		var7 = 0
-		var8 = -200
-		var9 = 0
-		while var5 < 100 do
-			if var5 == 0 then
+		index = 0
+		column = -4
+		row = 0
+		row_offset = -200
+		row_phase = 0
+		while index < 100 do
+			if index == 0 then
 				event.load_character(5, "e540_golem.gltf", "e33a", 8)
 			else
-				event.copy_character(5, 8, 8 + var5)
+				event.copy_character(5, 8, 8 + index)
 			end
-			event.set_character_active(8 + var5)
-			event.attach_object_handle_to_character(1 + var5, 8 + var5)
-			event.set_object_handle_shadow_enabled(1 + var5, 0)
-			event.clear_object_sequence(1 + var5)
-			event.set_object_sequence_object(1 + var5, 1 + var5)
-			if vm.imod(var7, 2) == 0 then
+			event.set_character_active(8 + index)
+			event.attach_object_handle_to_character(1 + index, 8 + index)
+			event.set_object_handle_shadow_enabled(1 + index, 0)
+			event.clear_object_sequence(1 + index)
+			event.set_object_sequence_object(1 + index, 1 + index)
+			if vm.imod(row, 2) == 0 then
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(vm.i32(80 * var6) - 80) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(vm.i32(80 * column) - 80) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6500)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6500)
 				)
 			else
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(80 * var6) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(80 * column) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6500)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6500)
 				)
 			end
-			var6 = vm.i32(var6 + 1)
-			if vm.imod(var5 + 1, 10) == 0 then
-				var6 = -4
-				var7 = vm.i32(var7 + 1)
-				var8 = -200
-				var9 = 0
+			column = vm.i32(column + 1)
+			if vm.imod(index + 1, 10) == 0 then
+				column = -4
+				row = vm.i32(row + 1)
+				row_offset = -200
+				row_phase = 0
 			end
-			if var9 == 0 and var8 == 0 then
-				var9 = 2
+			if row_phase == 0 and row_offset == 0 then
+				row_phase = 2
 			end
-			if var9 ~= 2 then
-				if var9 ~= 0 then
-					var8 = vm.i32(var8 - 40)
+			if row_phase ~= 2 then
+				if row_phase ~= 0 then
+					row_offset = vm.i32(row_offset - 40)
 				else
-					var8 = vm.i32(var8 + 40)
+					row_offset = vm.i32(row_offset + 40)
 				end
 			else
-				var9 = 1
+				row_phase = 1
 			end
 			do
-				local out1, out2, out3 = event.get_character_position(8 + var5)
-				var0 = out1 or var0
-				var1 = out2 or var1
-				var2 = out3 or var2
+				local out1, out2, out3 = event.get_character_position(8 + index)
+				position_x = out1 or position_x
+				position_y = out2 or position_y
+				position_z = out3 or position_z
 			end
-			var3 = event.get_random_number(40.0) or var3
-			var3 = vm.f32(var3 - 20.0)
-			var0 = vm.f32(var0 + var3)
-			var3 = event.get_random_number(100.0) or var3
-			var3 = vm.f32(var3 - 50.0)
-			var2 = vm.f32(var2 + var3)
-			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
-			if vm.imod(var4, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り", 4)
+			random_value = event.get_random_number(40.0) or random_value
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = event.get_random_number(100.0) or random_value
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			event.set_character_position(8 + index, position_x, position_y, position_z)
+			random_bits = event.get_random_number_int(100) or random_bits
+			if vm.imod(random_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2", 4)
+				event.set_object_handle_motion(1 + index, "走り2", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			index = index + 1
 		end
-		at = 2
+		resume_step = 2
 		vm.wait(2)
-		var5 = 0
-		while var5 < 100 do
-			event.set_character_active(0, 8 + var5)
-			var5 = var5 + 1
+		index = 0
+		while index < 100 do
+			event.set_character_active(0, 8 + index)
+			index = index + 1
 		end
 		event.change_directory("")
 		event.set_object_handle_visible(0, 1)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(24.0)
 		event.set_time_of_day_advancing(0)
 		event.set_event_map_visible(0)
@@ -131,44 +130,44 @@ local function helper_16814()
 		event.set_camera_sequence_position(619.04, 258.8, 6128.66)
 		event.set_camera_sequence_look_at(477.83, 335.0, 6237.76)
 		event.move_camera_sequence_eased(619.04, 258.8, 6128.66, 516.77, 361.08, 6275.05, 60, 2, 1.0)
-		var5 = 0
-		while var5 < 100 do
+		index = 0
+		while index < 100 do
 			if
-				vm.imod(var5, 10) == 3
-				or vm.imod(var5, 10) == 4
-				or vm.imod(var5, 10) == 5
-				or vm.imod(var5, 10) == 6
-				or vm.imod(var5, 10) == 7
-				or vm.imod(var5, 10) == 8
-				or vm.imod(var5, 10) == 9
+				vm.imod(index, 10) == 3
+				or vm.imod(index, 10) == 4
+				or vm.imod(index, 10) == 5
+				or vm.imod(index, 10) == 6
+				or vm.imod(index, 10) == 7
+				or vm.imod(index, 10) == 8
+				or vm.imod(index, 10) == 9
 			then
-				event.set_character_active(0, 8 + var5)
-				var5 = var5 + 1
+				event.set_character_active(0, 8 + index)
+				index = index + 1
 				continue
 			end
-			if var5 == 0 then
-				var5 = var5 + 1
+			if index == 0 then
+				index = index + 1
 				continue
 			end
-			event.set_character_active(8 + var5)
-			event.reset_object_handle_dynamic_animation(1 + var5)
+			event.set_character_active(8 + index)
+			event.reset_object_handle_dynamic_animation(1 + index)
 			do
-				local out1, out2, out3 = event.get_object_handle_position(1 + var5)
-				pos_x = out1 or pos_x
-				pos_y = out2 or pos_y
-				pos_z = out3 or pos_z
+				local out1, out2, out3 = event.get_object_handle_position(1 + index)
+				handle_x = out1 or handle_x
+				handle_y = out2 or handle_y
+				handle_z = out3 or handle_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
-			if vm.imod(var14, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
+			motion_bits = event.get_random_number_int(100) or motion_bits
+			if vm.imod(motion_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り（坂）", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2（坂）", 4)
+				event.set_object_handle_motion(1 + index, "走り2（坂）", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			event.move_object_sequence(1 + var5, pos_x, pos_y + 300, pos_z + 600.0, 120, 1)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			event.move_object_sequence(1 + index, handle_x, handle_y + 300, handle_z + 600.0, 120, 1)
+			index = index + 1
 		end
 		event.set_object_sequence_position(1, -770.0, 249.39, 6317.22)
 		event.move_object_sequence(1, -770.0, 270.4, 6373.33, 20)
@@ -177,100 +176,100 @@ local function helper_16814()
 		event.set_object_sequence_motion(1, "振り返り", 2)
 		event.queue_object_sequence_next_motion(1, "手をあげる", 6)
 		event.queue_object_sequence_next_motion(1, "振り返りループ", 4)
-		at = 3
-		helper_888ab2a3(90)
-		at = 4
-		helper_888ab2a3(30)
+		resume_step = 3
+		wait.for_frame_count(90)
+		resume_step = 4
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			var5 = 0
-			var6 = -4
-			var7 = 0
-			var8 = -200
-			var9 = 0
-			var6 = var6 + 1
-			var6 = -4
-			local _ = vm.imod(var7, 2) == 0
-			var7 = var7 + 1
-			var8 = -200
-			var9 = 0
-			local _ = var9 == 0
-			var9 = 2
-			local _ = var8 == 0
-			var8 = var8 - 40
-			var8 = var8 + 40
-			local _ = var9 ~= 2
-			local _ = var9
-			var9 = 1
-			var3 = vm.f32(var3 - 20.0)
-			var0 = vm.f32(var0 + var3)
-			var3 = vm.f32(var3 - 50.0)
-			var2 = vm.f32(var2 + var3)
-			local _ = var5 < 100
-			local _ = var5 == 0
-			local _ = vm.imod(var5 + 1, 10) == 0
-			var5 = var5 + 1
+		if resume_step <= 1 then
+			index = 0
+			column = -4
+			row = 0
+			row_offset = -200
+			row_phase = 0
+			column = column + 1
+			column = -4
+			local _ = vm.imod(row, 2) == 0
+			row = row + 1
+			row_offset = -200
+			row_phase = 0
+			local _ = row_phase == 0
+			row_phase = 2
+			local _ = row_offset == 0
+			row_offset = row_offset - 40
+			row_offset = row_offset + 40
+			local _ = row_phase ~= 2
+			local _ = row_phase
+			row_phase = 1
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			local _ = index < 100
+			local _ = index == 0
+			local _ = vm.imod(index + 1, 10) == 0
+			index = index + 1
 		end
-		if at <= 2 then
-			var5 = 0
-			local _ = var5 < 100
-			var5 = var5 + 1
-			var5 = 0
-			local _ = var5 < 100
-			local _ = vm.imod(var5, 10) == 3
-			local _ = vm.imod(var5, 10) == 4
-			local _ = vm.imod(var5, 10) == 5
-			local _ = vm.imod(var5, 10) == 6
-			local _ = vm.imod(var5, 10) == 7
-			local _ = vm.imod(var5, 10) == 8
-			local _ = vm.imod(var5, 10) == 9
-			var5 = var5 + 1
-			local _ = var5 == 0
-			var5 = var5 + 1
-			var5 = var5 + 1
-			helper_038a2e4d(90)
+		if resume_step <= 2 then
+			index = 0
+			local _ = index < 100
+			index = index + 1
+			index = 0
+			local _ = index < 100
+			local _ = vm.imod(index, 10) == 3
+			local _ = vm.imod(index, 10) == 4
+			local _ = vm.imod(index, 10) == 5
+			local _ = vm.imod(index, 10) == 6
+			local _ = vm.imod(index, 10) == 7
+			local _ = vm.imod(index, 10) == 8
+			local _ = vm.imod(index, 10) == 9
+			index = index + 1
+			local _ = index == 0
+			index = index + 1
+			index = index + 1
+			wait.skip_frame_count(90)
 		end
-		if at <= 3 then
-			helper_038a2e4d(30)
+		if resume_step <= 3 then
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
-	at = 5
+	resume_step = 5
 	vm.entry(5)
 	event.cancel_drama_scene_skip()
 	event.set_event_map_visible(1)
 	event.set_event_projection(524.9)
 	event.set_object_handle_visible(0, 1)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.set_character_active(0)
-	var5 = 0
-	while var5 < 100 do
-		event.delete_character(8 + var5)
-		var5 = var5 + 1
+	index = 0
+	while index < 100 do
+		event.delete_character(8 + index)
+		index = index + 1
 	end
 end
 
---- Helper function.
-local function helper_189c4()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
-	local var5: s32 = 0
-	local var6: s32 = 0
-	local var7: s32 = 0
-	local var8: s32 = 0
-	local var9: s32 = 0
-	local time: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local var14: s32 = 0
-	local at: number = 0
+--- Plays the e540 scene in which the middle columns of the golem army run up the slope.
+local function play_golem_stampede_center()
+	local position_x: f32 = 0
+	local position_y: f32 = 0
+	local position_z: f32 = 0
+	local random_value: f32 = 0
+	local random_bits: s32 = 0
+	local index: s32 = 0
+	local column: s32 = 0
+	local row: s32 = 0
+	local row_offset: s32 = 0
+	local row_phase: s32 = 0
+	local saved_time_of_day: f32 = 0
+	local handle_x: f32 = 0
+	local handle_y: f32 = 0
+	local handle_z: f32 = 0
+	local motion_bits: s32 = 0
+	local resume_step: number = 0
 	vm.section(function()
-		at = 1
+		resume_step = 1
 		vm.entry(1)
 		event.set_save_flag(540, 1)
 		event.initialize_event()
@@ -283,90 +282,90 @@ local function helper_189c4()
 		event.attach_object_handle_to_map_part_2(0, "p03_s55")
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		var5 = 0
-		var6 = -4
-		var7 = 0
-		var8 = -200
-		var9 = 0
-		while var5 < 100 do
-			if var5 == 0 then
+		index = 0
+		column = -4
+		row = 0
+		row_offset = -200
+		row_phase = 0
+		while index < 100 do
+			if index == 0 then
 				event.load_character(5, "e540_golem.gltf", "e33a", 8)
 			else
-				event.copy_character(5, 8, 8 + var5)
+				event.copy_character(5, 8, 8 + index)
 			end
-			event.set_character_active(8 + var5)
-			event.attach_object_handle_to_character(1 + var5, 8 + var5)
-			event.set_object_handle_shadow_enabled(1 + var5, 0)
-			event.clear_object_sequence(1 + var5)
-			event.set_object_sequence_object(1 + var5, 1 + var5)
-			if vm.imod(var7, 2) == 0 then
+			event.set_character_active(8 + index)
+			event.attach_object_handle_to_character(1 + index, 8 + index)
+			event.set_object_handle_shadow_enabled(1 + index, 0)
+			event.clear_object_sequence(1 + index)
+			event.set_object_sequence_object(1 + index, 1 + index)
+			if vm.imod(row, 2) == 0 then
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(vm.i32(80 * var6) - 80) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(vm.i32(80 * column) - 80) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6500)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6500)
 				)
 			else
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(80 * var6) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(80 * column) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6500)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6500)
 				)
 			end
-			var6 = vm.i32(var6 + 1)
-			if vm.imod(var5 + 1, 10) == 0 then
-				var6 = -4
-				var7 = vm.i32(var7 + 1)
-				var8 = -200
-				var9 = 0
+			column = vm.i32(column + 1)
+			if vm.imod(index + 1, 10) == 0 then
+				column = -4
+				row = vm.i32(row + 1)
+				row_offset = -200
+				row_phase = 0
 			end
-			if var9 == 0 and var8 == 0 then
-				var9 = 2
+			if row_phase == 0 and row_offset == 0 then
+				row_phase = 2
 			end
-			if var9 ~= 2 then
-				if var9 ~= 0 then
-					var8 = vm.i32(var8 - 40)
+			if row_phase ~= 2 then
+				if row_phase ~= 0 then
+					row_offset = vm.i32(row_offset - 40)
 				else
-					var8 = vm.i32(var8 + 40)
+					row_offset = vm.i32(row_offset + 40)
 				end
 			else
-				var9 = 1
+				row_phase = 1
 			end
 			do
-				local out1, out2, out3 = event.get_character_position(8 + var5)
-				var0 = out1 or var0
-				var1 = out2 or var1
-				var2 = out3 or var2
+				local out1, out2, out3 = event.get_character_position(8 + index)
+				position_x = out1 or position_x
+				position_y = out2 or position_y
+				position_z = out3 or position_z
 			end
-			var3 = event.get_random_number(40.0) or var3
-			var3 = vm.f32(var3 - 20.0)
-			var0 = vm.f32(var0 + var3)
-			var3 = event.get_random_number(100.0) or var3
-			var3 = vm.f32(var3 - 50.0)
-			var2 = vm.f32(var2 + var3)
-			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
-			if vm.imod(var4, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り", 4)
+			random_value = event.get_random_number(40.0) or random_value
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = event.get_random_number(100.0) or random_value
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			event.set_character_position(8 + index, position_x, position_y, position_z)
+			random_bits = event.get_random_number_int(100) or random_bits
+			if vm.imod(random_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2", 4)
+				event.set_object_handle_motion(1 + index, "走り2", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			index = index + 1
 		end
-		at = 2
+		resume_step = 2
 		vm.wait(2)
-		var5 = 0
-		while var5 < 100 do
-			event.set_character_active(0, 8 + var5)
-			var5 = var5 + 1
+		index = 0
+		while index < 100 do
+			event.set_character_active(0, 8 + index)
+			index = index + 1
 		end
 		event.change_directory("")
 		event.set_object_handle_visible(0, 1)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(24.0)
 		event.set_time_of_day_advancing(0)
 		event.set_event_map_visible(0)
@@ -375,44 +374,44 @@ local function helper_189c4()
 		event.set_camera_sequence_position(619.04, 258.8, 6128.66)
 		event.set_camera_sequence_look_at(477.83, 335.0, 6237.76)
 		event.move_camera_sequence_eased(619.04, 258.8, 6128.66, 516.77, 361.08, 6275.05, 60, 2, 1.0)
-		var5 = 0
-		while var5 < 100 do
+		index = 0
+		while index < 100 do
 			if
-				vm.imod(var5, 10) == 0
-				or vm.imod(var5, 10) == 1
-				or vm.imod(var5, 10) == 2
-				or vm.imod(var5, 10) == 6
-				or vm.imod(var5, 10) == 7
-				or vm.imod(var5, 10) == 8
-				or vm.imod(var5, 10) == 9
+				vm.imod(index, 10) == 0
+				or vm.imod(index, 10) == 1
+				or vm.imod(index, 10) == 2
+				or vm.imod(index, 10) == 6
+				or vm.imod(index, 10) == 7
+				or vm.imod(index, 10) == 8
+				or vm.imod(index, 10) == 9
 			then
-				event.set_character_active(0, 8 + var5)
-				var5 = var5 + 1
+				event.set_character_active(0, 8 + index)
+				index = index + 1
 				continue
 			end
-			if var5 == 0 then
-				var5 = var5 + 1
+			if index == 0 then
+				index = index + 1
 				continue
 			end
-			event.set_character_active(8 + var5)
-			event.reset_object_handle_dynamic_animation(1 + var5)
+			event.set_character_active(8 + index)
+			event.reset_object_handle_dynamic_animation(1 + index)
 			do
-				local out1, out2, out3 = event.get_object_handle_position(1 + var5)
-				pos_x = out1 or pos_x
-				pos_y = out2 or pos_y
-				pos_z = out3 or pos_z
+				local out1, out2, out3 = event.get_object_handle_position(1 + index)
+				handle_x = out1 or handle_x
+				handle_y = out2 or handle_y
+				handle_z = out3 or handle_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
-			if vm.imod(var14, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
+			motion_bits = event.get_random_number_int(100) or motion_bits
+			if vm.imod(motion_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り（坂）", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2（坂）", 4)
+				event.set_object_handle_motion(1 + index, "走り2（坂）", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			event.move_object_sequence(1 + var5, pos_x, pos_y + 300, pos_z + 600.0, 120, 1)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			event.move_object_sequence(1 + index, handle_x, handle_y + 300, handle_z + 600.0, 120, 1)
+			index = index + 1
 		end
 		event.set_object_sequence_position(1, -770.0, 249.39, 6317.22)
 		event.move_object_sequence(1, -770.0, 270.4, 6373.33, 20)
@@ -421,100 +420,100 @@ local function helper_189c4()
 		event.set_object_sequence_motion(1, "振り返り", 2)
 		event.queue_object_sequence_next_motion(1, "手をあげる", 6)
 		event.queue_object_sequence_next_motion(1, "振り返りループ", 4)
-		at = 3
-		helper_888ab2a3(90)
-		at = 4
-		helper_888ab2a3(30)
+		resume_step = 3
+		wait.for_frame_count(90)
+		resume_step = 4
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			var5 = 0
-			var6 = -4
-			var7 = 0
-			var8 = -200
-			var9 = 0
-			var6 = var6 + 1
-			var6 = -4
-			local _ = vm.imod(var7, 2) == 0
-			var7 = var7 + 1
-			var8 = -200
-			var9 = 0
-			local _ = var9 == 0
-			var9 = 2
-			local _ = var8 == 0
-			var8 = var8 - 40
-			var8 = var8 + 40
-			local _ = var9 ~= 2
-			local _ = var9
-			var9 = 1
-			var3 = vm.f32(var3 - 20.0)
-			var0 = vm.f32(var0 + var3)
-			var3 = vm.f32(var3 - 50.0)
-			var2 = vm.f32(var2 + var3)
-			local _ = var5 < 100
-			local _ = var5 == 0
-			local _ = vm.imod(var5 + 1, 10) == 0
-			var5 = var5 + 1
+		if resume_step <= 1 then
+			index = 0
+			column = -4
+			row = 0
+			row_offset = -200
+			row_phase = 0
+			column = column + 1
+			column = -4
+			local _ = vm.imod(row, 2) == 0
+			row = row + 1
+			row_offset = -200
+			row_phase = 0
+			local _ = row_phase == 0
+			row_phase = 2
+			local _ = row_offset == 0
+			row_offset = row_offset - 40
+			row_offset = row_offset + 40
+			local _ = row_phase ~= 2
+			local _ = row_phase
+			row_phase = 1
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			local _ = index < 100
+			local _ = index == 0
+			local _ = vm.imod(index + 1, 10) == 0
+			index = index + 1
 		end
-		if at <= 2 then
-			var5 = 0
-			local _ = var5 < 100
-			var5 = var5 + 1
-			var5 = 0
-			local _ = var5 < 100
-			local _ = vm.imod(var5, 10) == 0
-			local _ = vm.imod(var5, 10) == 1
-			local _ = vm.imod(var5, 10) == 2
-			local _ = vm.imod(var5, 10) == 6
-			local _ = vm.imod(var5, 10) == 7
-			local _ = vm.imod(var5, 10) == 8
-			local _ = vm.imod(var5, 10) == 9
-			var5 = var5 + 1
-			local _ = var5 == 0
-			var5 = var5 + 1
-			var5 = var5 + 1
-			helper_038a2e4d(90)
+		if resume_step <= 2 then
+			index = 0
+			local _ = index < 100
+			index = index + 1
+			index = 0
+			local _ = index < 100
+			local _ = vm.imod(index, 10) == 0
+			local _ = vm.imod(index, 10) == 1
+			local _ = vm.imod(index, 10) == 2
+			local _ = vm.imod(index, 10) == 6
+			local _ = vm.imod(index, 10) == 7
+			local _ = vm.imod(index, 10) == 8
+			local _ = vm.imod(index, 10) == 9
+			index = index + 1
+			local _ = index == 0
+			index = index + 1
+			index = index + 1
+			wait.skip_frame_count(90)
 		end
-		if at <= 3 then
-			helper_038a2e4d(30)
+		if resume_step <= 3 then
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
-	at = 5
+	resume_step = 5
 	vm.entry(5)
 	event.cancel_drama_scene_skip()
 	event.set_event_map_visible(1)
 	event.set_event_projection(524.9)
 	event.set_object_handle_visible(0, 1)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.set_character_active(0)
-	var5 = 0
-	while var5 < 100 do
-		event.delete_character(8 + var5)
-		var5 = var5 + 1
+	index = 0
+	while index < 100 do
+		event.delete_character(8 + index)
+		index = index + 1
 	end
 end
 
---- Helper function.
-local function helper_1ab74()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
-	local var5: s32 = 0
-	local var6: s32 = 0
-	local var7: s32 = 0
-	local var8: s32 = 0
-	local var9: s32 = 0
-	local time: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local var14: s32 = 0
-	local at: number = 0
+--- Plays the e540 scene in which the right columns of the golem army run up the slope.
+local function play_golem_stampede_right()
+	local position_x: f32 = 0
+	local position_y: f32 = 0
+	local position_z: f32 = 0
+	local random_value: f32 = 0
+	local random_bits: s32 = 0
+	local index: s32 = 0
+	local column: s32 = 0
+	local row: s32 = 0
+	local row_offset: s32 = 0
+	local row_phase: s32 = 0
+	local saved_time_of_day: f32 = 0
+	local handle_x: f32 = 0
+	local handle_y: f32 = 0
+	local handle_z: f32 = 0
+	local motion_bits: s32 = 0
+	local resume_step: number = 0
 	vm.section(function()
-		at = 1
+		resume_step = 1
 		vm.entry(1)
 		event.set_save_flag(540, 1)
 		event.initialize_event()
@@ -527,90 +526,90 @@ local function helper_1ab74()
 		event.attach_object_handle_to_map_part_2(0, "p03_s55")
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		var5 = 0
-		var6 = -4
-		var7 = 0
-		var8 = -200
-		var9 = 0
-		while var5 < 100 do
-			if var5 == 0 then
+		index = 0
+		column = -4
+		row = 0
+		row_offset = -200
+		row_phase = 0
+		while index < 100 do
+			if index == 0 then
 				event.load_character(5, "e540_golem.gltf", "e33a", 8)
 			else
-				event.copy_character(5, 8, 8 + var5)
+				event.copy_character(5, 8, 8 + index)
 			end
-			event.set_character_active(8 + var5)
-			event.attach_object_handle_to_character(1 + var5, 8 + var5)
-			event.set_object_handle_shadow_enabled(1 + var5, 0)
-			event.clear_object_sequence(1 + var5)
-			event.set_object_sequence_object(1 + var5, 1 + var5)
-			if vm.imod(var7, 2) == 0 then
+			event.set_character_active(8 + index)
+			event.attach_object_handle_to_character(1 + index, 8 + index)
+			event.set_object_handle_shadow_enabled(1 + index, 0)
+			event.clear_object_sequence(1 + index)
+			event.set_object_sequence_object(1 + index, 1 + index)
+			if vm.imod(row, 2) == 0 then
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(vm.i32(80 * var6) - 80) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(vm.i32(80 * column) - 80) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6500)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6500)
 				)
 			else
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(80 * var6) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(80 * column) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6500)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6500)
 				)
 			end
-			var6 = vm.i32(var6 + 1)
-			if vm.imod(var5 + 1, 10) == 0 then
-				var6 = -4
-				var7 = vm.i32(var7 + 1)
-				var8 = -200
-				var9 = 0
+			column = vm.i32(column + 1)
+			if vm.imod(index + 1, 10) == 0 then
+				column = -4
+				row = vm.i32(row + 1)
+				row_offset = -200
+				row_phase = 0
 			end
-			if var9 == 0 and var8 == 0 then
-				var9 = 2
+			if row_phase == 0 and row_offset == 0 then
+				row_phase = 2
 			end
-			if var9 ~= 2 then
-				if var9 ~= 0 then
-					var8 = vm.i32(var8 - 40)
+			if row_phase ~= 2 then
+				if row_phase ~= 0 then
+					row_offset = vm.i32(row_offset - 40)
 				else
-					var8 = vm.i32(var8 + 40)
+					row_offset = vm.i32(row_offset + 40)
 				end
 			else
-				var9 = 1
+				row_phase = 1
 			end
 			do
-				local out1, out2, out3 = event.get_character_position(8 + var5)
-				var0 = out1 or var0
-				var1 = out2 or var1
-				var2 = out3 or var2
+				local out1, out2, out3 = event.get_character_position(8 + index)
+				position_x = out1 or position_x
+				position_y = out2 or position_y
+				position_z = out3 or position_z
 			end
-			var3 = event.get_random_number(40.0) or var3
-			var3 = vm.f32(var3 - 20.0)
-			var0 = vm.f32(var0 + var3)
-			var3 = event.get_random_number(100.0) or var3
-			var3 = vm.f32(var3 - 50.0)
-			var2 = vm.f32(var2 + var3)
-			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
-			if vm.imod(var4, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り", 4)
+			random_value = event.get_random_number(40.0) or random_value
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = event.get_random_number(100.0) or random_value
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			event.set_character_position(8 + index, position_x, position_y, position_z)
+			random_bits = event.get_random_number_int(100) or random_bits
+			if vm.imod(random_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2", 4)
+				event.set_object_handle_motion(1 + index, "走り2", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			index = index + 1
 		end
-		at = 2
+		resume_step = 2
 		vm.wait(2)
-		var5 = 0
-		while var5 < 100 do
-			event.set_character_active(0, 8 + var5)
-			var5 = var5 + 1
+		index = 0
+		while index < 100 do
+			event.set_character_active(0, 8 + index)
+			index = index + 1
 		end
 		event.change_directory("")
 		event.set_object_handle_visible(0, 1)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(24.0)
 		event.set_time_of_day_advancing(0)
 		event.set_event_map_visible(0)
@@ -619,43 +618,43 @@ local function helper_1ab74()
 		event.set_camera_sequence_position(619.04, 258.8, 6128.66)
 		event.set_camera_sequence_look_at(477.83, 335.0, 6237.76)
 		event.move_camera_sequence_eased(619.04, 258.8, 6128.66, 516.77, 361.08, 6275.05, 60, 2, 1.0)
-		var5 = 0
-		while var5 < 100 do
+		index = 0
+		while index < 100 do
 			if
-				vm.imod(var5, 10) == 0
-				or vm.imod(var5, 10) == 1
-				or vm.imod(var5, 10) == 2
-				or vm.imod(var5, 10) == 3
-				or vm.imod(var5, 10) == 4
-				or vm.imod(var5, 10) == 5
+				vm.imod(index, 10) == 0
+				or vm.imod(index, 10) == 1
+				or vm.imod(index, 10) == 2
+				or vm.imod(index, 10) == 3
+				or vm.imod(index, 10) == 4
+				or vm.imod(index, 10) == 5
 			then
-				event.set_character_active(0, 8 + var5)
-				var5 = var5 + 1
+				event.set_character_active(0, 8 + index)
+				index = index + 1
 				continue
 			end
-			if var5 == 0 then
-				var5 = var5 + 1
+			if index == 0 then
+				index = index + 1
 				continue
 			end
-			event.set_character_active(8 + var5)
-			event.reset_object_handle_dynamic_animation(1 + var5)
+			event.set_character_active(8 + index)
+			event.reset_object_handle_dynamic_animation(1 + index)
 			do
-				local out1, out2, out3 = event.get_object_handle_position(1 + var5)
-				pos_x = out1 or pos_x
-				pos_y = out2 or pos_y
-				pos_z = out3 or pos_z
+				local out1, out2, out3 = event.get_object_handle_position(1 + index)
+				handle_x = out1 or handle_x
+				handle_y = out2 or handle_y
+				handle_z = out3 or handle_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
-			if vm.imod(var14, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
+			motion_bits = event.get_random_number_int(100) or motion_bits
+			if vm.imod(motion_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り（坂）", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2（坂）", 4)
+				event.set_object_handle_motion(1 + index, "走り2（坂）", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			event.move_object_sequence(1 + var5, pos_x, pos_y + 300, pos_z + 600.0, 120, 1)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			event.move_object_sequence(1 + index, handle_x, handle_y + 300, handle_z + 600.0, 120, 1)
+			index = index + 1
 		end
 		event.set_object_sequence_position(1, -770.0, 249.39, 6317.22)
 		event.move_object_sequence(1, -770.0, 270.4, 6373.33, 20)
@@ -664,96 +663,96 @@ local function helper_1ab74()
 		event.set_object_sequence_motion(1, "振り返り", 2)
 		event.queue_object_sequence_next_motion(1, "手をあげる", 6)
 		event.queue_object_sequence_next_motion(1, "振り返りループ", 4)
-		at = 3
-		helper_888ab2a3(90)
-		at = 4
-		helper_888ab2a3(30)
+		resume_step = 3
+		wait.for_frame_count(90)
+		resume_step = 4
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			var5 = 0
-			var6 = -4
-			var7 = 0
-			var8 = -200
-			var9 = 0
-			var6 = var6 + 1
-			var6 = -4
-			local _ = vm.imod(var7, 2) == 0
-			var7 = var7 + 1
-			var8 = -200
-			var9 = 0
-			local _ = var9 == 0
-			var9 = 2
-			local _ = var8 == 0
-			var8 = var8 - 40
-			var8 = var8 + 40
-			local _ = var9 ~= 2
-			local _ = var9
-			var9 = 1
-			var3 = vm.f32(var3 - 20.0)
-			var0 = vm.f32(var0 + var3)
-			var3 = vm.f32(var3 - 50.0)
-			var2 = vm.f32(var2 + var3)
-			local _ = var5 < 100
-			local _ = var5 == 0
-			local _ = vm.imod(var5 + 1, 10) == 0
-			var5 = var5 + 1
+		if resume_step <= 1 then
+			index = 0
+			column = -4
+			row = 0
+			row_offset = -200
+			row_phase = 0
+			column = column + 1
+			column = -4
+			local _ = vm.imod(row, 2) == 0
+			row = row + 1
+			row_offset = -200
+			row_phase = 0
+			local _ = row_phase == 0
+			row_phase = 2
+			local _ = row_offset == 0
+			row_offset = row_offset - 40
+			row_offset = row_offset + 40
+			local _ = row_phase ~= 2
+			local _ = row_phase
+			row_phase = 1
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			local _ = index < 100
+			local _ = index == 0
+			local _ = vm.imod(index + 1, 10) == 0
+			index = index + 1
 		end
-		if at <= 2 then
-			var5 = 0
-			local _ = var5 < 100
-			var5 = var5 + 1
-			var5 = 0
-			local _ = var5 < 100
-			local _ = vm.imod(var5, 10) == 0
-			local _ = vm.imod(var5, 10) == 1
-			local _ = vm.imod(var5, 10) == 2
-			local _ = vm.imod(var5, 10) == 3
-			local _ = vm.imod(var5, 10) == 4
-			local _ = vm.imod(var5, 10) == 5
-			var5 = var5 + 1
-			local _ = var5 == 0
-			var5 = var5 + 1
-			var5 = var5 + 1
-			helper_038a2e4d(90)
+		if resume_step <= 2 then
+			index = 0
+			local _ = index < 100
+			index = index + 1
+			index = 0
+			local _ = index < 100
+			local _ = vm.imod(index, 10) == 0
+			local _ = vm.imod(index, 10) == 1
+			local _ = vm.imod(index, 10) == 2
+			local _ = vm.imod(index, 10) == 3
+			local _ = vm.imod(index, 10) == 4
+			local _ = vm.imod(index, 10) == 5
+			index = index + 1
+			local _ = index == 0
+			index = index + 1
+			index = index + 1
+			wait.skip_frame_count(90)
 		end
-		if at <= 3 then
-			helper_038a2e4d(30)
+		if resume_step <= 3 then
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
-	at = 5
+	resume_step = 5
 	vm.entry(5)
 	event.cancel_drama_scene_skip()
 	event.set_event_map_visible(1)
 	event.set_event_projection(524.9)
 	event.set_object_handle_visible(0, 1)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.set_character_active(0)
-	var5 = 0
-	while var5 < 100 do
-		event.delete_character(8 + var5)
-		var5 = var5 + 1
+	index = 0
+	while index < 100 do
+		event.delete_character(8 + index)
+		index = index + 1
 	end
 end
 
---- Helper function.
-local function helper_db30()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
-	local var4: s32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
-	local var9: s32 = 0
-	local time: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local at: number = 0
+--- Plays the e540 scene in which the golem army marches forward on flat ground.
+local function play_golem_march()
+	local index: s32 = 0
+	local column: s32 = 0
+	local row: s32 = 0
+	local row_offset: s32 = 0
+	local row_phase: s32 = 0
+	local position_x: f32 = 0
+	local position_y: f32 = 0
+	local position_z: f32 = 0
+	local random_value: f32 = 0
+	local random_bits: s32 = 0
+	local saved_time_of_day: f32 = 0
+	local handle_x: f32 = 0
+	local handle_y: f32 = 0
+	local handle_z: f32 = 0
+	local resume_step: number = 0
 	vm.section(function()
 		event.set_save_flag(540, 1)
 		event.initialize_event()
@@ -766,91 +765,91 @@ local function helper_db30()
 		event.attach_object_handle_to_map_part_2(0, "p03_s55")
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		var0 = 0
-		var1 = -4
-		var2 = 0
-		var3 = -200
-		var4 = 0
-		while var0 < 100 do
-			if var0 == 0 then
+		index = 0
+		column = -4
+		row = 0
+		row_offset = -200
+		row_phase = 0
+		while index < 100 do
+			if index == 0 then
 				event.load_character(5, "e540_golem.gltf", "e33a", 8)
 			else
-				event.copy_character(5, 8, 8 + var0)
+				event.copy_character(5, 8, 8 + index)
 			end
-			event.set_character_active(8 + var0)
-			event.attach_object_handle_to_character(1 + var0, 8 + var0)
-			event.set_object_handle_shadow_enabled(1 + var0, 0)
-			event.clear_object_sequence(1 + var0)
-			event.set_object_sequence_object(1 + var0, 1 + var0)
-			if vm.imod(var2, 2) == 0 then
+			event.set_character_active(8 + index)
+			event.attach_object_handle_to_character(1 + index, 8 + index)
+			event.set_object_handle_shadow_enabled(1 + index, 0)
+			event.clear_object_sequence(1 + index)
+			event.set_object_sequence_object(1 + index, 1 + index)
+			if vm.imod(row, 2) == 0 then
 				event.set_character_position(
-					8 + var0,
-					vm.i32(vm.i32(vm.i32(80 * var1) - 80) + vm.i32(80 * var1)),
+					8 + index,
+					vm.i32(vm.i32(vm.i32(80 * column) - 80) + vm.i32(80 * column)),
 					0.0,
-					vm.i32(vm.i32(vm.i32(-var2) * 140) + var3)
+					vm.i32(vm.i32(vm.i32(-row) * 140) + row_offset)
 				)
 			else
 				event.set_character_position(
-					8 + var0,
-					vm.i32(vm.i32(80 * var1) + vm.i32(80 * var1)),
+					8 + index,
+					vm.i32(vm.i32(80 * column) + vm.i32(80 * column)),
 					0.0,
-					vm.i32(vm.i32(vm.i32(-var2) * 140) + var3)
+					vm.i32(vm.i32(vm.i32(-row) * 140) + row_offset)
 				)
 			end
-			var1 = vm.i32(var1 + 1)
-			if vm.imod(var0 + 1, 10) == 0 then
-				var1 = -4
-				var2 = vm.i32(var2 + 1)
-				var3 = -200
-				var4 = 0
+			column = vm.i32(column + 1)
+			if vm.imod(index + 1, 10) == 0 then
+				column = -4
+				row = vm.i32(row + 1)
+				row_offset = -200
+				row_phase = 0
 			end
-			if var4 == 0 and var3 == 0 then
-				var4 = 2
+			if row_phase == 0 and row_offset == 0 then
+				row_phase = 2
 			end
-			if var4 ~= 2 then
-				if var4 ~= 0 then
-					var3 = vm.i32(var3 - 40)
+			if row_phase ~= 2 then
+				if row_phase ~= 0 then
+					row_offset = vm.i32(row_offset - 40)
 				else
-					var3 = vm.i32(var3 + 40)
+					row_offset = vm.i32(row_offset + 40)
 				end
 			else
-				var4 = 1
+				row_phase = 1
 			end
 			do
-				local out1, out2, out3 = event.get_character_position(8 + var0)
-				var5 = out1 or var5
-				var6 = out2 or var6
-				var7 = out3 or var7
+				local out1, out2, out3 = event.get_character_position(8 + index)
+				position_x = out1 or position_x
+				position_y = out2 or position_y
+				position_z = out3 or position_z
 			end
-			var8 = event.get_random_number(40.0) or var8
-			var8 = vm.f32(var8 - 20.0)
-			var5 = vm.f32(var5 + var8)
-			var8 = event.get_random_number(100.0) or var8
-			var8 = vm.f32(var8 - 50.0)
-			var7 = vm.f32(var7 + var8)
-			event.set_character_position(8 + var0, var5, var6, var7)
-			var9 = vm.float_bits(event.get_random_number(100)) or var9
-			if vm.imod(var9, 2) == 0 then
-				event.set_object_handle_motion(1 + var0, "走り", 4)
+			random_value = event.get_random_number(40.0) or random_value
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = event.get_random_number(100.0) or random_value
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			event.set_character_position(8 + index, position_x, position_y, position_z)
+			random_bits = event.get_random_number_int(100) or random_bits
+			if vm.imod(random_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り", 4)
 			else
-				event.set_object_handle_motion(1 + var0, "走り2", 4)
+				event.set_object_handle_motion(1 + index, "走り2", 4)
 			end
-			event.step_object_handle_motion(1 + var0)
-			var8 = event.get_random_number(10.0) or var8
-			event.set_object_sequence_motion_time(1 + var0, var8)
-			var0 = var0 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			index = index + 1
 		end
-		at = 1
+		resume_step = 1
 		vm.wait(1)
-		var0 = 0
-		while var0 < 100 do
-			event.set_character_active(0, 8 + var0)
-			var0 = var0 + 1
+		index = 0
+		while index < 100 do
+			event.set_character_active(0, 8 + index)
+			index = index + 1
 		end
 		event.change_directory("")
 		event.set_object_handle_position(0, 0.0, 2245.12, 8141.98)
 		event.set_object_handle_rotation(0, 0.0, 3.14, 0.0)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(24.0)
 		event.set_time_of_day_advancing(0)
 		event.move_object_sequence_eased(0, 0.0, 2645.12, 8141.98, 60, 2, 1.0)
@@ -859,95 +858,95 @@ local function helper_db30()
 		event.set_camera_sequence_look_at(684.32, 1267.0, 4889.3)
 		event.enable_drama_skip()
 		event.fade_in_screen(10)
-		at = 2
-		wait_objects(0)
-		at = 3
-		helper_888ab2a3(30)
+		resume_step = 2
+		object.wait_until_done(0)
+		resume_step = 3
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(2.65, 4414.65, 8676.77)
 		event.set_camera_sequence_look_at(2.44, 4392.18, 8614.16)
-		at = 4
-		helper_888ab2a3(60)
+		resume_step = 4
+		wait.for_frame_count(60)
 		event.set_camera_sequence_position(0.0, 44.56, 492.2)
 		event.set_camera_sequence_look_at(0.0, 52.46, 293.84)
 		event.move_camera_sequence_eased(0.0, 93.66, 876.4, 0.0, 50.99, 676.98, 100, 2, 1.0)
 		event.set_object_handle_visible(0, 0)
-		var0 = 0
-		while var0 < 100 do
-			event.set_character_active(0, 8 + var0)
+		index = 0
+		while index < 100 do
+			event.set_character_active(0, 8 + index)
 			do
-				local out1, out2, out3 = event.get_object_handle_position(1 + var0)
-				pos_x = out1 or pos_x
-				pos_y = out2 or pos_y
-				pos_z = out3 or pos_z
+				local out1, out2, out3 = event.get_object_handle_position(1 + index)
+				handle_x = out1 or handle_x
+				handle_y = out2 or handle_y
+				handle_z = out3 or handle_z
 			end
-			event.move_object_sequence(1 + var0, pos_x, pos_y, pos_z + 1200.0, 180)
-			var0 = var0 + 1
+			event.move_object_sequence(1 + index, handle_x, handle_y, handle_z + 1200.0, 180)
+			index = index + 1
 		end
-		at = 5
-		helper_888ab2a3(150)
-		at = 6
-		helper_888ab2a3(20)
-		at = 7
-		helper_888ab2a3(10)
+		resume_step = 5
+		wait.for_frame_count(150)
+		resume_step = 6
+		wait.for_frame_count(20)
+		resume_step = 7
+		wait.for_frame_count(10)
 		event.fade_out_screen(0)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			var0 = 0
-			local _ = var0 < 100
-			var0 = var0 + 1
-			helper_238b5abc(0)
+		if resume_step <= 1 then
+			index = 0
+			local _ = index < 100
+			index = index + 1
+			cutscene.skip_command(0)
 		end
-		if at <= 2 then
-			helper_038a2e4d(30)
+		if resume_step <= 2 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 3 then
-			helper_038a2e4d(60)
+		if resume_step <= 3 then
+			wait.skip_frame_count(60)
 		end
-		if at <= 4 then
-			var0 = 0
-			local _ = var0 < 100
-			var0 = var0 + 1
-			helper_038a2e4d(150)
+		if resume_step <= 4 then
+			index = 0
+			local _ = index < 100
+			index = index + 1
+			wait.skip_frame_count(150)
 		end
-		if at <= 5 then
-			helper_038a2e4d(20)
+		if resume_step <= 5 then
+			wait.skip_frame_count(20)
 		end
-		if at <= 6 then
-			helper_038a2e4d(10)
+		if resume_step <= 6 then
+			wait.skip_frame_count(10)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
 	event.set_event_projection(524.9)
 	event.set_object_handle_visible(0, 1)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.set_character_active(0)
-	var0 = 0
-	while var0 < 100 do
-		event.delete_character(8 + var0)
-		var0 = var0 + 1
+	index = 0
+	while index < 100 do
+		event.delete_character(8 + index)
+		index = index + 1
 	end
 end
 
---- Helper function.
-local function helper_148e0()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
-	local var5: s32 = 0
-	local var6: s32 = 0
-	local var7: s32 = 0
-	local var8: s32 = 0
-	local var9: s32 = 0
-	local time: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local var14: s32 = 0
-	local at: number = 0
+--- Plays the e540 scene in which the whole golem army runs up the slope toward the cliff.
+local function play_golem_stampede_full()
+	local position_x: f32 = 0
+	local position_y: f32 = 0
+	local position_z: f32 = 0
+	local random_value: f32 = 0
+	local random_bits: s32 = 0
+	local index: s32 = 0
+	local column: s32 = 0
+	local row: s32 = 0
+	local row_offset: s32 = 0
+	local row_phase: s32 = 0
+	local saved_time_of_day: f32 = 0
+	local handle_x: f32 = 0
+	local handle_y: f32 = 0
+	local handle_z: f32 = 0
+	local motion_bits: s32 = 0
+	local resume_step: number = 0
 	vm.section(function()
 		event.set_save_flag(540, 1)
 		event.initialize_event()
@@ -960,91 +959,91 @@ local function helper_148e0()
 		event.attach_object_handle_to_map_part_2(0, "p03_s55")
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		var5 = 0
-		var6 = -4
-		var7 = 0
-		var8 = -200
-		var9 = 0
-		while var5 < 100 do
-			if var5 == 0 then
+		index = 0
+		column = -4
+		row = 0
+		row_offset = -200
+		row_phase = 0
+		while index < 100 do
+			if index == 0 then
 				event.load_character(5, "e540_golem.gltf", "e33a", 8)
 			else
-				event.copy_character(5, 8, 8 + var5)
+				event.copy_character(5, 8, 8 + index)
 			end
-			event.set_character_active(8 + var5)
-			event.attach_object_handle_to_character(1 + var5, 8 + var5)
-			event.set_object_handle_shadow_enabled(1 + var5, 0)
-			event.clear_object_sequence(1 + var5)
-			event.set_object_sequence_object(1 + var5, 1 + var5)
-			if vm.imod(var7, 2) == 0 then
+			event.set_character_active(8 + index)
+			event.attach_object_handle_to_character(1 + index, 8 + index)
+			event.set_object_handle_shadow_enabled(1 + index, 0)
+			event.clear_object_sequence(1 + index)
+			event.set_object_sequence_object(1 + index, 1 + index)
+			if vm.imod(row, 2) == 0 then
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(vm.i32(80 * var6) - 80) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(vm.i32(80 * column) - 80) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6500)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6500)
 				)
 			else
 				event.set_character_position(
-					8 + var5,
-					vm.i32(vm.i32(80 * var6) + vm.i32(80 * var6)),
+					8 + index,
+					vm.i32(vm.i32(80 * column) + vm.i32(80 * column)),
 					150.0,
-					vm.i32(vm.i32(vm.i32(vm.i32(-var7) * 100) + var8) + 6600)
+					vm.i32(vm.i32(vm.i32(vm.i32(-row) * 100) + row_offset) + 6600)
 				)
 			end
-			var6 = vm.i32(var6 + 1)
-			if vm.imod(var5 + 1, 10) == 0 then
-				var6 = -4
-				var7 = vm.i32(var7 + 1)
-				var8 = -200
-				var9 = 0
+			column = vm.i32(column + 1)
+			if vm.imod(index + 1, 10) == 0 then
+				column = -4
+				row = vm.i32(row + 1)
+				row_offset = -200
+				row_phase = 0
 			end
-			if var9 == 0 and var8 == 0 then
-				var9 = 2
+			if row_phase == 0 and row_offset == 0 then
+				row_phase = 2
 			end
-			if var9 ~= 2 then
-				if var9 ~= 0 then
-					var8 = vm.i32(var8 - 40)
+			if row_phase ~= 2 then
+				if row_phase ~= 0 then
+					row_offset = vm.i32(row_offset - 40)
 				else
-					var8 = vm.i32(var8 + 40)
+					row_offset = vm.i32(row_offset + 40)
 				end
 			else
-				var9 = 1
+				row_phase = 1
 			end
 			do
-				local out1, out2, out3 = event.get_character_position(8 + var5)
-				var0 = out1 or var0
-				var1 = out2 or var1
-				var2 = out3 or var2
+				local out1, out2, out3 = event.get_character_position(8 + index)
+				position_x = out1 or position_x
+				position_y = out2 or position_y
+				position_z = out3 or position_z
 			end
-			var3 = event.get_random_number(40.0) or var3
-			var3 = vm.f32(var3 - 20.0)
-			var0 = vm.f32(var0 + var3)
-			var3 = event.get_random_number(100.0) or var3
-			var3 = vm.f32(var3 - 50.0)
-			var2 = vm.f32(var2 + var3)
-			event.set_character_position(8 + var5, var0, var1, var2)
-			var4 = vm.float_bits(event.get_random_number(100)) or var4
-			if vm.imod(var4, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り", 4)
+			random_value = event.get_random_number(40.0) or random_value
+			random_value = vm.f32(random_value - 20.0)
+			position_x = vm.f32(position_x + random_value)
+			random_value = event.get_random_number(100.0) or random_value
+			random_value = vm.f32(random_value - 50.0)
+			position_z = vm.f32(position_z + random_value)
+			event.set_character_position(8 + index, position_x, position_y, position_z)
+			random_bits = event.get_random_number_int(100) or random_bits
+			if vm.imod(random_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2", 4)
+				event.set_object_handle_motion(1 + index, "走り2", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			index = index + 1
 		end
-		at = 1
+		resume_step = 1
 		vm.wait(1)
-		var5 = 0
-		while var5 < 100 do
-			event.set_character_active(0, 8 + var5)
-			var5 = var5 + 1
+		index = 0
+		while index < 100 do
+			event.set_character_active(0, 8 + index)
+			index = index + 1
 		end
 		event.change_directory("")
 		event.set_object_handle_position(0, 0.0, 1045.1201, 8141.98)
 		event.set_object_handle_visible(0, 1)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(24.0)
 		event.set_time_of_day_advancing(0)
 		event.clear_camera_sequence()
@@ -1053,30 +1052,30 @@ local function helper_148e0()
 		event.set_camera_sequence_position(619.04, 258.8, 6128.66)
 		event.set_camera_sequence_look_at(477.83, 335.0, 6237.76)
 		event.move_camera_sequence_eased(619.04, 258.8, 6128.66, 516.77, 361.08, 6275.05, 60, 2, 1.0)
-		var5 = 0
-		while var5 < 100 do
-			if var5 == 0 then
-				var5 = var5 + 1
+		index = 0
+		while index < 100 do
+			if index == 0 then
+				index = index + 1
 				continue
 			end
-			event.set_character_active(0, 8 + var5)
+			event.set_character_active(0, 8 + index)
 			do
-				local out1, out2, out3 = event.get_object_handle_position(1 + var5)
-				pos_x = out1 or pos_x
-				pos_y = out2 or pos_y
-				pos_z = out3 or pos_z
+				local out1, out2, out3 = event.get_object_handle_position(1 + index)
+				handle_x = out1 or handle_x
+				handle_y = out2 or handle_y
+				handle_z = out3 or handle_z
 			end
-			var14 = vm.float_bits(event.get_random_number(100)) or var14
-			if vm.imod(var14, 2) == 0 then
-				event.set_object_handle_motion(1 + var5, "走り（坂）", 4)
+			motion_bits = event.get_random_number_int(100) or motion_bits
+			if vm.imod(motion_bits, 2) == 0 then
+				event.set_object_handle_motion(1 + index, "走り（坂）", 4)
 			else
-				event.set_object_handle_motion(1 + var5, "走り2（坂）", 4)
+				event.set_object_handle_motion(1 + index, "走り2（坂）", 4)
 			end
-			event.step_object_handle_motion(1 + var5)
-			var3 = event.get_random_number(10.0) or var3
-			event.set_object_sequence_motion_time(1 + var5, var3)
-			event.move_object_sequence(1 + var5, pos_x, pos_y + 300, pos_z + 600.0, 150, 1)
-			var5 = var5 + 1
+			event.step_object_handle_motion(1 + index)
+			random_value = event.get_random_number(10.0) or random_value
+			event.set_object_sequence_motion_time(1 + index, random_value)
+			event.move_object_sequence(1 + index, handle_x, handle_y + 300, handle_z + 600.0, 150, 1)
+			index = index + 1
 		end
 		event.set_character_active(0, 8)
 		event.set_object_sequence_position(1, -770.0, 249.39, 6317.22)
@@ -1086,48 +1085,48 @@ local function helper_148e0()
 		event.set_object_sequence_motion(1, "振り返り", 2)
 		event.queue_object_sequence_next_motion(1, "手をあげる", 6)
 		event.queue_object_sequence_next_motion(1, "振り返りループ", 4)
-		at = 2
-		helper_888ab2a3(90)
-		at = 3
-		helper_888ab2a3(20)
-		at = 4
-		helper_888ab2a3(10)
+		resume_step = 2
+		wait.for_frame_count(90)
+		resume_step = 3
+		wait.for_frame_count(20)
+		resume_step = 4
+		wait.for_frame_count(10)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			var5 = 0
-			local _ = var5 < 100
-			var5 = var5 + 1
-			var5 = 0
-			local _ = var5 < 100
-			local _ = var5 == 0
-			var5 = var5 + 1
-			var5 = var5 + 1
-			helper_038a2e4d(90)
+		if resume_step <= 1 then
+			index = 0
+			local _ = index < 100
+			index = index + 1
+			index = 0
+			local _ = index < 100
+			local _ = index == 0
+			index = index + 1
+			index = index + 1
+			wait.skip_frame_count(90)
 		end
-		if at <= 2 then
-			helper_038a2e4d(20)
+		if resume_step <= 2 then
+			wait.skip_frame_count(20)
 		end
-		if at <= 3 then
-			helper_038a2e4d(10)
+		if resume_step <= 3 then
+			wait.skip_frame_count(10)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
 	event.set_event_projection(524.9)
 	event.set_object_handle_visible(0, 1)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.set_character_active(0)
-	var5 = 0
-	while var5 < 100 do
-		event.delete_character(8 + var5)
-		var5 = var5 + 1
+	index = 0
+	while index < 100 do
+		event.delete_character(8 + index)
+		index = index + 1
 	end
 end
 
---- Helper function.
-local function helper_1ccd0()
-	local time: f32 = 0
+--- Fades in on the Paznos map at night from a high camera and restores the time of day afterwards.
+local function show_night_map_view()
+	local saved_time_of_day: f32 = 0
 	vm.section(function()
 		event.set_save_flag(540, 1)
 		event.initialize_event()
@@ -1142,7 +1141,7 @@ local function helper_1ccd0()
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
 		event.change_directory("")
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(24.0)
 		event.set_time_of_day_advancing(0)
 		event.clear_camera_sequence()
@@ -1150,23 +1149,23 @@ local function helper_1ccd0()
 		event.set_camera_sequence_look_at(-207.83, 4340.06, 7830.0)
 		event.enable_drama_skip()
 		event.fade_in_screen(0)
-		helper_888ab2a3(60)
-		helper_888ab2a3(10)
+		wait.for_frame_count(60)
+		wait.for_frame_count(10)
 		event.fade_out_screen(0)
 	end)
 	event.cancel_drama_scene_skip()
 	event.set_event_projection(524.9)
 	event.set_object_handle_visible(0, 1)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.set_character_active(0)
 end
 
---- Helper function.
-local function helper_1d1d8()
+--- Plays the e540 scene in which the cannons fire and the golems are pierced and blown up.
+local function play_cannon_barrage()
 	-- retail: a computed index here may leave its array, so the frame's slots live in one table and such an index reaches the neighbouring variables, as it does on the PS2
 	local frame: { any } = table.create(29, 0)
-	local at: number = 0
+	local resume_step: number = 0
 	vm.section(function()
 		event.set_save_flag(540, 1)
 		event.initialize_event()
@@ -1300,8 +1299,8 @@ local function helper_1d1d8()
 		event.set_function_point_enabled("", "func14", 1)
 		event.set_function_point_enabled("", "func15", 1)
 		event.set_function_point_enabled("", "func16", 1)
-		at = 1
-		helper_888ab2a3(7)
+		resume_step = 1
+		wait.for_frame_count(7)
 		frame[5] = event.get_scene_time_of_day() or frame[5]
 		event.set_time_of_day(24.0)
 		event.set_time_of_day_advancing(0)
@@ -1344,7 +1343,7 @@ local function helper_1d1d8()
 			if frame[25] == 0 then
 				break
 			else
-				at = 2
+				resume_step = 2
 				vm.wait(2)
 			end
 		end
@@ -1369,7 +1368,7 @@ local function helper_1d1d8()
 			if frame[29] == 0 then
 				break
 			else
-				at = 3
+				resume_step = 3
 				vm.wait(3)
 			end
 		end
@@ -1438,17 +1437,17 @@ local function helper_1d1d8()
 		event.set_object_sequence_rotation(6, 0.0, 0.0, 0.0)
 		event.set_object_sequence_motion(6, "走り（坂）", 4)
 		event.move_object_sequence(6, -693.84, 475.24, 6889.62, 130, 1)
-		at = 4
-		helper_888ab2a3(20)
+		resume_step = 4
+		wait.for_frame_count(20)
 		event.jump_object_sequence(4, -494.52, 397.5, 6251.11, -0.8, 24)
 		event.rotate_object_sequence(4, -0.8, 0.0, 0.0, 8)
-		at = 5
-		helper_888ab2a3(64)
+		resume_step = 5
+		wait.for_frame_count(64)
 		event.fade_out_screen(4)
-		at = 6
-		helper_888ab2a3(4)
+		resume_step = 6
+		wait.for_frame_count(4)
 	end, function(received: { any }): boolean
-		if at <= 1 then
+		if resume_step <= 1 then
 			frame[6] = vm.f32(1.46)
 			frame[7] = vm.f32(2.24)
 			frame[8] = 3.0
@@ -1472,7 +1471,7 @@ local function helper_1d1d8()
 			frame[24] = vm.f32(frame[24] + frame[vm.index(vm.i32(frame[22] + 5), 29)])
 			frame[22] = vm.i32(frame[22] + 1)
 		end
-		if at <= 2 then
+		if resume_step <= 2 then
 			local _ = frame[25] == 0
 			frame[26] = 0
 			local _ = frame[26] < 16
@@ -1481,18 +1480,18 @@ local function helper_1d1d8()
 			frame[28] = vm.f32(frame[28] + frame[vm.index(vm.i32(frame[26] + 5), 29)])
 			frame[26] = vm.i32(frame[26] + 1)
 		end
-		if at <= 3 then
+		if resume_step <= 3 then
 			local _ = frame[29] == 0
 			frame[1] = 5
 			local _ = frame[1] < 16
 			frame[1] = vm.i32(frame[1] + 1)
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
-		if at <= 4 then
-			helper_038a2e4d(64)
+		if resume_step <= 4 then
+			wait.skip_frame_count(64)
 		end
-		if at <= 5 then
-			helper_038a2e4d(4)
+		if resume_step <= 5 then
+			wait.skip_frame_count(4)
 		end
 		return true
 	end)
@@ -1522,55 +1521,58 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing, so the engine runs it in place of its default.
+function script.do_nothing() end
+script[99] = script.do_nothing
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the engine runs it in place of its default.
 function script.default_event() end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the golem stampede from the left, the center and the right in turn.
 function script.key_open()
-	local at: number = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
-		at = 1
-		helper_888ab2a3(30)
-		at = 2
-		helper_16814()
-		at = 3
-		helper_189c4()
-		at = 4
-		helper_1ab74()
+		checkpoint = 1
+		wait.for_frame_count(30)
+		checkpoint = 2
+		play_golem_stampede_left()
+		checkpoint = 3
+		play_golem_stampede_center()
+		checkpoint = 4
+		play_golem_stampede_right()
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at <= 1 then
-				at = 2
-				helper_16814()
+		if checkpoint <= 4 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				play_golem_stampede_left()
 				return vm.continue_with(function()
-					at = 3
-					helper_189c4()
-					at = 4
-					helper_1ab74()
+					checkpoint = 3
+					play_golem_stampede_center()
+					checkpoint = 4
+					play_golem_stampede_right()
 					return
 				end)
 			end
-			if at <= 2 then
-				at = 3
-				helper_189c4()
+			if checkpoint <= 2 then
+				checkpoint = 3
+				play_golem_stampede_center()
 				return vm.continue_with(function()
-					at = 4
-					helper_1ab74()
+					checkpoint = 4
+					play_golem_stampede_right()
 					return
 				end)
 			end
-			if at <= 3 then
-				at = 4
-				helper_1ab74()
+			if checkpoint <= 3 then
+				checkpoint = 4
+				play_golem_stampede_right()
 				return vm.continue_with(function()
 					return
 				end)
@@ -1581,32 +1583,36 @@ function script.key_open()
 	end)
 end
 
---- Event 600, which map data, a script or the engine runs by number.
-function script.event_600()
-	helper_db30()
+--- Plays the golem march and moves on to map f30.
+function script.cutscene_golem_march()
+	play_golem_march()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 601)
 end
+script[600] = script.cutscene_golem_march
 
---- Event 601, which map data, a script or the engine runs by number.
-function script.event_601()
-	helper_148e0()
+--- Plays the full golem stampede and moves on to map f30.
+function script.cutscene_golem_stampede()
+	play_golem_stampede_full()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 602)
 end
+script[601] = script.cutscene_golem_stampede
 
---- Event 602, which map data, a script or the engine runs by number.
-function script.event_602()
-	helper_1ccd0()
+--- Shows the night map view and moves on to map f30.
+function script.cutscene_night_map_view()
+	show_night_map_view()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 603)
 end
+script[602] = script.cutscene_night_map_view
 
---- Event 603, which map data, a script or the engine runs by number.
-function script.event_603()
-	helper_1d1d8()
+--- Plays the cannon barrage and moves on to map f30.
+function script.cutscene_cannon_barrage()
+	play_cannon_barrage()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 604)
 end
+script[603] = script.cutscene_cannon_barrage
 
 return script

@@ -282,6 +282,34 @@ static u_long128 event_snd2_buff[EVENT_SND2_BUFFER_SIZE];
  */
 static u_long128 event_snd_buff[EVENT_SND_BUFFER_SIZE];
 
+namespace {
+/**
+ *
+ * Storage for the event sound port's bank, which outlives the events that reset the event sound arena.
+ *
+ */
+std::array<u_long128, EVENT_SND_BUFFER_SIZE> event_port_snd_buff{};
+
+/**
+ *
+ * Arena for the event sound port's bank, such as the dungeon battle theme, kept until the port is loaded again.
+ *
+ */
+mgCMemory event_port_snd_memory;
+
+/**
+ *
+ * Empties the event sound port's arena for the bank replacing the port's previous one.
+ *
+ */
+mgCMemory &ResetEventPortSoundMemory() {
+    event_port_snd_memory.stSetBuffer(event_port_snd_buff.data(), static_cast<int>(event_port_snd_buff.size()));
+    dc2::text::Copy(event_port_snd_memory.name, "Event Port Snd");
+    event_port_snd_memory.stReset();
+    return event_port_snd_memory;
+}
+} // namespace
+
 CEoh::CEoh() {
     type = EOH_TYPE_NONE;
     scene_no = -1;
@@ -13415,6 +13443,11 @@ static int _SND_LOAD_SOUND(dc2::script::RunArguments stack, int argc) {
     }
 
     sndInitPort(port);
+    // Every event start resets BuffEventSnd. Retail only rewinds it, so the event port's bank (the dungeon battle
+    // theme) stays playable and stoppable; a separate arena keeps it live here.
+    if (port == SND_PORT_EVENT) {
+        memory = &ResetEventPortSoundMemory();
+    }
     SetStack(stack, sound_id = sndLoadSound(port, pack, memory));
     EdEventInfo.snd_id[port] = sound_id;
     EdEventInfo.last_snd_id = sound_id;

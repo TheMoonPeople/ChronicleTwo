@@ -1262,6 +1262,12 @@ private:
 [[nodiscard]] bool ResourcesWouldRetireOnReset(const CCharacter2 &character, const mgCMemory &memory,
                                                dc2::memory::ArenaResetKind kind);
 /**
+ * Detaches the extension motions and images an arena operation would retire, keeping the character itself live.
+ *
+ * Returns false when any other retained resource would also retire, leaving the character untouched.
+ */
+bool DetachRetiringExtensions(CCharacter2 &character, const mgCMemory &memory, dc2::memory::ArenaResetKind kind);
+/**
  * Publishes an immutable resource snapshot after validating all explicit producer contexts.
  */
 [[nodiscard]] bool PublishResources(CCharacter2 &character, ResourceState state);

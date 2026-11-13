@@ -1,12 +1,11 @@
 --!strict
--- map/z/z01/z01.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Shows the Lunar Moon opening scene of a winged figure beneath two moons with fireflies, until a button is pressed.
 
 local vm = require("@lib/vm")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_aac8()
+--- Shows the moonlit winged figure scene and waits for a button press before cleaning up.
+local function play_moon_scene()
 	event.initialize_event()
 	event.set_time_of_day(24.0)
 	event.set_time_of_day_advancing(0)
@@ -54,13 +53,13 @@ local function helper_aac8()
 	event.rotate_object_sequence(2, 0.0, -0.002, 0.0, -1)
 	event.set_camera_position(0.0, -10.44, 138.29)
 	event.set_camera_look_at(0.0, 42.51, 0.0)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.clear_camera_sequence()
 	event.move_camera_sequence_eased(0.0, 11.62, 87.3, 0.0, 42.51, 0.0, 120, 2, 1.0)
 	event.move_object_sequence(2, -256.22, -5.2, -666.44, 300)
 	event.set_character_motion(8, "羽開き", 2)
 	vm.wait(2)
-	helper_c956b4a2(32)
+	wait.until_button_pressed(32)
 	event.set_character_active(1, 0)
 	event.delete_character(8)
 	event.delete_character(9)
@@ -69,10 +68,10 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_aac8
+script.key_open = play_moon_scene
 
 return script

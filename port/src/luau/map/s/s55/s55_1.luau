@@ -1,67 +1,64 @@
 --!strict
--- map/s/s55/s55_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the golem march, stampede, night map and cannon barrage scenes of the Paznos battle.
 
 local vm = require("@lib/vm")
-local helper_0dadb783 = require("@lib/event/helper_0dadb783")
-local helper_244e9ed8 = require("@lib/event/helper_244e9ed8")
-local helper_34f2af89 = require("@lib/event/helper_34f2af89")
-local helper_393ea807 = require("@lib/event/helper_393ea807")
-local helper_574aec8b = require("@lib/event/helper_574aec8b")
-local helper_aca6764d = require("@lib/event/helper_aca6764d")
-local helper_baabee9d = require("@lib/event/helper_baabee9d")
-local wait_frames = require("@lib/event/wait_frames")
+local paznos_event_battle = require("@lib/event/paznos_event_battle")
+local wait = require("@lib/event/wait")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing, so the engine runs it in place of its default.
+function script.do_nothing() end
+script[99] = script.do_nothing
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the engine runs it in place of its default.
 function script.default_event() end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the golem stampede from the left, the center and the right in turn.
 function script.key_open()
-	local at: number = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
-		at = 1
-		wait_frames(30)
-		at = 2
-		helper_244e9ed8()
-		at = 3
-		helper_baabee9d()
-		at = 4
-		helper_34f2af89()
+		checkpoint = 1
+		wait.frames(30)
+		checkpoint = 2
+		paznos_event_battle.play_golem_stampede_left()
+		checkpoint = 3
+		paznos_event_battle.play_golem_stampede_center()
+		checkpoint = 4
+		paznos_event_battle.play_golem_stampede_right()
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at <= 1 then
-				at = 2
-				helper_244e9ed8()
+		if checkpoint <= 4 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				paznos_event_battle.play_golem_stampede_left()
 				return vm.continue_with(function()
-					at = 3
-					helper_baabee9d()
-					at = 4
-					helper_34f2af89()
+					checkpoint = 3
+					paznos_event_battle.play_golem_stampede_center()
+					checkpoint = 4
+					paznos_event_battle.play_golem_stampede_right()
 					return
 				end)
 			end
-			if at <= 2 then
-				at = 3
-				helper_baabee9d()
+			if checkpoint <= 2 then
+				checkpoint = 3
+				paznos_event_battle.play_golem_stampede_center()
 				return vm.continue_with(function()
-					at = 4
-					helper_34f2af89()
+					checkpoint = 4
+					paznos_event_battle.play_golem_stampede_right()
 					return
 				end)
 			end
-			if at <= 3 then
-				at = 4
-				helper_34f2af89()
+			if checkpoint <= 3 then
+				checkpoint = 4
+				paznos_event_battle.play_golem_stampede_right()
 				return vm.continue_with(function()
 					return
 				end)
@@ -72,32 +69,36 @@ function script.key_open()
 	end)
 end
 
---- Event 600, which map data, a script or the engine runs by number.
-function script.event_600()
-	helper_393ea807()
+--- Plays the golem march and moves on to map f30.
+function script.cutscene_golem_march()
+	paznos_event_battle.play_golem_march()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 601)
 end
+script[600] = script.cutscene_golem_march
 
---- Event 601, which map data, a script or the engine runs by number.
-function script.event_601()
-	helper_574aec8b()
+--- Plays the full golem stampede and moves on to map f30.
+function script.cutscene_golem_stampede()
+	paznos_event_battle.play_golem_stampede_full()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 602)
 end
+script[601] = script.cutscene_golem_stampede
 
---- Event 602, which map data, a script or the engine runs by number.
-function script.event_602()
-	helper_aca6764d()
+--- Shows the night map view and moves on to map f30.
+function script.cutscene_night_map_view()
+	paznos_event_battle.show_night_map_view()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 603)
 end
+script[602] = script.cutscene_night_map_view
 
---- Event 603, which map data, a script or the engine runs by number.
-function script.event_603()
-	helper_0dadb783()
+--- Plays the cannon barrage and moves on to map f30.
+function script.cutscene_cannon_barrage()
+	paznos_event_battle.play_cannon_barrage()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f30", 604)
 end
+script[603] = script.cutscene_cannon_barrage
 
 return script

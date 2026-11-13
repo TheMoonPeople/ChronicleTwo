@@ -1,23 +1,24 @@
 --!strict
--- map/s/s58/s58_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the train chapter intro and moves on to map s31.
 
 local vm = require("@lib/vm")
-local helper_1b09f02b = require("@lib/event/helper_1b09f02b")
+local subdimension = require("@lib/event/subdimension")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_1b09f02b
+script.key_open = subdimension.play_train_chapter_intro
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_1b09f02b()
+--- Plays the train chapter intro and moves on to map s31.
+function script.cutscene_train_chapter_intro()
+	subdimension.play_train_chapter_intro()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s31", 500)
 	vm.wait(2)
 end
+script[500] = script.cutscene_train_chapter_intro
 
 return script

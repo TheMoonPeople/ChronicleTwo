@@ -1,96 +1,84 @@
 --!strict
--- map/s/s56/s56.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Runs the destroyed lighthouse map: the star hourglass hint and use, the Lin approach scene and the exit.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_35a95052 = require("@lib/event/helper_35a95052")
-local helper_38df53e4 = require("@lib/event/helper_38df53e4")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_52115bbf = require("@lib/event/helper_52115bbf")
-local helper_53ffe901 = require("@lib/event/helper_53ffe901")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_786b79f1 = require("@lib/event/helper_786b79f1")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8cd371d7 = require("@lib/event/helper_8cd371d7")
-local helper_c292fa16 = require("@lib/event/helper_c292fa16")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_df618068 = require("@lib/event/helper_df618068")
-local helper_e4e2e66b = require("@lib/event/helper_e4e2e66b")
-local helper_ee1c51d0 = require("@lib/event/helper_ee1c51d0")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local map = require("@lib/event/map")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
-local global1: s32 = 0
+local max_slot: s32 = 0
+local monica_slot: s32 = 0
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
-	local var0: s32 = 0
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	var0 = event.get_active_music_number() or var0
-	if var0 ~= 17 then
+--- Starts the map music and sounds and disables the function points whose scenes have been seen.
+local function set_up_lighthouse_map()
+	local music_number: s32 = 0
+	local lin_scene_flag: s32 = 0
+	local hourglass_scene_flag: s32 = 0
+	music_number = event.get_active_music_number() or music_number
+	if music_number ~= 17 then
 		event.stop_music(0)
-		helper_888ab2a3(6)
+		wait.for_frame_count(6)
 		event.load_music(17)
 	end
 	event.play_music(0)
 	event.load_map_sounds(3682)
-	flag = event.get_save_flag(348) or flag
-	if flag == 1 then
+	lin_scene_flag = event.get_save_flag(348) or lin_scene_flag
+	if lin_scene_flag == 1 then
 		event.set_function_point_enabled("", "e348", 0)
 		event.attach_object_handle_to_map_part_2(0, "p07_d03b01")
 		event.set_object_handle_visible(0, 0)
 	end
-	flag_2 = event.get_save_flag(352) or flag_2
-	if flag_2 == 1 then
+	hourglass_scene_flag = event.get_save_flag(352) or hourglass_scene_flag
+	if hourglass_scene_flag == 1 then
 		event.set_function_point_enabled("", "event", 0)
 	end
 end
 
---- Helper function.
-local function helper_160d0()
-	local argc: s32 = 0
-	local var1: s32 = 0
-	local at: number = 0
+--- Explains how to travel back to the past, or asks whether to go when the star hourglass is owned.
+local function ask_to_travel_to_past()
+	local hourglass_count: s32 = 0
+	local answer: s32 = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
 		event.apply_message_window_preset(0, 0)
 		event.set_message_bubble_tail(0, 0)
-		argc = event.get_item_count(371) or argc
-		if argc <= 0 then
+		hourglass_count = event.get_item_count(371) or hourglass_count
+		if hourglass_count <= 0 then
 			event.open_message_window_2(
 				0,
 				"ここから過去に戻れば、クレストを助けられるはず！\nでも、過去に戻るにはどうしたら良いんだろう・・・"
 			)
-			at = 1
-			helper_75684dd8(0, -1, 5, 256, 208)
+			checkpoint = 1
+			message.show_and_wait(0, -1, 5, 256, 208)
 			event.apply_message_window_preset(0, 4)
 			event.set_message_window_mode(0, 4)
 			event.open_message_window_2(
 				0,
 				"[(!)]過去に戻る方法なんてあるんでしょうか？\n   何か特別な道具でもあれば別ですけど・・・"
 			)
-			at = 2
-			helper_75684dd8(0, -1, 8, 0, 0)
+			checkpoint = 2
+			message.show_and_wait(0, -1, 8, 0, 0)
 			event.open_message_window_2(
 				0,
 				"[(!)]そう言えば、ステラ寺院には世にも珍しい品物を扱う\n   道具屋があるそうです。そこでなら、もしかしたら、\n   何か手に入るかも知れませんね。"
 			)
-			at = 3
-			helper_75684dd8(0, -1, 8, 0, 0)
+			checkpoint = 3
+			message.show_and_wait(0, -1, 8, 0, 0)
 		else
 			event.open_message_window_2(
 				0,
 				"ここから過去に戻れば、クレストを助けられるはず！\n（(#)ボタンでメニューを開く）"
 			)
-			at = 4
-			var1 = helper_c292fa16(0, -1, 5, 256, 208, var1)
-			if var1 == 1 then
+			checkpoint = 4
+			answer = message.ask_confirmation(0, -1, 5, 256, 208, answer)
+			if answer == 1 then
 				event.set_message_bubble_tail(0, 1)
 				return 1
 			end
@@ -99,18 +87,18 @@ local function helper_160d0()
 		event.set_message_bubble_tail(0, 1)
 		return 0
 	end, function(received: { any })
-		if at <= 4 then
-			if at == 4 then
-				var1 = received[2] :: number
+		if checkpoint <= 4 then
+			if checkpoint == 4 then
+				answer = received[2] :: number
 			end
-			if at <= 1 then
-				helper_ee1c51d0(0, -1, 8, 0, 0)
+			if checkpoint <= 1 then
+				message.show_and_wait_skipping(0, -1, 8, 0, 0)
 			end
-			if at <= 2 then
-				helper_ee1c51d0(0, -1, 8, 0, 0)
+			if checkpoint <= 2 then
+				message.show_and_wait_skipping(0, -1, 8, 0, 0)
 			end
-			if at <= 3 then
-				var1 = helper_35a95052(0, -1, 5, 256, 208, var1)
+			if checkpoint <= 3 then
+				answer = message.show_and_ask(0, -1, 5, 256, 208, answer)
 			end
 			return 1
 		end
@@ -118,64 +106,64 @@ local function helper_160d0()
 	end)
 end
 
---- Helper function.
-local function helper_12f20()
-	local active_chr_no: s32 = 0
+--- Loads Max, Monica and the hourglass scene's characters and models.
+local function load_hourglass_scene_cast()
+	local playable_character: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.show_dungeon_status_bar(0, 1.0)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	print("GET_ACTIVE_CHR_NO-------", active_chr_no, "\n")
-	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 8
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e300/e352/e352_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	playable_character = event.get_playable_character() or playable_character
+	print("GET_ACTIVE_CHR_NO-------", playable_character, "\n")
+	if playable_character == 0 then
+		max_slot = 0
+		monica_slot = 8
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", max_slot)
+		event.load_character_motion_pack(5, "event/e300/e352/e352_mints.gltf", "info", max_slot)
+		event.attach_object_handle_to_character(0, max_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 1, "info", global1, 17)
-		event.load_equipment_model(5, 1, 0, "info", global1, 18)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 12)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e300/e352/e352_monica1.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, max_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 1, "info", monica_slot, 17)
+		event.load_equipment_model(5, 1, 0, "info", monica_slot, 18)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 12)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e300/e352/e352_monica1.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 12)
 		event.set_character_active(0, 17)
 		event.set_character_active(0, 18)
 	end
-	if active_chr_no == 1 then
-		global0 = 8
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 1, "info", global0, 17)
-		event.load_equipment_model(5, 0, 0, "info", global0, 18)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 12)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e300/e352/e352_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	if playable_character == 1 then
+		max_slot = 8
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", max_slot)
+		event.load_equipment_model(5, 0, 1, "info", max_slot, 17)
+		event.load_equipment_model(5, 0, 0, "info", max_slot, 18)
+		event.load_equipment_model(5, 0, 4, "info", max_slot)
+		event.load_equipment_model(5, 0, 3, "info", max_slot)
+		event.load_equipment_model(5, 0, 2, "info", max_slot, 12)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", max_slot)
+		event.load_character_motion_pack(5, "event/e300/e352/e352_mints.gltf", "info", max_slot)
+		event.attach_object_handle_to_character(0, max_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, max_slot)
 		event.set_character_active(1, 12)
 		event.set_character_active(0, 17)
 		event.set_character_active(0, 18)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e300/e352/e352_monica1.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e300/e352/e352_monica1.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.attach_object_handle_to_character(2, 1)
 	event.set_object_handle_visible(2, 0)
@@ -200,36 +188,36 @@ local function helper_12f20()
 	event.load_message_file(0, 5, "event/e300/e352/e352.txt")
 end
 
---- Helper function.
-local function helper_22c00000()
-	local var0: s32 = 0
-	print("GET_ACTIVE_CHR_NO-------", var0, "\n")
-	global0 = 0
-	global1 = 8
-	global0 = 8
-	global1 = 0
+--- Reassigns the party slot variables to the same values the cutscene loader sets when the scene is skipped.
+local function assign_party_slots_for_skip()
+	local playable_character: s32 = 0
+	print("GET_ACTIVE_CHR_NO-------", playable_character, "\n")
+	max_slot = 0
+	monica_slot = 8
+	max_slot = 8
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_129cc()
-	local active_chr_no: s32 = 0
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+--- Restores the party, deletes the hourglass scene's characters and ends the event.
+local function unload_hourglass_scene_cast()
+	local playable_character: s32 = 0
+	playable_character = event.get_playable_character() or playable_character
+	if playable_character == 0 then
+		event.set_character_active(1, max_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(max_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(12)
 		event.delete_character(17)
 		event.delete_character(18)
 	end
-	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+	if playable_character == 1 then
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, max_slot)
+		event.delete_character_extension_packs(max_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(max_slot)
 		event.delete_character(12)
 		event.delete_character(17)
 		event.delete_character(18)
@@ -249,29 +237,29 @@ local function helper_129cc()
 	vm.wait(1)
 end
 
---- Helper function.
-local function helper_1439c()
-	local var4: s32 = 0
-	local at: number = 0
+--- Plays the scene in which the star hourglass is placed and glows, then whites out.
+local function play_star_hourglass_scene()
+	local sound_bank: s32 = 0
+	local checkpoint: number = 0
 	vm.section(function()
-		at = 1
+		checkpoint = 1
 		vm.entry(1)
 		event.set_save_flag(352, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.set_motion_blur(0)
 		event.stop_music(0)
-		at = 2
+		checkpoint = 2
 		vm.wait(2)
-		at = 3
+		checkpoint = 3
 		vm.wait(3)
-		at = 4
+		checkpoint = 4
 		vm.wait(4)
-		at = 5
+		checkpoint = 5
 		vm.wait(5)
 		event.load_map_sounds(3831)
-		var4 = event.load_sound_effect_file_2(3831) or var4
-		helper_12f20()
+		sound_bank = event.load_sound_effect_file_2(3831) or sound_bank
+		load_hourglass_scene_cast()
 		event.enable_drama_skip()
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "無表情")
@@ -286,8 +274,8 @@ local function helper_1439c()
 		event.set_object_sequence_motion(0, "立ち", 4)
 		event.set_object_sequence_motion(1, "立ち", 4)
 		event.set_object_sequence_motion(2, "上見立ち", 4)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, max_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 9)
 		event.set_camera_sequence_position(496.47, 169.37, -809.35)
 		event.set_camera_sequence_look_at(508.77, 169.14, -850.82)
@@ -299,54 +287,54 @@ local function helper_1439c()
 		event.set_object_sequence_rotation(1, 0.0, -0.92, 0.0)
 		event.move_camera_sequence_eased(530.44, 169.37, -799.27, 542.75, 169.14, -840.74, 120, 2, 1.0)
 		event.fade_in_screen(30)
-		at = 6
-		wait_camera()
-		at = 7
-		helper_888ab2a3(30)
+		checkpoint = 6
+		camera.wait_until_done()
+		checkpoint = 7
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(1, "会話", 6)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		at = 8
-		helper_4116e6bb(3520010)
+		checkpoint = 8
+		message.show_voiced(3520010)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(2, "うなづく", 6)
 		event.queue_object_sequence_next_motion(2, "上見立ち", 4)
 		event.set_mouth_texture_animations(4, "通常口パク")
-		at = 9
-		helper_4116e6bb(3520020)
+		checkpoint = 9
+		message.show_voiced(3520020)
 		event.reset_mouth_texture_animations()
-		at = 10
-		wait_objects(2)
-		event.attach_character_to_frame(global1, "sword_hand", 13)
+		checkpoint = 10
+		object.wait_until_done(2)
+		event.attach_character_to_frame(monica_slot, "sword_hand", 13)
 		event.set_character_active(1, 13)
 		event.set_object_sequence_position(1, 519.39, 147.4, -861.34)
 		event.set_object_sequence_rotation(1, 0.0, -0.2, 0.0)
 		event.set_object_sequence_rotation(0, 0.0, -0.6, 0.0)
 		event.set_object_sequence_motion(2, "下見立ち", 4)
-		event.play_sound_effect(var4, 0)
+		event.play_sound_effect(sound_bank, 0)
 		event.set_object_sequence_motion(1, "置く～下見", 6)
 		event.queue_object_sequence_next_motion(1, "下見", 4)
 		event.set_camera_sequence_position(485.69, 161.28, -803.81)
 		event.set_camera_sequence_look_at(535.39, 163.79, -859.0)
-		at = 11
-		helper_888ab2a3(27)
-		event.play_sound_effect(var4, 1)
+		checkpoint = 11
+		wait.for_frame_count(27)
+		event.play_sound_effect(sound_bank, 1)
 		event.detach_character_from_frame(13)
 		event.set_character_active(0, 13)
 		event.set_character_active(1, 19)
 		event.set_character_position(19, 516.77, 149.74, -850.63)
-		at = 12
-		helper_888ab2a3(60)
+		checkpoint = 12
+		wait.for_frame_count(60)
 		event.set_camera_sequence_position(499.2, 155.53, -839.73)
 		event.set_camera_sequence_look_at(516.77, 149.74, -850.63)
-		at = 13
-		helper_888ab2a3(60)
+		checkpoint = 13
+		wait.for_frame_count(60)
 		event.set_character_active(1, 20)
 		event.set_character_position(20, 516.77, 149.74, -850.63)
 		event.set_character_motion(20, "砂時計光る", 2, -1, 1)
-		event.play_sound_effect(var4, 2)
-		at = 14
-		helper_888ab2a3(60)
+		event.play_sound_effect(sound_bank, 2)
+		checkpoint = 14
+		wait.for_frame_count(60)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "無表情")
 		event.set_object_sequence_texture_animation(0, 1, "目とじ")
@@ -369,117 +357,117 @@ local function helper_1439c()
 		event.set_object_sequence_rotation(1, 0.0, -2.24, 0.0)
 		event.set_camera_sequence_position(494.78, 152.75, -815.47)
 		event.set_camera_sequence_look_at(543.94, 165.9, -843.48)
-		at = 15
-		helper_888ab2a3(30)
+		checkpoint = 15
+		wait.for_frame_count(30)
 		event.set_character_active(1, 21)
 		event.set_character_position(21, 547.24, 149.74, -859.21)
 		event.set_character_motion(21, "まぶしい", 2, -1, 1)
-		at = 16
-		helper_888ab2a3(60)
+		checkpoint = 16
+		wait.for_frame_count(60)
 		event.set_character_active(0, 21)
 		event.set_camera_sequence_position(1717.19, 225.79, 121.59)
 		event.set_camera_sequence_look_at(543.94, 165.9, -843.48)
-		event.play_sound_effect(var4, 3)
+		event.play_sound_effect(sound_bank, 3)
 		event.set_character_active(1, 22)
 		event.set_character_position(22, 516.77, 149.74, -850.63)
 		event.set_character_motion(22, "光る光る", 2, -1, 1)
-		at = 17
-		helper_888ab2a3(75)
+		checkpoint = 17
+		wait.for_frame_count(75)
 		event.init_screen_raster_effect(0.0, 0.0, 0.15707964)
 		event.start_screen_raster_effect(60.0, 0.3926991, -1.0, 60)
-		at = 18
-		helper_888ab2a3(75)
+		checkpoint = 18
+		wait.for_frame_count(75)
 	end, function(received: { any }): boolean
-		if at <= 5 then
-			helper_22c00000()
-			helper_344d6cd8()
+		if checkpoint <= 5 then
+			assign_party_slots_for_skip()
+			wait.background_load_skipping()
 		end
-		if at <= 6 then
-			helper_038a2e4d(30)
+		if checkpoint <= 6 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 7 then
-			helper_8cd371d7(3520010)
+		if checkpoint <= 7 then
+			message.show_voiced_skipping(3520010)
 		end
-		if at <= 8 then
-			helper_8cd371d7(3520020)
+		if checkpoint <= 8 then
+			message.show_voiced_skipping(3520020)
 		end
-		if at <= 9 then
-			helper_238b5abc(2)
+		if checkpoint <= 9 then
+			cutscene.skip_command(2)
 		end
-		if at <= 10 then
-			helper_038a2e4d(27)
+		if checkpoint <= 10 then
+			wait.skip_frame_count(27)
 		end
-		if at <= 11 then
-			helper_038a2e4d(60)
+		if checkpoint <= 11 then
+			wait.skip_frame_count(60)
 		end
-		if at <= 12 then
-			helper_038a2e4d(60)
+		if checkpoint <= 12 then
+			wait.skip_frame_count(60)
 		end
-		if at <= 13 then
-			helper_038a2e4d(60)
+		if checkpoint <= 13 then
+			wait.skip_frame_count(60)
 		end
-		if at <= 14 then
-			helper_038a2e4d(30)
+		if checkpoint <= 14 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 15 then
-			helper_038a2e4d(60)
+		if checkpoint <= 15 then
+			wait.skip_frame_count(60)
 		end
-		if at <= 16 then
-			helper_038a2e4d(75)
+		if checkpoint <= 16 then
+			wait.skip_frame_count(75)
 		end
-		if at <= 17 then
-			helper_038a2e4d(75)
+		if checkpoint <= 17 then
+			wait.skip_frame_count(75)
 		end
 		return true
 	end)
-	at = 19
+	checkpoint = 19
 	vm.entry(19)
 	event.cancel_drama_scene_skip()
 	event.fade_out_camera_sequence(30, 255.0, 255.0, 255.0)
-	at = 20
-	helper_888ab2a3(30)
+	checkpoint = 20
+	wait.for_frame_count(30)
 	event.stop_screen_raster_effect(0.0, 0.0, 0.0, 0)
 	event.stop_port_sound_effects(4)
 	event.skip_next_music_load()
-	at = 21
+	checkpoint = 21
 	vm.wait(21)
-	at = 22
-	helper_129cc()
+	checkpoint = 22
+	unload_hourglass_scene_cast()
 end
 
---- Helper function.
-local function helper_102d4()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
-	local at: number = 0
+--- Plays event 348 in which the party walks forward and meets Lin.
+local function play_lin_approach_scene()
+	local sound_bank: s32 = 0
+	local playable_character: s32 = 0
+	local checkpoint: number = 0
 	vm.section(function()
-		at = 1
+		checkpoint = 1
 		vm.entry(1)
 		event.set_save_flag(348, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.set_event_projection(524.9)
 		event.stop_music(0)
-		var0 = event.load_sound_effect_file_2(3829) or var0
+		sound_bank = event.load_sound_effect_file_2(3829) or sound_bank
 		event.show_dungeon_status_bar(0, 1.0)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
-		if active_chr_no ~= 0 or active_chr_no ~= 1 then
+		playable_character = event.get_playable_character() or playable_character
+		if playable_character ~= 0 or playable_character ~= 1 then
 			event.switch_dungeon_main_character(0)
 			event.set_playable_character(0)
-			active_chr_no = 0
+			playable_character = 0
 		end
 		event.change_directory("event/e300/e348/")
 		event.load_message_file(0, 5, "e348.txt")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e348_mints.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e348_monica.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
@@ -492,7 +480,7 @@ local function helper_102d4()
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 2)
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 9)
 			event.load_equipment_model(5, 0, 4, "info", 9)
 			event.load_equipment_model(5, 0, 3, "info", 9)
@@ -557,8 +545,8 @@ local function helper_102d4()
 		event.set_camera_sequence_look_at(1526.09, -83.38, 795.48)
 		event.move_camera_sequence(1478.0, -94.44, 708.45, 1526.09, -83.38, 755.48, 80)
 		event.fade_in_screen(30)
-		at = 2
-		helper_888ab2a3(80)
+		checkpoint = 2
+		wait.for_frame_count(80)
 		event.set_camera_sequence_position(1635.22, -45.35, 898.95)
 		event.set_camera_sequence_look_at(1509.85, -91.47, 744.47)
 		event.move_camera_sequence_eased(1635.22, -45.35, 898.95, 1509.85, 36.75, 744.47, 60, 0, 1.0)
@@ -573,65 +561,65 @@ local function helper_102d4()
 		event.move_object_sequence(0, 1491.96, -99.81, 672.57, 90)
 		event.move_object_sequence(1, 1473.85, -100.1, 691.32, 90)
 		event.move_object_sequence(2, 1493.11, -100.84, 700.12, 90)
-		at = 3
-		helper_0382f327(3480010, 120)
-		at = 4
-		wait_camera()
-		at = 5
-		helper_888ab2a3(10)
+		checkpoint = 3
+		message.show_voiced_for_stopping(3480010, 120)
+		checkpoint = 4
+		camera.wait_until_done()
+		checkpoint = 5
+		wait.for_frame_count(10)
 		event.set_camera_sequence_position(1459.8, -32.33, 632.79)
 		event.set_camera_sequence_look_at(1494.99, -96.61, 704.05)
 		event.move_camera_sequence_eased(1475.8, -54.94, 665.2, 1494.99, -84.52, 704.05, 60, 0, 1.0)
 		event.set_object_sequence_motion(0, "上向くL", 4, -1.0, 1)
 		event.set_object_sequence_motion(1, "上向くL", 4, -1.0, 1)
 		event.set_object_sequence_motion(2, "上見立ち", 4)
-		at = 6
-		wait_camera()
-		at = 7
-		helper_888ab2a3(10)
+		checkpoint = 6
+		camera.wait_until_done()
+		checkpoint = 7
+		wait.for_frame_count(10)
 		event.set_camera_sequence_position(1518.17, -76.49, 671.12)
 		event.set_camera_sequence_look_at(1493.05, -78.0, 693.7)
 		event.set_object_sequence_position(2, 1501.04, -100.84, 688.87)
 		event.set_object_sequence_rotation(2, 0.0, -2.68, 0.0)
-		event.play_sound_effect(var0, 6)
+		event.play_sound_effect(sound_bank, 6)
 		event.set_object_sequence_motion(1, "右向く", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(1, "右向くL", 4)
-		at = 8
-		helper_4116e6bb(3480020)
+		checkpoint = 8
+		message.show_voiced(3480020)
 		event.fade_out_screen(30)
-		at = 9
-		helper_888ab2a3(30)
+		checkpoint = 9
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			local _ = active_chr_no ~= 0
-			local _ = active_chr_no ~= 1
-			active_chr_no = 0
-			helper_038a2e4d(80)
+		if checkpoint <= 1 then
+			local _ = playable_character ~= 0
+			local _ = playable_character ~= 1
+			playable_character = 0
+			wait.skip_frame_count(80)
 		end
-		if at <= 2 then
-			helper_53ffe901(3480010, 120)
+		if checkpoint <= 2 then
+			message.show_voiced_for_stopping_skipping(3480010, 120)
 		end
-		if at <= 3 then
-			helper_344d6cd8()
+		if checkpoint <= 3 then
+			wait.background_load_skipping()
 		end
-		if at <= 4 then
-			helper_038a2e4d(10)
+		if checkpoint <= 4 then
+			wait.skip_frame_count(10)
 		end
-		if at <= 5 then
-			helper_344d6cd8()
+		if checkpoint <= 5 then
+			wait.background_load_skipping()
 		end
-		if at <= 6 then
-			helper_038a2e4d(10)
+		if checkpoint <= 6 then
+			wait.skip_frame_count(10)
 		end
-		if at <= 7 then
-			helper_8cd371d7(3480020)
+		if checkpoint <= 7 then
+			message.show_voiced_skipping(3480020)
 		end
-		if at <= 8 then
-			helper_038a2e4d(30)
+		if checkpoint <= 8 then
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
-	at = 10
+	checkpoint = 10
 	vm.entry(10)
 	event.cancel_drama_scene_skip()
 	event.set_object_handle_footstep_sound(0, 0)
@@ -659,85 +647,86 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.set_up_lighthouse_map = set_up_lighthouse_map
+script[99] = script.set_up_lighthouse_map
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Starts the map music and sounds and walks the party in at the entrance.
 function script.default_event()
-	event_99()
-	helper_e4e2e66b()
+	set_up_lighthouse_map()
+	cutscene.walk_in_at_entrance()
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits a frame and then waits for a button press.
 function script.key_open()
 	event.initialize_event()
 	vm.wait(1)
-	helper_c956b4a2(32)
+	wait.until_button_pressed(32)
 	event.finish_event()
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	local var0: s32 = 0
+--- Handles the spot where the star hourglass is used to travel to the past.
+function script.examine_past_travel_spot()
+	local interaction_stage: s32 = 0
 	local item: s32 = 0
-	local at: number = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
-		var0 = event.get_triggered_event_data_2(6) or var0
-		if var0 == 1 then
-			at = 1
-			if helper_160d0() ~= 0 then
-				var0 = 2
+		interaction_stage = event.get_triggered_event_data_2(6) or interaction_stage
+		if interaction_stage == 1 then
+			checkpoint = 1
+			if ask_to_travel_to_past() ~= 0 then
+				interaction_stage = 2
 			end
 		end
-		if var0 == 2 then
+		if interaction_stage == 2 then
 			event.show_dungeon_status_bar(0, 0.16666667)
-			at = 2
-			helper_888ab2a3(6)
+			checkpoint = 2
+			wait.for_frame_count(6)
 			event.open_use_item_menu(371)
-			at = 3
+			checkpoint = 3
 			vm.wait(3)
 			item = vmhost.used_item() or item
 			if item == 371 then
 				event.set_function_point_enabled("", "event", 0)
 				event.fade_out_screen(20)
-				at = 4
-				helper_888ab2a3(20)
+				checkpoint = 4
+				wait.for_frame_count(20)
 				event.switch_dungeon_main_character(0)
-				at = 5
-				helper_1439c()
+				checkpoint = 5
+				play_star_hourglass_scene()
 				event.load_dungeon_map("d03b02")
 				event.load_event_script("d03b02/d03b02.stb", 502)
 				return
 			elseif item > 0 then
-				at = 6
-				helper_df618068()
+				checkpoint = 6
+				character.shake_head_at_camera()
 			end
 			event.show_dungeon_status_bar(1, 0.16666667)
 		end
-		at = 7
-		helper_888ab2a3(6)
+		checkpoint = 7
+		wait.for_frame_count(6)
 		event.finish_event()
 		return
 	end, function(received: { any })
-		if at <= 5 then
-			if at == 1 then
+		if checkpoint <= 5 then
+			if checkpoint == 1 then
 				local _ = received[1] :: number
 			end
-			if at <= 1 then
-				local _ = var0 == 1
-				var0 = 2
-				helper_038a2e4d(6)
+			if checkpoint <= 1 then
+				local _ = interaction_stage == 1
+				interaction_stage = 2
+				wait.skip_frame_count(6)
 			end
-			if at <= 3 then
-				helper_038a2e4d(20)
+			if checkpoint <= 3 then
+				wait.skip_frame_count(20)
 			end
-			if at <= 4 then
-				at = 5
-				helper_1439c()
+			if checkpoint <= 4 then
+				checkpoint = 5
+				play_star_hourglass_scene()
 				return vm.continue_with(function()
 					event.load_dungeon_map("d03b02")
 					event.load_event_script("d03b02/d03b02.stb", 502)
@@ -746,37 +735,38 @@ function script.event_500()
 			end
 			return 0
 		end
-		if at <= 7 then
-			if at <= 6 then
-				helper_038a2e4d(6)
+		if checkpoint <= 7 then
+			if checkpoint <= 6 then
+				wait.skip_frame_count(6)
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[500] = script.examine_past_travel_spot
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	local at: number = 0
+--- Hides the lighthouse part, fades out and plays the Lin approach scene.
+function script.cutscene_lin_approach()
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_function_point_enabled("", "e348", 0)
 		event.attach_object_handle_to_map_part_2(0, "p07_d03b01")
 		event.set_object_handle_visible(0, 0)
-		helper_52115bbf()
+		character.set_idle_motion()
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		at = 1
-		helper_888ab2a3(30)
-		at = 2
-		helper_102d4()
+		checkpoint = 1
+		wait.for_frame_count(30)
+		checkpoint = 2
+		play_lin_approach_scene()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_102d4()
+		if checkpoint <= 2 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				play_lin_approach_scene()
 				return vm.continue_with(function()
 					return
 				end)
@@ -786,28 +776,33 @@ function script.event_502()
 		return nil
 	end)
 end
+script[502] = script.cutscene_lin_approach
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	if helper_38df53e4() ~= 0 then
+--- Asks to leave the area and loads dungeon d03 on a yes.
+function script.leave_lighthouse()
+	if map.confirm_leave_area() ~= 0 then
 		event.load_event_script("d03/d03.stb", 1000)
 	end
 end
+script[510] = script.leave_lighthouse
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	helper_786b79f1(0)
+--- Runs the defeat sequence with a silent message when the party is defeated.
+function script.on_player_defeated()
+	dungeon.run_defeat_sequence_silent(0)
 end
+script[1200] = script.on_player_defeated
 
 --- Event 13480, which map data, a script or the engine runs by number.
-script.event_13480 = helper_102d4
+script.play_lin_approach_scene = play_lin_approach_scene
+script[13480] = script.play_lin_approach_scene
 
---- Event 13520, which map data, a script or the engine runs by number.
-function script.event_13520()
+--- Plays the star hourglass scene and loads dungeon d03b02.
+function script.replay_star_hourglass_scene()
 	event.switch_dungeon_main_character(0)
-	helper_1439c()
+	play_star_hourglass_scene()
 	event.load_dungeon_map("d03b02")
 	event.load_event_script("d03b02/d03b02.stb", 502)
 end
+script[13520] = script.replay_star_hourglass_scene
 
 return script

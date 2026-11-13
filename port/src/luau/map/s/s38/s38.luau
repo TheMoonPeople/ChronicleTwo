@@ -1,359 +1,350 @@
 --!strict
--- map/s/s38/s38.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Ixion guest room carriages with doors between carriages and passengers.
 
 local vm = require("@lib/vm")
-local close_message = require("@lib/event/close_message")
-local helper_1505ebf3 = require("@lib/event/helper_1505ebf3")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_2ddb5a7a = require("@lib/event/helper_2ddb5a7a")
-local helper_3300e99f = require("@lib/event/helper_3300e99f")
-local helper_452267a4 = require("@lib/event/helper_452267a4")
-local helper_52d29060 = require("@lib/event/helper_52d29060")
-local helper_5be5f988 = require("@lib/event/helper_5be5f988")
-local helper_5e1f717d = require("@lib/event/helper_5e1f717d")
-local helper_73eddd6a = require("@lib/event/helper_73eddd6a")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_94e331d8 = require("@lib/event/helper_94e331d8")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_c0869c7f = require("@lib/event/helper_c0869c7f")
-local helper_db8bc11a = require("@lib/event/helper_db8bc11a")
-local helper_df4094fb = require("@lib/event/helper_df4094fb")
-local open_message = require("@lib/event/open_message")
-local set_window_mode = require("@lib/event/set_window_mode")
-local show_message = require("@lib/event/show_message")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local ixion_guest_room = require("@lib/event/ixion_guest_room")
+local map = require("@lib/event/map")
+local message = require("@lib/event/message")
+local minigame = require("@lib/event/minigame")
+local npc = require("@lib/event/npc")
+local party = require("@lib/event/party")
+local train = require("@lib/event/train")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_20230(arg0: s32, arg1: s32)
-	local argc: s32 = 0
-	local now_party_chara_id: s32 = 0
-	local var4: s32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var9: f32 = 0
-	local var11: s32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local pos_x_3: f32 = 0
-	local pos_y_3: f32 = 0
-	local pos_z_3: f32 = 0
-	local rot_x_2: f32 = 0
-	local rot_y: f32 = 0
-	local rot_z_2: f32 = 0
-	local var24: any = 0
-	local var25: s32 = 0
-	local var26: s32 = 0
-	local var27: s32 = 0
-	local var28: s32 = 0
-	local argc_2: s32 = 0
-	if arg1 == 1 then
-		argc = 1
-	elseif arg1 == 2 then
-		argc = 2
-	elseif arg1 == 3 then
-		argc = 13
+--- Runs a conversation with a recruitable villager: frames the camera on them, shows a greeting and a menu to swap partners, hear a remark or start their own event.
+local function open_companion_menu(character_slot: s32, fixed_npc_code: s32)
+	local npc_id: s32 = 0
+	local partner_id: s32 = 0
+	local window_offset: s32 = 0
+	local npc_x: f32 = 0
+	local npc_y: f32 = 0
+	local npc_z: f32 = 0
+	local npc_rotation_y: f32 = 0
+	local seat_index: s32 = 0
+	local camera_x: f32 = 0
+	local camera_y: f32 = 0
+	local camera_z: f32 = 0
+	local look_at_x: f32 = 0
+	local look_at_y: f32 = 0
+	local look_at_z: f32 = 0
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local player_rotation_x: f32 = 0
+	local player_rotation_y: f32 = 0
+	local player_rotation_z: f32 = 0
+	local selection: any = 0
+	local message_id: s32 = 0
+	local chapter: s32 = 0
+	local header_message_id: s32 = 0
+	local option_count: s32 = 0
+	local partner_slot: s32 = 0
+	if fixed_npc_code == 1 then
+		npc_id = 1
+	elseif fixed_npc_code == 2 then
+		npc_id = 2
+	elseif fixed_npc_code == 3 then
+		npc_id = 13
 	else
-		argc = event.get_local_event_counter(arg0) or argc
+		npc_id = event.get_local_event_counter(character_slot) or npc_id
 	end
-	now_party_chara_id = event.get_party_npc() or now_party_chara_id
-	if argc == now_party_chara_id then
+	partner_id = event.get_party_npc() or partner_id
+	if npc_id == partner_id then
 		return
 	end
 	event.set_character_motion(0, "立ち")
 	event.initialize_event()
 	event.apply_message_window_preset(1, 0)
-	var4 = 0
-	if argc == 10 or argc == 18 then
-		var4 = 8
+	window_offset = 0
+	if npc_id == 10 or npc_id == 18 then
+		window_offset = 8
 	end
-	if argc == 1 or argc == 6 or argc == 17 then
-		var4 = 16
+	if npc_id == 1 or npc_id == 6 or npc_id == 17 then
+		window_offset = 16
 	end
-	if argc == 2 or argc == 15 or argc == 16 or argc == 19 or argc == 20 or argc == 21 or argc == 22 then
-		var4 = 24
+	if npc_id == 2 or npc_id == 15 or npc_id == 16 or npc_id == 19 or npc_id == 20 or npc_id == 21 or npc_id == 22 then
+		window_offset = 24
 	end
-	if argc == 3 or argc == 4 or argc == 5 or argc == 7 or argc == 8 or argc == 23 or argc == 24 then
-		var4 = 32
+	if npc_id == 3 or npc_id == 4 or npc_id == 5 or npc_id == 7 or npc_id == 8 or npc_id == 23 or npc_id == 24 then
+		window_offset = 32
 	end
-	if argc == 9 or argc == 11 or argc == 13 then
-		var4 = 40
+	if npc_id == 9 or npc_id == 11 or npc_id == 13 then
+		window_offset = 40
 	end
 	event.set_message_window_option(1, 4, 30, 60, 144, -1)
-	event.set_message_window_option(1, 9, 20 + var4, 16)
+	event.set_message_window_option(1, 9, 20 + window_offset, 16)
 	event.set_eye_view_map_parts(1)
-	if arg1 ~= 0 then
-		event.attach_object_handle_to_character(0, arg0)
+	if fixed_npc_code ~= 0 then
+		event.attach_object_handle_to_character(0, character_slot)
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			var5 = out1 or var5
-			var6 = out2 or var6
-			var7 = out3 or var7
+			npc_x = out1 or npc_x
+			npc_y = out2 or npc_y
+			npc_z = out3 or npc_z
 		end
 		do
 			local _, out2, _ = event.get_object_handle_rotation(0)
-			var9 = out2 or var9
+			npc_rotation_y = out2 or npc_rotation_y
 		end
 	else
-		var11 = event.get_villager_training_value(1, argc) or var11
+		seat_index = event.get_villager_training_value(1, npc_id) or seat_index
 		do
-			local out1, out2, out3, out4 = event.get_train_seat_position(var11)
-			var5 = out1 or var5
-			var6 = out2 or var6
-			var7 = out3 or var7
-			var9 = out4 or var9
+			local out1, out2, out3, out4 = event.get_train_seat_position(seat_index)
+			npc_x = out1 or npc_x
+			npc_y = out2 or npc_y
+			npc_z = out3 or npc_z
+			npc_rotation_y = out4 or npc_rotation_y
 		end
-		event.attach_object_handle_to_character(0, arg0)
-		event.set_object_handle_position(0, var5, var6, var7)
-		event.set_object_handle_rotation(0, 0.0, var9, 0.0)
-		event.set_character_motion(arg0, "立ち", 4)
+		event.attach_object_handle_to_character(0, character_slot)
+		event.set_object_handle_position(0, npc_x, npc_y, npc_z)
+		event.set_object_handle_rotation(0, 0.0, npc_rotation_y, 0.0)
+		event.set_character_motion(character_slot, "立ち", 4)
 	end
-	pos_x = vm.f32(vm.sin(var9) * 75.0)
-	pos_x = vm.f32(pos_x + var5)
-	pos_y = vm.f32(var6 + 45.0)
-	pos_z = vm.f32(vm.cos(var9) * 75.0)
-	pos_z = vm.f32(pos_z + var7)
-	event.set_camera_position(pos_x, pos_y, pos_z)
-	pos_x_2 = var5
-	pos_y_2 = vm.f32(var6 + 30.0)
-	pos_z_2 = var7
-	event.set_camera_look_at(pos_x_2, pos_y_2, pos_z_2)
-	pos_x_3 = vm.f32(vm.sin(var9) * 30.0)
-	pos_x_3 = vm.f32(pos_x_3 + var5)
-	pos_y_3 = var6
-	pos_z_3 = vm.f32(vm.cos(var9) * 30.0)
-	pos_z_3 = vm.f32(pos_z_3 + var7)
-	event.set_character_position(0, pos_x_3, pos_y_3, pos_z_3)
-	rot_x_2 = 0
-	rot_y = vm.f32(var9 + vm.f32(3.1415927))
-	if rot_y > vm.f32(3.1415927) then
-		rot_y = vm.f32(rot_y - vm.f32(6.2831855))
+	camera_x = vm.f32(vm.sin(npc_rotation_y) * 75.0)
+	camera_x = vm.f32(camera_x + npc_x)
+	camera_y = vm.f32(npc_y + 45.0)
+	camera_z = vm.f32(vm.cos(npc_rotation_y) * 75.0)
+	camera_z = vm.f32(camera_z + npc_z)
+	event.set_camera_position(camera_x, camera_y, camera_z)
+	look_at_x = npc_x
+	look_at_y = vm.f32(npc_y + 30.0)
+	look_at_z = npc_z
+	event.set_camera_look_at(look_at_x, look_at_y, look_at_z)
+	player_x = vm.f32(vm.sin(npc_rotation_y) * 30.0)
+	player_x = vm.f32(player_x + npc_x)
+	player_y = npc_y
+	player_z = vm.f32(vm.cos(npc_rotation_y) * 30.0)
+	player_z = vm.f32(player_z + npc_z)
+	event.set_character_position(0, player_x, player_y, player_z)
+	player_rotation_x = 0
+	player_rotation_y = vm.f32(npc_rotation_y + vm.f32(3.1415927))
+	if player_rotation_y > vm.f32(3.1415927) then
+		player_rotation_y = vm.f32(player_rotation_y - vm.f32(6.2831855))
 	end
-	rot_z_2 = 0
-	event.set_character_rotation(0, rot_x_2, rot_y, rot_z_2)
+	player_rotation_z = 0
+	event.set_character_rotation(0, player_rotation_x, player_rotation_y, player_rotation_z)
 	vm.wait(1)
 	event.start_crossfade(10)
-	var24 = 0
+	selection = 0
 	while true do
-		set_window_mode(3, 1)
-		var26 = event.get_chapter() or var26
-		if var26 ~= 8 then
-			var25 = event.get_npc_message_number_3(argc, 2) or var25
+		message.set_window_mode(3, 1)
+		chapter = event.get_chapter() or chapter
+		if chapter ~= 8 then
+			message_id = event.get_npc_message_number_3(npc_id, 2) or message_id
 		else
-			helper_1505ebf3(3, argc)
-			var25 = -1
+			message.show_villager_remark(3, npc_id)
+			message_id = -1
 		end
 		event.set_message_draw_speed(3, 0, 0)
-		open_message(3, var25, 3, 256, 208)
-		set_window_mode(1, 8)
+		message.open(3, message_id, 3, 256, 208)
+		message.set_window_mode(1, 8)
 		event.set_message_draw_speed(1, 0, 0)
-		var27 = event.get_npc_message_number_3(argc, 0) or var27
-		event.set_message_item_system_message(1, 1, var27)
-		open_message(1, 1, 1, 0, 0)
-		set_window_mode(2, 2)
+		header_message_id = event.get_npc_message_number_3(npc_id, 0) or header_message_id
+		event.set_message_item_system_message(1, 1, header_message_id)
+		message.open(1, 1, 1, 0, 0)
+		message.set_window_mode(2, 2)
 		do
-			local out1, out2 = event.get_npc_message_number_4(argc, 4)
-			var25 = out1 or var25
-			var28 = out2 or var28
+			local out1, out2 = event.get_npc_message_number_4(npc_id, 4)
+			message_id = out1 or message_id
+			option_count = out2 or option_count
 		end
-		if var28 == 3 then
-			var25 = 30
+		if option_count == 3 then
+			message_id = 30
 		end
-		if var28 == 4 then
-			event.set_message_item_system_message(2, 1, var25)
-			var25 = 31
+		if option_count == 4 then
+			event.set_message_item_system_message(2, 1, message_id)
+			message_id = 31
 		end
-		if var28 == 5 then
-			event.set_message_item_system_message(2, 1, var25)
-			event.set_message_item_system_message(2, 2, vm.i32(var25 + 1))
-			var25 = 32
+		if option_count == 5 then
+			event.set_message_item_system_message(2, 1, message_id)
+			event.set_message_item_system_message(2, 2, vm.i32(message_id + 1))
+			message_id = 32
 		end
-		var24 = helper_bac0e30d(2, var25, 7, 0, 0, var28, vm.i32(var28 - 1))
-		close_message(3)
-		if var24 == 0 then
-			if now_party_chara_id ~= 26 then
+		selection = message.ask_choice(2, message_id, 7, 0, 0, option_count, vm.i32(option_count - 1))
+		message.close(3)
+		if selection == 0 then
+			if partner_id ~= 26 then
 				event.fade_out_screen(25)
-				helper_888ab2a3(30)
-				if arg1 == 0 then
-					event.set_character_active(0, arg0)
-					argc_2 = event.find_local_event_counter(now_party_chara_id) or argc_2
-					if 0 <= argc_2 then
-						event.set_character_active(argc_2)
+				wait.for_frame_count(30)
+				if fixed_npc_code == 0 then
+					event.set_character_active(0, character_slot)
+					partner_slot = event.find_local_event_counter(partner_id) or partner_slot
+					if 0 <= partner_slot then
+						event.set_character_active(partner_slot)
 					end
 				end
-				event.set_npc_party_status(argc, 1)
+				event.set_npc_party_status(npc_id, 1)
 				event.open_party_select_menu()
 				vm.wait(4)
-				helper_452267a4(arg0, arg1)
+				party.finish_recruit_talk(character_slot, fixed_npc_code)
 				event.fade_in_screen(30)
 				return
 			end
-			set_window_mode(3, 8)
+			message.set_window_mode(3, 8)
 			event.set_message_draw_speed(3, 0, 0)
 			event.open_message_window_2(
 				3,
 				"[(!)]今は連れて行けない。リンを\n   岬灯台に連れて行くのが先だ！"
 			)
-			show_message(3, -1, 9, 0, 0)
+			message.show(3, -1, 9, 0, 0)
 			event.set_message_draw_speed(3, 0, 0.6)
 		end
-		if var24 == 1 then
-			set_window_mode(3, 8)
+		if selection == 1 then
+			message.set_window_mode(3, 8)
 			event.set_message_draw_speed(3, 0, 0)
-			var25 = event.get_npc_message_number_3(argc, 3) or var25
-			show_message(3, var25, 9, 0, 0)
+			message_id = event.get_npc_message_number_3(npc_id, 3) or message_id
+			message.show(3, message_id, 9, 0, 0)
 			event.set_message_draw_speed(3, 0, 0.6)
 		end
-		if 3 < var28 then
-			if var28 == 5 then
-				if var24 == 2 then
-					if argc == 1 then
+		if 3 < option_count then
+			if option_count == 5 then
+				if selection == 2 then
+					if npc_id == 1 then
 						event.set_save_data_value(2)
 						event.open_message_window_2(3, "よし、これで\n修理完了じゃ！")
-						show_message(3, -1, 3, 256, 208)
-						helper_452267a4(arg0, arg1)
+						message.show(3, -1, 3, 256, 208)
+						party.finish_recruit_talk(character_slot, fixed_npc_code)
 						event.start_crossfade(10)
 					end
-					if not (argc == 4) then
+					if not (npc_id == 4) then
 						break
 					end
-					helper_5e1f717d(arg0, arg1, 6)
+					party.open_npc_menu_primary(character_slot, fixed_npc_code, 6)
 					break
 				end
-				if var24 == 3 then
-					if argc == 1 then
-						helper_5e1f717d(arg0, arg1, 23)
+				if selection == 3 then
+					if npc_id == 1 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 23)
 						return
 					end
-					if argc == 4 then
-						if helper_73eddd6a() ~= 0 then
-							helper_5e1f717d(arg0, arg1, 33)
+					if npc_id == 4 then
+						if minigame.report_scoop_progress() ~= 0 then
+							party.open_npc_menu_primary(character_slot, fixed_npc_code, 33)
 							return
 						end
 					end
 				end
-				if var24 == 4 then
+				if selection == 4 then
 					break
 				end
-				if var24 == -1 then
+				if selection == -1 then
 					break
 				end
 			else
-				if var24 == 2 then
-					if argc == 15 then
-						helper_5e1f717d(arg0, arg1, 0)
+				if selection == 2 then
+					if npc_id == 15 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 0)
 					end
-					if argc == 12 then
-						helper_5e1f717d(arg0, arg1, 1)
+					if npc_id == 12 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 1)
 					end
-					if argc == 6 then
-						helper_5e1f717d(arg0, arg1, 2)
+					if npc_id == 6 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 2)
 					end
-					if argc == 7 then
-						helper_5e1f717d(arg0, arg1, 3)
+					if npc_id == 7 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 3)
 					end
-					if argc == 2 then
-						helper_5e1f717d(arg0, arg1, 7)
+					if npc_id == 2 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 7)
 					end
-					if argc == 3 then
-						helper_5e1f717d(arg0, arg1, 8)
+					if npc_id == 3 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 8)
 					end
-					if argc == 5 then
-						helper_5e1f717d(arg0, arg1, 9)
+					if npc_id == 5 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 9)
 					end
-					if argc == 8 then
-						helper_5e1f717d(arg0, arg1, 10)
+					if npc_id == 8 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 10)
 					end
-					if argc == 10 then
-						helper_5e1f717d(arg0, arg1, 11)
+					if npc_id == 10 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 11)
 					end
-					if argc == 11 then
-						helper_5e1f717d(arg0, arg1, 12)
+					if npc_id == 11 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 12)
 					end
-					if argc == 13 then
-						helper_5e1f717d(arg0, arg1, 13)
+					if npc_id == 13 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 13)
 					end
-					if argc == 16 then
-						helper_5e1f717d(arg0, arg1, 14)
+					if npc_id == 16 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 14)
 					end
-					if argc == 18 then
-						helper_5e1f717d(arg0, arg1, 15)
+					if npc_id == 18 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 15)
 					end
-					if argc == 19 then
-						helper_5e1f717d(arg0, arg1, 16)
+					if npc_id == 19 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 16)
 					end
-					if argc == 20 then
-						helper_5e1f717d(arg0, arg1, 17)
+					if npc_id == 20 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 17)
 					end
-					if argc == 21 then
-						helper_5e1f717d(arg0, arg1, 18)
+					if npc_id == 21 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 18)
 					end
-					if argc == 22 then
-						helper_5e1f717d(arg0, arg1, 19)
+					if npc_id == 22 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 19)
 					end
-					if argc == 23 then
-						helper_5e1f717d(arg0, arg1, 20)
+					if npc_id == 23 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 20)
 					end
-					if argc == 24 then
-						helper_5e1f717d(arg0, arg1, 21)
+					if npc_id == 24 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 21)
 					end
-					if argc == 25 then
-						helper_5e1f717d(arg0, arg1, 22)
+					if npc_id == 25 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 22)
 					end
-					if argc == 17 then
-						helper_5e1f717d(arg0, arg1, 32)
+					if npc_id == 17 then
+						party.open_npc_menu_primary(character_slot, fixed_npc_code, 32)
 					end
-					if argc == 9 then
-						helper_c0869c7f()
+					if npc_id == 9 then
+						message.show_story_hint()
 						event.set_message_draw_speed(3, 0.6, 0.6)
-						show_message(3, -1, 3, 256, 208)
-						helper_452267a4(arg0, arg1)
+						message.show(3, -1, 3, 256, 208)
+						party.finish_recruit_talk(character_slot, fixed_npc_code)
 						event.start_crossfade(10)
 					end
-					if argc == 14 then
+					if npc_id == 14 then
 						event.fade_out_screen(25)
-						helper_888ab2a3(30)
+						wait.for_frame_count(30)
 						event.open_event_menu(25)
 						vm.wait(35)
-						helper_452267a4(arg0, arg1)
+						party.finish_recruit_talk(character_slot, fixed_npc_code)
 						event.fade_in_screen(30)
 					end
 					return
 				end
-				if var24 == 3 then
+				if selection == 3 then
 					break
 				end
-				if var24 == -1 then
+				if selection == -1 then
 					break
 				end
 			end
 		else
-			if var24 == 2 then
+			if selection == 2 then
 				break
 			end
-			if var24 == -1 then
+			if selection == -1 then
 				break
 			end
 		end
 	end
-	helper_452267a4(arg0, arg1)
+	party.finish_recruit_talk(character_slot, fixed_npc_code)
 	event.start_crossfade(10)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Loads the passengers and fades in.
 function script.default_event()
-	helper_1ef0d4b2()
+	cutscene.noop()
 	event.initialize_event()
 	print("##IN_START_EVENT################################\n")
-	helper_db8bc11a()
+	ixion_guest_room.load_train_passengers()
 	event.set_character_motion(0, "立ち")
 	event.apply_message_window_preset(1, 3)
 	event.reset_follow_camera(1)
@@ -363,74 +354,77 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Exits to the station through train door 1 when it is usable and otherwise shakes the head.
+function script.use_door_1()
+	local sound_id: s32 = 0
+	local door_usable: s32 = 0
 	print("--------------------------event200-------------------------\n")
-	helper_3300e99f(vm.f32(-1.5707964))
-	var0 = event.get_sound_id(2) or var0
-	var1 = helper_df4094fb(1)
-	if var1 ~= 0 then
+	character.turn_player_to_rotation(vm.f32(-1.5707964))
+	sound_id = event.get_sound_id(2) or sound_id
+	door_usable = train.is_door_usable(1)
+	if door_usable ~= 0 then
 		event.set_character_motion(0, "立ち")
-		event.play_sound_effect(var0, 94)
+		event.play_sound_effect(sound_id, 94)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_save_counter(15, 1)
-		helper_94e331d8()
+		character.delete_extra_slots()
 		event.stop_music(0)
-		helper_5be5f988()
+		map.jump_to_station()
 	else
-		helper_2ddb5a7a()
+		ixion_guest_room.shake_head_at_camera()
 	end
 end
+script[200] = script.use_door_1
 
---- Event 201, which map data, a script or the engine runs by number.
-function script.event_201()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Exits to the station through train door 0 when it is usable and otherwise shakes the head.
+function script.use_door_0()
+	local sound_id: s32 = 0
+	local door_usable: s32 = 0
 	print("--------------------------event201-------------------------\n")
-	helper_3300e99f(vm.f32(1.5707964))
-	var0 = event.get_sound_id(2) or var0
-	var1 = helper_df4094fb(0)
-	if var1 ~= 0 then
+	character.turn_player_to_rotation(vm.f32(1.5707964))
+	sound_id = event.get_sound_id(2) or sound_id
+	door_usable = train.is_door_usable(0)
+	if door_usable ~= 0 then
 		event.set_character_motion(0, "立ち")
-		event.play_sound_effect(var0, 94)
+		event.play_sound_effect(sound_id, 94)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_save_counter(15, 0)
-		helper_94e331d8()
+		character.delete_extra_slots()
 		event.stop_music(0)
-		helper_5be5f988()
+		map.jump_to_station()
 	else
-		helper_2ddb5a7a()
+		ixion_guest_room.shake_head_at_camera()
 	end
 end
+script[201] = script.use_door_0
 
---- Event 202, which map data, a script or the engine runs by number.
-function script.event_202()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Walks to the previous carriage or the engine room.
+function script.go_to_previous_carriage()
+	local sound_id: s32 = 0
+	local carriage_index: s32 = 0
 	print("--------------------------event202-------------------------\n")
-	helper_3300e99f(0.0)
+	character.turn_player_to_rotation(0.0)
 	event.set_character_motion(0, "立ち")
-	var0 = event.get_sound_id(2) or var0
-	event.play_sound_effect(var0, 94)
+	sound_id = event.get_sound_id(2) or sound_id
+	event.play_sound_effect(sound_id, 94)
 	event.fade_out_screen(30)
-	helper_888ab2a3(30)
-	helper_94e331d8()
-	var1 = event.get_save_counter(0) or var1
-	if var1 == 1 then
+	wait.for_frame_count(30)
+	character.delete_extra_slots()
+	carriage_index = event.get_save_counter(0) or carriage_index
+	if carriage_index == 1 then
 		event.set_save_counter(0, 0)
 		event.set_character_position(0, 0.0, -22.4, -207.0)
 		event.set_character_rotation(0, 0.0, 0.0, 0.0)
 		event.jump_to_map_2(-1, "s37")
 	else
-		var1 = vm.i32(var1 - 1)
-		event.set_save_counter(0, var1)
-		helper_db8bc11a()
+		carriage_index = vm.i32(carriage_index - 1)
+		event.set_save_counter(0, carriage_index)
+		ixion_guest_room.load_train_passengers()
 		event.set_character_position(0, 0.0, -14.0, -235.0)
 		event.set_character_rotation(0, 0.0, 0.0, 0.0)
 		event.initialize_event()
@@ -439,25 +433,26 @@ function script.event_202()
 		event.finish_event()
 	end
 end
+script[202] = script.go_to_previous_carriage
 
---- Event 203, which map data, a script or the engine runs by number.
-function script.event_203()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Walks to the next carriage unless this is the last.
+function script.go_to_next_carriage()
+	local sound_id: s32 = 0
+	local carriage_index: s32 = 0
 	print("--------------------------event203-------------------------\n")
-	helper_3300e99f(vm.f32(3.1415927))
+	character.turn_player_to_rotation(vm.f32(3.1415927))
 	event.set_character_motion(0, "立ち")
-	var0 = event.get_sound_id(2) or var0
-	var1 = event.get_save_counter(0) or var1
-	if var1 ~= 3 then
+	sound_id = event.get_sound_id(2) or sound_id
+	carriage_index = event.get_save_counter(0) or carriage_index
+	if carriage_index ~= 3 then
 		event.set_character_motion(0, "立ち")
-		event.play_sound_effect(var0, 94)
+		event.play_sound_effect(sound_id, 94)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
-		helper_94e331d8()
-		var1 = vm.i32(var1 + 1)
-		event.set_save_counter(0, var1)
-		helper_db8bc11a()
+		wait.for_frame_count(30)
+		character.delete_extra_slots()
+		carriage_index = vm.i32(carriage_index + 1)
+		event.set_save_counter(0, carriage_index)
+		ixion_guest_room.load_train_passengers()
 		event.set_character_position(0, 0.0, -14.0, 235.0)
 		event.set_character_rotation(0, 0.0, 3.1415927, 0.0)
 		event.initialize_event()
@@ -465,21 +460,23 @@ function script.event_203()
 		event.fade_in_screen(30)
 		event.finish_event()
 	else
-		helper_2ddb5a7a()
+		ixion_guest_room.shake_head_at_camera()
 	end
 end
+script[203] = script.go_to_next_carriage
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	local argc: s32 = 0
-	var0 = event.get_triggered_event_data_2(13) or var0
-	argc = event.get_local_event_counter(var0) or argc
-	if argc == 34 then
-		helper_52d29060()
+--- Opens the shop for the shopkeeper or the companion menu for another passenger.
+function script.talk_to_passenger()
+	local character_slot: s32 = 0
+	local character_counter: s32 = 0
+	character_slot = event.get_triggered_event_data_2(13) or character_slot
+	character_counter = event.get_local_event_counter(character_slot) or character_counter
+	if character_counter == 34 then
+		npc.open_shop()
 	else
-		helper_20230(var0, 0)
+		open_companion_menu(character_slot, 0)
 	end
 end
+script[1000] = script.talk_to_passenger
 
 return script

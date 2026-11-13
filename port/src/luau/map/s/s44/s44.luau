@@ -1,22 +1,16 @@
 --!strict
--- map/s/s44/s44.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Moon Flower Palace flashback scenes.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_50c65522 = require("@lib/event/helper_50c65522")
-local helper_53ffe901 = require("@lib/event/helper_53ffe901")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_d5c6856f = require("@lib/event/helper_d5c6856f")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local cutscene = require("@lib/event/cutscene")
+local message = require("@lib/event/message")
+local moon_flower_palace_flashback = require("@lib/event/moon_flower_palace_flashback")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_12138()
+--- Loads the embrace scene characters and message file.
+local function load_embrace_characters()
 	event.set_message_window_mode(0, 7)
 	event.show_dungeon_status_bar(0, 1.0)
 	event.assign_memory_stack(5)
@@ -37,9 +31,9 @@ local function helper_12138()
 	event.load_message_file(0, 5, "event/e700/e732/e732.txt")
 end
 
---- Helper function.
-local function helper_125d0()
-	local projection: f32 = 0
+--- Plays the cutscene in which Sun runs to Andrea and they embrace.
+local function play_sun_andrea_embrace()
+	local saved_projection: f32 = 0
 	vm.section(function()
 		event.set_character_active(0, 0)
 		event.initialize_event()
@@ -47,8 +41,8 @@ local function helper_125d0()
 		event.stop_music(0)
 		vm.wait(1)
 		event.load_map_sounds(7840)
-		helper_12138()
-		projection = event.get_event_projection() or projection
+		load_embrace_characters()
+		saved_projection = event.get_event_projection() or saved_projection
 		event.enable_drama_skip()
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "泣き目")
@@ -66,34 +60,34 @@ local function helper_125d0()
 		event.fade_in_camera_sequence(60, 255.0, 255.0, 255.0)
 		event.move_camera_sequence_look_at(0.0, 8.4, 200.0, 150)
 		event.move_object_sequence(2, 0.0, 0.0, 220.0, 120, 1)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_object_sequence_motion(3, "しゃがむ", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむL", 4)
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "泣き目とじ")
 		event.set_object_sequence_motion(2, "抱きつく", 2)
 		event.queue_object_sequence_next_motion(2, "抱きつくL", 4)
 		event.set_object_sequence_motion(3, "抱きつく", 2)
 		event.queue_object_sequence_next_motion(3, "抱きつくL", 4)
-		wait_objects(2)
-		helper_888ab2a3(30)
+		object.wait_until_done(2)
+		wait.for_frame_count(30)
 		event.clear_camera_sequence()
 		event.keep_character_in_front_of_camera_sequence(34, 760.0, 480.0)
 		event.move_camera_sequence_look_at(0.0, 389.25, 200.0, 480)
-		wait_camera()
+		camera.wait_until_done()
 		event.fade_out_camera_sequence(60, 255.0, 255.0, 255.0)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 	end)
 	event.cancel_drama_scene_skip()
-	event.set_event_projection(projection)
+	event.set_event_projection(saved_projection)
 	event.skip_next_music_load()
-	helper_d5c6856f()
+	moon_flower_palace_flashback.end_embrace_scene()
 end
 
---- Helper function.
-local function helper_e040()
-	local block: s32 = 0
+--- Loads the dialogue scene characters, picture sprites and message file.
+local function load_dialogue_characters()
+	local image_block: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.show_dungeon_status_bar(0, 1.0)
 	event.assign_memory_stack(5)
@@ -111,10 +105,10 @@ local function helper_e040()
 	event.load_character(5, "event/e700/e728/kaisou_waku.gltf", "info", 10)
 	event.set_character_active(0, 10)
 	event.set_scene_character_type(10, 4)
-	block = event.load_event_image_4(5, "textures/event/e700/e728/e728.json", 0) or block
+	image_block = event.load_event_image_4(5, "textures/event/e700/e728/e728.json", 0) or image_block
 	event.reset_event_sprite(0)
 	event.set_event_sprite_type(0, 0)
-	event.set_event_sprite_texture(0, "e72801", block)
+	event.set_event_sprite_texture(0, "e72801", image_block)
 	event.set_event_sprite_color(0, 128, 128, 128, 0)
 	event.set_event_sprite_texture_rect(0, 0, 0, 512, 416)
 	event.set_event_sprite_size(0, 512, 416)
@@ -125,7 +119,7 @@ local function helper_e040()
 	event.set_object_sequence_object(20, 20)
 	event.reset_event_sprite(1)
 	event.set_event_sprite_type(1, 0)
-	event.set_event_sprite_texture(1, "e72802", block)
+	event.set_event_sprite_texture(1, "e72802", image_block)
 	event.set_event_sprite_color(1, 128, 128, 128, 0)
 	event.set_event_sprite_texture_rect(1, 0, 0, 512, 416)
 	event.set_event_sprite_size(1, 512, 416)
@@ -136,7 +130,7 @@ local function helper_e040()
 	event.set_object_sequence_object(21, 21)
 	event.reset_event_sprite(2)
 	event.set_event_sprite_type(2, 0)
-	event.set_event_sprite_texture(2, "e72803", block)
+	event.set_event_sprite_texture(2, "e72803", image_block)
 	event.set_event_sprite_color(2, 128, 128, 128, 0)
 	event.set_event_sprite_texture_rect(2, 0, 0, 512, 416)
 	event.set_event_sprite_size(2, 512, 416)
@@ -147,7 +141,7 @@ local function helper_e040()
 	event.set_object_sequence_object(22, 22)
 	event.reset_event_sprite(3)
 	event.set_event_sprite_type(3, 0)
-	event.set_event_sprite_texture(3, "e72804", block)
+	event.set_event_sprite_texture(3, "e72804", image_block)
 	event.set_event_sprite_color(3, 128, 128, 128, 0)
 	event.set_event_sprite_texture_rect(3, 0, 0, 512.0, 416.0)
 	event.set_event_sprite_size(3, 512, 416)
@@ -159,22 +153,22 @@ local function helper_e040()
 	event.load_message_file(0, 5, "event/e700/e728/e728.txt")
 end
 
---- Helper function.
-local function helper_efa0()
-	local projection: f32 = 0
-	local at: number = 0
+--- Plays the dialogue cutscene between Sun and Andrea.
+local function play_sun_andrea_dialogue()
+	local saved_projection: f32 = 0
+	local resume_step: number = 0
 	vm.section(function()
 		event.set_character_active(0, 0)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
-		at = 1
-		helper_888ab2a3(4)
+		resume_step = 1
+		wait.for_frame_count(4)
 		event.load_music(112)
 		event.play_music(0)
 		event.load_map_sounds(7832)
-		helper_e040()
-		projection = vm.f32(524.9)
+		load_dialogue_characters()
+		saved_projection = vm.f32(524.9)
 		event.enable_drama_skip()
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "しんけん顔")
@@ -194,8 +188,8 @@ local function helper_efa0()
 		event.set_object_sequence_position(3, 56.83, 6.0, -85.35)
 		event.set_object_sequence_rotation(3, 0.0, -2.08, 0.0)
 		event.fade_in_camera_sequence(60, 255.0, 255.0, 255.0)
-		at = 2
-		helper_888ab2a3(60)
+		resume_step = 2
+		wait.for_frame_count(60)
 		event.set_camera_sequence_position(70.66, 29.39, -134.52)
 		event.set_camera_sequence_look_at(-24.24, 26.07, 48.97)
 		event.delay_object_sequence_texture_animation_track(2, 30)
@@ -205,12 +199,12 @@ local function helper_efa0()
 		event.queue_object_sequence_next_motion(2, "うつむく", 2)
 		event.queue_object_sequence_next_motion(2, "うつむき会話", 2)
 		event.queue_object_sequence_next_motion(2, "うつむくＬ", 4)
-		at = 3
-		helper_0382f327(7280020, -1)
-		at = 4
-		helper_888ab2a3(15)
-		at = 5
-		wait_objects(2)
+		resume_step = 3
+		message.show_voiced_for_stopping(7280020, -1)
+		resume_step = 4
+		wait.for_frame_count(15)
+		resume_step = 5
+		object.wait_until_done(2)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "こまり目パチ")
 		event.clear_camera_sequence()
@@ -223,16 +217,16 @@ local function helper_efa0()
 		event.start_camera_sequence_path()
 		event.set_object_sequence_motion(2, "上向き会話", 6)
 		event.queue_object_sequence_next_motion(2, "上向き会話２", 4)
-		at = 6
-		helper_0382f327(7280030, -1)
-		at = 7
-		helper_888ab2a3(15)
+		resume_step = 6
+		message.show_voiced_for_stopping(7280030, -1)
+		resume_step = 7
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(2, "上向き会話", 6)
 		event.queue_object_sequence_next_motion(2, "上向き会話２", 4)
-		at = 8
-		helper_0382f327(7280040, -1)
-		at = 9
-		helper_888ab2a3(9)
+		resume_step = 8
+		message.show_voiced_for_stopping(7280040, -1)
+		resume_step = 9
+		wait.for_frame_count(9)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(75.76, 49.76, -58.86)
 		event.set_camera_sequence_look_at(28.36, 14.4, -78.25)
@@ -247,26 +241,26 @@ local function helper_efa0()
 		event.set_object_sequence_texture_animation(2, 1, "こまり目あき～目とじ")
 		event.set_object_sequence_motion(2, "うつむく", 6)
 		event.queue_object_sequence_next_motion(2, "うつむき会話", 4)
-		at = 10
-		helper_0382f327(7280050, -1)
-		at = 11
-		helper_888ab2a3(15)
-		at = 12
-		helper_0382f327(7280060, -1)
-		at = 13
-		helper_888ab2a3(15)
-		at = 14
-		helper_0382f327(7280065, -1)
-		at = 15
-		helper_888ab2a3(15)
-		at = 16
-		wait_camera()
+		resume_step = 10
+		message.show_voiced_for_stopping(7280050, -1)
+		resume_step = 11
+		wait.for_frame_count(15)
+		resume_step = 12
+		message.show_voiced_for_stopping(7280060, -1)
+		resume_step = 13
+		wait.for_frame_count(15)
+		resume_step = 14
+		message.show_voiced_for_stopping(7280065, -1)
+		resume_step = 15
+		wait.for_frame_count(15)
+		resume_step = 16
+		camera.wait_until_done()
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "目とじ～おこり目あき")
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "しんけん顔")
 		event.set_object_sequence_texture_animation(3, 1, "目あき～目とじ")
-		event.set_event_projection(projection)
+		event.set_event_projection(saved_projection)
 		event.set_object_sequence_position(2, 41.5, 6.0, -92.07)
 		event.set_object_sequence_position(3, 52.45, 6.0, -87.62)
 		event.clear_camera_sequence()
@@ -277,19 +271,19 @@ local function helper_efa0()
 		event.set_object_sequence_motion(2, "普通立ち", 4)
 		event.set_object_sequence_motion(3, "しゃがむ", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむＬ", 4)
-		at = 17
-		wait_objects(3)
+		resume_step = 17
+		object.wait_until_done(3)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "おこり目パチ２")
 		event.set_object_sequence_motion(3, "うつむく", 2)
 		event.queue_object_sequence_next_motion(3, "うつむき会話", 2)
 		event.queue_object_sequence_next_motion(3, "うつむくＬ", 4)
 		event.set_mouth_texture_animations(5, "しんけん口パク")
-		at = 18
-		helper_0382f327(7280070, -1)
+		resume_step = 18
+		message.show_voiced_for_stopping(7280070, -1)
 		event.reset_mouth_texture_animations()
-		at = 19
-		helper_888ab2a3(15)
+		resume_step = 19
+		wait.for_frame_count(15)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "しんけん顔")
 		event.set_object_sequence_texture_animation(3, 1, "目とじ～目あき")
@@ -297,59 +291,59 @@ local function helper_efa0()
 		event.queue_object_sequence_next_motion(3, "しゃがむ会話", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむＬ", 4)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 20
-		helper_0382f327(7280080, -1)
+		resume_step = 20
+		message.show_voiced_for_stopping(7280080, -1)
 		event.reset_mouth_texture_animations()
-		at = 21
-		helper_888ab2a3(15)
+		resume_step = 21
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(3, "しゃがむ会話", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむＬ", 4)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 22
-		helper_0382f327(7280085, -1)
+		resume_step = 22
+		message.show_voiced_for_stopping(7280085, -1)
 		event.reset_mouth_texture_animations()
-		at = 23
-		helper_888ab2a3(15)
+		resume_step = 23
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(3, "しゃがむ会話", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむＬ", 4)
 		event.set_event_sprite_draw_pass(0, 1)
 		event.set_object_sequence_color(20, 128, 128, 128, 128, 30)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 24
-		helper_0382f327(7280090, -1)
+		resume_step = 24
+		message.show_voiced_for_stopping(7280090, -1)
 		event.reset_mouth_texture_animations()
-		at = 25
-		helper_888ab2a3(15)
+		resume_step = 25
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(3, "しゃがむ会話", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむＬ", 4)
 		event.set_event_sprite_draw_pass(1, 1)
 		event.set_object_sequence_color(21, 128, 128, 128, 128, 30)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 26
-		helper_0382f327(7280095, -1)
+		resume_step = 26
+		message.show_voiced_for_stopping(7280095, -1)
 		event.reset_mouth_texture_animations()
-		at = 27
-		helper_888ab2a3(15)
+		resume_step = 27
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(3, "しゃがむ会話", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむＬ", 4)
 		event.set_event_sprite_draw_pass(2, 1)
 		event.set_object_sequence_color(22, 128, 128, 128, 128, 30)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 28
-		helper_0382f327(7280100, -1)
+		resume_step = 28
+		message.show_voiced_for_stopping(7280100, -1)
 		event.reset_mouth_texture_animations()
-		at = 29
-		helper_888ab2a3(15)
+		resume_step = 29
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(3, "しゃがむ会話", 2)
 		event.queue_object_sequence_next_motion(3, "しゃがむＬ", 4)
 		event.set_event_sprite_draw_pass(3, 1)
 		event.set_object_sequence_color(23, 128, 128, 128, 128, 30)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 30
-		helper_0382f327(7280105, -1)
+		resume_step = 30
+		message.show_voiced_for_stopping(7280105, -1)
 		event.reset_mouth_texture_animations()
-		at = 31
-		helper_888ab2a3(15)
+		resume_step = 31
+		wait.for_frame_count(15)
 		event.set_event_sprite_draw_pass(0, 0)
 		event.set_event_sprite_draw_pass(1, 0)
 		event.set_event_sprite_draw_pass(2, 0)
@@ -361,27 +355,27 @@ local function helper_efa0()
 		event.queue_object_sequence_next_motion(3, "肩に手会話", 2)
 		event.queue_object_sequence_next_motion(3, "肩に手Ｌ", 4)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 32
-		helper_0382f327(7280110, -1)
+		resume_step = 32
+		message.show_voiced_for_stopping(7280110, -1)
 		event.reset_mouth_texture_animations()
-		at = 33
-		helper_888ab2a3(15)
+		resume_step = 33
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(3, "肩に手会話", 2)
 		event.queue_object_sequence_next_motion(3, "肩に手Ｌ", 4)
 		event.set_mouth_texture_animations(5, "通常口パク")
-		at = 34
-		helper_0382f327(7280115, -1)
+		resume_step = 34
+		message.show_voiced_for_stopping(7280115, -1)
 		event.reset_mouth_texture_animations()
-		at = 35
-		helper_888ab2a3(15)
+		resume_step = 35
+		wait.for_frame_count(15)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "おこり目あき～目とじ")
 		event.set_object_sequence_motion(2, "顔ふる", 2)
 		event.queue_object_sequence_next_motion(2, "顔ふるＬ", 4)
-		at = 36
-		helper_0382f327(7280120, -1)
-		at = 37
-		helper_888ab2a3(15)
+		resume_step = 36
+		message.show_voiced_for_stopping(7280120, -1)
+		resume_step = 37
+		wait.for_frame_count(15)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "おこり目とじ～おこり目あき")
 		event.set_object_sequence_motion(2, "顔ふる戻る", 2)
@@ -392,197 +386,197 @@ local function helper_efa0()
 		event.set_object_sequence_texture_animation(3, 1, "口とじ")
 		event.set_object_sequence_motion(3, "肩に手からうつむく", 2)
 		event.queue_object_sequence_next_motion(3, "うつむくＬ", 4)
-		at = 38
-		wait_objects(2)
-		at = 39
-		wait_objects(3)
+		resume_step = 38
+		object.wait_until_done(2)
+		resume_step = 39
+		object.wait_until_done(3)
 		event.set_object_sequence_motion(2, "つかもうとする", 2)
 		event.queue_object_sequence_next_motion(2, "つかもうとするＬ", 4)
-		at = 40
-		helper_888ab2a3(15)
+		resume_step = 40
+		wait.for_frame_count(15)
 		event.set_character_visible(9, 0, 1, 0.025)
-		at = 41
-		helper_888ab2a3(60)
+		resume_step = 41
+		wait.for_frame_count(60)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "おこり目あき～こまり目とじ")
 		event.set_object_sequence_motion(2, "手をおろす", 2)
 		event.queue_object_sequence_next_motion(2, "手をおろすＬ", 4)
-		at = 42
-		wait_objects(2)
+		resume_step = 42
+		object.wait_until_done(2)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			helper_344d6cd8()
-			projection = vm.f32(524.9)
-			helper_038a2e4d(60)
+		if resume_step <= 1 then
+			wait.background_load_skipping()
+			saved_projection = vm.f32(524.9)
+			wait.skip_frame_count(60)
 		end
-		if at <= 2 then
-			helper_53ffe901(7280020, -1)
+		if resume_step <= 2 then
+			message.show_voiced_for_stopping_skipping(7280020, -1)
 		end
-		if at <= 3 then
-			helper_038a2e4d(15)
+		if resume_step <= 3 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 4 then
-			helper_238b5abc(2)
+		if resume_step <= 4 then
+			cutscene.skip_command(2)
 		end
-		if at <= 5 then
-			helper_53ffe901(7280030, -1)
+		if resume_step <= 5 then
+			message.show_voiced_for_stopping_skipping(7280030, -1)
 		end
-		if at <= 6 then
-			helper_038a2e4d(15)
+		if resume_step <= 6 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 7 then
-			helper_53ffe901(7280040, -1)
+		if resume_step <= 7 then
+			message.show_voiced_for_stopping_skipping(7280040, -1)
 		end
-		if at <= 8 then
-			helper_038a2e4d(9)
+		if resume_step <= 8 then
+			wait.skip_frame_count(9)
 		end
-		if at <= 9 then
-			helper_53ffe901(7280050, -1)
+		if resume_step <= 9 then
+			message.show_voiced_for_stopping_skipping(7280050, -1)
 		end
-		if at <= 10 then
-			helper_038a2e4d(15)
+		if resume_step <= 10 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 11 then
-			helper_53ffe901(7280060, -1)
+		if resume_step <= 11 then
+			message.show_voiced_for_stopping_skipping(7280060, -1)
 		end
-		if at <= 12 then
-			helper_038a2e4d(15)
+		if resume_step <= 12 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 13 then
-			helper_53ffe901(7280065, -1)
+		if resume_step <= 13 then
+			message.show_voiced_for_stopping_skipping(7280065, -1)
 		end
-		if at <= 14 then
-			helper_038a2e4d(15)
+		if resume_step <= 14 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 15 then
-			helper_344d6cd8()
+		if resume_step <= 15 then
+			wait.background_load_skipping()
 		end
-		if at <= 16 then
-			helper_238b5abc(3)
+		if resume_step <= 16 then
+			cutscene.skip_command(3)
 		end
-		if at <= 17 then
-			helper_53ffe901(7280070, -1)
+		if resume_step <= 17 then
+			message.show_voiced_for_stopping_skipping(7280070, -1)
 		end
-		if at <= 18 then
-			helper_038a2e4d(15)
+		if resume_step <= 18 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 19 then
-			helper_53ffe901(7280080, -1)
+		if resume_step <= 19 then
+			message.show_voiced_for_stopping_skipping(7280080, -1)
 		end
-		if at <= 20 then
-			helper_038a2e4d(15)
+		if resume_step <= 20 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 21 then
-			helper_53ffe901(7280085, -1)
+		if resume_step <= 21 then
+			message.show_voiced_for_stopping_skipping(7280085, -1)
 		end
-		if at <= 22 then
-			helper_038a2e4d(15)
+		if resume_step <= 22 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 23 then
-			helper_53ffe901(7280090, -1)
+		if resume_step <= 23 then
+			message.show_voiced_for_stopping_skipping(7280090, -1)
 		end
-		if at <= 24 then
-			helper_038a2e4d(15)
+		if resume_step <= 24 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 25 then
-			helper_53ffe901(7280095, -1)
+		if resume_step <= 25 then
+			message.show_voiced_for_stopping_skipping(7280095, -1)
 		end
-		if at <= 26 then
-			helper_038a2e4d(15)
+		if resume_step <= 26 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 27 then
-			helper_53ffe901(7280100, -1)
+		if resume_step <= 27 then
+			message.show_voiced_for_stopping_skipping(7280100, -1)
 		end
-		if at <= 28 then
-			helper_038a2e4d(15)
+		if resume_step <= 28 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 29 then
-			helper_53ffe901(7280105, -1)
+		if resume_step <= 29 then
+			message.show_voiced_for_stopping_skipping(7280105, -1)
 		end
-		if at <= 30 then
-			helper_038a2e4d(15)
+		if resume_step <= 30 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 31 then
-			helper_53ffe901(7280110, -1)
+		if resume_step <= 31 then
+			message.show_voiced_for_stopping_skipping(7280110, -1)
 		end
-		if at <= 32 then
-			helper_038a2e4d(15)
+		if resume_step <= 32 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 33 then
-			helper_53ffe901(7280115, -1)
+		if resume_step <= 33 then
+			message.show_voiced_for_stopping_skipping(7280115, -1)
 		end
-		if at <= 34 then
-			helper_038a2e4d(15)
+		if resume_step <= 34 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 35 then
-			helper_53ffe901(7280120, -1)
+		if resume_step <= 35 then
+			message.show_voiced_for_stopping_skipping(7280120, -1)
 		end
-		if at <= 36 then
-			helper_038a2e4d(15)
+		if resume_step <= 36 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 37 then
-			helper_238b5abc(2)
+		if resume_step <= 37 then
+			cutscene.skip_command(2)
 		end
-		if at <= 38 then
-			helper_238b5abc(3)
+		if resume_step <= 38 then
+			cutscene.skip_command(3)
 		end
-		if at <= 39 then
-			helper_038a2e4d(15)
+		if resume_step <= 39 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 40 then
-			helper_038a2e4d(60)
+		if resume_step <= 40 then
+			wait.skip_frame_count(60)
 		end
-		if at <= 41 then
-			helper_238b5abc(2)
+		if resume_step <= 41 then
+			cutscene.skip_command(2)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
 	event.fade_out_music(60)
 	event.fade_out_camera_sequence(60, 255.0, 255.0, 255.0)
-	at = 43
-	helper_888ab2a3(60)
+	resume_step = 43
+	wait.for_frame_count(60)
 	event.stop_music(0)
-	event.set_event_projection(projection)
-	at = 44
+	event.set_event_projection(saved_projection)
+	resume_step = 44
 	vm.wait(44)
-	helper_50c65522()
+	moon_flower_palace_flashback.end_dialogue_scene()
 end
 
---- Helper function.
-local function helper_12fc8()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
-	local time: f32 = 0
+--- Plays the hide and seek cutscene of Sun and Andrea.
+local function play_sun_andrea_hide_and_seek()
+	local sound_bank: s32 = 0
+	local playable_character: s32 = 0
+	local saved_time_of_day: f32 = 0
 	vm.section(function()
 		event.set_save_flag(744, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(113)
 		event.play_music(0)
 		event.load_map_sounds(7209)
-		var0 = event.load_sound_effect_file_2(7209) or var0
-		event.play_sound_effect(var0, 0)
-		event.stop_sound_effect(var0, 0)
+		sound_bank = event.load_sound_effect_file_2(7209) or sound_bank
+		event.play_sound_effect(sound_bank, 0)
+		event.stop_sound_effect(sound_bank, 0)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		playable_character = event.get_playable_character() or playable_character
 		event.set_scene_status_flags(1, 0, 256, 1)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(12.0)
 		event.set_time_of_day_advancing(0)
 		event.change_directory("event/e700/e744/")
 		event.load_message_file(0, 5, "e744.txt")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e744_mints.chr", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e744_monica.chr", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
@@ -639,28 +633,28 @@ local function helper_12fc8()
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "通常目パチ")
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_object_sequence_motion(3, "出る", 6)
 		event.queue_object_sequence_next_motion(3, "出るL", 4)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_object_sequence_motion(3, "ひっこむ", 6)
 		event.delay_object_sequence_motion_track(3, 30)
 		event.move_object_sequence(3, 462.73, 8.92, 250.09, 30)
 		event.queue_object_sequence_next_motion(3, "立ち")
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(2, "歩き", 4)
 		event.move_object_sequence(2, 498.94, 0.0, 565.66, 120)
 		event.delay_object_sequence_motion_track(2, 120)
 		event.queue_object_sequence_next_motion(2, "立ち")
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7440010, -1)
-		helper_888ab2a3(30)
-		helper_0382f327(7440020, -1)
-		wait_objects(2)
+		message.show_voiced_for_stopping(7440010, -1)
+		wait.for_frame_count(30)
+		message.show_voiced_for_stopping(7440020, -1)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "キョロキョロ", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(466.1, 158.85, 121.59)
 		event.set_camera_sequence_look_at(475.42, 37.86, 284.58)
 		event.set_object_sequence_position(2, 475.4, 0.0, 426.67)
@@ -671,7 +665,7 @@ local function helper_12fc8()
 		event.reset_object_sequence_dynamic_animation(3)
 		event.set_object_sequence_motion(2, "キョロキョロ", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		helper_888ab2a3(90)
+		wait.for_frame_count(90)
 		event.set_camera_sequence_position(511.33, 19.62, 407.04)
 		event.set_camera_sequence_look_at(472.31, 26.12, 428.23)
 		event.set_object_sequence_motion(2, "どこだぁ？", 4)
@@ -679,14 +673,14 @@ local function helper_12fc8()
 		event.set_object_sequence_texture_animation(2, 1, "通常口パク")
 		event.delay_object_sequence_texture_animation_track(2, 60)
 		event.set_object_sequence_texture_animation(2, 0, "通常口パク")
-		helper_0382f327(7440030, -1)
-		wait_objects(2)
-		helper_888ab2a3(60)
+		message.show_voiced_for_stopping(7440030, -1)
+		object.wait_until_done(2)
+		wait.for_frame_count(60)
 		event.set_camera_sequence_position(501.79, 21.5, 191.98)
 		event.set_camera_sequence_look_at(467.04, 20.16, 252.42)
 		event.set_object_sequence_motion(3, "出るL", 4)
 		event.move_camera_sequence(523.78, 21.5, 187.7, 532.68, 20.16, 258.41, 120)
-		wait_camera()
+		camera.wait_until_done()
 		event.set_camera_sequence_position(442.63, 29.0, 218.62)
 		event.set_camera_sequence_look_at(500.49, 18.14, 279.12)
 		event.set_object_sequence_position(2, 541.31, 0.0, 320.72)
@@ -702,7 +696,7 @@ local function helper_12fc8()
 		event.delay_object_sequence_motion_track(2, 20)
 		event.queue_object_sequence_next_motion(2, "見つけたL", 4)
 		event.delay_object_sequence_sound_track(3, 30)
-		event.play_object_sequence_sound(3, var0, 0)
+		event.play_object_sequence_sound(3, sound_bank, 0)
 		event.delay_object_sequence_motion_track(3, 30)
 		event.set_object_sequence_motion(3, "見つかった", 6)
 		event.queue_object_sequence_next_motion(3, "見つかったL", 4)
@@ -711,8 +705,8 @@ local function helper_12fc8()
 		event.set_object_sequence_texture_animation(2, 1, "通常口パク")
 		event.delay_object_sequence_texture_animation_track(2, 50)
 		event.set_object_sequence_texture_animation(2, 0, "通常口パク")
-		helper_0382f327(7440040, -1)
-		wait_objects(3)
+		message.show_voiced_for_stopping(7440040, -1)
+		object.wait_until_done(3)
 		event.set_camera_sequence_position(652.2, 112.32, 271.77)
 		event.set_camera_sequence_look_at(539.58, 20.16, 257.49)
 		event.set_object_sequence_texture_animation(3, 0)
@@ -725,13 +719,13 @@ local function helper_12fc8()
 		event.set_object_sequence_rotation(3, 0.0, 0.98, 0.0)
 		event.set_object_sequence_motion(3, "立ち", 4)
 		event.reset_object_sequence_dynamic_animation(3)
-		event.play_sound_effect(var0, 1)
+		event.play_sound_effect(sound_bank, 1)
 		event.set_object_sequence_motion(3, "こける", 6)
 		event.queue_object_sequence_next_motion(3, "こけるL", 4)
 		event.set_object_sequence_motion(2, "走り", 4)
 		event.move_object_sequence(2, 524.9, 0.0, 246.8, 120)
-		helper_888ab2a3(110)
-		wait_objects(3)
+		wait.for_frame_count(110)
+		object.wait_until_done(3)
 		event.set_camera_sequence_position(559.34, 15.83, 234.54)
 		event.set_camera_sequence_look_at(513.18, 15.07, 227.78)
 		event.clear_object_sequence(2)
@@ -740,21 +734,21 @@ local function helper_12fc8()
 		event.set_object_sequence_rotation(2, 0.0, 0.98, 0.0)
 		event.set_object_sequence_motion(2, "立ち", 4)
 		event.reset_object_sequence_dynamic_animation(2)
-		event.play_sound_effect(var0, 2)
+		event.play_sound_effect(sound_bank, 2)
 		event.set_object_sequence_motion(2, "ヘッドロック", 6)
 		event.queue_object_sequence_next_motion(2, "ヘッドロックL", 4)
 		event.set_object_sequence_motion(3, "ヘッドロック", 6)
 		event.queue_object_sequence_next_motion(3, "ヘッドロックL", 4)
-		helper_0382f327(7440050, -1)
-		helper_888ab2a3(20)
+		message.show_voiced_for_stopping(7440050, -1)
+		wait.for_frame_count(20)
 		event.set_object_sequence_texture_animation(2, 1, "通常口パク")
 		event.delay_object_sequence_texture_animation_track(2, 60)
 		event.set_object_sequence_texture_animation(2, 0, "通常口パク")
-		helper_0382f327(7440060, -1)
-		helper_888ab2a3(20)
+		message.show_voiced_for_stopping(7440060, -1)
+		wait.for_frame_count(20)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "通常目～わらい目とじ")
-		helper_0382f327(7440070, -1)
+		message.show_voiced_for_stopping(7440070, -1)
 		event.set_camera_sequence_position(521.72, 138.67, 207.16)
 		event.set_camera_sequence_look_at(496.65, 2.26, 199.32)
 		event.set_scene_status_flags(1, 34, 8, 1)
@@ -768,18 +762,18 @@ local function helper_12fc8()
 		event.set_object_sequence_motion(2, "ねころがり", 4)
 		event.set_object_sequence_motion(3, "ねころがり", 4)
 		event.reset_object_sequence_dynamic_animation(3)
-		helper_0382f327(7440080, -1)
+		message.show_voiced_for_stopping(7440080, -1)
 		event.move_camera_sequence_eased(1153.69, 563.36, 485.97, 496.65, 2.26, 199.32, 240, 1, 1.0)
 		event.set_mouth_texture_animations(2, "わらい口パク")
-		helper_0382f327(7440090, 210)
+		message.show_voiced_for_stopping(7440090, 210)
 		event.fade_out_music(30)
 		event.fade_out_screen(30, 255, 255, 255)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(28)
 	event.cancel_drama_scene_skip()
 	event.set_character_active(0, 36)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.stop_music(0)
 	event.set_character_active(0)
@@ -797,39 +791,39 @@ local function helper_12fc8()
 	event.load_message_file(0, -1)
 end
 
---- Helper function.
-local function helper_16480()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
-	local time: f32 = 0
+--- Plays the cutscene in which a soldier escorts Sun.
+local function play_sun_soldier_escort_scene()
+	local sound_bank: s32 = 0
+	local playable_character: s32 = 0
+	local saved_time_of_day: f32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.set_save_flag(748, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(113)
 		event.play_music(0)
 		event.load_map_sounds(7211)
-		var0 = event.load_sound_effect_file_2(7211) or var0
+		sound_bank = event.load_sound_effect_file_2(7211) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		playable_character = event.get_playable_character() or playable_character
 		event.set_scene_status_flags(1, 0, 256, 1)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(12.0)
 		event.set_time_of_day_advancing(0)
 		event.change_directory("event/e700/e748/")
 		event.load_message_file(0, 5, "e748.txt")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e748_mints.chr", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e748_monica.chr", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
@@ -890,10 +884,10 @@ local function helper_16480()
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "左向き目パチ")
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.move_camera_sequence_eased(-36.83, 28.06, 792.49, -41.22, 32.05, 621.04, 120, 1, 1.0)
-		wait_camera()
-		helper_888ab2a3(30)
+		camera.wait_until_done()
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(3, "連行中", 4)
 		event.reset_object_sequence_dynamic_animation(3)
 		event.set_object_sequence_motion(4, "連行中", 4)
@@ -905,59 +899,59 @@ local function helper_16480()
 		event.rotate_object_sequence(3, 0.0, -0.1, 0.0, 12)
 		event.move_object_sequence(4, -9.08, 3.0, 290.82, 330)
 		event.rotate_object_sequence(4, 0.0, -0.1, 0.0, 12)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.set_object_sequence_texture_animation(4, 1, "口パク")
-		helper_0382f327(7480010, 180)
-		helper_0382f327(7480020, 120)
+		message.show_voiced_for_stopping(7480010, 180)
+		message.show_voiced_for_stopping(7480020, 120)
 		event.set_object_sequence_motion(2, "歩き", 4)
 		event.rotate_object_sequence(2, 0.0, 2.78, 0.0, 12)
 		event.delay_object_sequence_motion_track(2, 30)
 		event.queue_object_sequence_next_motion(2, "立ち")
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7480030, 90)
+		message.show_voiced_for_stopping(7480030, 90)
 		event.set_camera_sequence_position(24.11, 19.86, 616.87)
 		event.set_camera_sequence_look_at(-14.37, 18.99, 524.13)
 		event.set_object_sequence_position(2, -19.05, 3.0, 550.34)
@@ -965,94 +959,94 @@ local function helper_16480()
 		event.reset_object_sequence_dynamic_animation(2)
 		event.move_object_sequence(3, -8.65, 3.0, 450.26, 300)
 		event.move_object_sequence(4, -7.2, 3.0, 430.56, 300)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.set_object_sequence_texture_animation(4, 1, "口パク")
-		helper_0382f327(7480040, 120)
+		message.show_voiced_for_stopping(7480040, 120)
 		event.set_object_sequence_texture_animation(4, 1, "口パク")
-		helper_0382f327(7480050, 150)
-		helper_0382f327(7480060, 180)
+		message.show_voiced_for_stopping(7480050, 150)
+		message.show_voiced_for_stopping(7480060, 180)
 		event.set_camera_sequence_position(65.31, 13.43, 458.75)
 		event.set_camera_sequence_look_at(-32.25, 19.69, 525.13)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7480070, 80)
+		message.show_voiced_for_stopping(7480070, 80)
 		event.move_object_sequence(3, -6.26, 3.0, 505.48, 150)
 		event.move_object_sequence(4, -4.33, 3.0, 486.12, 150)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 0)
+		event.play_object_sequence_sound(4, sound_bank, 0)
 		event.delay_object_sequence_sound_track(4, 20)
-		event.play_object_sequence_sound(4, var0, 1)
+		event.play_object_sequence_sound(4, sound_bank, 1)
 		event.set_object_sequence_texture_animation(4, 1, "口パク")
-		helper_0382f327(7480080, 60)
+		message.show_voiced_for_stopping(7480080, 60)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7480090, 60)
+		message.show_voiced_for_stopping(7480090, 60)
 		event.delay_object_sequence_sound_track(3, 30)
-		event.play_object_sequence_sound(3, var0, 2)
+		event.play_object_sequence_sound(3, sound_bank, 2)
 		event.delay_object_sequence_motion_track(3, 30)
 		event.set_object_sequence_motion(3, "連行解除", 6)
 		event.queue_object_sequence_next_motion(3, "立ち")
@@ -1060,7 +1054,7 @@ local function helper_16480()
 		event.set_object_sequence_motion(4, "連行解除", 6)
 		event.queue_object_sequence_next_motion(4, "立ち")
 		event.set_object_sequence_texture_animation(4, 1, "口パク")
-		helper_0382f327(7480100, 90)
+		message.show_voiced_for_stopping(7480100, 90)
 		event.set_camera_sequence_position(50.08, 20.77, 547.75)
 		event.set_camera_sequence_look_at(-22.42, 18.57, 549.89)
 		event.set_object_sequence_texture_animation(3, 0)
@@ -1071,18 +1065,18 @@ local function helper_16480()
 		event.set_object_sequence_position(2, -10.6, 3.0, 558.53)
 		event.set_object_sequence_rotation(2, 0.0, -2.9, 0.0)
 		event.reset_object_sequence_dynamic_animation(2)
-		event.play_sound_effect(var0, 3)
+		event.play_sound_effect(sound_bank, 3)
 		event.set_object_sequence_motion(2, "しゃがむ", 6)
 		event.queue_object_sequence_next_motion(2, "しゃがむＬ", 4)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480110)
-		wait_objects(2)
+		message.show_voiced(7480110)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(3, "上目立ち会話", 4)
 		event.delay_object_sequence_motion_track(3, 180)
 		event.queue_object_sequence_next_motion(3, "上目立ち", 4)
-		helper_0382f327(7480120, -1)
-		helper_888ab2a3(20)
-		helper_4116e6bb(7480125)
+		message.show_voiced_for_stopping(7480120, -1)
+		wait.for_frame_count(20)
+		message.show_voiced(7480125)
 		event.set_object_sequence_motion(3, "上目立ち")
 		event.set_object_sequence_motion(2, "しゃがみ会話", 6)
 		event.queue_object_sequence_next_motion(2, "しゃがむＬ", 4)
@@ -1090,20 +1084,20 @@ local function helper_16480()
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "目あき～目とじ")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7480130, -1)
-		helper_888ab2a3(20)
+		message.show_voiced_for_stopping(7480130, -1)
+		wait.for_frame_count(20)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "目とじ～目あき")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480135)
+		message.show_voiced(7480135)
 		event.set_object_sequence_motion(3, "えっ！", 6)
 		event.queue_object_sequence_next_motion(3, "口だけ会話")
 		event.delay_object_sequence_motion_track(3, 60)
 		event.queue_object_sequence_next_motion(3, "立ち")
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "上目～通常目")
-		helper_4116e6bb(7480140)
+		message.show_voiced(7480140)
 		event.set_object_sequence_motion(3, "立ち")
 		event.set_object_sequence_motion(2, "しゃがみ会話", 6)
 		event.queue_object_sequence_next_motion(2, "しゃがむＬ", 4)
@@ -1111,7 +1105,7 @@ local function helper_16480()
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480150)
+		message.show_voiced(7480150)
 		event.set_object_sequence_motion(3, "ぶるぶる", 6)
 		event.queue_object_sequence_next_motion(3, "ぶるぶるＬ", 4)
 		event.delay_object_sequence_motion_track(3, 60)
@@ -1119,16 +1113,16 @@ local function helper_16480()
 		event.queue_object_sequence_next_motion(3, "立ち", 4)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "目あき～目とじ")
-		helper_0382f327(7480160, -1)
+		message.show_voiced_for_stopping(7480160, -1)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "通常目パチ")
-		wait_objects(3)
-		helper_888ab2a3(10)
+		object.wait_until_done(3)
+		wait.for_frame_count(10)
 		event.set_object_sequence_motion(2, "しゃがみ会話", 6)
 		event.queue_object_sequence_next_motion(2, "しゃがむＬ", 4)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480170)
-		wait_objects(3)
+		message.show_voiced(7480170)
+		object.wait_until_done(3)
 		event.set_object_sequence_motion(3, "目をそらす", 6)
 		event.delay_object_sequence_motion_track(3, 30)
 		event.queue_object_sequence_next_motion(3, "目をそらす会話", 4)
@@ -1136,19 +1130,19 @@ local function helper_16480()
 		event.queue_object_sequence_next_motion(3, "目をそらすＬ", 4)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "前向き～左向き")
-		helper_0382f327(7480180, -1)
-		helper_888ab2a3(15)
-		helper_4116e6bb(7480185)
+		message.show_voiced_for_stopping(7480180, -1)
+		wait.for_frame_count(15)
+		message.show_voiced(7480185)
 		event.set_object_sequence_motion(3, "目をそらすＬ")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480190)
+		message.show_voiced(7480190)
 		event.set_object_sequence_motion(2, "しゃがみ会話", 6)
 		event.queue_object_sequence_next_motion(2, "しゃがむＬ", 4)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "目あき～目とじ")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480200)
+		message.show_voiced(7480200)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
@@ -1156,7 +1150,7 @@ local function helper_16480()
 		event.queue_object_sequence_next_motion(3, "立ち", 4)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "左向き～前向き")
-		helper_4116e6bb(7480210)
+		message.show_voiced(7480210)
 		event.set_camera_sequence_position(35.94, 7.97, 601.38)
 		event.set_camera_sequence_look_at(-12.68, 20.72, 534.58)
 		event.set_object_sequence_texture_animation(2, 0)
@@ -1167,20 +1161,20 @@ local function helper_16480()
 		event.set_object_sequence_motion(4, "会話", 6)
 		event.queue_object_sequence_next_motion(4, "立ち", 4)
 		event.set_mouth_texture_animations(4, "口パク")
-		helper_4116e6bb(7480220)
+		message.show_voiced(7480220)
 		event.set_object_sequence_motion(3, "嫌だ", 6)
 		event.queue_object_sequence_next_motion(3, "嫌だ会話", 4)
 		event.delay_object_sequence_motion_track(3, 120)
 		event.queue_object_sequence_next_motion(3, "嫌だＬ", 4)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "通常目～おこり目")
-		helper_4116e6bb(7480230)
+		message.show_voiced(7480230)
 		event.set_object_sequence_motion(3, "嫌だＬ")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480240)
+		message.show_voiced(7480240)
 		event.set_object_sequence_motion(3, "でも", 6)
 		event.queue_object_sequence_next_motion(3, "でもＬ", 4)
-		helper_4116e6bb(7480250)
+		message.show_voiced(7480250)
 		event.set_camera_sequence_position(27.14, 19.14, 544.75)
 		event.set_camera_sequence_look_at(-10.12, 20.72, 543.67)
 		event.set_object_sequence_texture_animation(2, 0)
@@ -1198,13 +1192,13 @@ local function helper_16480()
 		event.delay_object_sequence_motion_track(3, 90)
 		event.queue_object_sequence_next_motion(3, "わかったＬ", 4)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7480260, -1)
-		helper_888ab2a3(15)
+		message.show_voiced_for_stopping(7480260, -1)
+		wait.for_frame_count(15)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "おこり目～通常目")
-		helper_0382f327(7480270, -1)
-		wait_objects(3)
-		helper_888ab2a3(15)
+		message.show_voiced_for_stopping(7480270, -1)
+		object.wait_until_done(3)
+		wait.for_frame_count(15)
 		event.set_camera_sequence_position(-54.72, 17.36, 484.64)
 		event.set_camera_sequence_look_at(10.21, 20.7, 547.81)
 		event.set_object_sequence_texture_animation(2, 0)
@@ -1214,7 +1208,7 @@ local function helper_16480()
 		event.set_object_sequence_texture_animation(3, 1, "上目パチ")
 		event.set_object_sequence_position(4, -114.49, 6.02, 85.4)
 		event.delay_object_sequence_sound_track(3, 120)
-		event.play_object_sequence_sound(3, var0, 4)
+		event.play_object_sequence_sound(3, sound_bank, 4)
 		event.delay_object_sequence_motion_track(3, 120)
 		event.set_object_sequence_motion(3, "回転１", 6)
 		event.delay_object_sequence_rotation_track(3, 130)
@@ -1223,47 +1217,47 @@ local function helper_16480()
 		event.delay_object_sequence_position_track(3, 150)
 		event.move_object_sequence(3, -4.25, 3.0, 515.84, 180)
 		event.delay_object_sequence_sound_track(3, 210)
-		event.play_object_sequence_sound(3, var0, 5)
+		event.play_object_sequence_sound(3, sound_bank, 5)
 		event.delay_object_sequence_motion_track(3, 150)
 		event.queue_object_sequence_next_motion(3, "回転２", 6)
 		event.delay_object_sequence_rotation_track(3, 180)
 		event.rotate_object_sequence(3, 0.0, -0.1, 0.0, 30)
 		event.delay_object_sequence_motion_track(3, 60)
 		event.queue_object_sequence_next_motion(3, "立ち", 4)
-		helper_0382f327(7480275, 210)
+		message.show_voiced_for_stopping(7480275, 210)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7480280, 120)
+		message.show_voiced_for_stopping(7480280, 120)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
 		event.set_object_sequence_texture_animation(2, 1, "口とじ")
-		helper_0382f327(7480290, -1)
-		helper_888ab2a3(30)
+		message.show_voiced_for_stopping(7480290, -1)
+		wait.for_frame_count(30)
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "通常目パチ")
-		helper_4116e6bb(7480295)
+		message.show_voiced(7480295)
 		event.set_object_sequence_motion(2, "ため息", 6)
 		event.queue_object_sequence_next_motion(2, "ため息Ｌ", 4)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "目あき～目とじ")
 		event.set_object_sequence_texture_animation(2, 1, "ため息")
-		helper_0382f327(7480300, -1)
+		message.show_voiced_for_stopping(7480300, -1)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "目とじ～目あき")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_888ab2a3(30)
-		event.play_sound_effect(var0, 6)
+		wait.for_frame_count(30)
+		event.play_sound_effect(sound_bank, 6)
 		event.set_object_sequence_motion(2, "立ち上がる", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_4116e6bb(7480305)
-		helper_4116e6bb(7480310)
-		wait_objects(2)
+		message.show_voiced(7480305)
+		message.show_voiced(7480310)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(-65.08, 22.44, 574.54)
 		event.set_camera_sequence_look_at(-13.97, 25.0, 522.35)
 		event.set_object_sequence_position(3, -25.95, 3.0, 505.44)
@@ -1279,21 +1273,21 @@ local function helper_16480()
 		event.delay_camera_sequence_position_track(120)
 		event.move_camera_sequence_eased(-65.08, 22.44, 574.54, -24.39, 113.93, 513.67, 90, 1, 1.0)
 		event.set_mouth_texture_animations(2, "通常口パク")
-		helper_0382f327(7480320, -1)
-		wait_camera()
+		message.show_voiced_for_stopping(7480320, -1)
+		camera.wait_until_done()
 		event.set_camera_sequence_position(-11.49, 83.41, 532.92)
 		event.set_camera_sequence_look_at(-28.34, 16.36, 500.29)
 		event.set_object_sequence_motion(3, "眩しい", 4)
 		event.move_camera_sequence(-15.48, 54.13, 525.19, -27.67, 20.34, 500.29, 90)
-		wait_camera()
-		helper_888ab2a3(30)
+		camera.wait_until_done()
+		wait.for_frame_count(30)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(62)
 	event.cancel_drama_scene_skip()
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.set_time_of_day_advancing(1)
 	event.set_character_active(0, 37)
 	event.set_character_active(0)
@@ -1314,71 +1308,75 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits for a button press.
 function script.key_open()
 	event.initialize_event()
 	vm.wait(1)
 	event.set_camera_sequence_position(31.07, 49.02, 53.789978)
 	event.set_camera_sequence_look_at(-33.5, 41.8, 200.70001)
 	vm.wait(2)
-	helper_c956b4a2(32)
+	wait.until_button_pressed(32)
 	event.clear_effect_manager()
 	event.finish_event()
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_125d0()
+--- Plays the embrace scene and jumps to d06b03.
+function script.cutscene_sun_andrea_embrace()
+	play_sun_andrea_embrace()
 	event.jump_to_map_3(-1, "d06b03", 510)
 end
+script[500] = script.cutscene_sun_andrea_embrace
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	helper_efa0()
+--- Plays the dialogue scene and loads d06b01.
+function script.cutscene_sun_andrea_dialogue()
+	play_sun_andrea_dialogue()
 	event.skip_next_music_load()
 	event.skip_next_map_sound_load()
 	vm.wait(2)
 	event.load_dungeon_map("d06b01")
 	event.load_event_script("d06b01/d06b01.stb", 512)
 end
+script[510] = script.cutscene_sun_andrea_dialogue
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
-	helper_12fc8()
+--- Plays the hide and seek scene and jumps to g05.
+function script.cutscene_sun_andrea_hide_and_seek()
+	play_sun_andrea_hide_and_seek()
 	event.jump_to_map_3(-1, "g05", 550)
 	vm.wait(2)
 end
+script[550] = script.cutscene_sun_andrea_hide_and_seek
 
---- Event 560, which map data, a script or the engine runs by number.
-function script.event_560()
-	helper_16480()
+--- Plays the soldier escort scene and jumps to g05.
+function script.cutscene_sun_soldier_escort()
+	play_sun_soldier_escort_scene()
 	event.jump_to_map_3(-1, "g05", 560)
 	vm.wait(2)
 end
+script[560] = script.cutscene_sun_soldier_escort
 
---- Event 570, which map data, a script or the engine runs by number.
-function script.event_570()
-	local at: number = 0
+--- Plays the hide and seek and escort scenes in order.
+function script.cutscene_hide_and_seek_then_soldier_escort()
+	local resume_step: number = 0
 	return vm.guard(function()
-		at = 1
-		helper_12fc8()
-		at = 2
-		helper_16480()
+		resume_step = 1
+		play_sun_andrea_hide_and_seek()
+		resume_step = 2
+		play_sun_soldier_escort_scene()
 		event.jump_to_map_3(-1, "g05", 560)
-		at = 3
+		resume_step = 3
 		vm.wait(3)
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_16480()
+		if resume_step <= 3 then
+			if resume_step <= 1 then
+				resume_step = 2
+				play_sun_soldier_escort_scene()
 				return vm.continue_with(function()
 					event.jump_to_map_3(-1, "g05", 560)
-					at = 3
+					resume_step = 3
 					vm.wait(3)
 					return
 				end)
@@ -1388,15 +1386,18 @@ function script.event_570()
 		return nil
 	end)
 end
+script[570] = script.cutscene_hide_and_seek_then_soldier_escort
 
 --- Event 17440, which map data, a script or the engine runs by number.
-script.event_17440 = helper_12fc8
+script.play_sun_andrea_hide_and_seek = play_sun_andrea_hide_and_seek
+script[17440] = script.play_sun_andrea_hide_and_seek
 
---- Event 17480, which map data, a script or the engine runs by number.
-function script.event_17480()
-	helper_16480()
+--- Replays the soldier escort scene and jumps to g05.
+function script.replay_sun_soldier_escort()
+	play_sun_soldier_escort_scene()
 	event.jump_to_map_3(-1, "g05", 560)
 	vm.wait(2)
 end
+script[17480] = script.replay_sun_soldier_escort
 
 return script

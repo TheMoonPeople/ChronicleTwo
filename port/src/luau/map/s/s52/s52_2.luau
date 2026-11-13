@@ -1,46 +1,45 @@
 --!strict
--- map/s/s52/s52_2.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Runs the Zelmite mine entrance floor: the first-visit light scene and the stairs to the next floor.
 
 local vm = require("@lib/vm")
-local helper_2a1e9b48 = require("@lib/event/helper_2a1e9b48")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_7d7eee8f = require("@lib/event/helper_7d7eee8f")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_a755f092 = require("@lib/event/helper_a755f092")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local wait_frames = require("@lib/event/wait_frames")
+local character = require("@lib/event/character")
+local dungeon = require("@lib/event/dungeon")
+local message = require("@lib/event/message")
+local wait = require("@lib/event/wait")
+local zelmite_mine_s52 = require("@lib/event/zelmite_mine_s52")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
+--- Stops the music and loads the floor's sounds.
+local function set_up_mine_sounds()
 	event.stop_music(0)
 	event.load_map_sounds(8800)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.set_up_mine_sounds = set_up_mine_sounds
+script[99] = script.set_up_mine_sounds
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the party, adds party members and plays the light scene on the first visit.
 function script.default_event()
-	local flag: s32 = 0
-	event_99()
-	helper_7d7eee8f(0.0, 0.0, 0.0, 0.0)
+	local light_scene_flag: s32 = 0
+	set_up_mine_sounds()
+	character.place_standing(0.0, 0.0, 0.0, 0.0)
 	event.set_camera_look_at(0.0, 30.0, 0.0)
 	event.set_camera_position(0.0, 40.0, -120.0)
 	event.reset_follow_camera(0)
-	flag = event.get_save_flag(804) or flag
-	if flag == 0 then
+	light_scene_flag = event.get_save_flag(804) or light_scene_flag
+	if light_scene_flag == 0 then
 		event.set_party_member(1, 1)
 		event.set_character_change_enabled(1, 1)
 		event.set_character_change_unmasked(1, 1)
 		event.set_party_member(3, 1)
 		event.set_character_change_enabled(3, 1)
 		event.set_character_change_unmasked(3, 1)
-		helper_a755f092()
-		helper_9dafbc83(0.0, 0.0, 800.0, 0.0)
+		zelmite_mine_s52.play_light_scene()
+		character.place_standing_and_reset_cloth(0.0, 0.0, 800.0, 0.0)
 		event.set_camera_look_at(0.0, 30.0, 800.0)
 		event.set_camera_position(0.0, 40.0, 680.0)
 		event.reset_follow_camera(0)
@@ -49,30 +48,30 @@ function script.default_event()
 	event.finish_event()
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits a frame and then ends the event.
 function script.key_open()
 	event.initialize_event()
 	vm.wait(1)
 	event.finish_event()
 end
 
---- Event 300, which map data, a script or the engine runs by number.
-function script.event_300()
-	local active_chr_no: s32 = 0
-	local var1: any = 0
+--- Asks whether to descend to the next floor and moves the party there on a yes.
+function script.ask_to_go_to_next_floor()
+	local playable_character: s32 = 0
+	local answer: any = 0
 	local stage_id: s32 = 0
-	local var3: s32 = 0
-	local argc: s32 = 0
+	local floor: s32 = 0
+	local next_floor: s32 = 0
 	event.initialize_event()
 	event.reset_action_character_motion(0)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 2 or active_chr_no == 3 then
+	playable_character = event.get_playable_character() or playable_character
+	if playable_character == 2 or playable_character == 3 then
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 1)
-		if active_chr_no == 2 then
-			helper_75684dd8(0, 20, 5, 256, 208)
+		if playable_character == 2 then
+			message.show_and_wait(0, 20, 5, 256, 208)
 		else
-			helper_75684dd8(0, 21, 5, 256, 208)
+			message.show_and_wait(0, 21, 5, 256, 208)
 		end
 		event.finish_event()
 		return
@@ -80,28 +79,30 @@ function script.event_300()
 	event.set_message_selection_top_line(0, 0)
 	event.set_message_window_mode(0, 5)
 	event.set_message_draw_speed(0, 1)
-	var1 = helper_bac0e30d(0, 10, 8, 256, 208, 2, 1)
-	if var1 == 0 then
+	answer = message.ask_choice(0, 10, 8, 256, 208, 2, 1)
+	if answer == 0 then
 		event.fade_out_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 		stage_id = event.get_dungeon_stage_id() or stage_id
-		var3 = event.get_dungeon_floor() or var3
-		argc = event.get_dungeon_next_floor(var3, 0) or argc
-		event.set_dungeon_floor(argc)
-		event.set_dungeon_floor_info(stage_id, var3, 5, 2)
-		event.set_dungeon_floor_info(stage_id, argc, 5, 1)
+		floor = event.get_dungeon_floor() or floor
+		next_floor = event.get_dungeon_next_floor(floor, 0) or next_floor
+		event.set_dungeon_floor(next_floor)
+		event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+		event.set_dungeon_floor_info(stage_id, next_floor, 5, 1)
 		event.load_event_script("d07/d07.stb", 1000)
 	else
 		event.finish_event()
 	end
 end
+script[300] = script.ask_to_go_to_next_floor
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	helper_2a1e9b48(0)
+--- Runs the defeat sequence with a silent message when the party is defeated.
+function script.on_player_defeated()
+	dungeon.run_defeat_sequence_with_message_silent(0)
 end
+script[1200] = script.on_player_defeated
 
 --- Event 18040, which map data, a script or the engine runs by number.
-script.event_18040 = helper_a755f092
+script[18040] = zelmite_mine_s52.play_light_scene
 
 return script

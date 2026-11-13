@@ -1360,7 +1360,7 @@ struct BASE_MONSTER_TBL {
     s16   grade;      /**< Grade of the monster that its script reads. */
     char  name[32];   /**< Name shown for the monster, loaded per language. */
     char  model[16];  /**< Base name of the monster's model and settings files under dungeon/monster. */
-    char  script[16]; /**< Base name of the monster's script file under dungeon/monster. */
+    char  script[32]; /**< Base name of the monster's script file under dungeon/monster. */
     s16   gift_type;  /**< Kind that picks the monster's row of the gift item table. */
     s32   sound_no;   /**< Number of the monster's sound bank under snd2/mon; 0 or less for none. */
     s32   unk_4c;
@@ -1395,7 +1395,7 @@ struct BASE_MONSTER_TBL {
     s16 share_model;       /**< Nonzero to share the loaded kind's model between its monsters instead of copying it. */
 };
 
-STATIC_ASSERT(sizeof(BASE_MONSTER_TBL) == 0xB8);
+STATIC_ASSERT(sizeof(BASE_MONSTER_TBL) == 0xC8);
 
 /**
  *

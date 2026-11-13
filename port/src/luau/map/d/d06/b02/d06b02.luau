@@ -1,32 +1,31 @@
 --!strict
--- map/d/d06/b02/d06b02.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the second Moon Flower Palace boss map, with the spiral rock sinking events and the boss area intro cutscenes.
 
 local vm = require("@lib/vm")
-local helper_43f02c95 = require("@lib/event/helper_43f02c95")
-local helper_479dc9e9 = require("@lib/event/helper_479dc9e9")
-local helper_786b79f1 = require("@lib/event/helper_786b79f1")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99() end
+--- Placeholder hook run on map entry that does nothing.
+local function on_map_loaded() end
 
---- Helper function.
-local function helper_10324()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
-	local block: s32 = 0
+--- Plays the first boss introduction cutscene in which a monster drops in and attacks, with its title telop.
+local function play_boss_intro_cutscene_1()
+	local sound_bank: s32 = 0
+	local playable_character: s32 = 0
+	local telop_block: s32 = 0
 	vm.section(function()
 		event.set_save_flag(728, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(7836)
-		var0 = event.load_sound_effect_file_2(7836) or var0
+		sound_bank = event.load_sound_effect_file_2(7836) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		playable_character = event.get_playable_character() or playable_character
 		event.set_scene_status_flags(1, 0, 256, 1)
 		event.change_directory("dungeon/monster/")
 		event.load_character(5, "e214e.gltf", "e214e", 10)
@@ -37,24 +36,24 @@ local function helper_10324()
 		event.change_directory("")
 		event.change_directory("event/e700/e728/")
 		event.load_message_file(0, 5, "e728.txt")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e728_mints.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e728_monica.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
 			event.clear_object_sequence(1)
 			event.set_object_sequence_object(1, 1)
 		end
-		block = event.load_event_image_4(5, "e728telop01.json", 0) or block
+		telop_block = event.load_event_image_4(5, "e728telop01.json", 0) or telop_block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "e728telop01", block)
+		event.set_event_sprite_texture(0, "e728telop01", telop_block)
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 128)
 		event.set_event_sprite_size(0, 512, 128)
@@ -64,7 +63,7 @@ local function helper_10324()
 		event.clear_object_sequence(3)
 		event.set_object_sequence_object(3, 3)
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 8)
 			event.load_equipment_model(5, 0, 4, "info", 8)
 			event.load_equipment_model(5, 0, 3, "info", 8)
@@ -122,7 +121,7 @@ local function helper_10324()
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(1, 1, "おどろき目パチ")
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(0, 1, "おこり目パチ")
@@ -133,15 +132,15 @@ local function helper_10324()
 		event.queue_object_sequence_next_motion(0, "右向くL", 4)
 		event.set_object_sequence_motion(1, "上から左", 6)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_camera_sequence_position(4119.77, 1673.4, -1851.32)
 		event.set_camera_sequence_look_at(3992.15, 1648.49, -1851.49)
 		event.set_event_projection(300.9)
-		event.play_sound_effect(var0, 0)
+		event.play_sound_effect(sound_bank, 0)
 		event.move_camera_sequence(9389.19, 2315.05, -1704.48, 8139.49, 2508.8, -1483.43, 300)
-		wait_camera()
-		helper_888ab2a3(20)
-		helper_888ab2a3(10)
+		camera.wait_until_done()
+		wait.for_frame_count(20)
+		wait.for_frame_count(10)
 		event.set_camera_sequence_position(3887.54, 1636.19, -1974.75)
 		event.set_camera_sequence_look_at(4005.51, 1653.83, -1855.26)
 		event.set_event_projection(524.9)
@@ -161,11 +160,11 @@ local function helper_10324()
 		event.delay_object_sequence_motion_track(2, 20)
 		event.queue_object_sequence_next_motion(2, "着地", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		event.play_sound_effect(var0, 1)
+		event.play_sound_effect(sound_bank, 1)
 		event.delay_camera_sequence_shake_track(20)
 		event.shake_camera_sequence(0.0, 1.0, 0.0, 30)
-		helper_888ab2a3(90)
-		wait_objects(2)
+		wait.for_frame_count(90)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(4061.29, 1628.51, -1771.93)
 		event.set_camera_sequence_look_at(3940.77, 1672.13, -1868.07)
 		event.set_object_sequence_position(0, 4036.58, 1222.31, -1856.87)
@@ -174,21 +173,21 @@ local function helper_10324()
 		event.reset_object_sequence_dynamic_animation(1)
 		event.move_camera_sequence(4052.6, 1698.8, -1956.36, 3928.33, 1648.67, -1867.69, 150)
 		event.set_object_sequence_color(3, 128, 128, 128, 128, 30)
-		event.play_sound_effect(var0, 2)
+		event.play_sound_effect(sound_bank, 2)
 		event.delay_object_sequence_sound_track(2, 90)
-		event.play_object_sequence_sound(2, var0, 3)
+		event.play_object_sequence_sound(2, sound_bank, 3)
 		event.set_object_sequence_motion(2, "攻撃１", 6)
 		event.queue_object_sequence_next_motion(2, "攻撃２", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		wait_camera()
+		camera.wait_until_done()
 		event.set_object_sequence_color(3, 128, 128, 128, 0, 30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(10)
 	event.cancel_drama_scene_skip()
 	event.set_event_sprite_draw_pass(0, 0)
-	event.stop_sound_effect(var0, 0)
+	event.stop_sound_effect(sound_bank, 0)
 	event.set_character_active(0)
 	event.set_character_active(8)
 	event.set_character_active(9)
@@ -210,82 +209,82 @@ local function helper_10324()
 	vm.wait(11)
 end
 
---- Helper function.
-local function helper_1a6d4()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local rot_x: f32 = 0
-	local rot_y: f32 = 0
-	local rot_z: f32 = 0
-	local var9: f32 = 0
-	local var10: s32 = 0
-	local var11: s32 = 0
+--- Turns the camera toward the rock the player faces and sinks the spiral rock into the floor.
+local function sink_spiral_rock()
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local rock_x: f32 = 0
+	local rock_y: f32 = 0
+	local rock_z: f32 = 0
+	local rock_rotation_x: f32 = 0
+	local rock_rotation_y: f32 = 0
+	local rock_rotation_z: f32 = 0
+	local target_angle: f32 = 0
+	local index: s32 = 0
+	local sound_bank: s32 = 0
 	event.reset_action_character_motion(0)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	event.start_background_file_loads_2("event/e700/e728/rasen_iwa.gltf", "snd2/sp/sp_049.sound.json")
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		player_x = out1 or player_x
+		player_y = out2 or player_y
+		player_z = out3 or player_z
 	end
 	do
 		local out1, out2, out3 = event.get_object_handle_position(0)
-		pos_x = out1 or pos_x
-		pos_y = out2 or pos_y
-		pos_z = out3 or pos_z
+		rock_x = out1 or rock_x
+		rock_y = out2 or rock_y
+		rock_z = out3 or rock_z
 	end
 	do
 		local out1, out2, out3 = event.get_object_handle_rotation(0)
-		rot_x = out1 or rot_x
-		rot_y = out2 or rot_y
-		rot_z = out3 or rot_z
+		rock_rotation_x = out1 or rock_rotation_x
+		rock_rotation_y = out2 or rock_rotation_y
+		rock_rotation_z = out3 or rock_rotation_z
 	end
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
-	var9 = event.get_direction_angle(var0, var1, var2, pos_x, pos_y, pos_z) or var9
-	var9 = vm.f32(var9 - vm.f32(3.1415927))
-	var9 = event.wrap_angle(var9) or var9
-	var10 = 0
-	while var10 < 20 do
-		event.swing_camera_control_to_angle(var9)
+	target_angle = event.get_direction_angle(player_x, player_y, player_z, rock_x, rock_y, rock_z) or target_angle
+	target_angle = vm.f32(target_angle - vm.f32(3.1415927))
+	target_angle = event.wrap_angle(target_angle) or target_angle
+	index = 0
+	while index < 20 do
+		event.swing_camera_control_to_angle(target_angle)
 		event.move_camera_control_with_pad(0)
 		event.step_camera_control()
-		var10 = var10 + 1
+		index = index + 1
 		vm.wait(1)
 	end
-	helper_479dc9e9()
-	var11 = event.load_sound_effect_file_3(8, "snd2/sp/sp_049.sound.json") or var11
+	wait.background_load()
+	sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_049.sound.json") or sound_bank
 	event.load_character(5, "event/e700/e728/rasen_iwa.gltf", "info", 8)
 	event.set_character_active(1, 8)
-	event.set_character_position(8, pos_x, pos_y + 20.0, pos_z)
-	event.set_character_rotation(8, rot_x, rot_y, rot_z)
+	event.set_character_position(8, rock_x, rock_y + 20.0, rock_z)
+	event.set_character_rotation(8, rock_rotation_x, rock_rotation_y, rock_rotation_z)
 	event.set_character_motion(8, "岩消える", 6, 0.6)
-	event.play_sound_effect(var11, 0)
-	event.move_object_sequence_eased(0, pos_x, pos_y - 260.0, pos_z, 60, 1, 1.0)
+	event.play_sound_effect(sound_bank, 0)
+	event.move_object_sequence_eased(0, rock_x, rock_y - 260.0, rock_z, 60, 1, 1.0)
 	event.reset_follow_camera(0)
-	wait_objects(0)
-	helper_888ab2a3(30)
+	object.wait_until_done(0)
+	wait.for_frame_count(30)
 	event.delete_character(8)
 	event.finish_event()
 end
 
---- Helper function.
-local function helper_12f34()
-	local var0: s32 = 0
-	local block: s32 = 0
+--- Plays the second boss introduction cutscene in which a monster drops in and attacks, with its title telop.
+local function play_boss_intro_cutscene_2()
+	local sound_bank: s32 = 0
+	local telop_block: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var0 = event.load_sound_effect_file_3(5, "snd2/mon/en_287.sound.json") or var0
-		event.play_sound_effect(var0, 0)
-		event.stop_sound_effect(var0, 0)
+		sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_287.sound.json") or sound_bank
+		event.play_sound_effect(sound_bank, 0)
+		event.stop_sound_effect(sound_bank, 0)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.get_playable_character()
@@ -298,10 +297,10 @@ local function helper_12f34()
 		event.set_object_sequence_object(2, 2)
 		event.change_directory("")
 		event.change_directory("event/e700/e728/")
-		block = event.load_event_image_4(5, "e728telop02.json", 0) or block
+		telop_block = event.load_event_image_4(5, "e728telop02.json", 0) or telop_block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "e728telop02", block)
+		event.set_event_sprite_texture(0, "e728telop02", telop_block)
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 128)
 		event.set_event_sprite_size(0, 512, 128)
@@ -354,11 +353,11 @@ local function helper_12f34()
 		event.delay_object_sequence_motion_track(2, 20)
 		event.queue_object_sequence_next_motion(2, "着地", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		event.play_object_sequence_sound(2, var0, 21)
+		event.play_object_sequence_sound(2, sound_bank, 21)
 		event.delay_camera_sequence_shake_track(20)
 		event.shake_camera_sequence(0.0, 1.0, 0.0, 30)
-		helper_888ab2a3(90)
-		wait_objects(2)
+		wait.for_frame_count(90)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(3330.27, 2500.07, 3406.83)
 		event.set_camera_sequence_look_at(3233.27, 2448.19, 3292.97)
 		event.set_object_sequence_position(0, 3309.86, 2911.42, 3306.96)
@@ -367,24 +366,24 @@ local function helper_12f34()
 		event.reset_object_sequence_dynamic_animation(1)
 		event.move_camera_sequence_eased(3371.95, 2435.67, 3236.53, 3241.2, 2447.69, 3291.49, 150, 2, 1.0)
 		event.set_object_sequence_color(3, 128, 128, 128, 128, 30)
-		event.play_sound_effect(var0, 4)
+		event.play_sound_effect(sound_bank, 4)
 		event.delay_object_sequence_sound_track(2, 45)
-		event.play_object_sequence_sound(2, var0, 22)
+		event.play_object_sequence_sound(2, sound_bank, 22)
 		event.set_object_sequence_motion(2, "攻撃１", 6)
 		event.queue_object_sequence_next_motion(2, "遊び", 6)
 		event.queue_object_sequence_next_motion(2, "立ち")
-		wait_camera()
+		camera.wait_until_done()
 		event.set_object_sequence_color(3, 128, 128, 128, 0, 30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(6)
 	event.cancel_drama_scene_skip()
 	event.set_event_sprite_draw_pass(0, 0)
-	event.stop_sound_effect(var0, 4)
-	event.stop_sound_effect(var0, 20)
-	event.stop_sound_effect(var0, 21)
-	event.stop_sound_effect(var0, 22)
+	event.stop_sound_effect(sound_bank, 4)
+	event.stop_sound_effect(sound_bank, 20)
+	event.stop_sound_effect(sound_bank, 21)
+	event.stop_sound_effect(sound_bank, 22)
 	event.set_scene_status_flags(1, 0, 256, 0)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
@@ -403,17 +402,17 @@ local function helper_12f34()
 	event.reset_character_cloth_and_hair(0)
 end
 
---- Helper function.
-local function helper_14a14()
-	local var0: s32 = 0
-	local block: s32 = 0
+--- Plays the third boss introduction cutscene in which a monster drops in and attacks, with its title telop.
+local function play_boss_intro_cutscene_3()
+	local sound_bank: s32 = 0
+	local telop_block: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var0 = event.load_sound_effect_file_3(5, "snd2/mon/en_288.sound.json") or var0
-		event.play_sound_effect(var0, 0)
-		event.stop_sound_effect(var0, 0)
+		sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_288.sound.json") or sound_bank
+		event.play_sound_effect(sound_bank, 0)
+		event.stop_sound_effect(sound_bank, 0)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.get_playable_character()
@@ -426,10 +425,10 @@ local function helper_14a14()
 		event.set_object_sequence_object(2, 2)
 		event.change_directory("")
 		event.change_directory("event/e700/e728/")
-		block = event.load_event_image_4(5, "e728telop03.json", 0) or block
+		telop_block = event.load_event_image_4(5, "e728telop03.json", 0) or telop_block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "e728telop03", block)
+		event.set_event_sprite_texture(0, "e728telop03", telop_block)
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 128)
 		event.set_event_sprite_size(0, 512, 128)
@@ -477,17 +476,17 @@ local function helper_14a14()
 		event.set_camera_sequence_look_at(-4993.89, 3946.99, 1494.91)
 		event.set_event_projection(524.9)
 		event.fade_in_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.move_object_sequence(2, -4997.27, 3914.32, 1452.4, 20)
 		event.set_object_sequence_motion(2, "落下", 6)
 		event.delay_object_sequence_motion_track(2, 20)
 		event.queue_object_sequence_next_motion(2, "着地", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		event.play_object_sequence_sound(2, var0, 21)
+		event.play_object_sequence_sound(2, sound_bank, 21)
 		event.delay_camera_sequence_shake_track(20)
 		event.shake_camera_sequence(0.0, 1.0, 0.0, 30)
-		helper_888ab2a3(90)
-		wait_objects(2)
+		wait.for_frame_count(90)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(-4904.1, 3921.19, 1638.17)
 		event.set_camera_sequence_look_at(-4997.01, 3947.63, 1461.27)
 		event.set_object_sequence_position(0, -4993.85, 4514.32, 1543.9)
@@ -496,16 +495,16 @@ local function helper_14a14()
 		event.reset_object_sequence_dynamic_animation(1)
 		event.move_camera_sequence_eased(-4999.07, 3918.97, 1568.34, -4997.01, 3947.63, 1461.27, 150, 2, 1.0)
 		event.set_object_sequence_color(3, 128, 128, 128, 128, 30)
-		event.play_sound_effect(var0, 4)
+		event.play_sound_effect(sound_bank, 4)
 		event.delay_object_sequence_sound_track(2, 45)
-		event.play_object_sequence_sound(2, var0, 22)
+		event.play_object_sequence_sound(2, sound_bank, 22)
 		event.set_object_sequence_motion(2, "攻撃１", 6)
 		event.queue_object_sequence_next_motion(2, "遊び", 6)
 		event.queue_object_sequence_next_motion(2, "立ち")
-		wait_camera()
+		camera.wait_until_done()
 		event.set_object_sequence_color(3, 128, 128, 128, 0, 30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(7)
 	event.cancel_drama_scene_skip()
@@ -528,17 +527,17 @@ local function helper_14a14()
 	event.reset_character_cloth_and_hair(0)
 end
 
---- Helper function.
-local function helper_164f4()
-	local var0: s32 = 0
-	local block: s32 = 0
+--- Plays the fourth boss introduction cutscene in which a monster drops in and attacks, with its title telop.
+local function play_boss_intro_cutscene_4()
+	local sound_bank: s32 = 0
+	local telop_block: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var0 = event.load_sound_effect_file_3(5, "snd2/mon/en_289.sound.json") or var0
-		event.play_sound_effect(var0, 0)
-		event.stop_sound_effect(var0, 0)
+		sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_289.sound.json") or sound_bank
+		event.play_sound_effect(sound_bank, 0)
+		event.stop_sound_effect(sound_bank, 0)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.get_playable_character()
@@ -551,10 +550,10 @@ local function helper_164f4()
 		event.set_object_sequence_object(2, 2)
 		event.change_directory("")
 		event.change_directory("event/e700/e728/")
-		block = event.load_event_image_4(5, "e728telop04.json", 0) or block
+		telop_block = event.load_event_image_4(5, "e728telop04.json", 0) or telop_block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "e728telop04", block)
+		event.set_event_sprite_texture(0, "e728telop04", telop_block)
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 128)
 		event.set_event_sprite_size(0, 512, 128)
@@ -602,15 +601,15 @@ local function helper_164f4()
 		event.set_camera_sequence_look_at(-1245.42, 5310.96, -3033.33)
 		event.set_event_projection(524.9)
 		event.fade_in_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.move_object_sequence(2, -1167.01, 5303.14, -3048.4, 20)
 		event.set_object_sequence_motion(2, "落下", 6)
 		event.delay_object_sequence_motion_track(2, 20)
 		event.queue_object_sequence_next_motion(2, "着地", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		event.play_object_sequence_sound(2, var0, 21)
-		helper_888ab2a3(90)
-		wait_objects(2)
+		event.play_object_sequence_sound(2, sound_bank, 21)
+		wait.for_frame_count(90)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(-1299.13, 5331.11, -2982.55)
 		event.set_camera_sequence_look_at(-1192.6, 5340.86, -3056.04)
 		event.set_object_sequence_position(0, -1257.27, 5603.14, -3079.18)
@@ -619,19 +618,19 @@ local function helper_164f4()
 		event.reset_object_sequence_dynamic_animation(1)
 		event.move_camera_sequence_eased(-1253.37, 5318.24, -3148.07, -1182.09, 5340.92, -3048.93, 150, 2, 1.0)
 		event.set_object_sequence_color(3, 128, 128, 128, 128, 30)
-		event.play_sound_effect(var0, 4)
+		event.play_sound_effect(sound_bank, 4)
 		event.delay_object_sequence_sound_track(2, 45)
-		event.play_object_sequence_sound(2, var0, 5)
+		event.play_object_sequence_sound(2, sound_bank, 5)
 		event.delay_object_sequence_sound_track(2, 45)
-		event.play_object_sequence_sound(2, var0, 22)
+		event.play_object_sequence_sound(2, sound_bank, 22)
 		event.set_object_sequence_motion(2, "攻撃１", 6)
 		event.queue_object_sequence_next_motion(2, "攻撃２", 6)
 		event.queue_object_sequence_next_motion(2, "遊び", 6)
 		event.queue_object_sequence_next_motion(2, "立ち")
-		wait_camera()
+		camera.wait_until_done()
 		event.set_object_sequence_color(3, 128, 128, 128, 0, 30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(7)
 	event.cancel_drama_scene_skip()
@@ -655,17 +654,17 @@ local function helper_164f4()
 	event.reset_character_cloth_and_hair(0)
 end
 
---- Helper function.
-local function helper_180dc()
-	local var0: s32 = 0
-	local block: s32 = 0
+--- Plays the cutscene with the fifth title telop in which the two bosses drop in, land and attack with a camera shake.
+local function play_twin_boss_landing_cutscene()
+	local sound_bank: s32 = 0
+	local telop_block: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var0 = event.load_sound_effect_file_3(5, "snd2/mon/en_290.sound.json") or var0
-		event.play_sound_effect(var0, 0)
-		event.stop_sound_effect(var0, 0)
+		sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_290.sound.json") or sound_bank
+		event.play_sound_effect(sound_bank, 0)
+		event.stop_sound_effect(sound_bank, 0)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.get_playable_character()
@@ -683,10 +682,10 @@ local function helper_180dc()
 		event.set_object_sequence_object(3, 3)
 		event.change_directory("")
 		event.change_directory("event/e700/e728/")
-		block = event.load_event_image_4(5, "e728telop05.json", 0) or block
+		telop_block = event.load_event_image_4(5, "e728telop05.json", 0) or telop_block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "e728telop05", block)
+		event.set_event_sprite_texture(0, "e728telop05", telop_block)
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 128)
 		event.set_event_sprite_size(0, 512, 128)
@@ -738,27 +737,27 @@ local function helper_180dc()
 		event.set_camera_sequence_look_at(-3944.67, 7285.9, 3390.81)
 		event.set_event_projection(524.9)
 		event.fade_in_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.move_object_sequence(2, -4001.48, 7277.16, 3374.42, 20)
 		event.set_object_sequence_motion(2, "落下", 6)
 		event.delay_object_sequence_motion_track(2, 20)
 		event.queue_object_sequence_next_motion(2, "着地", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		var0 = event.load_sound_effect_file_3(5, "snd2/mon/en_290.sound.json") or var0
-		event.play_object_sequence_sound(2, var0, 21)
-		helper_888ab2a3(10)
+		sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_290.sound.json") or sound_bank
+		event.play_object_sequence_sound(2, sound_bank, 21)
+		wait.for_frame_count(10)
 		event.move_object_sequence(3, -3985.26, 7277.16, 3434.83, 20)
 		event.set_object_sequence_motion(3, "落下", 6)
 		event.delay_object_sequence_motion_track(3, 20)
 		event.queue_object_sequence_next_motion(3, "着地", 6)
 		event.queue_object_sequence_next_motion(3, "立ち", 4)
-		var0 = event.load_sound_effect_file_3(5, "snd2/mon/en_291.sound.json") or var0
-		event.play_object_sequence_sound(3, var0, 21)
+		sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_291.sound.json") or sound_bank
+		event.play_object_sequence_sound(3, sound_bank, 21)
 		event.delay_camera_sequence_shake_track(15)
 		event.shake_camera_sequence(0.0, 1.0, 0.0, 40)
-		helper_888ab2a3(90)
-		wait_objects(2)
-		wait_objects(3)
+		wait.for_frame_count(90)
+		object.wait_until_done(2)
+		object.wait_until_done(3)
 		event.set_camera_sequence_position(-3852.79, 7355.36, 3367.81)
 		event.set_camera_sequence_look_at(-4014.32, 7278.63, 3412.93)
 		event.set_object_sequence_position(0, -3866.22, 7677.16, 3386.78)
@@ -767,20 +766,20 @@ local function helper_180dc()
 		event.reset_object_sequence_dynamic_animation(1)
 		event.move_camera_sequence_eased(-3871.31, 7288.29, 3372.98, -4018.09, 7304.56, 3413.99, 150, 2, 1.0)
 		event.set_object_sequence_color(4, 128, 128, 128, 128, 30)
-		var0 = event.load_sound_effect_file_3(5, "snd2/mon/en_290.sound.json") or var0
-		event.play_sound_effect(var0, 5)
+		sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_290.sound.json") or sound_bank
+		event.play_sound_effect(sound_bank, 5)
 		event.delay_object_sequence_sound_track(2, 60)
-		event.play_object_sequence_sound(2, var0, 22)
+		event.play_object_sequence_sound(2, sound_bank, 22)
 		event.set_object_sequence_motion(2, "攻撃２", 6)
 		event.queue_object_sequence_next_motion(2, "遊び", 6)
 		event.queue_object_sequence_next_motion(2, "立ち")
 		event.set_object_sequence_motion(3, "攻撃２", 6)
 		event.queue_object_sequence_next_motion(3, "遊び", 6)
 		event.queue_object_sequence_next_motion(3, "立ち")
-		wait_camera()
+		camera.wait_until_done()
 		event.set_object_sequence_color(4, 128, 128, 128, 0, 30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(9)
 	event.cancel_drama_scene_skip()
@@ -806,31 +805,32 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
-script.event_99 = event_99
+script.on_map_loaded = on_map_loaded
+script[99] = script.on_map_loaded
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the boss intro cutscene and spawns the first boss when the boss flag is set, then fades in.
 function script.default_event()
-	local flag: s32 = 0
-	local var1: s32 = 0
-	local at: number = 0
+	local boss_flag: s32 = 0
+	local battle_sound_id: s32 = 0
+	local step: number = 0
 	return vm.guard(function()
-		event_99()
-		flag = event.get_save_flag(728) or flag
-		if flag == 1 then
-			at = 1
-			helper_10324()
+		on_map_loaded()
+		boss_flag = event.get_save_flag(728) or boss_flag
+		if boss_flag == 1 then
+			step = 1
+			play_boss_intro_cutscene_1()
 			event.load_map_sounds(7691)
 			event.set_character_visible(1, 1)
 			event.set_character_visible(2, 1)
 			event.show_dungeon_status_bar(1, 1.0)
-			var1 = event.get_sound_id(4) or var1
-			print("btl_snd_id = ", var1, "\n")
-			event.set_action_character_second_sound_bank(0, var1)
+			battle_sound_id = event.get_sound_id(4) or battle_sound_id
+			print("btl_snd_id = ", battle_sound_id, "\n")
+			event.set_action_character_second_sound_bank(0, battle_sound_id)
 			event.copy_action_character_sound_to_parts(0)
-			helper_9dafbc83(vm.f32(3846.1), vm.f32(1622.3), vm.f32(-2002.6), vm.f32(0.69))
+			character.place_standing_and_reset_cloth(vm.f32(3846.1), vm.f32(1622.3), vm.f32(-2002.6), vm.f32(0.69))
 			event.set_camera_position(3744.75, 1652.31, -2126.35)
 			event.set_camera_look_at(3846.14, 1652.31, -2002.58)
 			event.reset_follow_camera(0)
@@ -841,9 +841,9 @@ function script.default_event()
 		event.finish_event()
 		return
 	end, function(received: { any })
-		if at <= 1 then
-			print("btl_snd_id = ", var1, "\n")
-			helper_43f02c95(vm.f32(3846.1), vm.f32(1622.3), vm.f32(-2002.6), vm.f32(0.69))
+		if step <= 1 then
+			print("btl_snd_id = ", battle_sound_id, "\n")
+			cutscene.ignore_coordinates(vm.f32(3846.1), vm.f32(1622.3), vm.f32(-2002.6), vm.f32(0.69))
 			return 0
 		end
 		return nil
@@ -852,74 +852,80 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
+--- Sinks the first spiral rock.
+function script.sink_spiral_rock_1()
 	event.initialize_event()
 	event.attach_object_handle_to_map_part_2(0, "p11_d06b02-1")
-	helper_1a6d4()
+	sink_spiral_rock()
 end
+script[500] = script.sink_spiral_rock_1
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
+--- Sinks the second spiral rock.
+function script.sink_spiral_rock_2()
 	event.initialize_event()
 	event.attach_object_handle_to_map_part_2(0, "p11_d06b02-3")
-	helper_1a6d4()
+	sink_spiral_rock()
 end
+script[501] = script.sink_spiral_rock_2
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
+--- Sinks the third spiral rock.
+function script.sink_spiral_rock_3()
 	event.initialize_event()
 	event.attach_object_handle_to_map_part_2(0, "p11_d06b02-5")
-	helper_1a6d4()
+	sink_spiral_rock()
 end
+script[502] = script.sink_spiral_rock_3
 
---- Event 503, which map data, a script or the engine runs by number.
-function script.event_503()
+--- Sinks the fourth spiral rock.
+function script.sink_spiral_rock_4()
 	event.initialize_event()
 	event.attach_object_handle_to_map_part_2(0, "p11_d06b02-7")
-	helper_1a6d4()
+	sink_spiral_rock()
 end
+script[503] = script.sink_spiral_rock_4
 
---- Event 504, which map data, a script or the engine runs by number.
-function script.event_504()
+--- Sinks the fifth spiral rock.
+function script.sink_spiral_rock_5()
 	event.initialize_event()
 	event.attach_object_handle_to_map_part_2(0, "p11_d06b02-9")
-	helper_1a6d4()
+	sink_spiral_rock()
 end
+script[504] = script.sink_spiral_rock_5
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local at: number = 0
+--- Plays the second boss intro cutscene, raises the area rocks and spawns the boss.
+function script.cutscene_boss_intro_2()
+	local rock_x: f32 = 0
+	local rock_y: f32 = 0
+	local rock_z: f32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.reset_action_character_motion(0)
 		event.fade_out_screen(20)
-		at = 1
-		helper_888ab2a3(20)
-		at = 2
-		helper_12f34()
+		step = 1
+		wait.for_frame_count(20)
+		step = 2
+		play_boss_intro_cutscene_2()
 		event.set_function_point_enabled("", "2f", 0)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-2")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-3")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.load_dungeon_monster(604, 1)
 		event.place_dungeon_monster(604, 3220.8, 2411.4, 3458.1, 0.0, 1.91, 0.0)
 		event.set_character_position(0, 3482.7, 2411.4, 3361.8)
@@ -930,28 +936,28 @@ function script.event_550()
 		event.fade_in_screen(20)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_12f34()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				play_boss_intro_cutscene_2()
 				return vm.continue_with(function()
 					event.set_function_point_enabled("", "2f", 0)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-2")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-3")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.load_dungeon_monster(604, 1)
 					event.place_dungeon_monster(604, 3220.8, 2411.4, 3458.1, 0.0, 1.91, 0.0)
 					event.set_character_position(0, 3482.7, 2411.4, 3361.8)
@@ -968,38 +974,39 @@ function script.event_550()
 		return nil
 	end)
 end
+script[550] = script.cutscene_boss_intro_2
 
---- Event 551, which map data, a script or the engine runs by number.
-function script.event_551()
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local at: number = 0
+--- Plays the third boss intro cutscene, raises the area rocks and spawns the boss.
+function script.cutscene_boss_intro_3()
+	local rock_x: f32 = 0
+	local rock_y: f32 = 0
+	local rock_z: f32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.reset_action_character_motion(0)
 		event.fade_out_screen(20)
-		at = 1
-		helper_888ab2a3(20)
-		at = 2
-		helper_14a14()
+		step = 1
+		wait.for_frame_count(20)
+		step = 2
+		play_boss_intro_cutscene_3()
 		event.set_function_point_enabled("", "3f", 0)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-4")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-5")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.load_dungeon_monster(605, 1)
 		event.place_dungeon_monster(605, -5000.8, 3914.3, 1335.4, 0.0, 0.5, 0.0)
 		event.set_character_position(0, -4878.4, 3914.3, 1557.6)
@@ -1010,28 +1017,28 @@ function script.event_551()
 		event.fade_in_screen(20)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_14a14()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				play_boss_intro_cutscene_3()
 				return vm.continue_with(function()
 					event.set_function_point_enabled("", "3f", 0)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-4")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-5")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.load_dungeon_monster(605, 1)
 					event.place_dungeon_monster(605, -5000.8, 3914.3, 1335.4, 0.0, 0.5, 0.0)
 					event.set_character_position(0, -4878.4, 3914.3, 1557.6)
@@ -1048,38 +1055,39 @@ function script.event_551()
 		return nil
 	end)
 end
+script[551] = script.cutscene_boss_intro_3
 
---- Event 552, which map data, a script or the engine runs by number.
-function script.event_552()
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local at: number = 0
+--- Plays the fourth boss intro cutscene, raises the area rocks and spawns the boss.
+function script.cutscene_boss_intro_4()
+	local rock_x: f32 = 0
+	local rock_y: f32 = 0
+	local rock_z: f32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.reset_action_character_motion(0)
 		event.fade_out_screen(20)
-		at = 1
-		helper_888ab2a3(20)
-		at = 2
-		helper_164f4()
+		step = 1
+		wait.for_frame_count(20)
+		step = 2
+		play_boss_intro_cutscene_4()
 		event.set_function_point_enabled("", "4f", 0)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-6")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-7")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.load_dungeon_monster(606, 1)
 		event.place_dungeon_monster(606, -1126.9, 5303.1, -3005.0, 0.0, -1.78, 0.0)
 		event.set_character_position(0, -1380.3, 5303.1, -3061.2)
@@ -1090,28 +1098,28 @@ function script.event_552()
 		event.fade_in_screen(20)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_164f4()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				play_boss_intro_cutscene_4()
 				return vm.continue_with(function()
 					event.set_function_point_enabled("", "4f", 0)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-6")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-7")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.load_dungeon_monster(606, 1)
 					event.place_dungeon_monster(606, -1126.9, 5303.1, -3005.0, 0.0, -1.78, 0.0)
 					event.set_character_position(0, -1380.3, 5303.1, -3061.2)
@@ -1128,38 +1136,39 @@ function script.event_552()
 		return nil
 	end)
 end
+script[552] = script.cutscene_boss_intro_4
 
---- Event 553, which map data, a script or the engine runs by number.
-function script.event_553()
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local at: number = 0
+--- Plays the twin boss landing cutscene, raises the area rocks and spawns both bosses.
+function script.cutscene_twin_boss_landing()
+	local rock_x: f32 = 0
+	local rock_y: f32 = 0
+	local rock_z: f32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.reset_action_character_motion(0)
 		event.fade_out_screen(20)
-		at = 1
-		helper_888ab2a3(20)
-		at = 2
-		helper_180dc()
+		step = 1
+		wait.for_frame_count(20)
+		step = 2
+		play_twin_boss_landing_cutscene()
 		event.set_function_point_enabled("", "5f", 0)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-8")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.attach_object_handle_to_map_part_2(0, "p11_d06b02-9")
 		do
 			local out1, out2, out3 = event.get_object_handle_position(0)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			rock_x = out1 or rock_x
+			rock_y = out2 or rock_y
+			rock_z = out3 or rock_z
 		end
-		event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+		event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 		event.load_dungeon_monster(607, 1)
 		event.load_dungeon_monster(608, 0)
 		event.place_dungeon_monster(607, -3980.8, 7277.16, 3321.3, 0.0, 1.46, 0.0)
@@ -1172,28 +1181,28 @@ function script.event_553()
 		event.fade_in_screen(20)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_180dc()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				play_twin_boss_landing_cutscene()
 				return vm.continue_with(function()
 					event.set_function_point_enabled("", "5f", 0)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-8")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.attach_object_handle_to_map_part_2(0, "p11_d06b02-9")
 					do
 						local out1, out2, out3 = event.get_object_handle_position(0)
-						pos_x = out1 or pos_x
-						pos_y = out2 or pos_y
-						pos_z = out3 or pos_z
+						rock_x = out1 or rock_x
+						rock_y = out2 or rock_y
+						rock_z = out3 or rock_z
 					end
-					event.set_object_handle_position(0, pos_x, pos_y + 200.0, pos_z)
+					event.set_object_handle_position(0, rock_x, rock_y + 200.0, rock_z)
 					event.load_dungeon_monster(607, 1)
 					event.load_dungeon_monster(608, 0)
 					event.place_dungeon_monster(607, -3980.8, 7277.16, 3321.3, 0.0, 1.46, 0.0)
@@ -1212,37 +1221,41 @@ function script.event_553()
 		return nil
 	end)
 end
+script[553] = script.cutscene_twin_boss_landing
 
---- Event 554, which map data, a script or the engine runs by number.
-function script.event_554()
+--- Fades out and moves to the final boss map.
+function script.exit_to_d06b03()
 	event.initialize_event()
 	event.reset_action_character_motion(0)
 	event.fade_out_screen(20)
-	helper_888ab2a3(20)
+	wait.for_frame_count(20)
 	event.load_dungeon_map("d06b03")
 	event.load_event_script("d06b03/d06b03.stb", 100)
 end
+script[554] = script.exit_to_d06b03
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	helper_786b79f1(0)
+--- Handles the party being defeated without dialogue.
+function script.on_party_defeated()
+	dungeon.run_defeat_sequence_silent(0)
 end
+script[1200] = script.on_party_defeated
 
---- Event 27020, which map data, a script or the engine runs by number.
-function script.event_27020()
+--- Respawns the first boss and places the party at its area.
+function script.retry_boss_fight_1()
 	event.initialize_event()
 	event.set_save_flag(728, 1)
 	event.load_dungeon_monster(603, 1)
 	event.place_dungeon_monster(603, 4034.9, 1622.3, -1778.2, 0.0, -2.46, 0.0)
-	helper_9dafbc83(3760.0, vm.f32(1622.3), -2117.0, vm.f32(0.68))
+	character.place_standing_and_reset_cloth(3760.0, vm.f32(1622.3), -2117.0, vm.f32(0.68))
 	event.set_camera_position(3660.11, 1666.73, -2241.34)
 	event.set_camera_look_at(3760.76, 1652.31, -2116.96)
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
+script[27020] = script.retry_boss_fight_1
 
---- Event 27030, which map data, a script or the engine runs by number.
-function script.event_27030()
+--- Respawns the second boss and places the party at its area.
+function script.retry_boss_fight_2()
 	event.initialize_event()
 	event.set_save_flag(728, 1)
 	event.load_dungeon_monster(604, 1)
@@ -1254,9 +1267,10 @@ function script.event_27030()
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
+script[27030] = script.retry_boss_fight_2
 
---- Event 27040, which map data, a script or the engine runs by number.
-function script.event_27040()
+--- Respawns the third boss and places the party at its area.
+function script.retry_boss_fight_3()
 	event.initialize_event()
 	event.set_save_flag(728, 1)
 	event.load_dungeon_monster(605, 1)
@@ -1268,9 +1282,10 @@ function script.event_27040()
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
+script[27040] = script.retry_boss_fight_3
 
---- Event 27050, which map data, a script or the engine runs by number.
-function script.event_27050()
+--- Respawns the fourth boss and places the party at its area.
+function script.retry_boss_fight_4()
 	event.initialize_event()
 	event.set_save_flag(728, 1)
 	event.load_dungeon_monster(606, 1)
@@ -1282,9 +1297,10 @@ function script.event_27050()
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
+script[27050] = script.retry_boss_fight_4
 
---- Event 27060, which map data, a script or the engine runs by number.
-function script.event_27060()
+--- Respawns both twin bosses and places the party at their area.
+function script.retry_twin_boss_fight()
 	event.initialize_event()
 	event.set_save_flag(728, 1)
 	event.load_dungeon_monster(607, 1)
@@ -1298,5 +1314,6 @@ function script.event_27060()
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
+script[27060] = script.retry_twin_boss_fight
 
 return script

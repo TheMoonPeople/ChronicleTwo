@@ -1301,7 +1301,8 @@ std::string HandlerLabel(const Instance &instance, int no) {
 
 /**
  *
- * Pushes the handler of program no from the instance's script table onto lua; reports whether it is a function.
+ * Pushes the handler of program no from the instance's script table onto lua, found by its program name or else by
+ * its number; reports whether it is a function.
  *
  */
 bool PushProgram(lua_State *lua, const Instance &instance, int no) {
@@ -1309,9 +1310,13 @@ bool PushProgram(lua_State *lua, const Instance &instance, int no) {
     if (const std::optional<std::string_view> name = ProgramName(instance, no)) {
         lua_pushlstring(lua, name->data(), name->size());
         lua_rawget(lua, -2);
-    } else {
-        lua_rawgeti(lua, -1, no);
+        if (lua_type(lua, -1) == LUA_TFUNCTION) {
+            lua_remove(lua, -2);
+            return true;
+        }
+        lua_pop(lua, 1);
     }
+    lua_rawgeti(lua, -1, no);
     lua_remove(lua, -2);
     return lua_type(lua, -1) == LUA_TFUNCTION;
 }

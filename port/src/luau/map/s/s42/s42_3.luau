@@ -1,31 +1,25 @@
 --!strict
--- map/s/s42/s42_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Repair shop upstairs room with the tool and vacuum quest.
 
 local vm = require("@lib/vm")
-local helper_0ffc2526 = require("@lib/event/helper_0ffc2526")
-local helper_17043bf1 = require("@lib/event/helper_17043bf1")
-local helper_387dadc7 = require("@lib/event/helper_387dadc7")
-local helper_51dafe33 = require("@lib/event/helper_51dafe33")
-local helper_7d54f41c = require("@lib/event/helper_7d54f41c")
-local helper_9e60b8f3 = require("@lib/event/helper_9e60b8f3")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_f38eabca = require("@lib/event/helper_f38eabca")
-local helper_f57795f8 = require("@lib/event/helper_f57795f8")
-local show_message = require("@lib/event/show_message")
-local wait_frames = require("@lib/event/wait_frames")
+local inventory = require("@lib/event/inventory")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local repair_shop = require("@lib/event/repair_shop")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_e93c()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var4: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
+--- Turns the player toward the character in slot 9, who says the item is downstairs and to get to work.
+local function tell_player_to_work()
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local player_yaw: f32 = 0
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
 	local yaw: f32 = 0
-	local var14: s32 = 0
-	local var15: s32 = 0
+	local turn_frames: s32 = 0
+	local needs_turn: s32 = 0
 	event.initialize_event()
 	event.set_message_window_mode(0, 1)
 	event.set_message_bubble_tail(0, 1)
@@ -37,49 +31,51 @@ local function helper_e93c()
 	event.set_object_sequence_object(1, 1)
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		player_x = out1 or player_x
+		player_y = out2 or player_y
+		player_z = out3 or player_z
 	end
 	do
 		local _, out2, _ = event.get_character_rotation(0)
-		var4 = out2 or var4
+		player_yaw = out2 or player_yaw
 	end
 	do
 		local out1, out2, out3 = event.get_character_position(9)
-		var6 = out1 or var6
-		var7 = out2 or var7
-		var8 = out3 or var8
+		character_x = out1 or character_x
+		character_y = out2 or character_y
+		character_z = out3 or character_z
 	end
 	event.get_character_rotation(9)
-	yaw = event.get_direction_angle(var0, var1, var2, var6, var7, var8) or yaw
-	event.get_direction_angle(var6, var7, var8, var0, var1, var2)
-	var14 = 0
-	var15 = event.compare_angles(var4, yaw, 0.1) or var15
-	if var15 ~= 0 then
+	yaw = event.get_direction_angle(player_x, player_y, player_z, character_x, character_y, character_z) or yaw
+	event.get_direction_angle(character_x, character_y, character_z, player_x, player_y, player_z)
+	turn_frames = 0
+	needs_turn = event.compare_angles(player_yaw, yaw, 0.1) or needs_turn
+	if needs_turn ~= 0 then
 		event.rotate_object_sequence(0, 0.0, yaw, 0.0, 10)
 		event.set_object_sequence_motion(0, "歩き")
 		event.delay_object_sequence_motion_track(0, 10)
-		var14 = 20
+		turn_frames = 20
 	end
 	event.set_object_sequence_motion(0, "立ち")
-	wait_frames(var14)
+	wait.frames(turn_frames)
 	event.open_message_window_2(0, "Sieh auf dem Schreibtisch unten\nnach. Mach dich ran!")
-	helper_0ffc2526(0, -1, 9, 0, 0)
+	message.say_bubble(0, -1, 9, 0, 0)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing.
+function script.initialize_map() end
+script[99] = script.initialize_map
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Sets up the room and places the player.
 function script.default_event()
-	helper_387dadc7()
+	repair_shop.set_up_starbre_room()
 	event.take_memory_card_load_state()
 	event.set_time_of_day_advancing(0)
 	event.set_character_position(0, 49.9, 24.7, -68.2)
@@ -91,66 +87,69 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
+--- Says the requested work is unfinished.
+function script.block_exit_before_work()
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_message_window_mode(0, 1)
 	event.set_message_bubble_tail(0, 0)
 	event.open_message_window_2(0, "Du hast Cedrics Auftrag\nnoch nicht erf[UNI00fc]llt.")
-	show_message(0, -1, 5, 0, 0)
+	message.show(0, -1, 5, 0, 0)
 end
+script[200] = script.block_exit_before_work
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_f57795f8
+script[400] = menu.open_with_fade
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
+--- Resets the counter and plays the ticket scene.
+function script.cutscene_ticket()
 	event.set_save_counter(5, 0)
-	helper_9e60b8f3()
+	repair_shop.play_ticket_scene()
 end
+script[500] = script.cutscene_ticket
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
-	local var0: s32 = 0
-	local argc: s32 = 0
-	local var2: any = 0
-	local at: number = 0
+--- Offers to start repairing the vacuum if the tool is owned.
+function script.examine_vacuum()
+	local start_repair: s32 = 0
+	local item_count: s32 = 0
+	local choice: any = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
-		var0 = 0
+		start_repair = 0
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
 		event.set_message_selection_top_line(0, 0)
-		argc = event.get_owned_item_count(382) or argc
-		if argc <= 0 then
+		item_count = event.get_owned_item_count(382) or item_count
+		if item_count <= 0 then
 			event.open_message_window_2(0, "Ich glaube, das Werkzeug\nwar in dem Schrank dort hinten...")
-			at = 1
-			show_message(0, -1, 5, 0, 0)
+			resume_step = 1
+			message.show(0, -1, 5, 0, 0)
 		else
 			event.set_message_selection_top_line(0, 1)
 			event.set_message_window_option(0, 0, 1)
 			event.set_message_window_option(0, 1, 1)
-			argc = event.get_owned_item_count(386) or argc
-			if argc <= 0 then
+			item_count = event.get_owned_item_count(386) or item_count
+			if item_count <= 0 then
 				event.open_message_window_2(0, "Das ist wohl Gables Staubsauger.\nEr sieht unfertig aus.\nNa dann mal los!")
-				at = 2
-				var2 = helper_bac0e30d(0, -1, 5, 256, 208, 2, 1)
-				if var2 == 2 then
-					var0 = 1
+				resume_step = 2
+				choice = message.ask_choice(0, -1, 5, 256, 208, 2, 1)
+				if choice == 2 then
+					start_repair = 1
 				end
 			else
 				event.open_message_window_2(
 					0,
 					"Das ist wohl Gables Staubsauger.\nNa gut! Dann reparieren wir ihn mal!\nAch nein, ich mach's sp[UNI00e4]ter."
 				)
-				at = 3
-				var2 = helper_bac0e30d(0, -1, 5, 256, 208, 2, 1)
-				if var2 == 1 then
-					var0 = 1
+				resume_step = 3
+				choice = message.ask_choice(0, -1, 5, 256, 208, 2, 1)
+				if choice == 1 then
+					start_repair = 1
 				end
 			end
 			event.set_message_window_option(0, 0, 0)
@@ -158,32 +157,32 @@ function script.event_501()
 			event.set_message_selection_top_line(0, 0)
 		end
 		event.set_message_bubble_tail(0, 1)
-		if var0 == 1 then
-			at = 4
-			helper_17043bf1()
+		if start_repair == 1 then
+			resume_step = 4
+			repair_shop.play_tool_work_scene()
 			event.jump_to_map_3(-1, "m06", 151)
 		end
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at == 2 then
-				var2 = received[1] :: number
+		if resume_step <= 4 then
+			if resume_step == 2 then
+				choice = received[1] :: number
 			end
-			if at == 3 then
-				var2 = received[1] :: number
+			if resume_step == 3 then
+				choice = received[1] :: number
 			end
-			if at <= 1 then
-				var2 = helper_7d54f41c(0, -1, 5, 256, 208, 2, 1)
+			if resume_step <= 1 then
+				choice = message.open_choice_skipping(0, -1, 5, 256, 208, 2, 1)
 			end
-			if at <= 2 then
-				var0 = 1
-				var2 = helper_7d54f41c(0, -1, 5, 256, 208, 2, 1)
+			if resume_step <= 2 then
+				start_repair = 1
+				choice = message.open_choice_skipping(0, -1, 5, 256, 208, 2, 1)
 			end
-			if at <= 3 then
-				local _ = var2 == 2
-				var0 = 1
-				at = 4
-				helper_17043bf1()
+			if resume_step <= 3 then
+				local _ = choice == 2
+				start_repair = 1
+				resume_step = 4
+				repair_shop.play_tool_work_scene()
 				return vm.continue_with(function()
 					event.jump_to_map_3(-1, "m06", 151)
 					return
@@ -194,27 +193,30 @@ function script.event_501()
 		return nil
 	end)
 end
+script[501] = script.examine_vacuum
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_51dafe33()
+--- Plays the oversleeping scene and jumps to m08.
+function script.cutscene_oversleeping()
+	repair_shop.play_oversleeping_scene()
 	event.jump_to_map_3(-1, "m08", 151)
 end
+script[502] = script.cutscene_oversleeping
 
 --- Event 510, which map data, a script or the engine runs by number.
-script.event_510 = helper_e93c
+script.tell_player_to_work = tell_player_to_work
+script[510] = script.tell_player_to_work
 
---- Event 520, which map data, a script or the engine runs by number.
-function script.event_520()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
+--- Walks to the cabinet and picks up the repair tool.
+function script.pick_up_repair_tool()
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
 	event.initialize_event()
 	do
 		local out1, out2, out3 = event.get_triggered_event_data_4(10)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		target_x = out1 or target_x
+		target_y = out2 or target_y
+		target_z = out3 or target_z
 	end
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
@@ -222,24 +224,25 @@ function script.event_520()
 	event.set_object_sequence_motion(0, "歩き")
 	event.delay_object_sequence_motion_track(0, 10)
 	event.set_object_sequence_motion(0, "立ち")
-	event.turn_object_sequence_toward(0, var0, var1, var2, 10)
-	wait_frames(10)
-	helper_f38eabca(382, 1)
+	event.turn_object_sequence_toward(0, target_x, target_y, target_z, 10)
+	wait.frames(10)
+	inventory.announce_received(382, 1)
 	event.add_inventory_item(382)
 	event.set_function_point_enabled("", "item1", 0)
 end
+script[520] = script.pick_up_repair_tool
 
---- Event 521, which map data, a script or the engine runs by number.
-function script.event_521()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
+--- Walks to the desk and picks up the memo.
+function script.pick_up_memo()
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
 	event.initialize_event()
 	do
 		local out1, out2, out3 = event.get_triggered_event_data_4(10)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		target_x = out1 or target_x
+		target_y = out2 or target_y
+		target_z = out3 or target_z
 	end
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
@@ -247,17 +250,18 @@ function script.event_521()
 	event.set_object_sequence_motion(0, "歩き")
 	event.delay_object_sequence_motion_track(0, 10)
 	event.set_object_sequence_motion(0, "立ち")
-	event.turn_object_sequence_toward(0, var0, var1, var2, 10)
-	wait_frames(10)
+	event.turn_object_sequence_toward(0, target_x, target_y, target_z, 10)
+	wait.frames(10)
 	event.attach_object_handle_to_map_part_2(1, "memo")
 	event.set_object_handle_visible(1, 0)
-	helper_f38eabca(386, 1)
+	inventory.announce_received(386, 1)
 	event.add_inventory_item(386)
 	event.set_function_point_enabled("", "item2", 0)
 end
+script[521] = script.pick_up_memo
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
+--- Says the book cannot be read right now.
+function script.examine_important_book()
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_message_window_mode(0, 1)
@@ -266,7 +270,8 @@ function script.event_550()
 		0,
 		"Sieht aus, als g[UNI00e4]be es da ein\nrecht wichtiges Buch, aber du wei[UNI00df]t noch\nnicht genug dar[UNI00fc]ber."
 	)
-	show_message(0, -1, 5, 0, 0)
+	message.show(0, -1, 5, 0, 0)
 end
+script[550] = script.examine_important_book
 
 return script

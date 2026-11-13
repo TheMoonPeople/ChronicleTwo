@@ -1,19 +1,19 @@
 --!strict
--- map/s/s58/s58.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the train chapter intro and moves on to map s31.
 
 local vm = require("@lib/vm")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local wait_objects = require("@lib/event/wait_objects")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_b8ac()
-	local var0: s32 = 0
+--- Plays the train fly-by with a raster effect and shows the chapter 6 title.
+local function play_train_chapter_intro()
+	local sound_bank: s32 = 0
 	vm.section(function()
 		event.set_save_flag(600, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(4527)
-		var0 = event.load_sound_effect_file_2(4527) or var0
+		sound_bank = event.load_sound_effect_file_2(4527) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.get_playable_character()
@@ -34,11 +34,11 @@ local function helper_b8ac()
 		event.set_camera_sequence_position(146.6, -71.67, 641.16)
 		event.set_camera_sequence_look_at(119.77, -62.2, 581.41)
 		event.fade_in_screen(30)
-		helper_888ab2a3(60)
-		event.play_sound_effect(var0, 2)
-		wait_objects(0)
+		wait.for_frame_count(60)
+		event.play_sound_effect(sound_bank, 2)
+		object.wait_until_done(0)
 		event.fade_out_screen(10)
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 	end)
 	event.cancel_drama_scene_skip()
 	event.stop_screen_raster_effect(0.0, 0.0, 0.0, 0)
@@ -54,18 +54,19 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_b8ac
+script.key_open = play_train_chapter_intro
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_b8ac()
+--- Plays the train chapter intro and moves on to map s31.
+function script.cutscene_train_chapter_intro()
+	play_train_chapter_intro()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s31", 500)
 	vm.wait(2)
 end
+script[500] = script.cutscene_train_chapter_intro
 
 return script

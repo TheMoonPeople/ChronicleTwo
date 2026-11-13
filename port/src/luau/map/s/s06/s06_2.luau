@@ -1,56 +1,44 @@
 --!strict
--- map/s/s06/s06_2.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Pump room floor script covering the elephant ambush, the Polcurse escape and the Ridepod tutorial cutscene.
 
 local vm = require("@lib/vm")
-local helper_126fe783 = require("@lib/event/helper_126fe783")
-local helper_2a1e9b48 = require("@lib/event/helper_2a1e9b48")
-local helper_3bce1a2c = require("@lib/event/helper_3bce1a2c")
-local helper_46574a08 = require("@lib/event/helper_46574a08")
-local helper_4a9b8bc5 = require("@lib/event/helper_4a9b8bc5")
-local helper_4d5f00f9 = require("@lib/event/helper_4d5f00f9")
-local helper_5a05ed59 = require("@lib/event/helper_5a05ed59")
-local helper_68186cf4 = require("@lib/event/helper_68186cf4")
-local helper_69eefc83 = require("@lib/event/helper_69eefc83")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_78df2e5b = require("@lib/event/helper_78df2e5b")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_d4f5fdae = require("@lib/event/helper_d4f5fdae")
-local helper_ed4dc120 = require("@lib/event/helper_ed4dc120")
-local helper_fab3eef4 = require("@lib/event/helper_fab3eef4")
-local helper_fc872710 = require("@lib/event/helper_fc872710")
-local wait_frames = require("@lib/event/wait_frames")
+local channel_pump_room = require("@lib/event/channel_pump_room")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local message = require("@lib/event/message")
+local wait = require("@lib/event/wait")
 
---- The event run when the edit analysis found changes after a house door step or a Georama mode change.
+--- Blocks the floor exit while the party is busy, or asks whether to move to the next floor and loads it.
 local function edit_analyze_changed()
 	local flag: s32 = 0
-	local var1: s32 = 0
-	local var2: s32 = 0
+	local previous_window_mode: s32 = 0
+	local has_party_member: s32 = 0
 	local active_chr_no: s32 = 0
-	local var5: any = 0
+	local answer: any = 0
 	local stage_id: s32 = 0
-	local var7: s32 = 0
-	local argc: s32 = 0
+	local floor: s32 = 0
+	local next_floor: s32 = 0
 	active_chr_no = event.get_playable_character() or active_chr_no
 	event.reset_action_character_motion(0)
 	flag = event.get_save_flag(7) or flag
 	if flag == 0 then
 		event.initialize_event()
 		event.set_dungeon_pause_flags(1, 1)
-		var2 = event.set_party_member(2) or var2
-		if var2 ~= 0 then
-			var1 = event.get_message_window_frame(0) or var1
+		has_party_member = event.set_party_member(2) or has_party_member
+		if has_party_member ~= 0 then
+			previous_window_mode = event.get_message_window_frame(0) or previous_window_mode
 			event.set_message_window_mode(0, 1)
 			event.set_message_bubble_tail(0, 0)
 			event.open_message_window_2(0, "Pas le temps pour [UNI00e7]a !")
-			helper_75684dd8(0, -1, 5, 0, 0)
-			event.set_message_window_mode(0, var1)
+			message.show_and_wait(0, -1, 5, 0, 0)
+			event.set_message_window_mode(0, previous_window_mode)
 			vm.wait(2)
 			event.set_dungeon_pause_flags(1, 0)
 			event.finish_event()
 			return
 		else
 			event.set_character_motion(0, "立ち")
-			var1 = event.get_message_window_frame(0) or var1
+			previous_window_mode = event.get_message_window_frame(0) or previous_window_mode
 			event.set_message_window_mode(0, 1)
 			event.set_message_bubble_tail(0, 0)
 			flag = event.get_save_flag(104) or flag
@@ -59,8 +47,8 @@ local function edit_analyze_changed()
 			else
 				event.open_message_window_2(0, "Pas le temps pour [UNI00e7]a !")
 			end
-			helper_75684dd8(0, -1, 5, 0, 0)
-			event.set_message_window_mode(0, var1)
+			message.show_and_wait(0, -1, 5, 0, 0)
+			event.set_message_window_mode(0, previous_window_mode)
 			vm.wait(4)
 			event.set_dungeon_pause_flags(1, 0)
 			event.finish_event()
@@ -74,30 +62,30 @@ local function edit_analyze_changed()
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
 		event.open_message_window_2(0, "On dirait que pour pouvoir\navancer, tu dois descendre du\nRobomobil.")
-		helper_75684dd8(0, -1, 8, 256, 208)
+		message.show_and_wait(0, -1, 8, 256, 208)
 		event.finish_event()
 		return
 	end
 	if active_chr_no == 3 then
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
-		helper_75684dd8(0, 21, 8, 256, 208)
+		message.show_and_wait(0, 21, 8, 256, 208)
 		event.finish_event()
 		return
 	end
 	event.set_message_window_mode(0, 5)
 	event.set_message_draw_speed(0, 1)
-	var5 = helper_ed4dc120(1, -1)
-	if var5 == 0 then
+	answer = message.ask_yes_no(1, -1)
+	if answer == 0 then
 		event.set_save_control_bits(1, 0)
 		stage_id = event.get_dungeon_stage_id() or stage_id
-		var7 = event.get_dungeon_floor() or var7
-		argc = event.get_dungeon_next_floor(var7, 0) or argc
-		event.set_dungeon_floor(argc)
-		event.set_dungeon_floor_info(stage_id, var7, 5, 2)
-		event.set_dungeon_floor_info(stage_id, argc, 5, 1)
+		floor = event.get_dungeon_floor() or floor
+		next_floor = event.get_dungeon_next_floor(floor, 0) or next_floor
+		event.set_dungeon_floor(next_floor)
+		event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+		event.set_dungeon_floor_info(stage_id, next_floor, 5, 1)
 		event.fade_out_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 		flag = event.get_save_flag(8) or flag
 		if flag == 0 then
 			event.stop_music(0)
@@ -114,9 +102,9 @@ local function edit_analyze_changed()
 	event.finish_event()
 end
 
---- Helper function.
-local function helper_17d54(arg0: any)
-	local var1: s32 = 0
+--- Shows the Ridepod tutorial messages over the cutscene's closing shot.
+local function show_ridepod_tutorial(sound_bank: any)
+	local previous_window_mode: s32 = 0
 	event.set_camera_sequence_position(-276.53, 81.94, 10.07)
 	event.set_camera_sequence_look_at(31.75, 72.44, -9.51)
 	event.set_object_sequence_position(0, -165.91, 50.0, 2.54)
@@ -125,39 +113,39 @@ local function helper_17d54(arg0: any)
 	event.set_object_sequence_position(1, -165.91, 50.0, 2.54)
 	event.set_object_sequence_rotation(1, 0.0, 1.65, 0.0)
 	event.set_object_sequence_motion(1, "立ち（スティーブ）", 4)
-	wait_frames(30)
-	var1 = event.get_message_window_frame() or var1
+	wait.frames(30)
+	previous_window_mode = event.get_message_window_frame() or previous_window_mode
 	event.set_message_window_mode(0, 8)
 	event.open_message_window_2(
 		0,
 		"[(!)]Pour utiliser le Robomobil, choisis\n   l'option Robomobil dans Personnages\n   (Menu principal).<page>Pour en descendre, choisis\nMax dans le menu Personnages."
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(0, "[(!)]Tu peux demander [UNI00e0] C[UNI00e9]dric de\n   faire le plein du Robomobil.")
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(
 		0,
 		"[(!)]Et [UNI00e0] mesure que le Robomobil\n   accumule des PEx, tu peux demander [UNI00e0]\n   C[UNI00e9]dric d'en am[UNI00e9]liorer le noyau. Le noyau<page>pourra alors supporter des accessoires\nplus nombreux et plus puissants."
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(
 		0,
 		"[(!)]Augmente la capacit[UNI00e9] du noyau et\n   essaie d'installer des pi[UNI00e8]ces... Tu peux\n   personnaliser le Robomobil !"
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
-	event.set_message_window_mode(0, var1)
+	message.show_and_wait(0, -1, 8, 0, 0)
+	event.set_message_window_mode(0, previous_window_mode)
 end
 
---- Helper function.
-local function helper_18570()
-	local var0: s32 = 0
+--- Plays the cutscene after the elephant is beaten and hands control back to the player riding the Ridepod.
+local function play_elephant_defeat_cutscene()
+	local sound_bank: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.set_save_flag(108, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.show_dungeon_status_bar(0, 1.0)
-		var0 = event.load_sound_effect_file_2(1819) or var0
+		sound_bank = event.load_sound_effect_file_2(1819) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.clear_camera_sequence()
@@ -198,25 +186,25 @@ local function helper_18570()
 		event.load_message_file(0, 5, "event/e100/e108/e108a_1.txt")
 		event.stop_music(0)
 		event.enable_drama_skip()
-		helper_46574a08(var0)
+		channel_pump_room.play_elephant_death(sound_bank)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
 		event.set_object_sequence_texture_animation(3, 0)
 		event.set_object_sequence_texture_animation(3, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(3, 1, "通常目パチ")
-		helper_fc872710(var0)
-		helper_3bce1a2c(var0)
-		helper_4d5f00f9(var0)
-		helper_78df2e5b(var0)
-		helper_17d54(var0)
+		channel_pump_room.play_victory_pose_shot(sound_bank)
+		channel_pump_room.play_victory_pose(sound_bank)
+		channel_pump_room.play_polcurse_flyaway(sound_bank)
+		channel_pump_room.play_party_look_up(sound_bank)
+		show_ridepod_tutorial(sound_bank)
 		event.fade_out_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 	end)
 	vm.entry(9)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 0)
-	event.stop_sound_effect(var0, 2)
+	event.stop_sound_effect(sound_bank, 0)
+	event.stop_sound_effect(sound_bank, 2)
 	event.set_character_active(1, 0)
 	event.attach_object_handle_to_character(10, 1)
 	event.set_object_handle_visible(10, 0)
@@ -235,7 +223,7 @@ local function helper_18570()
 	event.set_character_rotation(0, 0.0, 1.77, 0.0)
 	event.show_dungeon_status_bar(1)
 	event.stop_music(0)
-	wait_frames(4)
+	wait.frames(4)
 	event.load_music(15)
 	event.play_music(0)
 	event.reset_follow_camera(1, 0.0, 20.0)
@@ -246,39 +234,40 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing for this map.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_d4f5fdae
+script.key_open = channel_pump_room.play_entrance_event
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
+--- Places the player at the room entrance and waits for a button press.
+function script.hold_player_at_entrance()
 	event.set_character_position(0, -240.84, 50.0, -5.32)
 	event.set_character_rotation(0, 0.0, 1.6, 0.0)
 	vm.wait(1)
-	helper_c956b4a2(64)
+	wait.until_button_pressed(64)
 end
+script[151] = script.hold_player_at_entrance
 
 --- Event 300, which map data, a script or the engine runs by number.
-script.event_300 = edit_analyze_changed
+script[300] = edit_analyze_changed
 
 script.edit_analyze_changed = edit_analyze_changed
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
+--- Sets up the room by story progress and loads the matching cutscene or entrance event.
+function script.enter_pump_room()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
-	local var2: s32 = 0
-	helper_fab3eef4()
+	local has_party_member: s32 = 0
+	channel_pump_room.load_map_sounds()
 	flag = event.get_save_flag(7) or flag
 	if flag == 0 then
 		flag = event.get_save_flag(106) or flag
 		flag_2 = event.get_save_flag(104) or flag_2
-		var2 = event.set_party_member(2) or var2
-		if (if flag == 1 then var2 else 0) ~= 0 or flag_2 == 0 then
+		has_party_member = event.set_party_member(2) or has_party_member
+		if (if flag == 1 then has_party_member else 0) ~= 0 or flag_2 == 0 then
 			event.set_save_control_bits(1, 1)
-			helper_68186cf4(1)
+			channel_pump_room.setup_map_part_handles(1)
 		end
 	end
 	event.set_function_point_enabled("", "dun_out", 0)
@@ -293,8 +282,8 @@ function script.event_500()
 	else
 		event.set_function_point_enabled("p01_s06", "doa1", 0)
 		event.set_function_point_enabled("p01_s06", "doa0", 1)
-		var2 = event.set_party_member(2) or var2
-		if var2 == 0 then
+		has_party_member = event.set_party_member(2) or has_party_member
+		if has_party_member == 0 then
 			flag = event.get_save_flag(105) or flag
 			if flag == 1 then
 				event.set_function_point_enabled("", "dun_out", 1)
@@ -308,12 +297,12 @@ function script.event_500()
 	vm.wait(1)
 	flag = event.get_save_flag(103) or flag
 	if flag == 0 then
-		helper_68186cf4(1)
+		channel_pump_room.setup_map_part_handles(1)
 		event.load_event_script("s06/s06b_1.stb", 500)
 		return
 	else
-		var2 = event.set_party_member(2) or var2
-		if var2 ~= 0 then
+		has_party_member = event.set_party_member(2) or has_party_member
+		if has_party_member ~= 0 then
 			flag = event.get_save_flag(25) or flag
 			if flag == 1 then
 				event.set_save_flag(5, 0)
@@ -330,27 +319,27 @@ function script.event_500()
 						event.load_event_script("s06/s06b_1.stb", 520)
 						return
 					else
-						helper_d4f5fdae()
+						channel_pump_room.play_entrance_event()
 					end
 				end
 			else
-				helper_d4f5fdae()
+				channel_pump_room.play_entrance_event()
 			end
 		else
 			event.set_save_flag(5, 0)
 			flag = event.get_save_flag(7) or flag
 			if flag == 1 then
-				helper_d4f5fdae()
+				channel_pump_room.play_entrance_event()
 			else
-				var2 = event.set_party_member(2) or var2
-				if var2 == 0 then
+				has_party_member = event.set_party_member(2) or has_party_member
+				if has_party_member == 0 then
 					flag = event.get_save_flag(105) or flag
 					if flag == 1 then
-						helper_d4f5fdae()
+						channel_pump_room.play_entrance_event()
 					end
 				else
 					event.load_dungeon_monster(601, 1)
-					helper_d4f5fdae()
+					channel_pump_room.play_entrance_event()
 					event.initialize_event()
 					event.place_dungeon_monster(601, -36.31, 50.0, 1.24, 0.0, 0.0, 0.0)
 					event.finish_event()
@@ -361,37 +350,39 @@ function script.event_500()
 	event.fade_in_screen(30)
 	event.finish_event()
 end
+script[500] = script.enter_pump_room
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
+--- Loads the second room script.
+function script.enter_room_c()
 	event.initialize_event()
 	event.load_event_script("s06/s06c_1.stb", 500)
 	vm.wait(1)
 end
+script[501] = script.enter_room_c
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	local at: number = 0
+--- Plays the elephant defeat cutscene and clears the battle monsters.
+function script.on_elephant_defeated()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.fade_out_screen(30)
-		at = 1
-		wait_frames(30)
+		resume_step = 1
+		wait.frames(30)
 		event.initialize_event()
 		event.set_save_flag(7, 1)
 		event.switch_dungeon_main_character(0)
 		event.set_playable_character(0)
-		helper_68186cf4(0)
+		channel_pump_room.setup_map_part_handles(0)
 		event.set_dungeon_pause_flags(17, 1)
-		at = 2
-		helper_18570()
+		resume_step = 2
+		play_elephant_defeat_cutscene()
 		event.clear_event_battle_monsters(-1)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				helper_4a9b8bc5(0)
-				at = 2
-				helper_18570()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				cutscene.ignore_value(0)
+				resume_step = 2
+				play_elephant_defeat_cutscene()
 				return vm.continue_with(function()
 					event.clear_event_battle_monsters(-1)
 					return
@@ -402,36 +393,37 @@ function script.event_502()
 		return nil
 	end)
 end
+script[502] = script.on_elephant_defeated
 
---- Event 503, which map data, a script or the engine runs by number.
-function script.event_503()
-	local at: number = 0
+--- Restores the party, plays the Polcurse escape and goes to the Georama.
+function script.cutscene_polcurse_escape()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.set_save_control_bits(1, 0)
-		helper_68186cf4(0)
+		channel_pump_room.setup_map_part_handles(0)
 		event.fade_out_screen(30)
-		at = 1
-		wait_frames(30)
+		resume_step = 1
+		wait.frames(30)
 		event.add_hp_by_rate(1.0, 0)
 		event.switch_dungeon_main_character(0)
 		event.set_playable_character(0)
 		event.set_dungeon_pause_flags(17, 1)
-		at = 2
-		helper_69eefc83()
+		resume_step = 2
+		channel_pump_room.play_polcurse_escape_event()
 		event.skip_next_music_load()
 		event.go_to_georama_edit(10, 531)
-		at = 3
+		resume_step = 3
 		vm.wait(3)
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_69eefc83()
+		if resume_step <= 3 then
+			if resume_step <= 1 then
+				resume_step = 2
+				channel_pump_room.play_polcurse_escape_event()
 				return vm.continue_with(function()
 					event.skip_next_music_load()
 					event.go_to_georama_edit(10, 531)
-					at = 3
+					resume_step = 3
 					vm.wait(3)
 					return
 				end)
@@ -441,37 +433,42 @@ function script.event_503()
 		return nil
 	end)
 end
+script[503] = script.cutscene_polcurse_escape
 
---- Event 504, which map data, a script or the engine runs by number.
-function script.event_504()
+--- Fades out and plays the elephant ambush cutscene.
+function script.cutscene_elephant_ambush()
 	event.fade_out_screen(0)
-	helper_126fe783()
+	channel_pump_room.play_elephant_ambush_event_variant()
 end
+script[504] = script.cutscene_elephant_ambush
 
---- Event 505, which map data, a script or the engine runs by number.
-function script.event_505()
+--- Loads the second room script after a short wait.
+function script.load_room_c()
 	event.load_event_script("s06/06c_1.stb", 500)
 	vm.wait(1)
 end
+script[505] = script.load_room_c
 
---- Event 506, which map data, a script or the engine runs by number.
-function script.event_506()
+--- Loads the second room script after a short wait, like event 505.
+function script.load_room_c_again()
 	event.load_event_script("s06/06c_1.stb", 500)
 	vm.wait(1)
 end
+script[506] = script.load_room_c_again
 
---- Event 507, which map data, a script or the engine runs by number.
-function script.event_507()
+--- Sets the elephant-encounter flag and loads the elephant landing cutscene.
+function script.cutscene_elephant_landing()
 	event.fade_out_screen(0)
 	event.set_save_flag(6, 1)
 	event.load_event_script("s06/s06b_1.stb", 510)
 	vm.wait(1)
 end
+script[507] = script.cutscene_elephant_landing
 
---- Event 600, which map data, a script or the engine runs by number.
-function script.event_600()
+--- Asks whether to leave for the dungeon, or explains why the party cannot while riding the Ridepod.
+function script.examine_dungeon_exit()
 	local active_chr_no: s32 = 0
-	local var1: any = 0
+	local answer: any = 0
 	event.initialize_event()
 	event.reset_action_character_motion(0)
 	active_chr_no = event.get_playable_character() or active_chr_no
@@ -480,9 +477,9 @@ function script.event_600()
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 1)
 		if active_chr_no == 2 then
-			helper_75684dd8(0, 20, 5, 256, 208)
+			message.show_and_wait(0, 20, 5, 256, 208)
 		else
-			helper_75684dd8(0, 21, 5, 256, 208)
+			message.show_and_wait(0, 21, 5, 256, 208)
 		end
 		event.set_message_draw_speed(0, 0)
 		event.set_dungeon_pause_flags(1, 0)
@@ -490,107 +487,114 @@ function script.event_600()
 		return
 	end
 	event.set_message_window_mode(0, 5)
-	var1 = helper_ed4dc120(2, -1)
-	if var1 == 0 then
+	answer = message.ask_yes_no(2, -1)
+	if answer == 0 then
 		event.fade_out_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 		event.set_save_control_bits(1, 0)
 		event.load_event_script("d01/d01.stb", 1000)
 		return
 	end
 	event.finish_event()
 end
+script[600] = script.examine_dungeon_exit
 
---- Event 601, which map data, a script or the engine runs by number.
-function script.event_601()
+--- Loads the second room script's opening cutscene.
+function script.cutscene_pump_room_opening()
 	vm.wait(1)
-	helper_68186cf4(1)
+	channel_pump_room.setup_map_part_handles(1)
 	event.load_event_script("s06/s06c_1.stb", 600)
 end
+script[601] = script.cutscene_pump_room_opening
 
---- Event 630, which map data, a script or the engine runs by number.
-function script.event_630()
+--- Goes to the Georama edit screen.
+function script.start_georama_edit()
 	event.go_to_georama_edit(12, 540)
 	vm.wait(1)
 end
+script[630] = script.start_georama_edit
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
+--- Runs the defeat sequence, or loads the Polcurse escape cutscene when the party falls while riding the Ridepod before the elephant is beaten.
+function script.on_party_defeated()
 	local active_chr_no: s32 = 0
 	local flag: s32 = 0
-	local at: number = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		active_chr_no = event.get_playable_character() or active_chr_no
 		if active_chr_no == 2 then
 			flag = event.get_save_flag(7) or flag
 			if flag == 0 then
 				event.set_save_flag(6, 1)
-				at = 1
+				resume_step = 1
 				vm.wait(1)
 				event.load_event_script("s06/s06.stb", 503)
 			else
-				at = 2
-				helper_2a1e9b48(0)
+				resume_step = 2
+				dungeon.run_defeat_sequence_with_message_silent(0)
 			end
 		else
-			at = 3
-			helper_2a1e9b48(0)
+			resume_step = 3
+			dungeon.run_defeat_sequence_with_message_silent(0)
 		end
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				helper_5a05ed59(0)
+		if resume_step <= 3 then
+			if resume_step <= 1 then
+				dungeon.skip_defeat_dialogue_sequence_silent(0)
 			end
-			if at <= 2 then
-				helper_5a05ed59(0)
+			if resume_step <= 2 then
+				dungeon.skip_defeat_dialogue_sequence_silent(0)
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[1200] = script.on_party_defeated
 
---- Event 11030, which map data, a script or the engine runs by number.
-function script.event_11030()
+--- Clears the arrival flag and reloads the first room script's arrival cutscene.
+function script.replay_arrival()
 	event.set_save_flag(103, 0)
 	vm.wait(1)
 	event.load_event_script("s06/s06b_1.stb", 500)
 end
+script[11030] = script.replay_arrival
 
---- Event 11040, which map data, a script or the engine runs by number.
-function script.event_11040()
+--- Reloads the second room script.
+function script.restart_room_c()
 	vm.wait(1)
 	event.load_event_script("s06/s06c_1.stb", 500)
 end
+script[11040] = script.restart_room_c
 
---- Event 11070, which map data, a script or the engine runs by number.
-function script.event_11070()
+--- Sets the replay flag and loads the elephant landing cutscene.
+function script.replay_elephant_landing()
 	event.set_save_flag(107, 1)
 	vm.wait(1)
 	event.load_event_script("s06/s06b_1.stb", 510)
 end
+script[11070] = script.replay_elephant_landing
 
---- Event 11081, which map data, a script or the engine runs by number.
-function script.event_11081()
-	local at: number = 0
+--- Replays the elephant defeat cutscene and sets the cleared flag.
+function script.replay_elephant_defeat()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.set_dungeon_pause_flags(1, 1)
 		event.fade_out_screen(15)
-		at = 1
-		wait_frames(15)
+		resume_step = 1
+		wait.frames(15)
 		event.switch_dungeon_main_character(0)
 		event.set_playable_character(0)
 		event.set_dungeon_pause_flags(17, 1)
-		at = 2
-		helper_18570()
+		resume_step = 2
+		play_elephant_defeat_cutscene()
 		event.set_save_flag(7, 1)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_18570()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				play_elephant_defeat_cutscene()
 				return vm.continue_with(function()
 					event.set_save_flag(7, 1)
 					return
@@ -601,35 +605,36 @@ function script.event_11081()
 		return nil
 	end)
 end
+script[11081] = script.replay_elephant_defeat
 
---- Event 11082, which map data, a script or the engine runs by number.
-function script.event_11082()
-	local at: number = 0
+--- Restores the party, replays the Polcurse escape and goes to the Georama.
+function script.replay_polcurse_escape()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.set_save_control_bits(1, 0)
 		event.fade_out_screen(30)
-		at = 1
-		wait_frames(30)
+		resume_step = 1
+		wait.frames(30)
 		event.add_hp_by_rate(1.0, 0)
 		event.switch_dungeon_main_character(0)
 		event.set_playable_character(0)
 		event.set_dungeon_pause_flags(17, 1)
-		at = 2
-		helper_69eefc83()
+		resume_step = 2
+		channel_pump_room.play_polcurse_escape_event()
 		event.skip_next_music_load()
 		event.go_to_georama_edit(10, 531)
-		at = 3
+		resume_step = 3
 		vm.wait(3)
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_69eefc83()
+		if resume_step <= 3 then
+			if resume_step <= 1 then
+				resume_step = 2
+				channel_pump_room.play_polcurse_escape_event()
 				return vm.continue_with(function()
 					event.skip_next_music_load()
 					event.go_to_georama_edit(10, 531)
-					at = 3
+					resume_step = 3
 					vm.wait(3)
 					return
 				end)
@@ -639,23 +644,25 @@ function script.event_11082()
 		return nil
 	end)
 end
+script[11082] = script.replay_polcurse_escape
 
---- Event 21010, which map data, a script or the engine runs by number.
-function script.event_21010()
+--- Restarts the elephant fight with the player and elephant placed again.
+function script.restart_elephant_fight()
 	event.initialize_event()
 	vm.wait(1)
 	event.stop_music(0)
-	wait_frames(4)
+	wait.frames(4)
 	event.load_music(190)
 	event.play_music(0)
 	event.fade_in_screen(30)
 	event.set_character_position(0, 0.0, 50.0, 100.0)
 	event.set_character_rotation(0, 0.0, 3.1415927, 0.0)
-	helper_68186cf4(1)
+	channel_pump_room.setup_map_part_handles(1)
 	event.load_dungeon_monster(601, 1)
 	event.place_dungeon_monster(601, 10.66, 50.0, -0.04, 0.0, -1.5707964, 0.0)
 	event.finish_event()
 	event.reset_follow_camera(1, 0.0, 20.0)
 end
+script[21010] = script.restart_elephant_fight
 
 return script

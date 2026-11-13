@@ -1,36 +1,37 @@
 --!strict
--- map/g/g00/g00_4.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the g00 town that spawns its Georama character and handles villager talk.
 
-local helper_1e2a05b5 = require("@lib/event/helper_1e2a05b5")
-local helper_5b41635c = require("@lib/event/helper_5b41635c")
-local helper_c6c63376 = require("@lib/event/helper_c6c63376")
-local show_message = require("@lib/event/show_message")
+local g00_town_shared_data = require("@lib/event/g00_town_shared_data")
+local message = require("@lib/event/message")
+local partner_talk = require("@lib/event/italian/partner_talk")
+local town_villagers = require("@lib/event/italian/town_villagers")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing when the script loads.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_c6c63376
+script[99] = g00_town_shared_data.spawn_georama_character
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Spawns the Georama character, resets the camera and fades in.
 function script.default_event()
-	helper_c6c63376()
+	g00_town_shared_data.spawn_georama_character()
 	event.reset_follow_camera(1, 0.0)
 	event.fade_in_screen(30)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Shows the stylish-clothes message when square is pressed.
 function script.key_open()
 	event.open_message_window_2(0, "お洒落")
-	show_message(0, -1, 8, 0, 0)
+	message.show(0, -1, 8, 0, 0)
 end
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	helper_1e2a05b5()
-	helper_5b41635c()
+--- Plays the villager conversation and then the companion menu.
+function script.talk_to_villager()
+	town_villagers.talk_to_villager()
+	partner_talk.open_camp_companion_menu()
 end
+script[1000] = script.talk_to_villager
 
 return script

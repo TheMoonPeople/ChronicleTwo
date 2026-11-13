@@ -1,116 +1,70 @@
 --!strict
--- map/d/d02/d02_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Floor script for the Rainbow Butterfly Wood dungeon covering floor loading, gates, seals, the random circle, the geostone, guide messages and the Sphida golf mini-game.
 
 local vm = require("@lib/vm")
-local close_message = require("@lib/event/close_message")
-local helper_03a1d6f1 = require("@lib/event/helper_03a1d6f1")
-local helper_09075129 = require("@lib/event/helper_09075129")
-local helper_0a3840c7 = require("@lib/event/helper_0a3840c7")
-local helper_0b48dafa = require("@lib/event/helper_0b48dafa")
-local helper_17b6d01b = require("@lib/event/helper_17b6d01b")
-local helper_1a7fd8eb = require("@lib/event/helper_1a7fd8eb")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_2a1e9b48 = require("@lib/event/helper_2a1e9b48")
-local helper_313d0b27 = require("@lib/event/helper_313d0b27")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_35195a56 = require("@lib/event/helper_35195a56")
-local helper_384e16e1 = require("@lib/event/helper_384e16e1")
-local helper_39ab7f1f = require("@lib/event/helper_39ab7f1f")
-local helper_3cf99f2c = require("@lib/event/helper_3cf99f2c")
-local helper_479dc9e9 = require("@lib/event/helper_479dc9e9")
-local helper_49c6448e = require("@lib/event/helper_49c6448e")
-local helper_4c1ba28b = require("@lib/event/helper_4c1ba28b")
-local helper_4d4dffcb = require("@lib/event/helper_4d4dffcb")
-local helper_4e93f9fc = require("@lib/event/helper_4e93f9fc")
-local helper_56390e5a = require("@lib/event/helper_56390e5a")
-local helper_581cb30c = require("@lib/event/helper_581cb30c")
-local helper_5fb66cb1 = require("@lib/event/helper_5fb66cb1")
-local helper_64f3e42f = require("@lib/event/helper_64f3e42f")
-local helper_6c7de8d8 = require("@lib/event/helper_6c7de8d8")
-local helper_6c8af328 = require("@lib/event/helper_6c8af328")
-local helper_74f9cdb5 = require("@lib/event/helper_74f9cdb5")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_7870f366 = require("@lib/event/helper_7870f366")
-local helper_79d90c82 = require("@lib/event/helper_79d90c82")
-local helper_7b560508 = require("@lib/event/helper_7b560508")
-local helper_86f3f24c = require("@lib/event/helper_86f3f24c")
-local helper_9594e622 = require("@lib/event/helper_9594e622")
-local helper_a4ad263f = require("@lib/event/helper_a4ad263f")
-local helper_a583d6cd = require("@lib/event/helper_a583d6cd")
-local helper_a74f4984 = require("@lib/event/helper_a74f4984")
-local helper_a85f374e = require("@lib/event/helper_a85f374e")
-local helper_a87eb945 = require("@lib/event/helper_a87eb945")
-local helper_ac9d5b12 = require("@lib/event/helper_ac9d5b12")
-local helper_b1b0c1a6 = require("@lib/event/helper_b1b0c1a6")
-local helper_b2cb6e46 = require("@lib/event/helper_b2cb6e46")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_c292fa16 = require("@lib/event/helper_c292fa16")
-local helper_c3f198dd = require("@lib/event/helper_c3f198dd")
-local helper_ce85b54c = require("@lib/event/helper_ce85b54c")
-local helper_ced7968c = require("@lib/event/helper_ced7968c")
-local helper_d1646134 = require("@lib/event/helper_d1646134")
-local helper_dff48a5c = require("@lib/event/helper_dff48a5c")
-local helper_e91d3484 = require("@lib/event/helper_e91d3484")
-local helper_ee1c51d0 = require("@lib/event/helper_ee1c51d0")
-local helper_f4832f7a = require("@lib/event/helper_f4832f7a")
-local helper_f7fba8ce = require("@lib/event/helper_f7fba8ce")
-local helper_f90045b0 = require("@lib/event/helper_f90045b0")
-local helper_fe9d3952 = require("@lib/event/helper_fe9d3952")
-local open_message = require("@lib/event/open_message")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_frames_skipping = require("@lib/event/wait_frames_skipping")
-local wait_message_answer = require("@lib/event/wait_message_answer")
-local wait_objects = require("@lib/event/wait_objects")
+local calc = require("@lib/event/calc")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local inventory = require("@lib/event/inventory")
+local message = require("@lib/event/message")
+local minigame = require("@lib/event/minigame")
+local object = require("@lib/event/object")
+local rainbow_butterfly_wood = require("@lib/event/rainbow_butterfly_wood")
+local sound = require("@lib/event/sound")
+local spheda = require("@lib/event/german/spheda")
+local sphida_hint = require("@lib/event/german/sphida_hint")
+local treasure_box = require("@lib/event/german/treasure_box")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_3f004(arg0: s32)
-	local var1: s32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: s32 = 0
-	local block: s32 = 0
-	local var8: s32 = 0
-	local var9: s32 = 0
-	local active_chr_no: s32 = 0
-	local var12: f32 = 0
-	local var13: s32 = 0
-	local at: number = 0
+--- Plays the walk-in cutscene on arriving at a floor and announces any seals placed on it.
+local function play_floor_entry(show_map: s32)
+	local sound_bank: s32 = 0
+	local entry_x: f32 = 0
+	local entry_y: f32 = 0
+	local entry_z: f32 = 0
+	local entry_angle: f32 = 0
+	local floor_status: s32 = 0
+	local image_block: s32 = 0
+	local floor: s32 = 0
+	local previous_floor: s32 = 0
+	local playable_character: s32 = 0
+	local camera_angle: f32 = 0
+	local seal_sound_bank: s32 = 0
+	local resume_step: number = 0
 	vm.section(function()
-		at = 1
+		resume_step = 1
 		vm.entry(1)
 		event.initialize_event()
 		event.enable_drama_skip()
 		event.set_dungeon_pause_flags(1, 1)
-		var1 = event.load_sound_effect_file_3(8, "snd2/sp/sp_031.sound.json") or var1
+		sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_031.sound.json") or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		do
 			local out1, out2, out3, out4 = event.get_dungeon_event_point(2)
-			var2 = out1 or var2
-			var3 = out2 or var3
-			var4 = out3 or var4
-			var5 = out4 or var5
+			entry_x = out1 or entry_x
+			entry_y = out2 or entry_y
+			entry_z = out3 or entry_z
+			entry_angle = out4 or entry_angle
 		end
-		var5 = vm.f32(var5 + vm.f32(1.5707964))
-		var5 = event.wrap_angle(var5) or var5
-		event.set_event_world_coordinate(var2, var3, var4, var5)
-		var6 = event.get_dungeon_floor_status() or var6
-		if var6 ~= 0 then
-			if bit32.band(var6, 1) ~= 0 then
+		entry_angle = vm.f32(entry_angle + vm.f32(1.5707964))
+		entry_angle = event.wrap_angle(entry_angle) or entry_angle
+		event.set_event_world_coordinate(entry_x, entry_y, entry_z, entry_angle)
+		floor_status = event.get_dungeon_floor_status() or floor_status
+		if floor_status ~= 0 then
+			if bit32.band(floor_status, 1) ~= 0 then
 				event.switch_dungeon_main_character(1)
 			end
-			if bit32.band(var6, 2) ~= 0 then
+			if bit32.band(floor_status, 2) ~= 0 then
 				event.switch_dungeon_main_character(0)
 			end
 		end
-		if arg0 ~= 0 then
-			var8 = event.get_dungeon_floor() or var8
-			var9 = event.get_dungeon_previous_floor() or var9
-			event.load_dungeon_map_display(5, 0, 1, var8, var9)
+		if show_map ~= 0 then
+			floor = event.get_dungeon_floor() or floor
+			previous_floor = event.get_dungeon_previous_floor() or previous_floor
+			event.load_dungeon_map_display(5, 0, 1, floor, previous_floor)
 			event.fade_dungeon_map(1, 30)
 		else
 			event.load_event_image_3(5, "textures/dungeon/image/s_title/logo_d01_1.json", 0)
@@ -121,11 +75,11 @@ local function helper_3f004(arg0: s32)
 			event.set_event_image_visible(1, 0)
 			event.fade_event_image(0, 1, 60)
 		end
-		active_chr_no = event.get_playable_character() or active_chr_no
-		if active_chr_no == 0 then
+		playable_character = event.get_playable_character() or playable_character
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "dungeon/chara/mints_01in.gltf", "info", 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "dungeon/chara/monica_01in.gltf", "info", 0)
 		end
 		event.attach_object_handle_to_character(0, 0)
@@ -142,19 +96,19 @@ local function helper_3f004(arg0: s32)
 		event.set_camera_sequence_look_at(50.97, 32.07, 20.9)
 		event.mark_camera_sequence_fade_track()
 		event.fade_in_camera_sequence(30)
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.move_camera_sequence_eased(137.93, 48.95, 6.77, 50.97, 32.07, 20.9, 160, 2, 0.4)
 			event.move_object_sequence(0, 23.61, 18.53, -17.13, 140)
 			event.set_object_sequence_motion(0, "丸太歩き", 4)
 			event.delay_object_sequence_rotation_track(0, 130)
 			event.rotate_object_sequence(0, 0.0, -1.0, 0.0, 10)
-			if arg0 ~= 0 then
-				at = 2
-				wait_frames(30)
+			if show_map ~= 0 then
+				resume_step = 2
+				wait.frames(30)
 				event.set_dungeon_map_piece_moving(1)
 			end
-			at = 3
-			wait_objects(0)
+			resume_step = 3
+			object.wait_until_done(0)
 			event.set_object_sequence_motion(0, "ジャンプ", 2)
 			event.queue_object_sequence_next_motion(0, "ジャンプ中", 6, 0.3)
 			event.queue_object_sequence_next_motion(0, "着地", 6)
@@ -164,94 +118,94 @@ local function helper_3f004(arg0: s32)
 			event.set_object_sequence_motion(0, "丸太歩き", 4)
 			event.delay_object_sequence_rotation_track(0, 50)
 			event.rotate_object_sequence(0, 0.0, -1.0, 0.0, 10)
-			if arg0 ~= 0 then
-				at = 4
-				wait_frames(30)
+			if show_map ~= 0 then
+				resume_step = 4
+				wait.frames(30)
 				event.set_dungeon_map_piece_moving(1)
 			end
-			at = 5
-			wait_objects(0)
+			resume_step = 5
+			object.wait_until_done(0)
 			event.set_object_sequence_motion(0, "ジャンプ", 2)
 			event.queue_object_sequence_next_motion(0, "ジャンプ中", 6, 0.2)
 			event.queue_object_sequence_next_motion(0, "着地", 6)
 		end
 		event.set_object_handle_footstep_sound(0, 16)
-		at = 6
-		wait_frames(14)
-		event.play_sound_effect(var1, 2)
+		resume_step = 6
+		wait.frames(14)
+		event.play_sound_effect(sound_bank, 2)
 		event.jump_object_sequence(0, -85.0, 0.0, 50.0, -0.25, 30)
 		event.delay_object_sequence_rotation_track(0, 10)
 		event.rotate_object_sequence(0, 0.0, -1.57, 0.0, 20)
-		at = 7
-		wait_frames(16)
-		if arg0 ~= 0 then
+		resume_step = 7
+		wait.frames(16)
+		if show_map ~= 0 then
 			event.fade_dungeon_map(0, 60)
 		else
 			event.fade_event_image(0, 0, 60)
 		end
-		at = 8
-		wait_objects(0)
-		event.play_sound_effect(var1, 4)
-		at = 9
-		wait_frames(30)
+		resume_step = 8
+		object.wait_until_done(0)
+		event.play_sound_effect(sound_bank, 4)
+		resume_step = 9
+		wait.frames(30)
 		event.set_object_sequence_motion(0, "歩き")
 		event.move_object_sequence(0, -170.0, 0.0, 50.0, 50)
-		at = 10
-		wait_camera()
+		resume_step = 10
+		camera.wait_until_done()
 		event.start_crossfade(30)
 		do
 			local _, out2, _ = event.get_object_handle_rotation(0)
-			var12 = out2 or var12
+			camera_angle = out2 or camera_angle
 		end
 		event.set_camera_sequence_look_at(-170.0, 30.0, 50.0)
-		var12 = vm.f32(var12 - vm.f32(3.1415927))
-		var12 = event.wrap_angle(var12) or var12
-		event.set_camera_sequence_angle_height_distance(var12, 5.0, 100.0)
+		camera_angle = vm.f32(camera_angle - vm.f32(3.1415927))
+		camera_angle = event.wrap_angle(camera_angle) or camera_angle
+		event.set_camera_sequence_angle_height_distance(camera_angle, 5.0, 100.0)
 		event.show_dungeon_status_bar(1)
-		at = 11
-		wait_objects(0)
+		resume_step = 11
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "立ち")
-		at = 12
-		wait_frames(15)
+		resume_step = 12
+		wait.frames(15)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			var5 = vm.f32(var5 + vm.f32(1.5707964))
-			wait_frames_skipping(30)
+		if resume_step <= 1 then
+			entry_angle = vm.f32(entry_angle + vm.f32(1.5707964))
+			wait.frames_skipping(30)
 		end
-		if at <= 2 then
-			helper_238b5abc(0)
+		if resume_step <= 2 then
+			cutscene.skip_command(0)
 		end
-		if at <= 3 then
-			wait_frames_skipping(30)
+		if resume_step <= 3 then
+			wait.frames_skipping(30)
 		end
-		if at <= 4 then
-			helper_238b5abc(0)
+		if resume_step <= 4 then
+			cutscene.skip_command(0)
 		end
-		if at <= 5 then
-			wait_frames_skipping(14)
+		if resume_step <= 5 then
+			wait.frames_skipping(14)
 		end
-		if at <= 6 then
-			wait_frames_skipping(16)
+		if resume_step <= 6 then
+			wait.frames_skipping(16)
 		end
-		if at <= 7 then
-			helper_238b5abc(0)
+		if resume_step <= 7 then
+			cutscene.skip_command(0)
 		end
-		if at <= 8 then
-			wait_frames_skipping(30)
+		if resume_step <= 8 then
+			wait.frames_skipping(30)
 		end
-		if at <= 9 then
-			helper_344d6cd8()
+		if resume_step <= 9 then
+			wait.background_load_skipping()
 		end
-		if at <= 10 then
-			var12 = vm.f32(var12 - vm.f32(3.1415927))
-			helper_238b5abc(0)
+		if resume_step <= 10 then
+			camera_angle = vm.f32(camera_angle - vm.f32(3.1415927))
+			cutscene.skip_command(0)
 		end
-		if at <= 11 then
-			wait_frames_skipping(15)
+		if resume_step <= 11 then
+			wait.frames_skipping(15)
 		end
 		return true
 	end)
-	at = 13
+	resume_step = 13
 	vm.entry(13)
 	event.cancel_drama_scene_skip()
 	event.fade_in_screen(0)
@@ -264,41 +218,41 @@ local function helper_3f004(arg0: s32)
 	event.set_camera_position(-70.0, 35.0, 50.0)
 	event.reset_follow_camera(0)
 	event.delete_character_extension_packs(0)
-	if arg0 ~= 0 then
+	if show_map ~= 0 then
 		event.set_dungeon_map_active(0)
 		event.delete_dungeon_map_textures()
 	end
 	event.delete_event_image(0)
 	event.initialize_event()
-	if var6 ~= 0 then
+	if floor_status ~= 0 then
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		if bit32.band(var6, 1) ~= 0 then
+		if bit32.band(floor_status, 1) ~= 0 then
 			event.start_background_file_loads_2("textures/dungeon/image/seal/aka_fuuin_1.json", "snd2/sp/sp_050.sound.json")
-			at = 14
+			resume_step = 14
 			vm.wait(14)
-			at = 15
-			helper_479dc9e9()
-			block = event.load_event_image_4(5, "textures/dungeon/image/seal/aka_fuuin_1.json", 0) or block
-			event.set_event_sprite_texture(0, "aka_fuuin", block)
+			resume_step = 15
+			wait.background_load()
+			image_block = event.load_event_image_4(5, "textures/dungeon/image/seal/aka_fuuin_1.json", 0) or image_block
+			event.set_event_sprite_texture(0, "aka_fuuin", image_block)
 		end
-		if bit32.band(var6, 2) ~= 0 then
+		if bit32.band(floor_status, 2) ~= 0 then
 			event.start_background_file_loads_2("textures/dungeon/image/seal/ao_fuuin_1.json", "snd2/sp/sp_050.sound.json")
-			at = 16
+			resume_step = 16
 			vm.wait(16)
-			at = 17
-			helper_479dc9e9()
-			block = event.load_event_image_4(5, "textures/dungeon/image/seal/ao_fuuin_1.json", 0) or block
-			event.set_event_sprite_texture(0, "ao_fuuin", block)
+			resume_step = 17
+			wait.background_load()
+			image_block = event.load_event_image_4(5, "textures/dungeon/image/seal/ao_fuuin_1.json", 0) or image_block
+			event.set_event_sprite_texture(0, "ao_fuuin", image_block)
 		end
-		if bit32.band(var6, 4) ~= 0 then
+		if bit32.band(floor_status, 4) ~= 0 then
 			event.start_background_file_loads_2("textures/dungeon/image/seal/shiro_fuuin_1.json", "snd2/sp/sp_050.sound.json")
-			at = 18
+			resume_step = 18
 			vm.wait(18)
-			at = 19
-			helper_479dc9e9()
-			block = event.load_event_image_4(5, "textures/dungeon/image/seal/shiro_fuuin_1.json", 0) or block
-			event.set_event_sprite_texture(0, "shiro_fuuin", block)
+			resume_step = 19
+			wait.background_load()
+			image_block = event.load_event_image_4(5, "textures/dungeon/image/seal/shiro_fuuin_1.json", 0) or image_block
+			event.set_event_sprite_texture(0, "shiro_fuuin", image_block)
 		end
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 128)
@@ -309,38 +263,38 @@ local function helper_3f004(arg0: s32)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
 		event.set_object_sequence_color(0, 128, 128, 128, 128, 30)
-		var13 = event.load_sound_effect_file_3(8, "snd2/sp/sp_050.sound.json") or var13
-		event.play_sound_effect(var13, 0)
+		seal_sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_050.sound.json") or seal_sound_bank
+		event.play_sound_effect(seal_sound_bank, 0)
 		event.set_message_window_mode(0, 4)
-		if bit32.band(var6, 1) ~= 0 then
+		if bit32.band(floor_status, 1) ~= 0 then
 			event.open_message_window_2(0, "Auf dieser Ebene scheint es\nein Rotes Siegel zu geben.")
-			at = 20
-			helper_75684dd8(0, -1, 8, 0, 0)
+			resume_step = 20
+			message.show_and_wait(0, -1, 8, 0, 0)
 			event.open_message_window_2(0, "Max wurde vom Roten Atlamillia\nerw[UNI00e4]hlt. Du kannst ihn nicht anw[UNI00e4]hlen!")
-			at = 21
-			helper_75684dd8(0, -1, 8, 0, 0)
+			resume_step = 21
+			message.show_and_wait(0, -1, 8, 0, 0)
 		end
-		if bit32.band(var6, 2) ~= 0 then
+		if bit32.band(floor_status, 2) ~= 0 then
 			event.open_message_window_2(0, "Auf dieser Ebene scheint es\nein Blaues Siegel zu geben.")
-			at = 22
-			helper_75684dd8(0, -1, 8, 0, 0)
+			resume_step = 22
+			message.show_and_wait(0, -1, 8, 0, 0)
 			event.open_message_window_2(
 				0,
 				"Monica wurde vom Blauen Atlamillia\nerw[UNI00e4]hlt. Du kannst sie nicht anw[UNI00e4]hlen!"
 			)
-			at = 23
-			helper_75684dd8(0, -1, 8, 0, 0)
+			resume_step = 23
+			message.show_and_wait(0, -1, 8, 0, 0)
 		end
-		if bit32.band(var6, 4) ~= 0 then
+		if bit32.band(floor_status, 4) ~= 0 then
 			event.open_message_window_2(0, "Auf dieser Ebene scheint es\nein Wei[UNI00df]es Siegel zu geben.")
-			at = 24
-			helper_75684dd8(0, -1, 8, 0, 0)
+			resume_step = 24
+			message.show_and_wait(0, -1, 8, 0, 0)
 			event.open_message_window_2(
 				0,
 				"Du kannst nicht mehr heilen\noder ungew[UNI00f6]hnl. Zust[UNI00e4]nde ver[UNI00e4]ndern."
 			)
-			at = 25
-			helper_75684dd8(0, -1, 8, 0, 0)
+			resume_step = 25
+			message.show_and_wait(0, -1, 8, 0, 0)
 		end
 		event.set_event_sprite_draw_pass(0, 0)
 		event.delete_event_image(0)
@@ -349,44 +303,44 @@ local function helper_3f004(arg0: s32)
 	event.finish_event()
 end
 
---- Helper function.
-local function helper_1099c()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local active_chr_no: s32 = 0
-	local block: s32 = 0
-	local var6: s32 = 0
+--- Plays the scene in which Monica gives Max crystals and Synthesis Points and explains how to upgrade the Wrench.
+local function play_monica_crystal_gift()
+	local event_x: f32 = 0
+	local event_y: f32 = 0
+	local event_z: f32 = 0
+	local event_angle: f32 = 0
+	local playable_character: s32 = 0
+	local image_block: s32 = 0
+	local player_object_handle: s32 = 0
 	vm.section(function()
 		event.set_save_flag(212, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 1)
 		do
 			local out1, out2, out3, out4 = event.get_dungeon_event_point(2)
-			var0 = out1 or var0
-			var1 = out2 or var1
-			var2 = out3 or var2
-			var3 = out4 or var3
+			event_x = out1 or event_x
+			event_y = out2 or event_y
+			event_z = out3 or event_z
+			event_angle = out4 or event_angle
 		end
-		event.set_event_world_coordinate(var0, var1, var2, var3)
+		event.set_event_world_coordinate(event_x, event_y, event_z, event_angle)
 		event.set_dungeon_pause_flags(17, 1)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.stop_music(0)
-		wait_frames(4)
+		wait.frames(4)
 		event.load_music(48)
 		event.play_music(0)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		playable_character = event.get_playable_character() or playable_character
 		event.change_directory("event/e200/e212/")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e212_mints.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e212_monica.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
@@ -395,10 +349,10 @@ local function helper_1099c()
 		end
 		event.load_character(5, "e212_crystal.gltf", "info", 11)
 		event.set_character_active(0, 11)
-		block = event.load_event_image_4(5, "e212_1.json", 0) or block
+		image_block = event.load_event_image_4(5, "e212_1.json", 0) or image_block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "e21201", block)
+		event.set_event_sprite_texture(0, "e21201", image_block)
 		event.set_event_sprite_color(0, 128, 128, 128, 128)
 		event.set_event_sprite_texture_rect(0, 0, 0, 512, 448)
 		event.set_event_sprite_size(0, 512, 448)
@@ -406,14 +360,14 @@ local function helper_1099c()
 		event.set_event_sprite_draw_pass(0, 0)
 		event.reset_event_sprite(1)
 		event.set_event_sprite_type(1, 0)
-		event.set_event_sprite_texture(1, "e21202", block)
+		event.set_event_sprite_texture(1, "e21202", image_block)
 		event.set_event_sprite_color(1, 128, 128, 128, 128)
 		event.set_event_sprite_texture_rect(1, 0, 0, 512, 448)
 		event.set_event_sprite_size(1, 512, 448)
 		event.set_event_sprite_position(1, 256, 224)
 		event.set_event_sprite_draw_pass(1, 0)
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 8)
 			event.load_equipment_model(5, 0, 4, "info", 8)
 			event.load_equipment_model(5, 0, 3, "info", 8)
@@ -436,7 +390,7 @@ local function helper_1099c()
 		event.set_character_active(8)
 		event.set_character_active(9)
 		event.set_character_active(0, 10)
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.attach_character_to_frame(8, "item", 11)
 		else
 			event.attach_character_to_frame(0, "item", 11)
@@ -463,7 +417,7 @@ local function helper_1099c()
 		event.set_camera_sequence_position(67.03, 24.86, 49.63)
 		event.set_camera_sequence_look_at(59.75, 21.85, 81.53)
 		event.fade_in_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 		event.set_object_sequence_motion(1, "会話", 2)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
@@ -471,26 +425,26 @@ local function helper_1099c()
 			0,
 			"Ich wei[UNI00df] nicht, Max. Wenn das alles\nist, womit du dich verteidigen kannst,\nwirst du mit den Monstern<page>in diesem Wald einige Probleme\nbekommen."
 		)
-		helper_75684dd8(0, -1, 8, 512, 0)
-		wait_objects(1)
+		message.show_and_wait(0, -1, 8, 512, 0)
+		object.wait_until_done(1)
 		event.set_mouth_texture_animations(0, "通常口パク")
 		event.open_message_window_2(0, "Meinst du?")
-		helper_75684dd8(0, -1, 8, 0, 0)
+		message.show_and_wait(0, -1, 8, 0, 0)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		event.open_message_window_2(0, "Na klar.")
-		helper_75684dd8(0, -1, 8, 512, 0)
+		message.show_and_wait(0, -1, 8, 512, 0)
 		event.set_character_active(1, 11)
 		event.set_character_visible(11, 1, 1, 0.1)
 		event.set_object_sequence_motion(1, "渡す", 6)
 		event.queue_object_sequence_next_motion(1, "渡すL", 4)
 		event.set_mouth_texture_animations(1, "わらい口パク")
 		event.open_message_window_2(0, "Hier. Nimm diese.")
-		helper_75684dd8(0, -1, 8, 512, 0)
-		wait_objects(1)
+		message.show_and_wait(0, -1, 8, 512, 0)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(56.78, 23.01, 68.1)
 		event.set_camera_sequence_look_at(67.82, 21.85, 95.09)
 		event.detach_character_from_frame(11)
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.attach_character_to_frame(0, "item", 11)
 		else
 			event.attach_character_to_frame(8, "item", 11)
@@ -499,7 +453,7 @@ local function helper_1099c()
 		event.set_object_sequence_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(0, "通常口パク", "半口")
 		event.open_message_window_2(0, "Was ist das?")
-		helper_75684dd8(0, -1, 8, 256, 0)
+		message.show_and_wait(0, -1, 8, 256, 0)
 		event.set_object_sequence_motion(0, "モニカ見る", 6)
 		event.queue_object_sequence_next_motion(0, "モニカ見るL", 4)
 		event.set_message_window_mode(0, 4)
@@ -507,8 +461,8 @@ local function helper_1099c()
 			0,
 			"Du hast zwei J[UNI00e4]ger-Kristalle,\nzwei Zerst[UNI00f6]rungs-Kristalle,\neinen Windkristall<page>und einen Seedrachen-Kristall erhalten."
 		)
-		helper_75684dd8(0, -1, 8, 0, 0)
-		wait_objects(0)
+		message.show_and_wait(0, -1, 8, 0, 0)
+		object.wait_until_done(0)
 		event.set_object_handle_texture_animation(0, 0, "半口")
 		event.set_camera_sequence_position(97.82, 22.3, 89.1)
 		event.set_camera_sequence_look_at(34.74, 20.28, 87.84)
@@ -517,17 +471,17 @@ local function helper_1099c()
 		event.reset_object_sequence_dynamic_animation(0)
 		event.set_mouth_texture_animations(0, "通常口パク")
 		event.open_message_window_2(0, "Wow! So viele?")
-		helper_75684dd8(0, -1, 8, 80, 0)
+		message.show_and_wait(0, -1, 8, 80, 0)
 		event.set_mouth_texture_animations(1, "わらい口パク")
 		event.open_message_window_2(
 			0,
 			"Ja. Du kannst deinen Schl[UNI00fc]ssel\nhochstufen und ihm mit diesen\nDingern richtig Wucht geben."
 		)
-		helper_75684dd8(0, -1, 8, 384, 0)
+		message.show_and_wait(0, -1, 8, 384, 0)
 		event.set_camera_sequence_position(84.11, 24.45, 108.87)
 		event.set_camera_sequence_look_at(53.38, 24.14, 80.91)
 		event.set_character_active(0, 11)
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.set_character_active(0, 0)
 		else
 			event.set_character_active(0, 8)
@@ -541,11 +495,11 @@ local function helper_1099c()
 		event.queue_object_sequence_next_motion(1, "指立てL", 4)
 		event.set_mouth_texture_animations(1, "わらい口パク")
 		event.open_message_window_2(0, "W[UNI00e4]hle im Gegenst[UNI00e4]nde-Men[UNI00fc]\neinen Kristall und spektrumiere\nihn.")
-		helper_75684dd8(0, -1, 8, 256, 0)
+		message.show_and_wait(0, -1, 8, 256, 0)
 		event.set_mouth_texture_animations(1, "わらい口パク")
 		event.open_message_window_2(0, "Synthetisiere ihn mit der Waffe,\ndie du verbessern m[UNI00f6]chtest.")
-		helper_75684dd8(0, -1, 8, 256, 0)
-		wait_objects(1)
+		message.show_and_wait(0, -1, 8, 256, 0)
+		object.wait_until_done(1)
 		event.start_crossfade(30)
 		event.set_event_sprite_draw_pass(1, 2)
 		event.set_object_sequence_motion(1, "戻り", 6)
@@ -556,18 +510,18 @@ local function helper_1099c()
 			0,
 			'Wenn seine Fertigkeiten den n[UNI00e4]chsten\nRang erreichen, kannst du den\nBefehl "Hochstufen" benutzen.'
 		)
-		helper_75684dd8(0, -1, 8, 256, 0)
+		message.show_and_wait(0, -1, 8, 256, 0)
 		event.set_mouth_texture_animations(1, "わらい口パク")
 		event.open_message_window_2(0, "Das verwandelt deinen Schl[UNI00fc]ssel\nin eine echt tolle Waffe!")
-		helper_75684dd8(0, -1, 8, 256, 0)
-		wait_objects(1)
+		message.show_and_wait(0, -1, 8, 256, 0)
+		object.wait_until_done(1)
 		event.set_event_sprite_draw_pass(0, 0)
 		event.set_event_sprite_draw_pass(1, 0)
 		event.set_dungeon_pause_flags(128, 0)
 		event.start_crossfade(10)
 		event.set_camera_sequence_position(91.98, 18.44, 61.76)
 		event.set_camera_sequence_look_at(51.13, 20.11, 92.81)
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.set_character_active(0)
 			event.set_object_handle_visible(2, 1)
 		else
@@ -578,19 +532,19 @@ local function helper_1099c()
 		event.set_object_sequence_motion(0, "武器持ち立ち", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
 		event.open_message_window_2(0, "Klingt gut.")
-		helper_75684dd8(0, -1, 8, 0, 0)
+		message.show_and_wait(0, -1, 8, 0, 0)
 		event.set_object_sequence_motion(1, "カチャカチャ", 6)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "わらい口パク")
 		event.open_message_window_2(0, "Versuch's mal! Und hier ist ein\nkleines Geschenk von mir. [heart].")
-		helper_75684dd8(0, -1, 8, 512, 0)
-		wait_objects(1)
+		message.show_and_wait(0, -1, 8, 512, 0)
+		object.wait_until_done(1)
 		event.set_message_window_mode(0, 4)
 		event.open_message_window_2(0, "Der Schl[UNI00fc]ssel hat 6 weitere\nSynthese-Punkte gewonnen.")
-		helper_75684dd8(0, -1, 8, 0, 0)
+		message.show_and_wait(0, -1, 8, 0, 0)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 	end)
 	vm.entry(25)
 	event.cancel_drama_scene_skip()
@@ -605,22 +559,22 @@ local function helper_1099c()
 	event.delete_character(10)
 	event.delete_character(11)
 	event.delete_event_image(0)
-	if active_chr_no == 0 then
-		var6 = 0
+	if playable_character == 0 then
+		player_object_handle = 0
 	else
-		var6 = 1
+		player_object_handle = 1
 	end
-	event.set_object_handle_motion(var6, "立ち")
-	event.set_object_handle_position(var6, 50.0, 0.0, 170.0)
-	event.set_object_handle_rotation(var6, 0.0, 0.0, 0.0)
-	event.reset_object_handle_dynamic_animation(var6)
+	event.set_object_handle_motion(player_object_handle, "立ち")
+	event.set_object_handle_position(player_object_handle, 50.0, 0.0, 170.0)
+	event.set_object_handle_rotation(player_object_handle, 0.0, 0.0, 0.0)
+	event.reset_object_handle_dynamic_animation(player_object_handle)
 	event.set_camera_look_at(50.0, 30.0, 170.0)
 	event.set_camera_position(50.0, 30.0, 70.0)
 	event.reset_follow_camera(0)
 	event.show_dungeon_status_bar(1, 1.0)
-	helper_a87eb945(0)
+	inventory.resolve_overflow_alt(0)
 	event.stop_music(0)
-	wait_frames(4)
+	wait.frames(4)
 	event.load_music(16)
 	event.play_music(0)
 	event.load_dungeon_monster(0)
@@ -630,53 +584,53 @@ local function helper_1099c()
 	event.finish_event()
 end
 
---- Event 1010, which map data, a script or the engine runs by number.
-local function event_1010()
+--- Loads the map and monsters for the current floor, sends the player to special floors and plays the floor entry.
+local function load_floor()
 	local stage_id: s32 = 0
-	local var1: s32 = 0
-	local var2: s32 = 0
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local flag_4: s32 = 0
-	local var8: s32 = 0
-	local var9: s32 = 0
-	local at: number = 0
+	local floor: s32 = 0
+	local visit_count: s32 = 0
+	local save_flag_257: s32 = 0
+	local save_flag_260: s32 = 0
+	local has_received_crystals: s32 = 0
+	local random_value: s32 = 0
+	local previous_floor: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		helper_e91d3484()
+		minigame.clear_sphida_state()
 		event.fade_out_screen(0)
-		at = 1
+		resume_step = 1
 		vm.wait(1)
 		event.reset_action_character_motion(0)
 		stage_id = event.get_dungeon_stage_id() or stage_id
-		var1 = event.get_dungeon_floor() or var1
-		var2 = event.get_dungeon_floor_info(stage_id, var1, 7) or var2
-		helper_d1646134(stage_id, var1)
+		floor = event.get_dungeon_floor() or floor
+		visit_count = event.get_dungeon_floor_info(stage_id, floor, 7) or visit_count
+		dungeon.increment_floor_counter(stage_id, floor)
 		event.initialize_dungeon_floor()
-		if var1 == 0 then
+		if floor == 0 then
 			event.go_to_georama_edit(16)
-			at = 2
+			resume_step = 2
 			vm.wait(2)
 			return
 		end
-		if var1 == 6 then
+		if floor == 6 then
 			event.skip_next_music_play()
 			event.go_to_georama_edit(65, 100)
-			at = 3
+			resume_step = 3
 			vm.wait(3)
 			return
 		end
-		if var1 == 12 then
+		if floor == 12 then
 			event.skip_next_music_load()
 			event.load_dungeon_map("s13")
 			event.load_event_script("s13/s13.stb", 100)
 			return
 		end
-		if var1 == 15 then
+		if floor == 15 then
 			event.skip_next_music_load()
-			flag = event.get_save_flag(257) or flag
-			flag_2 = event.get_save_flag(260) or flag_2
-			if flag ~= 0 and flag_2 == 0 then
+			save_flag_257 = event.get_save_flag(257) or save_flag_257
+			save_flag_260 = event.get_save_flag(260) or save_flag_260
+			if save_flag_257 ~= 0 and save_flag_260 == 0 then
 				event.load_dungeon_map("d02b02")
 				event.load_event_script("d02b02/d02b02.stb", 200)
 			else
@@ -687,8 +641,8 @@ local function event_1010()
 		end
 		event.get_equipped_item(0, 0)
 		event.get_save_flag(49)
-		flag_4 = event.get_save_flag(212) or flag_4
-		if var1 == 2 and flag_4 == 0 then
+		has_received_crystals = event.get_save_flag(212) or has_received_crystals
+		if floor == 2 and has_received_crystals == 0 then
 			event.skip_next_music_load()
 			event.load_dungeon_map("d02f01", "d02f01", 1)
 			event.add_inventory_item(178, 2)
@@ -696,22 +650,22 @@ local function event_1010()
 			event.add_inventory_item(181, 1)
 			event.add_inventory_item(182, 1)
 			event.add_weapon_synthesis_points(0, 0, 6)
-			at = 4
-			helper_1099c()
+			resume_step = 4
+			play_monica_crystal_gift()
 		else
-			if var1 == 14 then
+			if floor == 14 then
 				event.allow_next_music_load()
 				event.stop_music(0)
-				at = 5
-				wait_frames(6)
+				resume_step = 5
+				wait.frames(6)
 				event.load_music(37)
 				event.skip_next_music_load()
 			end
-			if var1 >= 9 and var1 <= 11 then
+			if floor >= 9 and floor <= 11 then
 				event.load_dungeon_map("d02f01s", "d02f01", 1)
 			else
-				var8 = vm.float_bits(event.get_random_number(100)) or var8
-				if vm.imod(var8, 8) == 0 then
+				random_value = event.get_random_number_int(100) or random_value
+				if vm.imod(random_value, 8) == 0 then
 					event.load_dungeon_map("d02f01r", "d02f01", 1)
 					event.set_dungeon_weather(2)
 				else
@@ -722,97 +676,97 @@ local function event_1010()
 			event.place_treasure_box_at_event_point(-1)
 			event.place_dungeon_monster(-1)
 			event.play_music(0)
-			if var1 == 100 then
-				at = 6
-				helper_3f004(0)
-			elseif var1 == 1 and var2 <= 0 then
-				at = 7
-				helper_3f004(0)
+			if floor == 100 then
+				resume_step = 6
+				play_floor_entry(0)
+			elseif floor == 1 and visit_count <= 0 then
+				resume_step = 7
+				play_floor_entry(0)
 			else
-				var9 = event.get_dungeon_previous_floor() or var9
-				if var1 == var9 then
-					at = 8
-					helper_3f004(0)
+				previous_floor = event.get_dungeon_previous_floor() or previous_floor
+				if floor == previous_floor then
+					resume_step = 8
+					play_floor_entry(0)
 				else
-					at = 9
-					helper_3f004(1)
+					resume_step = 9
+					play_floor_entry(1)
 				end
 			end
 		end
-		helper_ac9d5b12()
-		helper_6c7de8d8()
+		sound.load_event_sound_effects()
+		dungeon.show_floor_title()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				helper_384e16e1(stage_id, var1)
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				dungeon.increment_floor_counter_skipping(stage_id, floor)
 			end
 			return 0
 		end
-		if at <= 3 then
+		if resume_step <= 3 then
 			return 0
 		end
-		if at <= 9 then
-			if at <= 4 then
-				wait_frames_skipping(6)
+		if resume_step <= 9 then
+			if resume_step <= 4 then
+				wait.frames_skipping(6)
 			end
-			if at <= 5 then
-				at = 6
-				helper_3f004(0)
+			if resume_step <= 5 then
+				resume_step = 6
+				play_floor_entry(0)
 				return vm.continue_with(function()
-					helper_ac9d5b12()
-					helper_6c7de8d8()
+					sound.load_event_sound_effects()
+					dungeon.show_floor_title()
 					return
 				end)
 			end
-			if at <= 6 then
-				at = 7
-				helper_3f004(0)
+			if resume_step <= 6 then
+				resume_step = 7
+				play_floor_entry(0)
 				return vm.continue_with(function()
-					helper_ac9d5b12()
-					helper_6c7de8d8()
+					sound.load_event_sound_effects()
+					dungeon.show_floor_title()
 					return
 				end)
 			end
-			if at <= 7 then
-				at = 8
-				helper_3f004(0)
+			if resume_step <= 7 then
+				resume_step = 8
+				play_floor_entry(0)
 				return vm.continue_with(function()
-					helper_ac9d5b12()
-					helper_6c7de8d8()
+					sound.load_event_sound_effects()
+					dungeon.show_floor_title()
 					return
 				end)
 			end
-			if at <= 8 then
-				at = 9
-				helper_3f004(1)
+			if resume_step <= 8 then
+				resume_step = 9
+				play_floor_entry(1)
 				return vm.continue_with(function()
-					helper_ac9d5b12()
-					helper_6c7de8d8()
+					sound.load_event_sound_effects()
+					dungeon.show_floor_title()
 					return
 				end)
 			end
-			helper_344d6cd8()
-			helper_1ef0d4b2()
+			wait.background_load_skipping()
+			cutscene.noop()
 			return 0
 		end
 		return nil
 	end)
 end
 
---- Event 1000, which map data, a script or the engine runs by number.
-local function event_1000()
-	local var0: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
+--- Opens the floor map menu, applies the chosen floor and previous floor, and loads the floor.
+local function enter_floor_from_map_menu()
+	local music_number: s32 = 0
+	local previous_floor: s32 = 0
+	local floor: s32 = 0
 	event.initialize_event()
 	event.initialize_sphida()
-	helper_e91d3484()
+	minigame.clear_sphida_state()
 	event.fade_out_screen(0)
-	var0 = event.get_active_music_number() or var0
-	if var0 ~= 16 then
+	music_number = event.get_active_music_number() or music_number
+	if music_number ~= 16 then
 		event.stop_music(0)
-		wait_frames(6)
+		wait.frames(6)
 		event.load_music(16)
 	end
 	event.play_music(0)
@@ -827,75 +781,75 @@ local function event_1000()
 	event.set_event_projection(524.9)
 	do
 		local _, out2, out3, _ = event.get_menu_results_4()
-		var2 = out2 or var2
-		var3 = out3 or var3
+		previous_floor = out2 or previous_floor
+		floor = out3 or floor
 	end
-	event.set_dungeon_floor(var3)
-	event.set_dungeon_previous_floor(var2)
-	event_1010()
+	event.set_dungeon_floor(floor)
+	event.set_dungeon_previous_floor(previous_floor)
+	load_floor()
 end
 
---- Helper function.
-local function helper_447c4(arg0: s32)
-	local argc: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
-	local item: s32 = 0
-	local active_chr_no: s32 = 0
-	local var6: any = 0
-	local var7: s32 = 0
-	local cleared: s32 = 0
-	local bonus: s32 = 0
+--- Handles the player using a gate by asking to use the key item or to jump into the next floor.
+local function use_floor_gate(gate_index: s32)
+	local is_unlocked: s32 = 0
+	local interaction_state: s32 = 0
+	local confirmed: s32 = 0
+	local used_item: s32 = 0
+	local playable_character: s32 = 0
+	local choice: any = 0
+	local is_trial: s32 = 0
+	local practice_result: s32 = 0
+	local bonus_type: s32 = 0
 	local stage_id: s32 = 0
-	local var11: s32 = 0
-	local argc_2: s32 = 0
-	local var14: s32 = 0
+	local floor: s32 = 0
+	local next_floor: s32 = 0
+	local is_trial_after_exit: s32 = 0
 	event.initialize_event()
-	helper_ce85b54c()
-	argc = event.get_local_event_flag(arg0) or argc
+	character.reset_action_motion()
+	is_unlocked = event.get_local_event_flag(gate_index) or is_unlocked
 	event.set_dungeon_pause_flags(1, 1)
-	if argc == 0 then
-		var2 = event.get_triggered_event_data_2(6) or var2
-		if var2 == 1 then
+	if is_unlocked == 0 then
+		interaction_state = event.get_triggered_event_data_2(6) or interaction_state
+		if interaction_state == 1 then
 			event.initialize_event()
 			event.set_message_window_mode(0, 1)
 			event.set_message_draw_speed(0, 1)
-			var3 = helper_c292fa16(0, 1, 5, 256, 208, var3)
+			confirmed = message.ask_confirmation(0, 1, 5, 256, 208, confirmed)
 			event.set_message_bubble_tail(0, 1)
 			event.set_message_draw_speed(0, 0)
-			if var3 == 1 then
-				var2 = 2
+			if confirmed == 1 then
+				interaction_state = 2
 			end
 			event.finish_event()
 		end
-		if var2 == 2 then
+		if interaction_state == 2 then
 			event.show_dungeon_status_bar(0, 0.16666667)
-			wait_frames(6)
+			wait.frames(6)
 			event.open_use_item_menu(339)
 			vm.wait(3)
-			item = vmhost.used_item() or item
-			if item == 339 then
-				event.set_local_event_flag(arg0, 1)
-				helper_56390e5a()
-			elseif item <= 0 then
+			used_item = vmhost.used_item() or used_item
+			if used_item == 339 then
+				event.set_local_event_flag(gate_index, 1)
+				rainbow_butterfly_wood.topple_gate_with_key()
+			elseif used_item <= 0 then
 				event.finish_event()
 			else
-				helper_5fb66cb1()
+				character.shake_head()
 			end
 			event.show_dungeon_status_bar(1, 0.16666667)
-			wait_frames(6)
+			wait.frames(6)
 		end
 	else
-		active_chr_no = event.get_playable_character() or active_chr_no
-		if active_chr_no == 2 or active_chr_no == 3 then
+		playable_character = event.get_playable_character() or playable_character
+		if playable_character == 2 or playable_character == 3 then
 			event.initialize_event()
-			helper_ce85b54c()
+			character.reset_action_motion()
 			event.set_message_window_mode(0, 1)
 			event.set_message_draw_speed(0, 1)
-			if active_chr_no == 2 then
-				helper_75684dd8(0, 20, 5, 256, 208)
+			if playable_character == 2 then
+				message.show_and_wait(0, 20, 5, 256, 208)
 			else
-				helper_75684dd8(0, 21, 5, 256, 208)
+				message.show_and_wait(0, 21, 5, 256, 208)
 			end
 			event.set_message_window_mode(0, 1)
 			event.set_message_draw_speed(0, 0)
@@ -906,21 +860,21 @@ local function helper_447c4(arg0: s32)
 		event.set_message_selection_top_line(0, 0)
 		event.set_message_window_mode(0, 5)
 		event.set_message_draw_speed(0, 1)
-		var6 = helper_bac0e30d(0, 10, 8, 256, 208, 2, 1)
+		choice = message.ask_choice(0, 10, 8, 256, 208, 2, 1)
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 0)
-		if var6 == 0 then
+		if choice == 0 then
 			event.clear_event_battle_monsters(-1)
-			helper_7b560508()
-			helper_f4832f7a()
-			var7 = event.is_trial_version() or var7
-			if var7 ~= 1 then
+			minigame.delete_sphida_objects()
+			rainbow_butterfly_wood.jump_into_room()
+			is_trial = event.is_trial_version() or is_trial
+			if is_trial ~= 1 then
 				do
 					local out1, out2 = event.get_floor_practice_result(1)
-					cleared = out1 or cleared
-					bonus = out2 or bonus
+					practice_result = out1 or practice_result
+					bonus_type = out2 or bonus_type
 				end
-				if cleared == 2 or cleared == 3 then
+				if practice_result == 2 or practice_result == 3 then
 					event.reset_event_sprite(0)
 					event.set_event_sprite_type(0, 0)
 					event.set_event_sprite_position(0, 256, 208)
@@ -928,26 +882,26 @@ local function helper_447c4(arg0: s32)
 					event.set_event_sprite_color(0, 0, 0, 0, 128)
 					event.set_event_sprite_draw_pass(0, 1)
 					event.fade_in_screen(0)
-					helper_0b48dafa(-1, cleared, bonus)
+					spheda.announce_medal_reward(-1, practice_result, bonus_type)
 					vm.wait(12)
 					event.fade_out_screen(0)
 					event.set_event_sprite_draw_pass(0, 0)
 				end
 			end
 			stage_id = event.get_dungeon_stage_id() or stage_id
-			var11 = event.get_dungeon_floor() or var11
-			argc_2 = event.get_dungeon_next_floor(var11, arg0) or argc_2
-			event.set_dungeon_floor(argc_2)
-			event.set_dungeon_floor_info(stage_id, var11, 5, 2)
-			event.set_dungeon_floor_info(stage_id, argc_2, 5, 1)
+			floor = event.get_dungeon_floor() or floor
+			next_floor = event.get_dungeon_next_floor(floor, gate_index) or next_floor
+			event.set_dungeon_floor(next_floor)
+			event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+			event.set_dungeon_floor_info(stage_id, next_floor, 5, 1)
 			event.finish_dungeon_floor()
-			var14 = event.is_trial_version() or var14
-			if var14 == 1 then
+			is_trial_after_exit = event.is_trial_version() or is_trial_after_exit
+			if is_trial_after_exit == 1 then
 				event.set_scene_exit_flag(1)
 				return
 			else
 				event.finish_event()
-				event_1000()
+				enter_floor_from_map_menu()
 			end
 		else
 			event.finish_event()
@@ -956,24 +910,24 @@ local function helper_447c4(arg0: s32)
 	event.set_dungeon_pause_flags(1, 0)
 end
 
---- Helper function.
-local function helper_148ac()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local player_chara: s32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
-	local var9: f32 = 0
-	local result: s32 = 0
+--- Plays a monster giving the player Sundrops during a conversation.
+local function receive_sundrops_from_monster()
+	local sound_bank: s32 = 0
+	local monster_slot: s32 = 0
+	local player_character_slot: s32 = 0
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local monster_x: f32 = 0
+	local monster_y: f32 = 0
+	local monster_z: f32 = 0
+	local effect_handle: s32 = 0
 	local vector_x: f32 = 0
 	local vector_y: f32 = 0
 	local vector_z: f32 = 0
 	event.set_save_flag(290, 1)
 	event.set_dungeon_pause_flags(4096, 1)
-	var0 = event.load_sound_effect_file_3(8, "snd2/sp/sp_044.sound.json") or var0
+	sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_044.sound.json") or sound_bank
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	event.initialize_effect_manager(5)
@@ -981,119 +935,119 @@ local function helper_148ac()
 	event.create_effect_work_buffer(5)
 	do
 		local out1, _ = event.get_monster_talk_data_2()
-		var1 = out1 or var1
+		monster_slot = out1 or monster_slot
 	end
-	event.set_character_active(var1)
-	event.attach_object_handle_to_character(1, var1)
+	event.set_character_active(monster_slot)
+	event.attach_object_handle_to_character(1, monster_slot)
 	event.clear_object_sequence(1)
 	event.set_object_sequence_object(1, 1)
-	player_chara = event.get_player_character_slot() or player_chara
-	event.set_character_active(player_chara)
-	event.attach_object_handle_to_character(2, player_chara)
+	player_character_slot = event.get_player_character_slot() or player_character_slot
+	event.set_character_active(player_character_slot)
+	event.attach_object_handle_to_character(2, player_character_slot)
 	event.clear_object_sequence(2)
 	event.set_object_sequence_object(2, 2)
 	do
-		local out1, out2, out3 = event.get_character_position(var1)
-		var7 = out1 or var7
-		var8 = out2 or var8
-		var9 = out3 or var9
+		local out1, out2, out3 = event.get_character_position(monster_slot)
+		monster_x = out1 or monster_x
+		monster_y = out2 or monster_y
+		monster_z = out3 or monster_z
 	end
 	do
-		local out1, out2, out3 = event.get_character_position(player_chara)
-		var4 = out1 or var4
-		var5 = out2 or var5
-		var6 = out3 or var6
+		local out1, out2, out3 = event.get_character_position(player_character_slot)
+		player_x = out1 or player_x
+		player_y = out2 or player_y
+		player_z = out3 or player_z
 	end
-	helper_4e93f9fc(var1, 0, 0)
+	cutscene.begin_talk(monster_slot, 0, 0)
 	event.set_object_sequence_motion(1, "会話")
 	event.set_message_window_mode(0, 7)
 	event.open_message_window_2(
 		0,
 		"Ich hab so viel Sonnentau.\nEs h[UNI00e4]ngt mir langsam zum Hals raus.\nNimmst du mir etwas davon ab?"
 	)
-	helper_0a3840c7(2900010, var1, player_chara)
+	rainbow_butterfly_wood.speak_voice_bubble(2900010, monster_slot, player_character_slot)
 	event.set_object_sequence_motion(1, "ガードin", 2)
 	event.queue_object_sequence_next_motion(1, "ガード", 4)
 	event.open_message_window_2(0, "Hier.")
-	helper_0a3840c7(2900020, var1, player_chara)
+	rainbow_butterfly_wood.speak_voice_bubble(2900020, monster_slot, player_character_slot)
 	event.apply_message_window_preset(0, 0)
 	event.set_object_sequence_motion(1, "ガードout", 2)
 	event.queue_object_sequence_next_motion(1, "立ち", 4)
-	result = event.create_effect_3("モニカ魔法－溜め", var1) or result
-	vector_x = vm.f32(vm.f32(var7 + var4) / 2.0)
-	vector_y = vm.f32(vm.f32(vm.f32(var8 + var5) / 2.0) + 10.0)
-	vector_z = vm.f32(vm.f32(var9 + var6) / 2.0)
+	effect_handle = event.create_effect_3("モニカ魔法－溜め", monster_slot) or effect_handle
+	vector_x = vm.f32(vm.f32(monster_x + player_x) / 2.0)
+	vector_y = vm.f32(vm.f32(vm.f32(monster_y + player_y) / 2.0) + 10.0)
+	vector_z = vm.f32(vm.f32(monster_z + player_z) / 2.0)
 	event.set_effect_first_vector(vector_x, vector_y, vector_z)
 	event.set_effect_second_vector(128, 64, 64)
-	event.play_sound_effect(var0, 0)
-	wait_frames(30)
+	event.play_sound_effect(sound_bank, 0)
+	wait.frames(30)
 	event.set_object_sequence_motion(2, "ガードin", 2)
 	event.queue_object_sequence_next_motion(2, "ガード", 4)
-	wait_frames(30)
-	event.finish_effect(var1, result)
-	helper_9594e622(356, 1)
+	wait.frames(30)
+	event.finish_effect(monster_slot, effect_handle)
+	inventory.show_obtained_message(356, 1)
 	event.set_object_sequence_motion(2, "ガードout", 2)
 	event.queue_object_sequence_next_motion(2, "立ち", 4)
-	wait_frames(30)
-	helper_a87eb945(1)
+	wait.frames(30)
+	inventory.resolve_overflow_alt(1)
 	event.finish_event()
 	event.set_dungeon_pause_flags(4096, 0)
 end
 
---- Helper function.
-local function helper_2560c()
-	local active_chr_no: s32 = 0
+--- Plays the victory sequence when every monster is defeated and announces seals, rewards and Sphida messages.
+local function clear_floor()
+	local playable_character: s32 = 0
 	local stage_id: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
-	local flag: s32 = 0
-	local is_play_sub_game: s32 = 0
+	local floor: s32 = 0
+	local unassigned_flag: s32 = 0
+	local is_sphida_enabled: s32 = 0
+	local sub_game_flags: s32 = 0
 	local position_x: f32 = 0
 	local position_y: f32 = 0
 	local position_z: f32 = 0
-	local is_clear_most_fast_destroy: s32 = 0
-	local cleared: s32 = 0
-	local bonus: s32 = 0
-	local var12: s32 = 0
-	local var13: s32 = 0
-	local at: number = 0
+	local is_new_record: s32 = 0
+	local practice_result: s32 = 0
+	local bonus_type: s32 = 0
+	local is_trial: s32 = 0
+	local floor_status: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
-		active_chr_no = event.get_playable_character() or active_chr_no
-		helper_ce85b54c()
+		playable_character = event.get_playable_character() or playable_character
+		character.reset_action_motion()
 		event.set_dungeon_pause_flags(512, 1)
 		event.show_dungeon_status_bar(0, 0.16666667)
-		at = 1
-		wait_frames(10)
+		resume_step = 1
+		wait.frames(10)
 		event.set_dungeon_pause_flags(16384, 1)
 		event.clear_event_battle_monsters(-1)
-		if active_chr_no == 0 then
-			at = 2
-			helper_4c1ba28b(1)
+		if playable_character == 0 then
+			resume_step = 2
+			dungeon.play_max_victory(1)
 		end
-		if active_chr_no == 1 then
-			at = 3
-			helper_6c8af328(1)
+		if playable_character == 1 then
+			resume_step = 3
+			dungeon.play_monica_victory(1)
 		end
-		if active_chr_no == 2 or active_chr_no == 3 then
-			at = 4
-			helper_fe9d3952(active_chr_no)
+		if playable_character == 2 or playable_character == 3 then
+			resume_step = 4
+			dungeon.play_finish_banner(playable_character)
 		end
 		event.set_dungeon_pause_flags(16384, 0)
-		helper_4d4dffcb()
+		rainbow_butterfly_wood.restore_opened_key_door()
 		event.reset_action_character_motion(0, 4)
 		event.update_character_motion(0)
 		event.reset_character_cloth_and_hair(0)
 		event.show_dungeon_status_bar(1, 0.16666667)
 		stage_id = event.get_dungeon_stage_id() or stage_id
-		var2 = event.get_dungeon_floor() or var2
-		event.set_dungeon_floor_info(stage_id, var2, 5, 2)
-		event.set_dungeon_floor_info(stage_id, var2, 5, 1024)
-		flag = event.get_save_flag(220) or flag
-		flag = event.get_save_flag(317) or flag
-		is_play_sub_game = event.get_floor_sub_games() or is_play_sub_game
-		if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
+		floor = event.get_dungeon_floor() or floor
+		event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+		event.set_dungeon_floor_info(stage_id, floor, 5, 1024)
+		is_sphida_enabled = event.get_save_flag(220) or is_sphida_enabled
+		is_sphida_enabled = event.get_save_flag(317) or is_sphida_enabled
+		sub_game_flags = event.get_floor_sub_games() or sub_game_flags
+		if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
 			event.clear_random_stones()
-			helper_c3f198dd(0, -1)
+			minigame.set_up_sphida_course_with_draw_distance(0, -1)
 		end
 		do
 			local out1, out2, out3 = event.get_previous_camera_next_position()
@@ -1109,53 +1063,53 @@ local function helper_2560c()
 			position_z = out3 or position_z
 		end
 		event.set_camera_look_at(position_x, position_y, position_z)
-		is_clear_most_fast_destroy = event.record_floor_clear_time() or is_clear_most_fast_destroy
+		is_new_record = event.record_floor_clear_time() or is_new_record
 		do
 			local out1, out2 = event.get_floor_practice_result(0)
-			cleared = out1 or cleared
-			bonus = out2 or bonus
+			practice_result = out1 or practice_result
+			bonus_type = out2 or bonus_type
 		end
-		at = 5
-		helper_0b48dafa(is_clear_most_fast_destroy, cleared, bonus)
+		resume_step = 5
+		spheda.announce_medal_reward(is_new_record, practice_result, bonus_type)
 		event.set_message_window_mode(0, 4)
 		event.set_message_draw_speed(0, 1)
-		var12 = event.is_trial_version() or var12
-		var13 = event.get_dungeon_floor_status() or var13
+		is_trial = event.is_trial_version() or is_trial
+		floor_status = event.get_dungeon_floor_status() or floor_status
 		if
-			(if (if bit32.band(var13, 1) ~= 0 then 1 else bit32.band(var13, 2)) ~= 0 then 1 else bit32.band(var13, 4))
+			(if (if bit32.band(floor_status, 1) ~= 0 then 1 else bit32.band(floor_status, 2)) ~= 0 then 1 else bit32.band(floor_status, 4))
 			~= 0
 		then
 			event.set_dungeon_floor_status_flags(7, 0)
-			if bit32.band(var13, 1) ~= 0 then
+			if bit32.band(floor_status, 1) ~= 0 then
 				event.open_message_window_2(0, "Das Rote Siegel wurde ge[UNI00f6]ffnet.")
 			end
-			if bit32.band(var13, 2) ~= 0 then
+			if bit32.band(floor_status, 2) ~= 0 then
 				event.open_message_window_2(0, "Das Blaue Siegel wurde ge[UNI00f6]ffnet.")
 			end
-			if bit32.band(var13, 4) ~= 0 then
+			if bit32.band(floor_status, 4) ~= 0 then
 				event.open_message_window_2(0, "Das Wei[UNI00df]e Siegel wurde ge[UNI00f6]ffnet.")
 			end
-			at = 6
-			helper_75684dd8(0, -1, 8, 0, 0)
+			resume_step = 6
+			message.show_and_wait(0, -1, 8, 0, 0)
 		end
-		at = 7
-		helper_75684dd8(0, 2130, 8, 0, 0)
-		if var12 ~= 1 then
-			if var3 == 1 and flag == 1 and bit32.band(is_play_sub_game, 3) == 3 then
-				at = 8
-				helper_75684dd8(0, 2120, 8, 0, 0)
-				at = 9
-				helper_a74f4984()
+		resume_step = 7
+		message.show_and_wait(0, 2130, 8, 0, 0)
+		if is_trial ~= 1 then
+			if unassigned_flag == 1 and is_sphida_enabled == 1 and bit32.band(sub_game_flags, 3) == 3 then
+				resume_step = 8
+				message.show_and_wait(0, 2120, 8, 0, 0)
+				resume_step = 9
+				spheda.move_character_to_ball()
 			else
-				if (if var3 == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-					at = 10
-					helper_75684dd8(0, 2110, 8, 0, 0)
+				if (if unassigned_flag == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+					resume_step = 10
+					message.show_and_wait(0, 2110, 8, 0, 0)
 				end
-				if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-					at = 11
-					helper_75684dd8(0, 2100, 8, 0, 0)
-					at = 12
-					helper_a74f4984()
+				if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+					resume_step = 11
+					message.show_and_wait(0, 2100, 8, 0, 0)
+					resume_step = 12
+					spheda.move_character_to_ball()
 				end
 			end
 		end
@@ -1165,35 +1119,35 @@ local function helper_2560c()
 		event.finish_event()
 		return
 	end, function(received: { any })
-		if at <= 12 then
-			if at <= 1 then
-				at = 2
-				helper_4c1ba28b(1)
+		if resume_step <= 12 then
+			if resume_step <= 1 then
+				resume_step = 2
+				dungeon.play_max_victory(1)
 				return vm.continue_with(function()
-					if active_chr_no == 1 then
-						at = 3
-						helper_6c8af328(1)
+					if playable_character == 1 then
+						resume_step = 3
+						dungeon.play_monica_victory(1)
 					end
-					if active_chr_no == 2 or active_chr_no == 3 then
-						at = 4
-						helper_fe9d3952(active_chr_no)
+					if playable_character == 2 or playable_character == 3 then
+						resume_step = 4
+						dungeon.play_finish_banner(playable_character)
 					end
 					event.set_dungeon_pause_flags(16384, 0)
-					helper_4d4dffcb()
+					rainbow_butterfly_wood.restore_opened_key_door()
 					event.reset_action_character_motion(0, 4)
 					event.update_character_motion(0)
 					event.reset_character_cloth_and_hair(0)
 					event.show_dungeon_status_bar(1, 0.16666667)
 					stage_id = event.get_dungeon_stage_id() or stage_id
-					var2 = event.get_dungeon_floor() or var2
-					event.set_dungeon_floor_info(stage_id, var2, 5, 2)
-					event.set_dungeon_floor_info(stage_id, var2, 5, 1024)
-					flag = event.get_save_flag(220) or flag
-					flag = event.get_save_flag(317) or flag
-					is_play_sub_game = event.get_floor_sub_games() or is_play_sub_game
-					if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
+					floor = event.get_dungeon_floor() or floor
+					event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+					event.set_dungeon_floor_info(stage_id, floor, 5, 1024)
+					is_sphida_enabled = event.get_save_flag(220) or is_sphida_enabled
+					is_sphida_enabled = event.get_save_flag(317) or is_sphida_enabled
+					sub_game_flags = event.get_floor_sub_games() or sub_game_flags
+					if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
 						event.clear_random_stones()
-						helper_c3f198dd(0, -1)
+						minigame.set_up_sphida_course_with_draw_distance(0, -1)
 					end
 					do
 						local out1, out2, out3 = event.get_previous_camera_next_position()
@@ -1209,56 +1163,56 @@ local function helper_2560c()
 						position_z = out3 or position_z
 					end
 					event.set_camera_look_at(position_x, position_y, position_z)
-					is_clear_most_fast_destroy = event.record_floor_clear_time() or is_clear_most_fast_destroy
+					is_new_record = event.record_floor_clear_time() or is_new_record
 					do
 						local out1, out2 = event.get_floor_practice_result(0)
-						cleared = out1 or cleared
-						bonus = out2 or bonus
+						practice_result = out1 or practice_result
+						bonus_type = out2 or bonus_type
 					end
-					at = 5
-					helper_0b48dafa(is_clear_most_fast_destroy, cleared, bonus)
+					resume_step = 5
+					spheda.announce_medal_reward(is_new_record, practice_result, bonus_type)
 					event.set_message_window_mode(0, 4)
 					event.set_message_draw_speed(0, 1)
-					var12 = event.is_trial_version() or var12
-					var13 = event.get_dungeon_floor_status() or var13
+					is_trial = event.is_trial_version() or is_trial
+					floor_status = event.get_dungeon_floor_status() or floor_status
 					if
 						(
-							if (if bit32.band(var13, 1) ~= 0 then 1 else bit32.band(var13, 2)) ~= 0
+							if (if bit32.band(floor_status, 1) ~= 0 then 1 else bit32.band(floor_status, 2)) ~= 0
 								then 1
-								else bit32.band(var13, 4)
+								else bit32.band(floor_status, 4)
 						) ~= 0
 					then
 						event.set_dungeon_floor_status_flags(7, 0)
-						if bit32.band(var13, 1) ~= 0 then
+						if bit32.band(floor_status, 1) ~= 0 then
 							event.open_message_window_2(0, "Das Rote Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						if bit32.band(var13, 2) ~= 0 then
+						if bit32.band(floor_status, 2) ~= 0 then
 							event.open_message_window_2(0, "Das Blaue Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						if bit32.band(var13, 4) ~= 0 then
+						if bit32.band(floor_status, 4) ~= 0 then
 							event.open_message_window_2(0, "Das Wei[UNI00df]e Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						at = 6
-						helper_75684dd8(0, -1, 8, 0, 0)
+						resume_step = 6
+						message.show_and_wait(0, -1, 8, 0, 0)
 					end
-					at = 7
-					helper_75684dd8(0, 2130, 8, 0, 0)
-					if var12 ~= 1 then
-						if var3 == 1 and flag == 1 and bit32.band(is_play_sub_game, 3) == 3 then
-							at = 8
-							helper_75684dd8(0, 2120, 8, 0, 0)
-							at = 9
-							helper_a74f4984()
+					resume_step = 7
+					message.show_and_wait(0, 2130, 8, 0, 0)
+					if is_trial ~= 1 then
+						if unassigned_flag == 1 and is_sphida_enabled == 1 and bit32.band(sub_game_flags, 3) == 3 then
+							resume_step = 8
+							message.show_and_wait(0, 2120, 8, 0, 0)
+							resume_step = 9
+							spheda.move_character_to_ball()
 						else
-							if (if var3 == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-								at = 10
-								helper_75684dd8(0, 2110, 8, 0, 0)
+							if (if unassigned_flag == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+								resume_step = 10
+								message.show_and_wait(0, 2110, 8, 0, 0)
 							end
-							if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-								at = 11
-								helper_75684dd8(0, 2100, 8, 0, 0)
-								at = 12
-								helper_a74f4984()
+							if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+								resume_step = 11
+								message.show_and_wait(0, 2100, 8, 0, 0)
+								resume_step = 12
+								spheda.move_character_to_ball()
 							end
 						end
 					end
@@ -1269,30 +1223,30 @@ local function helper_2560c()
 					return
 				end)
 			end
-			if at <= 2 then
-				at = 3
-				helper_6c8af328(1)
+			if resume_step <= 2 then
+				resume_step = 3
+				dungeon.play_monica_victory(1)
 				return vm.continue_with(function()
-					if active_chr_no == 2 or active_chr_no == 3 then
-						at = 4
-						helper_fe9d3952(active_chr_no)
+					if playable_character == 2 or playable_character == 3 then
+						resume_step = 4
+						dungeon.play_finish_banner(playable_character)
 					end
 					event.set_dungeon_pause_flags(16384, 0)
-					helper_4d4dffcb()
+					rainbow_butterfly_wood.restore_opened_key_door()
 					event.reset_action_character_motion(0, 4)
 					event.update_character_motion(0)
 					event.reset_character_cloth_and_hair(0)
 					event.show_dungeon_status_bar(1, 0.16666667)
 					stage_id = event.get_dungeon_stage_id() or stage_id
-					var2 = event.get_dungeon_floor() or var2
-					event.set_dungeon_floor_info(stage_id, var2, 5, 2)
-					event.set_dungeon_floor_info(stage_id, var2, 5, 1024)
-					flag = event.get_save_flag(220) or flag
-					flag = event.get_save_flag(317) or flag
-					is_play_sub_game = event.get_floor_sub_games() or is_play_sub_game
-					if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
+					floor = event.get_dungeon_floor() or floor
+					event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+					event.set_dungeon_floor_info(stage_id, floor, 5, 1024)
+					is_sphida_enabled = event.get_save_flag(220) or is_sphida_enabled
+					is_sphida_enabled = event.get_save_flag(317) or is_sphida_enabled
+					sub_game_flags = event.get_floor_sub_games() or sub_game_flags
+					if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
 						event.clear_random_stones()
-						helper_c3f198dd(0, -1)
+						minigame.set_up_sphida_course_with_draw_distance(0, -1)
 					end
 					do
 						local out1, out2, out3 = event.get_previous_camera_next_position()
@@ -1308,56 +1262,56 @@ local function helper_2560c()
 						position_z = out3 or position_z
 					end
 					event.set_camera_look_at(position_x, position_y, position_z)
-					is_clear_most_fast_destroy = event.record_floor_clear_time() or is_clear_most_fast_destroy
+					is_new_record = event.record_floor_clear_time() or is_new_record
 					do
 						local out1, out2 = event.get_floor_practice_result(0)
-						cleared = out1 or cleared
-						bonus = out2 or bonus
+						practice_result = out1 or practice_result
+						bonus_type = out2 or bonus_type
 					end
-					at = 5
-					helper_0b48dafa(is_clear_most_fast_destroy, cleared, bonus)
+					resume_step = 5
+					spheda.announce_medal_reward(is_new_record, practice_result, bonus_type)
 					event.set_message_window_mode(0, 4)
 					event.set_message_draw_speed(0, 1)
-					var12 = event.is_trial_version() or var12
-					var13 = event.get_dungeon_floor_status() or var13
+					is_trial = event.is_trial_version() or is_trial
+					floor_status = event.get_dungeon_floor_status() or floor_status
 					if
 						(
-							if (if bit32.band(var13, 1) ~= 0 then 1 else bit32.band(var13, 2)) ~= 0
+							if (if bit32.band(floor_status, 1) ~= 0 then 1 else bit32.band(floor_status, 2)) ~= 0
 								then 1
-								else bit32.band(var13, 4)
+								else bit32.band(floor_status, 4)
 						) ~= 0
 					then
 						event.set_dungeon_floor_status_flags(7, 0)
-						if bit32.band(var13, 1) ~= 0 then
+						if bit32.band(floor_status, 1) ~= 0 then
 							event.open_message_window_2(0, "Das Rote Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						if bit32.band(var13, 2) ~= 0 then
+						if bit32.band(floor_status, 2) ~= 0 then
 							event.open_message_window_2(0, "Das Blaue Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						if bit32.band(var13, 4) ~= 0 then
+						if bit32.band(floor_status, 4) ~= 0 then
 							event.open_message_window_2(0, "Das Wei[UNI00df]e Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						at = 6
-						helper_75684dd8(0, -1, 8, 0, 0)
+						resume_step = 6
+						message.show_and_wait(0, -1, 8, 0, 0)
 					end
-					at = 7
-					helper_75684dd8(0, 2130, 8, 0, 0)
-					if var12 ~= 1 then
-						if var3 == 1 and flag == 1 and bit32.band(is_play_sub_game, 3) == 3 then
-							at = 8
-							helper_75684dd8(0, 2120, 8, 0, 0)
-							at = 9
-							helper_a74f4984()
+					resume_step = 7
+					message.show_and_wait(0, 2130, 8, 0, 0)
+					if is_trial ~= 1 then
+						if unassigned_flag == 1 and is_sphida_enabled == 1 and bit32.band(sub_game_flags, 3) == 3 then
+							resume_step = 8
+							message.show_and_wait(0, 2120, 8, 0, 0)
+							resume_step = 9
+							spheda.move_character_to_ball()
 						else
-							if (if var3 == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-								at = 10
-								helper_75684dd8(0, 2110, 8, 0, 0)
+							if (if unassigned_flag == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+								resume_step = 10
+								message.show_and_wait(0, 2110, 8, 0, 0)
 							end
-							if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-								at = 11
-								helper_75684dd8(0, 2100, 8, 0, 0)
-								at = 12
-								helper_a74f4984()
+							if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+								resume_step = 11
+								message.show_and_wait(0, 2100, 8, 0, 0)
+								resume_step = 12
+								spheda.move_character_to_ball()
 							end
 						end
 					end
@@ -1368,26 +1322,26 @@ local function helper_2560c()
 					return
 				end)
 			end
-			if at <= 3 then
-				at = 4
-				helper_fe9d3952(active_chr_no)
+			if resume_step <= 3 then
+				resume_step = 4
+				dungeon.play_finish_banner(playable_character)
 				return vm.continue_with(function()
 					event.set_dungeon_pause_flags(16384, 0)
-					helper_4d4dffcb()
+					rainbow_butterfly_wood.restore_opened_key_door()
 					event.reset_action_character_motion(0, 4)
 					event.update_character_motion(0)
 					event.reset_character_cloth_and_hair(0)
 					event.show_dungeon_status_bar(1, 0.16666667)
 					stage_id = event.get_dungeon_stage_id() or stage_id
-					var2 = event.get_dungeon_floor() or var2
-					event.set_dungeon_floor_info(stage_id, var2, 5, 2)
-					event.set_dungeon_floor_info(stage_id, var2, 5, 1024)
-					flag = event.get_save_flag(220) or flag
-					flag = event.get_save_flag(317) or flag
-					is_play_sub_game = event.get_floor_sub_games() or is_play_sub_game
-					if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
+					floor = event.get_dungeon_floor() or floor
+					event.set_dungeon_floor_info(stage_id, floor, 5, 2)
+					event.set_dungeon_floor_info(stage_id, floor, 5, 1024)
+					is_sphida_enabled = event.get_save_flag(220) or is_sphida_enabled
+					is_sphida_enabled = event.get_save_flag(317) or is_sphida_enabled
+					sub_game_flags = event.get_floor_sub_games() or sub_game_flags
+					if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
 						event.clear_random_stones()
-						helper_c3f198dd(0, -1)
+						minigame.set_up_sphida_course_with_draw_distance(0, -1)
 					end
 					do
 						local out1, out2, out3 = event.get_previous_camera_next_position()
@@ -1403,56 +1357,56 @@ local function helper_2560c()
 						position_z = out3 or position_z
 					end
 					event.set_camera_look_at(position_x, position_y, position_z)
-					is_clear_most_fast_destroy = event.record_floor_clear_time() or is_clear_most_fast_destroy
+					is_new_record = event.record_floor_clear_time() or is_new_record
 					do
 						local out1, out2 = event.get_floor_practice_result(0)
-						cleared = out1 or cleared
-						bonus = out2 or bonus
+						practice_result = out1 or practice_result
+						bonus_type = out2 or bonus_type
 					end
-					at = 5
-					helper_0b48dafa(is_clear_most_fast_destroy, cleared, bonus)
+					resume_step = 5
+					spheda.announce_medal_reward(is_new_record, practice_result, bonus_type)
 					event.set_message_window_mode(0, 4)
 					event.set_message_draw_speed(0, 1)
-					var12 = event.is_trial_version() or var12
-					var13 = event.get_dungeon_floor_status() or var13
+					is_trial = event.is_trial_version() or is_trial
+					floor_status = event.get_dungeon_floor_status() or floor_status
 					if
 						(
-							if (if bit32.band(var13, 1) ~= 0 then 1 else bit32.band(var13, 2)) ~= 0
+							if (if bit32.band(floor_status, 1) ~= 0 then 1 else bit32.band(floor_status, 2)) ~= 0
 								then 1
-								else bit32.band(var13, 4)
+								else bit32.band(floor_status, 4)
 						) ~= 0
 					then
 						event.set_dungeon_floor_status_flags(7, 0)
-						if bit32.band(var13, 1) ~= 0 then
+						if bit32.band(floor_status, 1) ~= 0 then
 							event.open_message_window_2(0, "Das Rote Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						if bit32.band(var13, 2) ~= 0 then
+						if bit32.band(floor_status, 2) ~= 0 then
 							event.open_message_window_2(0, "Das Blaue Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						if bit32.band(var13, 4) ~= 0 then
+						if bit32.band(floor_status, 4) ~= 0 then
 							event.open_message_window_2(0, "Das Wei[UNI00df]e Siegel wurde ge[UNI00f6]ffnet.")
 						end
-						at = 6
-						helper_75684dd8(0, -1, 8, 0, 0)
+						resume_step = 6
+						message.show_and_wait(0, -1, 8, 0, 0)
 					end
-					at = 7
-					helper_75684dd8(0, 2130, 8, 0, 0)
-					if var12 ~= 1 then
-						if var3 == 1 and flag == 1 and bit32.band(is_play_sub_game, 3) == 3 then
-							at = 8
-							helper_75684dd8(0, 2120, 8, 0, 0)
-							at = 9
-							helper_a74f4984()
+					resume_step = 7
+					message.show_and_wait(0, 2130, 8, 0, 0)
+					if is_trial ~= 1 then
+						if unassigned_flag == 1 and is_sphida_enabled == 1 and bit32.band(sub_game_flags, 3) == 3 then
+							resume_step = 8
+							message.show_and_wait(0, 2120, 8, 0, 0)
+							resume_step = 9
+							spheda.move_character_to_ball()
 						else
-							if (if var3 == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-								at = 10
-								helper_75684dd8(0, 2110, 8, 0, 0)
+							if (if unassigned_flag == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+								resume_step = 10
+								message.show_and_wait(0, 2110, 8, 0, 0)
 							end
-							if (if flag == 1 then bit32.band(is_play_sub_game, 1) else 0) ~= 0 then
-								at = 11
-								helper_75684dd8(0, 2100, 8, 0, 0)
-								at = 12
-								helper_a74f4984()
+							if (if is_sphida_enabled == 1 then bit32.band(sub_game_flags, 1) else 0) ~= 0 then
+								resume_step = 11
+								message.show_and_wait(0, 2100, 8, 0, 0)
+								resume_step = 12
+								spheda.move_character_to_ball()
 							end
 						end
 					end
@@ -1463,31 +1417,31 @@ local function helper_2560c()
 					return
 				end)
 			end
-			if at <= 4 then
-				helper_35195a56()
-				helper_a583d6cd(0, -1)
-				helper_7870f366(is_clear_most_fast_destroy, cleared, bonus)
+			if resume_step <= 4 then
+				cutscene.noop_2()
+				cutscene.noop_with_arguments(0, -1)
+				message.resume_numbered_messages(is_new_record, practice_result, bonus_type)
 			end
-			if at <= 5 then
-				helper_ee1c51d0(0, -1, 8, 0, 0)
+			if resume_step <= 5 then
+				message.show_and_wait_skipping(0, -1, 8, 0, 0)
 			end
-			if at <= 6 then
-				helper_ee1c51d0(0, 2130, 8, 0, 0)
+			if resume_step <= 6 then
+				message.show_and_wait_skipping(0, 2130, 8, 0, 0)
 			end
-			if at <= 7 then
-				helper_ee1c51d0(0, 2120, 8, 0, 0)
+			if resume_step <= 7 then
+				message.show_and_wait_skipping(0, 2120, 8, 0, 0)
 			end
-			if at <= 8 then
-				helper_74f9cdb5()
+			if resume_step <= 8 then
+				message.open_choice_pair_skipping()
 			end
-			if at <= 9 then
-				helper_ee1c51d0(0, 2110, 8, 0, 0)
+			if resume_step <= 9 then
+				message.show_and_wait_skipping(0, 2110, 8, 0, 0)
 			end
-			if at <= 10 then
-				helper_ee1c51d0(0, 2100, 8, 0, 0)
+			if resume_step <= 10 then
+				message.show_and_wait_skipping(0, 2100, 8, 0, 0)
 			end
-			if at <= 11 then
-				helper_74f9cdb5()
+			if resume_step <= 11 then
+				message.open_choice_pair_skipping()
 			end
 			return 0
 		end
@@ -1497,35 +1451,35 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the Monica victory pose as the default event.
 function script.default_event()
-	helper_6c8af328(0)
+	dungeon.play_monica_victory(0)
 end
 
---- Event 101, which map data, a script or the engine runs by number.
-function script.event_101()
-	local at: number = 0
+--- Reloads the first floor map with its monsters and treasure boxes and plays the floor entry.
+function script.reload_floor()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		helper_e91d3484()
+		minigame.clear_sphida_state()
 		event.fade_out_screen(0)
-		at = 1
+		resume_step = 1
 		vm.wait(1)
 		event.load_dungeon_map("d02f01", "d02f01", 1)
 		event.load_dungeon_monster(0)
 		event.place_treasure_box_at_event_point(-1)
 		event.place_dungeon_monster(-1)
-		at = 2
-		helper_3f004(0)
+		resume_step = 2
+		play_floor_entry(0)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_3f004(0)
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				play_floor_entry(0)
 				return vm.continue_with(function()
 					return
 				end)
@@ -1535,40 +1489,42 @@ function script.event_101()
 		return nil
 	end)
 end
+script[101] = script.reload_floor
 
---- Event 102, which map data, a script or the engine runs by number.
-function script.event_102()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
+--- Switches the main character to the third playable character at the current position.
+function script.switch_to_third_character()
+	local x: f32 = 0
+	local y: f32 = 0
+	local z: f32 = 0
 	event.initialize_event()
 	vm.wait(1)
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		x = out1 or x
+		y = out2 or y
+		z = out3 or z
 	end
 	event.switch_dungeon_main_character(2)
 	event.set_playable_character(2)
-	event.set_character_position(0, var0, var1, var2)
+	event.set_character_position(0, x, y, z)
 	vm.wait(2)
 	event.finish_event()
 end
+script[102] = script.switch_to_third_character
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	local argc: s32 = 0
+--- Grants the starting key items, enables Sphida on the floor and clears battle monsters.
+function script.grant_starting_items()
+	local item_count: s32 = 0
 	event.initialize_event()
 	vm.wait(1)
 	event.add_inventory_item(305, 1)
 	event.add_inventory_item(306, 1)
-	argc = event.get_owned_item_count(10) or argc
-	if argc <= 0 then
+	item_count = event.get_owned_item_count(10) or item_count
+	if item_count <= 0 then
 		event.add_inventory_item(10, 1)
 	end
-	argc = event.get_owned_item_count(302) or argc
-	if argc <= 0 then
+	item_count = event.get_owned_item_count(302) or item_count
+	if item_count <= 0 then
 		event.add_inventory_item(302, 1)
 	end
 	event.set_save_flag(220, 1)
@@ -1576,506 +1532,513 @@ function script.event_200()
 	event.clear_event_battle_monsters(-1)
 	event.finish_event()
 end
+script[200] = script.grant_starting_items
 
---- Event 300, which map data, a script or the engine runs by number.
-function script.event_300()
-	helper_447c4(0)
+--- Handles the first gate by running the shared gate routine.
+function script.use_gate_0()
+	use_floor_gate(0)
 end
+script[300] = script.use_gate_0
 
---- The event run when the edit analysis found changes after a house door step or a Georama mode change.
+--- Handles the second gate by running the shared gate routine.
 function script.edit_analyze_changed()
-	helper_447c4(1)
+	use_floor_gate(1)
 end
 
---- Event 320, which map data, a script or the engine runs by number.
-function script.event_320()
-	helper_447c4(2)
+--- Handles the third gate by running the shared gate routine.
+function script.use_gate_2()
+	use_floor_gate(2)
 end
+script[320] = script.use_gate_2
 
---- Event 330, which map data, a script or the engine runs by number.
-function script.event_330()
-	helper_447c4(3)
+--- Handles the fourth gate by running the shared gate routine.
+function script.use_gate_3()
+	use_floor_gate(3)
 end
+script[330] = script.use_gate_3
 
 --- Event 340, which map data, a script or the engine runs by number.
-script.event_340 = helper_ced7968c
+script[340] = rainbow_butterfly_wood.unlock_star_gate
 
---- Event 348, which map data, a script or the engine runs by number.
-function script.event_348()
-	local now_party_chara_id: s32 = 0
-	local var1: s32 = 0
-	local var2: s32 = 0
+--- Lets the player clear the spider web with a key item or through a party member.
+function script.cut_spider_web()
+	local party_npc: s32 = 0
+	local interaction_state: s32 = 0
+	local confirmed: s32 = 0
 	local item: s32 = 0
-	local active_chr_no: s32 = 0
+	local playable_character: s32 = 0
 	event.initialize_event()
 	event.set_dungeon_pause_flags(1, 1)
-	helper_ce85b54c()
-	now_party_chara_id = event.get_party_npc() or now_party_chara_id
-	if now_party_chara_id == 4 then
+	character.reset_action_motion()
+	party_npc = event.get_party_npc() or party_npc
+	if party_npc == 4 then
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
 		event.open_message_window_2(0, "Du musst einfach hier durch,\nstimmt's?")
-		helper_75684dd8(0, -1, 5, 0, 0)
+		message.show_and_wait(0, -1, 5, 0, 0)
 		event.show_dungeon_status_bar(0, 0.16666667)
 		event.set_dungeon_pause_flags(16, 1)
-		helper_64f3e42f()
+		rainbow_butterfly_wood.clear_spider_web()
 		event.set_dungeon_pause_flags(16, 0)
 		event.show_dungeon_status_bar(1, 0.16666667)
-		wait_frames(6)
+		wait.frames(6)
 		event.set_dungeon_pause_flags(1, 0)
 		event.finish_event()
 		return
 	end
-	var1 = event.get_triggered_event_data_2(6) or var1
-	if var1 == 1 then
+	interaction_state = event.get_triggered_event_data_2(6) or interaction_state
+	if interaction_state == 1 then
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
 		event.set_message_draw_speed(0, 1)
-		var2 = helper_c292fa16(0, 2501, 5, 256, 208, var2)
+		confirmed = message.ask_confirmation(0, 2501, 5, 256, 208, confirmed)
 		event.set_message_bubble_tail(0, 1)
 		event.set_message_draw_speed(0, 0)
-		if var2 == 1 then
-			var1 = 2
+		if confirmed == 1 then
+			interaction_state = 2
 		end
 	end
-	if var1 == 2 then
+	if interaction_state == 2 then
 		event.show_dungeon_status_bar(0, 0.16666667)
-		wait_frames(6)
+		wait.frames(6)
 		event.open_use_item_menu(340)
 		vm.wait(6)
 		item = vmhost.used_item() or item
 		if item == 340 then
 			event.set_dungeon_pause_flags(16, 1)
-			active_chr_no = event.get_playable_character() or active_chr_no
-			if active_chr_no == 2 or active_chr_no == 3 then
-				helper_64f3e42f()
+			playable_character = event.get_playable_character() or playable_character
+			if playable_character == 2 or playable_character == 3 then
+				rainbow_butterfly_wood.clear_spider_web()
 			else
-				helper_09075129()
+				rainbow_butterfly_wood.cut_spider_web_with_key()
 			end
 			event.set_dungeon_pause_flags(16, 0)
 		elseif item <= 0 then
 		else
-			helper_5fb66cb1()
+			character.shake_head()
 		end
 		event.show_dungeon_status_bar(1, 0.16666667)
-		wait_frames(6)
+		wait.frames(6)
 	end
 	event.set_dungeon_pause_flags(1, 0)
 	event.finish_event()
 end
+script[348] = script.cut_spider_web
 
-script.event_1000 = event_1000
+script.enter_floor_from_map_menu = enter_floor_from_map_menu
+script[1000] = script.enter_floor_from_map_menu
 
-script.event_1010 = event_1010
+script.load_floor = load_floor
+script[1010] = script.load_floor
 
 --- The dungeon system event run when the player opens a treasure box.
-script.treasure_box = helper_a4ad263f
+script.treasure_box = treasure_box.open_nearest
 
---- The dungeon system event run when the player steps into a random circle.
+--- Spins a ring and coin at a random circle, then applies a good or bad random circle effect.
 function script.random_circle()
-	local active_chr_no: s32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local yaw: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local var11: s32 = 0
-	local weight: f32 = 0
-	local var14: f32 = 0
-	local now_party_chara_id: s32 = 0
-	local circle_id: s32 = 0
-	local var18: s32 = 0
-	local var19: f32 = 0
-	local pos_x_3: f32 = 0
-	local pos_y_3: f32 = 0
-	local pos_z_3: f32 = 0
-	local pos_x_4: f32 = 0
-	local pos_y_4: f32 = 0
-	local pos_z_4: f32 = 0
-	local var26: f32 = 0
-	local var27: s32 = 0
+	local playable_character: s32 = 0
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local circle_x: f32 = 0
+	local circle_y: f32 = 0
+	local circle_z: f32 = 0
+	local direction_angle: f32 = 0
+	local ring_x: f32 = 0
+	local ring_y: f32 = 0
+	local ring_z: f32 = 0
+	local sound_bank: s32 = 0
+	local motion_frame: f32 = 0
+	local coin_angle: f32 = 0
+	local party_npc: s32 = 0
+	local circle_kind: s32 = 0
+	local frame_count: s32 = 0
+	local spin_speed: f32 = 0
+	local camera_x: f32 = 0
+	local camera_y: f32 = 0
+	local camera_z: f32 = 0
+	local look_at_x: f32 = 0
+	local look_at_y: f32 = 0
+	local look_at_z: f32 = 0
+	local target_angle: f32 = 0
+	local min_spin_frames: s32 = 0
 	local angle: f32 = 0
-	local var29: s32 = 0
-	local var30: s32 = 0
-	local bright_rate: f32 = 0
-	local var32: s32 = 0
-	local result: f32 = 0
-	local position_x: f32 = 0
-	local position_y: f32 = 0
-	local position_z: f32 = 0
+	local random_roll: s32 = 0
+	local chance_threshold: s32 = 0
+	local brightness_rate: f32 = 0
+	local effect_id: s32 = 0
+	local effect_amount: f32 = 0
+	local restored_camera_x: f32 = 0
+	local restored_camera_y: f32 = 0
+	local restored_camera_z: f32 = 0
 	event.initialize_event()
 	event.set_dungeon_pause_flags(513, 1)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 2 or active_chr_no == 3 then
+	playable_character = event.get_playable_character() or playable_character
+	if playable_character == 2 or playable_character == 3 then
 		event.apply_message_window_preset(0, 4)
 		event.set_message_window_mode(0, 4)
 		event.set_message_draw_speed(0, 1)
-		helper_ce85b54c()
-		if active_chr_no == 2 then
-			helper_75684dd8(0, 22, 8, 0, 0)
+		character.reset_action_motion()
+		if playable_character == 2 then
+			message.show_and_wait(0, 22, 8, 0, 0)
 		else
-			helper_75684dd8(0, 23, 8, 0, 0)
+			message.show_and_wait(0, 23, 8, 0, 0)
 		end
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 0)
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var1 = out1 or var1
-			var2 = out2 or var2
-			var3 = out3 or var3
+			player_x = out1 or player_x
+			player_y = out2 or player_y
+			player_z = out3 or player_z
 		end
 		do
 			local out1, out2, out3 = event.get_random_circle_position(-1)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			circle_x = out1 or circle_x
+			circle_y = out2 or circle_y
+			circle_z = out3 or circle_z
 		end
-		yaw = event.get_direction_angle(pos_x, pos_y, pos_z, var1, var2, var3) or yaw
-		var1 = vm.f32(vm.f32(vm.sin(yaw) * 25.0) + pos_x)
-		var2 = pos_y
-		var3 = vm.f32(vm.f32(vm.cos(yaw) * 25.0) + pos_z)
-		event.set_character_position(0, var1, var2, var3)
+		direction_angle = event.get_direction_angle(circle_x, circle_y, circle_z, player_x, player_y, player_z) or direction_angle
+		player_x = vm.f32(vm.f32(vm.sin(direction_angle) * 25.0) + circle_x)
+		player_y = circle_y
+		player_z = vm.f32(vm.f32(vm.cos(direction_angle) * 25.0) + circle_z)
+		event.set_character_position(0, player_x, player_y, player_z)
 		event.set_dungeon_pause_flags(513, 0)
 		event.finish_event()
 		return
 	end
 	event.start_background_file_loads_1("snd2/sp/sp_011.sound.json")
 	vm.wait(3)
-	helper_ce85b54c()
+	character.reset_action_motion()
 	do
 		local out1, out2, out3 = event.get_random_circle_position(-1)
-		pos_x_2 = out1 or pos_x_2
-		pos_y_2 = out2 or pos_y_2
-		pos_z_2 = out3 or pos_z_2
+		ring_x = out1 or ring_x
+		ring_y = out2 or ring_y
+		ring_z = out3 or ring_z
 	end
 	event.set_camera_control_enabled(0)
 	event.set_follow_camera_following(1)
-	event.set_follow_camera_target_alternate(pos_x_2, pos_y_2 + 30.0, pos_z_2)
+	event.set_follow_camera_target_alternate(ring_x, ring_y + 30.0, ring_z)
 	event.set_camera_speed(8.0)
 	event.set_follow_camera_offset(0.0, 0.0, 0.0)
 	event.set_follow_camera_height(0.0)
 	event.set_follow_camera_distance(80.0)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	helper_479dc9e9()
-	var11 = event.load_sound_effect_file_3(8, "snd2/sp/sp_011.sound.json") or var11
+	wait.background_load()
+	sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_011.sound.json") or sound_bank
 	event.change_directory("event/dng/")
 	event.start_background_file_loads_2("ring.gltf", "randomcoin.gltf")
 	vm.wait(5)
-	helper_479dc9e9()
-	weight = event.get_random_circle_motion_frame() or weight
+	wait.background_load()
+	motion_frame = event.get_random_circle_motion_frame() or motion_frame
 	event.deactivate_random_circle(-1)
 	event.load_character(5, "ring.gltf", "info", 12)
 	event.set_character_active(1, 12)
-	event.set_character_position(12, pos_x_2, pos_y_2, pos_z_2)
+	event.set_character_position(12, ring_x, ring_y, ring_z)
 	event.set_character_motion(12, "ループ", 6)
 	event.update_character_motion(12)
-	event.set_character_motion_frame(12, weight)
+	event.set_character_motion_frame(12, motion_frame)
 	event.attach_object_handle_to_character(4, 12)
 	event.clear_object_sequence(4)
 	event.set_object_sequence_object(4, 4)
 	event.queue_object_sequence_next_motion(4, "消滅", 6)
 	event.load_character(5, "randomcoin.gltf", "info", 13)
 	event.set_character_active(1, 13)
-	event.set_character_position(13, pos_x_2, pos_y_2 - 30.0, pos_z_2)
-	var14 = event.get_random_number(6.2831855) or var14
-	var14 = vm.f32(var14 - vm.f32(3.1415927))
-	var14 = event.wrap_angle(var14) or var14
-	event.set_character_rotation(13, 0.0, var14, 0.0)
+	event.set_character_position(13, ring_x, ring_y - 30.0, ring_z)
+	coin_angle = event.get_random_number(6.2831855) or coin_angle
+	coin_angle = vm.f32(coin_angle - vm.f32(3.1415927))
+	coin_angle = event.wrap_angle(coin_angle) or coin_angle
+	event.set_character_rotation(13, 0.0, coin_angle, 0.0)
 	event.change_directory("")
-	now_party_chara_id = event.get_party_npc() or now_party_chara_id
+	party_npc = event.get_party_npc() or party_npc
 	event.attach_object_handle_to_character(5, 13)
 	event.clear_object_sequence(5)
 	event.set_object_sequence_object(5, 5)
 	event.set_object_sequence_scale(5, 0.0, 0.0, 0.0)
 	event.set_object_sequence_scale(5, 1.0, 1.0, 1.0, 40)
-	event.move_object_sequence_eased(5, pos_x_2, pos_y_2 + 40.0, pos_z_2, 30, 2, 0.5)
-	var18 = 0
-	var19 = vm.f32(0.6)
+	event.move_object_sequence_eased(5, ring_x, ring_y + 40.0, ring_z, 30, 2, 0.5)
+	frame_count = 0
+	spin_speed = vm.f32(0.6)
 	while true do
 		do
 			local _, out2, _ = event.get_character_rotation(13)
-			var14 = out2 or var14
+			coin_angle = out2 or coin_angle
 		end
-		var14 = vm.f32(var14 + var19)
-		var14 = event.wrap_angle(var14) or var14
-		event.set_character_rotation(13, 0.0, var14, 0.0)
-		if var18 == 10 then
-			event.play_sound_effect(var11, 0)
+		coin_angle = vm.f32(coin_angle + spin_speed)
+		coin_angle = event.wrap_angle(coin_angle) or coin_angle
+		event.set_character_rotation(13, 0.0, coin_angle, 0.0)
+		if frame_count == 10 then
+			event.play_sound_effect(sound_bank, 0)
 		end
-		if var18 == 30 then
-			helper_a85f374e()
+		if frame_count == 30 then
+			sphida_hint.show_stop_hint()
 		end
-		if (if var18 >= 30 then helper_581cb30c(0) else 0) ~= 0 or var18 > 300 then
-			event.stop_sound_effect(var11, 0)
-			event.play_sound_effect(var11, 3)
+		if (if frame_count >= 30 then wait.get_button_state(0) else 0) ~= 0 or frame_count > 300 then
+			event.stop_sound_effect(sound_bank, 0)
+			event.play_sound_effect(sound_bank, 3)
 			vm.wait(7)
 			break
 		else
-			var18 = var18 + 1
+			frame_count = frame_count + 1
 			vm.wait(8)
 		end
 	end
-	helper_3cf99f2c()
+	message.close_second_window()
 	event.attach_object_handle_to_character(5, 13)
 	event.clear_object_sequence(5)
 	event.set_object_sequence_object(5, 5)
 	do
 		local out1, out2, out3 = event.get_camera_position()
-		pos_x_3 = out1 or pos_x_3
-		pos_y_3 = out2 or pos_y_3
-		pos_z_3 = out3 or pos_z_3
+		camera_x = out1 or camera_x
+		camera_y = out2 or camera_y
+		camera_z = out3 or camera_z
 	end
 	do
 		local out1, out2, out3 = event.get_camera_look_at()
-		pos_x_4 = out1 or pos_x_4
-		pos_y_4 = out2 or pos_y_4
-		pos_z_4 = out3 or pos_z_4
+		look_at_x = out1 or look_at_x
+		look_at_y = out2 or look_at_y
+		look_at_z = out3 or look_at_z
 	end
-	var26 = event.get_direction_angle(pos_x_4, pos_y_4, pos_z_4, pos_x_3, pos_y_3, pos_z_3) or var26
-	var27 = 0
-	var27 = vm.float_bits(event.get_random_number(10)) or var27
-	var27 = vm.i32(var27 + 4)
-	var18 = 0
+	target_angle = event.get_direction_angle(look_at_x, look_at_y, look_at_z, camera_x, camera_y, camera_z) or target_angle
+	min_spin_frames = 0
+	min_spin_frames = event.get_random_number_int(10) or min_spin_frames
+	min_spin_frames = vm.i32(min_spin_frames + 4)
+	frame_count = 0
 	while true do
 		do
 			local _, out2, _ = event.get_character_rotation(13)
-			var14 = out2 or var14
+			coin_angle = out2 or coin_angle
 		end
-		var14 = vm.f32(var14 + var19)
-		var14 = event.wrap_angle(var14) or var14
-		event.set_character_rotation(13, 0.0, var14, 0.0)
+		coin_angle = vm.f32(coin_angle + spin_speed)
+		coin_angle = event.wrap_angle(coin_angle) or coin_angle
+		event.set_character_rotation(13, 0.0, coin_angle, 0.0)
 		vm.wait(9)
-		if var18 >= var27 then
-			if var19 > vm.f32(0.08) then
-				var19 = vm.f32(var19 * vm.f32(0.9))
+		if frame_count >= min_spin_frames then
+			if spin_speed > vm.f32(0.08) then
+				spin_speed = vm.f32(spin_speed * vm.f32(0.9))
 			end
-			angle = var26
+			angle = target_angle
 			angle = event.wrap_angle(angle) or angle
-			if var14 < angle and helper_f7fba8ce(var14, angle, vm.f32(0.08)) == 0 then
+			if coin_angle < angle and calc.is_angle_within(coin_angle, angle, vm.f32(0.08)) == 0 then
 				event.set_character_rotation(13, 0.0, angle, 0.0)
-				circle_id = 0
+				circle_kind = 0
 				break
 			end
-			angle = vm.f32(var26 - vm.f32(3.1415927))
+			angle = vm.f32(target_angle - vm.f32(3.1415927))
 			angle = event.wrap_angle(angle) or angle
-			if var14 < angle and helper_f7fba8ce(var14, angle, vm.f32(0.08)) == 0 then
+			if coin_angle < angle and calc.is_angle_within(coin_angle, angle, vm.f32(0.08)) == 0 then
 				event.set_character_rotation(13, 0.0, angle, 0.0)
-				circle_id = 1
+				circle_kind = 1
 				break
 			end
 		end
-		var18 = vm.i32(var18 + 1)
+		frame_count = vm.i32(frame_count + 1)
 	end
-	var26 = event.get_direction_angle(pos_x_4, pos_y_4, pos_z_4, pos_x_3, pos_y_3, pos_z_3) or var26
+	target_angle = event.get_direction_angle(look_at_x, look_at_y, look_at_z, camera_x, camera_y, camera_z) or target_angle
 	do
 		local _, out2, _ = event.get_character_rotation(13)
-		var14 = out2 or var14
+		coin_angle = out2 or coin_angle
 	end
-	if helper_f7fba8ce(var14, var26, 1.0) == 0 then
-		circle_id = 0
+	if calc.is_angle_within(coin_angle, target_angle, 1.0) == 0 then
+		circle_kind = 0
 	else
-		circle_id = 1
+		circle_kind = 1
 	end
-	var26 = var14
-	wait_frames(20)
-	var29 = vm.float_bits(event.get_random_number(10)) or var29
-	if now_party_chara_id == 24 then
-		var30 = 100
+	target_angle = coin_angle
+	wait.frames(20)
+	random_roll = event.get_random_number_int(10) or random_roll
+	if party_npc == 24 then
+		chance_threshold = 100
 	else
-		var30 = 6
+		chance_threshold = 6
 	end
-	if var29 < var30 then
-		var29 = vm.float_bits(event.get_random_number(10)) or var29
-		if circle_id == 0 then
-			if now_party_chara_id == 24 then
-				var30 = 0
+	if random_roll < chance_threshold then
+		random_roll = event.get_random_number_int(10) or random_roll
+		if circle_kind == 0 then
+			if party_npc == 24 then
+				chance_threshold = 0
 			else
-				var30 = 2
+				chance_threshold = 2
 			end
-		elseif now_party_chara_id == 24 then
-			var30 = 100
+		elseif party_npc == 24 then
+			chance_threshold = 100
 		else
-			var30 = 4
+			chance_threshold = 4
 		end
-		if var29 < var30 then
-			var26 = vm.f32(var26 + vm.f32(3.14))
-			var26 = event.wrap_angle(var26) or var26
-			event.rotate_object_sequence(5, 0.0, var26, 0.0, 8)
-			if circle_id == 0 then
-				circle_id = 1
+		if random_roll < chance_threshold then
+			target_angle = vm.f32(target_angle + vm.f32(3.14))
+			target_angle = event.wrap_angle(target_angle) or target_angle
+			event.rotate_object_sequence(5, 0.0, target_angle, 0.0, 8)
+			if circle_kind == 0 then
+				circle_kind = 1
 			else
-				circle_id = 0
+				circle_kind = 0
 			end
-			wait_frames(10)
+			wait.frames(10)
 		else
-			var29 = vm.float_bits(event.get_random_number(10)) or var29
-			if var29 < 1 then
-				var26 = vm.f32(var26 + vm.f32(3.14))
-				var26 = event.wrap_angle(var26) or var26
-				event.rotate_object_sequence(5, 0.0, var26, 0.0, 6)
-				var26 = vm.f32(var26 + vm.f32(1.57))
-				var26 = event.wrap_angle(var26) or var26
-				event.rotate_object_sequence(5, 0.0, var26, 0.0, 3)
-				var26 = vm.f32(var26 + vm.f32(1.57))
-				var26 = event.wrap_angle(var26) or var26
-				event.rotate_object_sequence(5, 0.0, var26, 0.0, 3)
-				wait_frames(20)
+			random_roll = event.get_random_number_int(10) or random_roll
+			if random_roll < 1 then
+				target_angle = vm.f32(target_angle + vm.f32(3.14))
+				target_angle = event.wrap_angle(target_angle) or target_angle
+				event.rotate_object_sequence(5, 0.0, target_angle, 0.0, 6)
+				target_angle = vm.f32(target_angle + vm.f32(1.57))
+				target_angle = event.wrap_angle(target_angle) or target_angle
+				event.rotate_object_sequence(5, 0.0, target_angle, 0.0, 3)
+				target_angle = vm.f32(target_angle + vm.f32(1.57))
+				target_angle = event.wrap_angle(target_angle) or target_angle
+				event.rotate_object_sequence(5, 0.0, target_angle, 0.0, 3)
+				wait.frames(20)
 			end
 		end
 	end
-	var26 = event.get_direction_angle(pos_x_4, pos_y_4, pos_z_4, pos_x_3, pos_y_3, pos_z_3) or var26
+	target_angle = event.get_direction_angle(look_at_x, look_at_y, look_at_z, camera_x, camera_y, camera_z) or target_angle
 	do
 		local _, out2, _ = event.get_character_rotation(13)
-		var14 = out2 or var14
+		coin_angle = out2 or coin_angle
 	end
-	if helper_f7fba8ce(var14, var26, 1.0) == 0 then
-		circle_id = 0
+	if calc.is_angle_within(coin_angle, target_angle, 1.0) == 0 then
+		circle_kind = 0
 	else
-		circle_id = 1
+		circle_kind = 1
 	end
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
-	bright_rate = 1.0
-	var18 = 0
-	var32 = event.get_random_circle_effect(circle_id) or var32
-	if circle_id == 0 then
-		event.play_sound_effect(var11, 1)
-		while var18 < 30 do
-			event.set_dungeon_brightness_rate(bright_rate)
-			bright_rate = vm.f32(bright_rate + vm.f32(0.03))
-			var18 = var18 + 1
+	brightness_rate = 1.0
+	frame_count = 0
+	effect_id = event.get_random_circle_effect(circle_kind) or effect_id
+	if circle_kind == 0 then
+		event.play_sound_effect(sound_bank, 1)
+		while frame_count < 30 do
+			event.set_dungeon_brightness_rate(brightness_rate)
+			brightness_rate = vm.f32(brightness_rate + vm.f32(0.03))
+			frame_count = frame_count + 1
 			vm.wait(13)
 		end
-		helper_75684dd8(0, 2310, 8, 0, 0)
-		result = event.apply_random_circle_effect(var32) or result
-		if var32 == 1 then
-			helper_75684dd8(0, 2311, 8, 0, 0)
+		message.show_and_wait(0, 2310, 8, 0, 0)
+		effect_amount = event.apply_random_circle_effect(effect_id) or effect_amount
+		if effect_id == 1 then
+			message.show_and_wait(0, 2311, 8, 0, 0)
 		end
-		if var32 == 2 then
-			helper_75684dd8(0, 2312, 8, 0, 0)
+		if effect_id == 2 then
+			message.show_and_wait(0, 2312, 8, 0, 0)
 		end
-		if var32 == 3 then
-			helper_75684dd8(0, 2313, 8, 0, 0)
+		if effect_id == 3 then
+			message.show_and_wait(0, 2313, 8, 0, 0)
 		end
-		if var32 == 4 then
-			event.place_treasure_box(pos_x_2, pos_y_2, pos_z_2, var26, 294)
-			helper_75684dd8(0, 2314, 8, 0, 0)
+		if effect_id == 4 then
+			event.place_treasure_box(ring_x, ring_y, ring_z, target_angle, 294)
+			message.show_and_wait(0, 2314, 8, 0, 0)
 		end
 	else
-		event.play_sound_effect(var11, 2)
-		while var18 < 30 do
-			event.set_dungeon_brightness_rate(bright_rate)
-			bright_rate = vm.f32(bright_rate - vm.f32(0.03))
-			var18 = var18 + 1
+		event.play_sound_effect(sound_bank, 2)
+		while frame_count < 30 do
+			event.set_dungeon_brightness_rate(brightness_rate)
+			brightness_rate = vm.f32(brightness_rate - vm.f32(0.03))
+			frame_count = frame_count + 1
 			vm.wait(19)
 		end
-		helper_75684dd8(0, 2320, 8, 0, 0)
-		result = event.apply_random_circle_effect(var32) or result
-		if var32 == 5 then
-			if active_chr_no == 0 or active_chr_no == 2 then
-				helper_75684dd8(0, 2321, 8, 0, 0)
+		message.show_and_wait(0, 2320, 8, 0, 0)
+		effect_amount = event.apply_random_circle_effect(effect_id) or effect_amount
+		if effect_id == 5 then
+			if playable_character == 0 or playable_character == 2 then
+				message.show_and_wait(0, 2321, 8, 0, 0)
 			end
-			if active_chr_no == 1 or active_chr_no == 3 then
-				helper_75684dd8(0, 2322, 8, 0, 0)
-			end
-		end
-		if var32 == 6 then
-			if active_chr_no == 0 then
-				helper_75684dd8(0, 2323, 8, 0, 0)
-			end
-			if active_chr_no == 1 or active_chr_no == 3 then
-				helper_75684dd8(0, 2324, 8, 0, 0)
-			end
-			if active_chr_no == 2 then
-				helper_75684dd8(0, 2325, 8, 0, 0)
+			if playable_character == 1 or playable_character == 3 then
+				message.show_and_wait(0, 2322, 8, 0, 0)
 			end
 		end
-		if var32 == 8 then
-			helper_75684dd8(0, 2328, 8, 0, 0)
+		if effect_id == 6 then
+			if playable_character == 0 then
+				message.show_and_wait(0, 2323, 8, 0, 0)
+			end
+			if playable_character == 1 or playable_character == 3 then
+				message.show_and_wait(0, 2324, 8, 0, 0)
+			end
+			if playable_character == 2 then
+				message.show_and_wait(0, 2325, 8, 0, 0)
+			end
 		end
-		if var32 == 9 then
-			helper_75684dd8(0, 2326, 8, 0, 0)
+		if effect_id == 8 then
+			message.show_and_wait(0, 2328, 8, 0, 0)
 		end
-		if var32 == 10 then
-			helper_75684dd8(0, 2329, 8, 0, 0)
+		if effect_id == 9 then
+			message.show_and_wait(0, 2326, 8, 0, 0)
 		end
-		if var32 == 11 then
-			helper_75684dd8(0, 2327, 8, 0, 0)
+		if effect_id == 10 then
+			message.show_and_wait(0, 2329, 8, 0, 0)
 		end
-		if var32 == 12 then
-			helper_75684dd8(0, 2330, 8, 0, 0)
+		if effect_id == 11 then
+			message.show_and_wait(0, 2327, 8, 0, 0)
+		end
+		if effect_id == 12 then
+			message.show_and_wait(0, 2330, 8, 0, 0)
 		end
 	end
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_brightness_rate(1.0)
-	if var32 == 1 then
-		event.spawn_pull_items(pos_x_2, pos_y_2, pos_z_2, 1, 10, result / 10.0)
+	if effect_id == 1 then
+		event.spawn_pull_items(ring_x, ring_y, ring_z, 1, 10, effect_amount / 10.0)
 	end
 	event.set_dungeon_pause_flags(513, 0)
 	event.set_camera_control_enabled(1)
 	do
 		local out1, out2, out3 = event.get_previous_camera_next_position()
-		position_x = out1 or position_x
-		position_y = out2 or position_y
-		position_z = out3 or position_z
+		restored_camera_x = out1 or restored_camera_x
+		restored_camera_y = out2 or restored_camera_y
+		restored_camera_z = out3 or restored_camera_z
 	end
-	event.set_camera_position(position_x, position_y, position_z)
+	event.set_camera_position(restored_camera_x, restored_camera_y, restored_camera_z)
 	do
 		local out1, out2, out3 = event.get_previous_camera_next_look_at()
-		position_x = out1 or position_x
-		position_y = out2 or position_y
-		position_z = out3 or position_z
+		restored_camera_x = out1 or restored_camera_x
+		restored_camera_y = out2 or restored_camera_y
+		restored_camera_z = out3 or restored_camera_z
 	end
-	event.set_camera_look_at(position_x, position_y, position_z)
+	event.set_camera_look_at(restored_camera_x, restored_camera_y, restored_camera_z)
 	event.delete_character(12)
 	event.delete_character(13)
 	event.start_crossfade(15)
 	event.finish_event()
 end
 
---- The dungeon system event run when the player uses the geostone.
+--- Plays the scene of the character picking up and activating the geostone.
 function script.geostone()
-	local active_chr_no: s32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local var8: f32 = 0
-	local var9: f32 = 0
-	local var10: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local var17: f32 = 0
-	local pos_x_3: f32 = 0
-	local pos_y_3: f32 = 0
-	local pos_z_3: f32 = 0
-	local argc: s32 = 0
+	local playable_character: s32 = 0
+	local start_x: f32 = 0
+	local start_y: f32 = 0
+	local start_z: f32 = 0
+	local sound_bank: s32 = 0
+	local camera_x: f32 = 0
+	local camera_y: f32 = 0
+	local camera_z: f32 = 0
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
+	local stone_x: f32 = 0
+	local stone_y: f32 = 0
+	local stone_z: f32 = 0
+	local facing_angle: f32 = 0
+	local effect_x: f32 = 0
+	local effect_y: f32 = 0
+	local effect_z: f32 = 0
+	local system_sound_bank: s32 = 0
 	local stage_id: s32 = 0
-	local var23: s32 = 0
+	local floor: s32 = 0
 	event.initialize_event()
 	event.set_dungeon_pause_flags(513, 1)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 2 or active_chr_no == 3 then
+	playable_character = event.get_playable_character() or playable_character
+	if playable_character == 2 or playable_character == 3 then
 		event.apply_message_window_preset(0, 4)
 		event.set_message_window_mode(0, 4)
 		event.set_message_draw_speed(0, 1)
-		helper_ce85b54c()
-		if active_chr_no == 2 then
-			helper_75684dd8(0, 22, 8, 0, 0)
+		character.reset_action_motion()
+		if playable_character == 2 then
+			message.show_and_wait(0, 22, 8, 0, 0)
 		else
-			helper_75684dd8(0, 23, 8, 0, 0)
+			message.show_and_wait(0, 23, 8, 0, 0)
 		end
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 0)
@@ -2090,99 +2053,99 @@ function script.geostone()
 	event.set_character_motion(0, "立ち")
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var1 = out1 or var1
-		var2 = out2 or var2
-		var3 = out3 or var3
+		start_x = out1 or start_x
+		start_y = out2 or start_y
+		start_z = out3 or start_z
 	end
-	if active_chr_no == 0 then
+	if playable_character == 0 then
 		event.start_background_file_loads_3(
 			"dungeon/chara/c01_gio.gltf",
 			"event/itemget_ev/itemget_ev.gltf",
 			"snd2/sp/sp_012.sound.json"
 		)
 		vm.wait(3)
-		helper_479dc9e9()
+		wait.background_load()
 		event.load_character_motion_pack(5, "dungeon/chara/c01_gio.gltf", "info", 0)
 	end
-	if active_chr_no == 1 then
+	if playable_character == 1 then
 		event.start_background_file_loads_3(
 			"dungeon/chara/c02_gio.gltf",
 			"event/itemget_ev/itemget_ev.gltf",
 			"snd2/sp/sp_012.sound.json"
 		)
 		vm.wait(5)
-		helper_479dc9e9()
+		wait.background_load()
 		event.load_character_motion_pack(5, "dungeon/chara/c02_gio.gltf", "info", 0)
 	end
-	var4 = event.load_sound_effect_file_3(8, "snd2/sp/sp_012.sound.json") or var4
+	sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_012.sound.json") or sound_bank
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
 	do
 		local out1, out2, out3 = event.get_camera_position()
-		pos_x = out1 or pos_x
-		pos_y = out2 or pos_y
-		pos_z = out3 or pos_z
+		camera_x = out1 or camera_x
+		camera_y = out2 or camera_y
+		camera_z = out3 or camera_z
 	end
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var8 = out1 or var8
-		var9 = out2 or var9
-		var10 = out3 or var10
+		character_x = out1 or character_x
+		character_y = out2 or character_y
+		character_z = out3 or character_z
 	end
-	event.copy_vector(var8, var9, var10)
+	event.copy_vector(character_x, character_y, character_z)
 	event.stop_geostone_animation()
 	event.attach_object_handle_to_geostone(1)
 	do
 		local out1, out2, out3 = event.get_object_handle_position(1)
-		pos_x_2 = out1 or pos_x_2
-		pos_y_2 = out2 or pos_y_2
-		pos_z_2 = out3 or pos_z_2
+		stone_x = out1 or stone_x
+		stone_y = out2 or stone_y
+		stone_z = out3 or stone_z
 	end
-	pos_y_2 = vm.f32(var9 + 18.0)
-	event.set_object_handle_position(1, pos_x_2, pos_y_2, pos_z_2)
+	stone_y = vm.f32(character_y + 18.0)
+	event.set_object_handle_position(1, stone_x, stone_y, stone_z)
 	event.clear_object_sequence(1)
 	event.set_object_sequence_object(1, 1)
-	var17 = event.get_direction_angle(pos_x_2, pos_y_2, pos_z_2, pos_x, pos_y, pos_z) or var17
-	var17 = event.wrap_angle(var17) or var17
-	if active_chr_no == 0 then
-		var17 = vm.f32(var17 + vm.f32(2.9))
+	facing_angle = event.get_direction_angle(stone_x, stone_y, stone_z, camera_x, camera_y, camera_z) or facing_angle
+	facing_angle = event.wrap_angle(facing_angle) or facing_angle
+	if playable_character == 0 then
+		facing_angle = vm.f32(facing_angle + vm.f32(2.9))
 	end
-	if active_chr_no == 1 then
-		var17 = vm.f32(var17 + vm.f32(2.4))
+	if playable_character == 1 then
+		facing_angle = vm.f32(facing_angle + vm.f32(2.4))
 	end
-	var17 = event.wrap_angle(var17) or var17
-	var8 = vm.f32(vm.f32(vm.sin(var17) * 14.0) + pos_x_2)
-	var10 = vm.f32(vm.f32(vm.cos(var17) * 14.0) + pos_z_2)
-	event.set_character_position(0, var8, var9, var10)
-	var17 = vm.f32(var17 - vm.f32(3.1415927))
-	var17 = event.wrap_angle(var17) or var17
-	event.set_character_rotation(0, 0.0, var17, 0.0)
+	facing_angle = event.wrap_angle(facing_angle) or facing_angle
+	character_x = vm.f32(vm.f32(vm.sin(facing_angle) * 14.0) + stone_x)
+	character_z = vm.f32(vm.f32(vm.cos(facing_angle) * 14.0) + stone_z)
+	event.set_character_position(0, character_x, character_y, character_z)
+	facing_angle = vm.f32(facing_angle - vm.f32(3.1415927))
+	facing_angle = event.wrap_angle(facing_angle) or facing_angle
+	event.set_character_rotation(0, 0.0, facing_angle, 0.0)
 	event.reset_object_handle_dynamic_animation(0)
 	event.load_character(5, "event/itemget_ev/itemget_ev.gltf", "info", 12)
 	event.set_character_active(0, 12)
-	if active_chr_no == 0 then
+	if playable_character == 0 then
 		event.set_camera_control_enabled(0)
 		event.set_follow_camera_following(1)
-		event.set_follow_camera_target_alternate(var8, var9 + 18.0, var10)
+		event.set_follow_camera_target_alternate(character_x, character_y + 18.0, character_z)
 		event.set_camera_speed(16.0)
 		event.set_follow_camera_offset(0.0, 6.0, 0.0)
 		event.set_follow_camera_height(-14.0)
 		event.set_follow_camera_distance(54.0)
-		event.set_character_position(12, var8, var9 + 36.0, var10)
+		event.set_character_position(12, character_x, character_y + 36.0, character_z)
 	end
-	if active_chr_no == 1 then
+	if playable_character == 1 then
 		event.set_camera_control_enabled(0)
 		event.set_follow_camera_following(1)
-		event.set_follow_camera_target_alternate(var8, var9 + 18.0, var10)
+		event.set_follow_camera_target_alternate(character_x, character_y + 18.0, character_z)
 		event.set_camera_speed(16.0)
 		event.set_follow_camera_offset(0.0, 0.0, 0.0)
 		event.set_follow_camera_height(-5.0)
 		event.set_follow_camera_distance(34.0)
-		pos_x_3 = vm.f32(vm.f32(vm.sin(var17) * 8.0) + var8)
-		pos_y_3 = vm.f32(var9 + 18.0)
-		pos_z_3 = vm.f32(vm.f32(vm.cos(var17) * 8.0) + var10)
-		event.set_character_position(12, pos_x_3, pos_y_3, pos_z_3)
+		effect_x = vm.f32(vm.f32(vm.sin(facing_angle) * 8.0) + character_x)
+		effect_y = vm.f32(character_y + 18.0)
+		effect_z = vm.f32(vm.f32(vm.cos(facing_angle) * 8.0) + character_z)
+		event.set_character_position(12, effect_x, effect_y, effect_z)
 	end
 	event.attach_object_handle_to_character(2, 1)
 	event.set_object_handle_visible(2, 0)
@@ -2191,20 +2154,20 @@ function script.geostone()
 	event.start_crossfade(30)
 	event.set_object_sequence_motion(0, "取る", 6)
 	event.queue_object_sequence_next_motion(0, "取るL", 4)
-	wait_frames(16)
-	event.play_sound_effect(var4, 0)
-	wait_frames(2)
+	wait.frames(16)
+	event.play_sound_effect(sound_bank, 0)
+	wait.frames(2)
 	event.set_object_handle_position(1, 0.0, 0.0, 0.0)
 	event.attach_geostone_to_character_frame(0, "item")
-	wait_frames(10)
+	wait.frames(10)
 	do
 		local out1, out2, out3 = event.get_camera_position()
-		pos_x = out1 or pos_x
-		pos_y = out2 or pos_y
-		pos_z = out3 or pos_z
+		camera_x = out1 or camera_x
+		camera_y = out2 or camera_y
+		camera_z = out3 or camera_z
 	end
-	var17 = event.get_direction_angle(var8, var9, var10, pos_x, pos_y, pos_z) or var17
-	event.set_character_rotation(12, 0.0, var17, 0.0)
+	facing_angle = event.get_direction_angle(character_x, character_y, character_z, camera_x, camera_y, camera_z) or facing_angle
+	event.set_character_rotation(12, 0.0, facing_angle, 0.0)
 	event.set_character_active(1, 12)
 	event.attach_object_handle_to_character(4, 12)
 	event.clear_object_sequence(4)
@@ -2213,28 +2176,28 @@ function script.geostone()
 	event.wait_object_sequence_motion_end(4)
 	event.reset_object_sequence_motion(4)
 	event.set_object_sequence_motion(4, "発動", 5)
-	wait_frames(20)
-	event.play_sound_effect(var4, 1)
-	wait_objects(0)
+	wait.frames(20)
+	event.play_sound_effect(sound_bank, 1)
+	object.wait_until_done(0)
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
-	argc = event.get_system_sound_id() or argc
-	event.play_sound_effect(argc, 18)
-	helper_75684dd8(0, 2400, 8, 0, 0)
+	system_sound_bank = event.get_system_sound_id() or system_sound_bank
+	event.play_sound_effect(system_sound_bank, 18)
+	message.show_and_wait(0, 2400, 8, 0, 0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	stage_id = event.get_dungeon_stage_id() or stage_id
-	var23 = event.get_dungeon_floor() or var23
-	event.set_dungeon_floor_info(stage_id, var23, 5, 256)
+	floor = event.get_dungeon_floor() or floor
+	event.set_dungeon_floor_info(stage_id, floor, 5, 256)
 	event.start_crossfade(10)
-	if active_chr_no == 1 then
+	if playable_character == 1 then
 		event.set_character_motion(0, "取る戻り", 6)
 		vm.wait(13)
 	end
 	event.set_dungeon_pause_flags(529, 0)
 	event.set_character_motion(0, "立ち", 4)
-	event.set_character_position(0, var1, var2, var3)
+	event.set_character_position(0, start_x, start_y, start_z)
 	event.reset_object_handle_dynamic_animation(0)
 	event.attach_object_handle_to_character(2, 1)
 	event.set_object_handle_visible(2, 1)
@@ -2249,38 +2212,39 @@ function script.geostone()
 	event.finish_event()
 end
 
---- The dungeon system event run for a monster that can be talked to.
+--- Starts a monster conversation or the Sundrops gift scene.
 function script.monster_talk()
-	local var0: s32 = 0
-	local var2: s32 = 0
-	local flag: s32 = 0
-	var0 = event.get_save_data_value(0) or var0
-	if var0 == 100 then
-		helper_313d0b27()
+	local save_value: s32 = 0
+	local monster_id: s32 = 0
+	local has_received_sundrops: s32 = 0
+	save_value = event.get_save_data_value(0) or save_value
+	if save_value == 100 then
+		dungeon.talk_to_monster()
 		return
 	end
 	do
 		local _, out2, _ = event.get_monster_talk_data_3()
-		var2 = out2 or var2
+		monster_id = out2 or monster_id
 	end
-	flag = event.get_save_flag(290) or flag
-	if flag == 0 and var2 == 52 then
+	has_received_sundrops = event.get_save_flag(290) or has_received_sundrops
+	if has_received_sundrops == 0 and monster_id == 52 then
 		event.add_inventory_item(356)
-		helper_148ac()
+		receive_sundrops_from_monster()
 	else
-		helper_313d0b27()
+		dungeon.talk_to_monster()
 	end
 end
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	helper_2a1e9b48(0)
+--- Runs the party defeat sequence without a voice line.
+function script.play_defeat_without_voice()
+	dungeon.run_defeat_sequence_with_message_silent(0)
 end
+script[1200] = script.play_defeat_without_voice
 
 --- The dungeon system event run when every monster on the floor has been defeated.
-script.floor_clear = helper_2560c
+script.floor_clear = clear_floor
 
---- The dungeon system event run on the first examination of a random stone.
+--- Shows the guide message for random stones.
 function script.random_stone_guide()
 	event.initialize_event()
 	event.reset_action_character_motion(0)
@@ -2289,7 +2253,7 @@ function script.random_stone_guide()
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
-	helper_75684dd8(0, 2600, 8, 0, 0)
+	message.show_and_wait(0, 2600, 8, 0, 0)
 	vm.wait(2)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
@@ -2297,47 +2261,48 @@ function script.random_stone_guide()
 	event.finish_event()
 end
 
---- Event 2510, which map data, a script or the engine runs by number.
-function script.event_2510()
-	local var0: s32 = 0
+--- Shows a tutorial message and waits for the player to dismiss it.
+function script.show_tutorial_message()
+	local answer: s32 = 0
 	event.initialize_event()
 	event.set_dungeon_pause_flags(515, 1)
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
-	open_message(0, 2610, 8, 0, 0)
-	wait_frames(30)
+	message.open(0, 2610, 8, 0, 0)
+	wait.frames(30)
 	do
 		local _: any
-		_, var0 = wait_message_answer(0, 0, var0)
+		_, answer = message.wait_answer(0, 0, answer)
 	end
-	close_message(0)
+	message.close(0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_pause_flags(515, 0)
 	event.finish_event()
 end
+script[2510] = script.show_tutorial_message
 
---- The dungeon system event run the first time the player levels up.
+--- Shows the level-up guide messages.
 function script.level_up_guide()
-	local var0: s32 = 0
+	local answer: s32 = 0
 	event.initialize_event()
 	event.set_dungeon_pause_flags(515, 1)
 	event.apply_message_window_preset(0, 4)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
-	open_message(0, 2620, 8, 0, 0)
-	wait_frames(30)
+	message.open(0, 2620, 8, 0, 0)
+	wait.frames(30)
 	do
 		local _: any
-		_, var0 = wait_message_answer(0, 0, var0)
+		_, answer = message.wait_answer(0, 0, answer)
 	end
-	close_message(0)
-	helper_75684dd8(0, 2621, 8, 0, 0)
-	helper_75684dd8(0, 2622, 8, 0, 0)
-	helper_75684dd8(0, 2623, 8, 0, 0)
+	message.close(0)
+	message.show_and_wait(0, 2621, 8, 0, 0)
+	message.show_and_wait(0, 2622, 8, 0, 0)
+	message.show_and_wait(0, 2623, 8, 0, 0)
 	event.open_message_window_2(0, 'Mehr erf[UNI00e4]hrst du unter\n"Hilfe" im Hauptmen[UNI00fc].')
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	vm.wait(7)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
@@ -2345,7 +2310,7 @@ function script.level_up_guide()
 	event.finish_event()
 end
 
---- The dungeon system event run the first time the ridepod's wheels are used.
+--- Shows how to drive the buggy.
 function script.robo_bike_guide()
 	event.initialize_event()
 	event.reset_action_character_motion(0)
@@ -2357,7 +2322,7 @@ function script.robo_bike_guide()
 		0,
 		"[(!)]Lenken des Buggys\n   Beschleunige mit (L)↑, bremse mit (L)↓.\n   lenke mit (L) ← oder →.\n   Scharfe Kurven: [l1] + (L) ← oder →."
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	vm.wait(2)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
@@ -2365,7 +2330,7 @@ function script.robo_bike_guide()
 	event.finish_event()
 end
 
---- The dungeon system event run the first time the magic sword counter fills.
+--- Explains the magic-absorb blade.
 function script.magic_sword_guide()
 	event.initialize_event()
 	event.set_dungeon_pause_flags(515, 1)
@@ -2373,27 +2338,27 @@ function script.magic_sword_guide()
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
 	event.open_message_window_2(0, "[(!)]Du kannst die Magie-Raub-\nKlinge jetzt verwenden.")
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(
 		0,
 		"Die Fertigkeit Magie-Raub-Klinge\nerlaubt es dir, die Energie von\nElementarangriffen wie Feuer beim\nAbwehren aufzunehmen.<page>Beim Angriff verwandelt\nsie sich in Magie."
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(
 		0,
 		"Die Energie eines Elements kannst\ndu immer weiter aufladen.\nNimmst du aber einen anderen Elementar-\nTyp auf, verlierst du die ganze Ladung."
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(
 		0,
 		"Wie viel Elementarenergie du\nabsorbieren kannst, h[UNI00e4]ngt von der\nHaltbarkeit deiner Waffe ab."
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.open_message_window_2(
 		0,
 		"Um absorbierte Elementarenergie als\nMagie abzugeben, dr[UNI00fc]cke [l1]\n w[UNI00e4]hrend du mit [r1] abwehrst."
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	vm.wait(6)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
@@ -2401,71 +2366,71 @@ function script.magic_sword_guide()
 	event.finish_event()
 end
 
---- The Sphida event run when the player stands at the ball and presses the action button.
+--- Runs one Sphida shot: aiming, power gauge, ball physics, hazards and the cup-in or miss outcome.
 function script.sphida_shot()
-	local tex_bank: s32 = 0
-	local var1: s32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
-	local var9: f32 = 0
-	local var10: f32 = 0
-	local var11: f32 = 0
-	local var12: f32 = 0
-	local var13: f32 = 0
-	local level: s32 = 0
-	local var15: f32 = 0
-	local var16: f32 = 0
-	local var17: f32 = 0
-	local var18: f32 = 0
-	local var19: f32 = 0
-	local var20: f32 = 0
-	local var21: s32 = 0
-	local var22: f32 = 0
-	local var23: f32 = 0
-	local var24: f32 = 0
-	local var25: f32 = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local var29: s32 = 0
-	local var30: f32 = 0
-	local var31: f32 = 0
-	local var32: f32 = 0
-	local var33: f32 = 0
-	local var34: f32 = 0
-	local var35: f32 = 0
-	local var36: f32 = 0
-	local var37: f32 = 0
-	local var38: f32 = 0
-	local var39: f32 = 0
-	local var40: f32 = 0
-	local var41: s32 = 0
-	local var42: s32 = 0
-	local var43: s32 = 0
-	local var44: s32 = 0
-	local var45: s32 = 0
-	local var46: s32 = 0
-	local var47: f32 = 0
-	local x: f32 = 0
-	local y: f32 = 0
-	local z: f32 = 0
-	local var51: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local yaw: f32 = 0
-	local count: s32 = 0
-	local var57: any = 0
+	local texture_bank: s32 = 0
+	local sound_bank: s32 = 0
+	local ball_x: f32 = 0
+	local ball_y: f32 = 0
+	local ball_z: f32 = 0
+	local rotation_x: f32 = 0
+	local aim_angle: f32 = 0
+	local rotation_z: f32 = 0
+	local origin_x: f32 = 0
+	local origin_y: f32 = 0
+	local origin_z: f32 = 0
+	local launch_angle: f32 = 0
+	local shot_power: f32 = 0
+	local club_curve: f32 = 0
+	local gauge_level: s32 = 0
+	local drift_x: f32 = 0
+	local curve_amount: f32 = 0
+	local drift_z: f32 = 0
+	local previous_x: f32 = 0
+	local previous_y: f32 = 0
+	local previous_z: f32 = 0
+	local is_cup_in: s32 = 0
+	local velocity_x: f32 = 0
+	local velocity_y: f32 = 0
+	local velocity_z: f32 = 0
+	local speed: f32 = 0
+	local pin_x: f32 = 0
+	local pin_y: f32 = 0
+	local pin_z: f32 = 0
+	local out_of_bounds_state: s32 = 0
+	local hit_x: f32 = 0
+	local hit_y: f32 = 0
+	local hit_z: f32 = 0
+	local normal_x: f32 = 0
+	local normal_y: f32 = 0
+	local normal_z: f32 = 0
+	local offset_x: f32 = 0
+	local offset_y: f32 = 0
+	local offset_z: f32 = 0
+	local remaining_distance: f32 = 0
+	local vector_length: f32 = 0
+	local collision_index: s32 = 0
+	local sound_cooldown: s32 = 0
+	local surface_type: s32 = 0
+	local pin_color: s32 = 0
+	local ball_color: s32 = 0
+	local frame_index: s32 = 0
+	local distance_to_pin: f32 = 0
+	local to_pin_x: f32 = 0
+	local to_pin_y: f32 = 0
+	local to_pin_z: f32 = 0
+	local pin_segment_distance: f32 = 0
+	local camera_x: f32 = 0
+	local camera_y: f32 = 0
+	local camera_z: f32 = 0
+	local camera_angle: f32 = 0
+	local par: s32 = 0
+	local choice: any = 0
 	vm.wait(1)
 	event.initialize_event()
-	helper_ce85b54c()
+	character.reset_action_motion()
 	event.set_character_motion(0, "立ち")
-	if helper_17b6d01b() ~= 0 then
+	if minigame.check_sphida_club() ~= 0 then
 		event.finish_event()
 		return
 	end
@@ -2479,13 +2444,13 @@ function script.sphida_shot()
 		"dungeon/sphida/mizu_eff.gltf"
 	)
 	vm.wait(3)
-	helper_479dc9e9()
+	wait.background_load()
 	event.load_character_motion_pack(5, "dungeon/sphida/c01_golf.gltf", "info", 0)
 	event.load_character_motion_pack(5, "dungeon/chara/c01b_miss.gltf", "info", 0)
-	tex_bank = event.get_sphida_texture_bank() or tex_bank
+	texture_bank = event.get_sphida_texture_bank() or texture_bank
 	event.load_character(5, "dungeon/sphida/gool_end.gltf", "info", 12)
 	event.set_character_active(0, 12)
-	var1 = event.load_sound_effect_file_3(5, "snd2/mon/en_900.sound.json") or var1
+	sound_bank = event.load_sound_effect_file_3(5, "snd2/mon/en_900.sound.json") or sound_bank
 	event.create_sword_afterimage(5, 64, 16)
 	event.set_sword_afterimage_color(128, 128, 128, 80, 128, 128, 128, 80)
 	event.initialize_effect_manager(5, 1)
@@ -2497,67 +2462,67 @@ function script.sphida_shot()
 	event.reset_sphida_power_gauge()
 	do
 		local out1, out2, out3 = event.get_sphida_ball_position()
-		var8 = out1 or var8
-		var9 = out2 or var9
-		var10 = out3 or var10
+		origin_x = out1 or origin_x
+		origin_y = out2 or origin_y
+		origin_z = out3 or origin_z
 	end
-	var2, var3, var4, var6 = helper_49c6448e(var2, var3, var4, var6)
-	helper_1a7fd8eb(var6)
+	ball_x, ball_y, ball_z, aim_angle = minigame.set_up_sphida_shot(ball_x, ball_y, ball_z, aim_angle)
+	camera.place_behind_player(aim_angle)
 	event.set_sphida_status_panel_visible(1)
-	var11 = 12.5
-	event.set_sphida_carry_angle(vm.f32(var11 * vm.f32(3.1415927)) / 180.0)
-	var12, var13, level = helper_39ab7f1f(var12, var13, level)
-	event.set_sphida_power_gauge_safe_level(level)
+	launch_angle = 12.5
+	event.set_sphida_carry_angle(vm.f32(launch_angle * vm.f32(3.1415927)) / 180.0)
+	shot_power, club_curve, gauge_level = minigame.get_equipped_club_definition(shot_power, club_curve, gauge_level)
+	event.set_sphida_power_gauge_safe_level(gauge_level)
 	do
 		local out1, out2, out3 = event.zero_vector()
-		var15 = out1 or var15
-		var16 = out2 or var16
-		var17 = out3 or var17
+		drift_x = out1 or drift_x
+		curve_amount = out2 or curve_amount
+		drift_z = out3 or drift_z
 	end
 	while true do
 		event.set_sphida_minimap_scroll_enabled(1)
 		event.set_sphida_minimap_shot_line_visible(1)
-		local t0: s32
-		t0, var6, var11 = helper_86f3f24c(var6, var11, tex_bank)
-		if t0 ~= 0 then
+		local was_aim_cancelled: s32
+		was_aim_cancelled, aim_angle, launch_angle = minigame.aim_sphida_shot(aim_angle, launch_angle, texture_bank)
+		if was_aim_cancelled ~= 0 then
 			event.set_sphida_minimap_scroll_enabled(0)
 			event.set_sphida_minimap_shot_line_visible(0)
-			event.set_sphida_ball_position(var8, var9, var10)
-			event.set_character_position(8, var8, var9, var10)
-			event.set_character_position(9, var8, var9, var10)
-			helper_03a1d6f1(0)
+			event.set_sphida_ball_position(origin_x, origin_y, origin_z)
+			event.set_character_position(8, origin_x, origin_y, origin_z)
+			event.set_character_position(9, origin_x, origin_y, origin_z)
+			minigame.finish_sphida_round(0)
 			return
 		end
 		event.set_sphida_minimap_scroll_enabled(0)
 		event.set_sphida_minimap_shot_line_visible(0)
-		local t1: s32
-		t1, var12, var6, var16, var15, level = helper_b1b0c1a6(var12, tex_bank, var6, var16, var15, var1, level)
-		if t1 == 0 then
+		local was_gauge_cancelled: s32
+		was_gauge_cancelled, shot_power, aim_angle, curve_amount, drift_x, gauge_level = minigame.run_sphida_power_gauge(shot_power, texture_bank, aim_angle, curve_amount, drift_x, sound_bank, gauge_level)
+		if was_gauge_cancelled == 0 then
 			break
 		else
 			vm.wait(8)
 		end
 	end
 	do
-		local out1, out2, out3 = event.copy_vector(var2, var3, var4)
-		var18 = out1 or var18
-		var19 = out2 or var19
-		var20 = out3 or var20
+		local out1, out2, out3 = event.copy_vector(ball_x, ball_y, ball_z)
+		previous_x = out1 or previous_x
+		previous_y = out2 or previous_y
+		previous_z = out3 or previous_z
 	end
-	var21 = 0
-	if level ~= 1 and level ~= -1 and level ~= 4 then
+	is_cup_in = 0
+	if gauge_level ~= 1 and gauge_level ~= -1 and gauge_level ~= 4 then
 		event.set_event_sprite_type(0, 1)
 		event.set_event_sprite_draw_pass(0, 1)
 		event.set_event_sprite_size(0, 10.8, 11.6)
-		event.set_event_sprite_position(0, var2, var3 + 30.0, var4)
+		event.set_event_sprite_position(0, ball_x, ball_y + 30.0, ball_z)
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
-		if level == 0 then
+		if gauge_level == 0 then
 			event.set_event_sprite_texture_rect(0, 78, 198, 54, 58)
 		end
-		if level == 2 or level == -2 then
+		if gauge_level == 2 or gauge_level == -2 then
 			event.set_event_sprite_texture_rect(0, 186, 190, 70, 66)
 		end
-		if level == 3 or level == -3 then
+		if gauge_level == 3 or gauge_level == -3 then
 			event.set_event_sprite_texture_rect(0, 132, 198, 54, 58)
 		end
 		event.attach_object_handle_to_sprite(18, 0)
@@ -2566,37 +2531,37 @@ function script.sphida_shot()
 		event.set_object_sequence_color(18, 128, 128, 128, 128, 4)
 		event.delay_object_sequence_color_track(18, 20)
 		event.set_object_sequence_color(18, 128, 128, 128, 0, 6)
-		wait_frames(10)
+		wait.frames(10)
 	end
-	if var12 <= vm.f32(0.3) then
+	if shot_power <= vm.f32(0.3) then
 		event.set_character_motion(0, "小ショット", 2)
-		wait_frames(25)
-		if level ~= 4 then
-			event.play_sound_effect(var1, 3)
+		wait.frames(25)
+		if gauge_level ~= 4 then
+			event.play_sound_effect(sound_bank, 3)
 		end
-	elseif var12 <= vm.f32(0.6) then
+	elseif shot_power <= vm.f32(0.6) then
 		event.set_character_motion(0, "中ショット", 2)
-		wait_frames(34)
-		event.play_sound_effect(var1, 2)
+		wait.frames(34)
+		event.play_sound_effect(sound_bank, 2)
 	else
 		event.set_character_motion(0, "大ショット", 2)
-		wait_frames(39)
-		if level == 0 then
-			event.play_sound_effect(var1, 12)
+		wait.frames(39)
+		if gauge_level == 0 then
+			event.play_sound_effect(sound_bank, 12)
 		else
-			event.play_sound_effect(var1, 1)
+			event.play_sound_effect(sound_bank, 1)
 		end
 	end
-	if level == 4 then
-		wait_frames(50)
-		helper_f90045b0(var1)
-		event.set_sphida_ball_position(var8, var9, var10)
-		event.set_character_position(8, var8, var9, var10)
-		event.set_character_position(9, var8, var9, var10)
-		helper_03a1d6f1(0)
+	if gauge_level == 4 then
+		wait.frames(50)
+		minigame.consume_sphida_shot(sound_bank)
+		event.set_sphida_ball_position(origin_x, origin_y, origin_z)
+		event.set_character_position(8, origin_x, origin_y, origin_z)
+		event.set_character_position(9, origin_x, origin_y, origin_z)
+		minigame.finish_sphida_round(0)
 		return
 	end
-	if level == 0 then
+	if gauge_level == 0 then
 		event.set_event_sprite_type(1, 0)
 		event.set_event_sprite_draw_pass(1, 1)
 		event.set_event_sprite_position(1, 256, 278)
@@ -2613,593 +2578,593 @@ function script.sphida_shot()
 		event.delay_object_sequence_color_track(19, 30)
 		event.set_object_sequence_color(19, 128, 128, 128, 0, 6)
 	end
-	var12 = helper_dff48a5c(var12)
-	var11 = vm.f32(vm.f32(var11 * vm.f32(3.1415927)) / 180.0)
-	var12 = vm.f32(var12 - vm.f32(var12 * var11))
-	var22 = vm.f32(vm.sin(var6) * vm.f32(var12 * vm.cos(var11)))
-	var23 = vm.f32(var12 * vm.sin(var11))
-	var24 = vm.f32(vm.cos(var6) * vm.f32(var12 * vm.cos(var11)))
-	var16 = vm.f32(vm.f32(var16 * vm.f32(3.1415927)) / 2.0)
-	var17 = vm.f32(vm.f32(vm.f32(-var24 * var13) * var15) * vm.f32(0.4))
-	var15 = vm.f32(vm.f32(vm.f32(-var22 * var13) * var15) * vm.f32(0.4))
+	shot_power = minigame.scale_by_club_power(shot_power)
+	launch_angle = vm.f32(vm.f32(launch_angle * vm.f32(3.1415927)) / 180.0)
+	shot_power = vm.f32(shot_power - vm.f32(shot_power * launch_angle))
+	velocity_x = vm.f32(vm.sin(aim_angle) * vm.f32(shot_power * vm.cos(launch_angle)))
+	velocity_y = vm.f32(shot_power * vm.sin(launch_angle))
+	velocity_z = vm.f32(vm.cos(aim_angle) * vm.f32(shot_power * vm.cos(launch_angle)))
+	curve_amount = vm.f32(vm.f32(curve_amount * vm.f32(3.1415927)) / 2.0)
+	drift_z = vm.f32(vm.f32(vm.f32(-velocity_z * club_curve) * drift_x) * vm.f32(0.4))
+	drift_x = vm.f32(vm.f32(vm.f32(-velocity_x * club_curve) * drift_x) * vm.f32(0.4))
 	do
 		local out1, out2, out3 = event.get_sphida_pin_position()
-		pos_x = out1 or pos_x
-		pos_y = out2 or pos_y
-		pos_z = out3 or pos_z
+		pin_x = out1 or pin_x
+		pin_y = out2 or pin_y
+		pin_z = out3 or pin_z
 	end
-	var29 = 0
-	level = 0
-	var42 = 0
+	out_of_bounds_state = 0
+	gauge_level = 0
+	sound_cooldown = 0
 	do
 		local out1, out2, out3, out4, out5 =
-			event.get_segment_collision_13(0, var2, var3 + 5.0, var4, var2, var3, var4, 0)
-		var30 = out1 or var30
-		var31 = out2 or var31
-		var32 = out3 or var32
-		var41 = out4 or var41
-		var43 = out5 or var43
+			event.get_segment_collision_13(0, ball_x, ball_y + 5.0, ball_z, ball_x, ball_y, ball_z, 0)
+		hit_x = out1 or hit_x
+		hit_y = out2 or hit_y
+		hit_z = out3 or hit_z
+		collision_index = out4 or collision_index
+		surface_type = out5 or surface_type
 	end
-	if var41 >= 0 and (var43 == 1 or var43 == 7) then
+	if collision_index >= 0 and (surface_type == 1 or surface_type == 7) then
 		print("----------------START_MIZU-------------------\n")
-		var12 = 1.0
+		shot_power = 1.0
 	else
 		print("----------------START_SOTO-------------------\n")
-		var12 = 0.0
+		shot_power = 0.0
 	end
-	var46 = 0
+	frame_index = 0
 	while true do
-		if var3 >= 180.0 then
-			var22 = vm.f32(var22 * vm.f32(0.999))
-			var23 = vm.f32(var23 + vm.f32(vm.f32(-0.0098) * (var46 + 1)))
-			var24 = vm.f32(var24 * vm.f32(0.999))
+		if ball_y >= 180.0 then
+			velocity_x = vm.f32(velocity_x * vm.f32(0.999))
+			velocity_y = vm.f32(velocity_y + vm.f32(vm.f32(-0.0098) * (frame_index + 1)))
+			velocity_z = vm.f32(velocity_z * vm.f32(0.999))
 		else
-			var41 = event.get_segment_collision_9(12, var2, var3, var4, var2, vm.f32(var3 - 3.0) - vm.f32(0.01), var4, 0)
-				or var41
-			if level == 1 and var41 >= 0 then
-				var22 = vm.f32(var22 * vm.f32(0.94))
-				var23 = vm.f32(var23 + vm.f32(vm.f32(-0.00045) * (var46 + 1)))
-				var24 = vm.f32(var24 * vm.f32(0.94))
-				var22 = vm.f32(var22 + var15)
-				var24 = vm.f32(var24 + var17)
-				var15 = vm.f32(var15 * vm.f32(0.8))
-				var17 = vm.f32(var17 * vm.f32(0.8))
+			collision_index = event.get_segment_collision_9(12, ball_x, ball_y, ball_z, ball_x, vm.f32(ball_y - 3.0) - vm.f32(0.01), ball_z, 0)
+				or collision_index
+			if gauge_level == 1 and collision_index >= 0 then
+				velocity_x = vm.f32(velocity_x * vm.f32(0.94))
+				velocity_y = vm.f32(velocity_y + vm.f32(vm.f32(-0.00045) * (frame_index + 1)))
+				velocity_z = vm.f32(velocity_z * vm.f32(0.94))
+				velocity_x = vm.f32(velocity_x + drift_x)
+				velocity_z = vm.f32(velocity_z + drift_z)
+				drift_x = vm.f32(drift_x * vm.f32(0.8))
+				drift_z = vm.f32(drift_z * vm.f32(0.8))
 			else
-				var22 = vm.f32(var22 * vm.f32(0.999))
-				var23 = vm.f32(var23 + vm.f32(vm.f32(-0.0045) * (var46 + 1)))
-				var24 = vm.f32(var24 * vm.f32(0.999))
+				velocity_x = vm.f32(velocity_x * vm.f32(0.999))
+				velocity_y = vm.f32(velocity_y + vm.f32(vm.f32(-0.0045) * (frame_index + 1)))
+				velocity_z = vm.f32(velocity_z * vm.f32(0.999))
 			end
 		end
 		do
-			local out1, out2, out3 = event.add_vectors(var2, var3, var4, var22, var23, var24)
-			var2 = out1 or var2
-			var3 = out2 or var3
-			var4 = out3 or var4
+			local out1, out2, out3 = event.add_vectors(ball_x, ball_y, ball_z, velocity_x, velocity_y, velocity_z)
+			ball_x = out1 or ball_x
+			ball_y = out2 or ball_y
+			ball_z = out3 or ball_z
 		end
-		if var16 ~= 0.0 then
-			var11 = event.get_direction_angle(var18, var19, var20, var2, var3, var4) or var11
-			var11 = vm.f32(var11 + var16)
-			var11 = event.wrap_angle(var11) or var11
-			var22 = vm.f32(var22 + vm.f32(vm.f32(vm.sin(var11) / 10.0) * var13))
-			var24 = vm.f32(var24 + vm.f32(vm.f32(vm.cos(var11) / 10.0) * var13))
+		if curve_amount ~= 0.0 then
+			launch_angle = event.get_direction_angle(previous_x, previous_y, previous_z, ball_x, ball_y, ball_z) or launch_angle
+			launch_angle = vm.f32(launch_angle + curve_amount)
+			launch_angle = event.wrap_angle(launch_angle) or launch_angle
+			velocity_x = vm.f32(velocity_x + vm.f32(vm.f32(vm.sin(launch_angle) / 10.0) * club_curve))
+			velocity_z = vm.f32(velocity_z + vm.f32(vm.f32(vm.cos(launch_angle) / 10.0) * club_curve))
 		end
-		var40 = event.get_vector_length(var15, 0.0, var17) or var40
-		if var40 > vm.f32(0.01) then
-			var25 = event.get_vector_length(var15, 0.0, var17) or var25
-			var11 = event.get_direction_angle(var18, var19, var20, var18 + var15, var19, var20 + var17) or var11
+		vector_length = event.get_vector_length(drift_x, 0.0, drift_z) or vector_length
+		if vector_length > vm.f32(0.01) then
+			speed = event.get_vector_length(drift_x, 0.0, drift_z) or speed
+			launch_angle = event.get_direction_angle(previous_x, previous_y, previous_z, previous_x + drift_x, previous_y, previous_z + drift_z) or launch_angle
 			do
 				local out1, out2, out3 = event.get_character_rotation(8)
-				var5 = out1 or var5
-				var6 = out2 or var6
-				var7 = out3 or var7
+				rotation_x = out1 or rotation_x
+				aim_angle = out2 or aim_angle
+				rotation_z = out3 or rotation_z
 			end
-			event.set_character_rotation(8, var5, var11, var7)
-			event.offset_character_rotation(8, var25 * 12.0, 0.0, 0.0)
-			event.set_character_rotation(9, var5, var11, var7)
-			event.offset_character_rotation(9, var25 * 12.0, 0.0, 0.0)
+			event.set_character_rotation(8, rotation_x, launch_angle, rotation_z)
+			event.offset_character_rotation(8, speed * 12.0, 0.0, 0.0)
+			event.set_character_rotation(9, rotation_x, launch_angle, rotation_z)
+			event.offset_character_rotation(9, speed * 12.0, 0.0, 0.0)
 		else
-			var25 = event.get_vector_length(var22, 0.0, var24) or var25
-			var11 = event.get_direction_angle(var18, var19, var20, var2, var3, var4) or var11
+			speed = event.get_vector_length(velocity_x, 0.0, velocity_z) or speed
+			launch_angle = event.get_direction_angle(previous_x, previous_y, previous_z, ball_x, ball_y, ball_z) or launch_angle
 			do
 				local out1, out2, out3 = event.get_character_rotation(8)
-				var5 = out1 or var5
-				var6 = out2 or var6
-				var7 = out3 or var7
+				rotation_x = out1 or rotation_x
+				aim_angle = out2 or aim_angle
+				rotation_z = out3 or rotation_z
 			end
-			event.set_character_rotation(8, var5, var11, var7)
-			event.offset_character_rotation(8, var25 / 10.0, 0.0, 0.0)
-			event.set_character_rotation(9, var5, var11, var7)
-			event.offset_character_rotation(9, var25 / 10.0, 0.0, 0.0)
+			event.set_character_rotation(8, rotation_x, launch_angle, rotation_z)
+			event.offset_character_rotation(8, speed / 10.0, 0.0, 0.0)
+			event.set_character_rotation(9, rotation_x, launch_angle, rotation_z)
+			event.offset_character_rotation(9, speed / 10.0, 0.0, 0.0)
 		end
-		var25 = event.get_vector_length(var22, var23, var24) or var25
-		var39 = var25
-		var11 = event.get_direction_angle(var18, var19, var20, var2, var3, var4) or var11
-		var36 = vm.f32(vm.sin(vm.f32(var11 - vm.f32(1.5707964))) * 3.0)
-		var38 = vm.f32(vm.cos(vm.f32(var11 - vm.f32(1.5707964))) * 3.0)
+		speed = event.get_vector_length(velocity_x, velocity_y, velocity_z) or speed
+		remaining_distance = speed
+		launch_angle = event.get_direction_angle(previous_x, previous_y, previous_z, ball_x, ball_y, ball_z) or launch_angle
+		offset_x = vm.f32(vm.sin(vm.f32(launch_angle - vm.f32(1.5707964))) * 3.0)
+		offset_z = vm.f32(vm.cos(vm.f32(launch_angle - vm.f32(1.5707964))) * 3.0)
 		event.add_sword_afterimage_point(
-			var2 - var36,
-			var3,
-			var4 - var38,
-			vm.f32(var2 + var36) + var36,
-			var3,
-			vm.f32(var4 + var38) + var38
+			ball_x - offset_x,
+			ball_y,
+			ball_z - offset_z,
+			vm.f32(ball_x + offset_x) + offset_x,
+			ball_y,
+			vm.f32(ball_z + offset_z) + offset_z
 		)
 		do
-			local out1, out2, out3 = event.copy_vector(var22, var23, var24)
-			var36 = out1 or var36
-			var37 = out2 or var37
-			var38 = out3 or var38
+			local out1, out2, out3 = event.copy_vector(velocity_x, velocity_y, velocity_z)
+			offset_x = out1 or offset_x
+			offset_y = out2 or offset_y
+			offset_z = out3 or offset_z
 		end
 		do
-			local out1, out2, out3 = event.normalize_vector(var36, var37, var38)
-			var36 = out1 or var36
-			var37 = out2 or var37
-			var38 = out3 or var38
+			local out1, out2, out3 = event.normalize_vector(offset_x, offset_y, offset_z)
+			offset_x = out1 or offset_x
+			offset_y = out2 or offset_y
+			offset_z = out3 or offset_z
 		end
 		do
-			local out1, out2, out3 = event.scale_vector(var36, var37, var38, 3.0)
-			var36 = out1 or var36
-			var37 = out2 or var37
-			var38 = out3 or var38
+			local out1, out2, out3 = event.scale_vector(offset_x, offset_y, offset_z, 3.0)
+			offset_x = out1 or offset_x
+			offset_y = out2 or offset_y
+			offset_z = out3 or offset_z
 		end
 		do
 			local out1, out2, out3, out4, out5 =
-				event.get_segment_collision_13(0, var18, var19, var20, var2 + var36, var3 + var37, var4 + var38, 0)
-			var30 = out1 or var30
-			var31 = out2 or var31
-			var32 = out3 or var32
-			var41 = out4 or var41
-			var43 = out5 or var43
+				event.get_segment_collision_13(0, previous_x, previous_y, previous_z, ball_x + offset_x, ball_y + offset_y, ball_z + offset_z, 0)
+			hit_x = out1 or hit_x
+			hit_y = out2 or hit_y
+			hit_z = out3 or hit_z
+			collision_index = out4 or collision_index
+			surface_type = out5 or surface_type
 		end
-		if var41 >= 0 and (var43 == 1 or var43 == 7) then
+		if collision_index >= 0 and (surface_type == 1 or surface_type == 7) then
 			event.create_effect("足水パシャ")
-			event.set_effect_first_vector(var30, var31, var32)
-			if var42 <= 0 then
-				event.play_sound_effect(var1, 11)
-				var42 = 10
+			event.set_effect_first_vector(hit_x, hit_y, hit_z)
+			if sound_cooldown <= 0 then
+				event.play_sound_effect(sound_bank, 11)
+				sound_cooldown = 10
 			end
-			if var12 == 0.0 then
-				var12 = 1.0
-				var22 = vm.f32(var22 * vm.f32(0.4))
-				var23 = vm.f32(var23 * vm.f32(0.4))
-				var24 = vm.f32(var24 * vm.f32(0.4))
-				var15 = 0.0
-				var17 = 0.0
+			if shot_power == 0.0 then
+				shot_power = 1.0
+				velocity_x = vm.f32(velocity_x * vm.f32(0.4))
+				velocity_y = vm.f32(velocity_y * vm.f32(0.4))
+				velocity_z = vm.f32(velocity_z * vm.f32(0.4))
+				drift_x = 0.0
+				drift_z = 0.0
 				event.delete_sword_afterimage()
 				print("----------------SE OFF-------------------\n")
 			else
-				var12 = 0.0
+				shot_power = 0.0
 				print("----------------SE ON-------------------\n")
 			end
 		end
 		do
 			local out1, out2, out3, out4, out5, out6, out7 =
-				event.get_segment_collision_15(12, var18, var19, var20, var2 + var36, var3 + var37, var4 + var38, 1)
-			var30 = out1 or var30
-			var31 = out2 or var31
-			var32 = out3 or var32
-			var33 = out4 or var33
-			var34 = out5 or var34
-			var35 = out6 or var35
-			var41 = out7 or var41
+				event.get_segment_collision_15(12, previous_x, previous_y, previous_z, ball_x + offset_x, ball_y + offset_y, ball_z + offset_z, 1)
+			hit_x = out1 or hit_x
+			hit_y = out2 or hit_y
+			hit_z = out3 or hit_z
+			normal_x = out4 or normal_x
+			normal_y = out5 or normal_y
+			normal_z = out6 or normal_z
+			collision_index = out7 or collision_index
 		end
-		if var41 < 0 then
-			if var3 >= 380.0 and var23 > 0.0 then
+		if collision_index < 0 then
+			if ball_y >= 380.0 and velocity_y > 0.0 then
 				do
-					local out1, out2, out3 = event.copy_vector(var2, var3, var4)
-					var30 = out1 or var30
-					var31 = out2 or var31
-					var32 = out3 or var32
+					local out1, out2, out3 = event.copy_vector(ball_x, ball_y, ball_z)
+					hit_x = out1 or hit_x
+					hit_y = out2 or hit_y
+					hit_z = out3 or hit_z
 				end
 				do
-					local out1, out2, out3 = event.copy_vector(var22, -var23, var24)
-					var33 = out1 or var33
-					var34 = out2 or var34
-					var35 = out3 or var35
+					local out1, out2, out3 = event.copy_vector(velocity_x, -velocity_y, velocity_z)
+					normal_x = out1 or normal_x
+					normal_y = out2 or normal_y
+					normal_z = out3 or normal_z
 				end
 				do
-					local out1, out2, out3 = event.normalize_vector(var33, var34, var35)
-					var33 = out1 or var33
-					var34 = out2 or var34
-					var35 = out3 or var35
+					local out1, out2, out3 = event.normalize_vector(normal_x, normal_y, normal_z)
+					normal_x = out1 or normal_x
+					normal_y = out2 or normal_y
+					normal_z = out3 or normal_z
 				end
-				var41 = 1
+				collision_index = 1
 			end
 		end
-		while var41 >= 0 do
-			var16 = 0.0
-			if var25 > 8.0 then
-				helper_79d90c82()
+		while collision_index >= 0 do
+			curve_amount = 0.0
+			if speed > 8.0 then
+				minigame.toggle_sphida_ball_color()
 			end
-			if var12 ~= 1.0 and var42 <= 0 then
-				event.play_sound_effect(var1, 6)
-				var42 = 10
-			end
-			do
-				local out1, out2, out3 = event.copy_vector(-var22, -var23, -var24)
-				var22 = out1 or var22
-				var23 = out2 or var23
-				var24 = out3 or var24
+			if shot_power ~= 1.0 and sound_cooldown <= 0 then
+				event.play_sound_effect(sound_bank, 6)
+				sound_cooldown = 10
 			end
 			do
-				local out1, out2, out3 = event.normalize_vector(var22, var23, var24)
-				var22 = out1 or var22
-				var23 = out2 or var23
-				var24 = out3 or var24
+				local out1, out2, out3 = event.copy_vector(-velocity_x, -velocity_y, -velocity_z)
+				velocity_x = out1 or velocity_x
+				velocity_y = out2 or velocity_y
+				velocity_z = out3 or velocity_z
 			end
 			do
-				local out1, out2, out3 = event.scale_vector(var22, var23, var24, 3.0)
-				var22 = out1 or var22
-				var23 = out2 or var23
-				var24 = out3 or var24
+				local out1, out2, out3 = event.normalize_vector(velocity_x, velocity_y, velocity_z)
+				velocity_x = out1 or velocity_x
+				velocity_y = out2 or velocity_y
+				velocity_z = out3 or velocity_z
 			end
 			do
-				local out1, out2, out3 = event.add_vectors(var30, var31, var32, var22, var23, var24)
-				var30 = out1 or var30
-				var31 = out2 or var31
-				var32 = out3 or var32
+				local out1, out2, out3 = event.scale_vector(velocity_x, velocity_y, velocity_z, 3.0)
+				velocity_x = out1 or velocity_x
+				velocity_y = out2 or velocity_y
+				velocity_z = out3 or velocity_z
 			end
 			do
-				local out1, out2, out3 = event.subtract_vectors(var18, var19, var20, var30, var31, var32)
-				var18 = out1 or var18
-				var19 = out2 or var19
-				var20 = out3 or var20
+				local out1, out2, out3 = event.add_vectors(hit_x, hit_y, hit_z, velocity_x, velocity_y, velocity_z)
+				hit_x = out1 or hit_x
+				hit_y = out2 or hit_y
+				hit_z = out3 or hit_z
 			end
-			var40 = event.get_vector_length(var18, var19, var20) or var40
-			var40 = vm.f32(var39 - var40)
-			if var40 <= 0.0 then
+			do
+				local out1, out2, out3 = event.subtract_vectors(previous_x, previous_y, previous_z, hit_x, hit_y, hit_z)
+				previous_x = out1 or previous_x
+				previous_y = out2 or previous_y
+				previous_z = out3 or previous_z
+			end
+			vector_length = event.get_vector_length(previous_x, previous_y, previous_z) or vector_length
+			vector_length = vm.f32(remaining_distance - vector_length)
+			if vector_length <= 0.0 then
 				break
 			else
-				var39 = var40
+				remaining_distance = vector_length
 				do
-					local out1, out2, out3 = event.copy_vector(-var22, -var23, -var24)
-					var22 = out1 or var22
-					var23 = out2 or var23
-					var24 = out3 or var24
+					local out1, out2, out3 = event.copy_vector(-velocity_x, -velocity_y, -velocity_z)
+					velocity_x = out1 or velocity_x
+					velocity_y = out2 or velocity_y
+					velocity_z = out3 or velocity_z
 				end
-				if var23 < 0.0 and var34 > 0.0 then
-					var22 = vm.f32(var15 * 2.0)
-					var23 = 0.0
-					var24 = vm.f32(var17 * 2.0)
-					var15 = vm.f32(var15 * vm.f32(0.2))
-					var17 = vm.f32(var17 * vm.f32(0.2))
+				if velocity_y < 0.0 and normal_y > 0.0 then
+					velocity_x = vm.f32(drift_x * 2.0)
+					velocity_y = 0.0
+					velocity_z = vm.f32(drift_z * 2.0)
+					drift_x = vm.f32(drift_x * vm.f32(0.2))
+					drift_z = vm.f32(drift_z * vm.f32(0.2))
 				else
 					if
-						var22 < 0.0 and var33 > 0.0
-						or var22 > 0.0 and var33 < 0.0
-						or var24 < 0.0 and var35 > 0.0
-						or var24 > 0.0 and var35 < 0.0
+						velocity_x < 0.0 and normal_x > 0.0
+						or velocity_x > 0.0 and normal_x < 0.0
+						or velocity_z < 0.0 and normal_z > 0.0
+						or velocity_z > 0.0 and normal_z < 0.0
 					then
-						var15 = 0.0
-						var17 = 0.0
+						drift_x = 0.0
+						drift_z = 0.0
 					end
-					var22 = 0.0
-					var23 = 0.0
-					var24 = 0.0
+					velocity_x = 0.0
+					velocity_y = 0.0
+					velocity_z = 0.0
 				end
-				if var12 == 0.0 then
-					var22 = vm.f32(vm.f32(vm.f32(var33 * var25) * vm.f32(0.9)) + var22)
-					var23 = vm.f32(vm.f32(vm.f32(var34 * var25) * vm.f32(0.58)) + var23)
-					var24 = vm.f32(vm.f32(vm.f32(var35 * var25) * vm.f32(0.9)) + var24)
+				if shot_power == 0.0 then
+					velocity_x = vm.f32(vm.f32(vm.f32(normal_x * speed) * vm.f32(0.9)) + velocity_x)
+					velocity_y = vm.f32(vm.f32(vm.f32(normal_y * speed) * vm.f32(0.58)) + velocity_y)
+					velocity_z = vm.f32(vm.f32(vm.f32(normal_z * speed) * vm.f32(0.9)) + velocity_z)
 				else
 					print("MIZU______1--------------------------------------------------------------------\n")
-					var22 = vm.f32(vm.f32(vm.f32(var33 * var25) * vm.f32(0.8)) + var22)
-					var23 = vm.f32(vm.f32(vm.f32(var34 * var25) * vm.f32(0.4)) + var23)
-					var24 = vm.f32(vm.f32(vm.f32(var35 * var25) * vm.f32(0.8)) + var24)
+					velocity_x = vm.f32(vm.f32(vm.f32(normal_x * speed) * vm.f32(0.8)) + velocity_x)
+					velocity_y = vm.f32(vm.f32(vm.f32(normal_y * speed) * vm.f32(0.4)) + velocity_y)
+					velocity_z = vm.f32(vm.f32(vm.f32(normal_z * speed) * vm.f32(0.8)) + velocity_z)
 				end
 				do
-					local out1, out2, out3 = event.copy_vector(var30, var31, var32)
-					var18 = out1 or var18
-					var19 = out2 or var19
-					var20 = out3 or var20
+					local out1, out2, out3 = event.copy_vector(hit_x, hit_y, hit_z)
+					previous_x = out1 or previous_x
+					previous_y = out2 or previous_y
+					previous_z = out3 or previous_z
 				end
 				do
-					local out1, out2, out3 = event.copy_vector(var22, var23, var24)
-					var36 = out1 or var36
-					var37 = out2 or var37
-					var38 = out3 or var38
+					local out1, out2, out3 = event.copy_vector(velocity_x, velocity_y, velocity_z)
+					offset_x = out1 or offset_x
+					offset_y = out2 or offset_y
+					offset_z = out3 or offset_z
 				end
 				do
-					local out1, out2, out3 = event.normalize_vector(var36, var37, var38)
-					var36 = out1 or var36
-					var37 = out2 or var37
-					var38 = out3 or var38
+					local out1, out2, out3 = event.normalize_vector(offset_x, offset_y, offset_z)
+					offset_x = out1 or offset_x
+					offset_y = out2 or offset_y
+					offset_z = out3 or offset_z
 				end
 				do
-					local out1, out2, out3 = event.scale_vector(var36, var37, var38, 3.0)
-					var36 = out1 or var36
-					var37 = out2 or var37
-					var38 = out3 or var38
+					local out1, out2, out3 = event.scale_vector(offset_x, offset_y, offset_z, 3.0)
+					offset_x = out1 or offset_x
+					offset_y = out2 or offset_y
+					offset_z = out3 or offset_z
 				end
 				do
-					local out1, out2, out3 = event.scale_vector(var33, var34, var35, var40)
-					var33 = out1 or var33
-					var34 = out2 or var34
-					var35 = out3 or var35
+					local out1, out2, out3 = event.scale_vector(normal_x, normal_y, normal_z, vector_length)
+					normal_x = out1 or normal_x
+					normal_y = out2 or normal_y
+					normal_z = out3 or normal_z
 				end
 				do
-					local out1, out2, out3 = event.copy_vector(var30, var31, var32)
-					var2 = out1 or var2
-					var3 = out2 or var3
-					var4 = out3 or var4
+					local out1, out2, out3 = event.copy_vector(hit_x, hit_y, hit_z)
+					ball_x = out1 or ball_x
+					ball_y = out2 or ball_y
+					ball_z = out3 or ball_z
 				end
 				do
-					local out1, out2, out3 = event.add_vectors(var2, var3, var4, var33, var34, var35)
-					var2 = out1 or var2
-					var3 = out2 or var3
-					var4 = out3 or var4
+					local out1, out2, out3 = event.add_vectors(ball_x, ball_y, ball_z, normal_x, normal_y, normal_z)
+					ball_x = out1 or ball_x
+					ball_y = out2 or ball_y
+					ball_z = out3 or ball_z
 				end
 				do
 					local out1, out2, out3, out4, out5, out6, out7, out8 = event.get_segment_collision_16(
 						12,
-						var18,
-						var19,
-						var20,
-						var2 + var36,
-						var3 + var37,
-						var4 + var38,
+						previous_x,
+						previous_y,
+						previous_z,
+						ball_x + offset_x,
+						ball_y + offset_y,
+						ball_z + offset_z,
 						1
 					)
-					var30 = out1 or var30
-					var31 = out2 or var31
-					var32 = out3 or var32
-					var33 = out4 or var33
-					var34 = out5 or var34
-					var35 = out6 or var35
-					var41 = out7 or var41
-					var43 = out8 or var43
+					hit_x = out1 or hit_x
+					hit_y = out2 or hit_y
+					hit_z = out3 or hit_z
+					normal_x = out4 or normal_x
+					normal_y = out5 or normal_y
+					normal_z = out6 or normal_z
+					collision_index = out7 or collision_index
+					surface_type = out8 or surface_type
 				end
 			end
 		end
 		do
 			local out1, out2, out3, out4, out5, out6, out7, out8 =
-				event.get_segment_collision_16(12, var2, var3, var4, var2, var3 - 3.0, var4, 1)
-			var30 = out1 or var30
-			var31 = out2 or var31
-			var32 = out3 or var32
-			var33 = out4 or var33
-			var34 = out5 or var34
-			var35 = out6 or var35
-			var41 = out7 or var41
-			var43 = out8 or var43
+				event.get_segment_collision_16(12, ball_x, ball_y, ball_z, ball_x, ball_y - 3.0, ball_z, 1)
+			hit_x = out1 or hit_x
+			hit_y = out2 or hit_y
+			hit_z = out3 or hit_z
+			normal_x = out4 or normal_x
+			normal_y = out5 or normal_y
+			normal_z = out6 or normal_z
+			collision_index = out7 or collision_index
+			surface_type = out8 or surface_type
 		end
-		if var41 >= 0 then
-			var16 = 0.0
-			var3 = vm.f32(var31 + 3.0)
-			var40 = event.get_vector_length(var22, 0.0, var24) or var40
-			if var40 < vm.f32(2.6) or var23 >= -1.0 and var23 <= 0.0 then
-				var23 = 0.0
-				level = 1
+		if collision_index >= 0 then
+			curve_amount = 0.0
+			ball_y = vm.f32(hit_y + 3.0)
+			vector_length = event.get_vector_length(velocity_x, 0.0, velocity_z) or vector_length
+			if vector_length < vm.f32(2.6) or velocity_y >= -1.0 and velocity_y <= 0.0 then
+				velocity_y = 0.0
+				gauge_level = 1
 			else
-				if var12 == 0.0 then
-					var22 = vm.f32(var22 * vm.f32(0.9))
-					var23 = -vm.f32(var23 * vm.f32(0.58))
-					var24 = vm.f32(var24 * vm.f32(0.9))
-					var22 = vm.f32(var22 + vm.f32(var15 * 2.0))
-					var24 = vm.f32(var24 + vm.f32(var17 * 2.0))
-					var15 = vm.f32(var15 * vm.f32(0.2))
-					var17 = vm.f32(var17 * vm.f32(0.2))
+				if shot_power == 0.0 then
+					velocity_x = vm.f32(velocity_x * vm.f32(0.9))
+					velocity_y = -vm.f32(velocity_y * vm.f32(0.58))
+					velocity_z = vm.f32(velocity_z * vm.f32(0.9))
+					velocity_x = vm.f32(velocity_x + vm.f32(drift_x * 2.0))
+					velocity_z = vm.f32(velocity_z + vm.f32(drift_z * 2.0))
+					drift_x = vm.f32(drift_x * vm.f32(0.2))
+					drift_z = vm.f32(drift_z * vm.f32(0.2))
 				else
 					print("MIZU______2--------------------------------------------------------------------\n")
-					var22 = vm.f32(var22 * vm.f32(0.8))
-					var23 = -vm.f32(var23 * vm.f32(0.4))
-					var24 = vm.f32(var24 * vm.f32(0.8))
-					var15 = 0.0
-					var17 = 0.0
+					velocity_x = vm.f32(velocity_x * vm.f32(0.8))
+					velocity_y = -vm.f32(velocity_y * vm.f32(0.4))
+					velocity_z = vm.f32(velocity_z * vm.f32(0.8))
+					drift_x = 0.0
+					drift_z = 0.0
 				end
-				if var25 > 8.0 then
-					helper_79d90c82()
+				if speed > 8.0 then
+					minigame.toggle_sphida_ball_color()
 				end
-				if var12 ~= 1.0 and var42 <= 0 then
-					event.play_sound_effect(var1, 5)
-					var42 = 10
+				if shot_power ~= 1.0 and sound_cooldown <= 0 then
+					event.play_sound_effect(sound_bank, 5)
+					sound_cooldown = 10
 				end
 			end
-			var40 = event.get_vector_length(var15, 0.0, var17) or var40
-			if var23 == 0.0 and var25 < vm.f32(1.6) and var40 < vm.f32(0.4) then
-				if var43 == 6 then
-					var29 = 1
+			vector_length = event.get_vector_length(drift_x, 0.0, drift_z) or vector_length
+			if velocity_y == 0.0 and speed < vm.f32(1.6) and vector_length < vm.f32(0.4) then
+				if surface_type == 6 then
+					out_of_bounds_state = 1
 					break
 				end
-				var43 = event.get_automap_attribute_status(var2, var3, var4) or var43
-				if not (var43 == 1) then
+				surface_type = event.get_automap_attribute_status(ball_x, ball_y, ball_z) or surface_type
+				if not (surface_type == 1) then
 					break
 				end
-				var29 = 1
+				out_of_bounds_state = 1
 				break
 			end
 		end
-		if var3 < -500.0 then
-			var29 = 1
+		if ball_y < -500.0 then
+			out_of_bounds_state = 1
 			break
-		elseif var46 >= 480 then
-			var29 = 1
+		elseif frame_index >= 480 then
+			out_of_bounds_state = 1
 			break
 		else
-			var44 = event.get_sphida_pin_color() or var44
-			var45 = event.get_sphida_ball_color() or var45
-			x = vm.f32(pos_x - var2)
-			y = vm.f32(pos_y - var3)
-			z = vm.f32(pos_z - var4)
-			var47 = event.get_vector_length(x, y, z) or var47
-			if var45 ~= var44 then
-				var51 = event.get_point_to_segment_distance(var18, var19, var20, var2, var3, var4, pos_x, pos_y, pos_z) or var51
-				if var51 >= 0.0 and var51 <= 30.0 then
-					var21 = 1
+			pin_color = event.get_sphida_pin_color() or pin_color
+			ball_color = event.get_sphida_ball_color() or ball_color
+			to_pin_x = vm.f32(pin_x - ball_x)
+			to_pin_y = vm.f32(pin_y - ball_y)
+			to_pin_z = vm.f32(pin_z - ball_z)
+			distance_to_pin = event.get_vector_length(to_pin_x, to_pin_y, to_pin_z) or distance_to_pin
+			if ball_color ~= pin_color then
+				pin_segment_distance = event.get_point_to_segment_distance(previous_x, previous_y, previous_z, ball_x, ball_y, ball_z, pin_x, pin_y, pin_z) or pin_segment_distance
+				if pin_segment_distance >= 0.0 and pin_segment_distance <= 30.0 then
+					is_cup_in = 1
 					break
 				end
-				if var47 ~= 0.0 then
-					if var47 <= 120.0 then
+				if distance_to_pin ~= 0.0 then
+					if distance_to_pin <= 120.0 then
 						do
-							local out1, out2, out3 = event.scale_vector(x, y, z, vm.fdiv(vm.f32(0.6), var47))
-							x = out1 or x
-							y = out2 or y
-							z = out3 or z
+							local out1, out2, out3 = event.scale_vector(to_pin_x, to_pin_y, to_pin_z, vm.fdiv(vm.f32(0.6), distance_to_pin))
+							to_pin_x = out1 or to_pin_x
+							to_pin_y = out2 or to_pin_y
+							to_pin_z = out3 or to_pin_z
 						end
 						do
-							local out1, out2, out3 = event.add_vectors(var2, var3, var4, x, y, z)
-							var2 = out1 or var2
-							var3 = out2 or var3
-							var4 = out3 or var4
+							local out1, out2, out3 = event.add_vectors(ball_x, ball_y, ball_z, to_pin_x, to_pin_y, to_pin_z)
+							ball_x = out1 or ball_x
+							ball_y = out2 or ball_y
+							ball_z = out3 or ball_z
 						end
 						do
-							local out1, out2, out3 = event.add_vectors(var22, var23, var24, x, y, z)
-							var22 = out1 or var22
-							var23 = out2 or var23
-							var24 = out3 or var24
+							local out1, out2, out3 = event.add_vectors(velocity_x, velocity_y, velocity_z, to_pin_x, to_pin_y, to_pin_z)
+							velocity_x = out1 or velocity_x
+							velocity_y = out2 or velocity_y
+							velocity_z = out3 or velocity_z
 						end
 					end
 				else
-					var21 = 1
+					is_cup_in = 1
 					break
 				end
-			elseif var47 ~= 0.0 then
-				if var47 <= 60.0 then
+			elseif distance_to_pin ~= 0.0 then
+				if distance_to_pin <= 60.0 then
 					do
-						local out1, out2, out3 = event.scale_vector(x, y, z, vm.fdiv(1.0, var47))
-						x = out1 or x
-						y = out2 or y
-						z = out3 or z
+						local out1, out2, out3 = event.scale_vector(to_pin_x, to_pin_y, to_pin_z, vm.fdiv(1.0, distance_to_pin))
+						to_pin_x = out1 or to_pin_x
+						to_pin_y = out2 or to_pin_y
+						to_pin_z = out3 or to_pin_z
 					end
 					do
-						local out1, out2, out3 = event.subtract_vectors(var2, var3, var4, x, y, z)
-						var2 = out1 or var2
-						var3 = out2 or var3
-						var4 = out3 or var4
+						local out1, out2, out3 = event.subtract_vectors(ball_x, ball_y, ball_z, to_pin_x, to_pin_y, to_pin_z)
+						ball_x = out1 or ball_x
+						ball_y = out2 or ball_y
+						ball_z = out3 or ball_z
 					end
 					do
-						local out1, out2, out3 = event.subtract_vectors(var22, var23, var24, x, y, z)
-						var22 = out1 or var22
-						var23 = out2 or var23
-						var24 = out3 or var24
+						local out1, out2, out3 = event.subtract_vectors(velocity_x, velocity_y, velocity_z, to_pin_x, to_pin_y, to_pin_z)
+						velocity_x = out1 or velocity_x
+						velocity_y = out2 or velocity_y
+						velocity_z = out3 or velocity_z
 					end
 				end
 			end
-			event.set_character_position(8, var2, var3, var4)
-			event.set_character_position(9, var2, var3, var4)
+			event.set_character_position(8, ball_x, ball_y, ball_z)
+			event.set_character_position(9, ball_x, ball_y, ball_z)
 			do
-				local out1, out2, out3 = event.copy_vector(var2, var3, var4)
-				var18 = out1 or var18
-				var19 = out2 or var19
-				var20 = out3 or var20
+				local out1, out2, out3 = event.copy_vector(ball_x, ball_y, ball_z)
+				previous_x = out1 or previous_x
+				previous_y = out2 or previous_y
+				previous_z = out3 or previous_z
 			end
-			if var3 <= -50.0 then
+			if ball_y <= -50.0 then
 				event.set_follow_camera_following(0)
-				if var29 >= 30 then
-					if var29 >= 50 then
+				if out_of_bounds_state >= 30 then
+					if out_of_bounds_state >= 50 then
 						break
 					end
 				else
-					event.set_camera_look_at(var2, var3, var4)
+					event.set_camera_look_at(ball_x, ball_y, ball_z)
 				end
-				var29 = var29 + 1
-			elseif var46 >= 20 then
+				out_of_bounds_state = out_of_bounds_state + 1
+			elseif frame_index >= 20 then
 				event.set_camera_control_range(20.0, 30.0, 60.0, 200.0)
 				event.set_camera_speed(8.0)
 				event.set_follow_camera_offset(0.0, 0.0, 0.0)
 				event.set_follow_camera_target(
-					vm.f32(var2 + var22) + var22,
-					vm.f32(var3 + var23) + var23,
-					vm.f32(var4 + var24) + var24
+					vm.f32(ball_x + velocity_x) + velocity_x,
+					vm.f32(ball_y + velocity_y) + velocity_y,
+					vm.f32(ball_z + velocity_z) + velocity_z
 				)
 				do
 					local out1, out2, out3 = event.get_camera_position()
-					pos_x_2 = out1 or pos_x_2
-					pos_y_2 = out2 or pos_y_2
-					pos_z_2 = out3 or pos_z_2
+					camera_x = out1 or camera_x
+					camera_y = out2 or camera_y
+					camera_z = out3 or camera_z
 				end
-				yaw = event.get_direction_angle(
-					vm.f32(var2 + var22) + var22,
-					vm.f32(var3 + var23) + var23,
-					vm.f32(var4 + var24) + var24,
-					pos_x_2,
-					pos_y_2,
-					pos_z_2
-				) or yaw
-				event.set_camera_control_rotation(yaw)
+				camera_angle = event.get_direction_angle(
+					vm.f32(ball_x + velocity_x) + velocity_x,
+					vm.f32(ball_y + velocity_y) + velocity_y,
+					vm.f32(ball_z + velocity_z) + velocity_z,
+					camera_x,
+					camera_y,
+					camera_z
+				) or camera_angle
+				event.set_camera_control_rotation(camera_angle)
 				event.move_camera_control_with_pad(8)
 				event.step_camera_control()
 			end
-			event.set_sphida_ball_position(var2, var3, var4)
+			event.set_sphida_ball_position(ball_x, ball_y, ball_z)
 			vm.wait(15)
-			if var42 > 0 then
-				var42 = var42 - 1
+			if sound_cooldown > 0 then
+				sound_cooldown = sound_cooldown - 1
 			end
-			var46 = var46 + 1
+			frame_index = frame_index + 1
 		end
 	end
-	event.set_character_position(8, var2, var3, var4)
-	event.set_character_position(9, var2, var3, var4)
+	event.set_character_position(8, ball_x, ball_y, ball_z)
+	event.set_character_position(9, ball_x, ball_y, ball_z)
 	event.set_sphida_status_panel_visible(0)
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
-	if var29 == 0 then
-		event.set_sphida_ball_position(var2, var3, var4)
-		count = event.get_sphida_par() or count
-		if var21 == 1 then
+	if out_of_bounds_state == 0 then
+		event.set_sphida_ball_position(ball_x, ball_y, ball_z)
+		par = event.get_sphida_par() or par
+		if is_cup_in == 1 then
 			event.set_character_active(0, 0)
 			event.set_character_active(0, 8)
 			event.set_character_active(0, 9)
 			event.set_character_active(1, 12)
-			event.set_character_position(12, pos_x, pos_y, pos_z)
+			event.set_character_position(12, pin_x, pin_y, pin_z)
 			event.set_character_motion(12, "発動", 6)
-			event.play_sound_effect(var1, 17)
-			var46 = 0
-			while var46 < 2 do
+			event.play_sound_effect(sound_bank, 17)
+			frame_index = 0
+			while frame_index < 2 do
 				event.set_camera_control_enabled(0)
 				event.set_follow_camera_following(1)
-				event.set_follow_camera_target_alternate(pos_x, pos_y, pos_z)
+				event.set_follow_camera_target_alternate(pin_x, pin_y, pin_z)
 				event.set_camera_speed(12.0)
 				event.set_follow_camera_offset(0.0, 0.0, 0.0)
 				event.set_follow_camera_height(0.0)
 				event.set_follow_camera_distance(100.0)
 				event.step_follow_camera(1)
-				var46 = var46 + 1
+				frame_index = frame_index + 1
 				vm.wait(16)
 			end
 			event.set_character_active(0, 10)
 			do
 				local out1, out2, out3 = event.get_sphida_pin_position()
-				pos_x = out1 or pos_x
-				pos_y = out2 or pos_y
-				pos_z = out3 or pos_z
+				pin_x = out1 or pin_x
+				pin_y = out2 or pin_y
+				pin_z = out3 or pin_z
 			end
-			var46 = 0
-			while var46 < 100 do
+			frame_index = 0
+			while frame_index < 100 do
 				event.set_camera_control_enabled(0)
 				event.set_follow_camera_following(1)
-				event.set_follow_camera_target_alternate(pos_x, pos_y, pos_z)
+				event.set_follow_camera_target_alternate(pin_x, pin_y, pin_z)
 				event.set_camera_speed(12.0)
 				event.set_follow_camera_offset(0.0, 0.0, 0.0)
 				event.set_follow_camera_height(0.0)
 				event.set_follow_camera_distance(100.0)
 				event.step_follow_camera(1)
-				var46 = var46 + 1
+				frame_index = frame_index + 1
 				vm.wait(17)
 			end
 			event.set_character_active(0, 11)
-			var44 = event.get_dungeon_stage_id() or var44
-			var45 = event.get_dungeon_floor() or var45
-			var41 = event.get_dungeon_floor_info(var44, var45, 4) or var41
+			pin_color = event.get_dungeon_stage_id() or pin_color
+			ball_color = event.get_dungeon_floor() or ball_color
+			collision_index = event.get_dungeon_floor_info(pin_color, ball_color, 4) or collision_index
 			do
-				local out1, out2 = event.get_sphida_prize(var41)
-				var42 = out1 or var42
-				var43 = out2 or var43
+				local out1, out2 = event.get_sphida_prize(collision_index)
+				sound_cooldown = out1 or sound_cooldown
+				surface_type = out2 or surface_type
 			end
-			var41 = vm.i32(var41 + 1)
-			event.set_dungeon_floor_info(var44, var45, 4, var41)
-			event.place_treasure_box(pos_x, pos_y - 30.0, pos_z, var11, var42, var43)
-			wait_frames(54)
-			wait_frames(30)
+			collision_index = vm.i32(collision_index + 1)
+			event.set_dungeon_floor_info(pin_color, ball_color, 4, collision_index)
+			event.place_treasure_box(pin_x, pin_y - 30.0, pin_z, launch_angle, sound_cooldown, surface_type)
+			wait.frames(54)
+			wait.frames(30)
 			event.delete_character(8)
 			event.delete_character(9)
 			event.delete_character(10)
 			event.delete_character(11)
 			event.set_sphida_playing(0)
-			var1 = event.load_sound_effect_file_3(8, "snd2/sp/sp_000.sound.json") or var1
+			sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_000.sound.json") or sound_bank
 			event.stop_music(0)
-			event.play_sound_effect(var1, 0)
+			event.play_sound_effect(sound_bank, 0)
 			event.set_character_active(1, 0)
 			event.set_follow_camera_following(0)
 			event.set_camera_control_enabled(0)
@@ -3209,11 +3174,11 @@ function script.sphida_shot()
 			event.set_object_sequence_normal_drive(0)
 			event.queue_object_sequence_next_motion(0, "カップインポーズL", 4)
 			event.reset_object_sequence_dynamic_animation(0)
-			var42 = event.get_language() or var42
-			if var42 == 0 then
+			sound_cooldown = event.get_language() or sound_cooldown
+			if sound_cooldown == 0 then
 				event.reset_event_sprite(0)
 				event.set_event_sprite_type(0, 0)
-				event.set_event_sprite_texture(0, "sphida_bar", tex_bank)
+				event.set_event_sprite_texture(0, "sphida_bar", texture_bank)
 				event.set_event_sprite_texture_rect(0, 258, 0, 254, 54)
 				event.set_event_sprite_position(0, 256, 208)
 				event.set_event_sprite_size(0, 254, 54)
@@ -3223,7 +3188,7 @@ function script.sphida_shot()
 			else
 				event.reset_event_sprite(0)
 				event.set_event_sprite_type(0, 0)
-				event.set_event_sprite_texture(0, "sphida_bar", tex_bank)
+				event.set_event_sprite_texture(0, "sphida_bar", texture_bank)
 				event.set_event_sprite_texture_rect(0, 206, 0, 306, 54)
 				event.set_event_sprite_position(0, 256, 208)
 				event.set_event_sprite_size(0, 254, 54)
@@ -3236,121 +3201,121 @@ function script.sphida_shot()
 			event.set_object_sequence_object(1, 1)
 			event.set_object_sequence_scale(1, 1.0, 1.0, 0.0, 60)
 			event.set_object_sequence_color(1, 128, 128, 128, 128, 60)
-			wait_objects(0)
-			wait_frames(90)
+			object.wait_until_done(0)
+			wait.frames(90)
 			vm.wait(22)
 			event.play_music(0)
 			event.release_camera_sequence_follow_object()
 			event.set_event_sprite_draw_pass(0, 0)
-		elseif count >= 2 then
+		elseif par >= 2 then
 			event.set_message_window_mode(0, 5)
 			event.set_message_selection_top_line(0, 0)
-			var57 = helper_bac0e30d(0, 2002, 8, 256, 208, 2, 0)
+			choice = message.ask_choice(0, 2002, 8, 256, 208, 2, 0)
 			vm.wait(24)
-			if var57 == 0 then
+			if choice == 0 then
 				do
-					local out1, out2, out3, out4 = event.get_nearest_map_parts_function_point_position(var2, var3, var4, 100.0, "point")
-					var41 = out1 or var41
-					var8 = out2 or var8
-					var9 = out3 or var9
-					var10 = out4 or var10
+					local out1, out2, out3, out4 = event.get_nearest_map_parts_function_point_position(ball_x, ball_y, ball_z, 100.0, "point")
+					collision_index = out1 or collision_index
+					origin_x = out2 or origin_x
+					origin_y = out3 or origin_y
+					origin_z = out4 or origin_z
 				end
-				if var41 == 0 then
+				if collision_index == 0 then
 					do
-						local out1, out2, out3 = event.get_nearest_map_parts_position(var2, var3, var4, 100.0)
-						var8 = out1 or var8
-						var9 = out2 or var9
-						var10 = out3 or var10
+						local out1, out2, out3 = event.get_nearest_map_parts_position(ball_x, ball_y, ball_z, 100.0)
+						origin_x = out1 or origin_x
+						origin_y = out2 or origin_y
+						origin_z = out3 or origin_z
 					end
 				end
 				do
 					local out1, out2, out3 = event.get_sphida_pin_position()
-					pos_x = out1 or pos_x
-					pos_y = out2 or pos_y
-					pos_z = out3 or pos_z
+					pin_x = out1 or pin_x
+					pin_y = out2 or pin_y
+					pin_z = out3 or pin_z
 				end
-				var25 = event.get_distance_between(var8, var9, var10, pos_x, pos_y, pos_z) or var25
-				if var25 < 40.0 then
-					var11 = event.get_random_number(6.2831855) or var11
-					var11 = vm.f32(var11 - vm.f32(3.1415927))
-					var8 = vm.f32(var8 + vm.f32(vm.sin(var11) * 50.0))
-					var10 = vm.f32(var10 + vm.f32(vm.cos(var11) * 50.0))
+				speed = event.get_distance_between(origin_x, origin_y, origin_z, pin_x, pin_y, pin_z) or speed
+				if speed < 40.0 then
+					launch_angle = event.get_random_number(6.2831855) or launch_angle
+					launch_angle = vm.f32(launch_angle - vm.f32(3.1415927))
+					origin_x = vm.f32(origin_x + vm.f32(vm.sin(launch_angle) * 50.0))
+					origin_z = vm.f32(origin_z + vm.f32(vm.cos(launch_angle) * 50.0))
 				else
 					do
-						local out1, out2, out3, out4 = event.get_nearest_treasure_box_position(var8, var9, var10)
-						var30 = out1 or var30
-						var31 = out2 or var31
-						var32 = out3 or var32
-						var41 = out4 or var41
+						local out1, out2, out3, out4 = event.get_nearest_treasure_box_position(origin_x, origin_y, origin_z)
+						hit_x = out1 or hit_x
+						hit_y = out2 or hit_y
+						hit_z = out3 or hit_z
+						collision_index = out4 or collision_index
 					end
-					var46 = 0
-					while var41 >= 0 do
+					frame_index = 0
+					while collision_index >= 0 do
 						do
-							local out1, out2, out3 = event.copy_vector(var8, var9, var10)
-							var18 = out1 or var18
-							var19 = out2 or var19
-							var20 = out3 or var20
+							local out1, out2, out3 = event.copy_vector(origin_x, origin_y, origin_z)
+							previous_x = out1 or previous_x
+							previous_y = out2 or previous_y
+							previous_z = out3 or previous_z
 						end
 						do
-							local out1, out2, out3 = event.subtract_vectors(var18, var19, var20, var30, var31, var32)
-							var18 = out1 or var18
-							var19 = out2 or var19
-							var20 = out3 or var20
+							local out1, out2, out3 = event.subtract_vectors(previous_x, previous_y, previous_z, hit_x, hit_y, hit_z)
+							previous_x = out1 or previous_x
+							previous_y = out2 or previous_y
+							previous_z = out3 or previous_z
 						end
-						var18 = vm.f32(var18 + 1.0)
-						var20 = vm.f32(var20 + 1.0)
+						previous_x = vm.f32(previous_x + 1.0)
+						previous_z = vm.f32(previous_z + 1.0)
 						do
-							local out1, out2, out3 = event.normalize_vector(var18, var19, var20)
-							var18 = out1 or var18
-							var19 = out2 or var19
-							var20 = out3 or var20
-						end
-						do
-							local out1, out2, out3 = event.scale_vector(var18, var19, var20, 30.1)
-							var18 = out1 or var18
-							var19 = out2 or var19
-							var20 = out3 or var20
+							local out1, out2, out3 = event.normalize_vector(previous_x, previous_y, previous_z)
+							previous_x = out1 or previous_x
+							previous_y = out2 or previous_y
+							previous_z = out3 or previous_z
 						end
 						do
-							local out1, out2, out3 = event.copy_vector(var30, var31, var32)
-							var8 = out1 or var8
-							var9 = out2 or var9
-							var10 = out3 or var10
+							local out1, out2, out3 = event.scale_vector(previous_x, previous_y, previous_z, 30.1)
+							previous_x = out1 or previous_x
+							previous_y = out2 or previous_y
+							previous_z = out3 or previous_z
 						end
 						do
-							local out1, out2, out3 = event.add_vectors(var8, var9, var10, var18, var19, var20)
-							var8 = out1 or var8
-							var9 = out2 or var9
-							var10 = out3 or var10
+							local out1, out2, out3 = event.copy_vector(hit_x, hit_y, hit_z)
+							origin_x = out1 or origin_x
+							origin_y = out2 or origin_y
+							origin_z = out3 or origin_z
 						end
-						var46 = var46 + 1
-						if var46 > 6 then
+						do
+							local out1, out2, out3 = event.add_vectors(origin_x, origin_y, origin_z, previous_x, previous_y, previous_z)
+							origin_x = out1 or origin_x
+							origin_y = out2 or origin_y
+							origin_z = out3 or origin_z
+						end
+						frame_index = frame_index + 1
+						if frame_index > 6 then
 							break
 						end
 						do
-							local out1, out2, out3, out4 = event.get_nearest_treasure_box_position(var8, var9, var10)
-							var30 = out1 or var30
-							var31 = out2 or var31
-							var32 = out3 or var32
-							var41 = out4 or var41
+							local out1, out2, out3, out4 = event.get_nearest_treasure_box_position(origin_x, origin_y, origin_z)
+							hit_x = out1 or hit_x
+							hit_y = out2 or hit_y
+							hit_z = out3 or hit_z
+							collision_index = out4 or collision_index
 						end
 					end
 				end
-				var6 = event.get_direction_angle(var8, var9, var10, var2, var3, var4) or var6
-				event.set_character_position(0, var8, var9, var10)
-				event.set_character_rotation(0, 0.0, var6, 0.0)
-				event.set_camera_look_at(var8, var9 + 30.0, var10)
-				var6 = vm.f32(var6 - vm.f32(3.1415927))
-				var6 = event.wrap_angle(var6) or var6
-				var8 = vm.f32(vm.f32(vm.sin(var6) * 100.0) + var8)
-				var9 = vm.f32(var9 + 30.0)
-				var10 = vm.f32(vm.f32(vm.cos(var6) * 100.0) + var10)
-				event.set_camera_position(var8, var9, var10)
+				aim_angle = event.get_direction_angle(origin_x, origin_y, origin_z, ball_x, ball_y, ball_z) or aim_angle
+				event.set_character_position(0, origin_x, origin_y, origin_z)
+				event.set_character_rotation(0, 0.0, aim_angle, 0.0)
+				event.set_camera_look_at(origin_x, origin_y + 30.0, origin_z)
+				aim_angle = vm.f32(aim_angle - vm.f32(3.1415927))
+				aim_angle = event.wrap_angle(aim_angle) or aim_angle
+				origin_x = vm.f32(vm.f32(vm.sin(aim_angle) * 100.0) + origin_x)
+				origin_y = vm.f32(origin_y + 30.0)
+				origin_z = vm.f32(vm.f32(vm.cos(aim_angle) * 100.0) + origin_z)
+				event.set_camera_position(origin_x, origin_y, origin_z)
 				event.reset_follow_camera(0)
 			end
 		end
 	else
-		event.play_sound_effect(var1, 18)
+		event.play_sound_effect(sound_bank, 18)
 		event.set_follow_camera_following(0)
 		event.set_camera_control_enabled(0)
 		event.clear_camera_sequence()
@@ -3361,7 +3326,7 @@ function script.sphida_shot()
 		event.reset_object_sequence_dynamic_animation(0)
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		event.set_event_sprite_texture(0, "sphida_bar", tex_bank)
+		event.set_event_sprite_texture(0, "sphida_bar", texture_bank)
 		event.set_event_sprite_texture_rect(0, 334, 54, 178, 34)
 		event.set_event_sprite_position(0, 256, -25)
 		event.set_event_sprite_size(0, 160, 50)
@@ -3373,75 +3338,75 @@ function script.sphida_shot()
 		event.jump_object_sequence(1, 256.0, 208.0, 0.0, 1.2, 16)
 		event.jump_object_sequence(1, 256.0, 208.0, 0.0, 2.0, 12)
 		event.jump_object_sequence(1, 256.0, 208.0, 0.0, 1.5, 8)
-		wait_objects(0)
-		wait_frames(20)
+		object.wait_until_done(0)
+		wait.frames(20)
 		event.set_event_sprite_draw_pass(0, 0)
-		event.set_sphida_ball_position(var8, var9, var10)
-		event.set_character_position(8, var8, var9, var10)
-		event.set_character_position(9, var8, var9, var10)
+		event.set_sphida_ball_position(origin_x, origin_y, origin_z)
+		event.set_character_position(8, origin_x, origin_y, origin_z)
+		event.set_character_position(9, origin_x, origin_y, origin_z)
 		event.release_camera_sequence_follow_object()
 	end
-	if var21 == 1 then
-		helper_f90045b0(-1)
+	if is_cup_in == 1 then
+		minigame.consume_sphida_shot(-1)
 	else
-		helper_f90045b0(var1)
+		minigame.consume_sphida_shot(sound_bank)
 	end
-	helper_03a1d6f1(var21)
+	minigame.finish_sphida_round(is_cup_in)
 end
 
---- The Sphida event run when the menu button is pressed near the ball.
+--- Asks whether to move the ball to the player position.
 function script.sphida_near_ball()
-	local var0: any = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
+	local choice: any = 0
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
 	event.initialize_event()
-	helper_ce85b54c()
+	character.reset_action_motion()
 	event.set_message_window_mode(0, 5)
 	event.set_message_selection_top_line(0, 0)
-	var0 = helper_bac0e30d(0, 2004, 8, 0, 0, 2, 1)
-	if var0 == 0 then
+	choice = message.ask_choice(0, 2004, 8, 0, 0, 2, 1)
+	if choice == 0 then
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var1 = out1 or var1
-			var2 = out2 or var2
-			var3 = out3 or var3
+			character_x = out1 or character_x
+			character_y = out2 or character_y
+			character_z = out3 or character_z
 		end
-		event.set_sphida_ball_position(var1, var2 + 3.0, var3)
-		event.set_character_position(8, var1, var2 + 3.0, var3)
-		event.set_character_position(9, var1, var2 + 3.0, var3)
-		helper_f90045b0(-1)
+		event.set_sphida_ball_position(character_x, character_y + 3.0, character_z)
+		event.set_character_position(8, character_x, character_y + 3.0, character_z)
+		event.set_character_position(9, character_x, character_y + 3.0, character_z)
+		minigame.consume_sphida_shot(-1)
 		event.start_crossfade(15)
 	end
 	vm.wait(2)
 	event.finish_event()
 end
 
---- The Sphida event run when the menu button is pressed near the ball with fewer than two shots of par left.
+--- Warns that this is the last ball move and asks whether to move the ball to the player.
 function script.sphida_near_ball_last()
-	local var0: any = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
+	local choice: any = 0
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
 	event.initialize_event()
-	helper_ce85b54c()
+	character.reset_action_motion()
 	event.set_message_window_mode(0, 4)
 	event.open_message_window_2(0, "Das ist das letzte Mal, dass du\ndie Kugel zu dir holen kannst.")
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.set_message_window_mode(0, 5)
 	event.set_message_selection_top_line(0, 0)
 	event.open_message_window_2(0, "Die Kugel zu dir holen?")
-	var0 = helper_bac0e30d(0, -1, 8, 0, 0, 2, 1)
-	if var0 == 0 then
+	choice = message.ask_choice(0, -1, 8, 0, 0, 2, 1)
+	if choice == 0 then
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var1 = out1 or var1
-			var2 = out2 or var2
-			var3 = out3 or var3
+			character_x = out1 or character_x
+			character_y = out2 or character_y
+			character_z = out3 or character_z
 		end
-		event.set_sphida_ball_position(var1, var2 + 3.0, var3)
-		event.set_character_position(8, var1, var2 + 3.0, var3)
-		event.set_character_position(9, var1, var2 + 3.0, var3)
+		event.set_sphida_ball_position(character_x, character_y + 3.0, character_z)
+		event.set_character_position(8, character_x, character_y + 3.0, character_z)
+		event.set_character_position(9, character_x, character_y + 3.0, character_z)
 		event.set_sphida_last_challenge(1)
 		event.start_crossfade(15)
 	end
@@ -3449,79 +3414,85 @@ function script.sphida_near_ball_last()
 	event.finish_event()
 end
 
---- Event 4000, which map data, a script or the engine runs by number.
-function script.event_4000()
-	local at: number = 0
+--- Loads the floor map, plays the floor entry and sets up the Sphida course.
+function script.start_sphida_course()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		helper_e91d3484()
+		minigame.clear_sphida_state()
 		event.fade_out_screen(0)
-		at = 1
+		resume_step = 1
 		vm.wait(1)
 		event.load_dungeon_map("d02f01", "d02f01", 1)
-		at = 2
-		helper_3f004(0)
-		helper_c3f198dd(0, -1)
+		resume_step = 2
+		play_floor_entry(0)
+		minigame.set_up_sphida_course_with_draw_distance(0, -1)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_3f004(0)
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				play_floor_entry(0)
 				return vm.continue_with(function()
-					helper_c3f198dd(0, -1)
+					minigame.set_up_sphida_course_with_draw_distance(0, -1)
 					return
 				end)
 			end
-			helper_a583d6cd(0, -1)
+			cutscene.noop_with_arguments(0, -1)
 			return 0
 		end
 		return nil
 	end)
 end
+script[4000] = script.start_sphida_course
 
---- Event 12551, which map data, a script or the engine runs by number.
-function script.event_12551()
-	helper_b2cb6e46()
+--- Leaves Sphida and loads the first boss map to run the same-numbered event.
+function script.leave_sphida_for_boss_1_cutscene_a()
+	minigame.leave_sphida()
 	event.load_dungeon_map("d02b01")
 	vm.wait(2)
 	event.load_event_script("d02b01/d02b01.stb", 12551)
 end
+script[12551] = script.leave_sphida_for_boss_1_cutscene_a
 
---- Event 12552, which map data, a script or the engine runs by number.
-function script.event_12552()
-	helper_b2cb6e46()
+--- Leaves Sphida and loads the first boss map to run the same-numbered event.
+function script.leave_sphida_for_boss_1_cutscene_b()
+	minigame.leave_sphida()
 	event.load_dungeon_map("d02b01")
 	vm.wait(2)
 	event.load_event_script("d02b01/d02b01.stb", 12552)
 end
+script[12552] = script.leave_sphida_for_boss_1_cutscene_b
 
---- Event 12560, which map data, a script or the engine runs by number.
-function script.event_12560()
-	helper_b2cb6e46()
+--- Leaves Sphida and loads the first boss map to run the same-numbered event.
+function script.leave_sphida_for_boss_1_cutscene_c()
+	minigame.leave_sphida()
 	event.load_dungeon_map("d02b01")
 	vm.wait(2)
 	event.load_event_script("d02b01/d02b01.stb", 12560)
 end
+script[12560] = script.leave_sphida_for_boss_1_cutscene_c
 
---- Event 12570, which map data, a script or the engine runs by number.
-function script.event_12570()
-	helper_b2cb6e46()
+--- Leaves Sphida and loads the second boss map to run the same-numbered event.
+function script.leave_sphida_for_boss_2_cutscene_a()
+	minigame.leave_sphida()
 	event.load_dungeon_map("d02b02")
 	vm.wait(2)
 	event.load_event_script("d02b02/d02b02.stb", 12570)
 end
+script[12570] = script.leave_sphida_for_boss_2_cutscene_a
 
---- Event 12600, which map data, a script or the engine runs by number.
-function script.event_12600()
-	helper_b2cb6e46()
+--- Leaves Sphida and loads the second boss map to run the same-numbered event.
+function script.leave_sphida_for_boss_2_cutscene_b()
+	minigame.leave_sphida()
 	event.load_dungeon_map("d02b02")
 	vm.wait(2)
 	event.load_event_script("d02b02/d02b02.stb", 12600)
 end
+script[12600] = script.leave_sphida_for_boss_2_cutscene_b
 
---- Event 22030, which map data, a script or the engine runs by number.
-function script.event_22030()
+--- Sets the party stats and equipment and starts the second boss map.
+function script.start_boss_2_with_loadout()
 	event.set_character_max_hp(0, 64)
 	event.set_character_max_hp(1, 64)
 	event.set_character_defence(0, 16)
@@ -3538,17 +3509,18 @@ function script.event_22030()
 	vm.wait(1)
 	event.load_event_script("d02b02/d02b02.stb", 200)
 end
+script[22030] = script.start_boss_2_with_loadout
 
---- Event 26010, which map data, a script or the engine runs by number.
-function script.event_26010()
-	local argc: s32 = 0
+--- Sets the party stats, equipment and item stock and starts the town map.
+function script.start_town_with_loadout()
+	local item_count: s32 = 0
 	event.set_character_max_hp(0, 160)
 	event.set_character_max_hp(1, 160)
 	event.set_character_defence(0, 50)
 	event.set_character_defence(1, 50)
-	argc = event.get_item_count(270) or argc
-	if argc < 20 then
-		event.add_inventory_item(270, vm.i32(20 - argc))
+	item_count = event.get_item_count(270) or item_count
+	if item_count < 20 then
+		event.add_inventory_item(270, vm.i32(20 - item_count))
 	end
 	event.add_inventory_item(16)
 	event.equip_character_item(0, 16)
@@ -3562,5 +3534,6 @@ function script.event_26010()
 	vm.wait(1)
 	event.load_event_script("s13/s13.stb", 26010)
 end
+script[26010] = script.start_town_with_loadout
 
 return script

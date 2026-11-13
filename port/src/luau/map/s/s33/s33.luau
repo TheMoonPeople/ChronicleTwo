@@ -1,30 +1,27 @@
 --!strict
--- map/s/s33/s33.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Moon Flower Palace field with the dungeon entrance and the exit to the train stop.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_6d912f07 = require("@lib/event/helper_6d912f07")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_ed4dc120 = require("@lib/event/helper_ed4dc120")
-local wait_objects = require("@lib/event/wait_objects")
+local character = require("@lib/event/character")
+local dungeon = require("@lib/event/dungeon")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_eac8()
-	local var0: s32 = 0
+--- Plays the scene of event 604.
+local function play_event_604_scene()
+	local sound_bank: s32 = 0
 	local active_chr_no: s32 = 0
 	vm.section(function()
 		event.set_save_flag(604, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(51)
 		event.play_music(0)
 		event.load_map_sounds(7803)
-		var0 = event.load_sound_effect_file_2(7803) or var0
+		sound_bank = event.load_sound_effect_file_2(7803) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		active_chr_no = event.get_playable_character() or active_chr_no
@@ -99,9 +96,9 @@ local function helper_eac8()
 		event.move_object_sequence(1, -22.57, 0.0, -588.26, 540, 1)
 		event.fade_in_screen(30)
 		event.move_camera_sequence(1340.45, 33.17, 781.09, 1266.94, 207.26, 116.17, 450)
-		helper_888ab2a3(60)
-		helper_0382f327(6040010, 150)
-		helper_0382f327(6040020, 240)
+		wait.for_frame_count(60)
+		message.show_voiced_for_stopping(6040010, 150)
+		message.show_voiced_for_stopping(6040020, 240)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
 		event.clear_object_sequence(0)
@@ -117,9 +114,9 @@ local function helper_eac8()
 		event.set_camera_sequence_look_at(-0.34, 115.06, -632.94)
 		event.move_object_sequence(1, -11.66, 140.66, -709.98, 260, 1)
 		event.move_object_sequence(0, 11.57, 140.66, -707.0, 260, 1)
-		helper_0382f327(6040030, 240)
-		helper_888ab2a3(20)
-		wait_objects(1)
+		message.show_voiced_for_stopping(6040030, 240)
+		wait.for_frame_count(20)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(1.24, 142.22, -872.19)
 		event.set_camera_sequence_look_at(1.67, 177.22, -765.97)
 		event.set_object_sequence_texture_animation(0, 0)
@@ -145,11 +142,11 @@ local function helper_eac8()
 		event.delay_object_sequence_motion_track(1, 120)
 		event.set_object_sequence_motion(1, "立ち")
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(6040040, -1)
-		helper_888ab2a3(15)
+		message.show_voiced_for_stopping(6040040, -1)
+		wait.for_frame_count(15)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(6040050)
-		wait_objects(1)
+		message.show_voiced(6040050)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(-0.36, 446.02, 122.03)
 		event.set_camera_sequence_look_at(3.18, 151.42, -826.58)
 		event.set_object_sequence_position(1, -22.1, 140.66, -908.82)
@@ -158,11 +155,11 @@ local function helper_eac8()
 		event.set_object_sequence_position(0, 13.59, 140.66, -906.11)
 		event.set_object_sequence_rotation(0, 0.0, -2.97, 0.0)
 		event.reset_object_sequence_dynamic_animation(0)
-		helper_888ab2a3(30)
-		event.play_sound_effect(var0, 0)
+		wait.for_frame_count(30)
+		event.play_sound_effect(sound_bank, 0)
 		event.rotate_object_sequence(2, 0.0, 0.61, 0.0, 60)
 		event.rotate_object_sequence(3, 0.0, -0.61, 0.0, 60)
-		helper_888ab2a3(120)
+		wait.for_frame_count(120)
 		event.set_object_sequence_motion(1, "右向く", 6)
 		event.queue_object_sequence_next_motion(1, "右向く会話", 4)
 		event.queue_object_sequence_next_motion(1, "右向くL", 4)
@@ -170,17 +167,17 @@ local function helper_eac8()
 		event.set_object_sequence_motion(0, "左向く", 6)
 		event.queue_object_sequence_next_motion(0, "左向くL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(6040060)
+		message.show_voiced(6040060)
 		event.delay_object_sequence_motion_track(1, 30)
 		event.set_object_sequence_motion(1, "右向くうなづき", 6)
 		event.queue_object_sequence_next_motion(1, "右向くL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_4116e6bb(6040070)
+		message.show_voiced(6040070)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 0)
+	event.stop_sound_effect(sound_bank, 0)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
 	event.set_object_handle_rotation(2, 0.0, 0.61, 0.0)
@@ -189,59 +186,59 @@ local function helper_eac8()
 	event.delete_character(33)
 	event.delete_character(34)
 	event.load_message_file(0, -1)
-	helper_9dafbc83(0.0, vm.f32(140.7), -770.0, vm.f32(3.14))
+	character.place_standing_and_reset_cloth(0.0, vm.f32(140.7), -770.0, vm.f32(3.14))
 	event.reset_follow_camera(1, 3.1415927, 10.0)
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_db28()
-	local var0: any = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: s32 = 0
+--- Asks whether to enter the dungeon, walks the player forward if so and returns whether the player agreed.
+local function confirm_dungeon_entry()
+	local choice: any = 0
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
+	local frame: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
 		at = 1
-		var0 = helper_ed4dc120(7, 97)
+		choice = message.ask_yes_no(7, 97)
 		event.attach_object_handle_to_character(0, 0)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		if var0 == 0 then
+		if choice == 0 then
 			event.fade_out_screen(30)
 			at = 2
-			helper_888ab2a3(30)
+			wait.for_frame_count(30)
 			return 1
 		else
 			do
 				local out1, out2, out3 = event.get_character_position(0)
-				var1 = out1 or var1
-				var2 = out2 or var2
-				var3 = out3 or var3
+				player_x = out1 or player_x
+				player_y = out2 or player_y
+				player_z = out3 or player_z
 			end
-			var4 = vm.f32(vm.f32(vm.sin(0.0) * 30.0) + var1)
-			var5 = var2
-			var6 = vm.f32(vm.f32(vm.cos(0.0) * 30.0) + var3)
-			event.move_object_sequence(0, var4, var5, var6, 30)
-			event.turn_object_sequence_toward(0, var4, var5, var6, 10)
+			target_x = vm.f32(vm.f32(vm.sin(0.0) * 30.0) + player_x)
+			target_y = player_y
+			target_z = vm.f32(vm.f32(vm.cos(0.0) * 30.0) + player_z)
+			event.move_object_sequence(0, target_x, target_y, target_z, 30)
+			event.turn_object_sequence_toward(0, target_x, target_y, target_z, 10)
 			event.set_object_sequence_motion(0, "歩き")
-			var7 = 0
-			while var7 < 30 do
+			frame = 0
+			while frame < 30 do
 				do
 					local out1, out2, out3 = event.get_character_position(0)
-					var1 = out1 or var1
-					var2 = out2 or var2
-					var3 = out3 or var3
+					player_x = out1 or player_x
+					player_y = out2 or player_y
+					player_z = out3 or player_z
 				end
-				var2 = vm.f32(var2 + 30.0)
-				event.set_camera_look_at(var1, var2, var3)
-				var7 = var7 + 1
+				player_y = vm.f32(player_y + 30.0)
+				event.set_camera_look_at(player_x, player_y, player_z)
+				frame = frame + 1
 				at = 3
 				vm.wait(3)
 			end
@@ -250,10 +247,10 @@ local function helper_db28()
 	end, function(received: { any })
 		if at <= 2 then
 			if at == 1 then
-				var0 = received[1] :: number
+				choice = received[1] :: number
 			end
 			if at <= 1 then
-				helper_038a2e4d(30)
+				wait.skip_frame_count(30)
 			end
 			return 1
 		end
@@ -264,8 +261,8 @@ local function helper_db28()
 	end)
 end
 
---- Helper function.
-local function helper_e410()
+--- Plays the scene of event 372.
+local function play_event_372_scene()
 	local flag: s32 = 0
 	vm.section(function()
 		event.initialize_event()
@@ -279,7 +276,7 @@ local function helper_e410()
 		flag = event.get_save_flag(43) or flag
 		if flag ~= 0 then
 			event.stop_music(0)
-			helper_888ab2a3(4)
+			wait.for_frame_count(4)
 			event.load_music(59)
 			event.play_music(0)
 			event.set_save_flag(43, 0)
@@ -293,13 +290,13 @@ local function helper_e410()
 		event.set_object_sequence_position(0, -546.76, 268.24, 1697.27)
 		event.keep_character_in_front_of_camera_sequence(32, 608.78, 99999999)
 		event.move_camera_sequence_eased(1177.44, 128.12, 1162.78, 809.21, 268.24, 674.57, 600, 2, 0.4)
-		helper_4116e6bb(3720190)
-		helper_4116e6bb(3720200)
-		helper_4116e6bb(3720210)
-		helper_4116e6bb(3720220)
+		message.show_voiced(3720190)
+		message.show_voiced(3720200)
+		message.show_voiced(3720210)
+		message.show_voiced(3720220)
 		event.clear_camera_sequence()
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
 	event.delete_character(32)
@@ -307,25 +304,25 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the cutscene or places the player depending on saved flags.
 function script.default_event()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	flag = event.get_save_flag(600) or flag
-	flag_2 = event.get_save_flag(604) or flag_2
-	if flag == 1 and flag_2 == 0 then
-		helper_eac8()
+	local flag_600: s32 = 0
+	local flag_604: s32 = 0
+	flag_600 = event.get_save_flag(600) or flag_600
+	flag_604 = event.get_save_flag(604) or flag_604
+	if flag_600 == 1 and flag_604 == 0 then
+		play_event_604_scene()
 	else
-		if flag_2 == 1 then
+		if flag_604 == 1 then
 			event.attach_object_handle_to_map_part_3(0, "p01_s3302-0", "s330208-m0")
 			event.attach_object_handle_to_map_part_3(1, "p01_s3302-0", "s330208-m1")
 			event.set_object_handle_rotation(0, 0.0, 0.61, 0.0)
 			event.set_object_handle_rotation(1, 0.0, -0.61, 0.0)
 		end
-		helper_9dafbc83(0.0, 0.0, 2300.0, vm.f32(3.14))
+		character.place_standing_and_reset_cloth(0.0, 0.0, 2300.0, vm.f32(3.14))
 		event.reset_follow_camera(1, 3.14, 10.0)
 		event.fade_in_screen(30)
 	end
@@ -335,30 +332,34 @@ end
 -- Defined empty, so the engine runs this instead of its default.
 function script.key_open() end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	if helper_db28() ~= 0 then
+--- Confirms and enters the dungeon.
+function script.enter_dungeon()
+	if confirm_dungeon_entry() ~= 0 then
 		event.skip_next_music_load()
 		event.go_to_dungeon(5, -1, 500)
 	end
 end
+script[200] = script.enter_dungeon
 
---- Event 210, which map data, a script or the engine runs by number.
-function script.event_210()
-	if helper_6d912f07() ~= 0 then
+--- Confirms and returns to s31.
+function script.leave_for_s31()
+	if dungeon.confirm_exit() ~= 0 then
 		event.jump_to_map_2(-1, "s31")
 	end
 end
+script[210] = script.leave_for_s31
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	helper_e410()
+--- Plays the e372 cutscene and jumps to f02.
+function script.cutscene_e372()
+	play_event_372_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f02", 510)
 	vm.wait(2)
 end
+script[510] = script.cutscene_e372
 
 --- Event 16040, which map data, a script or the engine runs by number.
-script.event_16040 = helper_eac8
+script.play_event_604_scene = play_event_604_scene
+script[16040] = script.play_event_604_scene
 
 return script

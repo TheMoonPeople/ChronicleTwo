@@ -16,6 +16,20 @@ Decisions (2026-10-30):
 2. Script modules keep their retail data paths; the shared `lib/` modules get readable names.
 3. Names come from curated tables that agents propose from the code, applied by a rename tool, and every pass is proven by a bytecode gate.
 
+Decisions (2026-11-08) replace 2 and the bytecode gate:
+
+- Library helpers are grouped into topic modules (`lib/monster/movement.luau`) and called as `movement.chase_target()`. A helper that exists once per game language lives in `lib/<kind>/<language>/<topic>.luau`, with the same topic and function name in every language, so every language's scripts read alike.
+- Library modules reach each other through `vm.module(path)`, which requires the module when one of its fields is first read; requiring each other while they load would form a cycle.
+- A script whose file name the C++ supplies (the monster table's script column, the effect table's script column, `mos_henge_param.script_name`, and the `mainchr`, Ridepod and menu character literals) takes a readable file name, and the C++ names it directly. There is no remapping table. Map, dungeon system and event argument scripts keep their names, which come from the disc's map table and the event commands.
+- A renamed numbered handler is defined as `script.<name>` and registered under its number with `script[<n>] = script.<name>`; the runtime finds a handler by its program name and otherwise by its number.
+- The gate compares canonical ASTs instead of bytecode: locals are numbered by declaration, comments and locations drop out, a library call compares equal through `helper_<hash>` or its grouped module's field, and a numbered handler compares by its number.
+
+## Status (2026-11-12)
+
+Done: engine API, shared library (2,940 helpers in 301 modules) and every script module (functions, handlers, module state, parameters and locals, with docs). The agents' tables are not kept: the modules are the record. Constants and the readability rewrites (destructured outputs, folded `do` blocks) are still to do.
+
+The tools are `tools/luau/rename/apply.py` (applies tables), `gate.py` (proves a pass equivalent to the tree before it) and `luau_ast.py` (reads modules through `luau-ast` and resolves bindings).
+
 ## Scope
 
 | Category | Count | Today | Target |
@@ -86,26 +100,18 @@ Status: done. Phase 1 named all 1,081 commands; 32 handlers that are stubs or wh
 
 ## Shared library
 
-- Modules move to `lib/<kind>/<domain>/<name>.luau`. Domains are chosen per kind from what the helpers do:
-  - event: `message`, `camera`, `character`, `party`, `scene`, `flag`, `sound`, `menu`, `wait`;
-  - monster: `move`, `attack`, `react`, `sense`;
-  - action: by state;
-  - effect: by effect family.
-- The 14 curated helpers keep their names and move into domains. For example, `wait_frames` moves to `lib/event/wait/wait_frames.luau`.
-- `tools/luau/names.json` is superseded by `tools/luau/rename/lib_<kind>.json`. Each row holds the hash, the new path, the function name, the parameter names, a one-line doc and a status (`named` or `unresolved`).
-- Near-duplicates (the same body with different constants) are folded together only in a later pass. Renaming never merges modules.
+- Each helper is a function of a topic module, `lib/<kind>/<topic>.luau`, which returns a table of its functions. Callers require the module once and call `<topic>.<function>`, so a function's name does not repeat its module.
+  - event: shared topics (`message`, `camera`, `character`, `party`, `cutscene`, `flag`, `sound`, `menu`, `wait`, `inventory`, `effect`, `object`, `map`, `dungeon`, `georama`, `minigame`...), and one module per place for helpers that only one place's scripts call (`lib/event/sindain_station.luau`);
+  - monster: `movement`, `combat`, `sense`, `reaction`, `death`, `motion`, `timer`, `state`...;
+  - action and effect: by purpose.
+- Helpers that exist once per game language live in `lib/event/<language>/<topic>.luau`. A language topic never reuses a shared topic's name, since a script requires both by their last name.
+- Near-duplicates (the same body with different constants) keep separate functions whose names state the difference; folding them together is a later pass.
 
 ## Per-module names
 
-- One table per script module: `tools/luau/rename/modules/<module path>.json`. It holds:
-  - local helpers and handlers;
-  - module state (`global<n>`);
-  - each function's parameters and locals, keyed by function and original name.
-- Example (`map/s/s02/s02.luau`):
-  - `global0` and `global1` become `max_slot` and `monica_slot`. When Max is active the first slot loads `mints_set` and Max's model, so the first slot is Max's.
-  - `helper_3f33c` becomes `load_party`.
-  - `helper_24100000` becomes `reset_party_slots`.
-  - `active_chr_no` becomes `active_character`.
+- A module's table names its local functions and numbered handlers, gives every function a one-line doc, and names module state (`global<n>`) and each function's parameters and locals, keyed by function and original name.
+- A family of language copies (`d01_0` to `d01_5`) is named once, from its English copy; the tool carries the names to the other copies by matching functions, and agents name what does not match the same way.
+- Example (`map/s/s02/s02.luau`): `global0` and `global1` become `max_slot` and `monica_slot`, and `helper_3f33c` becomes `load_party`.
 
 ## Constants
 

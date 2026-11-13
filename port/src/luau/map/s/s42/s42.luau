@@ -1,33 +1,28 @@
 --!strict
--- map/s/s42/s42.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Repair shop upstairs room with the tool and vacuum quest.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_0ffc2526 = require("@lib/event/helper_0ffc2526")
-local helper_183cf34f = require("@lib/event/helper_183cf34f")
-local helper_387dadc7 = require("@lib/event/helper_387dadc7")
-local helper_7d54f41c = require("@lib/event/helper_7d54f41c")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_93cb8168 = require("@lib/event/helper_93cb8168")
-local helper_9cbdc640 = require("@lib/event/helper_9cbdc640")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_f38eabca = require("@lib/event/helper_f38eabca")
-local show_message = require("@lib/event/show_message")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local inventory = require("@lib/event/inventory")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local repair_shop = require("@lib/event/repair_shop")
+local sound = require("@lib/event/sound")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_e854()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Plays the opening scene in which the character shakes off water, shows a ticket and talks with the seated companion.
+local function play_ticket_scene()
+	local sound_bank: s32 = 0
+	local common_sound_bank: s32 = 0
 	vm.section(function()
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_music(101)
 		event.play_music(0, -1)
 		event.load_map_sounds(1201)
-		var0 = event.load_sound_effect_file_2(1201) or var0
-		helper_387dadc7()
+		sound_bank = event.load_sound_effect_file_2(1201) or sound_bank
+		repair_shop.set_up_starbre_room()
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.load_message_file(0, 5, "event/opening/p1/op1ch2.txt")
@@ -74,9 +69,9 @@ local function helper_e854()
 		event.set_object_handle_position(10, 92.0, 56.87, 104.92)
 		event.set_object_handle_rotation(10, 0.0, 3.14, 0.0)
 		event.set_map_lighting(4)
-		var1 = event.get_sound_id(2) or var1
-		event.play_sound_effect(var1, 65)
-		helper_888ab2a3(5)
+		common_sound_bank = event.get_sound_id(2) or common_sound_bank
+		event.play_sound_effect(common_sound_bank, 65)
+		wait.for_frame_count(5)
 		event.move_object_sequence(0, 92.0, 56.87, 116.43, 15)
 		event.move_object_sequence(0, 92.0, 56.87, 104.92, 15)
 		event.set_object_sequence_motion(0, "歩き", 4)
@@ -85,10 +80,10 @@ local function helper_e854()
 		event.set_camera_sequence_look_at(92.73, 75.71, 133.2)
 		event.mark_camera_sequence_fade_track()
 		event.fade_in_camera_sequence(30)
-		wait_camera()
-		wait_objects(0)
+		camera.wait_until_done()
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "旧・立ち")
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.set_camera_sequence_position(91.9, 71.03, 69.15)
 		event.set_camera_sequence_look_at(91.84, 76.05, 104.34)
 		event.set_character_active(1, 11)
@@ -120,16 +115,16 @@ local function helper_e854()
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "目パチ")
 		event.set_object_sequence_texture_animation(0, 1, "うひゃ～口")
-		event.play_object_sequence_sound(0, var0, 10)
+		event.play_object_sequence_sound(0, sound_bank, 10)
 		event.delay_object_sequence_sound_track(0, 60)
-		event.play_object_sequence_sound(0, var0, 11)
-		helper_888ab2a3(120)
+		event.play_object_sequence_sound(0, sound_bank, 11)
+		wait.for_frame_count(120)
 		vm.wait(6)
 		event.set_mouth_texture_animations(0, "通常口パク", "うひゃ～口")
-		helper_0382f327(10050, 120)
+		message.show_voiced_for_stopping(10050, 120)
 		event.reset_mouth_texture_animations()
-		wait_objects(0)
-		wait_camera()
+		object.wait_until_done(0)
+		camera.wait_until_done()
 		event.set_character_active(0, 11)
 		event.enable_drama_skip()
 		event.set_object_sequence_texture_animation(0, 0)
@@ -143,11 +138,11 @@ local function helper_e854()
 		event.set_object_sequence_motion(1, "右を向く", 2)
 		event.queue_object_sequence_next_motion(1, "右を向くL", 4)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10060, 80)
+		message.show_voiced_for_stopping(10060, 80)
 		event.reset_mouth_texture_animations()
-		wait_objects(0)
-		wait_objects(1)
-		wait_camera()
+		object.wait_until_done(0)
+		object.wait_until_done(1)
+		camera.wait_until_done()
 		event.set_camera_sequence_position(-39.93, 115.82, 118.92)
 		event.set_camera_sequence_look_at(63.32, 80.25, 77.89)
 		event.set_object_handle_visible(3, 1)
@@ -165,36 +160,36 @@ local function helper_e854()
 		event.set_object_sequence_motion(1, "座りL")
 		event.set_object_sequence_motion_blend_step(1, 0.02)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10070, 40)
+		message.show_voiced_for_stopping(10070, 40)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10075, 34)
+		message.show_voiced_for_stopping(10075, 34)
 		event.reset_mouth_texture_animations()
-		wait_camera()
-		wait_objects(0)
+		camera.wait_until_done()
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "チケットを取り出す", 2)
 		event.queue_object_sequence_next_motion(0, "チケットを取り出すL", 4)
 		event.set_character_active(10)
 		event.set_object_sequence_motion(2, "チケットを取り出す", 2)
 		event.queue_object_sequence_next_motion(2, "チケットを取り出すL", 4)
 		event.delay_object_sequence_sound_track(0, 10)
-		event.play_object_sequence_sound(0, var0, 12)
+		event.play_object_sequence_sound(0, sound_bank, 12)
 		event.delay_object_sequence_sound_track(0, 50)
-		event.play_object_sequence_sound(0, var0, 13)
-		helper_888ab2a3(30)
+		event.play_object_sequence_sound(0, sound_bank, 13)
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(46.78, 79.2, 81.62)
 		event.set_camera_sequence_look_at(70.26, 79.2, 63.68)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10080, 30)
+		message.show_voiced_for_stopping(10080, 30)
 		event.reset_mouth_texture_animations()
-		wait_objects(0)
-		wait_objects(2)
+		object.wait_until_done(0)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion_blend_step(1)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10090, 34)
+		message.show_voiced_for_stopping(10090, 34)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10093, 80)
+		message.show_voiced_for_stopping(10093, 80)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(0, "チケットを下げる", 6)
 		event.queue_object_sequence_next_motion(0, "チケットを下げるL", 6)
@@ -206,11 +201,11 @@ local function helper_e854()
 		event.set_object_sequence_motion(0, "チケットを下げるL", 6)
 		event.queue_object_sequence_next_motion(0, "チケット持ち立ち", 4)
 		event.delay_object_sequence_sound_track(0, 29)
-		event.play_object_sequence_sound(0, var0, 14)
+		event.play_object_sequence_sound(0, sound_bank, 14)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 14)
+		event.play_object_sequence_sound(0, sound_bank, 14)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 14)
+		event.play_object_sequence_sound(0, sound_bank, 14)
 		event.set_object_sequence_motion(2, "チケットを下げる", 6)
 		event.queue_object_sequence_next_motion(2, "チケットを下げるL", 6)
 		event.wait_object_sequence_motion_end(2)
@@ -221,11 +216,11 @@ local function helper_e854()
 		event.set_object_sequence_motion(2, "チケットを下げるL", 6)
 		event.queue_object_sequence_next_motion(2, "チケット持ち立ち", 4)
 		event.set_mouth_texture_animations(0, "笑い口パク", "うれし口")
-		helper_0382f327(10096, 60)
+		message.show_voiced_for_stopping(10096, 60)
 		event.reset_mouth_texture_animations()
-		wait_objects(0)
-		wait_objects(2)
-		helper_888ab2a3(10)
+		object.wait_until_done(0)
+		object.wait_until_done(2)
+		wait.for_frame_count(10)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "目パチ")
 		event.set_camera_sequence_position(80.37, 85.61, 4.61)
@@ -239,35 +234,35 @@ local function helper_e854()
 		event.set_object_sequence_motion(2, "チケットをなおす", 6)
 		event.queue_object_sequence_next_motion(0, "旧・立ち", 4)
 		event.delay_object_sequence_sound_track(0, 10)
-		event.play_object_sequence_sound(0, var0, 15)
-		helper_888ab2a3(10)
+		event.play_object_sequence_sound(0, sound_bank, 15)
+		wait.for_frame_count(10)
 		event.set_character_active(0, 10)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10100, 70)
+		message.show_voiced_for_stopping(10100, 70)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(1, "座り会話", 2)
 		event.queue_object_sequence_next_motion(1, "座りL", 4)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10105, 100)
+		message.show_voiced_for_stopping(10105, 100)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(0, "会話", 2)
 		event.queue_object_sequence_next_motion(0, "立ち", 4)
-		helper_0382f327(10110, 40)
+		message.show_voiced_for_stopping(10110, 40)
 		event.delay_object_sequence_motion_track(1, 30)
 		event.set_object_sequence_motion(1, "座り会話", 2)
 		event.queue_object_sequence_next_motion(1, "座りL", 4)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10120, 130)
+		message.show_voiced_for_stopping(10120, 130)
 		event.reset_mouth_texture_animations()
-		helper_0382f327(10130, 30)
+		message.show_voiced_for_stopping(10130, 30)
 		event.set_camera_sequence_position(48.26, 82.5, 80.04)
 		event.set_camera_sequence_look_at(4.98, 82.5, 112.14)
 		event.set_object_sequence_motion(1, "気づく", 6)
 		event.queue_object_sequence_next_motion(1, "気づくL", 4)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10140, 180)
+		message.show_voiced_for_stopping(10140, 180)
 		event.reset_mouth_texture_animations()
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(44.63, 77.24, 83.23)
 		event.set_camera_sequence_look_at(70.09, 77.44, 63.46)
 		event.set_character_cloth_animation_enabled(0, 0)
@@ -276,15 +271,15 @@ local function helper_e854()
 		event.set_object_sequence_motion(0, "アトラミリアを持つ", 6)
 		event.queue_object_sequence_next_motion(0, "アトラミリアを持つL", 4)
 		event.delay_object_sequence_sound_track(0, 30)
-		event.play_object_sequence_sound(0, var0, 16)
+		event.play_object_sequence_sound(0, sound_bank, 16)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10150, 60)
+		message.show_voiced_for_stopping(10150, 60)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10153, 120)
+		message.show_voiced_for_stopping(10153, 120)
 		event.reset_mouth_texture_animations()
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_0382f327(10156, 100)
+		message.show_voiced_for_stopping(10156, 100)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(0, "立ち", 4)
 		event.set_character_cloth_animation_enabled(0, 1)
@@ -292,18 +287,18 @@ local function helper_e854()
 		event.set_camera_sequence_look_at(4.98, 83.75, 112.14)
 		event.move_camera_sequence_eased(33.73, 84.71, 90.82, 4.98, 83.75, 112.14, 60, 2, 1.0)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10160, 100)
+		message.show_voiced_for_stopping(10160, 100)
 		event.reset_mouth_texture_animations()
-		wait_camera()
+		camera.wait_until_done()
 		event.set_camera_sequence_position(80.37, 85.61, 4.61)
 		event.set_camera_sequence_look_at(43.5, 68.19, 91.7)
 		event.set_object_sequence_motion(1, "座りL", 4)
 		event.set_object_sequence_motion(0, "旧・立ち", 4)
-		helper_0382f327(10170, 40)
+		message.show_voiced_for_stopping(10170, 40)
 		event.set_object_sequence_motion(1, "座り会話", 2)
 		event.queue_object_sequence_next_motion(1, "座りL", 4)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10180, 70)
+		message.show_voiced_for_stopping(10180, 70)
 		event.reset_mouth_texture_animations()
 		event.delay_object_sequence_motion_track(1, 40)
 		event.set_object_sequence_motion(1, "奥を指す", 2)
@@ -314,18 +309,18 @@ local function helper_e854()
 		event.queue_object_sequence_next_motion(1, "座りL")
 		event.set_object_sequence_motion_blend_step(1, 0.1)
 		event.set_mouth_texture_animations(1, "口パク")
-		helper_0382f327(10190, 120)
+		message.show_voiced_for_stopping(10190, 120)
 		event.reset_mouth_texture_animations()
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(0, "うなづく", 2)
 		event.queue_object_sequence_next_motion(0, "旧・立ち", 4)
 		event.delay_object_sequence_sound_track(0, 16)
-		event.play_object_sequence_sound(0, var0, 17)
-		helper_0382f327(10200, 60)
-		wait_objects(0)
+		event.play_object_sequence_sound(0, sound_bank, 17)
+		message.show_voiced_for_stopping(10200, 60)
+		object.wait_until_done(0)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
 	event.set_object_handle_visible(3, 1)
@@ -345,7 +340,7 @@ local function helper_e854()
 	event.set_character_motion(9, "座りL", 4)
 	event.set_character_texture_animation(9, 0)
 	event.stop_music(0)
-	helper_888ab2a3(6)
+	wait.for_frame_count(6)
 	event.load_music(46)
 	event.play_music(0, -1)
 	event.load_map_sounds(1202)
@@ -355,9 +350,9 @@ local function helper_e854()
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_12ec0()
-	local var0: s32 = 0
+--- Plays the opening scene in which the character fetches tools and repairs the machine to a rhythm of work sounds.
+local function play_tool_work_scene()
+	local sound_bank: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.initialize_event()
@@ -367,16 +362,16 @@ local function helper_12ec0()
 		event.clear_camera_sequence()
 		event.mark_camera_sequence_fade_track()
 		event.fade_out_camera_sequence(30)
-		wait_camera()
+		camera.wait_until_done()
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(101)
 		event.play_music(0, -1)
 		event.load_map_sounds(1203)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.load_message_file(0, 5, "event/opening/p1/op1ch3.txt")
-		var0 = event.load_sound_effect_file_2(1203) or var0
+		sound_bank = event.load_sound_effect_file_2(1203) or sound_bank
 		event.load_character_motion_pack(5, "event/opening/p1/p1_mints2.gltf", "info", 0)
 		event.set_character_active(0)
 		event.attach_object_handle_to_character(0, 0)
@@ -416,37 +411,37 @@ local function helper_12ec0()
 		event.set_object_handle_visible(10, 1)
 		event.set_map_lighting(4)
 		event.set_object_sequence_motion(0, "いすに座る_s", 4)
-		event.play_object_sequence_sound(0, var0, 18)
+		event.play_object_sequence_sound(0, sound_bank, 18)
 		event.set_camera_sequence_position(154.48, 32.42, -164.94)
 		event.set_camera_sequence_look_at(118.46, 17.85, -145.84)
 		event.mark_camera_sequence_fade_track()
 		event.fade_in_camera_sequence(30)
-		wait_camera()
+		camera.wait_until_done()
 		event.set_mouth_texture_animations(0, "通常口パク", "真剣な口")
-		helper_0382f327(10210, 40)
+		message.show_voiced_for_stopping(10210, 40)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(0, "かばんをさぐる", 6)
 		event.queue_object_sequence_next_motion(0, "かばんをさぐるL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク", "真剣な口")
-		helper_0382f327(10220, 140)
+		message.show_voiced_for_stopping(10220, 140)
 		event.reset_mouth_texture_animations()
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "工具をかまえる", 6)
 		event.queue_object_sequence_next_motion(0, "工具をかまえるL", 4)
-		event.play_object_sequence_sound(0, var0, 19)
+		event.play_object_sequence_sound(0, sound_bank, 19)
 		event.delay_object_sequence_sound_track(0, 10)
-		event.play_object_sequence_sound(0, var0, 19)
+		event.play_object_sequence_sound(0, sound_bank, 19)
 		event.delay_object_sequence_sound_track(0, 10)
-		event.play_object_sequence_sound(0, var0, 20)
+		event.play_object_sequence_sound(0, sound_bank, 20)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 21)
+		event.play_object_sequence_sound(0, sound_bank, 21)
 		event.set_character_active(9)
 		event.set_object_sequence_motion(1, "工具をかまえる", 6)
 		event.queue_object_sequence_next_motion(1, "工具をかまえるL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク", "真剣な口")
-		helper_0382f327(10230, 106)
+		message.show_voiced_for_stopping(10230, 106)
 		event.reset_mouth_texture_animations()
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "作業中", 6)
 		event.set_object_sequence_motion(1, "作業中", 6)
 		event.queue_object_sequence_next_motion(0, "作業中2", 6)
@@ -457,23 +452,23 @@ local function helper_12ec0()
 		event.queue_object_sequence_next_motion(1, "作業中2", 6)
 		event.queue_object_sequence_next_motion(0, "作業中", 6)
 		event.queue_object_sequence_next_motion(1, "作業中", 6)
-		event.play_object_sequence_sound(0, var0, 22)
+		event.play_object_sequence_sound(0, sound_bank, 22)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 23)
+		event.play_object_sequence_sound(0, sound_bank, 23)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 24)
+		event.play_object_sequence_sound(0, sound_bank, 24)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 25)
+		event.play_object_sequence_sound(0, sound_bank, 25)
 		event.delay_object_sequence_sound_track(0, 80)
-		event.play_object_sequence_sound(0, var0, 23)
+		event.play_object_sequence_sound(0, sound_bank, 23)
 		event.delay_object_sequence_sound_track(0, 40)
-		event.play_object_sequence_sound(0, var0, 22)
+		event.play_object_sequence_sound(0, sound_bank, 22)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 24)
+		event.play_object_sequence_sound(0, sound_bank, 24)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 24)
+		event.play_object_sequence_sound(0, sound_bank, 24)
 		event.delay_object_sequence_sound_track(0, 20)
-		event.play_object_sequence_sound(0, var0, 23)
+		event.play_object_sequence_sound(0, sound_bank, 23)
 		event.delay_object_sequence_sound_track(0, 40)
 		event.set_camera_sequence_position(63.4, 45.38, -118.3)
 		event.set_camera_sequence_look_at(118.98, 17.85, -149.19)
@@ -481,12 +476,12 @@ local function helper_12ec0()
 		event.delay_camera_sequence_fade_track(340)
 		event.mark_camera_sequence_fade_track()
 		event.fade_out_camera_sequence(60)
-		helper_888ab2a3(30)
-		helper_0382f327(10233, 160)
-		helper_888ab2a3(30)
-		helper_0382f327(10236, 60)
+		wait.for_frame_count(30)
+		message.show_voiced_for_stopping(10233, 160)
+		wait.for_frame_count(30)
+		message.show_voiced_for_stopping(10236, 60)
 		event.fade_out_music(60)
-		wait_camera()
+		camera.wait_until_done()
 	end)
 	vm.entry(15)
 	event.cancel_drama_scene_skip()
@@ -501,15 +496,15 @@ local function helper_12ec0()
 	event.set_object_handle_visible(10, 1)
 	event.stop_environment_music()
 	event.stop_music(0)
-	helper_888ab2a3(6)
+	wait.for_frame_count(6)
 	event.skip_next_music_load()
 	event.skip_next_map_sound_load()
 end
 
---- Helper function.
-local function helper_14e1c()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Plays the opening scene in which the character wakes up late, panics at the clock and runs out of the room.
+local function play_oversleeping_scene()
+	local sound_bank: s32 = 0
+	local common_sound_bank: s32 = 0
 	vm.section(function()
 		event.initialize_event()
 		event.enable_drama_skip()
@@ -524,7 +519,7 @@ local function helper_14e1c()
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.load_message_file(0, 5, "event/opening/p1/op1ch5.txt")
-		var0 = event.load_sound_effect_file_2(1205) or var0
+		sound_bank = event.load_sound_effect_file_2(1205) or sound_bank
 		event.load_character_motion_pack(5, "event/opening/p1/p1_mints3.gltf", "info", 0)
 		event.set_character_active(0)
 		event.attach_object_handle_to_character(0, 0)
@@ -569,35 +564,35 @@ local function helper_14e1c()
 		event.attach_object_handle_to_map_part_3(14, "p09_i01h01", "i01h01_20-m1")
 		event.set_object_handle_visible(14, 1)
 		event.open_voice_stream_wave(1, 10275)
-		helper_9cbdc640(1)
+		sound.wait_voice_stream_ready(1)
 		event.play_voice_stream(1)
 		event.delay_object_sequence_sound_track(0, 40)
-		event.play_object_sequence_sound(0, var0, 33)
+		event.play_object_sequence_sound(0, sound_bank, 33)
 		event.delay_object_sequence_sound_track(0, 80)
-		event.play_object_sequence_sound(0, var0, 33)
+		event.play_object_sequence_sound(0, sound_bank, 33)
 		event.delay_object_sequence_sound_track(0, 70)
-		event.play_object_sequence_sound(0, var0, 33)
+		event.play_object_sequence_sound(0, sound_bank, 33)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(65.26, 55.35, -105.97)
 		event.set_camera_sequence_look_at(122.66, 18.15, -147.06)
 		event.move_camera_sequence(83.15, 42.11, -118.77, 122.66, 18.15, -147.06, 300)
 		event.mark_camera_sequence_fade_track()
 		event.fade_in_camera_sequence(120)
-		helper_888ab2a3(240)
+		wait.for_frame_count(240)
 		event.set_object_sequence_motion(0, "起きる", 6)
 		event.queue_object_sequence_next_motion(0, "起きるL", 4)
-		event.play_object_sequence_sound(0, var0, 34)
+		event.play_object_sequence_sound(0, sound_bank, 34)
 		event.delay_object_sequence_sound_track(0, 58)
-		event.play_object_sequence_sound(0, var0, 35)
+		event.play_object_sequence_sound(0, sound_bank, 35)
 		event.set_object_sequence_motion(1, "起きる", 6)
 		event.queue_object_sequence_next_motion(1, "起きるL", 4)
-		wait_camera()
-		wait_objects(0)
+		camera.wait_until_done()
+		object.wait_until_done(0)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "しまった目1")
 		event.close_voice_stream(1)
 		event.set_mouth_texture_animations(0, "通常口パク", "しまった口")
-		helper_0382f327(10280, 140)
+		message.show_voiced_for_stopping(10280, 140)
 		event.reset_mouth_texture_animations()
 		event.set_camera_sequence_position(140.85, 35.61, -112.8)
 		event.set_camera_sequence_look_at(124.35, 18.15, -148.12)
@@ -608,19 +603,19 @@ local function helper_14e1c()
 		event.set_object_sequence_motion(1, "時計を見る", 6)
 		event.queue_object_sequence_next_motion(1, "時計を見るL", 4)
 		event.delay_object_sequence_sound_track(0, 10)
-		event.play_object_sequence_sound(0, var0, 36)
+		event.play_object_sequence_sound(0, sound_bank, 36)
 		event.set_mouth_texture_animations(0, "通常口パク", "しまった口")
-		helper_0382f327(10285, 46)
+		message.show_voiced_for_stopping(10285, 46)
 		event.reset_mouth_texture_animations()
 		event.open_voice_stream_wave(1, 10290)
-		helper_9cbdc640(1)
-		wait_objects(0)
+		sound.wait_voice_stream_ready(1)
+		object.wait_until_done(0)
 		event.play_voice_stream(1)
 		event.set_object_sequence_motion(0, "立ち上がる", 6)
 		event.wait_object_sequence_motion_end(0)
 		event.set_object_sequence_motion(1, "立ち上がる", 6)
-		event.play_object_sequence_sound(0, var0, 37)
-		wait_objects(0)
+		event.play_object_sequence_sound(0, sound_bank, 37)
+		object.wait_until_done(0)
 		event.set_object_handle_footstep_sound(0, 10)
 		event.set_object_sequence_motion(0, "走り", 4)
 		event.clear_object_sequence_path(0)
@@ -646,10 +641,10 @@ local function helper_14e1c()
 		event.set_object_sequence_texture_animation(0, 0, "しまった口")
 		event.set_mouth_texture_animations(0, "通常口パク")
 		event.open_message_window_2(0, 10290)
-		helper_183cf34f(0, -1, 8, 0, 0, 100)
+		message.show_timed_primary(0, -1, 8, 0, 0, 100)
 		event.reset_mouth_texture_animations()
 		event.close_voice_stream(1)
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "怒り目")
 		event.set_camera_sequence_position(107.28, 133.46, -74.73)
@@ -674,20 +669,20 @@ local function helper_14e1c()
 		event.set_camera_sequence_position(45.96, 119.76, 60.89)
 		event.set_camera_sequence_look_at(100.02, 63.83, 140.46)
 		event.set_mouth_texture_animations(0, "通常口パク", "怒り口")
-		helper_0382f327(10295, 60)
+		message.show_voiced_for_stopping(10295, 60)
 		event.reset_mouth_texture_animations()
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "立ち")
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_object_sequence_motion(0, "ドア開け", 6)
 		event.delay_object_sequence_sound_track(0, 20)
-		var1 = event.get_sound_id(2) or var1
-		event.play_object_sequence_sound(0, var1, 66)
-		helper_888ab2a3(30)
+		common_sound_bank = event.get_sound_id(2) or common_sound_bank
+		event.play_object_sequence_sound(0, common_sound_bank, 66)
+		wait.for_frame_count(30)
 		event.fade_out_music(30)
 		event.mark_camera_sequence_fade_track()
 		event.fade_out_camera_sequence(30)
-		wait_camera()
+		camera.wait_until_done()
 	end)
 	event.cancel_drama_scene_skip()
 	event.set_object_handle_texture_animation(0, 0)
@@ -708,21 +703,21 @@ local function helper_14e1c()
 	event.set_object_handle_visible(14, 1)
 	event.stop_music(0)
 	event.stop_environment_music()
-	helper_888ab2a3(6)
+	wait.for_frame_count(6)
 end
 
---- Helper function.
-local function helper_e0a8()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var4: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
+--- Turns the player toward the character in slot 9, who says the item is downstairs and to get to work.
+local function tell_player_to_work()
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local player_yaw: f32 = 0
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
 	local yaw: f32 = 0
-	local var14: s32 = 0
-	local var15: s32 = 0
+	local turn_frames: s32 = 0
+	local needs_turn: s32 = 0
 	event.initialize_event()
 	event.set_message_window_mode(0, 1)
 	event.set_message_bubble_tail(0, 1)
@@ -734,49 +729,51 @@ local function helper_e0a8()
 	event.set_object_sequence_object(1, 1)
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		player_x = out1 or player_x
+		player_y = out2 or player_y
+		player_z = out3 or player_z
 	end
 	do
 		local _, out2, _ = event.get_character_rotation(0)
-		var4 = out2 or var4
+		player_yaw = out2 or player_yaw
 	end
 	do
 		local out1, out2, out3 = event.get_character_position(9)
-		var6 = out1 or var6
-		var7 = out2 or var7
-		var8 = out3 or var8
+		character_x = out1 or character_x
+		character_y = out2 or character_y
+		character_z = out3 or character_z
 	end
 	event.get_character_rotation(9)
-	yaw = event.get_direction_angle(var0, var1, var2, var6, var7, var8) or yaw
-	event.get_direction_angle(var6, var7, var8, var0, var1, var2)
-	var14 = 0
-	var15 = event.compare_angles(var4, yaw, 0.1) or var15
-	if var15 ~= 0 then
+	yaw = event.get_direction_angle(player_x, player_y, player_z, character_x, character_y, character_z) or yaw
+	event.get_direction_angle(character_x, character_y, character_z, player_x, player_y, player_z)
+	turn_frames = 0
+	needs_turn = event.compare_angles(player_yaw, yaw, 0.1) or needs_turn
+	if needs_turn ~= 0 then
 		event.rotate_object_sequence(0, 0.0, yaw, 0.0, 10)
 		event.set_object_sequence_motion(0, "歩き")
 		event.delay_object_sequence_motion_track(0, 10)
-		var14 = 20
+		turn_frames = 20
 	end
 	event.set_object_sequence_motion(0, "立ち")
-	helper_888ab2a3(var14)
+	wait.for_frame_count(turn_frames)
 	event.open_message_window_2(0, "下の机の上に置いてある。頼んだぞ。")
-	helper_0ffc2526(0, -1, 9, 0, 0)
+	message.say_bubble(0, -1, 9, 0, 0)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing.
+function script.initialize_map() end
+script[99] = script.initialize_map
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Sets up the room and places the player.
 function script.default_event()
-	helper_387dadc7()
+	repair_shop.set_up_starbre_room()
 	event.take_memory_card_load_state()
 	event.set_time_of_day_advancing(0)
 	event.set_character_position(0, 49.9, 24.7, -68.2)
@@ -788,69 +785,72 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
+--- Says the requested work is unfinished.
+function script.block_exit_before_work()
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_message_window_mode(0, 1)
 	event.set_message_bubble_tail(0, 0)
 	event.open_message_window_2(0, "スターブルから頼まれた\n仕事がまだ終わっていない。")
-	show_message(0, -1, 5, 0, 0)
+	message.show(0, -1, 5, 0, 0)
 end
+script[200] = script.block_exit_before_work
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_93cb8168
+script[400] = menu.open_type_7
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
+--- Resets the counter and plays the ticket scene.
+function script.cutscene_ticket()
 	event.set_save_counter(5, 0)
-	helper_e854()
+	play_ticket_scene()
 end
+script[500] = script.cutscene_ticket
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
-	local var0: s32 = 0
-	local argc: s32 = 0
-	local var2: any = 0
-	local at: number = 0
+--- Offers to start repairing the vacuum if the tool is owned.
+function script.examine_vacuum()
+	local start_repair: s32 = 0
+	local item_count: s32 = 0
+	local choice: any = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_character_motion(0, "立ち")
-		var0 = 0
+		start_repair = 0
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
 		event.set_message_selection_top_line(0, 0)
-		argc = event.get_owned_item_count(382) or argc
-		if argc <= 0 then
+		item_count = event.get_owned_item_count(382) or item_count
+		if item_count <= 0 then
 			event.open_message_window_2(0, "えぇっと、確か修理工具は\n奥のタンスに入れてたっけ。")
-			at = 1
-			show_message(0, -1, 5, 0, 0)
+			resume_step = 1
+			message.show(0, -1, 5, 0, 0)
 		else
 			event.set_message_selection_top_line(0, 1)
 			event.set_message_window_option(0, 0, 1)
 			event.set_message_window_option(0, 1, 1)
-			argc = event.get_owned_item_count(386) or argc
-			if argc <= 0 then
+			item_count = event.get_owned_item_count(386) or item_count
+			if item_count <= 0 then
 				event.open_message_window_2(
 					0,
 					"これが、ゲイブルさんとこの掃除機だな・・・\nまだやり残してる事があるような・・・\nさてと・・・、始めようかな。"
 				)
-				at = 2
-				var2 = helper_bac0e30d(0, -1, 5, 256, 208, 2, 1)
-				if var2 == 2 then
-					var0 = 1
+				resume_step = 2
+				choice = message.ask_choice(0, -1, 5, 256, 208, 2, 1)
+				if choice == 2 then
+					start_repair = 1
 				end
 			else
 				event.open_message_window_2(
 					0,
 					"これが、ゲイブルさんとこの掃除機だな・・・\nよし、掃除機の修理だ！\nもうちょっと後にしようかな。"
 				)
-				at = 3
-				var2 = helper_bac0e30d(0, -1, 5, 256, 208, 2, 1)
-				if var2 == 1 then
-					var0 = 1
+				resume_step = 3
+				choice = message.ask_choice(0, -1, 5, 256, 208, 2, 1)
+				if choice == 1 then
+					start_repair = 1
 				end
 			end
 			event.set_message_window_option(0, 0, 0)
@@ -858,32 +858,32 @@ function script.event_501()
 			event.set_message_selection_top_line(0, 0)
 		end
 		event.set_message_bubble_tail(0, 1)
-		if var0 == 1 then
-			at = 4
-			helper_12ec0()
+		if start_repair == 1 then
+			resume_step = 4
+			play_tool_work_scene()
 			event.jump_to_map_3(-1, "m06", 151)
 		end
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at == 2 then
-				var2 = received[1] :: number
+		if resume_step <= 4 then
+			if resume_step == 2 then
+				choice = received[1] :: number
 			end
-			if at == 3 then
-				var2 = received[1] :: number
+			if resume_step == 3 then
+				choice = received[1] :: number
 			end
-			if at <= 1 then
-				var2 = helper_7d54f41c(0, -1, 5, 256, 208, 2, 1)
+			if resume_step <= 1 then
+				choice = message.open_choice_skipping(0, -1, 5, 256, 208, 2, 1)
 			end
-			if at <= 2 then
-				var0 = 1
-				var2 = helper_7d54f41c(0, -1, 5, 256, 208, 2, 1)
+			if resume_step <= 2 then
+				start_repair = 1
+				choice = message.open_choice_skipping(0, -1, 5, 256, 208, 2, 1)
 			end
-			if at <= 3 then
-				local _ = var2 == 2
-				var0 = 1
-				at = 4
-				helper_12ec0()
+			if resume_step <= 3 then
+				local _ = choice == 2
+				start_repair = 1
+				resume_step = 4
+				play_tool_work_scene()
 				return vm.continue_with(function()
 					event.jump_to_map_3(-1, "m06", 151)
 					return
@@ -894,27 +894,30 @@ function script.event_501()
 		return nil
 	end)
 end
+script[501] = script.examine_vacuum
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_14e1c()
+--- Plays the oversleeping scene and jumps to m08.
+function script.cutscene_oversleeping()
+	play_oversleeping_scene()
 	event.jump_to_map_3(-1, "m08", 151)
 end
+script[502] = script.cutscene_oversleeping
 
 --- Event 510, which map data, a script or the engine runs by number.
-script.event_510 = helper_e0a8
+script.tell_player_to_work = tell_player_to_work
+script[510] = script.tell_player_to_work
 
---- Event 520, which map data, a script or the engine runs by number.
-function script.event_520()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
+--- Walks to the cabinet and picks up the repair tool.
+function script.pick_up_repair_tool()
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
 	event.initialize_event()
 	do
 		local out1, out2, out3 = event.get_triggered_event_data_4(10)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		target_x = out1 or target_x
+		target_y = out2 or target_y
+		target_z = out3 or target_z
 	end
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
@@ -922,24 +925,25 @@ function script.event_520()
 	event.set_object_sequence_motion(0, "歩き")
 	event.delay_object_sequence_motion_track(0, 10)
 	event.set_object_sequence_motion(0, "立ち")
-	event.turn_object_sequence_toward(0, var0, var1, var2, 10)
-	helper_888ab2a3(10)
-	helper_f38eabca(382, 1)
+	event.turn_object_sequence_toward(0, target_x, target_y, target_z, 10)
+	wait.for_frame_count(10)
+	inventory.announce_received(382, 1)
 	event.add_inventory_item(382)
 	event.set_function_point_enabled("", "item1", 0)
 end
+script[520] = script.pick_up_repair_tool
 
---- Event 521, which map data, a script or the engine runs by number.
-function script.event_521()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
+--- Walks to the desk and picks up the memo.
+function script.pick_up_memo()
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
 	event.initialize_event()
 	do
 		local out1, out2, out3 = event.get_triggered_event_data_4(10)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		target_x = out1 or target_x
+		target_y = out2 or target_y
+		target_z = out3 or target_z
 	end
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
@@ -947,23 +951,25 @@ function script.event_521()
 	event.set_object_sequence_motion(0, "歩き")
 	event.delay_object_sequence_motion_track(0, 10)
 	event.set_object_sequence_motion(0, "立ち")
-	event.turn_object_sequence_toward(0, var0, var1, var2, 10)
-	helper_888ab2a3(10)
+	event.turn_object_sequence_toward(0, target_x, target_y, target_z, 10)
+	wait.for_frame_count(10)
 	event.attach_object_handle_to_map_part_2(1, "memo")
 	event.set_object_handle_visible(1, 0)
-	helper_f38eabca(386, 1)
+	inventory.announce_received(386, 1)
 	event.add_inventory_item(386)
 	event.set_function_point_enabled("", "item2", 0)
 end
+script[521] = script.pick_up_memo
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
+--- Says the book cannot be read right now.
+function script.examine_important_book()
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_message_window_mode(0, 1)
 	event.set_message_bubble_tail(0, 0)
 	event.open_message_window_2(0, "何か重要な本があるようだが\n今はまだわからない。")
-	show_message(0, -1, 5, 0, 0)
+	message.show(0, -1, 5, 0, 0)
 end
+script[550] = script.examine_important_book
 
 return script

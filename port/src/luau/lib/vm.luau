@@ -243,4 +243,19 @@ function vm.skip_end(): ()
     end
 end
 
+-- A library module that is required when one of its fields is first read, so that library modules can call into each
+-- other: requiring them as they load would form a cycle.
+function vm.module(path: string): any
+    local functions = {}
+    return setmetatable(functions, {
+        __index = function(_, name: string): any
+            local loaded = (require :: any)(path)
+            for key, value in loaded do
+                rawset(functions, key, value)
+            end
+            return loaded[name]
+        end,
+    })
+end
+
 return vm

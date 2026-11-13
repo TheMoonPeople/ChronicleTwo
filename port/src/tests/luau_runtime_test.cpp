@@ -550,12 +550,12 @@ TEST_F(LuauRuntime, RunWaitResumeEnd) {
 }
 
 TEST_F(LuauRuntime, MonsterWithoutStunProgramResumesSuspendedBehaviorAfterStun) {
-    auto        monster_owner = std::make_shared<CActiveMonster>();
-    auto       &monster = *monster_owner;
+    auto  monster_owner = std::make_shared<CActiveMonster>();
+    auto &monster = *monster_owner;
     // The manager outgrows an AddressSanitizer stack frame, so it lives on the heap.
-    const auto  manager_owner = std::make_unique<CMonsterMan>();
-    auto       &manager = *manager_owner;
-    CScene      scene{};
+    const auto manager_owner = std::make_unique<CMonsterMan>();
+    auto      &manager = *manager_owner;
+    CScene     scene{};
     scene.chara_num = DNG_CHARA_SLOT_MONSTER_END;
     ASSERT_EQ(scene.AssignChara(DNG_CHARA_SLOT_MONSTER, dc2::scene::CharacterResource::FromOwned(monster_owner)), DNG_CHARA_SLOT_MONSTER);
     dc2::test::ScopedGlobalObject<FxScriptMan> effects;
@@ -641,6 +641,12 @@ TEST_F(LuauRuntime, NamedHandlersFollowTheKindsProgramNames) {
 
     EXPECT_EQ(script.run(-1), 0);
     EXPECT_EQ(script.result, 3);
+
+    // A program without a handler under its name runs the handler registered under its number.
+    EXPECT_EQ(script.check_program(150), 1);
+    ASSERT_EQ(script.run(150), 0);
+    ASSERT_EQ(calls.size(), 4u);
+    EXPECT_EQ(calls[3].args[0].val.i, 150);
 }
 
 TEST_F(LuauRuntime, MissingProgramReturnsMinusOne) {
@@ -935,6 +941,44 @@ TEST_F(LuauRuntime, EventModuleRunsNumberedPrograms) {
     EXPECT_EQ(calls[2].args[0].val.i, 50);
 }
 
+// Event GetRand (command 1013) branches on its range's tag: an integer range gives an integer, a float range a float.
+int HandleEventGetRand(dc2::script::RunArguments args, int argc) {
+    RecordedCall call{.no = static_cast<NativeCommand>(1013), .argc = argc};
+    call.args.push_back(args.At(0));
+    calls.push_back(std::move(call));
+    RS_STACKDATA &output = dc2::script::RunOutput(args + 1);
+    if (args.At(0).type == RS_FLOAT) {
+        output.val.f = args.At(0).val.f * 0.5f;
+    } else {
+        output.val.i = args.At(0).val.i - 3;
+    }
+    return 1;
+}
+
+TEST_F(LuauRuntime, EventRandomNumberKeepsTheRangeType) {
+    static dc2::script::RunFunction event_table[1500]{};
+    event_table[static_cast<int>(NativeCommand::ProgSet)] = HandleProgSet;
+    event_table[1013] = HandleEventGetRand;
+    std::string                  handle = luau_runtime::MakeHandle("map/event_random");
+    std::array<RS_STACKDATA, 64> slots{};
+    std::array<RS_CALLDATA, 16>  call_stack{};
+    CRunScript                   script;
+    script.ext_func(event_table, static_cast<int>(std::size(event_table)));
+    ASSERT_TRUE(script.load({reinterpret_cast<u8 *>(handle.data()), handle.size()}, slots, call_stack));
+    ASSERT_EQ(script.run(3), 0);
+    ASSERT_EQ(calls.size(), 3u);
+    EXPECT_EQ(calls[0].args[0].type, RS_INT);
+    EXPECT_EQ(calls[0].args[0].val.i, 10);
+    EXPECT_EQ(calls[1].args[0].type, RS_FLOAT);
+    EXPECT_FLOAT_EQ(calls[1].args[0].val.f, 6.25f);
+    // The integer result comes back as 7, not as the bits of a float; the float result as 3.125.
+    EXPECT_EQ(calls[2].no, NativeCommand::ProgSet);
+    EXPECT_EQ(calls[2].args[0].type, RS_INT);
+    EXPECT_EQ(calls[2].args[0].val.i, 7);
+    EXPECT_EQ(calls[2].args[1].type, RS_FLOAT);
+    EXPECT_FLOAT_EQ(calls[2].args[1].val.f, 3.125f);
+}
+
 TEST_F(LuauRuntime, SkipRunsToTheNextSkipEnd) {
     Loaded      loaded("facade/skip");
     CRunScript &script = loaded.script;
@@ -1054,6 +1098,38 @@ return { setup = setup }
     EXPECT_EQ(calls[1].no, NativeCommand::ProgSet);
     EXPECT_EQ(calls[1].args[0].val.i, 2);
     EXPECT_EQ(loaded.script.end, 1);
+}
+
+TEST_F(LuauRuntime, LibraryModulesCallIntoEachOtherThroughLazyModules) {
+    std::ofstream(root / "lib/ping.luau") << R"(
+local vm = require("@lib/vm")
+local pong = vm.module("@lib/pong")
+local ping = {}
+function ping.start(count) action.set_program_value(count) if count > 1 then pong.answer(count - 1) end end
+return ping
+)";
+    std::ofstream(root / "lib/pong.luau") << R"(
+local vm = require("@lib/vm")
+local ping = vm.module("@lib/ping")
+local pong = {}
+function pong.answer(count) action.set_program_value(-count) ping.start(count - 1) end
+return pong
+)";
+    const auto module = root / "dungeon/monster/ping_pong.luau";
+    std::filesystem::create_directories(module.parent_path());
+    std::ofstream(module) << R"(
+local ping = require("@lib/ping")
+local pong = require("@lib/pong")
+return { setup = function() ping.start(3) pong.answer(1) end }
+)";
+
+    Loaded loaded("dungeon/monster/ping_pong");
+    ASSERT_EQ(loaded.script.run(-1), 0);
+    constexpr std::array kValues = {3, -2, 1, -1, 0};
+    ASSERT_EQ(calls.size(), kValues.size());
+    for (std::size_t index = 0; index < kValues.size(); ++index) {
+        EXPECT_EQ(calls[index].args[0].val.i, kValues[index]);
+    }
 }
 
 TEST_F(LuauRuntime, ItemMenuResultReachesTheScriptAfterTheMenuExits) {

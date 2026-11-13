@@ -1,23 +1,24 @@
 --!strict
--- map/s/s53/s53_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the central lab scene and moves on to map s37.
 
 local vm = require("@lib/vm")
-local helper_41af55f1 = require("@lib/event/helper_41af55f1")
+local central_lab_event = require("@lib/event/central_lab_event")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_41af55f1
+script.key_open = central_lab_event.play_lab_scene
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_41af55f1()
+--- Plays the lab scene and moves on to map s37.
+function script.cutscene_central_lab()
+	central_lab_event.play_lab_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s37", 500)
 	vm.wait(2)
 end
+script[500] = script.cutscene_central_lab
 
 return script

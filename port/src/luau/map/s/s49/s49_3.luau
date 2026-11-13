@@ -1,30 +1,29 @@
 --!strict
--- map/s/s49/s49_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the flashback scenes that lead from the town into dungeon floor d05b01.
 
 local vm = require("@lib/vm")
-local helper_2b8f531b = require("@lib/event/helper_2b8f531b")
-local helper_99e8cb63 = require("@lib/event/helper_99e8cb63")
-local wait_frames = require("@lib/event/wait_frames")
+local gaspard_flashback_scene = require("@lib/event/gaspard_flashback_scene")
+local wait = require("@lib/event/wait")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the mother's deathbed flashback after a short pause.
 function script.default_event()
-	local at: number = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
-		at = 1
-		wait_frames(30)
-		at = 2
-		helper_2b8f531b()
+		checkpoint = 1
+		wait.frames(30)
+		checkpoint = 2
+		gaspard_flashback_scene.play_mother_deathbed_scene()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_2b8f531b()
+		if checkpoint <= 2 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				gaspard_flashback_scene.play_mother_deathbed_scene()
 				return vm.continue_with(function()
 					return
 				end)
@@ -36,22 +35,24 @@ function script.default_event()
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_2b8f531b
+script.key_open = gaspard_flashback_scene.play_mother_deathbed_scene
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_2b8f531b()
+--- Plays the mother's deathbed scene and loads dungeon d05b01.
+function script.cutscene_mother_deathbed()
+	gaspard_flashback_scene.play_mother_deathbed_scene()
 	event.skip_next_music_load()
 	event.load_dungeon_map("d05b01")
 	event.load_event_script("d05b01/d05b01.stb", 561)
 end
+script[500] = script.cutscene_mother_deathbed
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	helper_99e8cb63()
+--- Plays the door scene and loads dungeon d05b01.
+function script.cutscene_door_scene()
+	gaspard_flashback_scene.play_door_scene()
 	event.skip_next_music_load()
 	event.load_dungeon_map("d05b01")
 	event.load_event_script("d05b01/d05b01.stb", 571)
 end
+script[510] = script.cutscene_door_scene
 
 return script

@@ -1,26 +1,19 @@
 --!strict
--- map/f/f02/i08/f02i08.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the Starlight Temple kitchen interior, with the Rao Chao cooking scene that turns a White Windflower into a dish.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_13169207 = require("@lib/event/helper_13169207")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_4e19428d = require("@lib/event/helper_4e19428d")
-local helper_4fba7aa8 = require("@lib/event/helper_4fba7aa8")
-local helper_7b4f25fe = require("@lib/event/helper_7b4f25fe")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_c292fa16 = require("@lib/event/helper_c292fa16")
-local helper_df618068 = require("@lib/event/helper_df618068")
-local helper_f38eabca = require("@lib/event/helper_f38eabca")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local inventory = require("@lib/event/inventory")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local starlight_temple_interior_i08 = require("@lib/event/starlight_temple_interior_i08")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_125b0()
-	local var0: s32 = 0
+--- Plays the event e320 cutscene in which the party meets Rao Chao.
+local function play_raochao_meeting_scene()
+	local sound_effect: s32 = 0
 	local active_chr_no: s32 = 0
 	local block: s32 = 0
 	vm.section(function()
@@ -30,7 +23,7 @@ local function helper_125b0()
 		event.set_message_window_mode(0, 7)
 		event.set_event_projection(524.9)
 		event.load_map_sounds(3500)
-		var0 = event.load_sound_effect_file_2(3500) or var0
+		sound_effect = event.load_sound_effect_file_2(3500) or sound_effect
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		active_chr_no = event.get_playable_character() or active_chr_no
@@ -119,14 +112,14 @@ local function helper_125b0()
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(60.03, 24.04, -18.65)
 		event.set_camera_sequence_look_at(-17.47, 39.8, -140.45)
-		event.play_sound_effect(var0, 5)
-		event.play_sound_effect(var0, 6)
+		event.play_sound_effect(sound_effect, 5)
+		event.play_sound_effect(sound_effect, 6)
 		event.fade_in_screen(30)
-		helper_888ab2a3(40)
+		wait.for_frame_count(40)
 		event.set_camera_sequence_position(78.0, 90.0, -105.0)
 		event.set_camera_sequence_look_at(0.0, 20.0, 120.0)
 		event.move_camera_sequence_angle_height_distance_eased(-2.81, 70.0, 238.14, 60, 0, 1.0)
-		wait_camera()
+		camera.wait_until_done()
 		event.set_camera_sequence_position(-48.4, 22.41, -85.71)
 		event.set_camera_sequence_look_at(-0.1, 33.66, -146.03)
 		event.move_object_sequence(0, 8.0, 20.0, -140.0, 30)
@@ -134,19 +127,19 @@ local function helper_125b0()
 		event.delay_object_sequence_motion_track(0, 30)
 		event.set_object_sequence_motion(0, "立ち")
 		event.set_mouth_texture_animations(0, "わらい口パク")
-		helper_4116e6bb(3200010)
-		wait_objects(0)
+		message.show_voiced(3200010)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(1, "うなづく", 6)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "わらい口パク")
-		helper_4116e6bb(3200020)
-		wait_objects(1)
+		message.show_voiced(3200020)
+		object.wait_until_done(1)
 		event.move_object_sequence(0, 8.0, 10.2, -100.0, 40, 1)
 		event.set_object_sequence_motion(0, "歩き")
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.move_object_sequence(1, -8.0, 10.2, -100.0, 60, 1)
 		event.set_object_sequence_motion(1, "歩き")
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(-75.76, 74.49, -34.88)
 		event.set_camera_sequence_look_at(15.11, 11.0, 88.74)
 		event.set_object_sequence_position(0, 10.0, -0.43, 0.0)
@@ -157,50 +150,50 @@ local function helper_125b0()
 		event.move_object_sequence(1, -10.0, -0.43, 60.0, 64)
 		event.delay_object_sequence_motion_track(1, 64)
 		event.set_object_sequence_motion(1, "立ち")
-		wait_objects(1)
-		helper_888ab2a3(10)
+		object.wait_until_done(1)
+		wait.for_frame_count(10)
 		event.set_camera_sequence_position(36.25, 36.87, 181.26)
 		event.set_camera_sequence_look_at(-14.37, 19.74, 89.01)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200030)
+		message.show_voiced(3200030)
 		event.set_camera_sequence_position(-23.83, 31.93, 86.48)
 		event.set_camera_sequence_look_at(7.19, 26.71, 126.84)
-		event.stop_sound_effect(var0, 6)
-		event.play_sound_effect(var0, 7)
+		event.stop_sound_effect(sound_effect, 6)
+		event.play_sound_effect(sound_effect, 7)
 		event.set_object_sequence_motion(2, "振り返る", 2)
 		event.wait_object_sequence_motion_end(2)
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "歩き")
 		event.move_object_sequence(2, 0.0, -0.43, 125.0, 30)
 		event.delay_object_sequence_motion_track(2, 30)
 		event.set_object_sequence_motion(2, "立ち")
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "会話2", 2)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3200040)
-		wait_objects(2)
+		message.show_voiced(3200040)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(-33.89, 34.75, 164.03)
 		event.set_camera_sequence_look_at(6.83, 19.26, 81.57)
 		event.set_object_sequence_motion(1, "会話", 2)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200050)
+		message.show_voiced(3200050)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200055)
-		wait_objects(1)
+		message.show_voiced(3200055)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(27.91, 33.68, 96.67)
 		event.set_camera_sequence_look_at(-11.17, 13.8, 49.82)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200060)
+		message.show_voiced(3200060)
 		event.set_object_handle_texture_animation(1, 0)
 		event.set_object_handle_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_handle_texture_animation(1, 1, "通常目～真剣目とじ")
 		event.set_object_sequence_motion(1, "お願い", 2)
 		event.queue_object_sequence_next_motion(1, "お願いＬ", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200065)
-		wait_objects(1)
+		message.show_voiced(3200065)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(0.0, 26.85, 21.57)
 		event.set_camera_sequence_look_at(0.0, 17.73, 104.2)
 		event.set_object_handle_texture_animation(1, 0)
@@ -209,14 +202,14 @@ local function helper_125b0()
 		event.set_object_sequence_motion(2, "会話2", 2)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3200070)
+		message.show_voiced(3200070)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3200075)
-		wait_objects(2)
+		message.show_voiced(3200075)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(1, "お願い戻り", 2)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200080)
+		message.show_voiced(3200080)
 		event.set_camera_sequence_position(-23.88, 27.8, 90.51)
 		event.set_camera_sequence_look_at(5.78, 28.07, 118.34)
 		event.set_object_sequence_motion(2, "会話2", 2)
@@ -224,21 +217,21 @@ local function helper_125b0()
 		event.set_event_sprite_draw_pass(0, 2)
 		event.set_object_sequence_color(3, 128.0, 128.0, 128.0, 128.0, 30)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3200090)
+		message.show_voiced(3200090)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3200095)
-		wait_objects(2)
+		message.show_voiced(3200095)
+		object.wait_until_done(2)
 		event.set_object_sequence_color(3, 128.0, 128.0, 128.0, 0.0)
 		event.set_event_sprite_draw_pass(0, 0)
 		event.set_camera_sequence_position(36.94, 35.56, 165.86)
 		event.set_camera_sequence_look_at(-8.57, 20.03, 83.73)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3200100)
+		message.show_voiced(3200100)
 		event.set_object_sequence_motion(1, "考え", 2)
 		event.queue_object_sequence_next_motion(1, "考えＬ", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200110)
-		wait_objects(1)
+		message.show_voiced(3200110)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(-21.61, 29.82, 85.96)
 		event.set_camera_sequence_look_at(4.96, 19.69, 50.88)
 		event.set_object_sequence_texture_animation(1, 0)
@@ -250,16 +243,16 @@ local function helper_125b0()
 		event.queue_object_sequence_next_motion(0, "右向く会話", 6)
 		event.queue_object_sequence_next_motion(0, "右向くL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		helper_4116e6bb(3200120)
-		wait_objects(0)
+		message.show_voiced(3200120)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(1, "考え戻り", 6)
 		event.queue_object_sequence_next_motion(1, "会話", 6)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.delay_object_sequence_sound_track(1, 30)
-		event.play_object_sequence_sound(1, var0, 8)
+		event.play_object_sequence_sound(1, sound_effect, 8)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200130)
-		wait_objects(1)
+		message.show_voiced(3200130)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(-0.23, 59.82, -25.11)
 		event.set_camera_sequence_look_at(-0.08, 19.69, 71.97)
 		event.set_object_handle_texture_animation(1, 0)
@@ -268,25 +261,25 @@ local function helper_125b0()
 		event.set_object_sequence_motion(0, "右向く戻り", 6)
 		event.queue_object_sequence_next_motion(0, "立ち", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3200140)
-		wait_objects(0)
+		message.show_voiced(3200140)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(2, "うなづく", 2)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.move_object_sequence(1, -8.0, 10.2, -10.0, 70)
 		event.rotate_object_sequence(1, 0.0, 3.14, 0.0, 16)
 		event.set_object_sequence_motion(1, "歩き")
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.move_object_sequence(0, 8.0, 10.2, 0.0, 60)
 		event.rotate_object_sequence(0, 0.0, 3.14, 0.0, 16)
 		event.set_object_sequence_motion(0, "歩き")
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 5)
-	event.stop_sound_effect(var0, 6)
+	event.stop_sound_effect(sound_effect, 5)
+	event.stop_sound_effect(sound_effect, 6)
 	event.set_event_sprite_draw_pass(0, 0)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
@@ -305,15 +298,15 @@ local function helper_125b0()
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_165a0()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Plays the event e324 cutscene in which Rao Chao cooks shumai for the party and hands over the finished dish.
+local function play_raochao_cooking_scene()
+	local special_sound_effect: s32 = 0
+	local sound_effect: s32 = 0
 	local active_chr_no: s32 = 0
-	local var3: s32 = 0
-	local var4: s32 = 0
-	local var5: s32 = 0
-	local var6: s32 = 0
+	local left_hand_visible: s32 = 0
+	local right_hand_visible: s32 = 0
+	local left_hand_2_visible: s32 = 0
+	local right_hand_2_visible: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.fade_out_screen(0)
@@ -322,12 +315,12 @@ local function helper_165a0()
 		event.set_message_window_mode(0, 7)
 		event.set_event_projection(524.9)
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(49)
 		event.play_music(0)
 		event.load_map_sounds(3503)
-		var0 = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or var0
-		var1 = event.load_sound_effect_file_2(3503) or var1
+		special_sound_effect = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or special_sound_effect
+		sound_effect = event.load_sound_effect_file_2(3503) or sound_effect
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		active_chr_no = event.get_playable_character() or active_chr_no
@@ -414,10 +407,10 @@ local function helper_165a0()
 		event.set_object_handle_footstep_sound(1, 4)
 		event.set_object_handle_position(2, 0.0, -0.43, 125.0)
 		event.set_object_handle_rotation(2, 0.0, 3.14, 0.0)
-		var3 = event.is_object_handle_frame_visible(2, "te_l") or var3
-		var4 = event.is_object_handle_frame_visible(2, "te_r") or var4
-		var5 = event.is_object_handle_frame_visible(2, "te_l2") or var5
-		var6 = event.is_object_handle_frame_visible(2, "te_r2") or var6
+		left_hand_visible = event.is_object_handle_frame_visible(2, "te_l") or left_hand_visible
+		right_hand_visible = event.is_object_handle_frame_visible(2, "te_r") or right_hand_visible
+		left_hand_2_visible = event.is_object_handle_frame_visible(2, "te_l2") or left_hand_2_visible
+		right_hand_2_visible = event.is_object_handle_frame_visible(2, "te_r2") or right_hand_2_visible
 		event.set_object_handle_frame_draw_flag(2, "te_l2", 0)
 		event.set_object_handle_frame_draw_flag(2, "te_r2", 0)
 		event.set_object_handle_texture_animation(2, 0)
@@ -433,38 +426,38 @@ local function helper_165a0()
 		event.set_object_sequence_motion(2, "アイヤー", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3240010)
-		wait_objects(2)
+		message.show_voiced(3240010)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(1, "会話", 6)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		helper_4116e6bb(3240020)
-		wait_objects(1)
+		message.show_voiced(3240020)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(0.0, 52.14, 156.79)
 		event.set_camera_sequence_look_at(0.0, 13.26, 82.92)
 		event.set_object_sequence_motion(2, "うなづく", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
 		event.delay_object_sequence_sound_track(2, 16)
-		event.play_object_sequence_sound(2, var1, 4)
+		event.play_object_sequence_sound(2, sound_effect, 4)
 		event.delay_object_sequence_sound_track(2, 20)
-		event.play_object_sequence_sound(2, var1, 4)
+		event.play_object_sequence_sound(2, sound_effect, 4)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3240030)
+		message.show_voiced(3240030)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3240035)
-		wait_objects(2)
+		message.show_voiced(3240035)
+		object.wait_until_done(2)
 		event.set_object_handle_texture_animation(1, 0)
 		event.set_object_handle_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_handle_texture_animation(1, 1, "口とじ～わらい口")
 		event.set_object_handle_texture_animation(0, 0)
 		event.set_object_handle_texture_animation(0, 1, "わらい顔")
 		event.set_object_handle_texture_animation(0, 1, "通常目～うれし目")
-		event.play_sound_effect(var1, 5)
+		event.play_sound_effect(sound_effect, 5)
 		event.set_object_sequence_motion(0, "やった！", 6)
 		event.queue_object_sequence_next_motion(0, "やった！L", 4)
 		event.set_mouth_texture_animations(0, "わらい口パク")
-		helper_4116e6bb(3240040)
-		wait_objects(0)
+		message.show_voiced(3240040)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "立ち", 4)
 		event.set_object_handle_texture_animation(1, 0)
 		event.set_object_handle_texture_animation(1, 1, "デフォルト顔")
@@ -474,31 +467,31 @@ local function helper_165a0()
 		event.set_camera_sequence_look_at(-12.59, 44.96, 128.31)
 		event.set_object_handle_frame_draw_flag(2, "te_l", 0)
 		event.set_object_handle_frame_draw_flag(2, "te_r", 0)
-		event.set_object_handle_frame_draw_flag(2, "te_l2", var5)
-		event.set_object_handle_frame_draw_flag(2, "te_r2", var6)
+		event.set_object_handle_frame_draw_flag(2, "te_l2", left_hand_2_visible)
+		event.set_object_handle_frame_draw_flag(2, "te_r2", right_hand_2_visible)
 		event.set_character_active(37)
 		event.set_object_sequence_motion(2, "左手", 6)
 		event.queue_object_sequence_next_motion(2, "左手L", 4)
 		event.delay_object_sequence_sound_track(2, 10)
-		event.play_object_sequence_sound(2, var1, 6)
-		helper_888ab2a3(30)
+		event.play_object_sequence_sound(2, sound_effect, 6)
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(2.82, 25.7, 81.47)
 		event.set_camera_sequence_look_at(12.59, 44.96, 128.31)
 		event.set_character_active(36)
 		event.set_object_sequence_motion(2, "右手", 6)
 		event.queue_object_sequence_next_motion(2, "右手L", 4)
 		event.delay_object_sequence_sound_track(2, 10)
-		event.play_object_sequence_sound(2, var1, 7)
-		helper_888ab2a3(30)
+		event.play_object_sequence_sound(2, sound_effect, 7)
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(0.0, 29.75, 60.1)
 		event.set_camera_sequence_look_at(0.0, 28.86, 127.43)
 		event.move_camera_sequence_eased(0.0, 29.75, 93.83, 0.0, 28.86, 127.43, 30, 2, 1.0)
-		event.play_sound_effect(var1, 8)
-		wait_camera()
-		helper_888ab2a3(10)
+		event.play_sound_effect(sound_effect, 8)
+		camera.wait_until_done()
+		wait.for_frame_count(10)
 		event.set_camera_sequence_position(-66.44, 75.24, 16.08)
 		event.set_camera_sequence_look_at(-7.71, 24.5, 96.67)
-		event.play_sound_effect(var1, 9)
+		event.play_sound_effect(sound_effect, 9)
 		event.set_object_sequence_position(2, 0.0, -0.43, 140.0)
 		event.set_object_sequence_rotation(2, 0.0, 0.0, 0.0)
 		event.set_object_sequence_motion(2, "猛調理", 4)
@@ -516,17 +509,17 @@ local function helper_165a0()
 		event.move_object_sequence_eased(3, 20.0, -0.43, 140.0, 10, 2, 1.0)
 		event.move_object_sequence_eased(3, -40.0, -0.43, 140.0, 10, 2, 1.0)
 		event.move_object_sequence_eased(3, 30.0, -0.43, 140.0, 10, 2, 1.0)
-		helper_888ab2a3(45)
+		wait.for_frame_count(45)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_active(0, 39)
 		event.set_camera_sequence_position(-32.96, 36.45, 93.5)
 		event.set_camera_sequence_look_at(16.4, 24.48, 129.48999)
 		event.set_character_active(0, 36)
 		event.set_character_active(0, 37)
 		event.set_character_active(38)
-		event.set_object_handle_frame_draw_flag(2, "te_l", var3)
-		event.set_object_handle_frame_draw_flag(2, "te_r", var4)
+		event.set_object_handle_frame_draw_flag(2, "te_l", left_hand_visible)
+		event.set_object_handle_frame_draw_flag(2, "te_r", right_hand_visible)
 		event.set_object_handle_frame_draw_flag(2, "te_l2", 0)
 		event.set_object_handle_frame_draw_flag(2, "te_r2", 0)
 		event.set_object_sequence_position(2, 0.0, -0.43, 145.0)
@@ -535,11 +528,11 @@ local function helper_165a0()
 		event.set_object_sequence_motion(2, "シューマイ歩き", 4)
 		event.delay_object_sequence_motion_track(2, 30)
 		event.set_object_sequence_motion(2, "シューマイ立ち")
-		event.play_sound_effect(var1, 10)
+		event.play_sound_effect(sound_effect, 10)
 		event.fade_in_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3240050)
+		message.show_voiced(3240050)
 		event.set_object_sequence_motion(2, "立ち", 4)
 		event.set_camera_sequence_position(11.36, 30.89, 103.02)
 		event.set_camera_sequence_look_at(10.27, 26.02, 57.53)
@@ -559,11 +552,11 @@ local function helper_165a0()
 		event.set_character_position(40, 5.78, 34.25, 59.7)
 		event.set_character_rotation(40, 0.0, 0.12, 0.0)
 		event.set_character_motion(40, "発動", 6)
-		helper_888ab2a3(2)
-		event.play_sound_effect(var0, 0)
-		helper_888ab2a3(120)
-		event.play_sound_effect(var1, 11)
-		helper_f38eabca(364, 1)
+		wait.for_frame_count(2)
+		event.play_sound_effect(special_sound_effect, 0)
+		wait.for_frame_count(120)
+		event.play_sound_effect(sound_effect, 11)
+		inventory.announce_received(364, 1)
 		event.set_character_active(0, 38)
 		event.play_music(0)
 		event.set_camera_sequence_position(-35.98, 52.37, 163.43)
@@ -574,33 +567,33 @@ local function helper_165a0()
 		event.set_object_sequence_motion(1, "左向く", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
 		event.set_mouth_texture_animations(0, "わらい口パク")
-		helper_4116e6bb(3240060)
-		wait_objects(1)
+		message.show_voiced(3240060)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(1, "左向くうなづき", 6)
 		event.queue_object_sequence_next_motion(1, "左向く戻り", 6)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.set_mouth_texture_animations(1, "わらい口パク")
-		helper_4116e6bb(3240070)
-		wait_objects(1)
+		message.show_voiced(3240070)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(1, "おじぎ", 2)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.delay_object_sequence_sound_track(1, 14)
-		event.play_object_sequence_sound(1, var1, 12)
+		event.play_object_sequence_sound(1, sound_effect, 12)
 		event.delay_object_sequence_motion_track(0, 6)
 		event.set_object_sequence_motion(0, "右向く戻り", 6)
 		event.queue_object_sequence_next_motion(0, "立ち", 4)
 		event.set_mouth_texture_animations(1, "わらい口パク")
-		helper_4116e6bb(3240075)
-		wait_objects(0)
+		message.show_voiced(3240075)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "おじぎ", 6)
 		event.queue_object_sequence_next_motion(0, "立ち", 4)
 		event.delay_object_sequence_sound_track(0, 10)
-		event.play_object_sequence_sound(0, var1, 13)
+		event.play_object_sequence_sound(0, sound_effect, 13)
 		event.set_mouth_texture_animations(0, "わらい口パク")
-		helper_4116e6bb(3240080)
+		message.show_voiced(3240080)
 		event.set_object_sequence_motion(2, "うなづく", 2)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(39.03, 40.08, 183.4)
 		event.set_camera_sequence_look_at(2.76, 28.44, 78.56)
 		event.set_object_sequence_motion(2, "手を振る", 4)
@@ -613,18 +606,18 @@ local function helper_165a0()
 		event.move_object_sequence(1, -10.0, 0.0, -70.0, 70, 1)
 		event.move_object_sequence(1, -10.0, 20.58, -160.0, 60, 1)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_0382f327(3240090, 90)
+		message.show_voiced_for_stopping(3240090, 90)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(33)
 	event.cancel_drama_scene_skip()
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_footstep_sound(1, 0)
-	event.stop_sound_effect(var0, 0)
+	event.stop_sound_effect(special_sound_effect, 0)
 	event.stop_music(0)
-	helper_888ab2a3(4)
+	wait.for_frame_count(4)
 	event.load_music(54)
 	event.play_music(0)
 	event.delete_character_extension_packs(0)
@@ -647,10 +640,10 @@ local function helper_165a0()
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_1b5ac()
-	local var0: s32 = 0
-	local at: number = 0
+--- Asks whether to hand over the White Windflower for cooking and returns 1 when the player agrees.
+local function ask_give_windflower()
+	local answer: s32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
@@ -658,17 +651,17 @@ local function helper_1b5ac()
 			0,
 			"『白き風の花』を渡して\n奇跡の料理を作ってもらおう。\n（(#)ボタンでメニューを開く）"
 		)
-		at = 1
-		var0 = helper_c292fa16(0, -1, 5, 256, 208, var0)
-		if var0 == 1 then
+		step = 1
+		answer = message.ask_confirmation(0, -1, 5, 256, 208, answer)
+		if answer == 1 then
 			return 1
 		else
 			return 0
 		end
 	end, function(received: { any })
-		if at <= 1 then
-			if at == 1 then
-				var0 = received[2] :: number
+		if step <= 1 then
+			if step == 1 then
+				answer = received[2] :: number
 			end
 			return 1
 		end
@@ -678,132 +671,135 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_1ef0d4b2
+script[99] = cutscene.noop
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the Rao Chao meeting scene or enables the cooking point depending on story flags, then resets the camera.
 function script.default_event()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local flag_3: s32 = 0
-	local argc: s32 = 0
-	helper_1ef0d4b2()
-	flag = event.get_save_flag(320) or flag
-	flag_2 = event.get_save_flag(324) or flag_2
-	flag_3 = event.get_save_flag(364) or flag_3
-	helper_13169207(0)
-	if flag_3 == 1 then
-		if flag == 0 then
-			helper_125b0()
+	local meeting_flag: s32 = 0
+	local cooking_flag: s32 = 0
+	local story_flag_364: s32 = 0
+	local windflower_count: s32 = 0
+	cutscene.noop()
+	meeting_flag = event.get_save_flag(320) or meeting_flag
+	cooking_flag = event.get_save_flag(324) or cooking_flag
+	story_flag_364 = event.get_save_flag(364) or story_flag_364
+	starlight_temple_interior_i08.set_character_200_active(0)
+	if story_flag_364 == 1 then
+		if meeting_flag == 0 then
+			play_raochao_meeting_scene()
 		else
-			argc = event.get_owned_item_count(363) or argc
-			if flag_2 == 0 and argc >= 1 then
+			windflower_count = event.get_owned_item_count(363) or windflower_count
+			if cooking_flag == 0 and windflower_count >= 1 then
 				event.set_function_point_enabled("", "syumai", 1)
 			end
 		end
 	end
-	helper_13169207(1)
+	starlight_temple_interior_i08.set_character_200_active(1)
 	event.reset_follow_camera(1, 0.0)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the cooking scene when the square button is pressed.
 function script.key_open()
-	helper_13169207(0)
-	helper_165a0()
-	helper_13169207(1)
+	starlight_temple_interior_i08.set_character_200_active(0)
+	play_raochao_cooking_scene()
+	starlight_temple_interior_i08.set_character_200_active(1)
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	local var0: s32 = 0
-	local item: s32 = 0
-	local at: number = 0
+--- Offers Rao Chao the White Windflower and, when it is used, plays the cooking scene and grants the dish.
+function script.talk_to_raochao()
+	local interaction_state: s32 = 0
+	local used_item: s32 = 0
+	local step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		at = 1
+		step = 1
 		vm.wait(1)
 		event.set_character_motion(0, "立ち")
-		var0 = event.get_triggered_event_data_2(6) or var0
-		if var0 == 1 then
-			at = 2
-			if helper_1b5ac() ~= 0 then
-				var0 = 2
+		interaction_state = event.get_triggered_event_data_2(6) or interaction_state
+		if interaction_state == 1 then
+			step = 2
+			if ask_give_windflower() ~= 0 then
+				interaction_state = 2
 			end
 		end
-		if var0 == 2 then
+		if interaction_state == 2 then
 			event.open_use_item_menu(363)
-			at = 3
+			step = 3
 			vm.wait(3)
-			item = vmhost.used_item() or item
-			if item == 363 then
+			used_item = vmhost.used_item() or used_item
+			if used_item == 363 then
 				event.add_inventory_item(364)
 				event.set_function_point_enabled("", "syumai", 0)
 				event.fade_out_music(30)
 				event.fade_out_screen(30)
-				at = 4
-				helper_888ab2a3(30)
-				helper_13169207(0)
-				at = 5
-				helper_165a0()
-				helper_13169207(1)
-			elseif item > 0 then
-				at = 6
-				helper_df618068()
+				step = 4
+				wait.for_frame_count(30)
+				starlight_temple_interior_i08.set_character_200_active(0)
+				step = 5
+				play_raochao_cooking_scene()
+				starlight_temple_interior_i08.set_character_200_active(1)
+			elseif used_item > 0 then
+				step = 6
+				character.shake_head_at_camera()
 			end
 		end
 		return
 	end, function(received: { any })
-		if at <= 6 then
-			if at == 2 then
+		if step <= 6 then
+			if step == 2 then
 				local _ = received[1] :: number
 			end
-			if at <= 1 then
-				local _ = helper_4e19428d()
+			if step <= 1 then
+				local _ = starlight_temple_interior_i08.run_with_fixed_arguments()
 			end
-			if at <= 2 then
-				local _ = var0 == 1
-				var0 = 2
+			if step <= 2 then
+				local _ = interaction_state == 1
+				interaction_state = 2
 			end
-			if at <= 3 then
-				helper_038a2e4d(30)
+			if step <= 3 then
+				wait.skip_frame_count(30)
 			end
-			if at <= 4 then
-				helper_238b5abc(0)
-				at = 5
-				helper_165a0()
+			if step <= 4 then
+				cutscene.skip_command(0)
+				step = 5
+				play_raochao_cooking_scene()
 				return vm.continue_with(function()
-					helper_13169207(1)
+					starlight_temple_interior_i08.set_character_200_active(1)
 					return
 				end)
 			end
-			if at <= 5 then
-				helper_238b5abc(1)
-				helper_4fba7aa8()
+			if step <= 5 then
+				cutscene.skip_command(1)
+				cutscene.do_nothing()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[500] = script.talk_to_raochao
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_7b4f25fe
+script[1000] = message.talk_to_stella_villager
 
---- Event 13200, which map data, a script or the engine runs by number.
-function script.event_13200()
-	helper_13169207(0)
-	helper_125b0()
-	helper_13169207(1)
+--- Replays the meeting scene with Rao Chao.
+function script.replay_raochao_meeting_scene()
+	starlight_temple_interior_i08.set_character_200_active(0)
+	play_raochao_meeting_scene()
+	starlight_temple_interior_i08.set_character_200_active(1)
 end
+script[13200] = script.replay_raochao_meeting_scene
 
---- Event 13240, which map data, a script or the engine runs by number.
-function script.event_13240()
-	helper_13169207(0)
-	helper_165a0()
-	helper_13169207(1)
+--- Replays the cooking scene with Rao Chao.
+function script.replay_raochao_cooking_scene()
+	starlight_temple_interior_i08.set_character_200_active(0)
+	play_raochao_cooking_scene()
+	starlight_temple_interior_i08.set_character_200_active(1)
 end
+script[13240] = script.replay_raochao_cooking_scene
 
 return script

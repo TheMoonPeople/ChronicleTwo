@@ -1,34 +1,34 @@
 --!strict
--- map/s/s40/s40_4.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Veniccio demo with battleship scenes.
 
-local helper_038e8061 = require("@lib/event/helper_038e8061")
-local helper_31cdc3de = require("@lib/event/helper_31cdc3de")
-local helper_d83f2336 = require("@lib/event/helper_d83f2336")
+local veniccio_demo = require("@lib/event/veniccio_demo")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99() end
+--- Does nothing.
+local function initialize_map() end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.initialize_map = initialize_map
+script[99] = script.initialize_map
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
-script.default_event = event_99
+script.default_event = initialize_map
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the battleship flyover and sighting scenes.
 function script.key_open()
-	helper_038e8061()
-	helper_31cdc3de()
+	veniccio_demo.play_noon_battleship_flyover()
+	veniccio_demo.play_night_battleship_sighting()
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_d83f2336()
+--- Plays the battleship arrival and jumps to g03.
+function script.cutscene_battleship_arrival()
+	veniccio_demo.play_battleship_arrival_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "g03", 510)
 end
+script[500] = script.cutscene_battleship_arrival
 
 return script

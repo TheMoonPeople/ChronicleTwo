@@ -1,35 +1,28 @@
 --!strict
--- map/s/s03/s03_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the train in the forest tunnel, covering the buggy chase sub-game, its game over retry prompt and Monica's fire magic cutscene.
 
 local vm = require("@lib/vm")
-local helper_05a5769c = require("@lib/event/helper_05a5769c")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_482d9cfc = require("@lib/event/helper_482d9cfc")
-local helper_7d54f41c = require("@lib/event/helper_7d54f41c")
-local helper_8aec2e2d = require("@lib/event/helper_8aec2e2d")
-local helper_9b171b08 = require("@lib/event/helper_9b171b08")
-local helper_aa5b3ebe = require("@lib/event/helper_aa5b3ebe")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_f2b0ffcb = require("@lib/event/helper_f2b0ffcb")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_frames_skipping = require("@lib/event/wait_frames_skipping")
+local cutscene = require("@lib/event/cutscene")
+local forest_tunnel = require("@lib/event/forest_tunnel")
+local message = require("@lib/event/message")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_1644c()
-	local var0: s32 = 0
-	local var1: any = 0
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local at: number = 0
+--- Plays the train scene fading to black, then asks whether to try again or return to the title screen and returns the choice.
+local function show_game_over_and_ask_retry()
+	local sound_bank: s32 = 0
+	local choice: any = 0
+	local train_x: f32 = 0
+	local train_y: f32 = 0
+	local train_z: f32 = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.set_save_flag(205, 1)
 		event.initialize_event()
 		event.load_map_sounds(2206)
-		var0 = event.load_sound_effect_file_2(2206) or var0
-		helper_482d9cfc()
+		sound_bank = event.load_sound_effect_file_2(2206) or sound_bank
+		forest_tunnel.load_train_scene()
 		event.stop_music(0)
-		at = 1
+		checkpoint = 1
 		vm.wait(1)
 		event.set_character_active(0, 0)
 		event.set_character_active(1, 32)
@@ -37,7 +30,7 @@ local function helper_1644c()
 		event.set_character_active(1, 34)
 		event.set_character_active(1, 35)
 		event.set_character_active(1, 36)
-		event.play_sound_effect(var0, 5)
+		event.play_sound_effect(sound_bank, 5)
 		event.set_character_position(36, 102.27, 0.0, -305.63)
 		event.set_character_rotation(36, 0.0, 0.0, 0.0)
 		event.set_character_position(35, 44.05, 0.0, 60.82)
@@ -51,15 +44,15 @@ local function helper_1644c()
 		event.attach_object_handle_to_sprite(11, 0)
 		event.clear_object_sequence(11)
 		event.set_object_sequence_object(11, 11)
-		event.play_sound_effect(var0, 1)
+		event.play_sound_effect(sound_bank, 1)
 		event.attach_object_handle_to_map_part_2(10, "p01_s03t")
 		event.clear_object_sequence(10)
 		event.set_object_sequence_object(10, 10)
 		do
 			local out1, out2, out3 = event.get_object_handle_position(10)
-			pos_x = out1 or pos_x
-			pos_y = out2 or pos_y
-			pos_z = out3 or pos_z
+			train_x = out1 or train_x
+			train_y = out2 or train_y
+			train_z = out3 or train_z
 		end
 		event.set_object_sequence_rotation(10, 0.0, 0.0, 0.0)
 		event.move_object_sequence(10, 0.0, 51.92, 0.0, 60)
@@ -67,48 +60,48 @@ local function helper_1644c()
 		event.set_camera_sequence_position(67.41, 107.89, 704.3)
 		event.set_camera_sequence_look_at(59.64, 108.51, 271.98)
 		event.move_camera_sequence_eased(58.28, 107.89, 196.59, 57.34, 108.51, 144.64, 50, 1, 0.4)
-		at = 2
-		wait_frames(45)
+		checkpoint = 2
+		wait.frames(45)
 		event.set_object_sequence_color(11, 0, 0, 0, 255, 30)
-		at = 3
-		wait_frames(30)
+		checkpoint = 3
+		wait.frames(30)
 		event.set_map_piece_character_motion("p01_s03t", "kikan-m", "停止")
 		event.clear_effect_manager()
-		helper_f2b0ffcb()
-		event.set_object_sequence_position(10, pos_x, pos_y, pos_z)
+		forest_tunnel.unload_train_scene()
+		event.set_object_sequence_position(10, train_x, train_y, train_z)
 		event.set_object_sequence_rotation(10, 0.0, 0.0, 0.0)
 		event.stop_all_sounds()
-		at = 4
-		wait_frames(4)
+		checkpoint = 4
+		wait.frames(4)
 		event.load_music(60)
 		event.play_music(1)
 		event.set_message_window_mode(0, 8)
 		event.open_message_window_2(0, "Nochmal versuchen.\nZur[UNI00fc]ck zum Titel-Bildschirm.")
-		at = 5
-		var1 = helper_bac0e30d(0, -1, 8, 0, 0, 2, 0)
+		checkpoint = 5
+		choice = message.ask_choice(0, -1, 8, 0, 0, 2, 0)
 		event.set_character_active(1, 0)
 		event.fade_out_screen(0)
 		event.set_event_sprite_draw_pass(0, 0)
-		return var1
+		return choice
 	end, function(received: { any })
-		if at <= 5 then
-			if at == 5 then
-				var1 = received[1] :: number
+		if checkpoint <= 5 then
+			if checkpoint == 5 then
+				choice = received[1] :: number
 			end
-			if at <= 1 then
-				wait_frames_skipping(45)
+			if checkpoint <= 1 then
+				wait.frames_skipping(45)
 			end
-			if at <= 2 then
-				wait_frames_skipping(30)
+			if checkpoint <= 2 then
+				wait.frames_skipping(30)
 			end
-			if at <= 3 then
-				helper_1ef0d4b2()
-				wait_frames_skipping(4)
+			if checkpoint <= 3 then
+				cutscene.noop()
+				wait.frames_skipping(4)
 			end
-			if at <= 4 then
-				var1 = helper_7d54f41c(0, -1, 8, 0, 0, 2, 0)
+			if checkpoint <= 4 then
+				choice = message.open_choice_skipping(0, -1, 8, 0, 0, 2, 0)
 			end
-			return var1
+			return choice
 		end
 		return nil
 	end)
@@ -116,13 +109,13 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_1ef0d4b2
+script[99] = cutscene.noop
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Starts the train engine motion and places the player and camera inside the train.
 function script.default_event()
 	event.set_map_piece_character_motion("p01_s03t", "kikan-m", "機関")
 	event.set_character_position(0, 0.0, 140.0, -420.0)
@@ -132,66 +125,73 @@ function script.default_event()
 	event.reset_follow_camera(0)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits briefly, then plays the taxi ride cutscene.
 function script.key_open()
-	wait_frames(30)
-	helper_05a5769c()
+	wait.frames(30)
+	forest_tunnel.play_taxi_ride_cutscene()
 end
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
+--- Plays the buggy chase cutscene and starts the sub-game.
+function script.cutscene_buggy_chase()
 	event.set_map_piece_character_motion("p01_s03t", "kikan-m", "機関")
-	helper_9b171b08()
+	forest_tunnel.play_buggy_chase_cutscene()
 	event.fade_in_screen(15)
 	event.start_sub_game(3)
 end
+script[501] = script.cutscene_buggy_chase
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
+--- Skips the next music load and jumps to map s08.
+function script.leave_to_s08()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s08", 502)
 	vm.wait(1)
 end
+script[502] = script.leave_to_s08
 
---- Event 503, which map data, a script or the engine runs by number.
-function script.event_503()
+--- Plays Monica's fire magic cutscene and jumps to map s02.
+function script.cutscene_monica_fire_magic()
 	event.set_map_piece_character_motion("p01_s03t", "kikan-m", "機関")
-	helper_8aec2e2d()
+	forest_tunnel.play_monica_fire_magic_cutscene()
 	event.skip_next_music_play()
 	event.jump_to_map_2(-1, "s02")
 	vm.wait(2)
 end
+script[503] = script.cutscene_monica_fire_magic
 
---- Event 512, which map data, a script or the engine runs by number.
-function script.event_512()
-	local var0: any = 0
-	var0 = helper_1644c()
-	helper_aa5b3ebe(var0)
+--- Shows the game over choice and retries the sub-game or exits according to the answer.
+function script.retry_or_exit_after_game_over()
+	local choice: any = 0
+	choice = show_game_over_and_ask_retry()
+	forest_tunnel.retry_or_exit_train_game(choice)
 end
+script[512] = script.retry_or_exit_after_game_over
 
---- Event 12040, which map data, a script or the engine runs by number.
-function script.event_12040()
-	helper_9b171b08()
+--- Plays the buggy chase cutscene and starts the sub-game without setting the engine motion first.
+function script.cutscene_buggy_chase_again()
+	forest_tunnel.play_buggy_chase_cutscene()
 	event.fade_in_screen(15)
 	event.start_sub_game(3)
 end
+script[12040] = script.cutscene_buggy_chase_again
 
---- Event 12050, which map data, a script or the engine runs by number.
-function script.event_12050()
-	local var0: any = 0
-	var0 = helper_1644c()
-	helper_aa5b3ebe(var0)
+--- Shows the game over choice and retries the sub-game or exits according to the answer.
+function script.retry_or_exit_after_game_over_again()
+	local choice: any = 0
+	choice = show_game_over_and_ask_retry()
+	forest_tunnel.retry_or_exit_train_game(choice)
 end
+script[12050] = script.retry_or_exit_after_game_over_again
 
 --- Event 12060, which map data, a script or the engine runs by number.
-script.event_12060 = helper_8aec2e2d
+script[12060] = forest_tunnel.play_monica_fire_magic_cutscene
 
---- Event 22010, which map data, a script or the engine runs by number.
-function script.event_22010()
+--- Places the player and starts the train sub-game.
+function script.start_train_sub_game()
 	vm.wait(1)
 	event.set_character_position(0, 0.0, 140.0, -420.0)
 	event.set_character_rotation(0, 0.0, 3.14, 0.0)
 	event.start_sub_game(3)
 end
+script[22010] = script.start_train_sub_game
 
 return script

@@ -494,6 +494,9 @@ void dc2::world::PrepareEditMapJumpStorage(CScene &scene, DataPacketMode mode) {
     scene.DeleteVillager();
     scene.DeleteSubVillager();
     DeleteMapJumpMaps(scene);
+    // Retire what the main data stack holds while it is live, so extension packs detach from their characters
+    // rather than dropping them once the rebind below invalidates the stack.
+    scene.ClearStack(1);
     ConfigureDataPackets(mode);
     ControlCharaBuff.stSetLocked(true);
     MainDataBuff.stSetBorrowedBuffer(ControlCharaBuff,

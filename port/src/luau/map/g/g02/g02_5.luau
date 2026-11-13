@@ -1,90 +1,79 @@
 --!strict
--- map/g/g02/g02_5.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the Balance Valley map covering entries, exits and talking to villagers.
 
 local vm = require("@lib/vm")
-local helper_0311340e = require("@lib/event/helper_0311340e")
-local helper_2e69f380 = require("@lib/event/helper_2e69f380")
-local helper_45b56d46 = require("@lib/event/helper_45b56d46")
-local helper_47df9e39 = require("@lib/event/helper_47df9e39")
-local helper_58610e3d = require("@lib/event/helper_58610e3d")
-local helper_5d4cb629 = require("@lib/event/helper_5d4cb629")
-local helper_660198d9 = require("@lib/event/helper_660198d9")
-local helper_6fd68c14 = require("@lib/event/helper_6fd68c14")
-local helper_7581838c = require("@lib/event/helper_7581838c")
-local helper_8476c032 = require("@lib/event/helper_8476c032")
-local helper_981199f4 = require("@lib/event/helper_981199f4")
-local helper_a409b6fa = require("@lib/event/helper_a409b6fa")
-local helper_a57b0158 = require("@lib/event/helper_a57b0158")
-local helper_a80f4eb9 = require("@lib/event/helper_a80f4eb9")
-local helper_ebc222ab = require("@lib/event/helper_ebc222ab")
-local helper_f57795f8 = require("@lib/event/helper_f57795f8")
-local show_message = require("@lib/event/show_message")
+local balance_valley = require("@lib/event/balance_valley")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local partner_talk = require("@lib/event/spanish/partner_talk")
+local time_gate = require("@lib/event/spanish/time_gate")
+local town_villagers = require("@lib/event/spanish/town_villagers")
 
---- Event 210, which map data, a script or the engine runs by number.
-local function event_210()
-	local var0: s32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
+--- Places the player outside the house after leaving it and fades the screen in.
+local function arrive_from_house()
+	local sound_id: s32 = 0
+	local x: f32 = 0
+	local y: f32 = 0
+	local z: f32 = 0
+	local rotation_y: f32 = 0
 	event.initialize_event()
-	helper_a57b0158()
-	var0 = event.get_sound_id(2) or var0
-	event.play_sound_effect(var0, 61)
+	balance_valley.disable_extra_characters_and_run_georama()
+	sound_id = event.get_sound_id(2) or sound_id
+	event.play_sound_effect(sound_id, 61)
 	do
 		local out1, out2, out3 = event.get_function_point_position("", "func3")
-		var1 = out1 or var1
-		var2 = out2 or var2
-		var3 = out3 or var3
+		x = out1 or x
+		y = out2 or y
+		z = out3 or z
 	end
-	var4 = event.get_function_point_rotation("", "func3") or var4
-	var4 = vm.f32(var4 - vm.f32(3.1415927))
-	var4 = event.wrap_angle(var4) or var4
-	event.set_character_position(0, var1, var2, var3)
-	event.set_character_rotation(0, 0.0, var4, 0.0)
+	rotation_y = event.get_function_point_rotation("", "func3") or rotation_y
+	rotation_y = vm.f32(rotation_y - vm.f32(3.1415927))
+	rotation_y = event.wrap_angle(rotation_y) or rotation_y
+	event.set_character_position(0, x, y, z)
+	event.set_character_rotation(0, 0.0, rotation_y, 0.0)
 	event.set_character_motion(0, "立ち", 4)
 	event.reset_character_cloth_and_hair(0)
 	event.reset_follow_camera(1, 0.0, 10.0)
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_22a04()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: s32 = 0
+--- Walks the player ahead and shows a hint about checking the last house.
+local function walk_ahead_and_hint_at_house()
+	local x: f32 = 0
+	local y: f32 = 0
+	local z: f32 = 0
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
+	local frame: s32 = 0
 	local flag: s32 = 0
 	event.initialize_event()
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var0 = out1 or var0
-		var1 = out2 or var1
-		var2 = out3 or var2
+		x = out1 or x
+		y = out2 or y
+		z = out3 or z
 	end
-	var3 = vm.f32(vm.f32(vm.sin(vm.f32(-2.76)) * 30.0) + var0)
-	var4 = var1
-	var5 = vm.f32(vm.f32(vm.cos(vm.f32(-2.76)) * 30.0) + var2)
+	target_x = vm.f32(vm.f32(vm.sin(vm.f32(-2.76)) * 30.0) + x)
+	target_y = y
+	target_z = vm.f32(vm.f32(vm.cos(vm.f32(-2.76)) * 30.0) + z)
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
-	event.move_object_sequence(0, var3, var4, var5, 30, 1)
-	event.turn_object_sequence_toward(0, var3, var4, var5, 10)
+	event.move_object_sequence(0, target_x, target_y, target_z, 30, 1)
+	event.turn_object_sequence_toward(0, target_x, target_y, target_z, 10)
 	event.set_object_sequence_motion(0, "歩き")
-	var6 = 0
-	while var6 < 30 do
+	frame = 0
+	while frame < 30 do
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var0 = out1 or var0
-			var1 = out2 or var1
-			var2 = out3 or var2
+			x = out1 or x
+			y = out2 or y
+			z = out3 or z
 		end
-		var1 = vm.f32(var1 + 30.0)
-		event.set_camera_look_at(var0, var1, var2)
-		var6 = var6 + 1
+		y = vm.f32(y + 30.0)
+		event.set_camera_look_at(x, y, z)
+		frame = frame + 1
 		vm.wait(1)
 	end
 	event.set_object_sequence_motion(0, "立ち")
@@ -96,30 +85,30 @@ local function helper_22a04()
 	else
 		event.open_message_window_2(0, "Ahora no tenemos tiempo.\n[UNI00a1]Tenemos que ayudar a Lin, r[UNI00e1]pido!")
 	end
-	show_message(0, -1, 5, 256, 208)
+	message.show(0, -1, 5, 256, 208)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_a57b0158
+script[99] = balance_valley.disable_extra_characters_and_run_georama
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the entry sequence matching the map the player came from.
 function script.default_event()
-	local mc_load: s32 = 0
-	local old_map_no: s32 = 0
-	local var2: s32 = 0
+	local memory_card_load_state: s32 = 0
+	local previous_map_number: s32 = 0
+	local old_map_type: s32 = 0
 	local flag: s32 = 0
 	local flag_2: s32 = 0
-	local old_sub_map_no: s32 = 0
-	local at: number = 0
+	local previous_submap_number: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
-		helper_a57b0158()
-		mc_load = event.take_memory_card_load_state() or mc_load
-		if mc_load == 1 then
+		balance_valley.disable_extra_characters_and_run_georama()
+		memory_card_load_state = event.take_memory_card_load_state() or memory_card_load_state
+		if memory_card_load_state == 1 then
 			event.set_character_position(0, 1989.0, 0.0, -198.0)
 			event.set_character_rotation(0, 0.0, -1.21, 0.0)
 			event.set_character_motion(0, "立ち", 4)
@@ -127,13 +116,13 @@ function script.default_event()
 			event.reset_character_cloth_and_hair(0)
 			event.reset_follow_camera(1, 3.14, 20.0)
 		else
-			old_map_no = event.get_previous_map() or old_map_no
-			var2 = event.get_map_type(old_map_no) or var2
-			if var2 ~= -1 then
-				if var2 == 7 or var2 == 8 then
-					at = 1
-					helper_47df9e39()
-				elseif old_map_no == 26 then
+			previous_map_number = event.get_previous_map() or previous_map_number
+			old_map_type = event.get_map_type(previous_map_number) or old_map_type
+			if old_map_type ~= -1 then
+				if old_map_type == 7 or old_map_type == 8 then
+					resume_step = 1
+					balance_valley.play_entry_walk_east()
+				elseif previous_map_number == 26 then
 					event.set_camera_position(-741.9, 50.0, -592.0)
 					event.set_camera_look_at(-741.9, 30.0, -712.0)
 					event.set_character_position(0, -741.9, 0.0, -712.0)
@@ -143,48 +132,48 @@ function script.default_event()
 					flag = event.get_save_flag(300) or flag
 					flag_2 = event.get_save_flag(302) or flag_2
 					if flag == 1 and flag_2 == 0 then
-						at = 2
-						helper_2e69f380()
+						resume_step = 2
+						balance_valley.play_first_intro_cutscene()
 					else
-						at = 3
-						helper_0311340e()
+						resume_step = 3
+						balance_valley.play_entry_walk_west()
 					end
 				end
 			else
-				old_sub_map_no = event.get_previous_submap() or old_sub_map_no
-				if old_sub_map_no == 100 then
-					event_210()
+				previous_submap_number = event.get_previous_submap() or previous_submap_number
+				if previous_submap_number == 100 then
+					arrive_from_house()
 				end
-				if old_sub_map_no == -1 then
-					event_210()
+				if previous_submap_number == -1 then
+					arrive_from_house()
 				end
 				print("------  <START EVENT> OLD MAP ERR   ------\n")
-				print("--- OLD SUBMAP NO = ", old_sub_map_no, "\n")
+				print("--- OLD SUBMAP NO = ", previous_submap_number, "\n")
 			end
 		end
-		at = 4
-		helper_5d4cb629(1)
+		resume_step = 4
+		balance_valley.show_gate_hint_if_pending(1)
 		return
 	end, function(received: { any })
-		if at <= 4 then
-			if at <= 1 then
-				at = 2
-				helper_2e69f380()
+		if resume_step <= 4 then
+			if resume_step <= 1 then
+				resume_step = 2
+				balance_valley.play_first_intro_cutscene()
 				return vm.continue_with(function()
-					at = 4
-					helper_5d4cb629(1)
+					resume_step = 4
+					balance_valley.show_gate_hint_if_pending(1)
 					return
 				end)
 			end
-			if at <= 2 then
-				helper_8476c032()
+			if resume_step <= 2 then
+				balance_valley.wait_exit_fade()
 			end
-			if at <= 3 then
-				helper_a409b6fa()
-				helper_a409b6fa()
+			if resume_step <= 3 then
+				balance_valley.subtract_pi_from_unused_angle()
+				balance_valley.subtract_pi_from_unused_angle()
 				print("------  <START EVENT> OLD MAP ERR   ------\n")
-				print("--- OLD SUBMAP NO = ", old_sub_map_no, "\n")
-				helper_ebc222ab(1)
+				print("--- OLD SUBMAP NO = ", previous_submap_number, "\n")
+				message.clear_window_option(1)
 			end
 			return 0
 		end
@@ -194,18 +183,19 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing so the menu button is ignored.
 function script.key_open() end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
+--- Enters Lin's house either by map jump or by interior transition depending on story flags.
+function script.enter_lins_house()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	local flag_3: s32 = 0
 	local flag_4: s32 = 0
 	local flag_5: s32 = 0
 	local flag_6: s32 = 0
-	local now_party_chara_id: s32 = 0
-	local at: number = 0
+	local party_npc_id: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		flag = event.get_save_flag(300) or flag
@@ -215,10 +205,10 @@ function script.event_200()
 		flag_5 = event.get_save_flag(328) or flag_5
 		flag_6 = event.get_save_flag(330) or flag_6
 		if flag == 1 then
-			now_party_chara_id = event.get_party_npc() or now_party_chara_id
+			party_npc_id = event.get_party_npc() or party_npc_id
 			if
 				flag_2 == 0
-				or flag_3 == 0 and now_party_chara_id == 6
+				or flag_3 == 0 and party_npc_id == 6
 				or flag_4 == 1 and flag_5 == 0
 				or flag_4 == 1 and flag_6 == 0
 			then
@@ -226,104 +216,112 @@ function script.event_200()
 					event.skip_next_music_load()
 				end
 				event.jump_to_map_3(-1, "g02i02", 100)
-				at = 1
+				resume_step = 1
 				vm.wait(1)
 				print("--- MAP_JUMP(g02i02) ---\n")
 				return
 			end
 		end
 		event.go_to_interior_map(-1, "g02i02", 100)
-		at = 2
+		resume_step = 2
 		vm.wait(2)
 		print("--- GOTO_INTERIOR(g02i02) ---\n")
 		return
 	end, function(received: { any })
-		if at <= 1 then
+		if resume_step <= 1 then
 			print("--- MAP_JUMP(g02i02) ---\n")
 			return 0
 		end
-		if at <= 2 then
+		if resume_step <= 2 then
 			print("--- GOTO_INTERIOR(g02i02) ---\n")
 			return 0
 		end
 		return nil
 	end)
 end
+script[200] = script.enter_lins_house
 
-script.event_210 = event_210
+script.arrive_from_house = arrive_from_house
+script[210] = script.arrive_from_house
 
---- Event 300, which map data, a script or the engine runs by number.
-function script.event_300()
-	helper_a80f4eb9(vm.f32(-743.2), 0.0, vm.f32(-708.9), vm.f32(-0.64))
+--- Plays the red time gate effect and jumps to the f02 map.
+function script.use_time_gate()
+	time_gate.play_red_time_gate(vm.f32(-743.2), 0.0, vm.f32(-708.9), vm.f32(-0.64))
 	event.jump_to_map_2(-1, "f02")
 	vm.wait(2)
 end
+script[300] = script.use_time_gate
 
---- The event run when the edit analysis found changes after a house door step or a Georama mode change.
+--- Shows the gate hint when pending after a georama change.
 function script.edit_analyze_changed()
-	helper_5d4cb629(0)
+	balance_valley.show_gate_hint_if_pending(0)
 end
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_f57795f8
+script[400] = menu.open_with_fade
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	if helper_660198d9() ~= 0 then
+--- Asks to leave to the west and jumps to the next map when confirmed.
+function script.exit_west()
+	if balance_valley.confirm_exit_west() ~= 0 then
 		event.jump_to_map_2(-1, "s04")
 	end
 end
+script[500] = script.exit_west
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
+--- Shows the blocked path hint or lets the player choose a dungeon floor and enter it.
+function script.exit_east()
 	local flag: s32 = 0
-	local var3: s32 = 0
+	local selected_floor: s32 = 0
 	local flag_2: s32 = 0
 	local flag_3: s32 = 0
 	flag = event.get_save_flag(306) or flag
 	if flag == 0 then
-		helper_22a04()
-	elseif helper_7581838c() ~= 0 then
+		walk_ahead_and_hint_at_house()
+	elseif balance_valley.confirm_exit_east() ~= 0 then
 		event.set_dungeon_stage_id(2)
 		event.open_event_menu(3, 2)
 		vm.wait(3)
 		do
 			local _, _, out3, _ = event.get_menu_results_4()
-			var3 = out3 or var3
+			selected_floor = out3 or selected_floor
 		end
-		if var3 == 0 then
-			helper_47df9e39()
+		if selected_floor == 0 then
+			balance_valley.play_entry_walk_east()
 		else
 			flag_2 = event.get_save_flag(307) or flag_2
 			flag_3 = event.get_save_flag(344) or flag_3
-			if var3 == 2 and flag_2 == 0 or var3 == 21 and flag_3 == 0 or var3 == 22 then
+			if selected_floor == 2 and flag_2 == 0 or selected_floor == 21 and flag_3 == 0 or selected_floor == 22 then
 				event.skip_next_music_load()
 			end
-			event.go_to_dungeon(2, var3, 1010)
+			event.go_to_dungeon(2, selected_floor, 1010)
 		end
 	end
 end
+script[501] = script.exit_east
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_a57b0158()
-	helper_58610e3d()
-	helper_5d4cb629(1)
+--- Restores the valley state and the player after the house scene and shows the pending gate hint.
+function script.return_from_house_scene()
+	balance_valley.disable_extra_characters_and_run_georama()
+	balance_valley.restore_player_and_finish_event()
+	balance_valley.show_gate_hint_if_pending(1)
 end
+script[502] = script.return_from_house_scene
 
---- Event 503, which map data, a script or the engine runs by number.
-function script.event_503()
-	helper_a57b0158()
-	helper_45b56d46()
+--- Plays the second introduction cutscene.
+function script.play_second_intro_scene()
+	balance_valley.disable_extra_characters_and_run_georama()
+	balance_valley.play_second_intro_cutscene()
 end
+script[503] = script.play_second_intro_scene
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	helper_981199f4()
-	helper_6fd68c14()
+--- Opens the dialogue of a villager and the companion menu.
+function script.talk_to_villager()
+	town_villagers.talk_to_villager()
+	partner_talk.open_camp_companion_menu()
 end
+script[1000] = script.talk_to_villager
 
 --- Event 13020, which map data, a script or the engine runs by number.
-script.event_13020 = helper_2e69f380
+script[13020] = balance_valley.play_first_intro_cutscene
 
 return script

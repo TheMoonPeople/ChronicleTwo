@@ -21,4 +21,9 @@ script[100] = function()
     action.set_program_value(-1)
 end
 
+-- Program 150 has no handler under its name reset, so its number finds this one.
+script[150] = function()
+    action.set_program_value(150)
+end
+
 return script

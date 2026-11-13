@@ -1,27 +1,28 @@
 --!strict
--- map/f/f02/i06/f02i06_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for a Starlight Temple interior room that only resets the camera and offers villager conversation.
 
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_e57060a0 = require("@lib/event/helper_e57060a0")
+local cutscene = require("@lib/event/cutscene")
+local starlight_temple_villagers = require("@lib/event/german/starlight_temple_villagers")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_1ef0d4b2
+script[99] = cutscene.noop
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Resets the follow camera behind the player.
 function script.default_event()
 	event.reset_follow_camera(1, 0.0)
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing, so the square button has no effect here.
 function script.key_open() end
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_e57060a0
+script[1000] = starlight_temple_villagers.talk_to_villager
 
 return script

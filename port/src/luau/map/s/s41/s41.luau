@@ -1,54 +1,49 @@
 --!strict
--- map/s/s41/s41.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Heim Rada event with the Ark shadow scene.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_53ffe901 = require("@lib/event/helper_53ffe901")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8cd371d7 = require("@lib/event/helper_8cd371d7")
-local interpolate = require("@lib/event/interpolate")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local calc = require("@lib/event/calc")
+local camera = require("@lib/event/camera")
+local cutscene = require("@lib/event/cutscene")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99() end
+--- Does nothing.
+local function initialize_map() end
 
---- Helper function.
-local function helper_db20()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
-	local var2: s32 = 0
-	local var3: f32 = 0
-	local at: number = 0
+--- Plays the scene in which the party watches a shadow figure and the flying ship leave the sky.
+local function play_ark_shadow_scene()
+	local sound_bank: s32 = 0
+	local player_character: s32 = 0
+	local index: s32 = 0
+	local brightness: f32 = 0
+	local progress: number = 0
 	vm.section(function()
 		event.set_save_flag(504, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
-		at = 1
-		helper_888ab2a3(4)
+		progress = 1
+		wait.for_frame_count(4)
 		event.load_music(32)
 		event.load_map_sounds(5203)
-		var0 = event.load_sound_effect_file_2(5203) or var0
-		event.play_sound_effect(var0, 0)
-		event.stop_sound_effect(var0, 0)
+		sound_bank = event.load_sound_effect_file_2(5203) or sound_bank
+		event.play_sound_effect(sound_bank, 0)
+		event.stop_sound_effect(sound_bank, 0)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		player_character = event.get_playable_character() or player_character
 		event.change_directory("event/e500/e504/")
 		event.load_message_file(0, 5, "e504.txt")
-		if active_chr_no == 0 then
+		if player_character == 0 then
 			event.load_character_motion_pack(5, "e504_mints.gltf", "info", 0)
 			event.set_character_active(0, 0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if player_character == 1 then
 			event.load_character_motion_pack(5, "e504_monica.gltf", "info", 0)
 			event.set_character_active(0, 0)
 			event.attach_object_handle_to_character(1, 0)
@@ -62,7 +57,7 @@ local function helper_db20()
 		event.set_object_sequence_object(7, 7)
 		event.set_scene_status_flags(1, 34, 512, 1)
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if player_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 32)
 			event.load_equipment_model(5, 0, 4, "info", 32)
 			event.load_equipment_model(5, 0, 3, "info", 32)
@@ -139,35 +134,35 @@ local function helper_db20()
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
-		at = 2
-		helper_888ab2a3(60)
-		event.play_sound_effect(var0, 0)
-		at = 3
-		helper_888ab2a3(30)
+		progress = 2
+		wait.for_frame_count(60)
+		event.play_sound_effect(sound_bank, 0)
+		progress = 3
+		wait.for_frame_count(30)
 		event.move_object_sequence(7, 1829.02, 18.13, 47.54, 150)
 		event.set_character_model_lighting(0, 0)
 		event.set_character_model_lighting(32, 0)
 		event.set_character_model_lighting(33, 0)
 		event.set_character_model_lighting(3, 0)
-		var2 = 0
-		while var2 < 60 do
-			var3 = interpolate(100.0, 40.0, var2, 60)
-			event.set_character_model_color(0, var3, var3, var3, 128.0)
-			event.set_character_model_color(32, var3, var3, var3, 128.0)
-			event.set_character_model_color(33, var3, var3, var3, 128.0)
-			event.set_character_model_color(3, var3, var3, var3, 128.0)
-			var2 = var2 + 1
-			at = 4
+		index = 0
+		while index < 60 do
+			brightness = calc.interpolate(100.0, 40.0, index, 60)
+			event.set_character_model_color(0, brightness, brightness, brightness, 128.0)
+			event.set_character_model_color(32, brightness, brightness, brightness, 128.0)
+			event.set_character_model_color(33, brightness, brightness, brightness, 128.0)
+			event.set_character_model_color(3, brightness, brightness, brightness, 128.0)
+			index = index + 1
+			progress = 4
 			vm.wait(4)
 		end
-		event.play_sound_effect(var0, 1)
+		event.play_sound_effect(sound_bank, 1)
 		event.set_object_sequence_motion(0, "上向く", 6)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		event.delay_object_sequence_motion_track(1, 10)
 		event.set_object_sequence_motion(1, "上向く", 6)
 		event.queue_object_sequence_next_motion(1, "上向くL", 4)
-		at = 5
-		helper_888ab2a3(30)
+		progress = 5
+		wait.for_frame_count(30)
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目～おこり目")
@@ -176,8 +171,8 @@ local function helper_db20()
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "通常目～おこり目")
 		event.set_mouth_texture_animations(0, "通常口パク")
-		at = 6
-		helper_0382f327(5040010, 45)
+		progress = 6
+		message.show_voiced_for_stopping(5040010, 45)
 		event.set_character_model_lighting(0, 1)
 		event.set_character_model_lighting(32, 1)
 		event.set_character_model_lighting(33, 1)
@@ -191,8 +186,8 @@ local function helper_db20()
 		event.move_camera_sequence(-630.25, 1117.68, 190.22, -662.156, 1651.45, -2008.72, 180)
 		event.move_object_sequence(2, -596.8, 1241.3, -2007.8, 180)
 		event.rotate_object_sequence(2, 0.0, -1.9896754, 0.0, 180)
-		at = 7
-		helper_888ab2a3(180)
+		progress = 7
+		wait.for_frame_count(180)
 		event.set_camera_sequence_position(-2083.55, 144.26, 1858.12)
 		event.set_camera_sequence_look_at(-972.92, 1902.75, -3946.41)
 		event.set_object_sequence_position(2, -596.8, 1241.3, -2007.8)
@@ -203,33 +198,33 @@ local function helper_db20()
 		event.set_object_sequence_rotation(1, 0.0, -1.58, 0.0)
 		event.set_object_sequence_position(0, 1979.69, 0.0, -181.39)
 		event.set_object_sequence_rotation(0, 0.0, -1.7, 0.0)
-		at = 8
-		helper_888ab2a3(180)
+		progress = 8
+		wait.for_frame_count(180)
 		event.set_camera_sequence_position(1904.82, 53.4, -194.35)
 		event.set_camera_sequence_look_at(1984.16, 13.62, -191.87)
-		event.stop_sound_effect(var0, 0)
-		event.stop_sound_effect(var0, 1)
+		event.stop_sound_effect(sound_bank, 0)
+		event.stop_sound_effect(sound_bank, 1)
 		event.set_object_sequence_motion(1, "怒り会話", 6)
 		event.queue_object_sequence_next_motion(1, "上向くL", 4)
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(1, 1, "おこり目パチ")
 		event.set_mouth_texture_animations(1, "通常口パク")
-		at = 9
-		helper_4116e6bb(5040020)
+		progress = 9
+		message.show_voiced(5040020)
 		event.set_object_sequence_motion(0, "上向く会話", 6)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "無表情")
 		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
 		event.set_mouth_texture_animations(0, "通常口パク")
-		at = 10
-		helper_4116e6bb(5040030)
+		progress = 10
+		message.show_voiced(5040030)
 		event.set_object_sequence_motion(1, "握りこぶし", 6)
 		event.queue_object_sequence_next_motion(1, "握りこぶしL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		at = 11
-		helper_4116e6bb(5040040)
+		progress = 11
+		message.show_voiced(5040040)
 		event.set_object_sequence_position(2, -5192.1, 12410.2, -23114.3)
 		event.set_object_sequence_rotation(2, 0.0, 2.4870944, 0.0)
 		event.set_object_sequence_scale(2, 0.5, 0.5, 0.5)
@@ -240,8 +235,8 @@ local function helper_db20()
 		event.set_object_sequence_motion(0, "上向くL", 4)
 		event.set_object_sequence_motion(1, "上向くL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		at = 12
-		helper_0382f327(5040050, 120)
+		progress = 12
+		message.show_voiced_for_stopping(5040050, 120)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(1932.53, 50.96, -195.43)
 		event.set_camera_sequence_look_at(1975.85, 22.78, -192.38)
@@ -251,141 +246,141 @@ local function helper_db20()
 		event.set_object_sequence_motion(0, "上→右", 6)
 		event.queue_object_sequence_next_motion(0, "右向くL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		at = 13
-		helper_4116e6bb(5040060)
+		progress = 13
+		message.show_voiced(5040060)
 		event.set_object_sequence_motion(1, "左向く会話", 6)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		at = 14
-		helper_4116e6bb(5040065)
-		at = 15
-		wait_objects(1)
+		progress = 14
+		message.show_voiced(5040065)
+		progress = 15
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(0, "右→上", 6)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		event.delay_object_sequence_motion_track(1, 40)
 		event.set_object_sequence_motion(1, "左→上", 6)
 		event.queue_object_sequence_next_motion(1, "上向くL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		at = 16
-		helper_4116e6bb(5040070)
-		at = 17
-		wait_camera()
-		at = 18
-		wait_objects(1)
+		progress = 16
+		message.show_voiced(5040070)
+		progress = 17
+		camera.wait_until_done()
+		progress = 18
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(2031.54, 20.63, -189.44)
 		event.set_camera_sequence_look_at(1980.42, 21.38, -191.05)
 		event.set_object_sequence_motion(0, "立ち", 4)
 		event.set_object_sequence_motion(1, "立ち", 4)
 		event.reset_object_sequence_dynamic_animation(1)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		at = 19
-		helper_4116e6bb(5040080)
+		progress = 19
+		message.show_voiced(5040080)
 		event.set_camera_sequence_position(1913.48, 18.68, -196.77)
 		event.set_camera_sequence_look_at(1985.94, 18.83, -191.67)
-		event.play_sound_effect(var0, 2)
+		event.play_sound_effect(sound_bank, 2)
 		event.set_object_sequence_motion(0, "右向く", 6)
 		event.queue_object_sequence_next_motion(0, "右向くL", 4)
 		event.delay_object_sequence_motion_track(1, 30)
-		event.play_sound_effect(var0, 3)
+		event.play_sound_effect(sound_bank, 3)
 		event.set_object_sequence_motion(1, "左向く", 6)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(0, 1, "おこり目パチ")
 		event.set_mouth_texture_animations(0, "通常口パク")
-		at = 20
-		helper_4116e6bb(5040090)
-		at = 21
-		wait_objects(1)
+		progress = 20
+		message.show_voiced(5040090)
+		progress = 21
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(1, "左向くうなづき", 6)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
-		event.play_sound_effect(var0, 4)
+		event.play_sound_effect(sound_bank, 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
-		at = 22
-		helper_4116e6bb(5040100)
+		progress = 22
+		message.show_voiced(5040100)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		at = 23
-		helper_888ab2a3(30)
+		progress = 23
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			helper_038a2e4d(60)
+		if progress <= 1 then
+			wait.skip_frame_count(60)
 		end
-		if at <= 2 then
-			helper_038a2e4d(30)
+		if progress <= 2 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 3 then
-			var2 = 0
-			var3 = interpolate(100.0, 40.0, var2, 60)
-			local _ = var2 < 60
-			var2 = var2 + 1
+		if progress <= 3 then
+			index = 0
+			brightness = calc.interpolate(100.0, 40.0, index, 60)
+			local _ = index < 60
+			index = index + 1
 		end
-		if at <= 4 then
-			helper_038a2e4d(30)
+		if progress <= 4 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 5 then
-			helper_53ffe901(5040010, 45)
+		if progress <= 5 then
+			message.show_voiced_for_stopping_skipping(5040010, 45)
 		end
-		if at <= 6 then
-			helper_038a2e4d(180)
+		if progress <= 6 then
+			wait.skip_frame_count(180)
 		end
-		if at <= 7 then
-			helper_038a2e4d(180)
+		if progress <= 7 then
+			wait.skip_frame_count(180)
 		end
-		if at <= 8 then
-			helper_8cd371d7(5040020)
+		if progress <= 8 then
+			message.show_voiced_skipping(5040020)
 		end
-		if at <= 9 then
-			helper_8cd371d7(5040030)
+		if progress <= 9 then
+			message.show_voiced_skipping(5040030)
 		end
-		if at <= 10 then
-			helper_8cd371d7(5040040)
+		if progress <= 10 then
+			message.show_voiced_skipping(5040040)
 		end
-		if at <= 11 then
-			helper_53ffe901(5040050, 120)
+		if progress <= 11 then
+			message.show_voiced_for_stopping_skipping(5040050, 120)
 		end
-		if at <= 12 then
-			helper_8cd371d7(5040060)
+		if progress <= 12 then
+			message.show_voiced_skipping(5040060)
 		end
-		if at <= 13 then
-			helper_8cd371d7(5040065)
+		if progress <= 13 then
+			message.show_voiced_skipping(5040065)
 		end
-		if at <= 14 then
-			helper_238b5abc(1)
+		if progress <= 14 then
+			cutscene.skip_command(1)
 		end
-		if at <= 15 then
-			helper_8cd371d7(5040070)
+		if progress <= 15 then
+			message.show_voiced_skipping(5040070)
 		end
-		if at <= 16 then
-			helper_344d6cd8()
+		if progress <= 16 then
+			wait.background_load_skipping()
 		end
-		if at <= 17 then
-			helper_238b5abc(1)
+		if progress <= 17 then
+			cutscene.skip_command(1)
 		end
-		if at <= 18 then
-			helper_8cd371d7(5040080)
+		if progress <= 18 then
+			message.show_voiced_skipping(5040080)
 		end
-		if at <= 19 then
-			helper_8cd371d7(5040090)
+		if progress <= 19 then
+			message.show_voiced_skipping(5040090)
 		end
-		if at <= 20 then
-			helper_238b5abc(1)
+		if progress <= 20 then
+			cutscene.skip_command(1)
 		end
-		if at <= 21 then
-			helper_8cd371d7(5040100)
+		if progress <= 21 then
+			message.show_voiced_skipping(5040100)
 		end
-		if at <= 22 then
-			helper_038a2e4d(30)
+		if progress <= 22 then
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
 	event.stop_music(0)
-	event.stop_sound_effect(var0, 0)
-	event.stop_sound_effect(var0, 1)
-	event.stop_sound_effect(var0, 2)
-	event.stop_sound_effect(var0, 3)
-	event.stop_sound_effect(var0, 4)
+	event.stop_sound_effect(sound_bank, 0)
+	event.stop_sound_effect(sound_bank, 1)
+	event.stop_sound_effect(sound_bank, 2)
+	event.stop_sound_effect(sound_bank, 3)
+	event.stop_sound_effect(sound_bank, 4)
 	event.set_object_handle_position(2, 3139.7, 9.0, 918.2)
 	event.call_command(703, 2, 2.4260077, 0.0) -- retail: the handler rejects 3 arguments
 	event.set_object_handle_rotation(3, 0.0, 0.0, 0.0)
@@ -407,30 +402,34 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.initialize_map = initialize_map
+script[99] = script.initialize_map
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
-script.default_event = event_99
+script.default_event = initialize_map
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
-	helper_db20()
+--- Plays the Ark shadow scene and jumps to g04.
+function script.cutscene_ark_shadow()
+	play_ark_shadow_scene()
 	event.jump_to_map_3(-1, "g04", 510)
 	vm.wait(2)
 end
+script[501] = script.cutscene_ark_shadow
 
---- Event 15040, which map data, a script or the engine runs by number.
-function script.event_15040()
-	helper_db20()
+--- Replays the Ark shadow scene and jumps to g04.
+function script.replay_ark_shadow()
+	play_ark_shadow_scene()
 	event.jump_to_map_3(-1, "g04", 510)
 	vm.wait(2)
 end
+script[15040] = script.replay_ark_shadow
 
 return script

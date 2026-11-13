@@ -1,30 +1,20 @@
 --!strict
--- map/s/s51/s51.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Runs the Raybrandt castle soldier chase and the time gate scene that leads to the Georama.
 
 local vm = require("@lib/vm")
-local close_message = require("@lib/event/close_message")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_523109b8 = require("@lib/event/helper_523109b8")
-local helper_53ffe901 = require("@lib/event/helper_53ffe901")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_786b79f1 = require("@lib/event/helper_786b79f1")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_9cbdc640 = require("@lib/event/helper_9cbdc640")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_d16eef1e = require("@lib/event/helper_d16eef1e")
-local helper_f018b3c0 = require("@lib/event/helper_f018b3c0")
-local helper_f616ba9e = require("@lib/event/helper_f616ba9e")
-local open_message = require("@lib/event/open_message")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local sound = require("@lib/event/sound")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_ff10()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Loads and plays the soldier chase scene.
+local function play_soldier_chase_scene()
+	local voice_wait_frames: s32 = 0
+	local sound_effect_handle: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		event.initialize_event()
@@ -33,10 +23,10 @@ local function helper_ff10()
 		event.show_dungeon_status_bar(0, 1.0)
 		event.stop_music(0)
 		at = 1
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(194)
 		event.load_map_sounds(800)
-		var1 = event.load_sound_effect_file_2(800) or var1
+		sound_effect_handle = event.load_sound_effect_file_2(800) or sound_effect_handle
 		event.show_atlamillia_frames(1, 0, 0)
 		event.set_character_active(0, 0)
 		event.assign_memory_stack(5)
@@ -143,11 +133,11 @@ local function helper_ff10()
 		event.set_object_handle_rotation(16, 0.0, 1.93, 0.0)
 		event.set_object_handle_scale(16, 1.2, 1.2, 1.2)
 		event.set_object_handle_motion(16, "走り", 4)
-		event.set_object_handle_sound_bank(1, var1)
+		event.set_object_handle_sound_bank(1, sound_effect_handle)
 		event.set_object_handle_sound_bank(2, -1)
 		event.set_object_handle_sound_bank(3, -1)
 		event.set_object_handle_sound_bank(4, -1)
-		event.set_object_handle_sound_bank(15, var1)
+		event.set_object_handle_sound_bank(15, sound_effect_handle)
 		event.set_object_handle_sound_bank(16, -1)
 		event.enable_drama_skip()
 		event.clear_camera_sequence()
@@ -159,15 +149,15 @@ local function helper_ff10()
 		event.move_object_sequence(8, 100.0, -300.0, 200.0, 270)
 		event.fade_in_screen(30)
 		at = 2
-		wait_camera()
+		camera.wait_until_done()
 		at = 3
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		at = 4
-		wait_objects(6)
+		object.wait_until_done(6)
 		at = 5
-		wait_objects(7)
+		object.wait_until_done(7)
 		at = 6
-		wait_objects(8)
+		object.wait_until_done(8)
 		event.set_character_active(1, 0)
 		event.set_character_active(0, 8)
 		event.set_object_handle_scale(15, 1.0, 1.0, 1.0)
@@ -210,13 +200,13 @@ local function helper_ff10()
 		event.add_object_sequence_path_point(2, -666.43, -1.11, 671.43)
 		event.start_object_sequence_path(2)
 		at = 7
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.play_music(0)
 		event.open_voice_stream_wave(1, 500003)
 		at = 8
-		helper_9cbdc640(1)
+		sound.wait_voice_stream_ready(1)
 		at = 9
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_follow_object(0, 0.0, 23.0, -4.0, -0.6, -3.0, 36.0, "", 1)
 		event.set_character_active(0, 11)
 		event.set_character_active(0, 12)
@@ -229,7 +219,7 @@ local function helper_ff10()
 		event.add_object_sequence_path_point(0, -683.94, -0.17, 726.33)
 		event.start_object_sequence_path(0)
 		at = 10
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.release_camera_sequence_follow_object()
 		event.set_camera_sequence_position(-666.42, 40.0, 654.32)
 		event.set_camera_sequence_look_at(-678.61, 23.25, 716.14)
@@ -259,7 +249,7 @@ local function helper_ff10()
 		event.add_object_sequence_path_point(2, -666.43, -1.11, 671.43)
 		event.start_object_sequence_path(2)
 		at = 11
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_follow_object(0, 3.0, 6.0, -3.0, 3.14, 0.0, 0.1, "kao", 1)
 		event.set_character_active(0, 11)
 		event.set_character_active(0, 12)
@@ -272,13 +262,13 @@ local function helper_ff10()
 		event.add_object_sequence_path_point(0, -487.18, -0.17, 335.72)
 		event.start_object_sequence_path(0)
 		at = 12
-		helper_888ab2a3(90)
+		wait.for_frame_count(90)
 		event.close_voice_stream(1)
 		event.open_voice_stream_wave(1, 500010)
 		at = 13
-		helper_9cbdc640(1)
+		sound.wait_voice_stream_ready(1)
 		at = 14
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.release_camera_sequence_follow_object()
 		event.set_camera_sequence_follow_object(0, 0.0, 23.0, -4.0, -0.6, -3.0, 36.0, "", 1)
 		event.clear_object_sequence_path(0)
@@ -292,15 +282,15 @@ local function helper_ff10()
 		event.set_object_sequence_texture_animation(0, 1, "通常口パク")
 		event.set_message_button_prompt(0, 0)
 		event.open_message_window_2(0, 500010)
-		open_message(0, -1, 8, 0, 0)
+		message.open(0, -1, 8, 0, 0)
 		event.play_voice_stream(1)
 		at = 15
-		helper_888ab2a3(130)
-		close_message(0)
+		wait.for_frame_count(130)
+		message.close(0)
 		event.close_voice_stream(1)
 		event.set_object_sequence_texture_animation(0, 0, "通常口パク")
 		at = 16
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.release_camera_sequence_follow_object()
 		event.set_camera_sequence_position(-555.36, 48.77, 420.75)
 		event.set_camera_sequence_look_at(-439.22, 30.11, 269.93)
@@ -312,7 +302,7 @@ local function helper_ff10()
 		event.add_object_sequence_path_point(0, -394.89, -0.17, 226.72)
 		event.start_object_sequence_path(0)
 		at = 17
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-258.12, 43.64, 195.63)
 		event.set_camera_sequence_look_at(-309.59, 52.1, 75.71)
 		event.set_object_handle_position(7, 0.0, -1000.0, 826.974)
@@ -323,17 +313,17 @@ local function helper_ff10()
 		event.jump_object_sequence(1, -282.94, -0.17, 139.36, -0.3, 30)
 		event.set_object_sequence_motion(1, "飛び", 4)
 		at = 18
-		helper_888ab2a3(3)
-		event.play_sound_effect(var1, 4)
+		wait.for_frame_count(3)
+		event.play_sound_effect(sound_effect_handle, 4)
 		at = 19
-		helper_888ab2a3(18)
+		wait.for_frame_count(18)
 		event.set_character_active(1, 15)
 		event.set_character_position(15, -313.12, 60.82, 67.65)
 		event.set_character_rotation(15, 0.0, 0.39, 0.0)
 		event.set_character_motion(15, "割れ", 6)
 		event.set_object_handle_visible(5, 0)
 		at = 20
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(-410.63, 15.99, 277.48)
 		event.set_camera_sequence_look_at(-459.98, 22.57, 269.05)
 		event.set_object_handle_visible(17, 1)
@@ -350,19 +340,19 @@ local function helper_ff10()
 		event.queue_object_sequence_next_motion(0, "止まるL", 4)
 		event.open_voice_stream_wave(1, 500020)
 		at = 21
-		var0 = helper_f616ba9e(1)
+		voice_wait_frames = sound.wait_voice_stream_ready_counting(1)
 		at = 22
-		helper_888ab2a3(vm.i32(20 - var0))
+		wait.for_frame_count(vm.i32(20 - voice_wait_frames))
 		at = 23
-		helper_888ab2a3(10)
-		event.play_sound_effect(var1, 5)
+		wait.for_frame_count(10)
+		event.play_sound_effect(sound_effect_handle, 5)
 		event.play_voice_stream(1)
 		at = 24
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		at = 25
-		wait_objects(0)
+		object.wait_until_done(0)
 		at = 26
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.close_voice_stream(1)
 		event.set_camera_sequence_position(-505.04, 34.04, 374.96)
 		event.set_camera_sequence_look_at(-456.55, 22.99, 297.9)
@@ -373,7 +363,7 @@ local function helper_ff10()
 		event.set_character_active(1, 12)
 		event.set_character_active(1, 13)
 		event.set_character_active(1, 14)
-		event.play_sound_effect(var1, 6)
+		event.play_sound_effect(sound_effect_handle, 6)
 		event.set_object_sequence_position(1, -310.02, 28.2, 76.61)
 		event.set_object_sequence_rotation(1, 0.0, 0.25, 0.0)
 		event.jump_object_sequence(1, -287.81, -0.17, 136.28, -0.1, 10)
@@ -388,27 +378,27 @@ local function helper_ff10()
 		event.set_object_sequence_position(4, -534.81, -0.17, 411.26)
 		event.set_object_sequence_rotation(4, 0.0, 2.53, 0.0)
 		at = 27
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.move_camera_sequence_angle_height_distance_eased(2.84, -5.37, 71.78, 40, 0, 1.0)
 		at = 28
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.set_object_sequence_motion(0, "振り返り1", 2)
 		event.queue_object_sequence_next_motion(0, "振り返り1L", 4)
 		at = 29
-		helper_888ab2a3(4)
-		event.play_sound_effect(var1, 7)
+		wait.for_frame_count(4)
+		event.play_sound_effect(sound_effect_handle, 7)
 		event.open_voice_stream_wave(1, 500021)
 		at = 30
-		var0 = helper_f616ba9e(1)
+		voice_wait_frames = sound.wait_voice_stream_ready_counting(1)
 		at = 31
-		helper_888ab2a3(vm.i32(30 - var0))
+		wait.for_frame_count(vm.i32(30 - voice_wait_frames))
 		event.play_voice_stream(1)
 		at = 32
-		wait_objects(0)
+		object.wait_until_done(0)
 		at = 33
-		wait_camera()
+		camera.wait_until_done()
 		at = 34
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.close_voice_stream(1)
 		event.set_camera_sequence_position(-440.29, 24.47, 235.66)
 		event.set_camera_sequence_look_at(-439.17, 22.16, 264.83)
@@ -417,17 +407,17 @@ local function helper_ff10()
 		event.queue_object_sequence_next_motion(0, "2から身構え", 6)
 		event.wait_object_sequence_motion_end(0)
 		at = 35
-		helper_888ab2a3(4)
-		event.play_sound_effect(var1, 8)
+		wait.for_frame_count(4)
+		event.play_sound_effect(sound_effect_handle, 8)
 		event.open_voice_stream_wave(1, 500032)
 		at = 36
-		helper_9cbdc640(1)
+		sound.wait_voice_stream_ready(1)
 		at = 37
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-481.43, 27.13, 301.91)
 		event.set_camera_sequence_look_at(-425.22, 21.28, 264.03)
 		event.play_voice_stream(1)
-		event.play_sound_effect(var1, 10)
+		event.play_sound_effect(sound_effect_handle, 10)
 		event.set_object_sequence_rotation(0, 0.0, 2.37, 0.0)
 		event.reset_object_sequence_dynamic_animation(0)
 		event.set_object_sequence_motion(0, "構えL", 4, -1.0, 1)
@@ -435,16 +425,16 @@ local function helper_ff10()
 		event.delay_object_sequence_position_track(2, 6)
 		event.move_object_sequence(2, -436.52, -0.17, 280.2, 20)
 		at = 38
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.set_object_sequence_motion(1, "攻撃２", 6)
 		event.delay_object_sequence_position_track(1, 6)
 		event.move_object_sequence(1, -423.21, -0.17, 254.95, 20)
 		event.set_object_sequence_motion(0, "横飛び", 2)
 		at = 39
-		helper_888ab2a3(4)
-		event.play_sound_effect(var1, 9)
+		wait.for_frame_count(4)
+		event.play_sound_effect(sound_effect_handle, 9)
 		at = 40
-		helper_888ab2a3(36)
+		wait.for_frame_count(36)
 		event.set_camera_sequence_position(-455.8, 119.67, 409.21)
 		event.set_camera_sequence_look_at(-473.73, 21.28, 211.42)
 		event.set_object_handle_footstep_sound(0, 2)
@@ -462,28 +452,28 @@ local function helper_ff10()
 		event.set_object_sequence_position(4, -531.85, -0.17, 295.06)
 		event.set_object_sequence_rotation(4, 0.0, 2.77, 0.0)
 		at = 41
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.move_object_sequence(0, -486.59, 0.0, 162.88, 80)
 		event.set_object_sequence_motion(0, "壁歩き", 4)
 		event.delay_object_sequence_motion_track(0, 60)
 		event.queue_object_sequence_next_motion(0, "像見る", 6)
 		event.queue_object_sequence_next_motion(0, "像見るL", 4)
 		at = 42
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.close_voice_stream(1)
 		event.set_camera_sequence_position(-497.34, 28.69, 213.66)
 		event.set_camera_sequence_look_at(-477.84, 8.8, 140.63)
 		at = 43
-		wait_objects(0)
+		object.wait_until_done(0)
 		at = 44
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.move_camera_sequence_eased(-497.34, 28.69, 213.66, -477.84, 34.1, 140.63, 20, 0, 0.4)
 		event.set_object_sequence_motion(0, "像上見る", 6)
 		event.queue_object_sequence_next_motion(0, "像上見るL", 4)
 		at = 45
-		wait_camera()
+		camera.wait_until_done()
 		at = 46
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.set_camera_sequence_position(-418.89, 26.37, 155.17)
 		event.set_camera_sequence_look_at(-478.71, 27.36, 152.48)
 		event.set_object_sequence_texture_animation(0, 0)
@@ -492,10 +482,10 @@ local function helper_ff10()
 		event.set_object_sequence_motion(0, "像見戻り", 6)
 		event.queue_object_sequence_next_motion(0, "像見るL", 4)
 		at = 47
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.set_camera_sequence_position(-468.82, 19.71, 169.71)
 		event.set_camera_sequence_look_at(-415.85, 25.05, 200.94)
-		event.play_sound_effect(var1, 11)
+		event.play_sound_effect(sound_effect_handle, 11)
 		event.set_object_sequence_motion(1, "攻撃２", 6)
 		event.set_object_sequence_position(1, -389.81, -0.17, 218.14)
 		event.set_object_sequence_rotation(1, 0.0, -2.15, 0.0)
@@ -503,9 +493,9 @@ local function helper_ff10()
 		event.move_object_sequence(1, -423.64, -0.17, 198.07, 8)
 		event.open_voice_stream_wave(1, 500034)
 		at = 48
-		var0 = helper_f616ba9e(1)
+		voice_wait_frames = sound.wait_voice_stream_ready_counting(1)
 		at = 49
-		helper_888ab2a3(vm.i32(14 - var0))
+		wait.for_frame_count(vm.i32(14 - voice_wait_frames))
 		event.set_camera_sequence_position(-418.89, 26.37, 155.17)
 		event.set_camera_sequence_look_at(-478.71, 27.36, 152.48)
 		event.set_object_sequence_texture_animation(0, 0)
@@ -525,7 +515,7 @@ local function helper_ff10()
 		event.set_object_sequence_motion(0, "剣飛び", 6)
 		event.wait_object_sequence_motion_end(0)
 		at = 50
-		helper_888ab2a3(6)
+		wait.for_frame_count(6)
 		event.reset_object_sequence_motion(1)
 		event.set_object_sequence_motion(1, "攻撃２", 6)
 		event.set_object_sequence_position(1, -389.81, -0.17, 218.14)
@@ -533,16 +523,16 @@ local function helper_ff10()
 		event.delay_object_sequence_position_track(1, 6)
 		event.move_object_sequence(1, -462.48, -0.17, 175.0, 20)
 		at = 51
-		helper_888ab2a3(2)
-		event.play_sound_effect(var1, 12)
+		wait.for_frame_count(2)
+		event.play_sound_effect(sound_effect_handle, 12)
 		at = 52
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.play_voice_stream(1)
 		at = 53
-		helper_888ab2a3(12)
+		wait.for_frame_count(12)
 		event.rotate_object_sequence(5, 0.0, 0.0, -1.57, 10)
 		at = 54
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.close_voice_stream(1)
 		event.set_camera_sequence_position(-393.47, 16.73, 206.96)
 		event.set_camera_sequence_look_at(-383.04, 20.81, 172.7)
@@ -557,197 +547,197 @@ local function helper_ff10()
 		event.set_object_sequence_motion(0, "起きあがり", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(0, "起きあがりL", 4)
 		at = 55
-		helper_888ab2a3(6)
-		event.play_sound_effect(var1, 13)
+		wait.for_frame_count(6)
+		event.play_sound_effect(sound_effect_handle, 13)
 		at = 56
-		wait_objects(0)
+		object.wait_until_done(0)
 		at = 57
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.fade_out_screen(30)
 		at = 58
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
 		if at == 21 then
-			var0 = received[1] :: number
+			voice_wait_frames = received[1] :: number
 		end
 		if at == 30 then
-			var0 = received[1] :: number
+			voice_wait_frames = received[1] :: number
 		end
 		if at == 48 then
-			var0 = received[1] :: number
+			voice_wait_frames = received[1] :: number
 		end
 		if at <= 1 then
-			helper_344d6cd8()
+			wait.background_load_skipping()
 		end
 		if at <= 2 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 3 then
-			helper_238b5abc(6)
+			cutscene.skip_command(6)
 		end
 		if at <= 4 then
-			helper_238b5abc(7)
+			cutscene.skip_command(7)
 		end
 		if at <= 5 then
-			helper_238b5abc(8)
+			cutscene.skip_command(8)
 		end
 		if at <= 6 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 7 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 8 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 9 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 10 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 11 then
-			helper_038a2e4d(90)
+			wait.skip_frame_count(90)
 		end
 		if at <= 12 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 13 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 14 then
-			helper_f018b3c0(0, -1, 8, 0, 0)
-			helper_038a2e4d(130)
+			message.open_skipping(0, -1, 8, 0, 0)
+			wait.skip_frame_count(130)
 		end
 		if at <= 15 then
-			helper_d16eef1e(0)
-			helper_238b5abc(0)
+			message.close_skipping(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 16 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 17 then
-			helper_038a2e4d(3)
+			wait.skip_frame_count(3)
 		end
 		if at <= 18 then
-			helper_038a2e4d(18)
+			wait.skip_frame_count(18)
 		end
 		if at <= 19 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 20 then
-			var0 = helper_523109b8(1)
+			voice_wait_frames = sound.wait_voice_stream_ready_counting_skipping(1)
 		end
 		if at <= 21 then
-			helper_038a2e4d(vm.i32(20 - var0))
+			wait.skip_frame_count(vm.i32(20 - voice_wait_frames))
 		end
 		if at <= 22 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 23 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 24 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 25 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 26 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 27 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 28 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 29 then
-			var0 = helper_523109b8(1)
+			voice_wait_frames = sound.wait_voice_stream_ready_counting_skipping(1)
 		end
 		if at <= 30 then
-			helper_038a2e4d(vm.i32(30 - var0))
+			wait.skip_frame_count(vm.i32(30 - voice_wait_frames))
 		end
 		if at <= 31 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 32 then
-			helper_344d6cd8()
+			wait.background_load_skipping()
 		end
 		if at <= 33 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 34 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 35 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 36 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 37 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 38 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 39 then
-			helper_038a2e4d(36)
+			wait.skip_frame_count(36)
 		end
 		if at <= 40 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 41 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 42 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 43 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 44 then
-			helper_344d6cd8()
+			wait.background_load_skipping()
 		end
 		if at <= 45 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 46 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 47 then
-			var0 = helper_523109b8(1)
+			voice_wait_frames = sound.wait_voice_stream_ready_counting_skipping(1)
 		end
 		if at <= 48 then
-			helper_038a2e4d(vm.i32(14 - var0))
+			wait.skip_frame_count(vm.i32(14 - voice_wait_frames))
 		end
 		if at <= 49 then
-			helper_038a2e4d(6)
+			wait.skip_frame_count(6)
 		end
 		if at <= 50 then
-			helper_038a2e4d(2)
+			wait.skip_frame_count(2)
 		end
 		if at <= 51 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 52 then
-			helper_038a2e4d(12)
+			wait.skip_frame_count(12)
 		end
 		if at <= 53 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 54 then
-			helper_038a2e4d(6)
+			wait.skip_frame_count(6)
 		end
 		if at <= 55 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 56 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 57 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
@@ -769,16 +759,16 @@ local function helper_ff10()
 	event.set_object_handle_visible(9, 1)
 	event.set_object_handle_visible(10, 1)
 	event.set_character_active(1, 0)
-	event.stop_sound_effect(var1, 4)
-	event.stop_sound_effect(var1, 5)
-	event.stop_sound_effect(var1, 6)
-	event.stop_sound_effect(var1, 7)
-	event.stop_sound_effect(var1, 8)
-	event.stop_sound_effect(var1, 9)
-	event.stop_sound_effect(var1, 10)
-	event.stop_sound_effect(var1, 11)
-	event.stop_sound_effect(var1, 12)
-	event.stop_sound_effect(var1, 13)
+	event.stop_sound_effect(sound_effect_handle, 4)
+	event.stop_sound_effect(sound_effect_handle, 5)
+	event.stop_sound_effect(sound_effect_handle, 6)
+	event.stop_sound_effect(sound_effect_handle, 7)
+	event.stop_sound_effect(sound_effect_handle, 8)
+	event.stop_sound_effect(sound_effect_handle, 9)
+	event.stop_sound_effect(sound_effect_handle, 10)
+	event.stop_sound_effect(sound_effect_handle, 11)
+	event.stop_sound_effect(sound_effect_handle, 12)
+	event.stop_sound_effect(sound_effect_handle, 13)
 	event.delete_character_extension_packs(0)
 	event.delete_character(8)
 	event.delete_character(10)
@@ -791,7 +781,7 @@ local function helper_ff10()
 	event.delete_character(17)
 	event.load_message_file(0, -1)
 	event.show_dungeon_status_bar(1, 1.0)
-	helper_9dafbc83(vm.f32(-255.23), vm.f32(-0.17), vm.f32(130.23), vm.f32(-1.01))
+	character.place_standing_and_reset_cloth(vm.f32(-255.23), vm.f32(-0.17), vm.f32(130.23), vm.f32(-1.01))
 	event.set_camera_position(-136.84, 51.17, 55.65)
 	event.set_camera_look_at(-255.23, 29.83, 130.23)
 	event.reset_follow_camera(0)
@@ -799,13 +789,13 @@ local function helper_ff10()
 	event.finish_event()
 end
 
---- Helper function.
-local function helper_18074()
-	local var0: s32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
+--- Plays the time gate scene with the growing gate.
+local function play_time_gate_scene()
+	local sound_effect_handle: s32 = 0
+	local scale: f32 = 0
+	local scale_step: f32 = 0
+	local scale_step_change: f32 = 0
+	local frame_index: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		at = 1
@@ -814,7 +804,7 @@ local function helper_18074()
 		event.set_message_window_mode(0, 7)
 		event.show_dungeon_status_bar(0, 1.0)
 		event.stop_music(0)
-		var0 = event.load_sound_effect_file_2(802) or var0
+		sound_effect_handle = event.load_sound_effect_file_2(802) or sound_effect_handle
 		event.set_scene_status_flags(1, 0, 256, 1)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
@@ -865,7 +855,7 @@ local function helper_18074()
 		event.set_object_sequence_texture_animation(0, 1, "おこり目パチ")
 		event.set_object_handle_position(2, 0.0, 0.0, -250.0)
 		event.set_object_handle_rotation(2, 0.0, 3.14, 0.0)
-		event.set_object_handle_sound_bank(2, var0)
+		event.set_object_handle_sound_bank(2, sound_effect_handle)
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "わらい顔")
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
@@ -883,7 +873,7 @@ local function helper_18074()
 		event.set_camera_sequence_look_at(-445.52, 25.45, 209.11)
 		event.fade_in_screen(30)
 		at = 2
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-134.51, 100.78, 136.35)
 		event.set_camera_sequence_look_at(-54.64, 52.81, 37.61)
 		event.set_object_sequence_position(0, -117.35, -0.17, 66.54)
@@ -893,23 +883,23 @@ local function helper_18074()
 		event.delay_object_sequence_motion_track(0, 28)
 		event.set_object_sequence_motion(0, "壁立ち")
 		at = 3
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_object_handle_footstep_sound(0, 2)
 		at = 4
-		helper_888ab2a3(12)
-		event.play_sound_effect(var0, 14)
+		wait.for_frame_count(12)
+		event.play_sound_effect(sound_effect_handle, 14)
 		at = 5
-		wait_objects(0)
+		object.wait_until_done(0)
 		at = 6
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_object_sequence_motion(0, "像見る", 2)
 		event.queue_object_sequence_next_motion(0, "像見るL", 4)
 		at = 7
-		helper_888ab2a3(40)
+		wait.for_frame_count(40)
 		event.set_object_handle_footstep_sound(0, 21)
 		event.set_camera_sequence_position(-95.58, 18.43, -157.01)
 		event.set_camera_sequence_look_at(0.23, 35.57, -22.29)
-		event.play_sound_effect(var0, 15)
+		event.play_sound_effect(sound_effect_handle, 15)
 		event.rotate_object_sequence(3, 0.0, -1.8, 0.0, 16)
 		event.rotate_object_sequence_eased(3, 0.0, -1.7, 0.0, 20, 2, 1.0)
 		event.rotate_object_sequence(4, 0.0, 1.8, 0.0, 16)
@@ -919,10 +909,10 @@ local function helper_18074()
 		event.set_object_sequence_motion(0, "あたりドア開け", 6)
 		event.queue_object_sequence_next_motion(0, "構え", 4)
 		at = 8
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(-12.11, 17.82, -20.43)
 		event.set_camera_sequence_look_at(1.71, 21.68, 0.96)
-		event.play_sound_effect(var0, 16)
+		event.play_sound_effect(sound_effect_handle, 16)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(0, 1, "おこり目～おどろき目")
@@ -931,12 +921,12 @@ local function helper_18074()
 		event.queue_object_sequence_next_motion(0, "ショックL", 4)
 		event.set_mouth_texture_animations(0, "通常口パク")
 		at = 9
-		helper_0382f327(500045, 100)
+		message.show_voiced_for_stopping(500045, 100)
 		event.set_camera_sequence_position(0.0, 20.0, -80.0)
 		event.set_camera_sequence_look_at(0.0, 20.0, -160.0)
 		event.move_camera_sequence(0.0, 20.0, -120.0, 0.0, 20.0, -200.0, 120.0)
 		at = 10
-		wait_camera()
+		camera.wait_until_done()
 		event.start_crossfade(40)
 		event.set_camera_sequence_position(0.0, 30.0, -210.0)
 		event.set_camera_sequence_look_at(0.0, 30.0, -245.0)
@@ -945,69 +935,69 @@ local function helper_18074()
 		event.set_object_sequence_texture_animation(0, 1, "ショック顔")
 		event.set_object_sequence_texture_animation(0, 1, "ショック目パチ")
 		event.set_object_sequence_motion(0, "立ちN", 4, -1.0, 1)
-		event.play_sound_effect(var0, 17)
+		event.play_sound_effect(sound_effect_handle, 17)
 		event.set_object_sequence_motion(2, "振り返り", 6)
 		event.queue_object_sequence_next_motion(2, "振り返りL", 4)
 		at = 11
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.open_voice_stream_wave(1, 500050)
 		at = 12
-		helper_888ab2a3(40)
+		wait.for_frame_count(40)
 		at = 13
-		helper_9cbdc640(1)
+		sound.wait_voice_stream_ready(1)
 		event.play_voice_stream(1)
 		at = 14
-		wait_camera()
+		camera.wait_until_done()
 		event.set_camera_sequence_position(0.0, 30.0, -210.0)
 		event.set_camera_sequence_look_at(0.0, 30.0, -290.0)
 		event.move_camera_sequence_eased(0.0, 20.0, -160.0, 0.0, 20.0, -280.0, 120, 0, 0.4)
-		event.play_sound_effect(var0, 18)
+		event.play_sound_effect(sound_effect_handle, 18)
 		event.set_object_sequence_motion(2, "振り返り戻り", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
 		at = 15
-		wait_objects(2)
-		event.play_sound_effect(var0, 19)
+		object.wait_until_done(2)
+		event.play_sound_effect(sound_effect_handle, 19)
 		event.set_character_active(1, 11)
 		event.set_character_motion(11, "発生", 6)
 		at = 16
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_character_active(1, 9)
 		event.set_character_visible(9, 1, 1, 0.1)
 		at = 17
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(2, "歩き")
 		event.move_object_sequence(2, 0.0, 0.0, -300.0, 60)
 		at = 18
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_visible(18, 0, 1, 0.033333335)
 		at = 19
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_visible(9, 0, 1, 0.05)
-		var1 = 1.0
-		var2 = vm.f32(0.01)
-		var3 = vm.f32(-0.002)
-		var4 = 0
-		while var4 < 20 do
-			var1 = vm.f32(var1 + var2)
-			var2 = vm.f32(var2 + var3)
-			event.set_character_scale(9, var1, var1, var1)
-			var4 = var4 + 1
+		scale = 1.0
+		scale_step = vm.f32(0.01)
+		scale_step_change = vm.f32(-0.002)
+		frame_index = 0
+		while frame_index < 20 do
+			scale = vm.f32(scale + scale_step)
+			scale_step = vm.f32(scale_step + scale_step_change)
+			event.set_character_scale(9, scale, scale, scale)
+			frame_index = frame_index + 1
 			at = 20
 			vm.wait(20)
 		end
 		at = 21
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.close_voice_stream(1)
 		event.set_camera_sequence_position(0.0, 23.0, -34.0)
 		event.set_camera_sequence_look_at(0.0, 23.0, 0.0)
 		event.move_camera_sequence_eased(0.0, 23.0, -24.0, 0.0, 23.0, 0.0, 60, 2, 1.0)
 		at = 22
-		wait_camera()
+		camera.wait_until_done()
 		at = 23
-		helper_888ab2a3(20)
+		wait.for_frame_count(20)
 		event.set_camera_sequence_position(0.0, 23.0, -297.58)
 		event.set_camera_sequence_look_at(0.0, 23.0, -273.58)
-		event.play_sound_effect(var0, 20)
+		event.play_sound_effect(sound_effect_handle, 20)
 		event.detach_character_from_frame(12)
 		event.set_object_sequence_position(1, 10.0, 8.0, 0.0)
 		event.set_object_sequence_rotation(1, 0.4, 2.88, 0.0)
@@ -1019,102 +1009,102 @@ local function helper_18074()
 		event.rotate_object_sequence(1, 0.0, 2.88, -0.05, 2)
 		event.rotate_object_sequence(1, 0.0, 2.88, 0.0, 2)
 		at = 24
-		wait_objects(1)
+		object.wait_until_done(1)
 		at = 25
-		helper_888ab2a3(40)
+		wait.for_frame_count(40)
 		event.set_object_sequence_motion(0, "ヨロあるき")
 		event.set_object_sequence_motion_blend_step(0, 0.05)
 		event.move_object_sequence(0, 0.0, -0.17, -80.0, 120)
 		at = 26
-		helper_888ab2a3(90)
+		wait.for_frame_count(90)
 		event.fade_out_screen(30)
 		at = 27
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 2 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 3 then
-			helper_038a2e4d(12)
+			wait.skip_frame_count(12)
 		end
 		if at <= 4 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 5 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 6 then
-			helper_038a2e4d(40)
+			wait.skip_frame_count(40)
 		end
 		if at <= 7 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 8 then
-			helper_53ffe901(500045, 100)
+			message.show_voiced_for_stopping_skipping(500045, 100)
 		end
 		if at <= 9 then
-			helper_344d6cd8()
+			wait.background_load_skipping()
 		end
 		if at <= 10 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 11 then
-			helper_038a2e4d(40)
+			wait.skip_frame_count(40)
 		end
 		if at <= 12 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 13 then
-			helper_344d6cd8()
+			wait.background_load_skipping()
 		end
 		if at <= 14 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 15 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 16 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 17 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 18 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 19 then
-			var1 = 1.0
-			var2 = vm.f32(0.01)
-			var3 = vm.f32(-0.002)
-			var4 = 0
-			var1 = vm.f32(var1 + var2)
-			var2 = vm.f32(var2 + var3)
-			local _ = var4 < 20
-			var4 = var4 + 1
+			scale = 1.0
+			scale_step = vm.f32(0.01)
+			scale_step_change = vm.f32(-0.002)
+			frame_index = 0
+			scale = vm.f32(scale + scale_step)
+			scale_step = vm.f32(scale_step + scale_step_change)
+			local _ = frame_index < 20
+			frame_index = frame_index + 1
 		end
 		if at <= 20 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 21 then
-			helper_344d6cd8()
+			wait.background_load_skipping()
 		end
 		if at <= 22 then
-			helper_038a2e4d(20)
+			wait.skip_frame_count(20)
 		end
 		if at <= 23 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 24 then
-			helper_038a2e4d(40)
+			wait.skip_frame_count(40)
 		end
 		if at <= 25 then
-			helper_038a2e4d(90)
+			wait.skip_frame_count(90)
 		end
 		if at <= 26 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
@@ -1127,13 +1117,13 @@ local function helper_18074()
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_handle_visible(5, 1)
 	event.set_object_handle_visible(6, 1)
-	event.stop_sound_effect(var0, 14)
-	event.stop_sound_effect(var0, 15)
-	event.stop_sound_effect(var0, 16)
-	event.stop_sound_effect(var0, 17)
-	event.stop_sound_effect(var0, 18)
-	event.stop_sound_effect(var0, 19)
-	event.stop_sound_effect(var0, 20)
+	event.stop_sound_effect(sound_effect_handle, 14)
+	event.stop_sound_effect(sound_effect_handle, 15)
+	event.stop_sound_effect(sound_effect_handle, 16)
+	event.stop_sound_effect(sound_effect_handle, 17)
+	event.stop_sound_effect(sound_effect_handle, 18)
+	event.stop_sound_effect(sound_effect_handle, 19)
+	event.stop_sound_effect(sound_effect_handle, 20)
 	event.delete_character_extension_packs(0)
 	event.delete_character(18)
 	event.delete_character(9)
@@ -1147,16 +1137,17 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the engine runs it in place of its default.
 function script.key_open() end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_ff10()
+--- Plays the soldier chase scene, places the soldiers and shows the battle controls.
+function script.cutscene_soldier_chase()
+	play_soldier_chase_scene()
 	event.load_dungeon_monster(523, 1)
 	event.place_dungeon_monster(523, -382.5, -0.2, 120.2, 0.0, 1.61, 0.0)
 	event.place_dungeon_monster(523, -428.0, -0.2, 202.7, 0.0, 1.71, 0.0)
@@ -1171,23 +1162,24 @@ function script.event_500()
 		0,
 		"(O)ボタン・・・攻撃\n[r1]ボタン・・・ガード\n(X)ボタン・・・ロックオン\n[l1]＋(O)ボタン・・・魔法"
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
+	message.show_and_wait(0, -1, 8, 0, 0)
 	event.set_dungeon_pause_flags(1, 0)
 	event.finish_event()
 end
+script[500] = script.cutscene_soldier_chase
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	local at: number = 0
+--- Plays the time gate scene, gives the party its items and goes to the Georama editor.
+function script.cutscene_time_gate()
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.reset_action_character_motion(0)
 		event.fade_out_screen(30)
-		at = 1
-		helper_888ab2a3(30)
+		checkpoint = 1
+		wait.for_frame_count(30)
 		event.clear_event_battle_monsters(-1)
-		at = 2
-		helper_18074()
+		checkpoint = 2
+		play_time_gate_scene()
 		event.give_monica_starting_equipment(1)
 		event.set_playable_character(0)
 		event.set_party_member(0, 1)
@@ -1202,14 +1194,14 @@ function script.event_510()
 		event.set_save_flag(54, 1)
 		event.skip_next_music_load()
 		event.go_to_georama_edit(19, 151)
-		at = 3
+		checkpoint = 3
 		vm.wait(3)
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_18074()
+		if checkpoint <= 3 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				play_time_gate_scene()
 				return vm.continue_with(function()
 					event.give_monica_starting_equipment(1)
 					event.set_playable_character(0)
@@ -1225,7 +1217,7 @@ function script.event_510()
 					event.set_save_flag(54, 1)
 					event.skip_next_music_load()
 					event.go_to_georama_edit(19, 151)
-					at = 3
+					checkpoint = 3
 					vm.wait(3)
 					return
 				end)
@@ -1235,14 +1227,16 @@ function script.event_510()
 		return nil
 	end)
 end
+script[510] = script.cutscene_time_gate
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	helper_786b79f1(0)
+--- Runs the defeat sequence with a silent message when the party is defeated.
+function script.on_player_defeated()
+	dungeon.run_defeat_sequence_silent(0)
 end
+script[1200] = script.on_player_defeated
 
---- Event 10500, which map data, a script or the engine runs by number.
-function script.event_10500()
+--- Equips the starting items, switches the main character and starts the soldier chase battle.
+function script.start_soldier_chase_battle()
 	event.add_inventory_item(110)
 	event.add_inventory_item(127)
 	event.add_inventory_item(133)
@@ -1252,7 +1246,7 @@ function script.event_10500()
 	event.equip_character_item(1, 133)
 	event.equip_character_item(1, 266)
 	event.switch_dungeon_main_character(1)
-	helper_ff10()
+	play_soldier_chase_scene()
 	event.set_dungeon_pause_flags(16384, 1)
 	event.load_dungeon_monster(523, 1)
 	event.place_dungeon_monster(523, -382.5, -0.2, 120.2, 0.0, 1.61, 0.0)
@@ -1263,5 +1257,6 @@ function script.event_10500()
 	event.fade_in_screen(20)
 	event.finish_event()
 end
+script[10500] = script.start_soldier_chase_battle
 
 return script

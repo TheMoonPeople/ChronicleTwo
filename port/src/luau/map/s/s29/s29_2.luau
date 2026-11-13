@@ -1,15 +1,15 @@
 --!strict
--- map/s/s29/s29_2.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Paznos observatory arrival and exit scene.
 
 local vm = require("@lib/vm")
-local helper_4896492a = require("@lib/event/helper_4896492a")
+local paznos_observatory = require("@lib/event/paznos_observatory")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the player at the observatory entrance and fades in.
 function script.default_event()
 	event.initialize_event()
 	vm.wait(1)
@@ -20,13 +20,14 @@ function script.default_event()
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_4896492a
+script.key_open = paznos_observatory.play_event_e540
 
---- Event 600, which map data, a script or the engine runs by number.
-function script.event_600()
-	helper_4896492a()
+--- Plays the observatory scene and jumps to s30.
+function script.cutscene_observatory_to_s30()
+	paznos_observatory.play_event_e540()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s30", 605)
 end
+script[600] = script.cutscene_observatory_to_s30
 
 return script

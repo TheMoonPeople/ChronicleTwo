@@ -1,128 +1,127 @@
 --!strict
--- map/e01.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the e01 town with the Mints cutscenes and the exit to the outside map.
 
 local vm = require("@lib/vm")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_60(arg0: any)
+--- Handles the confirm button for a message window by advancing its page, closing it or speeding its text, and returns 1 once it is closed.
+local function poll_message_window(window: any)
 	local get_pad_down: s32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
+	local is_text_shown: s32 = 0
+	local is_waiting_for_page: s32 = 0
 	get_pad_down = event.get_buttons_pressed() or get_pad_down
-	if arg0 < 0 then
+	if window < 0 then
 		return 1
 	end
-	event.is_message_window_closed(arg0)
-	var2 = event.is_message_text_shown(arg0) or var2
-	var3 = event.is_message_waiting_for_page(arg0) or var3
+	event.is_message_window_closed(window)
+	is_text_shown = event.is_message_text_shown(window) or is_text_shown
+	is_waiting_for_page = event.is_message_waiting_for_page(window) or is_waiting_for_page
 	if bit32.band(get_pad_down, 32) ~= 0 then
-		if var3 ~= 0 then
-			event.advance_message_page(arg0)
+		if is_waiting_for_page ~= 0 then
+			event.advance_message_page(window)
 		end
-		if var2 ~= 0 then
-			event.close_message_window(arg0)
+		if is_text_shown ~= 0 then
+			event.close_message_window(window)
 			return 1
 		end
-		if var3 == 0 and var2 == 0 then
-			print(var3, " ", var2, "***\n")
-			event.set_message_draw_speed(arg0, 0.0)
+		if is_waiting_for_page == 0 and is_text_shown == 0 then
+			print(is_waiting_for_page, " ", is_text_shown, "***\n")
+			event.set_message_draw_speed(window, 0.0)
 		end
 	end
 	return 0
 end
 
---- Helper function.
-local function helper_2430(arg0: any)
-	local var1: s32 = 0
-	local var2: s32 = 0
-	local at: number = 0
+--- Polls a message window each frame until the player closes it and returns the frames waited.
+local function wait_for_message_close(window: any)
+	local is_closed: s32 = 0
+	local frames_waited: s32 = 0
+	local resume_point: number = 0
 	return vm.guard(function()
-		var2 = 0
+		frames_waited = 0
 		while true do
-			var1 = helper_60(arg0)
-			if var1 ~= 0 then
-				at = 1
+			is_closed = poll_message_window(window)
+			if is_closed ~= 0 then
+				resume_point = 1
 				vm.wait(1)
-				var2 = vm.i32(var2 + 1)
+				frames_waited = vm.i32(frames_waited + 1)
 				break
 			else
-				at = 2
+				resume_point = 2
 				vm.wait(2)
-				var2 = vm.i32(var2 + 1)
+				frames_waited = vm.i32(frames_waited + 1)
 			end
 		end
-		return var2
+		return frames_waited
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				var2 = var2 + 1
+		if resume_point <= 2 then
+			if resume_point <= 1 then
+				frames_waited = frames_waited + 1
 			end
-			var2 = var2 + 1
-			return var2
+			frames_waited = frames_waited + 1
+			return frames_waited
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_28e0(arg0: s32, arg1: s32, arg2: s32, arg3: s32, arg4: s32)
-	event.open_message_window_2(arg0, arg1)
-	event.set_message_bubble_screen_slot(arg0, arg2)
-	event.place_message_bubble(arg0, arg3, arg4, arg3, arg4)
-	local _ = helper_2430(arg0)
-	event.set_message_bubble_screen_slot(arg0, 0)
+--- Opens a message bubble at a screen position and waits for the player to close it.
+local function say_message(window: s32, message_id: s32, screen_slot: s32, bubble_x: s32, bubble_y: s32)
+	event.open_message_window_2(window, message_id)
+	event.set_message_bubble_screen_slot(window, screen_slot)
+	event.place_message_bubble(window, bubble_x, bubble_y, bubble_x, bubble_y)
+	local _ = wait_for_message_close(window)
+	event.set_message_bubble_screen_slot(window, 0)
 end
 
---- Helper function.
-local function helper_21f0(arg0: s32, arg1: s32)
-	local var2: s32 = 0
-	local var3: s32 = 0
-	local at: number = 0
+--- Polls a message window each frame until the player closes it or the frame limit passes, then closes the message window.
+local function wait_for_message_close_or_timeout(window: s32, frame_limit: s32)
+	local is_closed: s32 = 0
+	local frames_waited: s32 = 0
+	local resume_point: number = 0
 	return vm.guard(function()
-		var3 = 0
-		while var3 < arg1 do
-			var2 = helper_60(arg0)
-			if var2 ~= 0 then
-				at = 1
+		frames_waited = 0
+		while frames_waited < frame_limit do
+			is_closed = poll_message_window(window)
+			if is_closed ~= 0 then
+				resume_point = 1
 				vm.wait(1)
-				var3 = var3 + 1
+				frames_waited = frames_waited + 1
 				break
 			else
-				at = 2
+				resume_point = 2
 				vm.wait(2)
-				var3 = var3 + 1
+				frames_waited = frames_waited + 1
 			end
 		end
 		event.close_message_window(0)
-		return var3
+		return frames_waited
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				local _ = var3 < arg1
-				var3 = var3 + 1
+		if resume_point <= 2 then
+			if resume_point <= 1 then
+				local _ = frames_waited < frame_limit
+				frames_waited = frames_waited + 1
 			end
-			var3 = var3 + 1
-			return var3
+			frames_waited = frames_waited + 1
+			return frames_waited
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_2730(arg0: s32, arg1: s32, arg2: s32, arg3: s32, arg4: s32, arg5: s32)
-	event.open_message_window_2(arg0, arg1)
-	event.set_message_bubble_screen_slot(arg0, arg2)
-	event.place_message_bubble(arg0, arg3, arg4, arg3, arg4)
-	local _ = helper_21f0(arg0, arg5)
-	event.set_message_bubble_screen_slot(arg0, 0)
+--- Opens a message bubble at a screen position and closes it when the player confirms or the frame limit passes.
+local function say_message_timed(window: s32, message_id: s32, screen_slot: s32, bubble_x: s32, bubble_y: s32, frame_limit: s32)
+	event.open_message_window_2(window, message_id)
+	event.set_message_bubble_screen_slot(window, screen_slot)
+	event.place_message_bubble(window, bubble_x, bubble_y, bubble_x, bubble_y)
+	local _ = wait_for_message_close_or_timeout(window, frame_limit)
+	event.set_message_bubble_screen_slot(window, 0)
 end
 
---- Helper function.
-local function helper_4ef0()
+--- Plays the cutscene in which Mints looks down at Needle and the Pierrots, who then jump away.
+local function cutscene_spy_on_pierrots()
 	event.initialize_event()
 	event.set_message_window_mode(0, 7)
 	event.set_character_active(0, 0)
@@ -297,26 +296,26 @@ local function helper_4ef0()
 	event.set_camera_sequence_look_at(518.02, 153.97, -45.82)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(120)
-	wait_camera()
-	helper_28e0(0, 3010, 8, 0, 0)
+	camera.wait_until_done()
+	say_message(0, 3010, 8, 0, 0)
 	event.arm_object_sequence_motion_trigger(0)
-	helper_28e0(0, 3020, 8, 0, 0)
+	say_message(0, 3020, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(0)
 	event.arm_object_sequence_motion_trigger(0)
 	event.wait_object_sequence_motion_end(0)
-	helper_28e0(0, 3030, 8, 0, 0)
-	wait_objects(0)
+	say_message(0, 3030, 8, 0, 0)
+	object.wait_until_done(0)
 	event.set_camera_sequence_position(464.23, 209.09, -140.38)
 	event.set_camera_sequence_look_at(528.52, 167.88, -34.23)
 	event.set_object_sequence_motion(0, "歩き", 4)
-	helper_2730(0, 3040, 8, 0, 0, 200)
-	wait_objects(0)
+	say_message_timed(0, 3040, 8, 0, 0, 200)
+	object.wait_until_done(0)
 	event.set_camera_sequence_position(611.3, 208.49, 366.39)
 	event.set_camera_sequence_look_at(572.65, 156.22, 246.87)
 	event.set_object_sequence_position(0, 576.02, 133.45, 143.2)
 	event.set_object_sequence_rotation(0, 0.0, -0.29, 0.0)
 	event.set_object_sequence_motion(0, "きょろきょろ歩き", 4)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_camera_sequence_position(574.34, 203.79, 190.06)
 	event.set_camera_sequence_look_at(543.29, 142.99, 227.79)
 	event.move_camera_sequence(557.65, 203.79, 250.72, 526.69, 142.99, 288.12, 180)
@@ -324,17 +323,17 @@ local function helper_4ef0()
 	event.set_object_sequence_position(0, 547.89, 133.45, 215.23)
 	event.set_object_sequence_rotation(0, 0.0, -0.29, 0.0)
 	event.move_object_sequence(0, 534.64, 133.45, 265.0, 90)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_object_sequence_motion(0, "立ち", 2)
 	event.queue_object_sequence_next_motion(0, "のぞく_s")
-	wait_camera()
-	helper_888ab2a3(30)
+	camera.wait_until_done()
+	wait.for_frame_count(30)
 	event.wait_object_sequence_motion_trigger(0)
 	event.arm_object_sequence_motion_trigger(0)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_camera_sequence_position(517.75, 143.82, 286.48)
 	event.set_camera_sequence_look_at(532.99, 156.31, 270.93)
-	helper_28e0(0, 3050, 8, 0, 0)
+	say_message(0, 3050, 8, 0, 0)
 	event.set_object_handle_shadow_enabled(0, 0)
 	event.set_camera_sequence_position(318.23, 170.94, 487.51)
 	event.set_camera_sequence_look_at(414.66, 165.51, 406.31)
@@ -343,82 +342,82 @@ local function helper_4ef0()
 	event.set_camera_sequence_look_at(405.19, 24.85, 336.85)
 	event.arm_object_sequence_motion_trigger(1)
 	event.arm_object_sequence_motion_trigger(2)
-	helper_28e0(0, 3080, 8, 0, 0)
+	say_message(0, 3080, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(1)
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.arm_object_sequence_motion_trigger(1)
 	event.arm_object_sequence_motion_trigger(2)
-	helper_28e0(0, 3090, 8, 0, 0)
+	say_message(0, 3090, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(1)
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.arm_object_sequence_motion_trigger(1)
 	event.arm_object_sequence_motion_trigger(2)
 	event.wait_object_sequence_motion_end(2)
-	wait_objects(2)
+	object.wait_until_done(2)
 	event.set_camera_sequence_position(408.45, 24.17, 357.28)
 	event.set_camera_sequence_look_at(431.13, 26.09, 350.29)
 	event.set_object_sequence_motion(2, "会話")
-	helper_28e0(0, 3100, 8, 0, 0)
+	say_message(0, 3100, 8, 0, 0)
 	event.set_camera_sequence_position(382.77, 29.94, 373.27)
 	event.set_camera_sequence_look_at(425.01, 23.0, 337.65)
 	event.set_object_sequence_motion(2, "立ち")
 	event.arm_object_sequence_motion_trigger(1)
-	helper_28e0(0, 3110, 8, 0, 0)
+	say_message(0, 3110, 8, 0, 0)
 	event.set_object_sequence_motion(2, "会話")
-	helper_28e0(0, 3120, 8, 0, 0)
+	say_message(0, 3120, 8, 0, 0)
 	event.set_object_sequence_motion(2, "立ち")
 	event.arm_object_sequence_motion_trigger(1)
-	helper_28e0(0, 3130, 8, 0, 0)
+	say_message(0, 3130, 8, 0, 0)
 	event.wait_object_sequence_motion_end(1)
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_camera_sequence_position(432.14, 25.02, 368.63)
 	event.set_camera_sequence_look_at(402.39, 25.98, 348.56)
 	event.set_object_sequence_motion(1, "鼻ぴくぴく")
-	helper_28e0(0, 3140, 8, 0, 0)
+	say_message(0, 3140, 8, 0, 0)
 	event.set_camera_sequence_position(408.45, 24.17, 357.28)
 	event.set_camera_sequence_look_at(431.13, 26.09, 350.29)
 	event.set_object_sequence_motion(2, "シメル_s")
 	event.set_object_sequence_motion(1, "シメル_s")
-	helper_28e0(0, 3150, 8, 0, 0)
+	say_message(0, 3150, 8, 0, 0)
 	event.set_camera_sequence_position(382.77, 29.94, 373.27)
 	event.set_camera_sequence_look_at(425.01, 23.0, 337.65)
 	event.arm_object_sequence_motion_trigger(1)
 	event.arm_object_sequence_motion_trigger(2)
-	helper_888ab2a3(15)
-	helper_2730(0, 3160, 8, 0, 0, 60)
-	helper_888ab2a3(60)
+	wait.for_frame_count(15)
+	say_message_timed(0, 3160, 8, 0, 0, 60)
+	wait.for_frame_count(60)
 	event.set_camera_sequence_position(455.51, 42.59, 306.46)
 	event.set_camera_sequence_look_at(415.88, 17.86, 345.25)
 	event.wait_object_sequence_motion_trigger(1)
-	wait_objects(1)
-	helper_28e0(0, 3170, 8, 0, 0)
+	object.wait_until_done(1)
+	say_message(0, 3170, 8, 0, 0)
 	event.arm_object_sequence_motion_trigger(1)
 	event.arm_object_sequence_motion_trigger(2)
-	helper_888ab2a3(60)
+	wait.for_frame_count(60)
 	event.set_camera_sequence_position(504.32, 2.39, 361.02)
 	event.set_camera_sequence_look_at(456.2, 16.46, 340.74)
-	helper_28e0(0, 3180, 8, 0, 0)
+	say_message(0, 3180, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(1)
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_object_sequence_motion(1, "笑う_s")
-	helper_28e0(0, 3190, 8, 0, 0)
+	say_message(0, 3190, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(1)
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.arm_object_sequence_motion_trigger(1)
-	helper_28e0(0, 3200, 8, 0, 0)
-	wait_camera()
+	say_message(0, 3200, 8, 0, 0)
+	camera.wait_until_done()
 	event.set_camera_sequence_position(412.51, 94.68, 448.16)
 	event.set_camera_sequence_look_at(457.77, 16.14, 335.83)
 	event.set_object_sequence_motion(2, "相手を見る_s")
-	helper_28e0(0, 3210, 8, 0, 0)
+	say_message(0, 3210, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(1)
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.arm_object_sequence_motion_trigger(1)
-	helper_28e0(0, 3220, 8, 0, 0)
+	say_message(0, 3220, 8, 0, 0)
 	event.set_object_sequence_motion(1, "気づく_s")
-	helper_28e0(0, 3230, 8, 0, 0)
+	say_message(0, 3230, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(1)
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_object_sequence_position(28, 491.85, 57.59, 280.68)
 	event.jump_object_sequence(28, 491.85, 1.02, 280.68, -0.4, 30)
 	event.rotate_object_sequence(28, 1.5, 3.12, 0.35, 30)
@@ -433,49 +432,49 @@ local function helper_4ef0()
 	event.rotate_object_sequence(28, -1.57, 0.0, 0.0, 12)
 	event.rotate_object_sequence(28, -1.57, 0.0, -1.57, 6)
 	event.rotate_object_sequence(28, -1.57, 0.0, 3.14, 6)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.arm_object_sequence_motion_trigger(1)
 	event.set_object_sequence_motion(2, "気づく_s")
-	helper_28e0(0, 3240, 8, 0, 0)
+	say_message(0, 3240, 8, 0, 0)
 	event.wait_object_sequence_motion_trigger(1)
 	event.arm_object_sequence_motion_trigger(1)
-	helper_888ab2a3(60)
+	wait.for_frame_count(60)
 	event.set_camera_sequence_position(517.75, 143.82, 286.48)
 	event.set_camera_sequence_look_at(532.99, 156.31, 270.93)
-	helper_28e0(0, 3250, 8, 0, 0)
+	say_message(0, 3250, 8, 0, 0)
 	event.set_camera_sequence_position(469.26, 78.46, 302.58)
 	event.set_camera_sequence_look_at(454.3, 19.03, 336.32)
 	event.set_object_sequence_position(1, 448.41, 0.0, 334.3)
 	event.set_object_sequence_rotation(1, 0.0, 2.65, 0.0)
 	event.set_object_sequence_motion(1, "命令_s", 4)
-	helper_28e0(0, 3260, 8, 0, 0)
+	say_message(0, 3260, 8, 0, 0)
 	event.arm_object_sequence_motion_trigger(2)
-	helper_28e0(0, 3270, 8, 0, 0)
+	say_message(0, 3270, 8, 0, 0)
 	event.set_object_handle_shadow_enabled(0, 1)
 	event.set_camera_sequence_position(503.36, 126.44, 309.75)
 	event.set_camera_sequence_look_at(530.34, 150.54, 270.87)
 	event.arm_object_sequence_motion_trigger(0)
 	event.wait_object_sequence_motion_end(0)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_camera_sequence_position(584.86, 197.48, 305.84)
 	event.set_camera_sequence_look_at(544.65, 150.54, 250.94)
 	event.set_object_sequence_motion(0, "走り")
 	event.set_object_sequence_rotation(0, 0.0, 2.8, 0.0)
 	event.move_object_sequence(0, 570.34, 133.45, 120.98, 60)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_camera_sequence_position(461.98, 29.1, 307.38)
 	event.set_camera_sequence_look_at(447.72, 27.8, 336.09)
 	event.set_character_active(0, 8)
 	event.set_character_active(0, 10)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.arm_object_sequence_motion_trigger(1)
-	helper_28e0(0, 3280, 8, 0, 0)
+	say_message(0, 3280, 8, 0, 0)
 	event.set_character_active(11)
 	event.set_character_active(12)
 	event.set_character_active(13)
 	event.set_camera_sequence_position(425.56, 60.68, 401.69)
 	event.set_camera_sequence_look_at(540.96, 27.8, 343.52)
-	helper_888ab2a3(3)
+	wait.for_frame_count(3)
 	event.rotate_object_sequence(8, 0.0, 0.0, 2.35, 10)
 	event.rotate_object_sequence(9, 0.0, 0.0, -2.35, 10)
 	event.set_object_sequence_position(3, 595.28, -100.0, 301.83)
@@ -492,7 +491,7 @@ local function helper_4ef0()
 	event.set_object_sequence_position(3, 595.28, 0.0, 301.83)
 	event.delay_object_sequence_position_track(3, 4)
 	event.jump_object_sequence(3, 552.31, 0.0, 299.96, -0.6, 30)
-	helper_888ab2a3(4)
+	wait.for_frame_count(4)
 	event.rotate_object_sequence(14, 0.0, 0.0, 2.35, 10)
 	event.rotate_object_sequence(15, 0.0, 0.0, -2.35, 10)
 	event.set_object_sequence_position(5, 530.7, -100.0, 408.01)
@@ -509,7 +508,7 @@ local function helper_4ef0()
 	event.set_object_sequence_position(5, 530.7, 0.0, 408.01)
 	event.delay_object_sequence_position_track(5, 4)
 	event.jump_object_sequence(5, 508.68, 0.0, 377.01, -0.6, 30)
-	helper_888ab2a3(5)
+	wait.for_frame_count(5)
 	event.rotate_object_sequence(11, 0.0, 0.0, 2.35, 10)
 	event.rotate_object_sequence(12, 0.0, 0.0, -2.35, 10)
 	event.set_object_sequence_position(4, 576.1, -100.0, 360.47)
@@ -526,7 +525,7 @@ local function helper_4ef0()
 	event.set_object_sequence_position(4, 576.1, 0.0, 360.47)
 	event.delay_object_sequence_position_track(4, 4)
 	event.jump_object_sequence(4, 545.68, 0.0, 340.87, -0.6, 30)
-	helper_888ab2a3(5)
+	wait.for_frame_count(5)
 	event.rotate_object_sequence(16, 0.0, 0.0, 2.35, 10)
 	event.rotate_object_sequence(17, 0.0, 0.0, -2.35, 10)
 	event.set_object_sequence_position(6, 526.55, -100.0, 296.48)
@@ -543,8 +542,8 @@ local function helper_4ef0()
 	event.set_object_sequence_position(6, 526.55, 0.0, 296.48)
 	event.delay_object_sequence_position_track(6, 4)
 	event.jump_object_sequence(6, 513.97, 0.0, 263.38, -0.6, 30)
-	helper_c956b4a2(32)
-	helper_888ab2a3(25)
+	wait.until_button_pressed(32)
+	wait.for_frame_count(25)
 	event.set_character_active(14)
 	event.set_camera_sequence_position(193.14, 35.65, 339.92)
 	event.set_camera_sequence_look_at(183.37, 28.6, 246.4)
@@ -556,7 +555,7 @@ local function helper_4ef0()
 	event.set_object_sequence_object(5, 5)
 	event.clear_object_sequence(6)
 	event.set_object_sequence_object(6, 6)
-	helper_888ab2a3(3)
+	wait.for_frame_count(3)
 	event.rotate_object_sequence(20, 0.0, 0.0, 2.35, 10)
 	event.rotate_object_sequence(21, 0.0, 0.0, -2.35, 10)
 	event.set_object_sequence_position(4, 183.91, -100.0, 160.26)
@@ -573,7 +572,7 @@ local function helper_4ef0()
 	event.set_object_sequence_position(4, 183.91, 0.0, 160.26)
 	event.delay_object_sequence_position_track(4, 4)
 	event.jump_object_sequence(4, 209.5, 0.0, 184.83, -0.6, 30)
-	helper_888ab2a3(6)
+	wait.for_frame_count(6)
 	event.rotate_object_sequence(26, 0.0, 0.0, 2.35, 10)
 	event.rotate_object_sequence(27, 0.0, 0.0, -2.35, 10)
 	event.set_object_sequence_position(6, 137.01, -100.0, 257.9)
@@ -590,7 +589,7 @@ local function helper_4ef0()
 	event.set_object_sequence_position(6, 137.01, 0.0, 257.9)
 	event.delay_object_sequence_position_track(6, 4)
 	event.jump_object_sequence(6, 177.77, 0.0, 250.28, -0.6, 30)
-	helper_888ab2a3(2)
+	wait.for_frame_count(2)
 	event.rotate_object_sequence(23, 0.0, 0.0, 2.35, 10)
 	event.rotate_object_sequence(24, 0.0, 0.0, -2.35, 10)
 	event.set_object_sequence_position(5, 155.66, -100.0, 207.73)
@@ -607,11 +606,11 @@ local function helper_4ef0()
 	event.set_object_sequence_position(5, 155.66, 0.0, 207.73)
 	event.delay_object_sequence_position_track(5, 4)
 	event.jump_object_sequence(5, 195.43, 0.0, 208.6, -0.6, 30)
-	wait_objects(3)
-	wait_objects(4)
-	wait_objects(5)
-	wait_objects(6)
-	helper_888ab2a3(30)
+	object.wait_until_done(3)
+	object.wait_until_done(4)
+	object.wait_until_done(5)
+	object.wait_until_done(6)
+	wait.for_frame_count(30)
 	event.set_camera_sequence_position(282.78, 28.6, 141.0)
 	event.set_camera_sequence_look_at(272.0, 28.6, 163.88)
 	event.move_camera_sequence(288.14, 28.55, 129.61, 272.0, 28.6, 163.88, 240)
@@ -633,29 +632,29 @@ local function helper_4ef0()
 	event.delay_object_sequence_position_track(6, 60)
 	event.move_object_sequence(6, 279.8, 0.0, 197.35, 100)
 	event.set_object_sequence_motion(6, "立ち", 4)
-	helper_28e0(0, 3290, 8, 0, 0)
-	wait_camera()
+	say_message(0, 3290, 8, 0, 0)
+	camera.wait_until_done()
 	event.arm_object_sequence_motion_trigger(1)
-	helper_28e0(0, 3300, 8, 0, 0)
+	say_message(0, 3300, 8, 0, 0)
 	event.set_object_sequence_motion(3, "ジャンプ", 2)
 	event.delay_object_sequence_position_track(3, 15)
 	event.move_object_sequence(3, 252.02, 48.0, 175.63, 10)
-	helper_888ab2a3(5)
+	wait.for_frame_count(5)
 	event.set_object_sequence_motion(6, "ジャンプ", 2)
 	event.delay_object_sequence_position_track(6, 15)
 	event.move_object_sequence(6, 279.8, 48.0, 197.35, 10)
-	helper_888ab2a3(3)
+	wait.for_frame_count(3)
 	event.set_object_sequence_motion(4, "ジャンプ", 2)
 	event.delay_object_sequence_position_track(4, 15)
 	event.move_object_sequence(4, 274.69, 48.0, 186.45, 10)
-	helper_888ab2a3(1)
+	wait.for_frame_count(1)
 	event.set_object_sequence_motion(5, "ジャンプ", 2)
 	event.delay_object_sequence_position_track(5, 15)
 	event.move_object_sequence(5, 239.28, 48.0, 179.38, 10)
-	wait_objects(3)
-	wait_objects(4)
-	wait_objects(5)
-	wait_objects(6)
+	object.wait_until_done(3)
+	object.wait_until_done(4)
+	object.wait_until_done(5)
+	object.wait_until_done(6)
 	event.set_object_sequence_position(3, 0.0, -100.0, 0.0)
 	event.set_object_sequence_position(4, 0.0, -100.0, 0.0)
 	event.set_object_sequence_position(5, 0.0, -100.0, 0.0)
@@ -670,7 +669,7 @@ local function helper_4ef0()
 	event.delay_object_sequence_motion_track(5, 25)
 	event.set_object_sequence_motion(5, "着地", 6)
 	event.set_object_sequence_position(5, 216.31, -100.0, 283.53)
-	helper_888ab2a3(20)
+	wait.for_frame_count(20)
 	event.set_object_sequence_rotation(4, 0.0, 2.29, 0.0)
 	event.set_object_sequence_position(4, 190.17, -7.44, 276.85)
 	event.jump_object_sequence(4, 305.74, 133.42, 123.7, -0.5, 30)
@@ -682,7 +681,7 @@ local function helper_4ef0()
 	event.delay_object_sequence_position_track(4, 20)
 	event.move_object_sequence(4, 335.74, 133.43, 26.77, 60)
 	event.set_object_sequence_position(4, 216.31, -100.0, 283.53)
-	helper_888ab2a3(36)
+	wait.for_frame_count(36)
 	event.set_object_sequence_rotation(3, 0.0, 1.57, 0.0)
 	event.set_object_sequence_position(3, 175.87, 0.0, 291.76)
 	event.delay_object_sequence_rotation_track(3, 10)
@@ -703,7 +702,7 @@ local function helper_4ef0()
 	event.delay_object_sequence_position_track(3, 20)
 	event.move_object_sequence(3, 335.74, 133.43, 26.77, 60)
 	event.set_object_sequence_position(3, 335.74, -100.0, 26.77)
-	helper_888ab2a3(20)
+	wait.for_frame_count(20)
 	event.set_object_sequence_rotation(6, 0.0, 2.77, 0.0)
 	event.rotate_object_sequence(6, 0.0, 2.77, 0.0, 30)
 	event.set_object_sequence_position(6, 198.78, 0.0, 310.27)
@@ -716,7 +715,7 @@ local function helper_4ef0()
 	event.delay_object_sequence_position_track(6, 20)
 	event.move_object_sequence(6, 335.74, 133.43, 26.77, 60)
 	event.set_object_sequence_position(6, 335.74, -100.0, 26.77)
-	helper_888ab2a3(83)
+	wait.for_frame_count(83)
 	event.set_object_sequence_rotation(5, 0.0, 2.65, 0.0)
 	event.set_object_sequence_position(5, 163.89, 25.69, 333.19)
 	event.delay_object_sequence_rotation_track(5, 10)
@@ -753,7 +752,7 @@ local function helper_4ef0()
 	event.add_object_sequence_path_point(1, 335.01, 113.52, 211.42)
 	event.add_object_sequence_path_point(1, 343.71, 128.74, 191.54)
 	event.start_object_sequence_path(1)
-	helper_888ab2a3(42)
+	wait.for_frame_count(42)
 	event.set_object_sequence_rotation(4, 0.0, 1.57, 0.0)
 	event.set_object_sequence_position(4, 221.01, 75.5, 118.44)
 	event.jump_object_sequence(4, 271.81, 152.9, 121.85, -0.4, 30)
@@ -774,10 +773,10 @@ local function helper_4ef0()
 	event.delay_object_sequence_position_track(4, 20)
 	event.move_object_sequence(4, 335.74, 133.43, 26.77, 60)
 	event.set_object_sequence_position(4, 335.74, -100.0, 26.77)
-	wait_objects(4)
+	object.wait_until_done(4)
 	event.mark_camera_sequence_fade_track()
 	event.fade_out_camera_sequence(60)
-	wait_camera()
+	camera.wait_until_done()
 	event.delete_character(8)
 	event.delete_character(9)
 	event.delete_character(10)
@@ -788,11 +787,11 @@ local function helper_4ef0()
 	event.set_character_active(0)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(1)
-	wait_camera()
+	camera.wait_until_done()
 end
 
---- Helper function.
-local function helper_3c18()
+--- Plays the cutscene in which Mints runs through the town, climbs a ladder and looks out from the top.
+local function cutscene_climb_ladder()
 	event.initialize_event()
 	event.set_message_window_mode(0, 7)
 	event.set_character_active(0, 0)
@@ -817,18 +816,18 @@ local function helper_3c18()
 	event.move_camera_sequence(6.72, 29.73, -707.96, 6.24, 37.15, -634.81, 120)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(60)
-	wait_camera()
-	wait_objects(0)
+	camera.wait_until_done()
+	object.wait_until_done(0)
 	event.set_object_sequence_motion(0, "立ち")
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_camera_sequence_position(-9.86, 24.33, -621.94)
 	event.set_camera_sequence_look_at(5.94, 19.04, -565.46)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_object_sequence_motion(0, "見えないよ_s")
-	helper_888ab2a3(200)
-	helper_28e0(0, 1033, 8, 200, 200)
+	wait.for_frame_count(200)
+	say_message(0, 1033, 8, 200, 200)
 	event.arm_object_sequence_motion_trigger(0)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_camera_sequence_position(-83.96, 52.39, -523.46)
 	event.set_camera_sequence_look_at(5.94, 19.04, -565.46)
 	event.set_object_sequence_motion(0, "走り")
@@ -840,7 +839,7 @@ local function helper_3c18()
 	event.add_object_sequence_path_point(0, 222.61, 0.0, -623.81)
 	event.add_object_sequence_path_point(0, 285.65, 0.0, -599.62)
 	event.start_object_sequence_path(0)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_camera_sequence_position(441.17, 43.51, -515.27)
 	event.set_camera_sequence_look_at(477.37, 14.66, -405.12)
 	event.set_object_sequence_position(0, 431.02, 0.0, -509.53)
@@ -848,56 +847,58 @@ local function helper_3c18()
 	event.move_object_sequence(0, 468.49, 0.0, -415.95, 40)
 	event.delay_object_sequence_rotation_track(0, 35)
 	event.rotate_object_sequence(0, 0.0, 0.6, 0.0, 5)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_object_sequence_motion(0, "立ち")
-	helper_888ab2a3(10)
+	wait.for_frame_count(10)
 	event.move_camera_sequence(441.17, 165.2, -515.27, 477.37, 136.35, -405.12, 160)
 	event.set_object_sequence_motion(0, "はしご登り", 2)
 	event.wait_object_sequence_motion_end(0)
-	wait_objects(0)
-	wait_camera()
+	object.wait_until_done(0)
+	camera.wait_until_done()
 	event.set_camera_sequence_position(492.91, 169.38, -343.35)
 	event.set_camera_sequence_look_at(431.02, 122.3, -293.19)
 	event.set_object_sequence_position(0, 441.37, 133.45, -339.86)
 	event.set_object_sequence_rotation(0, 0.0, 0.41, 0.0)
 	event.move_object_sequence(0, 459.04, 133.45, -308.23, 40)
 	event.set_object_sequence_motion(0, "右を向く_s", 4)
-	helper_28e0(0, 1034, 8, 200, 200)
-	wait_camera()
+	say_message(0, 1034, 8, 200, 200)
+	camera.wait_until_done()
 	event.move_camera_sequence(492.91, 169.38, -343.35, 431.02, 165.35, -293.19, 200)
-	wait_camera()
-	helper_888ab2a3(30)
+	camera.wait_until_done()
+	wait.for_frame_count(30)
 	event.mark_camera_sequence_fade_track()
 	event.fade_out_camera_sequence(60)
-	wait_camera()
+	camera.wait_until_done()
 	event.delete_character(8)
 	event.set_character_active(0)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(1)
-	wait_camera()
+	camera.wait_until_done()
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and has nothing to prepare.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the player at the town's default start position.
 function script.default_event()
 	event.set_character_position(0, 0.0, 0.0, -320.0)
 	event.set_character_rotation(0, 0.0, 0.0, 0.0)
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_4ef0
+script.key_open = cutscene_spy_on_pierrots
 
 --- Event 151, which map data, a script or the engine runs by number.
-script.event_151 = helper_3c18
+script.cutscene_climb_ladder = cutscene_climb_ladder
+script[151] = script.cutscene_climb_ladder
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	helper_888ab2a3(10)
+--- Leaves the town for the outside map after a short wait.
+function script.exit_to_outside_map()
+	wait.for_frame_count(10)
 	event.go_to_outside_map(-1, "m01", 123)
 end
+script[200] = script.exit_to_outside_map
 
 return script

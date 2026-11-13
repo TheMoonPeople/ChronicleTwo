@@ -1,17 +1,16 @@
 --!strict
--- map/s/s60/s60_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the evening speech scene and the ending movie with captions.
 
 local vm = require("@lib/vm")
-local helper_581cb30c = require("@lib/event/helper_581cb30c")
-local helper_c3ae7eec = require("@lib/event/helper_c3ae7eec")
-local wait_frames = require("@lib/event/wait_frames")
+local palm_brinks_s60 = require("@lib/event/palm_brinks_s60")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_be7c()
-	local block: s32 = 0
+--- Plays the ending movie with captions, then shows a still image until a button is pressed and fades out.
+local function play_ending_movie_with_captions()
+	local image_block: s32 = 0
 	event.fade_out_screen(0)
 	event.stop_all_sounds()
-	wait_frames(6)
+	wait.frames(6)
 	event.fade_in_screen(0)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
@@ -61,7 +60,7 @@ local function helper_be7c()
 	event.play_movie(5, "movie/end2.mp4")
 	vm.wait(2)
 	event.set_movie_caption(0, 0)
-	block = event.load_event_image_4(5, "textures/event/e700/e736/e73601.json", 0) or block
+	image_block = event.load_event_image_4(5, "textures/event/e700/e736/e73601.json", 0) or image_block
 	event.reset_event_sprite(0)
 	event.set_event_sprite_type(0, 0)
 	event.set_event_sprite_color(0, 0, 0, 0, 128)
@@ -70,54 +69,57 @@ local function helper_be7c()
 	event.set_event_sprite_draw_pass(0, 1)
 	event.reset_event_sprite(1)
 	event.set_event_sprite_type(1, 0)
-	event.set_event_sprite_texture(1, "e73601", block)
+	event.set_event_sprite_texture(1, "e73601", image_block)
 	event.set_event_sprite_color(1, 128, 128, 128, 128)
 	event.set_event_sprite_texture_rect(1, 0, 0, 512, 448)
 	event.set_event_sprite_size(1, 512, 448)
 	event.set_event_sprite_position(1, 256, 224)
 	event.set_event_sprite_draw_pass(1, 1)
 	event.fade_in_screen(60)
-	wait_frames(90)
+	wait.frames(90)
 	while true do
-		if helper_581cb30c(0) ~= 0 then
+		if wait.get_button_state(0) ~= 0 then
 			break
 		else
 			vm.wait(4)
 		end
 	end
 	event.fade_out_screen(30)
-	wait_frames(30)
+	wait.frames(30)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing, so the engine runs it in place of its default.
+function script.do_nothing() end
+script[99] = script.do_nothing
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the engine runs it in place of its default.
 function script.default_event() end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Sets the evening time of day and plays the speech scene.
 function script.key_open()
-	local at: number = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
 		event.set_time_of_day(22.0)
 		event.set_time_of_day_advancing(0)
-		at = 1
-		wait_frames(30)
-		at = 2
-		helper_c3ae7eec()
+		checkpoint = 1
+		wait.frames(30)
+		checkpoint = 2
+		palm_brinks_s60.play_e824_speech_scene()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_c3ae7eec()
+		if checkpoint <= 2 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				palm_brinks_s60.play_e824_speech_scene()
 				return vm.continue_with(function()
 					return
 				end)
@@ -128,10 +130,11 @@ function script.key_open()
 	end)
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_be7c()
+--- Plays the ending movie with captions and flags the scene to exit.
+function script.cutscene_ending_movie()
+	play_ending_movie_with_captions()
 	event.set_scene_exit_flag(1)
 end
+script[500] = script.cutscene_ending_movie
 
 return script

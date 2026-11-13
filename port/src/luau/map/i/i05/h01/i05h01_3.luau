@@ -1,52 +1,54 @@
 --!strict
--- map/i/i05/h01/i05h01_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the i05h01 house interior, which plays the e305 cutscene when its save flags are set.
 
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_264b9d7e = require("@lib/event/helper_264b9d7e")
-local helper_fe0f3321 = require("@lib/event/helper_fe0f3321")
+local cutscene = require("@lib/event/cutscene")
+local i05_house_h01 = require("@lib/event/i05_house_h01")
+local villager_dialogue = require("@lib/event/german/villager_dialogue")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
-script.event_99 = helper_1ef0d4b2
+script[99] = cutscene.noop
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the e305 cutscene on entry when its save flag is set and not yet finished, then leaves for map m05.
 function script.default_event()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local var2: s32 = 0
-	flag = event.get_save_flag(304) or flag
-	flag_2 = event.get_save_flag(305) or flag_2
-	if flag == 1 and flag_2 == 0 then
-		var2 = event.find_scene_character_slot(6) or var2
-		event.set_villager_ai_enabled(0, var2)
-		event.set_character_active(0, var2)
-		helper_264b9d7e()
-		event.set_villager_ai_enabled(1, var2)
-		event.set_character_active(1, var2)
+	local cutscene_ready_flag: s32 = 0
+	local cutscene_done_flag: s32 = 0
+	local npc_slot: s32 = 0
+	cutscene_ready_flag = event.get_save_flag(304) or cutscene_ready_flag
+	cutscene_done_flag = event.get_save_flag(305) or cutscene_done_flag
+	if cutscene_ready_flag == 1 and cutscene_done_flag == 0 then
+		npc_slot = event.find_scene_character_slot(6) or npc_slot
+		event.set_villager_ai_enabled(0, npc_slot)
+		event.set_character_active(0, npc_slot)
+		i05_house_h01.play_e305_cutscene()
+		event.set_villager_ai_enabled(1, npc_slot)
+		event.set_character_active(1, npc_slot)
 		event.go_to_outside_map(-1, "m05")
 	end
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Overrides the square-button handler with nothing.
 function script.key_open() end
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_fe0f3321
+script[1000] = villager_dialogue.talk_to_triggered_villager
 
---- Event 13050, which map data, a script or the engine runs by number.
-function script.event_13050()
-	local var0: s32 = 0
-	var0 = event.find_scene_character_slot(6) or var0
-	event.set_villager_ai_enabled(0, var0)
-	event.set_character_active(0, var0)
-	helper_264b9d7e()
-	event.set_villager_ai_enabled(1, var0)
-	event.set_character_active(1, var0)
+--- Plays the e305 cutscene with the villager's AI paused.
+function script.cutscene_e305()
+	local npc_slot: s32 = 0
+	npc_slot = event.find_scene_character_slot(6) or npc_slot
+	event.set_villager_ai_enabled(0, npc_slot)
+	event.set_character_active(0, npc_slot)
+	i05_house_h01.play_e305_cutscene()
+	event.set_villager_ai_enabled(1, npc_slot)
+	event.set_character_active(1, npc_slot)
 end
+script[13050] = script.cutscene_e305
 
 return script

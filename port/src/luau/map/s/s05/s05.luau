@@ -1,65 +1,43 @@
 --!strict
--- map/s/s05/s05.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the swamp fishing area: the arrival scene, the fishing rod trade with Noam, the Murdan scenes, and the NPC talks that advance the swamp progress counter.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_04c5554b = require("@lib/event/helper_04c5554b")
-local helper_0616fd34 = require("@lib/event/helper_0616fd34")
-local helper_0ffc2526 = require("@lib/event/helper_0ffc2526")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_2c717f26 = require("@lib/event/helper_2c717f26")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_4fba7aa8 = require("@lib/event/helper_4fba7aa8")
-local helper_53ffe901 = require("@lib/event/helper_53ffe901")
-local helper_5c12934f = require("@lib/event/helper_5c12934f")
-local helper_6f1a51c5 = require("@lib/event/helper_6f1a51c5")
-local helper_76f23193 = require("@lib/event/helper_76f23193")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8cd371d7 = require("@lib/event/helper_8cd371d7")
-local helper_93cb8168 = require("@lib/event/helper_93cb8168")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_bb23ef44 = require("@lib/event/helper_bb23ef44")
-local helper_c292fa16 = require("@lib/event/helper_c292fa16")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_d529ed92 = require("@lib/event/helper_d529ed92")
-local helper_d61bc810 = require("@lib/event/helper_d61bc810")
-local helper_deba899b = require("@lib/event/helper_deba899b")
-local helper_e52544df = require("@lib/event/helper_e52544df")
-local helper_ee1c51d0 = require("@lib/event/helper_ee1c51d0")
-local helper_f38eabca = require("@lib/event/helper_f38eabca")
-local helper_fc5948a6 = require("@lib/event/helper_fc5948a6")
-local show_message = require("@lib/event/show_message")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local fish_monster_swamp = require("@lib/event/fish_monster_swamp")
+local inventory = require("@lib/event/inventory")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
-local global1: s32 = 0
+local mints_slot: s32 = 0
+local monica_slot: s32 = 0
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
+--- Enables saving and fades the screen in when the map is entered.
+local function fade_in_on_entry()
 	event.set_save_control_bits(16, 1)
 	event.fade_in_screen(15)
 end
 
---- Helper function.
-local function helper_27ae4()
-	local var0: s32 = 0
-	var0 = event.get_save_counter(3) or var0
-	if var0 < 7 then
-		helper_04c5554b(1)
+--- Loads the swamp character set, using the near-fade variant until the swamp progress counter reaches seven.
+local function load_swamp_characters()
+	local swamp_progress: s32 = 0
+	swamp_progress = event.get_save_counter(3) or swamp_progress
+	if swamp_progress < 7 then
+		fish_monster_swamp.load_characters_wide_near_fade(1)
 	else
-		helper_04c5554b(0)
+		fish_monster_swamp.load_characters_wide_near_fade(0)
 	end
 end
 
---- Helper function.
-local function helper_26268(world_coord_pos: f32, world_coord_pos_2: f32, world_coord_pos_3: f32, world_coord_rot: f32)
-	local var4: s32 = 0
+--- Fades in on the party jumping down and walking into the swamp, then hands control back at the placed position.
+local function play_swamp_reentry_walk(world_coord_pos: f32, world_coord_pos_2: f32, world_coord_pos_3: f32, world_coord_rot: f32)
+	local sound_bank: s32 = 0
 	local angle: f32 = 0
 	local active_chr_no: s32 = 0
-	local var11: f32 = 0
+	local facing_angle: f32 = 0
 	local at: number = 0
 	vm.section(function()
 		event.fade_out_screen(0)
@@ -67,7 +45,7 @@ local function helper_26268(world_coord_pos: f32, world_coord_pos_2: f32, world_
 		vm.wait(1)
 		event.initialize_event()
 		event.enable_drama_skip()
-		var4 = event.load_sound_effect_file_3(8, "snd2/sp/sp_031.sound.json") or var4
+		sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_031.sound.json") or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		angle = event.wrap_angle(angle) or angle
@@ -99,7 +77,7 @@ local function helper_26268(world_coord_pos: f32, world_coord_pos_2: f32, world_
 			event.delay_object_sequence_rotation_track(0, 130)
 			event.rotate_object_sequence(0, 0.0, -1.0, 0.0, 10)
 			at = 2
-			wait_objects(0)
+			object.wait_until_done(0)
 			event.set_object_sequence_motion(0, "ジャンプ", 2)
 			event.queue_object_sequence_next_motion(0, "ジャンプ中", 6, 0.3)
 			event.queue_object_sequence_next_motion(0, "着地", 6)
@@ -110,72 +88,72 @@ local function helper_26268(world_coord_pos: f32, world_coord_pos_2: f32, world_
 			event.delay_object_sequence_rotation_track(0, 50)
 			event.rotate_object_sequence(0, 0.0, -1.0, 0.0, 10)
 			at = 3
-			wait_objects(0)
+			object.wait_until_done(0)
 			event.set_object_sequence_motion(0, "ジャンプ", 2)
 			event.queue_object_sequence_next_motion(0, "ジャンプ中", 6, 0.2)
 			event.queue_object_sequence_next_motion(0, "着地", 6)
 		end
 		event.set_object_handle_footstep_sound(0, 16)
 		at = 4
-		helper_888ab2a3(14)
-		event.play_sound_effect(var4, 2)
+		wait.for_frame_count(14)
+		event.play_sound_effect(sound_bank, 2)
 		event.jump_object_sequence(0, -85.0, 0.0, 50.0, -0.25, 30)
 		event.delay_object_sequence_rotation_track(0, 10)
 		event.rotate_object_sequence(0, 0.0, -1.57, 0.0, 20)
 		at = 5
-		helper_888ab2a3(16)
+		wait.for_frame_count(16)
 		at = 6
-		wait_objects(0)
-		event.play_sound_effect(var4, 4)
+		object.wait_until_done(0)
+		event.play_sound_effect(sound_bank, 4)
 		at = 7
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(0, "歩き")
 		event.move_object_sequence(0, -170.0, 0.0, 50.0, 50)
 		at = 8
-		wait_camera()
+		camera.wait_until_done()
 		event.start_crossfade(30)
 		do
 			local _, out2, _ = event.get_object_handle_rotation(0)
-			var11 = out2 or var11
+			facing_angle = out2 or facing_angle
 		end
 		event.set_camera_sequence_look_at(-170.0, 30.0, 50.0)
-		var11 = vm.f32(var11 - vm.f32(3.1415927))
-		var11 = event.wrap_angle(var11) or var11
-		event.set_camera_sequence_angle_height_distance(var11, 5.0, 100.0)
+		facing_angle = vm.f32(facing_angle - vm.f32(3.1415927))
+		facing_angle = event.wrap_angle(facing_angle) or facing_angle
+		event.set_camera_sequence_angle_height_distance(facing_angle, 5.0, 100.0)
 		at = 9
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "立ち")
 		at = 10
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.cancel_drama_scene_skip()
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 2 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 3 then
-			helper_038a2e4d(14)
+			wait.skip_frame_count(14)
 		end
 		if at <= 4 then
-			helper_038a2e4d(16)
+			wait.skip_frame_count(16)
 		end
 		if at <= 5 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 6 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 7 then
-			helper_344d6cd8()
+			wait.background_load_skipping()
 		end
 		if at <= 8 then
-			var11 = vm.f32(var11 - vm.f32(3.1415927))
-			helper_238b5abc(0)
+			facing_angle = vm.f32(facing_angle - vm.f32(3.1415927))
+			cutscene.skip_command(0)
 		end
 		if at <= 9 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		return true
 	end)
@@ -193,103 +171,103 @@ local function helper_26268(world_coord_pos: f32, world_coord_pos_2: f32, world_
 	event.delete_character_extension_packs(0)
 end
 
---- Helper function.
-local function helper_12f80()
+--- Loads the party's characters, motion packs and message file for the swamp arrival scene.
+local function load_arrival_scene_actors()
 	local active_chr_no: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 32
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e215/e215_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 0
+		monica_slot = 32
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e215/e215_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e215/e215_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e215/e215_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 37)
 	end
 	if active_chr_no == 1 then
-		global0 = 32
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e215/e215_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 32
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_slot)
+		event.load_equipment_model(5, 0, 4, "info", mints_slot)
+		event.load_equipment_model(5, 0, 3, "info", mints_slot)
+		event.load_equipment_model(5, 0, 2, "info", mints_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e215/e215_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, mints_slot)
 		event.set_character_active(1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e215/e215_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e215/e215_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.load_message_file(0, 5, "event/e200/e215/e215.txt")
 end
 
---- Helper function.
-local function helper_21c00000()
-	global0 = 0
-	global1 = 32
-	global0 = 32
-	global1 = 0
+--- Swaps the two party character slots when the cutscene is skipped.
+local function swap_party_slots()
+	mints_slot = 0
+	monica_slot = 32
+	mints_slot = 32
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_12ca8()
+--- Releases the party characters loaded for the swamp arrival scene.
+local function unload_arrival_scene_actors()
 	local active_chr_no: s32 = 0
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(37)
 	end
 	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, mints_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(mints_slot)
 		event.delete_character(37)
 	end
 end
 
---- Helper function.
-local function helper_13bcc()
-	local var0: f32 = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
+--- Plays the scene where the party runs into the swamp with an orbiting camera and a short argument.
+local function cutscene_arrival_at_swamp()
+	local offset_x: f32 = 0
+	local offset_y: f32 = 0
+	local offset_z: f32 = 0
 	local vector_x: f32 = 0
 	local vector_y: f32 = 0
 	local vector_z: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
-	local var9: f32 = 0
-	local var10: f32 = 0
-	local var12: s32 = 0
-	local var13: s32 = 0
+	local midpoint_x: f32 = 0
+	local midpoint_y: f32 = 0
+	local midpoint_z: f32 = 0
+	local camera_angle: f32 = 0
+	local camera_angle_step: f32 = 0
+	local i: s32 = 0
+	local sound_bank: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		at = 1
@@ -297,20 +275,20 @@ local function helper_13bcc()
 		event.set_save_flag(215, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var13 = event.load_sound_effect_file_2(2800) or var13
-		helper_12f80()
+		sound_bank = event.load_sound_effect_file_2(2800) or sound_bank
+		load_arrival_scene_actors()
 		event.enable_drama_skip()
 		event.stop_music(0)
-		event.set_object_handle_sound_bank(0, var13)
-		event.set_object_handle_sound_bank(1, var13)
+		event.set_object_handle_sound_bank(0, sound_bank)
+		event.set_object_handle_sound_bank(1, sound_bank)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(2810.55, 19.2, 1417.95)
 		event.set_camera_sequence_look_at(2838.92, 19.55, 1472.76)
@@ -324,65 +302,65 @@ local function helper_13bcc()
 		event.rotate_object_sequence(1, 0.0, -2.04, 0.0, 90)
 		event.set_object_sequence_motion(0, "キョロキョロ歩き", 4, -1.0, 1)
 		event.set_object_sequence_motion(1, "きょろきょろ歩き", 4, -1.0, 1)
-		var9 = vm.f32(0.46)
-		var10 = vm.f32(0.0066666664)
-		var12 = 0
-		while var12 < 121 do
+		camera_angle = vm.f32(0.46)
+		camera_angle_step = vm.f32(0.0066666664)
+		i = 0
+		while i < 121 do
 			do
-				local out1, out2, out3 = event.get_character_position(global0)
-				var6 = out1 or var6
-				var7 = out2 or var7
-				var8 = out3 or var8
+				local out1, out2, out3 = event.get_character_position(mints_slot)
+				midpoint_x = out1 or midpoint_x
+				midpoint_y = out2 or midpoint_y
+				midpoint_z = out3 or midpoint_z
 			end
 			do
-				local out1, out2, out3 = event.get_character_position(global1)
-				var0 = out1 or var0
-				var1 = out2 or var1
-				var2 = out3 or var2
+				local out1, out2, out3 = event.get_character_position(monica_slot)
+				offset_x = out1 or offset_x
+				offset_y = out2 or offset_y
+				offset_z = out3 or offset_z
 			end
 			do
-				local out1, out2, out3 = event.subtract_vectors(var0, var1, var2, var6, var7, var8)
-				var0 = out1 or var0
-				var1 = out2 or var1
-				var2 = out3 or var2
+				local out1, out2, out3 = event.subtract_vectors(offset_x, offset_y, offset_z, midpoint_x, midpoint_y, midpoint_z)
+				offset_x = out1 or offset_x
+				offset_y = out2 or offset_y
+				offset_z = out3 or offset_z
 			end
 			do
-				local out1, out2, out3 = event.scale_vector(var0, var1, var2, 0.5)
-				var0 = out1 or var0
-				var1 = out2 or var1
-				var2 = out3 or var2
+				local out1, out2, out3 = event.scale_vector(offset_x, offset_y, offset_z, 0.5)
+				offset_x = out1 or offset_x
+				offset_y = out2 or offset_y
+				offset_z = out3 or offset_z
 			end
 			do
-				local out1, out2, out3 = event.add_vectors(var6, var7, var8, var0, var1, var2)
-				var6 = out1 or var6
-				var7 = out2 or var7
-				var8 = out3 or var8
+				local out1, out2, out3 = event.add_vectors(midpoint_x, midpoint_y, midpoint_z, offset_x, offset_y, offset_z)
+				midpoint_x = out1 or midpoint_x
+				midpoint_y = out2 or midpoint_y
+				midpoint_z = out3 or midpoint_z
 			end
-			var7 = vm.f32(var7 + 20.0)
-			event.set_camera_sequence_look_at(var6, var7, var8)
+			midpoint_y = vm.f32(midpoint_y + 20.0)
+			event.set_camera_sequence_look_at(midpoint_x, midpoint_y, midpoint_z)
 			do
-				local out1, out2, out3 = event.copy_vector(var6, var7, var8)
+				local out1, out2, out3 = event.copy_vector(midpoint_x, midpoint_y, midpoint_z)
 				vector_x = out1 or vector_x
 				vector_y = out2 or vector_y
 				vector_z = out3 or vector_z
 			end
-			vector_x = vm.f32(vector_x + vm.f32(130.0 * vm.sin(var9)))
-			vector_z = vm.f32(vector_z + vm.f32(130.0 * vm.cos(var9)))
+			vector_x = vm.f32(vector_x + vm.f32(130.0 * vm.sin(camera_angle)))
+			vector_z = vm.f32(vector_z + vm.f32(130.0 * vm.cos(camera_angle)))
 			vector_y = vm.f32(vector_y + vm.f32(29.79))
 			event.set_camera_sequence_position(vector_x, vector_y, vector_z)
-			var9 = vm.f32(var9 + var10)
-			if var9 > vm.f32(3.1415927) then
-				var9 = vm.f32(var9 - vm.f32(6.2831855))
+			camera_angle = vm.f32(camera_angle + camera_angle_step)
+			if camera_angle > vm.f32(3.1415927) then
+				camera_angle = vm.f32(camera_angle - vm.f32(6.2831855))
 			end
-			if var9 <= vm.f32(-3.1415927) then
-				var9 = vm.f32(var9 + vm.f32(6.2831855))
+			if camera_angle <= vm.f32(-3.1415927) then
+				camera_angle = vm.f32(camera_angle + vm.f32(6.2831855))
 			end
-			var12 = var12 + 1
+			i = i + 1
 			at = 2
 			vm.wait(2)
 		end
 		at = 3
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_camera_sequence_position(2803.91, 11.38, 1411.86)
 		event.set_camera_sequence_look_at(2831.84, 19.55, 1460.49)
 		event.set_object_sequence_position(0, 2831.19, 0.01, 1465.72)
@@ -396,46 +374,46 @@ local function helper_13bcc()
 		event.set_object_sequence_motion(1, "立ち", 4, -1.0, 1)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 4
-		helper_4116e6bb(2150010)
+		message.show_voiced(2150010)
 		event.reset_mouth_texture_animations()
-		event.play_sound_effect(var13, 4)
+		event.play_sound_effect(sound_bank, 4)
 		event.set_object_sequence_motion(0, "待って", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(0, "待ってL", 0)
 		event.set_mouth_texture_animations(0, "通常口パク")
 		at = 5
-		helper_4116e6bb(2150020)
+		message.show_voiced(2150020)
 		event.reset_mouth_texture_animations()
 		at = 6
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(1, "左向く", 6)
 		event.queue_object_sequence_next_motion(1, "左向くL", 0)
 		at = 7
-		helper_888ab2a3(6)
+		wait.for_frame_count(6)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 8
-		helper_4116e6bb(2150030)
+		message.show_voiced(2150030)
 		event.reset_mouth_texture_animations()
 		at = 9
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(0, "待って戻り", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(0, "立ち", 4)
 		at = 10
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "おこり顔")
 		event.set_object_sequence_texture_animation(1, 1, "おこり目パチ")
 		event.set_object_sequence_motion(1, "左向く戻り", 2)
 		event.wait_object_sequence_motion_end(1)
 		at = 11
-		wait_objects(1)
-		event.play_sound_effect(var13, 5)
+		object.wait_until_done(1)
+		event.play_sound_effect(sound_bank, 5)
 		event.queue_object_sequence_next_motion(1, "身を乗り出す", 2)
 		event.queue_object_sequence_next_motion(1, "身を乗り出すＬ", 0)
 		at = 12
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 13
-		helper_4116e6bb(2150040)
+		message.show_voiced(2150040)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(1, "身を乗り出す戻り", 6)
 		event.delay_object_sequence_motion_track(0, 30)
@@ -445,78 +423,78 @@ local function helper_13bcc()
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 14
-		helper_4116e6bb(2150050)
+		message.show_voiced(2150050)
 		event.reset_mouth_texture_animations()
 		event.queue_object_sequence_next_motion(0, "右向くうなづき", 2)
 		event.queue_object_sequence_next_motion(0, "右向くL", 0)
 		at = 15
-		helper_888ab2a3(16)
+		wait.for_frame_count(16)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
 		event.set_mouth_texture_animations(0, "通常口パク")
 		at = 16
-		helper_4116e6bb(2150060)
+		message.show_voiced(2150060)
 		event.reset_mouth_texture_animations()
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_21c00000()
-			var9 = vm.f32(0.46)
-			var10 = vm.f32(0.0066666664)
-			var12 = 0
-			var7 = vm.f32(var7 + 20.0)
-			vector_x = vm.f32(vector_x + vm.f32(130.0 * vm.sin(var9)))
-			vector_z = vm.f32(vector_z + vm.f32(130.0 * vm.cos(var9)))
+			swap_party_slots()
+			camera_angle = vm.f32(0.46)
+			camera_angle_step = vm.f32(0.0066666664)
+			i = 0
+			midpoint_y = vm.f32(midpoint_y + 20.0)
+			vector_x = vm.f32(vector_x + vm.f32(130.0 * vm.sin(camera_angle)))
+			vector_z = vm.f32(vector_z + vm.f32(130.0 * vm.cos(camera_angle)))
 			vector_y = vm.f32(vector_y + vm.f32(29.79))
-			var9 = vm.f32(var9 + var10)
-			local _ = var9 > vm.f32(3.1415927)
-			var9 = vm.f32(var9 - vm.f32(6.2831855))
-			local _ = var9 <= vm.f32(-3.1415927)
-			var9 = vm.f32(var9 + vm.f32(6.2831855))
-			local _ = var12 < 121
-			var12 = var12 + 1
+			camera_angle = vm.f32(camera_angle + camera_angle_step)
+			local _ = camera_angle > vm.f32(3.1415927)
+			camera_angle = vm.f32(camera_angle - vm.f32(6.2831855))
+			local _ = camera_angle <= vm.f32(-3.1415927)
+			camera_angle = vm.f32(camera_angle + vm.f32(6.2831855))
+			local _ = i < 121
+			i = i + 1
 		end
 		if at <= 2 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 3 then
-			helper_8cd371d7(2150010)
+			message.show_voiced_skipping(2150010)
 		end
 		if at <= 4 then
-			helper_8cd371d7(2150020)
+			message.show_voiced_skipping(2150020)
 		end
 		if at <= 5 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 6 then
-			helper_038a2e4d(6)
+			wait.skip_frame_count(6)
 		end
 		if at <= 7 then
-			helper_8cd371d7(2150030)
+			message.show_voiced_skipping(2150030)
 		end
 		if at <= 8 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 9 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 10 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 11 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 12 then
-			helper_8cd371d7(2150040)
+			message.show_voiced_skipping(2150040)
 		end
 		if at <= 13 then
-			helper_8cd371d7(2150050)
+			message.show_voiced_skipping(2150050)
 		end
 		if at <= 14 then
-			helper_038a2e4d(16)
+			wait.skip_frame_count(16)
 		end
 		if at <= 15 then
-			helper_8cd371d7(2150060)
+			message.show_voiced_skipping(2150060)
 		end
 		return true
 	end)
@@ -525,87 +503,87 @@ local function helper_13bcc()
 	event.cancel_drama_scene_skip()
 	event.fade_out_screen(30)
 	at = 18
-	helper_888ab2a3(45)
-	helper_12ca8()
+	wait.for_frame_count(45)
+	unload_arrival_scene_actors()
 	event.reset_follow_camera(1, 0.0, 20.0)
 	event.fade_in_screen(30)
 end
 
---- Event 501, which map data, a script or the engine runs by number.
-local function event_501()
+--- Plays the arrival scene and sets the swamp progress counter to the first stage.
+local function play_arrival_scene()
 	local at: number = 0
 	return vm.guard(function()
 		at = 1
 		vm.entry(1)
 		at = 2
-		helper_13bcc()
+		cutscene_arrival_at_swamp()
 		event.set_save_counter(3, 1)
-		helper_bb23ef44()
+		fish_monster_swamp.update_progress_function_points()
 		return
 	end, function(received: { any })
 		if at <= 2 then
 			if at <= 1 then
 				at = 2
-				helper_13bcc()
+				cutscene_arrival_at_swamp()
 				return vm.continue_with(function()
 					event.set_save_counter(3, 1)
-					helper_bb23ef44()
+					fish_monster_swamp.update_progress_function_points()
 					return
 				end)
 			end
-			helper_fc5948a6()
+			fish_monster_swamp.print_progress_debug()
 			return 0
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_15ebc()
+--- Loads the party, Noam, the fishing rod and the item-get effect for the rod trade scene.
+local function load_noam_trade_actors()
 	local active_chr_no: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 32
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e220/e220_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 0
+		monica_slot = 32
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e220/e220_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 37)
-		event.set_character_active(0, global1)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 37)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 37)
 	end
 	if active_chr_no == 1 then
-		global0 = 32
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e220/e220_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 32
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e220/e220_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 37)
-		event.set_character_active(0, global0)
+		event.load_equipment_model(5, 0, 4, "info", mints_slot)
+		event.load_equipment_model(5, 0, 3, "info", mints_slot)
+		event.load_equipment_model(5, 0, 2, "info", mints_slot, 37)
+		event.set_character_active(0, mints_slot)
 		event.set_character_active(1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.load_character(5, "event/e200/e220/e220_noam.gltf", "info", 34)
 	event.set_character_active(0, 34)
@@ -626,24 +604,24 @@ local function helper_15ebc()
 	event.load_message_file(0, 5, "event/e200/e220/e220.txt")
 end
 
---- Helper function.
-local function helper_15b78()
+--- Releases the characters loaded for the rod trade scene.
+local function unload_noam_trade_actors()
 	local active_chr_no: s32 = 0
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(37)
 	end
 	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, mints_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(mints_slot)
 		event.delete_character(37)
 	end
 	event.delete_character(34)
@@ -651,42 +629,42 @@ local function helper_15b78()
 	event.delete_character(36)
 end
 
---- Helper function.
-local function helper_22300000()
-	global0 = 0
-	global1 = 32
-	global0 = 32
-	global1 = 0
+--- Swaps the two party character slots when the cutscene is skipped.
+local function swap_party_slots_noam_trade()
+	mints_slot = 0
+	monica_slot = 32
+	mints_slot = 32
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_22700000() end
+--- Does nothing when the rod trade scene is skipped.
+local function skip_noop() end
 
---- Helper function.
-local function helper_16de0()
+--- Plays the scene where Noam trades a fishing rod and bait for the wine and explains fishing.
+local function cutscene_noam_rod_trade()
 	local item: s32 = 0
-	local var2: s32 = 0
+	local wine_was_visible: s32 = 0
 	local flag: s32 = 0
-	local var4: s32 = 0
-	local var5: s32 = 0
+	local shared_sound_bank: s32 = 0
+	local noam_sound_bank: s32 = 0
 	local flag_2: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
-		var5 = event.load_sound_effect_file_2(2803) or var5
-		var4 = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or var4
+		noam_sound_bank = event.load_sound_effect_file_2(2803) or noam_sound_bank
+		shared_sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or shared_sound_bank
 		event.fade_out_screen(30)
 		at = 1
-		helper_888ab2a3(45)
-		helper_15ebc()
+		wait.for_frame_count(45)
+		load_noam_trade_actors()
 		event.stop_music(0)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "通常目パチ")
 		event.set_character_active(0, 9)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 34)
 		event.set_camera_sequence_position(2187.89, 60.39, 925.42)
 		event.set_camera_sequence_look_at(2234.31, 29.74, 1032.94)
@@ -696,9 +674,9 @@ local function helper_16de0()
 		event.set_object_sequence_rotation(1, 0.0, -2.28, 0.0)
 		event.set_object_sequence_position(2, 2199.07, 29.83, 981.55)
 		event.set_object_sequence_rotation(2, 0.0, 2.68, 0.0)
-		var2 = event.is_object_handle_frame_visible(2, "wine") or var2
+		wine_was_visible = event.is_object_handle_frame_visible(2, "wine") or wine_was_visible
 		event.set_object_handle_frame_visible(2, "wine", 0)
-		event.set_object_handle_sound_bank(2, var5)
+		event.set_object_handle_sound_bank(2, noam_sound_bank)
 		event.fade_in_screen(30)
 		flag = event.get_save_flag(220) or flag
 		if flag == 0 then
@@ -707,12 +685,12 @@ local function helper_16de0()
 			event.set_object_sequence_motion(1, "立ち", 4, -1.0, 1)
 			event.set_object_sequence_motion(2, "釣り", 4)
 			at = 2
-			helper_888ab2a3(15)
+			wait.for_frame_count(15)
 			event.set_object_sequence_motion(2, "釣り会話", 0)
 			event.delay_object_sequence_motion_track(2, 195)
 			event.set_object_sequence_motion(2, "釣り", 0)
 			at = 3
-			helper_4116e6bb(2200010)
+			message.show_voiced(2200010)
 			event.clear_object_sequence(2)
 			event.set_object_sequence_object(2, 2)
 			event.set_object_sequence_motion(2, "釣り", 0)
@@ -720,15 +698,15 @@ local function helper_16de0()
 			event.queue_object_sequence_next_motion(0, "立ち", 0)
 			event.set_mouth_texture_animations(0, "通常口パク")
 			at = 4
-			helper_4116e6bb(2200020)
+			message.show_voiced(2200020)
 			event.reset_mouth_texture_animations()
 			at = 5
-			wait_objects(0)
+			object.wait_until_done(0)
 			event.set_object_sequence_motion(2, "釣り会話", 0)
 			event.delay_object_sequence_motion_track(2, 270)
 			event.set_object_sequence_motion(2, "釣り", 0)
 			at = 6
-			helper_4116e6bb(2200030)
+			message.show_voiced(2200030)
 			event.clear_object_sequence(2)
 			event.set_object_sequence_object(2, 2)
 			event.set_object_sequence_motion(2, "釣り", 0)
@@ -736,7 +714,7 @@ local function helper_16de0()
 			event.delay_object_sequence_motion_track(2, 180)
 			event.set_object_sequence_motion(2, "釣り", 0)
 			at = 7
-			helper_4116e6bb(2200040)
+			message.show_voiced(2200040)
 			event.clear_object_sequence(2)
 			event.set_object_sequence_object(2, 2)
 			event.set_object_sequence_motion(2, "釣り", 0)
@@ -746,29 +724,29 @@ local function helper_16de0()
 			event.set_object_sequence_motion(2, "釣り", 4)
 		end
 		at = 8
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.delay_object_sequence_motion_track(2, 30)
 		event.set_object_sequence_motion(2, "右向く", 6)
 		event.queue_object_sequence_next_motion(2, "右向くL", 0)
 		at = 9
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		at = 10
-		helper_4116e6bb(2200050)
+		message.show_voiced(2200050)
 		at = 11
-		helper_4116e6bb(2200055)
+		message.show_voiced(2200055)
 		event.set_object_sequence_motion(0, "右向く", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(0, "右向くL", 4)
 		event.set_object_sequence_motion(1, "左向く", 6, -1.0, 1)
 		event.queue_object_sequence_next_motion(1, "左向くL", 4)
 		at = 12
-		helper_888ab2a3(16)
+		wait.for_frame_count(16)
 		event.open_use_item_menu(370)
 		at = 13
 		vm.wait(13)
 		item = vmhost.used_item() or item
 		if item == 370 then
 			event.set_save_flag(28, 1)
-			event.set_object_handle_frame_draw_flag(2, "wine", var2)
+			event.set_object_handle_frame_draw_flag(2, "wine", wine_was_visible)
 			event.set_object_handle_frame_visible(2, "wine", 1)
 			event.set_camera_sequence_position(2256.03, 46.87, 1157.6)
 			event.set_camera_sequence_look_at(2209.88, 21.76, 1049.74)
@@ -783,21 +761,21 @@ local function helper_16de0()
 			event.set_object_sequence_motion(2, "とびおり", 6)
 			event.set_mouth_texture_animations(0, "通常口パク")
 			at = 14
-			helper_4116e6bb(2200080)
+			message.show_voiced(2200080)
 			event.reset_mouth_texture_animations()
 			event.set_mouth_texture_animations(0, "通常口パク")
 			at = 15
-			helper_4116e6bb(2200085)
+			message.show_voiced(2200085)
 			event.reset_mouth_texture_animations()
-			event.play_sound_effect(var5, 5)
+			event.play_sound_effect(noam_sound_bank, 5)
 			event.set_object_sequence_motion(2, "竿やる", 2)
 			event.queue_object_sequence_next_motion(2, "竿やるL", 0)
 			at = 16
-			helper_4116e6bb(2200090)
+			message.show_voiced(2200090)
 			event.set_object_handle_frame_visible(2, "rod", 0)
 			event.set_object_handle_frame_visible(2, "obj3", 0)
 			event.set_object_handle_frame_visible(2, "obj4", 0)
-			event.set_character_active(0, global1)
+			event.set_character_active(0, monica_slot)
 			event.set_character_active(0, 34)
 			event.set_character_active(1, 35)
 			event.set_character_active(1, 36)
@@ -805,16 +783,16 @@ local function helper_16de0()
 			event.set_camera_sequence_look_at(2211.23, 28.7, 1078.48)
 			event.set_object_sequence_position(4, 2209.46, 34.32, 1071.72)
 			event.set_object_sequence_rotation(4, 0.0, 0.0, 0.0)
-			event.play_sound_effect(var5, 6)
-			event.play_sound_effect(var4, 0)
-			event.attach_character_to_frame(global0, "gun_hand", 35)
+			event.play_sound_effect(noam_sound_bank, 6)
+			event.play_sound_effect(shared_sound_bank, 0)
+			event.attach_character_to_frame(mints_slot, "gun_hand", 35)
 			event.set_object_sequence_motion(0, "釣り竿ゲット", 4, -1.0, 1)
 			event.set_object_sequence_motion(4, "発動", 6)
 			at = 17
-			helper_f38eabca(302, 1)
+			inventory.announce_received(302, 1)
 			at = 18
-			helper_f38eabca(313, 1)
-			event.set_character_active(1, global1)
+			inventory.announce_received(313, 1)
+			event.set_character_active(1, monica_slot)
 			event.set_character_active(1, 34)
 			event.set_character_active(0, 35)
 			event.set_character_active(0, 36)
@@ -831,20 +809,20 @@ local function helper_16de0()
 			event.set_object_sequence_motion(2, "会話", 6)
 			event.queue_object_sequence_next_motion(2, "立ち", 0)
 			at = 19
-			helper_4116e6bb(2200095)
+			message.show_voiced(2200095)
 			event.set_message_window_mode(0, 8)
 			event.open_message_window_2(
 				0,
 				"[(!)] 釣りをするには、釣り竿を装備してください。\n   次にエサ（ミミー）をアイテムメニューのコマンドで\n   竿につけます。エサをつけ忘れると釣れません。"
 			)
 			at = 20
-			show_message(0, -1, 8, 0, 0)
+			message.show(0, -1, 8, 0, 0)
 			event.open_message_window_2(
 				0,
 				"[(!)]その状態で、水際に立って(O)ボタンを\n   押せば、釣りを始めることができます。"
 			)
 			at = 21
-			show_message(0, -1, 8, 0, 0)
+			message.show(0, -1, 8, 0, 0)
 			event.set_message_window_mode(0, 7)
 		else
 			event.set_object_sequence_motion(0, "右向く戻り", 6, -1.0, 1)
@@ -852,42 +830,42 @@ local function helper_16de0()
 			event.set_object_sequence_motion(1, "左向く戻り", 6, -1.0, 1)
 			event.queue_object_sequence_next_motion(1, "立ち", 4)
 			at = 22
-			helper_888ab2a3(16)
+			wait.for_frame_count(16)
 			if item <= 0 then
 				event.set_object_sequence_motion(2, "そっぽ向く", 2)
 				event.queue_object_sequence_next_motion(2, "そっぽ向くL", 0)
 				at = 23
-				helper_888ab2a3(5)
+				wait.for_frame_count(5)
 				at = 24
-				helper_4116e6bb(2200060)
+				message.show_voiced(2200060)
 				at = 25
-				wait_objects(2)
+				object.wait_until_done(2)
 				event.set_camera_sequence_position(2342.69, 17.58, 1135.11)
 				event.set_camera_sequence_look_at(2285.51, 29.74, 1075.97)
 			else
 				event.set_object_sequence_motion(2, "首を振る", 6)
 				event.queue_object_sequence_next_motion(2, "釣り", 0)
 				at = 26
-				helper_888ab2a3(15)
+				wait.for_frame_count(15)
 				at = 27
-				helper_4116e6bb(2200070)
+				message.show_voiced(2200070)
 				at = 28
-				wait_objects(2)
+				object.wait_until_done(2)
 				event.set_camera_sequence_position(2342.69, 17.58, 1135.11)
 				event.set_camera_sequence_look_at(2285.51, 29.74, 1075.97)
 			end
 		end
 		event.fade_out_screen(30)
 		at = 29
-		helper_888ab2a3(45)
-		helper_15b78()
+		wait.for_frame_count(45)
+		unload_noam_trade_actors()
 		event.set_character_active(1, 9)
 		flag_2 = event.get_save_flag(28) or flag_2
 		if flag_2 ~= 0 then
 			event.add_inventory_item(302, 1)
 			event.add_inventory_item(313, 1)
 			at = 30
-			helper_d529ed92()
+			inventory.open_overflow_menu()
 			event.remove_item(370, 1)
 			event.attach_object_handle_to_character(0, 9)
 			event.set_object_handle_frame_draw_flag(0, "wine", 1)
@@ -898,90 +876,90 @@ local function helper_16de0()
 	end, function(received: { any })
 		if at <= 30 then
 			if at <= 1 then
-				helper_22300000()
-				helper_038a2e4d(15)
+				swap_party_slots_noam_trade()
+				wait.skip_frame_count(15)
 			end
 			if at <= 2 then
-				helper_8cd371d7(2200010)
+				message.show_voiced_skipping(2200010)
 			end
 			if at <= 3 then
-				helper_8cd371d7(2200020)
+				message.show_voiced_skipping(2200020)
 			end
 			if at <= 4 then
-				helper_238b5abc(0)
+				cutscene.skip_command(0)
 			end
 			if at <= 5 then
-				helper_8cd371d7(2200030)
+				message.show_voiced_skipping(2200030)
 			end
 			if at <= 6 then
-				helper_8cd371d7(2200040)
+				message.show_voiced_skipping(2200040)
 			end
 			if at <= 7 then
-				helper_038a2e4d(15)
+				wait.skip_frame_count(15)
 			end
 			if at <= 8 then
-				helper_038a2e4d(10)
+				wait.skip_frame_count(10)
 			end
 			if at <= 9 then
-				helper_8cd371d7(2200050)
+				message.show_voiced_skipping(2200050)
 			end
 			if at <= 10 then
-				helper_8cd371d7(2200055)
+				message.show_voiced_skipping(2200055)
 			end
 			if at <= 11 then
-				helper_038a2e4d(16)
+				wait.skip_frame_count(16)
 			end
 			if at <= 13 then
-				helper_8cd371d7(2200080)
+				message.show_voiced_skipping(2200080)
 			end
 			if at <= 14 then
-				helper_8cd371d7(2200085)
+				message.show_voiced_skipping(2200085)
 			end
 			if at <= 15 then
-				helper_8cd371d7(2200090)
+				message.show_voiced_skipping(2200090)
 			end
 			if at <= 16 then
-				helper_5c12934f(302, 1)
+				inventory.resume_obtained_message(302, 1)
 			end
 			if at <= 17 then
-				helper_5c12934f(313, 1)
+				inventory.resume_obtained_message(313, 1)
 			end
 			if at <= 18 then
-				helper_8cd371d7(2200095)
+				message.show_voiced_skipping(2200095)
 			end
 			if at <= 19 then
-				helper_ee1c51d0(0, -1, 8, 0, 0)
+				message.show_and_wait_skipping(0, -1, 8, 0, 0)
 			end
 			if at <= 20 then
-				helper_ee1c51d0(0, -1, 8, 0, 0)
+				message.show_and_wait_skipping(0, -1, 8, 0, 0)
 			end
 			if at <= 21 then
-				helper_038a2e4d(16)
+				wait.skip_frame_count(16)
 			end
 			if at <= 22 then
-				helper_038a2e4d(5)
+				wait.skip_frame_count(5)
 			end
 			if at <= 23 then
-				helper_8cd371d7(2200060)
+				message.show_voiced_skipping(2200060)
 			end
 			if at <= 24 then
-				helper_238b5abc(2)
+				cutscene.skip_command(2)
 			end
 			if at <= 25 then
-				helper_038a2e4d(15)
+				wait.skip_frame_count(15)
 			end
 			if at <= 26 then
-				helper_8cd371d7(2200070)
+				message.show_voiced_skipping(2200070)
 			end
 			if at <= 27 then
-				helper_238b5abc(2)
+				cutscene.skip_command(2)
 			end
 			if at <= 28 then
-				helper_038a2e4d(45)
+				wait.skip_frame_count(45)
 			end
 			if at <= 29 then
-				helper_22700000()
-				helper_e52544df()
+				skip_noop()
+				cutscene.skip_step()
 			end
 			return 0
 		end
@@ -989,54 +967,54 @@ local function helper_16de0()
 	end)
 end
 
---- Helper function.
-local function helper_19c30()
+--- Loads the party, Murdan, fishing line and water effect characters for the line-snapping scene.
+local function load_murdan_line_scene_actors()
 	local active_chr_no: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 32
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e240/e240_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 0
+		monica_slot = 32
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e240/e240_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e240/e240_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e240/e240_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 37)
 	end
 	if active_chr_no == 1 then
-		global0 = 32
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e200/e240/e240_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 32
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_slot)
+		event.load_equipment_model(5, 0, 4, "info", mints_slot)
+		event.load_equipment_model(5, 0, 3, "info", mints_slot)
+		event.load_equipment_model(5, 0, 2, "info", mints_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.load_character_motion_pack(5, "event/e200/e240/e240_mints.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, mints_slot)
 		event.set_character_active(1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e240/e240_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e240/e240_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.load_character(5, "event/e200/e240/e240_madan.gltf", "info", 34)
 	event.set_character_active(0, 34)
@@ -1065,32 +1043,32 @@ local function helper_19c30()
 	event.load_message_file(0, 5, "event/e200/e240/e240.txt")
 end
 
---- Helper function.
-local function helper_22a00000()
-	global0 = 0
-	global1 = 32
-	global0 = 32
-	global1 = 0
+--- Swaps the two party character slots when the cutscene is skipped.
+local function swap_party_slots_murdan_line()
+	mints_slot = 0
+	monica_slot = 32
+	mints_slot = 32
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_1985c()
+--- Releases every character loaded for the line-snapping scene.
+local function unload_murdan_line_scene_actors()
 	local active_chr_no: s32 = 0
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(37)
 	end
 	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, mints_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(mints_slot)
 		event.delete_character(37)
 	end
 	event.delete_character(34)
@@ -1102,9 +1080,9 @@ local function helper_1985c()
 	event.delete_character(42)
 end
 
---- Helper function.
-local function helper_1aea8()
-	local var4: s32 = 0
+--- Plays the scene where Murdan rises from the water and breaks the fishing line.
+local function cutscene_murdan_snaps_line()
+	local sound_bank: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		event.set_save_flag(240, 1)
@@ -1112,15 +1090,15 @@ local function helper_1aea8()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
 		at = 1
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(193)
 		event.play_music(1)
 		event.load_map_sounds(2812)
-		var4 = event.load_sound_effect_file_2(2812) or var4
+		sound_bank = event.load_sound_effect_file_2(2812) or sound_bank
 		event.fade_out_screen(30)
 		at = 2
-		helper_888ab2a3(45)
-		helper_19c30()
+		wait.for_frame_count(45)
+		load_murdan_line_scene_actors()
 		event.enable_drama_skip()
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
@@ -1128,8 +1106,8 @@ local function helper_1aea8()
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 35)
 		event.set_character_active(0, 34)
 		event.set_character_active(1, 41)
@@ -1147,33 +1125,33 @@ local function helper_1aea8()
 		event.attach_character_to_frame(35, "ito", 41)
 		at = 3
 		vm.wait(3)
-		event.attach_character_to_frame(global0, "gun_hand", 35)
-		event.play_sound_effect(var4, 4)
-		event.play_sound_effect(var4, 6)
+		event.attach_character_to_frame(mints_slot, "gun_hand", 35)
+		event.play_sound_effect(sound_bank, 4)
+		event.play_sound_effect(sound_bank, 6)
 		event.fade_in_screen(30)
 		event.set_character_motion(41, "糸切れる", 5, -1, 1)
 		event.set_object_sequence_motion(0, "竿を引く", 4, -1.0, 1)
 		event.set_object_sequence_motion(3, "竿を引く", 4)
 		event.set_object_sequence_motion(1, "釣り観戦", 4, -1.0, 1)
 		at = 4
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.move_object_sequence(0, -300.7, 0.0, -364.52, 90)
-		event.play_sound_effect(var4, 5)
+		event.play_sound_effect(sound_bank, 5)
 		at = 5
-		wait_objects(0)
+		object.wait_until_done(0)
 		at = 6
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(-331.46, 23.14, -254.41)
 		event.set_camera_sequence_look_at(-295.08, 10.97, -376.82)
 		event.move_object_sequence(0, -297.56, 0.0, -373.68, 90)
-		event.play_sound_effect(var4, 8)
+		event.play_sound_effect(sound_bank, 8)
 		at = 7
-		wait_objects(0)
+		object.wait_until_done(0)
 		at = 8
-		helper_888ab2a3(60)
-		event.stop_sound_effect(var4, 4)
-		event.stop_sound_effect(var4, 6)
-		event.play_sound_effect(var4, 7)
+		wait.for_frame_count(60)
+		event.stop_sound_effect(sound_bank, 4)
+		event.stop_sound_effect(sound_bank, 6)
+		event.play_sound_effect(sound_bank, 7)
 		event.set_character_motion(41, "糸切れる", 2, -1, 1)
 		event.set_character_active(1, 42)
 		event.set_character_position(42, -184.19, -4.56, -446.98)
@@ -1183,10 +1161,10 @@ local function helper_1aea8()
 		event.set_object_sequence_motion(3, "糸切れる", 2)
 		event.set_object_sequence_motion(1, "ユリス追う（顔）", 2)
 		at = 9
-		helper_888ab2a3(15)
-		event.play_sound_effect(var4, 5)
+		wait.for_frame_count(15)
+		event.play_sound_effect(sound_bank, 5)
 		at = 10
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_active(0, 42)
 		event.set_character_active(0, 41)
 		event.set_character_active(0, 35)
@@ -1207,9 +1185,9 @@ local function helper_1aea8()
 		event.set_character_position(40, -127.39, -18.0, -701.37)
 		event.set_character_rotation(40, 0.0, -1.68, 0.0)
 		at = 11
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		at = 12
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_active(1, 34)
 		event.set_object_sequence_motion(2, "浮かび笑", 6)
 		event.queue_object_sequence_next_motion(2, "待機")
@@ -1218,23 +1196,23 @@ local function helper_1aea8()
 		event.set_character_rotation(39, 0.0, 0.0, 0.0)
 		event.set_character_motion(39, "水柱", 2, -1, 1)
 		at = 13
-		wait_objects(1)
-		event.play_sound_effect(var4, 9)
+		object.wait_until_done(1)
+		event.play_sound_effect(sound_bank, 9)
 		event.rotate_object_sequence(1, 0.0, 2.45, 0.0, 10)
 		at = 14
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(1, "立ち")
 		event.set_object_sequence_motion(0, "マーダン出現", 2)
 		event.set_object_sequence_motion(3, "マーダン出現", 2)
 		event.queue_object_sequence_next_motion(0, "マーダン出現L")
 		event.queue_object_sequence_next_motion(3, "マーダン出現L")
 		at = 15
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		at = 16
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.fade_out_music(60)
 		at = 17
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.stop_music(1)
 		at = 18
 		vm.wait(18)
@@ -1246,28 +1224,28 @@ local function helper_1aea8()
 		vm.wait(21)
 		event.load_music(193)
 		event.play_music(0)
-		event.stop_sound_effect(var4, 9)
-		event.play_sound_effect(var4, 10)
+		event.stop_sound_effect(sound_bank, 9)
+		event.play_sound_effect(sound_bank, 10)
 		at = 22
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_character_active(0, 39)
 		event.delete_character(39)
 		event.set_object_sequence_motion(2, "あせる")
 		at = 23
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		at = 24
-		helper_0382f327(2400010, -1)
+		message.show_voiced_for_stopping(2400010, -1)
 		at = 25
-		helper_0382f327(2400015, -1)
+		message.show_voiced_for_stopping(2400015, -1)
 		event.wait_object_sequence_motion_end(2)
 		event.set_object_sequence_motion(2, "ユリスを見る", 2)
 		event.queue_object_sequence_next_motion(2, "ユリスを見るL")
 		at = 26
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(2, "モニカを見る", 2)
 		event.queue_object_sequence_next_motion(2, "モニカを見るL")
 		at = 27
-		helper_888ab2a3(120)
+		wait.for_frame_count(120)
 		event.set_camera_sequence_position(-312.91, 53.63, -372.03)
 		event.set_camera_sequence_look_at(-334.31, 16.44, -340.4)
 		event.set_object_sequence_texture_animation(1, 0)
@@ -1277,20 +1255,20 @@ local function helper_1aea8()
 		event.queue_object_sequence_next_motion(1, "上向くL")
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 28
-		helper_4116e6bb(2400020)
+		message.show_voiced(2400020)
 		event.reset_mouth_texture_animations()
 		at = 29
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(1, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(1, "上向くL")
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 30
-		helper_4116e6bb(2400025)
+		message.show_voiced(2400025)
 		event.reset_mouth_texture_animations()
 		at = 31
-		wait_objects(1)
+		object.wait_until_done(1)
 		at = 32
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_camera_sequence_position(-390.3, 27.35, -176.88)
 		event.set_camera_sequence_look_at(-290.9, 59.06, -387.86)
 		event.set_object_sequence_motion(1, "上向くL", 4)
@@ -1300,32 +1278,32 @@ local function helper_1aea8()
 		event.set_object_sequence_motion(2, "目ほそめ", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめL", 4)
 		at = 33
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "目ほそめ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目とじ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目とじ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 4)
 		at = 34
-		helper_0382f327(2400030, -1)
+		message.show_voiced_for_stopping(2400030, -1)
 		event.set_character_active(1, 38)
 		event.set_character_position(38, -127.39, 0.0, -701.37)
 		event.set_character_rotation(38, 0.0, -1.68, 0.0)
 		event.set_character_motion(38, "ウィンク", 2, -1, 1)
 		event.set_object_sequence_motion(2, "ウィンク", 2)
 		at = 35
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_object_sequence_motion(2, "目とじ", 2)
 		event.queue_object_sequence_next_motion(2, "目とじL", 4)
 		at = 36
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "目とじ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目とじ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目とじ会話", 4)
 		at = 37
-		helper_0382f327(2400035, -1)
+		message.show_voiced_for_stopping(2400035, -1)
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 2)
 		event.wait_object_sequence_motion_end(2)
@@ -1336,29 +1314,29 @@ local function helper_1aea8()
 		event.queue_object_sequence_next_motion(1, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(1, "上向くL")
 		at = 38
-		helper_4116e6bb(2400040)
+		message.show_voiced(2400040)
 		at = 39
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(1, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(1, "上向くL")
 		at = 40
-		helper_4116e6bb(2400045)
+		message.show_voiced(2400045)
 		at = 41
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(2, "会話")
 		at = 42
-		helper_4116e6bb(2400050)
+		message.show_voiced(2400050)
 		event.set_object_sequence_motion(2, "目ほそめ", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめL", 4)
 		at = 43
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "目ほそめ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目とじ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目とじ会話", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 4)
 		at = 44
-		helper_0382f327(2400055, -1)
+		message.show_voiced_for_stopping(2400055, -1)
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 2)
 		event.set_character_active(0, 38)
@@ -1369,19 +1347,19 @@ local function helper_1aea8()
 		event.set_object_sequence_motion(0, "左向く", 2)
 		event.queue_object_sequence_next_motion(0, "左向くL")
 		at = 45
-		helper_4116e6bb(2400060)
+		message.show_voiced(2400060)
 		at = 46
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.set_object_sequence_motion(0, "左向く戻り", 2)
 		event.queue_object_sequence_next_motion(0, "上向く", 2)
 		event.queue_object_sequence_next_motion(0, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(0, "上向くL")
 		event.set_mouth_texture_animations(0, "通常口パク")
 		at = 47
-		helper_4116e6bb(2400070)
+		message.show_voiced(2400070)
 		event.reset_mouth_texture_animations()
 		at = 48
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-348.01, 19.24, -271.83)
 		event.set_camera_sequence_look_at(-309.88, 30.88, -357.76)
 		event.set_object_sequence_motion(0, "上向くL", 4)
@@ -1389,10 +1367,10 @@ local function helper_1aea8()
 		event.set_object_sequence_motion(2, "ユリスを見る", 6)
 		event.queue_object_sequence_next_motion(2, "ユリスを見るL", 4)
 		at = 49
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "ユリス見会話")
 		at = 50
-		helper_0382f327(2400080, -1)
+		message.show_voiced_for_stopping(2400080, -1)
 		event.set_character_active(1, 38)
 		event.set_character_position(38, -127.39, 0.0, -701.37)
 		event.set_character_rotation(38, 0.0, -1.68, 0.0)
@@ -1401,13 +1379,13 @@ local function helper_1aea8()
 		event.queue_object_sequence_next_motion(2, "ユリスを見るL")
 		event.wait_object_sequence_motion_end(2)
 		at = 51
-		helper_0382f327(2400085, -1)
+		message.show_voiced_for_stopping(2400085, -1)
 		event.set_character_active(0, 38)
 		event.set_object_sequence_motion(2, "ユリス見会話")
 		at = 52
-		helper_4116e6bb(2400090)
+		message.show_voiced(2400090)
 		at = 53
-		helper_0382f327(2400095, -1)
+		message.show_voiced_for_stopping(2400095, -1)
 		event.set_character_active(1, 38)
 		event.set_character_position(38, -127.39, 0.0, -701.37)
 		event.set_character_rotation(38, 0.0, -1.68, 0.0)
@@ -1415,14 +1393,14 @@ local function helper_1aea8()
 		event.set_object_sequence_motion(2, "ウィンク", 2)
 		event.queue_object_sequence_next_motion(2, "ユリス見会話")
 		at = 54
-		helper_0382f327(2400100, -1)
+		message.show_voiced_for_stopping(2400100, -1)
 		event.set_character_active(0, 38)
 		at = 55
-		helper_0382f327(2400105, -1)
+		message.show_voiced_for_stopping(2400105, -1)
 		at = 56
-		helper_4116e6bb(2400110)
+		message.show_voiced(2400110)
 		at = 57
-		helper_0382f327(2400115, -1)
+		message.show_voiced_for_stopping(2400115, -1)
 		event.set_character_active(1, 38)
 		event.set_character_position(38, -127.39, 0.0, -701.37)
 		event.set_character_rotation(38, 0.0, -1.68, 0.0)
@@ -1431,306 +1409,306 @@ local function helper_1aea8()
 		event.queue_object_sequence_next_motion(2, "ユリスを見る", 2)
 		event.queue_object_sequence_next_motion(2, "ユリスを見るL")
 		at = 58
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_character_active(0, 38)
 		event.set_object_sequence_motion(0, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		at = 59
-		helper_4116e6bb(2400120)
+		message.show_voiced(2400120)
 		at = 60
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		at = 61
-		helper_4116e6bb(2400125)
+		message.show_voiced(2400125)
 		at = 62
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "上向くL")
 		event.set_object_sequence_motion(2, "ユリス見会話")
 		at = 63
-		helper_4116e6bb(2400130)
+		message.show_voiced(2400130)
 		event.set_object_sequence_motion(1, "上向きから驚き", 2)
 		event.queue_object_sequence_next_motion(1, "驚きＬ")
 		event.queue_object_sequence_next_motion(2, "モニカを見る", 2)
 		event.queue_object_sequence_next_motion(2, "モニカを見るL")
-		event.play_sound_effect(var4, 11)
+		event.play_sound_effect(sound_bank, 11)
 		at = 64
-		helper_4116e6bb(2400140)
+		message.show_voiced(2400140)
 		at = 65
-		wait_objects(1)
+		object.wait_until_done(1)
 		at = 66
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(-756.17, 221.27, 17.93)
 		event.set_camera_sequence_look_at(-308.68, 56.91, -420.42)
-		event.stop_sound_effect(var4, 10)
+		event.stop_sound_effect(sound_bank, 10)
 		at = 67
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		event.set_object_sequence_motion(2, "ユリス見会話")
 		at = 68
-		helper_0382f327(2400150, -1)
+		message.show_voiced_for_stopping(2400150, -1)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(2, "ユリスを見るL")
 		event.fade_out_music(60)
 		at = 69
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.fade_out_screen(30)
 		at = 70
-		helper_888ab2a3(35)
+		wait.for_frame_count(35)
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_038a2e4d(45)
+			wait.skip_frame_count(45)
 		end
 		if at <= 2 then
-			helper_22a00000()
+			swap_party_slots_murdan_line()
 		end
 		if at <= 3 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 4 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 5 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 6 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 7 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 8 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 9 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 10 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 11 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 12 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 13 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 14 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 15 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 16 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 21 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 22 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 23 then
-			helper_53ffe901(2400010, -1)
+			message.show_voiced_for_stopping_skipping(2400010, -1)
 		end
 		if at <= 24 then
-			helper_53ffe901(2400015, -1)
+			message.show_voiced_for_stopping_skipping(2400015, -1)
 		end
 		if at <= 25 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 26 then
-			helper_038a2e4d(120)
+			wait.skip_frame_count(120)
 		end
 		if at <= 27 then
-			helper_8cd371d7(2400020)
+			message.show_voiced_skipping(2400020)
 		end
 		if at <= 28 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 29 then
-			helper_8cd371d7(2400025)
+			message.show_voiced_skipping(2400025)
 		end
 		if at <= 30 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 31 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 32 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 33 then
-			helper_53ffe901(2400030, -1)
+			message.show_voiced_for_stopping_skipping(2400030, -1)
 		end
 		if at <= 34 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 35 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 36 then
-			helper_53ffe901(2400035, -1)
+			message.show_voiced_for_stopping_skipping(2400035, -1)
 		end
 		if at <= 37 then
-			helper_8cd371d7(2400040)
+			message.show_voiced_skipping(2400040)
 		end
 		if at <= 38 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 39 then
-			helper_8cd371d7(2400045)
+			message.show_voiced_skipping(2400045)
 		end
 		if at <= 40 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 41 then
-			helper_8cd371d7(2400050)
+			message.show_voiced_skipping(2400050)
 		end
 		if at <= 42 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 43 then
-			helper_53ffe901(2400055, -1)
+			message.show_voiced_for_stopping_skipping(2400055, -1)
 		end
 		if at <= 44 then
-			helper_8cd371d7(2400060)
+			message.show_voiced_skipping(2400060)
 		end
 		if at <= 45 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 46 then
-			helper_8cd371d7(2400070)
+			message.show_voiced_skipping(2400070)
 		end
 		if at <= 47 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 48 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 49 then
-			helper_53ffe901(2400080, -1)
+			message.show_voiced_for_stopping_skipping(2400080, -1)
 		end
 		if at <= 50 then
-			helper_53ffe901(2400085, -1)
+			message.show_voiced_for_stopping_skipping(2400085, -1)
 		end
 		if at <= 51 then
-			helper_8cd371d7(2400090)
+			message.show_voiced_skipping(2400090)
 		end
 		if at <= 52 then
-			helper_53ffe901(2400095, -1)
+			message.show_voiced_for_stopping_skipping(2400095, -1)
 		end
 		if at <= 53 then
-			helper_53ffe901(2400100, -1)
+			message.show_voiced_for_stopping_skipping(2400100, -1)
 		end
 		if at <= 54 then
-			helper_53ffe901(2400105, -1)
+			message.show_voiced_for_stopping_skipping(2400105, -1)
 		end
 		if at <= 55 then
-			helper_8cd371d7(2400110)
+			message.show_voiced_skipping(2400110)
 		end
 		if at <= 56 then
-			helper_53ffe901(2400115, -1)
+			message.show_voiced_for_stopping_skipping(2400115, -1)
 		end
 		if at <= 57 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 58 then
-			helper_8cd371d7(2400120)
+			message.show_voiced_skipping(2400120)
 		end
 		if at <= 59 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 60 then
-			helper_8cd371d7(2400125)
+			message.show_voiced_skipping(2400125)
 		end
 		if at <= 61 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 62 then
-			helper_8cd371d7(2400130)
+			message.show_voiced_skipping(2400130)
 		end
 		if at <= 63 then
-			helper_8cd371d7(2400140)
+			message.show_voiced_skipping(2400140)
 		end
 		if at <= 64 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 65 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 66 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 67 then
-			helper_53ffe901(2400150, -1)
+			message.show_voiced_for_stopping_skipping(2400150, -1)
 		end
 		if at <= 68 then
-			helper_038a2e4d(60)
+			wait.skip_frame_count(60)
 		end
 		if at <= 69 then
-			helper_038a2e4d(35)
+			wait.skip_frame_count(35)
 		end
 		return true
 	end)
 	at = 71
 	vm.entry(71)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var4, 4)
-	event.stop_sound_effect(var4, 6)
-	event.stop_sound_effect(var4, 10)
+	event.stop_sound_effect(sound_bank, 4)
+	event.stop_sound_effect(sound_bank, 6)
+	event.stop_sound_effect(sound_bank, 10)
 	event.stop_music(0)
-	helper_1985c()
+	unload_murdan_line_scene_actors()
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_1f934()
+--- Loads the party, Murdan and the spell effect characters for the spell-release scene.
+local function load_murdan_spell_scene_actors()
 	local active_chr_no: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 32
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 0
+		monica_slot = 32
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 37)
 	end
 	if active_chr_no == 1 then
-		global0 = 32
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+		mints_slot = 32
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_slot)
+		event.load_equipment_model(5, 0, 4, "info", mints_slot)
+		event.load_equipment_model(5, 0, 3, "info", mints_slot)
+		event.load_equipment_model(5, 0, 2, "info", mints_slot, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_slot)
+		event.attach_object_handle_to_character(0, mints_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, mints_slot)
 		event.set_character_active(1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.load_character(5, "event/e200/e245/e245_madan.gltf", "info", 34)
 	event.set_character_active(0, 34)
@@ -1752,32 +1730,32 @@ local function helper_1f934()
 	event.load_message_file(0, 5, "event/e200/e245/e245.txt")
 end
 
---- Helper function.
-local function helper_22f00000()
-	global0 = 0
-	global1 = 32
-	global0 = 32
-	global1 = 0
+--- Swaps the two party character slots when the cutscene is skipped.
+local function swap_party_slots_murdan_spell()
+	mints_slot = 0
+	monica_slot = 32
+	mints_slot = 32
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_1f5a8()
+--- Releases the characters loaded for the spell-release scene.
+local function unload_murdan_spell_scene_actors()
 	local active_chr_no: s32 = 0
 	active_chr_no = event.get_playable_character() or active_chr_no
 	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(37)
 	end
 	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, mints_slot)
+		event.delete_character_extension_packs(mints_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(mints_slot)
 		event.delete_character(37)
 	end
 	event.delete_character(34)
@@ -1787,9 +1765,9 @@ local function helper_1f5a8()
 	event.delete_character(40)
 end
 
---- Helper function.
-local function helper_20820()
-	local var4: s32 = 0
+--- Plays the scene where Murdan releases the pink-world spell and leaves as a frog.
+local function cutscene_murdan_releases_spell()
+	local sound_bank: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		at = 1
@@ -1799,14 +1777,14 @@ local function helper_20820()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
 		at = 2
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(193)
 		event.play_music(0)
-		var4 = event.load_sound_effect_file_2(2815) or var4
+		sound_bank = event.load_sound_effect_file_2(2815) or sound_bank
 		event.fade_out_screen(30)
 		at = 3
-		helper_888ab2a3(45)
-		helper_1f934()
+		wait.for_frame_count(45)
+		load_murdan_spell_scene_actors()
 		event.enable_drama_skip()
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
@@ -1814,8 +1792,8 @@ local function helper_20820()
 		event.set_object_sequence_texture_animation(1, 0)
 		event.set_object_sequence_texture_animation(1, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(1, 1, "通常目パチ")
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 34)
 		event.set_camera_sequence_position(-390.3, 27.35, -176.88)
 		event.set_camera_sequence_look_at(-290.9, 59.06, -387.86)
@@ -1831,7 +1809,7 @@ local function helper_20820()
 		event.set_object_sequence_position(2, -127.39, 0.0, -701.37)
 		event.set_object_sequence_rotation(2, 0.0, -1.68, 0.0)
 		event.fade_in_screen(30)
-		event.play_sound_effect(var4, 4)
+		event.play_sound_effect(sound_bank, 4)
 		event.set_object_sequence_motion(0, "上向くL", 4, -1.0, 1)
 		event.set_object_sequence_motion(1, "上向くL", 2, -1.0, 1)
 		event.set_object_sequence_motion(2, "笑う", 2)
@@ -1840,9 +1818,9 @@ local function helper_20820()
 		event.queue_object_sequence_next_motion(2, "会話速", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 4)
 		at = 4
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		at = 5
-		helper_0382f327(2450010, -1)
+		message.show_voiced_for_stopping(2450010, -1)
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 4)
 		event.set_object_sequence_motion(2, "会話速", 2)
@@ -1851,30 +1829,30 @@ local function helper_20820()
 		event.queue_object_sequence_next_motion(2, "会話速", 2)
 		event.queue_object_sequence_next_motion(2, "目ほそめ会話", 4)
 		at = 6
-		helper_0382f327(2450015, -1)
+		message.show_voiced_for_stopping(2450015, -1)
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 4)
 		at = 7
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_object_sequence_motion(2, "笑う", 4)
 		at = 8
-		helper_0382f327(2450020, -1)
+		message.show_voiced_for_stopping(2450020, -1)
 		event.set_object_sequence_motion(2, "ユリスを見る", 2)
 		event.queue_object_sequence_next_motion(2, "ユリスを見るL", 4)
 		event.set_object_sequence_motion(0, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		at = 9
-		helper_4116e6bb(2450030)
+		message.show_voiced(2450030)
 		at = 10
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "上向くL")
 		event.set_object_sequence_motion(2, "ユリス見会話")
 		at = 11
-		helper_0382f327(2450040, -1)
+		message.show_voiced_for_stopping(2450040, -1)
 		event.set_object_sequence_motion(2, "ウィンク", 2)
 		event.queue_object_sequence_next_motion(2, "待機")
 		at = 12
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_active(1, 38)
 		event.set_character_position(38, -127.39, 0.0, -701.37)
 		event.set_character_rotation(38, 0.0, -1.68, 0.0)
@@ -1883,25 +1861,25 @@ local function helper_20820()
 		event.set_character_position(41, -127.39, 0.0, -701.37)
 		event.set_character_rotation(41, 0.0, -1.68, 0.0)
 		event.set_character_motion(41, "桃色世界", 2, -1, 1)
-		event.play_sound_effect(var4, 5)
+		event.play_sound_effect(sound_bank, 5)
 		at = 13
-		helper_888ab2a3(150)
+		wait.for_frame_count(150)
 		event.set_character_visible(41, 0, 1, 0.025)
 		at = 14
-		helper_888ab2a3(40)
+		wait.for_frame_count(40)
 		event.set_object_sequence_motion(0, "上向く会話", 2)
 		event.queue_object_sequence_next_motion(0, "上向くL", 4)
 		at = 15
-		helper_4116e6bb(2450050)
+		message.show_voiced(2450050)
 		at = 16
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "上向くL")
 		event.set_object_sequence_motion(2, "ユリスを見る", 2)
 		event.queue_object_sequence_next_motion(2, "ユリス見会話")
 		at = 17
-		wait_objects(2)
+		object.wait_until_done(2)
 		at = 18
-		helper_0382f327(2450060, -1)
+		message.show_voiced_for_stopping(2450060, -1)
 		event.set_object_sequence_position(4, -127.39, 0.0, -701.37)
 		event.set_object_sequence_rotation(4, 0.0, -1.68, 0.0)
 		event.set_character_scale(39, 2.0, 2.0, 2.0)
@@ -1912,11 +1890,11 @@ local function helper_20820()
 		event.delay_object_sequence_motion_track(4, 70)
 		event.set_object_sequence_motion(4, "帰る", 6)
 		event.delay_object_sequence_sound_track(2, 70)
-		event.play_object_sequence_sound(2, var4, 6)
+		event.play_object_sequence_sound(2, sound_bank, 6)
 		at = 19
-		helper_0382f327(2450070, -1)
+		message.show_voiced_for_stopping(2450070, -1)
 		at = 20
-		wait_objects(2)
+		object.wait_until_done(2)
 		event.set_character_active(0, 39)
 		event.set_character_active(0, 40)
 		event.set_object_sequence_motion(1, "立ち", 4, -1.0, 1)
@@ -1928,101 +1906,101 @@ local function helper_20820()
 		event.queue_object_sequence_next_motion(0, "左向くL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 21
-		helper_4116e6bb(2450080)
+		message.show_voiced(2450080)
 		event.reset_mouth_texture_animations()
 		at = 22
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_mouth_texture_animations(0, "通常口パク")
 		at = 23
-		helper_4116e6bb(2450090)
+		message.show_voiced(2450090)
 		event.reset_mouth_texture_animations()
 		event.set_object_sequence_motion(1, "右向く", 6)
 		event.queue_object_sequence_next_motion(1, "右向くL", 4)
 		event.set_mouth_texture_animations(1, "通常口パク")
 		at = 24
-		helper_4116e6bb(2450100)
+		message.show_voiced(2450100)
 		event.reset_mouth_texture_animations()
 		at = 25
-		wait_objects(1)
+		object.wait_until_done(1)
 		event.fade_out_music(60)
 		at = 26
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_038a2e4d(4)
+			wait.skip_frame_count(4)
 		end
 		if at <= 2 then
-			helper_038a2e4d(45)
+			wait.skip_frame_count(45)
 		end
 		if at <= 3 then
-			helper_22f00000()
-			helper_038a2e4d(15)
+			swap_party_slots_murdan_spell()
+			wait.skip_frame_count(15)
 		end
 		if at <= 4 then
-			helper_53ffe901(2450010, -1)
+			message.show_voiced_for_stopping_skipping(2450010, -1)
 		end
 		if at <= 5 then
-			helper_53ffe901(2450015, -1)
+			message.show_voiced_for_stopping_skipping(2450015, -1)
 		end
 		if at <= 6 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 7 then
-			helper_53ffe901(2450020, -1)
+			message.show_voiced_for_stopping_skipping(2450020, -1)
 		end
 		if at <= 8 then
-			helper_8cd371d7(2450030)
+			message.show_voiced_skipping(2450030)
 		end
 		if at <= 9 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 10 then
-			helper_53ffe901(2450040, -1)
+			message.show_voiced_for_stopping_skipping(2450040, -1)
 		end
 		if at <= 11 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 12 then
-			helper_038a2e4d(150)
+			wait.skip_frame_count(150)
 		end
 		if at <= 13 then
-			helper_038a2e4d(40)
+			wait.skip_frame_count(40)
 		end
 		if at <= 14 then
-			helper_8cd371d7(2450050)
+			message.show_voiced_skipping(2450050)
 		end
 		if at <= 15 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 16 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 17 then
-			helper_53ffe901(2450060, -1)
+			message.show_voiced_for_stopping_skipping(2450060, -1)
 		end
 		if at <= 18 then
-			helper_53ffe901(2450070, -1)
+			message.show_voiced_for_stopping_skipping(2450070, -1)
 		end
 		if at <= 19 then
-			helper_238b5abc(2)
+			cutscene.skip_command(2)
 		end
 		if at <= 20 then
-			helper_8cd371d7(2450080)
+			message.show_voiced_skipping(2450080)
 		end
 		if at <= 21 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 22 then
-			helper_8cd371d7(2450090)
+			message.show_voiced_skipping(2450090)
 		end
 		if at <= 23 then
-			helper_8cd371d7(2450100)
+			message.show_voiced_skipping(2450100)
 		end
 		if at <= 24 then
-			helper_238b5abc(1)
+			cutscene.skip_command(1)
 		end
 		if at <= 25 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
@@ -2031,61 +2009,61 @@ local function helper_20820()
 	event.cancel_drama_scene_skip()
 	event.fade_out_screen(30)
 	at = 28
-	helper_888ab2a3(35)
+	wait.for_frame_count(35)
 	event.stop_music(0)
-	event.stop_sound_effect(var4, 4)
-	helper_1f5a8()
+	event.stop_sound_effect(sound_bank, 4)
+	unload_murdan_spell_scene_actors()
 	event.reset_follow_camera(0)
 	event.fade_in_screen(30)
 end
 
---- Event 506, which map data, a script or the engine runs by number.
-local function event_506()
+--- Hides the swamp NPC markers, plays the Murdan spell-release scene and advances the swamp progress counter.
+local function deliver_priscleen_fish()
 	local at: number = 0
 	return vm.guard(function()
 		at = 1
 		vm.entry(1)
 		event.fade_out_screen(15)
 		at = 2
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.delete_character(14)
 		event.set_function_point_enabled("p01_s0501", "invent_2008-0", 0)
 		event.set_function_point_enabled("p01_s0501", "kaiwa02-0", 0)
 		event.attach_object_handle_to_map_part_2(0, "p08_s0501")
 		event.set_object_handle_visible(0, 0)
 		at = 3
-		helper_20820()
+		cutscene_murdan_releases_spell()
 		event.set_save_counter(3, 6)
-		helper_bb23ef44()
+		fish_monster_swamp.update_progress_function_points()
 		return
 	end, function(received: { any })
 		if at <= 3 then
 			if at <= 1 then
-				helper_038a2e4d(15)
+				wait.skip_frame_count(15)
 			end
 			if at <= 2 then
 				at = 3
-				helper_20820()
+				cutscene_murdan_releases_spell()
 				return vm.continue_with(function()
 					event.set_save_counter(3, 6)
-					helper_bb23ef44()
+					fish_monster_swamp.update_progress_function_points()
 					return
 				end)
 			end
-			helper_fc5948a6()
+			fish_monster_swamp.print_progress_debug()
 			return 0
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_10f54()
-	local var0: any = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: s32 = 0
+--- Asks whether to advance to the next floor, walking out through the exit when accepted, and returns whether the player left.
+local function ask_to_go_to_next_floor()
+	local choice: any = 0
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
+	local frame_index: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
@@ -2094,8 +2072,8 @@ local function helper_10f54()
 		event.set_message_draw_speed(0, 1)
 		event.open_message_window_2(0, "次のフロアに進みますか？")
 		at = 1
-		var0 = helper_bac0e30d(0, -1, 8, 256, 208, 2, 1)
-		if var0 == 0 then
+		choice = message.ask_choice(0, -1, 8, 256, 208, 2, 1)
+		if choice == 0 then
 			event.clear_camera_sequence()
 			event.set_camera_sequence_position(-2144.16, 79.66, 654.8)
 			event.set_camera_sequence_look_at(-2382.06, 11.3, 623.75)
@@ -2111,7 +2089,7 @@ local function helper_10f54()
 			event.delay_camera_sequence_fade_track(30)
 			event.fade_out_camera_sequence(30, 0.0, 0.0, 0.0)
 			at = 2
-			helper_888ab2a3(60)
+			wait.for_frame_count(60)
 			return 1
 		end
 		event.attach_object_handle_to_character(0, 0)
@@ -2119,23 +2097,23 @@ local function helper_10f54()
 		event.set_object_sequence_object(0, 0)
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var1 = out1 or var1
-			var2 = out2 or var2
-			var3 = out3 or var3
+			character_x = out1 or character_x
+			character_y = out2 or character_y
+			character_z = out3 or character_z
 		end
-		var1 = vm.f32(var1 + vm.f32(30.0 * vm.sin(vm.f32(1.59))))
-		var3 = vm.f32(var3 + vm.f32(30.0 * vm.cos(vm.f32(1.59))))
+		character_x = vm.f32(character_x + vm.f32(30.0 * vm.sin(vm.f32(1.59))))
+		character_z = vm.f32(character_z + vm.f32(30.0 * vm.cos(vm.f32(1.59))))
 		event.set_object_sequence_motion(0, "歩き", 4, -1.0, 1)
 		event.rotate_object_sequence(0, 0.0, 1.59, 0.0, 15)
-		event.move_object_sequence(0, var1, var2, var3, 45)
+		event.move_object_sequence(0, character_x, character_y, character_z, 45)
 		for var4_i = 0, 44 do
 			do
 				local out1, out2, out3 = event.get_character_position(0)
-				var1 = out1 or var1
-				var2 = out2 or var2
-				var3 = out3 or var3
+				character_x = out1 or character_x
+				character_y = out2 or character_y
+				character_z = out3 or character_z
 			end
-			event.set_camera_sequence_look_at(var1, var2 + 30.0, var3)
+			event.set_camera_sequence_look_at(character_x, character_y + 30.0, character_z)
 			at = 3
 			vm.wait(3)
 		end
@@ -2144,68 +2122,68 @@ local function helper_10f54()
 	end, function(received: { any })
 		if at <= 2 then
 			if at == 1 then
-				var0 = received[1] :: number
+				choice = received[1] :: number
 			end
 			if at <= 1 then
-				helper_038a2e4d(60)
+				wait.skip_frame_count(60)
 			end
 			return 1
 		end
 		if at <= 3 then
-			local _ = var4 < 45
-			var4 = var4 + 1
+			local _ = frame_index < 45
+			frame_index = frame_index + 1
 			return 0
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_1070c(arg0: s32)
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var8: any = 0
+--- Turns the player toward the character in the given slot and waits for the turn to finish.
+local function turn_toward_character(target_slot: s32)
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local offset_x: f32 = 0
+	local offset_y: f32 = 0
+	local offset_z: f32 = 0
+	local target_angle: f32 = 0
+	local turn_frames: any = 0
 	event.initialize_event()
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var1 = out1 or var1
-		var2 = out2 or var2
-		var3 = out3 or var3
+		player_x = out1 or player_x
+		player_y = out2 or player_y
+		player_z = out3 or player_z
 	end
 	do
-		local out1, out2, out3 = event.get_character_position(arg0)
-		var4 = out1 or var4
-		var5 = out2 or var5
-		var6 = out3 or var6
+		local out1, out2, out3 = event.get_character_position(target_slot)
+		offset_x = out1 or offset_x
+		offset_y = out2 or offset_y
+		offset_z = out3 or offset_z
 	end
 	do
-		local out1, out2, out3 = event.subtract_vectors(var4, var5, var6, var1, var2, var3)
-		var4 = out1 or var4
-		var5 = out2 or var5
-		var6 = out3 or var6
+		local out1, out2, out3 = event.subtract_vectors(offset_x, offset_y, offset_z, player_x, player_y, player_z)
+		offset_x = out1 or offset_x
+		offset_y = out2 or offset_y
+		offset_z = out3 or offset_z
 	end
-	var7 = event.get_arc_tangent(var4, var6) or var7
+	target_angle = event.get_arc_tangent(offset_x, offset_z) or target_angle
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
 	event.set_object_sequence_motion(0, "歩き", 4, -1.0, 1)
-	print("angle=", vm.float(var7), "----------\n")
-	var8 = vm.ftoi(vm.f32(var7 / vm.f32(0.19634955)))
-	var8 = helper_2c717f26(var8)
-	print("frame=", var8, "-------------\n")
-	event.rotate_object_sequence(0, 0.0, var7, 0.0, var8)
-	helper_888ab2a3(var8)
+	print("angle=", vm.float(target_angle), "----------\n")
+	turn_frames = vm.ftoi(vm.f32(target_angle / vm.f32(0.19634955)))
+	turn_frames = fish_monster_swamp.get_absolute_value(turn_frames)
+	print("frame=", turn_frames, "-------------\n")
+	event.rotate_object_sequence(0, 0.0, target_angle, 0.0, turn_frames)
+	wait.for_frame_count(turn_frames)
 	event.set_object_sequence_motion(0, "立ち", 4, -1.0, 1)
 end
 
---- Helper function.
-local function helper_10c70()
-	local var0: any = 0
+--- Asks whether to go back to the station, fading out when accepted, and returns whether the player left.
+local function ask_to_return_to_station()
+	local choice: any = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
@@ -2214,21 +2192,21 @@ local function helper_10c70()
 		event.set_message_draw_speed(0, 1)
 		event.open_message_window_2(0, "『シャーロット停車場』に戻りますか？")
 		at = 1
-		var0 = helper_bac0e30d(0, -1, 8, 256, 208, 2, 1)
-		if var0 == 0 then
+		choice = message.ask_choice(0, -1, 8, 256, 208, 2, 1)
+		if choice == 0 then
 			event.fade_out_screen(30)
 			at = 2
-			helper_888ab2a3(30)
+			wait.for_frame_count(30)
 			return 1
 		end
 		return 0
 	end, function(received: { any })
 		if at <= 2 then
 			if at == 1 then
-				var0 = received[1] :: number
+				choice = received[1] :: number
 			end
 			if at <= 1 then
-				helper_038a2e4d(30)
+				wait.skip_frame_count(30)
 			end
 			return 1
 		end
@@ -2238,14 +2216,15 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load.
 function script.setup() end
 
-script.event_99 = event_99
+script.fade_in_on_entry = fade_in_on_entry
+script[99] = script.fade_in_on_entry
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Sets up the swamp on entry, restoring the party position after a memory card load or playing the entrance scene.
 function script.default_event()
-	local var0: s32 = 0
+	local visit_count: s32 = 0
 	local old_map_no: s32 = 0
 	local flag: s32 = 0
 	local mc_load: s32 = 0
@@ -2253,12 +2232,12 @@ function script.default_event()
 	return vm.guard(function()
 		event.stop_music(0)
 		event.initialize_event()
-		var0 = event.get_dungeon_floor_info(1, 6, 7) or var0
-		event.set_dungeon_floor_info(1, 6, 7, vm.i32(var0 + 1))
+		visit_count = event.get_dungeon_floor_info(1, 6, 7) or visit_count
+		event.set_dungeon_floor_info(1, 6, 7, vm.i32(visit_count + 1))
 		print("s05StartEvent kita------------------------------------------\n")
-		event_99()
-		helper_27ae4()
-		helper_bb23ef44()
+		fade_in_on_entry()
+		load_swamp_characters()
+		fish_monster_swamp.update_progress_function_points()
 		mc_load = event.take_memory_card_load_state() or mc_load
 		if mc_load == 1 then
 			event.set_character_position(0, 2808.3, 0.0, 1609.9)
@@ -2273,7 +2252,7 @@ function script.default_event()
 			flag = event.get_save_flag(215) or flag
 			if flag ~= 0 then
 				at = 1
-				helper_26268(vm.f32(3205.97), 0.0, vm.f32(1599.83), 0.0)
+				play_swamp_reentry_walk(vm.f32(3205.97), 0.0, vm.f32(1599.83), 0.0)
 			end
 			event.fade_in_screen(15)
 			flag = event.get_save_flag(209) or flag
@@ -2281,7 +2260,7 @@ function script.default_event()
 				flag = event.get_save_flag(215) or flag
 				if flag == 0 then
 					at = 2
-					event_501()
+					play_arrival_scene()
 					event.fade_in_screen(15)
 				end
 			end
@@ -2291,7 +2270,7 @@ function script.default_event()
 		if at <= 2 then
 			if at <= 1 then
 				at = 2
-				event_501()
+				play_arrival_scene()
 				return vm.continue_with(function()
 					event.fade_in_screen(15)
 					return
@@ -2305,303 +2284,316 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Plays the line-snapping scene and then loads the second swamp script.
 function script.key_open() end
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
+--- Resets the swamp progress flags and counter and removes the fishing rod.
+function script.reset_swamp_progress()
 	event.set_save_counter(3, 0)
 	event.set_save_flag(215, 0)
 	event.set_save_flag(220, 0)
 	event.set_save_flag(230, 0)
 	event.set_save_flag(235, 0)
 	event.remove_item(302, 1)
-	helper_bb23ef44()
+	fish_monster_swamp.update_progress_function_points()
 	vm.wait(1)
-	helper_c956b4a2(32)
+	wait.until_button_pressed(32)
 end
+script[151] = script.reset_swamp_progress
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_93cb8168
+script[400] = menu.open_type_7
 
-script.event_501 = event_501
+script.play_arrival_scene = play_arrival_scene
+script[501] = script.play_arrival_scene
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
+--- Plays the rod trade scene and sets the progress counter from the rod and save flag state.
+function script.trade_with_noam()
 	local flag: s32 = 0
-	local argc: s32 = 0
+	local rod_count: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.set_character_motion(0, "立ち")
 		at = 1
-		helper_16de0()
-		argc = event.get_item_count(302) or argc
+		cutscene_noam_rod_trade()
+		rod_count = event.get_item_count(302) or rod_count
 		flag = event.get_save_flag(230) or flag
-		if argc ~= 0 and flag == 1 then
+		if rod_count ~= 0 and flag == 1 then
 			event.set_save_counter(3, 3)
-			helper_bb23ef44()
+			fish_monster_swamp.update_progress_function_points()
 		end
-		if argc > 0 and flag == 0 then
+		if rod_count > 0 and flag == 0 then
 			event.set_save_counter(3, 2)
-			helper_bb23ef44()
+			fish_monster_swamp.update_progress_function_points()
 		end
-		helper_bb23ef44()
+		fish_monster_swamp.update_progress_function_points()
 		return
 	end, function(received: { any })
 		if at <= 1 then
-			helper_fc5948a6()
-			helper_fc5948a6()
-			helper_fc5948a6()
+			fish_monster_swamp.print_progress_debug()
+			fish_monster_swamp.print_progress_debug()
+			fish_monster_swamp.print_progress_debug()
 			return 0
 		end
 		return nil
 	end)
 end
+script[502] = script.trade_with_noam
 
---- Event 503, which map data, a script or the engine runs by number.
-function script.event_503()
+--- Loads the second swamp script's Utan scene.
+function script.start_utan_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 501)
 end
+script[503] = script.start_utan_scene
 
---- Event 504, which map data, a script or the engine runs by number.
-function script.event_504()
+--- Loads the second swamp script's fishing tutorial scene.
+function script.start_fishing_tutorial_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 502)
 end
+script[504] = script.start_fishing_tutorial_scene
 
---- Event 505, which map data, a script or the engine runs by number.
-function script.event_505()
+--- Plays the line-snapping scene, advances the progress counter and reloads the characters for it.
+function script.start_murdan_line_scene()
 	local at: number = 0
 	return vm.guard(function()
 		at = 1
-		helper_1aea8()
+		cutscene_murdan_snaps_line()
 		event.set_save_counter(3, 5)
-		helper_27ae4()
-		helper_bb23ef44()
+		load_swamp_characters()
+		fish_monster_swamp.update_progress_function_points()
 		return
 	end, function(received: { any })
 		if at <= 1 then
-			helper_deba899b()
-			helper_fc5948a6()
+			fish_monster_swamp.ignore_both_toggles()
+			fish_monster_swamp.print_progress_debug()
 			return 0
 		end
 		return nil
 	end)
 end
+script[505] = script.start_murdan_line_scene
 
-script.event_506 = event_506
+script.deliver_priscleen_fish = deliver_priscleen_fish
+script[506] = script.deliver_priscleen_fish
 
---- Event 507, which map data, a script or the engine runs by number.
-function script.event_507()
+--- Loads the second swamp script's villager reunion scene.
+function script.start_villagers_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 503)
 end
+script[507] = script.start_villagers_scene
 
---- Event 508, which map data, a script or the engine runs by number.
-function script.event_508()
+--- Loads the second swamp script's rock-lifting scene.
+function script.start_utan_rock_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 504)
 end
+script[508] = script.start_utan_rock_scene
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Asks the player to give the Priscleen fish and plays the delivery scene if it is used.
+function script.use_item_for_holy_one()
+	local prompt_stage: s32 = 0
+	local confirmed: s32 = 0
 	local item: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		print("use item--------------\n")
-		var0 = event.get_triggered_event_data_2(6) or var0
-		if var0 == 1 then
+		prompt_stage = event.get_triggered_event_data_2(6) or prompt_stage
+		if prompt_stage == 1 then
 			event.set_message_window_mode(0, 1)
 			event.set_message_bubble_tail(0, 0)
 			event.open_message_window_2(0, "ぬしさまにハグハグを渡そう。\n（(#)でメニューを開く）")
 			at = 1
-			var1 = helper_c292fa16(0, -1, 5, 256, 208, var1)
+			confirmed = message.ask_confirmation(0, -1, 5, 256, 208, confirmed)
 			event.set_message_bubble_tail(0, 1)
-			if var1 == 1 then
-				var0 = 2
+			if confirmed == 1 then
+				prompt_stage = 2
 			end
 		end
-		if var0 == 2 then
+		if prompt_stage == 2 then
 			event.open_use_item_menu(310)
 			at = 2
 			vm.wait(2)
 			item = vmhost.used_item() or item
 			if item == 310 then
 				at = 3
-				event_506()
+				deliver_priscleen_fish()
 			elseif item <= 0 then
 			else
 				at = 4
-				helper_0616fd34()
+				fish_monster_swamp.play_refuse_gesture()
 			end
 		end
 		return
 	end, function(received: { any })
 		if at <= 4 then
 			if at == 1 then
-				var1 = received[2] :: number
+				confirmed = received[2] :: number
 			end
 			if at <= 1 then
-				local _ = var0 == 1
-				var0 = 2
+				local _ = prompt_stage == 1
+				prompt_stage = 2
 			end
 			if at <= 2 then
 				at = 3
-				event_506()
+				deliver_priscleen_fish()
 				return vm.continue_with(function()
 					return
 				end)
 			end
 			if at <= 3 then
-				helper_4fba7aa8()
+				cutscene.do_nothing()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[550] = script.use_item_for_holy_one
 
---- Event 551, which map data, a script or the engine runs by number.
-function script.event_551()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local var2: s32 = 0
+--- Leaves the swamp for the next dungeon floor after the walk to the exit.
+function script.exit_to_dungeon()
+	local dungeon_id: s32 = 0
+	local swamp_floor: s32 = 0
+	local target_floor: s32 = 0
 	event.initialize_event()
-	if helper_10f54() == 1 then
+	if ask_to_go_to_next_floor() == 1 then
 		event.set_save_control_bits(16, 0)
-		var0 = 1
-		var2 = 4
-		var1 = 6
-		event.set_dungeon_floor(var2)
-		event.set_dungeon_floor_info(var0, var1, 5, 2)
-		event.set_dungeon_floor_info(var0, var2, 5, 1)
+		dungeon_id = 1
+		target_floor = 4
+		swamp_floor = 6
+		event.set_dungeon_floor(target_floor)
+		event.set_dungeon_floor_info(dungeon_id, swamp_floor, 5, 2)
+		event.set_dungeon_floor_info(dungeon_id, target_floor, 5, 1)
 		event.set_function_point_enabled("", "next_floor", 0)
-		event.go_to_dungeon(1, var2, 1000)
+		event.go_to_dungeon(1, target_floor, 1000)
 		vm.wait(2)
 	end
 end
+script[551] = script.exit_to_dungeon
 
---- Event 552, which map data, a script or the engine runs by number.
-function script.event_552()
-	local var0: s32 = 0
-	local player_chara: s32 = 0
-	local var3: s32 = 0
-	local var4: f32 = 0
-	local var6: f32 = 0
-	local var7: f32 = 0
-	local var9: f32 = 0
-	local var10: f32 = 0
+--- Turns to the NPC who wants a Priscleen fish and plays the delivery scene when the fish is used.
+function script.talk_to_priscleen_requester()
+	local prompt_stage: s32 = 0
+	local player_character: s32 = 0
+	local npc_slot: s32 = 0
+	local player_x: f32 = 0
+	local player_z: f32 = 0
+	local npc_x: f32 = 0
+	local npc_z: f32 = 0
+	local target_angle: f32 = 0
 	local item: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		print("e552--------------\n")
-		var0 = event.get_triggered_event_data_2(6) or var0
-		if var0 == 1 then
+		prompt_stage = event.get_triggered_event_data_2(6) or prompt_stage
+		if prompt_stage == 1 then
 			event.set_camera_position(-203.52, 16.84, -181.02)
 			event.set_camera_look_at(-184.65, 30.0, -343.81)
-			player_chara = event.get_player_character_slot() or player_chara
-			var3 = 14
+			player_character = event.get_player_character_slot() or player_character
+			npc_slot = 14
 			event.set_message_bubble_tail(0, 1)
 			event.apply_message_window_preset(0, 0)
 			do
-				local out1, _, out3 = event.get_character_position(player_chara)
-				var4 = out1 or var4
-				var6 = out3 or var6
+				local out1, _, out3 = event.get_character_position(player_character)
+				player_x = out1 or player_x
+				player_z = out3 or player_z
 			end
 			do
-				local out1, _, out3 = event.get_character_position(var3)
-				var7 = out1 or var7
-				var9 = out3 or var9
+				local out1, _, out3 = event.get_character_position(npc_slot)
+				npc_x = out1 or npc_x
+				npc_z = out3 or npc_z
 			end
-			var10 = event.get_look_angle(var7 - var4, var9 - var6) or var10
+			target_angle = event.get_look_angle(npc_x - player_x, npc_z - player_z) or target_angle
 			at = 1
-			helper_76f23193(player_chara, var10)
-			event.set_character_rotation(player_chara, 0.0, var10, 0.0)
-			event.set_character_motion(player_chara, "立ち")
+			character.turn_to_angle(player_character, target_angle)
+			event.set_character_rotation(player_character, 0.0, target_angle, 0.0)
+			event.set_character_motion(player_character, "立ち")
 			event.set_character_motion(14, "会話")
 			event.open_message_window_2(
 				0,
 				"ハグハグちゃんは\nゲットできたのかしら？<page>ワタクシの美貌がそこなわれると\n世界的な損失ざますのよ。<page>心してはりきってちょうだい。\n（(#)でアイテム使用）"
 			)
 			at = 2
-			show_message(0, -1, 3, 170, 208)
+			message.show(0, -1, 3, 170, 208)
 			event.set_character_motion(14, "立ち")
 		end
-		if var0 == 2 then
+		if prompt_stage == 2 then
 			event.open_use_item_menu(310)
 			at = 3
 			vm.wait(3)
 			item = vmhost.used_item() or item
 			if item == 310 then
 				at = 4
-				event_506()
+				deliver_priscleen_fish()
 			elseif 0 < item then
 				at = 5
-				helper_0616fd34()
+				fish_monster_swamp.play_refuse_gesture()
 			end
 		end
 		return
 	end, function(received: { any })
 		if at <= 5 then
 			if at <= 1 then
-				helper_ee1c51d0(0, -1, 3, 170, 208)
+				message.show_and_wait_skipping(0, -1, 3, 170, 208)
 			end
 			if at <= 3 then
 				at = 4
-				event_506()
+				deliver_priscleen_fish()
 				return vm.continue_with(function()
 					return
 				end)
 			end
 			if at <= 4 then
-				helper_4fba7aa8()
+				cutscene.do_nothing()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[552] = script.talk_to_priscleen_requester
 
---- Event 553, which map data, a script or the engine runs by number.
-function script.event_553()
-	local player_chara: s32 = 0
-	local var1: s32 = 0
-	local var2: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
+--- Turns to the villager who talks about the Holy One and speaks a line that depends on swamp progress.
+function script.talk_to_holy_one_follower()
+	local player_character: s32 = 0
+	local npc_slot: s32 = 0
+	local player_x: f32 = 0
+	local player_z: f32 = 0
+	local npc_x: f32 = 0
+	local npc_z: f32 = 0
+	local target_angle: f32 = 0
 	local flag: s32 = 0
 	local flag_2: s32 = 0
-	player_chara = event.get_player_character_slot() or player_chara
-	var1 = 8
+	player_character = event.get_player_character_slot() or player_character
+	npc_slot = 8
 	event.set_message_bubble_tail(0, 1)
 	event.apply_message_window_preset(0, 0)
 	do
-		local out1, _, out3 = event.get_character_position(player_chara)
-		var2 = out1 or var2
-		var4 = out3 or var4
+		local out1, _, out3 = event.get_character_position(player_character)
+		player_x = out1 or player_x
+		player_z = out3 or player_z
 	end
 	do
-		local out1, _, out3 = event.get_character_position(var1)
-		var5 = out1 or var5
-		var7 = out3 or var7
+		local out1, _, out3 = event.get_character_position(npc_slot)
+		npc_x = out1 or npc_x
+		npc_z = out3 or npc_z
 	end
-	var8 = event.get_look_angle(var5 - var2, var7 - var4) or var8
-	helper_76f23193(player_chara, var8)
-	event.set_character_rotation(player_chara, 0.0, var8, 0.0)
-	event.set_character_motion(player_chara, "立ち")
+	target_angle = event.get_look_angle(npc_x - player_x, npc_z - player_z) or target_angle
+	character.turn_to_angle(player_character, target_angle)
+	event.set_character_rotation(player_character, 0.0, target_angle, 0.0)
+	event.set_character_motion(player_character, "立ち")
 	flag = event.get_save_flag(240) or flag
 	if flag == 0 then
 		event.open_message_window_2(0, "沼のぬしさまは\n神聖なるお魚さまで\nあらせられる。")
-		helper_0ffc2526(0, -1, var1, player_chara, 0)
+		message.say_bubble(0, -1, npc_slot, player_character, 0)
 		event.open_message_window_2(0, "お目にかかりたいあまり\n釣り上げたりしては\nバチがあたるぞ。")
 	else
 		flag_2 = event.get_save_flag(253) or flag_2
@@ -2617,68 +2609,71 @@ function script.event_553()
 			)
 		end
 	end
-	helper_0ffc2526(0, -1, var1, player_chara, 0)
+	message.say_bubble(0, -1, npc_slot, player_character, 0)
 end
+script[553] = script.talk_to_holy_one_follower
 
---- Event 560, which map data, a script or the engine runs by number.
-function script.event_560()
-	local argc: s32 = 0
+--- Gives four of item 291 the first time when the player has none.
+function script.receive_starter_items()
+	local item_count: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
-		argc = event.get_item_count(291) or argc
-		if argc <= 0 then
+		item_count = event.get_item_count(291) or item_count
+		if item_count <= 0 then
 			event.set_character_motion(0, "立ち")
 			at = 1
-			helper_f38eabca(291, 4)
+			inventory.announce_received(291, 4)
 			event.add_inventory_item(291, 4)
 			at = 2
-			helper_d61bc810(1)
+			inventory.resolve_overflow(1)
 			event.set_message_window_mode(0, 7)
 		end
-		helper_bb23ef44()
+		fish_monster_swamp.update_progress_function_points()
 		return
 	end, function(received: { any })
 		if at <= 2 then
 			if at <= 1 then
-				helper_6f1a51c5(1)
+				wait.skip_ten_frames(1)
 			end
-			helper_fc5948a6()
+			fish_monster_swamp.print_progress_debug()
 			return 0
 		end
 		return nil
 	end)
 end
+script[560] = script.receive_starter_items
 
---- Event 561, which map data, a script or the engine runs by number.
-function script.event_561()
-	local var0: s32 = 0
-	local argc: s32 = 0
-	local var2: s32 = 0
-	local player_chara: s32 = 0
+--- Gives five bait when the player has none, otherwise comforts the player.
+function script.talk_to_bait_fisherman()
+	local npc_slot: s32 = 0
+	local bait_count: s32 = 0
+	local attached_bait: s32 = 0
+	local player_character: s32 = 0
 	event.set_character_motion(0, "立ち", 4)
-	var0 = 9
-	helper_1070c(var0)
+	npc_slot = 9
+	turn_toward_character(npc_slot)
 	event.set_message_window_mode(0, 1)
-	argc = event.get_item_count(313) or argc
-	var2 = event.get_save_data_value(3, 302) or var2
-	if argc <= 0 and var2 ~= 313 then
+	bait_count = event.get_item_count(313) or bait_count
+	attached_bait = event.get_save_data_value(3, 302) or attached_bait
+	if bait_count <= 0 and attached_bait ~= 313 then
 		event.open_message_window_2(0, "エサがなくなっちまたのか？\nしょうがねぇな、ほらよ。")
 	else
 		event.open_message_window_2(0, "釣れる日もありゃダメな日もある。\nエサのことなら心配すんな。")
 	end
-	player_chara = event.get_player_character_slot() or player_chara
-	helper_0ffc2526(0, -1, var0, player_chara, 0)
-	if argc <= 0 and var2 ~= 313 then
+	player_character = event.get_player_character_slot() or player_character
+	message.say_bubble(0, -1, npc_slot, player_character, 0)
+	if bait_count <= 0 and attached_bait ~= 313 then
 		event.set_message_window_mode(0, 7)
-		helper_f38eabca(313, 5)
+		inventory.announce_received(313, 5)
 		event.add_inventory_item(313, 5)
-		helper_d61bc810(1)
+		inventory.resolve_overflow(1)
 	end
 end
+script[561] = script.talk_to_bait_fisherman
 
---- Event 600, which map data, a script or the engine runs by number.
-function script.event_600()
-	if helper_10c70() == 1 then
+--- Confirms leaving and jumps to the town map.
+function script.leave_swamp()
+	if ask_to_return_to_station() == 1 then
 		event.set_dungeon_stage_id(1)
 		event.set_dungeon_floor(0)
 		event.set_save_control_bits(16, 0)
@@ -2686,24 +2681,25 @@ function script.event_600()
 		vm.wait(2)
 	end
 end
+script[600] = script.leave_swamp
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	local var2: s32 = 0
-	local player_chara: s32 = 0
+--- Speaks a line chosen by which swamp resident was talked to.
+function script.talk_to_swamp_resident()
+	local window_frame: s32 = 0
+	local npc_slot: s32 = 0
+	local player_character: s32 = 0
 	local flag: s32 = 0
 	local flag_2: s32 = 0
-	local player_chara_2: s32 = 0
-	local player_chara_3: s32 = 0
-	local player_chara_4: s32 = 0
-	var0 = event.get_message_window_frame(0) or var0
+	local player_character_2: s32 = 0
+	local player_character_3: s32 = 0
+	local player_character_4: s32 = 0
+	window_frame = event.get_message_window_frame(0) or window_frame
 	event.set_message_window_mode(0, 1)
-	var2 = event.get_triggered_event_data_2(13) or var2
+	npc_slot = event.get_triggered_event_data_2(13) or npc_slot
 	event.get_triggered_event_data_2(14)
 	event.set_character_motion(0, "立ち", 4)
-	helper_1070c(var2)
-	if var2 == 8 then
+	turn_toward_character(npc_slot)
+	if npc_slot == 8 then
 		flag = event.get_save_flag(240) or flag
 		if flag == 0 then
 			event.open_message_window_2(0, "沼のぬしさまは\n神聖なるお魚さまで\nあらせられる。")
@@ -2725,99 +2721,108 @@ function script.event_1000()
 				)
 			end
 		end
-		player_chara = event.get_player_character_slot() or player_chara
-		helper_0ffc2526(0, -1, 10, player_chara, 0)
+		player_character = event.get_player_character_slot() or player_character
+		message.say_bubble(0, -1, 10, player_character, 0)
 	end
-	if var2 == 10 then
+	if npc_slot == 10 then
 		event.open_message_window_2(0, "ワタシは今幸せなのだ。\nそっと、しておいてくれないか。")
-		player_chara_2 = event.get_player_character_slot() or player_chara_2
-		helper_0ffc2526(0, -1, 10, player_chara_2, 0)
+		player_character_2 = event.get_player_character_slot() or player_character_2
+		message.say_bubble(0, -1, 10, player_character_2, 0)
 	end
-	if var2 == 11 then
+	if npc_slot == 11 then
 		event.open_message_window_2(
 			0,
 			"おいらは戻らねぇよ\nここで一生幸せに暮らすことに\n決めたんだもんね。"
 		)
-		player_chara_3 = event.get_player_character_slot() or player_chara_3
-		helper_0ffc2526(0, -1, 11, player_chara_3, 0)
+		player_character_3 = event.get_player_character_slot() or player_character_3
+		message.say_bubble(0, -1, 11, player_character_3, 0)
 	end
-	if var2 == 12 then
+	if npc_slot == 12 then
 		event.open_message_window_2(
 			0,
 			"ここは最高だよ。\nボーッとしているだけで不思議と\n幸せな気分になってくる。\n連れ戻そうたって無駄だぜ。"
 		)
-		player_chara_4 = event.get_player_character_slot() or player_chara_4
-		helper_0ffc2526(0, -1, 12, player_chara_4, 0)
+		player_character_4 = event.get_player_character_slot() or player_character_4
+		message.say_bubble(0, -1, 12, player_character_4, 0)
 	end
-	event.set_message_window_mode(0, var0)
+	event.set_message_window_mode(0, window_frame)
 end
+script[1000] = script.talk_to_swamp_resident
 
---- Event 12150, which map data, a script or the engine runs by number.
-function script.event_12150()
+--- Resets the arrival state and replays the arrival scene.
+function script.debug_play_arrival_scene()
 	event.set_save_flag(215, 0)
 	event.set_save_counter(3, 0)
-	helper_04c5554b(1)
-	helper_13bcc()
+	fish_monster_swamp.load_characters_wide_near_fade(1)
+	cutscene_arrival_at_swamp()
 end
+script[12150] = script.debug_play_arrival_scene
 
---- Event 12200, which map data, a script or the engine runs by number.
-function script.event_12200()
+--- Resets the trade flags and replays the rod trade scene.
+function script.debug_play_noam_trade_scene()
 	event.set_save_flag(220, 0)
 	event.set_save_flag(28, 0)
 	event.set_character_active(8)
 	event.set_character_active(9)
 	event.set_character_active(10)
 	event.set_character_motion(0, "立ち")
-	helper_16de0()
+	cutscene_noam_rod_trade()
 end
+script[12200] = script.debug_play_noam_trade_scene
 
---- Event 12300, which map data, a script or the engine runs by number.
-function script.event_12300()
+--- Loads the second swamp script's Utan scene.
+function script.debug_start_utan_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 501)
 end
+script[12300] = script.debug_start_utan_scene
 
---- Event 12350, which map data, a script or the engine runs by number.
-function script.event_12350()
+--- Loads the second swamp script's fishing tutorial scene.
+function script.debug_start_fishing_tutorial_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 502)
 end
+script[12350] = script.debug_start_fishing_tutorial_scene
 
---- Event 12400, which map data, a script or the engine runs by number.
-function script.event_12400()
+--- Plays the line-snapping scene and advances the swamp progress counter.
+function script.debug_play_murdan_line_scene()
 	local at: number = 0
 	return vm.guard(function()
 		at = 1
-		helper_1aea8()
+		cutscene_murdan_snaps_line()
 		event.set_save_counter(3, 5)
-		helper_bb23ef44()
+		fish_monster_swamp.update_progress_function_points()
 		return
 	end, function(received: { any })
 		if at <= 1 then
-			helper_fc5948a6()
+			fish_monster_swamp.print_progress_debug()
 			return 0
 		end
 		return nil
 	end)
 end
+script[12400] = script.debug_play_murdan_line_scene
 
 --- Event 12450, which map data, a script or the engine runs by number.
-script.event_12450 = helper_20820
+script.cutscene_murdan_releases_spell = cutscene_murdan_releases_spell
+script[12450] = script.cutscene_murdan_releases_spell
 
---- Event 12470, which map data, a script or the engine runs by number.
-function script.event_12470()
+--- Loads the second swamp script's villager reunion scene.
+function script.debug_start_villagers_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 503)
 end
+script[12470] = script.debug_start_villagers_scene
 
---- Event 12530, which map data, a script or the engine runs by number.
-function script.event_12530()
+--- Loads the second swamp script's rock-lifting scene.
+function script.debug_start_utan_rock_scene()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s05/s05b.stb", 504)
 end
+script[12530] = script.debug_start_utan_rock_scene
 
 return script

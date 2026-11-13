@@ -1,26 +1,26 @@
 --!strict
--- map/i/i01/h06/i01h06.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Palm Brinks house interior script that places the player on entry and handles villager dialogue.
 
-local helper_0fc04819 = require("@lib/event/helper_0fc04819")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_4e319702 = require("@lib/event/helper_4e319702")
+local cutscene = require("@lib/event/cutscene")
+local map = require("@lib/event/map")
+local npc = require("@lib/event/npc")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the player at the entrance when the interior is entered.
 function script.default_event()
-	helper_1ef0d4b2()
+	cutscene.noop()
 	event.set_character_position(0, 0.0, 9.0, 171.0)
 	event.set_character_rotation(0, 0, 3.14, 0)
 end
 
 --- Event 200, which map data, a script or the engine runs by number.
-script.event_200 = helper_0fc04819
+script[200] = map.enter_door
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_4e319702
+script[1000] = npc.talk_to_triggered_npc
 
 return script

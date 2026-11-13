@@ -1,95 +1,66 @@
 --!strict
--- map/s/s02/s02.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the Sindain station map s02, with arrival handling, train boarding and the Carpenterion forest cutscene.
 
 local vm = require("@lib/vm")
-local helper_0226fccb = require("@lib/event/helper_0226fccb")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_042a5b29 = require("@lib/event/helper_042a5b29")
-local helper_0d0a5438 = require("@lib/event/helper_0d0a5438")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_21d8472e = require("@lib/event/helper_21d8472e")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_3efe4328 = require("@lib/event/helper_3efe4328")
-local helper_4071559a = require("@lib/event/helper_4071559a")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_43f02c95 = require("@lib/event/helper_43f02c95")
-local helper_4cb9ff49 = require("@lib/event/helper_4cb9ff49")
-local helper_6cc2fba1 = require("@lib/event/helper_6cc2fba1")
-local helper_6cf80642 = require("@lib/event/helper_6cf80642")
-local helper_71aacd6c = require("@lib/event/helper_71aacd6c")
-local helper_84a2c453 = require("@lib/event/helper_84a2c453")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8efad286 = require("@lib/event/helper_8efad286")
-local helper_93cb8168 = require("@lib/event/helper_93cb8168")
-local helper_946c0402 = require("@lib/event/helper_946c0402")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_b76e3b36 = require("@lib/event/helper_b76e3b36")
-local helper_b7a01b67 = require("@lib/event/helper_b7a01b67")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_cce8673f = require("@lib/event/helper_cce8673f")
-local helper_ce60ccd6 = require("@lib/event/helper_ce60ccd6")
-local helper_cf15df04 = require("@lib/event/helper_cf15df04")
-local helper_d552d8eb = require("@lib/event/helper_d552d8eb")
-local helper_d7295df9 = require("@lib/event/helper_d7295df9")
-local helper_ed56af24 = require("@lib/event/helper_ed56af24")
-local helper_ee1c51d0 = require("@lib/event/helper_ee1c51d0")
-local helper_ef001e52 = require("@lib/event/helper_ef001e52")
-local helper_f72a4299 = require("@lib/event/helper_f72a4299")
-local helper_f97100db = require("@lib/event/helper_f97100db")
-local helper_fbd9683d = require("@lib/event/helper_fbd9683d")
-local set_window_mode = require("@lib/event/set_window_mode")
-local show_message = require("@lib/event/show_message")
-local wait_objects = require("@lib/event/wait_objects")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local map = require("@lib/event/map")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local party = require("@lib/event/party")
+local sindain_station = require("@lib/event/sindain_station")
+local train = require("@lib/event/train")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
-local global1: s32 = 0
+local max_slot: s32 = 0
+local monica_slot: s32 = 0
 
---- Helper function.
-local function helper_3f33c()
-	local active_chr_no: s32 = 0
+--- Loads the partner characters and the Conda character for the Geostone cutscene according to the active character.
+local function load_cutscene_characters()
+	local active_character: s32 = 0
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 32
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		max_slot = 0
+		monica_slot = 32
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", max_slot)
+		event.attach_object_handle_to_character(0, max_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 38)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e254/e254_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, max_slot)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_slot)
+		event.load_equipment_model(5, 1, 4, "info", monica_slot)
+		event.load_equipment_model(5, 1, 3, "info", monica_slot)
+		event.load_equipment_model(5, 1, 2, "info", monica_slot, 38)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e254/e254_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 		event.set_character_active(1, 38)
 	end
-	if active_chr_no == 1 then
-		global0 = 32
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 38)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	if active_character == 1 then
+		max_slot = 32
+		monica_slot = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", max_slot)
+		event.load_equipment_model(5, 0, 4, "info", max_slot)
+		event.load_equipment_model(5, 0, 3, "info", max_slot)
+		event.load_equipment_model(5, 0, 2, "info", max_slot, 38)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", max_slot)
+		event.attach_object_handle_to_character(0, max_slot)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, max_slot)
 		event.set_character_active(1, 38)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e200/e254/e254_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_slot)
+		event.load_character_motion_pack(5, "event/e200/e254/e254_monica.gltf", "info", monica_slot)
+		event.attach_object_handle_to_character(1, monica_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_slot)
 	end
 	event.attach_object_handle_to_character(2, 1)
 	event.set_object_handle_visible(2, 0)
@@ -103,30 +74,30 @@ local function helper_3f33c()
 	event.load_message_file(0, 5, "event/e200/e254/e254.txt")
 end
 
---- Helper function.
-local function helper_24100000()
-	global0 = 0
-	global1 = 32
-	global0 = 32
-	global1 = 0
+--- Assigns the cutscene slots as if Monica were the active character.
+local function set_monica_as_player_slots()
+	max_slot = 0
+	monica_slot = 32
+	max_slot = 32
+	monica_slot = 0
 end
 
---- Helper function.
-local function helper_3efc8()
-	local active_chr_no: s32 = 0
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global1)
+--- Deletes the cutscene characters and restores the party handles.
+local function unload_cutscene_characters()
+	local active_character: s32 = 0
+	active_character = event.get_playable_character() or active_character
+	if active_character == 0 then
+		event.set_character_active(1, max_slot)
+		event.set_character_active(0, monica_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(monica_slot)
 		event.delete_character(38)
 	end
-	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+	if active_character == 1 then
+		event.set_character_active(1, monica_slot)
+		event.set_character_active(0, max_slot)
+		event.delete_character_extension_packs(monica_slot)
+		event.delete_character(max_slot)
 		event.delete_character(38)
 	end
 	event.attach_object_handle_to_character(2, 1)
@@ -136,52 +107,52 @@ local function helper_3efc8()
 	event.delete_character(36)
 end
 
---- Helper function.
-local function helper_40070()
-	local at: number = 0
+--- Plays the skippable cutscene in which the party returns with Geostones and is told to rebuild the forest.
+local function play_carpenterion_forest_cutscene()
+	local stage: number = 0
 	vm.section(function()
 		event.set_save_flag(254, 1)
 		event.initialize_event()
 		event.fade_out_screen(30)
-		at = 1
-		helper_888ab2a3(30)
+		stage = 1
+		wait.for_frame_count(30)
 		event.stop_music(0)
-		at = 2
-		helper_888ab2a3(4)
+		stage = 2
+		wait.for_frame_count(4)
 		event.load_music(49)
-		helper_3f33c()
-		set_window_mode(0, 1)
+		load_cutscene_characters()
+		message.set_window_mode(0, 1)
 		event.enable_drama_skip()
 		event.play_music(0)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(-585.93, 175.94, -940.12)
 		event.set_camera_sequence_look_at(-702.67, 128.67, -892.92)
 		event.move_camera_sequence(-565.48, 108.18, -866.56, -690.38, 73.25, -848.03, 165)
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, max_slot)
+		event.set_character_active(1, monica_slot)
 		event.set_character_active(1, 38)
 		event.set_character_active(1, 36)
-		event.set_scene_status_flags(1, global0, 8, 1)
-		event.set_scene_status_flags(1, global1, 8, 1)
+		event.set_scene_status_flags(1, max_slot, 8, 1)
+		event.set_scene_status_flags(1, monica_slot, 8, 1)
 		event.set_object_sequence_position(0, -1285.55, 14.1, -942.2)
 		event.set_object_sequence_motion(0, "走り", 4)
 		event.turn_object_sequence_toward(0, -749.29, 0.0, -826.86, 1)
 		event.move_object_sequence(0, -749.29, 0.0, -826.86, 165, 1)
 		event.set_object_handle_footstep_sound(0, 1)
 		event.fade_in_screen(30)
-		at = 3
-		helper_888ab2a3(30)
+		stage = 3
+		wait.for_frame_count(30)
 		event.set_object_sequence_position(1, -1285.55, 14.1, -942.2)
 		event.set_object_sequence_motion(1, "走り", 4)
 		event.turn_object_sequence_toward(1, -767.89, 0.0, -768.84, 1)
 		event.move_object_sequence(1, -767.89, 0.0, -768.84, 135, 1)
 		event.set_object_handle_footstep_sound(1, 1)
-		at = 4
-		helper_888ab2a3(135)
+		stage = 4
+		wait.for_frame_count(135)
 		event.set_object_handle_footstep_sound(0, -1)
 		event.set_object_handle_footstep_sound(1, -1)
-		event.set_scene_status_flags(1, global0, 8, 0)
-		event.set_scene_status_flags(1, global1, 8, 0)
+		event.set_scene_status_flags(1, max_slot, 8, 0)
+		event.set_scene_status_flags(1, monica_slot, 8, 0)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(-350.28, 3.09, -880.0)
 		event.set_camera_sequence_look_at(-237.75, 35.02, -880.0)
@@ -189,8 +160,8 @@ local function helper_40070()
 		event.set_object_sequence_rotation(3, 0.0, -1.57, 0.0)
 		event.set_object_sequence_motion(3, "おーい", 4)
 		event.open_message_window_2(0, "オ～イ")
-		at = 5
-		show_message(0, -1, 2, 256, 416)
+		stage = 5
+		message.show(0, -1, 2, 256, 416)
 		event.set_camera_sequence_position(-269.42, 43.82, -641.43)
 		event.set_camera_sequence_look_at(-355.67, 8.13, -699.39)
 		event.set_object_sequence_position(0, -424.81, 0.0, -640.72)
@@ -209,8 +180,8 @@ local function helper_40070()
 		event.rotate_object_sequence(0, 0.0, 1.16, 0.0, 5)
 		event.delay_object_sequence_motion_track(0, 50)
 		event.set_object_sequence_motion(0, "立ち")
-		at = 6
-		helper_888ab2a3(15)
+		stage = 6
+		wait.for_frame_count(15)
 		event.move_object_sequence(1, -359.19, 0.0, -671.7, 60)
 		event.delay_object_sequence_rotation_track(1, 60)
 		event.rotate_object_sequence(1, 0.0, 1.87, 0.0, 5)
@@ -221,93 +192,93 @@ local function helper_40070()
 			0,
 			"オオ？ジオストーンを\n見つけたようじゃな。<page>では、カーペントリオンを使って、\n森をつくり変えてみるとするかの。"
 		)
-		at = 7
-		show_message(0, -1, 7, 341, 208)
+		stage = 7
+		message.show(0, -1, 7, 341, 208)
 		event.open_message_window_2(0, "ついて来なされ。")
-		at = 8
-		show_message(0, -1, 8, 341, 208)
+		stage = 8
+		message.show(0, -1, 8, 341, 208)
 		event.set_object_handle_footstep_sound(4, 1)
 		event.set_object_sequence_motion(3, "歩き２")
 		event.turn_object_sequence_toward(3, -306.48, 0.0, -624.02, 45)
-		at = 9
-		helper_888ab2a3(45)
+		stage = 9
+		wait.for_frame_count(45)
 		event.move_object_sequence(3, -306.48, 0.0, -624.02, 90)
-		at = 10
-		helper_888ab2a3(45)
+		stage = 10
+		wait.for_frame_count(45)
 		event.set_object_sequence_motion(0, "走り")
 		event.turn_object_sequence_toward(0, -305.78, 0.0, -632.54, 8)
-		at = 11
-		helper_888ab2a3(8)
+		stage = 11
+		wait.for_frame_count(8)
 		event.move_object_sequence(0, -305.78, 0.0, -632.54, 45)
-		at = 12
-		helper_888ab2a3(22)
+		stage = 12
+		wait.for_frame_count(22)
 		event.set_object_sequence_motion(1, "歩き")
 		event.turn_object_sequence_toward(1, -351.88, 0.0, -630.2, 30)
-		at = 13
-		helper_888ab2a3(30)
+		stage = 13
+		wait.for_frame_count(30)
 		event.move_object_sequence(1, -351.88, 0.0, -630.2, 45)
-		at = 14
-		helper_888ab2a3(30)
+		stage = 14
+		wait.for_frame_count(30)
 		event.fade_out_screen(30)
-		at = 15
-		helper_888ab2a3(30)
+		stage = 15
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			helper_038a2e4d(4)
+		if stage <= 1 then
+			wait.skip_frame_count(4)
 		end
-		if at <= 2 then
-			helper_24100000()
-			helper_fbd9683d(0, 1)
-			helper_038a2e4d(30)
+		if stage <= 2 then
+			set_monica_as_player_slots()
+			message.set_window_mode_skipping(0, 1)
+			wait.skip_frame_count(30)
 		end
-		if at <= 3 then
-			helper_038a2e4d(135)
+		if stage <= 3 then
+			wait.skip_frame_count(135)
 		end
-		if at <= 4 then
-			helper_ee1c51d0(0, -1, 2, 256, 416)
+		if stage <= 4 then
+			message.show_and_wait_skipping(0, -1, 2, 256, 416)
 		end
-		if at <= 5 then
-			helper_038a2e4d(15)
+		if stage <= 5 then
+			wait.skip_frame_count(15)
 		end
-		if at <= 6 then
-			helper_ee1c51d0(0, -1, 7, 341, 208)
+		if stage <= 6 then
+			message.show_and_wait_skipping(0, -1, 7, 341, 208)
 		end
-		if at <= 7 then
-			helper_ee1c51d0(0, -1, 8, 341, 208)
+		if stage <= 7 then
+			message.show_and_wait_skipping(0, -1, 8, 341, 208)
 		end
-		if at <= 8 then
-			helper_038a2e4d(45)
+		if stage <= 8 then
+			wait.skip_frame_count(45)
 		end
-		if at <= 9 then
-			helper_038a2e4d(45)
+		if stage <= 9 then
+			wait.skip_frame_count(45)
 		end
-		if at <= 10 then
-			helper_038a2e4d(8)
+		if stage <= 10 then
+			wait.skip_frame_count(8)
 		end
-		if at <= 11 then
-			helper_038a2e4d(22)
+		if stage <= 11 then
+			wait.skip_frame_count(22)
 		end
-		if at <= 12 then
-			helper_038a2e4d(30)
+		if stage <= 12 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 13 then
-			helper_038a2e4d(30)
+		if stage <= 13 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 14 then
-			helper_038a2e4d(30)
+		if stage <= 14 then
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
-	event.set_scene_status_flags(1, global0, 8, 0)
-	event.set_scene_status_flags(1, global1, 8, 0)
-	helper_3efc8()
+	event.set_scene_status_flags(1, max_slot, 8, 0)
+	event.set_scene_status_flags(1, monica_slot, 8, 0)
+	unload_cutscene_characters()
 	event.finish_event()
 	event.skip_next_music_load()
 end
 
---- Helper function.
-local function helper_2bb50()
+--- Fades in and walks the player in from the west before returning control and the follow camera.
+local function walk_player_back_from_menu()
 	event.initialize_event()
 	event.set_camera_sequence_position(-625.66, 104.24, -868.06)
 	event.set_camera_sequence_look_at(-903.96, 23.48, -831.72)
@@ -322,13 +293,13 @@ local function helper_2bb50()
 	event.set_object_sequence_motion(0, "走り", 4, -1.0, 1)
 	event.move_object_sequence(0, -778.4, 0.0, -836.7, 60)
 	event.move_camera_sequence_eased(-625.66, 104.24, -868.06, -778.4, 20.0, -836.7, 48, 2, 0.4)
-	helper_888ab2a3(60)
+	wait.for_frame_count(60)
 	event.set_object_sequence_motion(0, "立ち", 4, -1.0, 1)
 	event.reset_follow_camera(0)
 end
 
---- Helper function.
-local function helper_44928()
+--- Starts the first-visit event script when its save flag has not been set.
+local function start_first_visit_event()
 	local flag: s32 = 0
 	flag = event.get_save_flag(207) or flag
 	if flag == 0 then
@@ -338,8 +309,8 @@ local function helper_44928()
 	end
 end
 
---- Helper function.
-local function helper_2b6c8()
+--- Runs the player into the map from the west while the camera fades in.
+local function run_player_in_with_fade()
 	event.initialize_event()
 	event.fade_out_screen(0)
 	event.clear_camera_sequence()
@@ -355,17 +326,17 @@ local function helper_2b6c8()
 	event.move_object_sequence(0, -806.69, 0.0, 85.01, 60)
 	event.mark_camera_sequence_fade_track()
 	event.fade_in_camera_sequence(30, 0.0, 0.0, 0.0)
-	helper_888ab2a3(60)
+	wait.for_frame_count(60)
 	event.set_object_sequence_motion(0, "立ち", 4)
 	event.reset_follow_camera(0)
 end
 
---- Helper function.
-local function helper_28ec8()
-	local flag: s32 = 0
-	local time: f32 = 0
-	local var2: s32 = 0
-	local var3: s32 = 0
+--- Plays the skippable cutscene of the train arriving at the station and the player stepping off.
+local function play_train_arrival_cutscene()
+	local flag_30: s32 = 0
+	local time_of_day: f32 = 0
+	local sound_bank: s32 = 0
+	local train_sound: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		at = 1
@@ -373,12 +344,12 @@ local function helper_28ec8()
 		event.initialize_event()
 		event.set_save_flag(30, 0)
 		at = 2
-		helper_b76e3b36()
-		helper_f72a4299()
+		train.level_cars()
+		sindain_station.hide_villagers()
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		var2 = event.load_sound_effect_file_3(8, "snd2/sp/sp_018.sound.json") or var2
-		event.play_sound_effect(var2, 0)
+		sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_018.sound.json") or sound_bank
+		event.play_sound_effect(sound_bank, 0)
 		event.attach_object_handle_to_character(0, 0)
 		event.set_object_handle_footstep_sound(0, 6)
 		event.clear_object_sequence(0)
@@ -386,8 +357,8 @@ local function helper_28ec8()
 		event.set_object_sequence_position(0, 0.0, 0.0, 0.0)
 		event.set_object_sequence_rotation(0, 0.0, 0.0, 0.0)
 		event.set_character_active(0, 0)
-		time = event.get_scene_time_of_day() or time
-		if time > 0.0 and time < 5.5 then
+		time_of_day = event.get_scene_time_of_day() or time_of_day
+		if time_of_day > 0.0 and time_of_day < 5.5 then
 			event.set_object_handle_shadow_enabled(0, 0)
 		end
 		event.attach_object_handle_to_map_part_2(1, "p01_train01")
@@ -427,12 +398,12 @@ local function helper_28ec8()
 		event.enable_drama_skip()
 		event.move_object_sequence_eased(1, 1.3, 8.0, 700.0, 40, 2, 1.0)
 		at = 3
-		wait_objects(1)
+		object.wait_until_done(1)
 		at = 4
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 		event.start_crossfade(30)
 		event.set_object_handle_position(1, 1.3, 8.0, 700.0)
-		helper_d552d8eb()
+		train.tilt_cars()
 		event.set_save_flag(30, 1)
 		event.attach_object_handle_to_character(0, 0)
 		event.clear_object_sequence(0)
@@ -443,9 +414,9 @@ local function helper_28ec8()
 		event.set_object_sequence_position(0, -40.0, 45.6, -366.0)
 		event.set_object_sequence_rotation(0, 0.0, -1.56, 0.0)
 		at = 5
-		helper_888ab2a3(15)
-		var3 = event.get_sound_id(2) or var3
-		event.play_sound_effect(var3, 106)
+		wait.for_frame_count(15)
+		train_sound = event.get_sound_id(2) or train_sound
+		event.play_sound_effect(train_sound, 106)
 		event.rotate_object_sequence(2, 0.0, -1.5, 0.0, 30)
 		event.rotate_object_sequence(3, 0.0, 1.5, 0.0, 30)
 		event.rotate_object_sequence(4, 0.0, 1.5, 0.0, 30)
@@ -453,40 +424,40 @@ local function helper_28ec8()
 		event.rotate_object_sequence(6, 0.0, -1.5, 0.0, 30)
 		event.rotate_object_sequence(7, 0.0, 1.5, 0.0, 30)
 		at = 6
-		helper_888ab2a3(15)
+		wait.for_frame_count(15)
 		event.set_object_sequence_motion(0, "走り", 0, -1.0, 1)
 		event.delay_object_sequence_motion_track(0, 40)
 		event.set_object_sequence_motion(0, "立ち")
 		event.move_object_sequence(0, -68.89, 43.64, -366.0, 10)
 		event.move_object_sequence(0, -131.89, 0.0, -366.0, 30)
 		at = 7
-		helper_888ab2a3(40)
+		wait.for_frame_count(40)
 		event.fade_out_screen(10)
 		at = 8
-		helper_888ab2a3(10)
+		wait.for_frame_count(10)
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_6cf80642()
+			sindain_station.log_slope_off()
 		end
 		if at <= 2 then
-			helper_1ef0d4b2()
-			helper_238b5abc(1)
+			cutscene.noop()
+			cutscene.skip_command(1)
 		end
 		if at <= 3 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		if at <= 4 then
-			helper_042a5b29()
-			helper_038a2e4d(15)
+			sindain_station.skip_crossfade_step()
+			wait.skip_frame_count(15)
 		end
 		if at <= 5 then
-			helper_038a2e4d(15)
+			wait.skip_frame_count(15)
 		end
 		if at <= 6 then
-			helper_038a2e4d(40)
+			wait.skip_frame_count(40)
 		end
 		if at <= 7 then
-			helper_038a2e4d(10)
+			wait.skip_frame_count(10)
 		end
 		return true
 	end)
@@ -495,7 +466,7 @@ local function helper_28ec8()
 	event.cancel_drama_scene_skip()
 	event.set_map_piece_character_motion("p01_train01", "kikan-m0", "停止")
 	event.clear_camera_sequence()
-	event.stop_sound_effect(var2, 0)
+	event.stop_sound_effect(sound_bank, 0)
 	event.clear_effect_manager()
 	event.set_object_handle_position(1, 1.3, 8.0, 700.0)
 	event.set_object_handle_rotation(2, 0.0, 0.0, 0.0)
@@ -506,34 +477,34 @@ local function helper_28ec8()
 	event.set_object_handle_rotation(7, 0.0, 0.0, 0.0)
 	event.set_object_handle_visible(9, 1)
 	event.set_character_active(1, 0)
-	helper_9dafbc83(-130.0, 0.0, -366.0, vm.f32(-1.57))
+	character.place_standing_and_reset_cloth(-130.0, 0.0, -366.0, vm.f32(-1.57))
 	event.set_camera_look_at(-130.0, 30.0, -366.0)
 	event.set_camera_position(-270.0, 40.0, -366.0)
-	flag = event.get_save_flag(30) or flag
-	if flag == 0 then
-		helper_d552d8eb()
+	flag_30 = event.get_save_flag(30) or flag_30
+	if flag_30 == 0 then
+		train.tilt_cars()
 	end
-	helper_0226fccb()
+	sindain_station.show_villagers()
 	event.fade_in_screen(15)
 end
 
---- Helper function.
-local function helper_27ae8()
-	local var0: s32 = 0
-	local time: f32 = 0
+--- Plays the short train arrival cutscene and places the player on the platform.
+local function play_train_arrival_quick()
+	local sound_bank: s32 = 0
+	local time_of_day: f32 = 0
 	local pos_x: f32 = 0
 	local pos_y: f32 = 0
 	local pos_z: f32 = 0
-	local var5: s32 = 0
+	local train_sound: s32 = 0
 	event.initialize_event()
-	var0 = event.load_sound_effect_file_3(8, "snd2/sp/sp_019.sound.json") or var0
-	helper_f72a4299()
+	sound_bank = event.load_sound_effect_file_3(8, "snd2/sp/sp_019.sound.json") or sound_bank
+	sindain_station.hide_villagers()
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
 	event.set_character_active(0, 0)
-	time = event.get_scene_time_of_day() or time
-	if time > 0.0 and time < 5.5 then
+	time_of_day = event.get_scene_time_of_day() or time_of_day
+	if time_of_day > 0.0 and time_of_day < 5.5 then
 		event.set_object_handle_shadow_enabled(0, 0)
 	end
 	event.attach_object_handle_to_map_part_2(1, "p01_train01")
@@ -566,9 +537,9 @@ local function helper_27ae8()
 	event.set_camera_sequence_look_at(140.3, 63.52, 109.43)
 	event.fade_in_screen(30)
 	event.move_object_sequence_eased(1, 1.3, 8.0, 700.0, 40, 2, 1.0)
-	event.play_sound_effect(var0, 0)
-	wait_objects(1)
-	helper_888ab2a3(10)
+	event.play_sound_effect(sound_bank, 0)
+	object.wait_until_done(1)
+	wait.for_frame_count(10)
 	event.start_crossfade(30)
 	event.set_camera_sequence_position(-254.85, 60.24, -455.84)
 	event.set_camera_sequence_look_at(-89.19, 67.53, -382.63)
@@ -580,18 +551,18 @@ local function helper_27ae8()
 	event.rotate_object_sequence(3, 0.0, 0.0, -1.5707964, 30)
 	event.rotate_object_sequence(4, 0.0, 0.0, 0.3926991, 30)
 	event.rotate_object_sequence(5, 0.0, 0.0, 0.3926991, 30)
-	var5 = event.get_sound_id(2) or var5
-	event.play_sound_effect(var5, 92)
-	helper_888ab2a3(30)
+	train_sound = event.get_sound_id(2) or train_sound
+	event.play_sound_effect(train_sound, 92)
+	wait.for_frame_count(30)
 	event.move_object_sequence(5, pos_x - 22.5, pos_y - 9.5, pos_z, 30)
-	helper_888ab2a3(20)
+	wait.for_frame_count(20)
 	event.move_object_sequence(0, -130.0, 0.0, -365.0, 30)
 	event.set_object_sequence_motion(0, "走り", 4)
 	event.set_object_handle_footstep_sound(0, 6)
-	wait_objects(0)
+	object.wait_until_done(0)
 	event.set_object_handle_footstep_sound(0, 0)
 	event.set_object_sequence_motion(0, "立ち")
-	helper_888ab2a3(10)
+	wait.for_frame_count(10)
 	event.fade_in_screen(1)
 	event.set_object_handle_position(1, 1.3, 8.0, 700.0)
 	event.set_object_handle_rotation(1, 0.0, 0.0, 0.0)
@@ -602,37 +573,37 @@ local function helper_27ae8()
 	event.set_object_handle_rotation(5, 0.0, 0.0, 0.0)
 	event.set_object_handle_visible(6, 1)
 	event.set_character_active(0)
-	helper_9dafbc83(-130.0, 0.0, -365.0, vm.f32(-1.57))
+	character.place_standing_and_reset_cloth(-130.0, 0.0, -365.0, vm.f32(-1.57))
 	event.update_character_motion(0)
 	event.reset_character_cloth_and_hair(0)
 	event.set_camera_look_at(-130.0, 30.0, -366.0)
 	event.set_camera_position(-270.0, 40.0, -366.0)
-	helper_0226fccb()
+	sindain_station.show_villagers()
 	event.fade_in_screen(15)
 end
 
---- Helper function.
-local function helper_24a00000()
-	helper_1ef0d4b2()
-	helper_238b5abc(1)
-	helper_038a2e4d(10)
-	helper_038a2e4d(30)
-	helper_038a2e4d(20)
-	helper_238b5abc(0)
-	helper_038a2e4d(10)
-	helper_43f02c95(-130.0, 0.0, -365.0, vm.f32(-1.57))
-	helper_1ef0d4b2()
+--- Skip-handler counterpart of the train arrival cutscene that replays its waits.
+local function skip_train_arrival_quick()
+	cutscene.noop()
+	cutscene.skip_command(1)
+	wait.skip_frame_count(10)
+	wait.skip_frame_count(30)
+	wait.skip_frame_count(20)
+	cutscene.skip_command(0)
+	wait.skip_frame_count(10)
+	cutscene.ignore_coordinates(-130.0, 0.0, -365.0, vm.f32(-1.57))
+	cutscene.noop()
 end
 
---- Helper function.
-local function helper_262a4()
-	local var0: any = 0
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: s32 = 0
+--- Asks whether to leave through the exit, then runs the player out and fades out, or steps the player back; returns 1 when leaving.
+local function confirm_exit_to_map()
+	local choice: any = 0
+	local flag_207: s32 = 0
+	local flag_208: s32 = 0
+	local x: f32 = 0
+	local y: f32 = 0
+	local z: f32 = 0
+	local loop_index: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
@@ -643,47 +614,47 @@ local function helper_262a4()
 		event.set_character_motion(0, "立ち", 4)
 		event.open_message_window_2(0, "『シャーロット』に移動しますか？")
 		at = 1
-		var0 = helper_bac0e30d(0, -1, 8, 256, 208, 2, 1)
-		if var0 == 0 then
+		choice = message.ask_choice(0, -1, 8, 256, 208, 2, 1)
+		if choice == 0 then
 			event.set_object_sequence_position(0, -936.47, 0.0, -23.84)
 			event.set_object_sequence_rotation(0, 0.0, -1.65, 0.0)
 			event.set_object_sequence_motion(0, "走り", 4)
 			event.clear_camera_sequence()
 			event.set_camera_sequence_position(-751.82, 79.08, -27.15)
 			event.set_camera_sequence_look_at(-928.2, 36.53, -26.64)
-			flag = event.get_save_flag(207) or flag
-			flag_2 = event.get_save_flag(208) or flag_2
-			if flag == 1 and flag_2 == 0 then
+			flag_207 = event.get_save_flag(207) or flag_207
+			flag_208 = event.get_save_flag(208) or flag_208
+			if flag_207 == 1 and flag_208 == 0 then
 				event.skip_next_music_load()
 			end
 			event.move_object_sequence(0, -1142.09, 0.0, -28.24, 60)
 			event.move_camera_sequence(-751.82, 79.08, -27.15, -921.16, 65.58, -20.12, 60)
 			at = 2
-			helper_888ab2a3(30)
+			wait.for_frame_count(30)
 			event.fade_out_screen(30)
 			at = 3
-			helper_888ab2a3(30)
+			wait.for_frame_count(30)
 			return 1
 		end
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var3 = out1 or var3
-			var4 = out2 or var4
-			var5 = out3 or var5
+			x = out1 or x
+			y = out2 or y
+			z = out3 or z
 		end
-		var3 = vm.f32(var3 + vm.f32(30.0 * vm.sin(vm.f32(1.57))))
-		var5 = vm.f32(var5 + vm.f32(30.0 * vm.cos(vm.f32(1.57))))
+		x = vm.f32(x + vm.f32(30.0 * vm.sin(vm.f32(1.57))))
+		z = vm.f32(z + vm.f32(30.0 * vm.cos(vm.f32(1.57))))
 		event.set_object_sequence_motion(0, "歩き", 4, -1.0, 1)
 		event.rotate_object_sequence(0, 0.0, 1.57, 0.0, 15)
-		event.move_object_sequence(0, var3, var4, var5, 45)
+		event.move_object_sequence(0, x, y, z, 45)
 		for var6_i = 0, 44 do
 			do
 				local out1, out2, out3 = event.get_character_position(0)
-				var3 = out1 or var3
-				var4 = out2 or var4
-				var5 = out3 or var5
+				x = out1 or x
+				y = out2 or y
+				z = out3 or z
 			end
-			event.set_camera_sequence_look_at(var3, var4 + 30.0, var5)
+			event.set_camera_sequence_look_at(x, y + 30.0, z)
 			at = 4
 			vm.wait(4)
 		end
@@ -693,36 +664,36 @@ local function helper_262a4()
 	end, function(received: { any })
 		if at <= 3 then
 			if at == 1 then
-				var0 = received[1] :: number
+				choice = received[1] :: number
 			end
 			if at <= 1 then
-				helper_038a2e4d(30)
+				wait.skip_frame_count(30)
 			end
 			if at <= 2 then
-				helper_038a2e4d(30)
+				wait.skip_frame_count(30)
 			end
 			return 1
 		end
 		if at <= 4 then
-			local _ = var6 < 45
-			var6 = var6 + 1
+			local _ = loop_index < 45
+			loop_index = loop_index + 1
 			return 0
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_26ea4()
-	local var0: any = 0
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
+--- Asks whether to leave through the dungeon exit, then runs the player out and fades out, or steps the player back; returns 1 when leaving.
+local function confirm_exit_to_dungeon()
+	local choice: any = 0
+	local x: f32 = 0
+	local y: f32 = 0
+	local z: f32 = 0
+	local rotation_x: f32 = 0
+	local rotation_y: f32 = 0
+	local rotation_z: f32 = 0
 	local angle: f32 = 0
-	local var8: s32 = 0
+	local loop_index: s32 = 0
 	local at: number = 0
 	return vm.guard(function()
 		event.initialize_event()
@@ -730,8 +701,8 @@ local function helper_26ea4()
 		event.set_character_motion(0, "立ち", 4)
 		event.open_message_window_2(0, "『七色蝶の森』に移動しますか？")
 		at = 1
-		var0 = helper_bac0e30d(0, -1, 8, 256, 208, 2, 1)
-		if var0 == 0 then
+		choice = message.ask_choice(0, -1, 8, 256, 208, 2, 1)
+		if choice == 0 then
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
@@ -744,10 +715,10 @@ local function helper_26ea4()
 			event.move_object_sequence(0, -1044.71, 0.0, -836.63, 60)
 			event.move_camera_sequence(-668.11, 97.09, -886.72, -881.32, 61.14, -861.93, 60)
 			at = 2
-			helper_888ab2a3(30)
+			wait.for_frame_count(30)
 			event.fade_out_screen(30)
 			at = 3
-			helper_888ab2a3(30)
+			wait.for_frame_count(30)
 			return 1
 		end
 		event.attach_object_handle_to_character(0, 0)
@@ -756,31 +727,31 @@ local function helper_26ea4()
 		event.set_object_sequence_motion(0, "歩き", 4)
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var1 = out1 or var1
-			var2 = out2 or var2
-			var3 = out3 or var3
+			x = out1 or x
+			y = out2 or y
+			z = out3 or z
 		end
 		do
 			local out1, out2, out3 = event.get_character_rotation(0)
-			var4 = out1 or var4
-			var5 = out2 or var5
-			var6 = out3 or var6
+			rotation_x = out1 or rotation_x
+			rotation_y = out2 or rotation_y
+			rotation_z = out3 or rotation_z
 		end
-		angle = vm.f32(vm.f32(3.1415927) + var5)
+		angle = vm.f32(vm.f32(3.1415927) + rotation_y)
 		angle = event.wrap_angle(angle) or angle
 		angle = vm.f32(1.5707964)
-		var1 = vm.f32(var1 + vm.f32(30.0 * vm.sin(angle)))
-		var3 = vm.f32(var3 + vm.f32(30.0 * vm.cos(angle)))
-		event.rotate_object_sequence(0, var4, angle, var6, 15)
-		event.move_object_sequence(0, var1, var2, var3, 45)
+		x = vm.f32(x + vm.f32(30.0 * vm.sin(angle)))
+		z = vm.f32(z + vm.f32(30.0 * vm.cos(angle)))
+		event.rotate_object_sequence(0, rotation_x, angle, rotation_z, 15)
+		event.move_object_sequence(0, x, y, z, 45)
 		for var8_i = 0, 44 do
 			do
 				local out1, out2, out3 = event.get_character_position(0)
-				var1 = out1 or var1
-				var2 = out2 or var2
-				var3 = out3 or var3
+				x = out1 or x
+				y = out2 or y
+				z = out3 or z
 			end
-			event.set_camera_sequence_look_at(var1, var2 + 30.0, var3)
+			event.set_camera_sequence_look_at(x, y + 30.0, z)
 			at = 4
 			vm.wait(4)
 		end
@@ -789,77 +760,77 @@ local function helper_26ea4()
 	end, function(received: { any })
 		if at <= 3 then
 			if at == 1 then
-				var0 = received[1] :: number
+				choice = received[1] :: number
 			end
 			if at <= 1 then
-				helper_038a2e4d(30)
+				wait.skip_frame_count(30)
 			end
 			if at <= 2 then
-				helper_038a2e4d(30)
+				wait.skip_frame_count(30)
 			end
 			return 1
 		end
 		if at <= 4 then
-			local _ = var8 < 45
-			var8 = var8 + 1
+			local _ = loop_index < 45
+			loop_index = loop_index + 1
 			return 0
 		end
 		return nil
 	end)
 end
 
---- Helper function.
-local function helper_2c054()
-	local var2: s32 = 0
-	local flag: s32 = 0
+--- Opens the floor menu of the second dungeon, then resumes play with the player walking back, jumps to map s05 or enters the chosen floor.
+local function select_dungeon_floor()
+	local selection: s32 = 0
+	local flag_212: s32 = 0
 	event.set_dungeon_stage_id(1)
 	event.open_event_menu(3, 1)
 	vm.wait(1)
 	do
 		local _, _, out3, _ = event.get_menu_results_4()
-		var2 = out3 or var2
+		selection = out3 or selection
 	end
 	vm.wait(2)
-	if var2 == 0 then
-		helper_2bb50()
+	if selection == 0 then
+		walk_player_back_from_menu()
 	else
-		if var2 == 6 then
+		if selection == 6 then
 			event.jump_to_map_3(-1, "s05", 100)
 			vm.wait(4)
 			return
 		end
-		flag = event.get_save_flag(212) or flag
-		if var2 == 2 and flag == 0 or var2 == 14 then
+		flag_212 = event.get_save_flag(212) or flag_212
+		if selection == 2 and flag_212 == 0 or selection == 14 then
 			event.skip_next_music_load()
 		end
-		event.go_to_dungeon(1, var2, 1010)
+		event.go_to_dungeon(1, selection, 1010)
 	end
 end
 
---- Helper function.
-local function helper_430b4()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
+--- Plays the cutscene of Starbre announcing the departure with the playable character and partner on the platform.
+local function play_departure_announcement()
+	local sound_bank: s32 = 0
+	local playable_character: s32 = 0
 	vm.section(function()
 		vm.entry(1)
 		event.set_save_flag(283, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(2237)
-		var0 = event.load_sound_effect_file_2(2237) or var0
+		sound_bank = event.load_sound_effect_file_2(2237) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		playable_character = event.get_playable_character() or playable_character
 		event.change_directory("event/e200/e283/")
 		event.load_message_file(0, 5, "e283.txt")
-		if active_chr_no == 0 then
+		if playable_character == 0 then
 			event.load_character_motion_pack(5, "e283_mints.gltf", "info", 0)
 			event.set_character_active(0, 0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character_motion_pack(5, "e283_monica.gltf", "info", 0)
 			event.set_character_active(0, 0)
 			event.attach_object_handle_to_character(1, 0)
@@ -872,7 +843,7 @@ local function helper_430b4()
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 2)
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if playable_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 32)
 			event.load_equipment_model(5, 0, 4, "info", 32)
 			event.load_equipment_model(5, 0, 3, "info", 32)
@@ -921,13 +892,13 @@ local function helper_430b4()
 		event.set_character_active(34)
 		event.fade_in_screen(30)
 		event.stop_music(0)
-		helper_888ab2a3(45)
+		wait.for_frame_count(45)
 		event.set_object_sequence_motion(2, "出発進行", 6)
 		event.queue_object_sequence_next_motion(2, "出発進行L", 4)
-		event.play_sound_effect(var0, 2)
-		helper_4116e6bb(2830010)
+		event.play_sound_effect(sound_bank, 2)
+		message.show_voiced(2830010)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	vm.entry(5)
 	event.cancel_drama_scene_skip()
@@ -947,9 +918,9 @@ local function helper_430b4()
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_2a840()
-	local var0: s32 = 0
+--- Plays the skippable cutscene of the train steaming away from the station and fading out.
+local function play_train_departure_cutscene()
+	local sound_bank: s32 = 0
 	local at: number = 0
 	vm.section(function()
 		at = 1
@@ -957,16 +928,16 @@ local function helper_2a840()
 		event.initialize_event()
 		event.fade_out_screen(30)
 		at = 2
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.load_map_sounds(2237)
-		var0 = event.load_sound_effect_file_2(2237) or var0
+		sound_bank = event.load_sound_effect_file_2(2237) or sound_bank
 		event.set_character_active(0, 0)
 		event.set_character_active(0, 8)
 		event.set_character_active(0, 9)
 		event.set_character_active(0, 10)
-		helper_f97100db()
+		sindain_station.hide_station_parts()
 		at = 3
-		helper_b76e3b36()
+		train.level_cars()
 		event.attach_object_handle_to_map_part_2(0, "p01_train01")
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
@@ -1000,7 +971,7 @@ local function helper_2a840()
 		event.set_camera_sequence_look_at(-158.49, 89.18, -46.7)
 		event.fade_in_screen(30)
 		at = 4
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_character_active(1, 32)
 		event.set_object_sequence_position(2, 30.0, 20.0, 380.0)
 		event.set_object_sequence_rotation(2, 0.0, 0.0, 0.0)
@@ -1013,28 +984,28 @@ local function helper_2a840()
 		event.move_object_sequence_eased(1, 0.0, 0.0, 6000.0, 210, 1, 1.0)
 		event.move_object_sequence_eased(2, 0.0, 0.0, 6000.0, 210, 1, 1.0)
 		event.move_object_sequence_eased(3, 0.0, 0.0, 6000.0, 210, 1, 1.0)
-		event.play_sound_effect(var0, 3)
+		event.play_sound_effect(sound_bank, 3)
 		at = 5
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.fade_out_screen(30)
 		at = 6
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
 		if at <= 1 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 2 then
-			helper_1ef0d4b2()
-			helper_6cf80642()
+			cutscene.noop()
+			sindain_station.log_slope_off()
 		end
 		if at <= 3 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		if at <= 4 then
-			helper_238b5abc(0)
+			cutscene.skip_command(0)
 		end
 		if at <= 5 then
-			helper_038a2e4d(30)
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
@@ -1051,43 +1022,44 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- Event 99, which map data, a script or the engine runs by number.
-function script.event_99()
+--- Initializes the station and places the player at the start position with a fade-in.
+function script.place_player_at_station()
 	event.initialize_event()
-	helper_8efad286()
+	sindain_station.initialize_map()
 	event.set_camera_position(-368.0, 50.0, 62.1)
 	event.set_camera_look_at(-368.0, 30.0, -57.9)
 	event.set_character_position(0, -368.0, 0.0, -57.9)
 	event.set_character_rotation(0, 0.0, 0.0, 0.0)
 	event.fade_in_screen(15)
 end
+script[99] = script.place_player_at_station
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the player on entry according to the previous map, playing the arrival cutscene when needed.
 function script.default_event()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local mc_load: s32 = 0
+	local forest_cutscene_ready_flag: s32 = 0
+	local forest_cutscene_done_flag: s32 = 0
+	local memory_card_loaded: s32 = 0
 	local old_map_no: s32 = 0
-	local var4: s32 = 0
-	local var5: s32 = 0
-	local var6: s32 = 0
-	local at: number = 0
+	local old_map_type: s32 = 0
+	local train_state: s32 = 0
+	local chapter: s32 = 0
+	local stage: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		helper_8efad286()
+		sindain_station.initialize_map()
 		print("start_event--------------------------------------------\n")
-		flag = event.get_save_flag(31) or flag
-		flag_2 = event.get_save_flag(254) or flag_2
-		if flag ~= 0 and flag_2 == 0 then
-			helper_40070()
+		forest_cutscene_ready_flag = event.get_save_flag(31) or forest_cutscene_ready_flag
+		forest_cutscene_done_flag = event.get_save_flag(254) or forest_cutscene_done_flag
+		if forest_cutscene_ready_flag ~= 0 and forest_cutscene_done_flag == 0 then
+			play_carpenterion_forest_cutscene()
 			event.jump_to_map_3(-1, "s47", 505)
 			return
 		end
-		mc_load = event.take_memory_card_load_state() or mc_load
-		if mc_load == 1 then
+		memory_card_loaded = event.take_memory_card_load_state() or memory_card_loaded
+		if memory_card_loaded == 1 then
 			event.set_character_position(0, -750.0, 0.0, -75.0)
 			event.set_character_rotation(0, 0.0, 1.57, 0.0)
 			event.set_character_motion(0, "立ち", 4)
@@ -1096,39 +1068,39 @@ function script.default_event()
 			event.reset_follow_camera(1, 0.0, 20.0)
 		else
 			old_map_no = event.get_previous_map() or old_map_no
-			var4 = event.get_map_type(old_map_no) or var4
-			if var4 ~= -1 then
-				if var4 == 7 or var4 == 8 then
-					at = 2
-					helper_2bb50()
+			old_map_type = event.get_map_type(old_map_no) or old_map_type
+			if old_map_type ~= -1 then
+				if old_map_type == 7 or old_map_type == 8 then
+					stage = 2
+					walk_player_back_from_menu()
 					event.set_character_motion(0, "立ち")
 					return
 				else
 					if old_map_no == 53 then
-						at = 3
-						helper_44928()
+						stage = 3
+						start_first_visit_event()
 						return
 					end
 					if old_map_no == 0 then
-						at = 4
-						helper_2b6c8()
+						stage = 4
+						run_player_in_with_fade()
 					else
-						var5 = event.get_save_counter(1) or var5
+						train_state = event.get_save_counter(1) or train_state
 						if
 							(old_map_no == 18 or old_map_no == 23 or old_map_no == 120 or old_map_no == 108)
-							and var5 == 2
+							and train_state == 2
 						then
-							helper_946c0402()
+							train.place_player_at_saved_platform()
 							event.fade_in_screen(15)
 							event.reset_follow_camera(1, 0.0)
 						else
-							var6 = event.get_chapter() or var6
-							if var6 ~= 6 and var6 ~= 7 then
-								at = 5
-								helper_28ec8()
+							chapter = event.get_chapter() or chapter
+							if chapter ~= 6 and chapter ~= 7 then
+								stage = 5
+								play_train_arrival_cutscene()
 							else
-								at = 6
-								helper_27ae8()
+								stage = 6
+								play_train_arrival_quick()
 							end
 						end
 					end
@@ -1138,24 +1110,24 @@ function script.default_event()
 		end
 		return
 	end, function(received: { any })
-		if at <= 2 then
+		if stage <= 2 then
 			return 0
 		end
-		if at <= 3 then
+		if stage <= 3 then
 			return 0
 		end
-		if at <= 6 then
-			if at <= 4 then
-				helper_d7295df9()
-				at = 5
-				helper_28ec8()
+		if stage <= 6 then
+			if stage <= 4 then
+				train.skip_place_player_at_saved_platform()
+				stage = 5
+				play_train_arrival_cutscene()
 				return vm.continue_with(function()
 					event.set_character_motion(0, "立ち")
 					return
 				end)
 			end
-			if at <= 5 then
-				helper_24a00000()
+			if stage <= 5 then
+				skip_train_arrival_quick()
 			end
 			return 0
 		end
@@ -1163,283 +1135,295 @@ function script.default_event()
 	end)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Shows a debug message window with an inserted string.
 function script.key_open()
 	event.set_message_inserted_string(0, 16, "なかみ")
 	event.open_message_window_2(0, "ここから[文字列１６]ここまで")
-	show_message(0, -1, 5, 0, 0)
+	message.show(0, -1, 5, 0, 0)
 end
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
+--- Waits for a button press.
+function script.wait_for_button()
 	vm.wait(1)
-	helper_c956b4a2(32)
+	wait.until_button_pressed(32)
 end
+script[151] = script.wait_for_button
 
---- Event 209, which map data, a script or the engine runs by number.
-function script.event_209()
-	local flag: s32 = 0
-	if helper_262a4() ~= 0 then
+--- Confirms leaving and jumps to map g01.
+function script.exit_to_g01()
+	local exit_state_flag: s32 = 0
+	if confirm_exit_to_map() ~= 0 then
 		event.fade_out_screen(0)
 		vm.wait(2)
-		flag = event.get_save_flag(208) or flag
-		if flag == 0 then
+		exit_state_flag = event.get_save_flag(208) or exit_state_flag
+		if exit_state_flag == 0 then
 			event.skip_next_music_play()
 		end
 		event.jump_to_map_2(-1, "g01")
 		return
 	end
 end
+script[209] = script.exit_to_g01
 
---- Event 210, which map data, a script or the engine runs by number.
-function script.event_210()
-	if helper_26ea4() ~= 0 then
-		helper_2c054()
+--- Confirms leaving and opens the dungeon floor selection.
+function script.exit_to_dungeon()
+	if confirm_exit_to_dungeon() ~= 0 then
+		select_dungeon_floor()
 	end
 end
+script[210] = script.exit_to_dungeon
 
---- Event 250, which map data, a script or the engine runs by number.
-function script.event_250()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local var2: s32 = 0
-	local at: number = 0
+--- Asks whether to board and boards the train for the destination chosen by the trigger.
+function script.board_train()
+	local answer: s32 = 0
+	local chapter: s32 = 0
+	local destination_kind: s32 = 0
+	local stage: number = 0
 	return vm.guard(function()
-		at = 1
-		var0 = helper_3efe4328()
-		if var0 ~= 1 then
+		stage = 1
+		answer = menu.ask_enter_or_depart()
+		if answer ~= 1 then
 			return
 		end
 		event.set_save_counter(1, 2)
-		var1 = event.get_chapter() or var1
-		var2 = event.get_triggered_event_data_2(3) or var2
-		if var2 <= 1 then
-			if var1 ~= 6 and var1 ~= 7 then
-				at = 2
-				helper_cf15df04()
+		chapter = event.get_chapter() or chapter
+		destination_kind = event.get_triggered_event_data_2(3) or destination_kind
+		if destination_kind <= 1 then
+			if chapter ~= 6 and chapter ~= 7 then
+				stage = 2
+				train.board_short_train_primary()
 				event.stop_music(0)
-				at = 3
+				stage = 3
 				vm.wait(3)
 				event.jump_to_map_2(-1, "s08")
 			else
-				at = 4
-				helper_cf15df04()
+				stage = 4
+				train.board_short_train_primary()
 				event.stop_music(0)
-				at = 5
+				stage = 5
 				vm.wait(5)
 				event.jump_to_map_2(-1, "s37")
 			end
-			at = 6
+			stage = 6
 			vm.wait(6)
-		elseif var1 ~= 6 and var1 ~= 7 then
-			at = 7
-			helper_cce8673f(1)
+		elseif chapter ~= 6 and chapter ~= 7 then
+			stage = 7
+			train.board_train_primary(1)
 			event.stop_music(0)
 			event.jump_to_map_2(100, "s07")
 		else
-			at = 8
-			helper_0d0a5438()
+			stage = 8
+			train.board_via_gangway_main()
 			event.stop_music(0)
 			event.jump_to_map_2(100, "s38")
 		end
 		return
 	end, function(received: { any })
-		if at <= 1 then
-			if at == 1 then
-				var0 = received[1] :: number
+		if stage <= 1 then
+			if stage == 1 then
+				answer = received[1] :: number
 			end
 			return 0
 		end
-		if at <= 8 then
-			if at <= 3 then
-				helper_6cc2fba1()
+		if stage <= 8 then
+			if stage <= 3 then
+				map.run_train_interval_waits()
 			end
-			if at <= 6 then
-				helper_84a2c453(1)
+			if stage <= 6 then
+				map.print_train_debug_info(1)
 			end
-			if at <= 7 then
-				helper_b7a01b67()
+			if stage <= 7 then
+				train.skip_board_via_gangway_main()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[250] = script.board_train
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_93cb8168
+script[400] = menu.open_type_7
 
 --- Event 499, which map data, a script or the engine runs by number.
-script.event_499 = helper_28ec8
+script.play_train_arrival_cutscene = play_train_arrival_cutscene
+script[499] = script.play_train_arrival_cutscene
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
+--- Fades out and loads the companion cutscene that forms the party and gives five of item 352.
+function script.cutscene_form_party()
 	event.initialize_event()
 	event.fade_out_screen(0)
 	vm.wait(1)
 	event.load_event_script("s02/s02b.stb", 501)
 end
+script[501] = script.cutscene_form_party
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
+--- Loads the companion cutscene that gives item 370.
+function script.cutscene_receive_item_370()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s02/s02b.stb", 502)
 end
+script[502] = script.cutscene_receive_item_370
 
---- Event 503, which map data, a script or the engine runs by number.
-function script.event_503()
+--- Loads the companion cutscene that plays the station event 280 scene.
+function script.cutscene_station_event_280()
 	event.initialize_event()
 	vm.wait(1)
 	event.load_event_script("s02/s02b.stb", 503)
 end
+script[503] = script.cutscene_station_event_280
 
---- Event 504, which map data, a script or the engine runs by number.
-function script.event_504()
+--- Initializes the station and runs the player in with a fade.
+function script.run_player_into_station()
 	event.initialize_event()
-	helper_8efad286()
-	helper_2b6c8()
+	sindain_station.initialize_map()
+	run_player_in_with_fade()
 	event.set_character_motion(0, "立ち")
 end
+script[504] = script.run_player_into_station
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local at: number = 0
+--- Handles the triggered station characters, offering to depart for the train.
+function script.talk_to_station_npc()
+	local npc_kind: s32 = 0
+	local answer: s32 = 0
+	local stage: number = 0
 	return vm.guard(function()
-		var0 = event.get_triggered_event_data_2(14) or var0
-		if var0 == 1 then
-			at = 1
-			var1 = helper_ef001e52()
-			if var1 == 1 then
-				at = 2
-				helper_430b4()
-				at = 3
-				helper_2a840()
+		npc_kind = event.get_triggered_event_data_2(14) or npc_kind
+		if npc_kind == 1 then
+			stage = 1
+			answer = party.talk_to_elder()
+			if answer == 1 then
+				stage = 2
+				play_departure_announcement()
+				stage = 3
+				play_train_departure_cutscene()
 				event.open_event_menu(13, 4)
-				at = 4
+				stage = 4
 				vm.wait(4)
 				event.jump_to_map_2(-1, "s04")
 			end
 		end
-		if var0 == 2 then
-			at = 5
-			helper_4cb9ff49()
+		if npc_kind == 2 then
+			stage = 5
+			party.talk_to_engineer()
 		end
-		if var0 == 13 then
-			at = 6
-			helper_71aacd6c()
+		if npc_kind == 13 then
+			stage = 6
+			party.talk_to_blaster()
 		end
-		if var0 == 301 then
-			at = 7
-			helper_ce60ccd6()
+		if npc_kind == 301 then
+			stage = 7
+			party.talk_to_waiting_npc()
 		end
 		return
 	end, function(received: { any })
-		if at <= 7 then
-			if at == 1 then
-				var1 = received[1] :: number
+		if stage <= 7 then
+			if stage == 1 then
+				answer = received[1] :: number
 			end
-			if at <= 1 then
-				at = 2
-				helper_430b4()
+			if stage <= 1 then
+				stage = 2
+				play_departure_announcement()
 				return vm.continue_with(function()
-					at = 3
-					helper_2a840()
+					stage = 3
+					play_train_departure_cutscene()
 					event.open_event_menu(13, 4)
-					at = 4
+					stage = 4
 					vm.wait(4)
 					event.jump_to_map_2(-1, "s04")
-					if var0 == 2 then
-						at = 5
-						helper_4cb9ff49()
+					if npc_kind == 2 then
+						stage = 5
+						party.talk_to_engineer()
 					end
-					if var0 == 13 then
-						at = 6
-						helper_71aacd6c()
+					if npc_kind == 13 then
+						stage = 6
+						party.talk_to_blaster()
 					end
-					if var0 == 301 then
-						at = 7
-						helper_ce60ccd6()
+					if npc_kind == 301 then
+						stage = 7
+						party.talk_to_waiting_npc()
 					end
 					return
 				end)
 			end
-			if at <= 2 then
-				at = 3
-				helper_2a840()
+			if stage <= 2 then
+				stage = 3
+				play_train_departure_cutscene()
 				return vm.continue_with(function()
 					event.open_event_menu(13, 4)
-					at = 4
+					stage = 4
 					vm.wait(4)
 					event.jump_to_map_2(-1, "s04")
-					if var0 == 2 then
-						at = 5
-						helper_4cb9ff49()
+					if npc_kind == 2 then
+						stage = 5
+						party.talk_to_engineer()
 					end
-					if var0 == 13 then
-						at = 6
-						helper_71aacd6c()
+					if npc_kind == 13 then
+						stage = 6
+						party.talk_to_blaster()
 					end
-					if var0 == 301 then
-						at = 7
-						helper_ce60ccd6()
+					if npc_kind == 301 then
+						stage = 7
+						party.talk_to_waiting_npc()
 					end
 					return
 				end)
 			end
-			if at <= 4 then
-				helper_ed56af24()
+			if stage <= 4 then
+				party.skip_talk_to_engineer_primary()
 			end
-			if at <= 5 then
-				helper_4071559a()
+			if stage <= 5 then
+				party.skip_talk_to_blaster_primary()
 			end
-			if at <= 6 then
-				helper_21d8472e()
+			if stage <= 6 then
+				party.skip_talk_to_waiting_npc_primary()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[1000] = script.talk_to_station_npc
 
---- Event 12070, which map data, a script or the engine runs by number.
-function script.event_12070()
+--- Fades out and loads the companion cutscene that forms the party and gives five of item 352.
+function script.replay_form_party()
 	event.initialize_event()
 	event.fade_out_screen(0)
 	vm.wait(1)
 	event.load_event_script("s02/s02b.stb", 501)
 end
+script[12070] = script.replay_form_party
 
---- Event 12541, which map data, a script or the engine runs by number.
-function script.event_12541()
+--- Sets the dungeon floor info, plays the forest cutscene and jumps to map s47.
+function script.cutscene_carpenterion_then_s47()
 	event.set_dungeon_floor_info(1, 7, 5, 256)
-	helper_40070()
+	play_carpenterion_forest_cutscene()
 	event.jump_to_map_3(-1, "s47", 505)
 end
+script[12541] = script.cutscene_carpenterion_then_s47
 
---- Event 12830, which map data, a script or the engine runs by number.
-function script.event_12830()
-	local at: number = 0
+--- Plays the departure announcement and cutscene and jumps to map s04.
+function script.cutscene_train_departure()
+	local stage: number = 0
 	return vm.guard(function()
-		at = 1
-		helper_430b4()
-		at = 2
-		helper_2a840()
+		stage = 1
+		play_departure_announcement()
+		stage = 2
+		play_train_departure_cutscene()
 		event.open_event_menu(13, 4)
-		at = 3
+		stage = 3
 		vm.wait(3)
 		event.jump_to_map_2(-1, "s04")
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_2a840()
+		if stage <= 3 then
+			if stage <= 1 then
+				stage = 2
+				play_train_departure_cutscene()
 				return vm.continue_with(function()
 					event.open_event_menu(13, 4)
-					at = 3
+					stage = 3
 					vm.wait(3)
 					event.jump_to_map_2(-1, "s04")
 					return
@@ -1450,5 +1434,6 @@ function script.event_12830()
 		return nil
 	end)
 end
+script[12830] = script.cutscene_train_departure
 
 return script

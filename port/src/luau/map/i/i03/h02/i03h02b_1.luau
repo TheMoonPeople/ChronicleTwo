@@ -1,33 +1,32 @@
 --!strict
--- map/i/i03/h02/i03h02b_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Fishing Town house interior script that plays the Pierrot raid and clown chase scenes.
 
 local vm = require("@lib/vm")
-local helper_c0c9270e = require("@lib/event/helper_c0c9270e")
-local helper_e254bc23 = require("@lib/event/helper_e254bc23")
+local fishing_town_house_h02 = require("@lib/event/fishing_town_house_h02")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_c0c9270e
+script.key_open = fishing_town_house_h02.play_opening_clown_chase
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
-	local at: number = 0
+--- Plays the Pierrot raid and the clown chase and jumps to the next map.
+function script.cutscene_pierrot_raid()
+	local resume_step: number = 0
 	return vm.guard(function()
-		at = 1
-		helper_e254bc23()
-		at = 2
-		helper_c0c9270e()
+		resume_step = 1
+		fishing_town_house_h02.play_pierrot_raid_scene()
+		resume_step = 2
+		fishing_town_house_h02.play_opening_clown_chase()
 		event.jump_to_map_3(-1, "m06", 153)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_c0c9270e()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				fishing_town_house_h02.play_opening_clown_chase()
 				return vm.continue_with(function()
 					event.jump_to_map_3(-1, "m06", 153)
 					return
@@ -38,5 +37,6 @@ function script.event_151()
 		return nil
 	end)
 end
+script[151] = script.cutscene_pierrot_raid
 
 return script

@@ -30,7 +30,7 @@ TEST(NativeEffectPath, RejectsInsufficientOutputAndUnterminatedDefinitionNames) 
     std::array<char, 128> script{};
     ASSERT_TRUE(manager.GetNeedFilePath(0, resource, script));
     EXPECT_STREQ(resource.data(), "dungeon/eff_script/Explosion_s.gltf");
-    EXPECT_STREQ(script.data(), "dungeon/eff_script/explosion.stb");
+    EXPECT_STREQ(script.data(), "dungeon/eff_script/bomb_explosion.stb");
 
     std::array<char, 8> short_resource{};
     short_resource.fill('x');
@@ -131,12 +131,12 @@ protected:
         });
         Write(root / "data/dungeon/articles/eff01.game.json", game);
         bundle = gltf.dump(2);
-        Module("dungeon/articles/eff01.assets/explosion.stb");
-        Module("dungeon/articles/eff01.assets/n_heal.stb");
-        Module("dungeon/articles/eff01.assets/n_heal_sub.stb");
-        Module("dungeon/articles/eff01.assets/bakudan.stb");
+        Module("dungeon/articles/eff01.assets/bomb_explosion.stb");
+        Module("dungeon/articles/eff01.assets/normal_heal.stb");
+        Module("dungeon/articles/eff01.assets/normal_heal_spark.stb");
+        Module("dungeon/articles/eff01.assets/thrown_item.stb");
         Write(root / "data/textures/dungeon/eff_script/n_heal.json", game["resources"]["texture_sets"][0]["document"]);
-        Module("dungeon/eff_script/n_heal.stb");
+        Module("dungeon/eff_script/normal_heal.stb");
         std::filesystem::create_directories(root / "data");
         DataReadIndex(root / "data");
         DataReadRegisterAsset(bundle.data(), "dungeon/articles/eff01.gltf", bundle.size());
@@ -183,7 +183,7 @@ TEST_F(NativeEffectBase, CharacterBaseUsesDirectChildGltfAndPreservesScriptAndPo
     EXPECT_EQ(manager.base[0]->texb, 20);
     EXPECT_EQ(manager.base[0]->texb_owned, 1);
     EXPECT_EQ(manager.texb_used, 1);
-    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/articles/eff01.assets/explosion.stb"));
+    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/articles/eff01.assets/bomb_explosion.stb"));
     EXPECT_EQ(manager.BuildPack(0, Bundle(), nullptr, -1), 0);
     EXPECT_EQ(manager.base_num, 1);
 }
@@ -205,7 +205,7 @@ TEST_F(NativeEffectBase, StandaloneTextureAndVmLoadWithoutTheLegacyLoadBuffer) {
     ASSERT_EQ(manager.load_buffer, nullptr);
     ASSERT_EQ(manager.LoadBaseEffSpt(4, nullptr, -1), 1);
     ASSERT_NE(manager.base[0], nullptr);
-    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/eff_script/n_heal.stb"));
+    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/eff_script/normal_heal.stb"));
     char name[] = "n_heal";
     EXPECT_NE(mgTexManager.GetTexture(name, 20), nullptr);
 }
@@ -221,25 +221,25 @@ TEST_F(NativeEffectBase, ScriptOnlyEffectsKeepTheirUnmodeledSemanticsAndMissingS
 
 TEST_F(NativeEffectBase, DirectBufferBuildUsesItsActualGltfPathAndBoundedVmBytes) {
     DataReadRegisterAsset(bundle.data(), "dungeon/articles/eff01.assets/Explosion_s.gltf", bundle.size());
-    std::string handle = luau_runtime::MakeHandle("dungeon/articles/eff01.assets/explosion");
+    std::string handle = luau_runtime::MakeHandle("dungeon/articles/eff01.assets/bomb_explosion");
     ASSERT_EQ(manager.BuildBase(0, reinterpret_cast<u_long128 *>(bundle.data()), static_cast<int>(bundle.size()),
                                 reinterpret_cast<u_long128 *>(handle.data()), static_cast<int>(handle.size()), nullptr, -1),
               1);
     ASSERT_NE(manager.base[0]->chara, nullptr);
     EXPECT_NE(manager.base[0]->chara->GetFrame(), nullptr);
-    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/articles/eff01.assets/explosion.stb"));
+    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/articles/eff01.assets/bomb_explosion.stb"));
 }
 
 TEST_F(NativeEffectBase, DatapackScriptDoesNotReplaceTheModule) {
     std::filesystem::create_directories(root / "datapacks/override/dungeon/articles/eff01.assets");
-    std::ofstream(root / "datapacks/override/dungeon/articles/eff01.assets/bakudan.stb", std::ios::binary) << "invalid VM";
+    std::ofstream(root / "datapacks/override/dungeon/articles/eff01.assets/thrown_item.stb", std::ios::binary) << "invalid VM";
     Write(root / "datapacks/datapacks.json", {
                                                  {"schema_version", 1           },
                                                  {"load_order",     {"override"}}
     });
     datapacks::Load(root / "data");
     ASSERT_EQ(manager.BuildPack(26, Bundle(), nullptr, -1), 1);
-    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/articles/eff01.assets/bakudan.stb"));
+    EXPECT_TRUE(LoadsModule(*manager.base[0], "dungeon/articles/eff01.assets/thrown_item.stb"));
 }
 
 TEST_F(NativeEffectBase, AbsentEmbeddedTextureSetFailsWithoutCommittingABase) {

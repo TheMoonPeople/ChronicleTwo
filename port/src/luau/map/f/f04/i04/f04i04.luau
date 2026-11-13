@@ -1,27 +1,30 @@
 --!strict
--- map/f/f04/i04/f04i04.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for an interior of the f04 Gundorada area with only workshop villager conversation.
 
-local helper_b9ba75a3 = require("@lib/event/helper_b9ba75a3")
+local message = require("@lib/event/message")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing when the script loads.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing so the engine skips its default behavior.
+function script.do_nothing() end
+script[99] = script.do_nothing
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Resets the follow camera on entry.
 function script.default_event()
 	event.reset_follow_camera(1, 0.0)
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing so the engine skips its default behavior.
 function script.key_open() end
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_b9ba75a3
+script[1000] = message.talk_to_gundorada_villager
 
 return script

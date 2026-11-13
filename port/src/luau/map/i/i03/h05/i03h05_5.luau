@@ -1,21 +1,21 @@
 --!strict
--- map/i/i03/h05/i03h05_5.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Fishing Town race course script that shows the race title and starts the Gyorace sub-game and handles its end.
 
 local vm = require("@lib/vm")
-local wait_frames = require("@lib/event/wait_frames")
+local wait = require("@lib/event/wait")
 
---- Event 500, which map data, a script or the engine runs by number.
-local function event_500()
+--- Shows the stage title for the race and starts the Gyorace sub-game.
+local function start_race_sub_game()
 	local block: s32 = 0
-	local omake_flag: s32 = 0
-	local var2: s32 = 0
+	local extra_mode: s32 = 0
+	local heat_stage: s32 = 0
 	event.initialize_event()
 	event.stop_music(0)
 	event.load_music(165)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	omake_flag = event.is_extra_mode() or omake_flag
-	if omake_flag ~= 0 then
+	extra_mode = event.is_extra_mode() or extra_mode
+	if extra_mode ~= 0 then
 		block = event.load_event_image_4(5, "textures/event/e00/e70/matchrace_1.json", 0) or block
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
@@ -29,25 +29,25 @@ local function event_500()
 		event.clear_object_sequence(2)
 		event.set_object_sequence_object(2, 2)
 	else
-		var2 = event.get_gyorace_value(3) or var2
-		if var2 == 0 then
+		heat_stage = event.get_gyorace_value(3) or heat_stage
+		if heat_stage == 0 then
 			block = event.load_event_image_4(5, "textures/event/e00/e70/yosen_1.json", 0) or block
 		end
-		if var2 == 1 then
+		if heat_stage == 1 then
 			block = event.load_event_image_4(5, "textures/event/e00/e70/honsen_1.json", 0) or block
 		end
-		if var2 == 2 then
+		if heat_stage == 2 then
 			block = event.load_event_image_4(5, "textures/event/e00/e70/kesshou_1.json", 0) or block
 		end
 		event.reset_event_sprite(0)
 		event.set_event_sprite_type(0, 0)
-		if var2 == 0 then
+		if heat_stage == 0 then
 			event.set_event_sprite_texture(0, "yosen", block)
 		end
-		if var2 == 1 then
+		if heat_stage == 1 then
 			event.set_event_sprite_texture(0, "honsen", block)
 		end
-		if var2 == 2 then
+		if heat_stage == 2 then
 			event.set_event_sprite_texture(0, "kesshou", block)
 		end
 		event.set_event_sprite_color(0, 128, 128, 128, 0)
@@ -64,12 +64,12 @@ local function event_500()
 	event.set_camera_look_at(-91.31, -38.79, 540.16)
 	event.move_camera_sequence(426.45, 204.62, 518.58, 204.29, -38.79, 47.09, 160)
 	event.fade_in_screen(30)
-	wait_frames(30)
+	wait.frames(30)
 	event.set_event_sprite_draw_pass(0, 1)
 	event.set_object_sequence_color(2, 128, 128, 128, 128, 30)
-	wait_frames(100)
+	wait.frames(100)
 	event.fade_out_screen(30)
-	wait_frames(30)
+	wait.frames(30)
 	event.set_event_sprite_draw_pass(0, 0)
 	event.delete_event_image(0)
 	vm.wait(4)
@@ -78,23 +78,24 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing so the map's default entry behavior is suppressed.
 function script.default_event() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = event_500
+script.key_open = start_race_sub_game
 
---- The event run when the Gyorace ends without the bonus flag.
+--- Fades out the music and returns to the racing hall after the Gyorace ends.
 function script.gyorace_end()
 	event.initialize_event()
 	vm.wait(1)
 	vm.wait(2)
 	event.fade_out_music(30)
-	wait_frames(30)
+	wait.frames(30)
 	event.stop_music(0)
 	event.skip_next_music_load()
 	vm.wait(4)
@@ -102,13 +103,13 @@ function script.gyorace_end()
 	vm.wait(5)
 end
 
---- The event run when the Gyorace ends with the bonus flag.
+--- Fades out the music and returns to the racing hall after the extra mode Gyorace ends.
 function script.gyorace_omake_end()
 	event.initialize_event()
 	vm.wait(1)
 	vm.wait(2)
 	event.fade_out_music(30)
-	wait_frames(30)
+	wait.frames(30)
 	event.stop_music(0)
 	event.skip_next_music_load()
 	vm.wait(4)
@@ -116,10 +117,13 @@ function script.gyorace_omake_end()
 	vm.wait(5)
 end
 
-script.event_500 = event_500
+script.start_race_sub_game = start_race_sub_game
+script[500] = script.start_race_sub_game
 
 --- Event 1000, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_1000() end
+--- Does nothing so the engine runs this instead of its default.
+function script.on_talk() end
+script[1000] = script.on_talk
 
 return script

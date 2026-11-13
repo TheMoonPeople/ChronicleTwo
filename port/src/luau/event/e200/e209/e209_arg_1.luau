@@ -1,5 +1,5 @@
 --!strict
--- event/e200/e209/e209_arg_1.stb: event argument script, translated from the bytecode by tools/luau/stb2luau.
+--- Camera and character placement data for the numbered scenes of event 209.
 return {
 	{ command = 1, args = { { type = "int", value = 700 } } },
 	{

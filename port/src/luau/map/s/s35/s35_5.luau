@@ -1,33 +1,35 @@
 --!strict
--- map/s/s35/s35_5.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Moon Flower Palace surfacing scenes leading into the dungeon.
 
 local vm = require("@lib/vm")
-local helper_2fb9721e = require("@lib/event/helper_2fb9721e")
-local helper_63218706 = require("@lib/event/helper_63218706")
+local moon_flower_palace_surfacing = require("@lib/event/moon_flower_palace_surfacing")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_2fb9721e()
+--- Plays the ring cutscene and loads d06e01.
+function script.cutscene_ring()
+	moon_flower_palace_surfacing.play_e612_ring_cutscene()
 	event.load_dungeon_map("d06e01")
 	event.load_event_script("d06e01/d06e01.stb", 506)
 	vm.wait(2)
 end
+script[500] = script.cutscene_ring
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_63218706()
+--- Plays the warp cutscene and loads d06e01.
+function script.cutscene_warp()
+	moon_flower_palace_surfacing.play_e612_warp_cutscene()
 	event.load_dungeon_map("d06e01")
 	event.load_event_script("d06e01/d06e01.stb", 508)
 	vm.wait(2)
 end
+script[502] = script.cutscene_warp
 
 return script

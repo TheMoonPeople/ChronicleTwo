@@ -1,35 +1,29 @@
 --!strict
--- map/s/s08/s08_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Locomotive interior script with the crew scene, car doors and the collapse cutscene.
 
 local vm = require("@lib/vm")
-local helper_19b130fb = require("@lib/event/helper_19b130fb")
-local helper_1c04a0eb = require("@lib/event/helper_1c04a0eb")
-local helper_5be5f988 = require("@lib/event/helper_5be5f988")
-local helper_5fbdba13 = require("@lib/event/helper_5fbdba13")
-local helper_7f754b8f = require("@lib/event/helper_7f754b8f")
-local helper_8b00b423 = require("@lib/event/helper_8b00b423")
-local helper_976e3050 = require("@lib/event/helper_976e3050")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_df4094fb = require("@lib/event/helper_df4094fb")
-local helper_f57795f8 = require("@lib/event/helper_f57795f8")
-local set_window_mode = require("@lib/event/set_window_mode")
-local show_message = require("@lib/event/show_message")
-local wait_frames = require("@lib/event/wait_frames")
+local cutscene = require("@lib/event/cutscene")
+local inside_of_locomotive = require("@lib/event/inside_of_locomotive")
+local map = require("@lib/event/map")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local train = require("@lib/event/train")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
+local sound_bank: s32 = 0
 
---- Helper function.
-local function helper_23d98()
-	event.play_sound_effect(global0, 2)
-	event.play_sound_effect(global0, 8)
+--- Plays the locomotive sound effects.
+local function play_locomotive_sounds()
+	event.play_sound_effect(sound_bank, 2)
+	event.play_sound_effect(sound_bank, 8)
 end
 
---- Helper function.
-local function helper_23e54()
+--- Loads and places the locomotive crew and starts the locomotive sounds.
+local function place_locomotive_crew()
 	event.initialize_event()
-	global0 = 0
+	sound_bank = 0
 	event.load_map_sounds(2200)
-	global0 = event.load_sound_effect_file_2(2200) or global0
+	sound_bank = event.load_sound_effect_file_2(2200) or sound_bank
 	event.assign_memory_stack(4)
 	event.clear_memory_stack(4)
 	event.load_character(4, "event/e200/e203/e203_starbre.gltf", "info", 9)
@@ -56,35 +50,35 @@ local function helper_23e54()
 	event.set_character_position(11, -1.81, 36.1, 72.51)
 	event.set_character_rotation(11, 0.0, -0.48, 0.0)
 	event.set_character_motion(11, "立ち", 4)
-	event.set_object_handle_sound_bank(3, global0)
+	event.set_object_handle_sound_bank(3, sound_bank)
 	event.register_villager(9, 1)
 	event.register_villager(10, 2)
 	event.register_villager(11, 13, 65)
 	event.set_scene_character_number(9, 1)
 	event.set_scene_character_number(10, 2)
 	event.set_scene_character_number(11, 13)
-	helper_23d98()
+	play_locomotive_sounds()
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing for this map.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the crew and function points for the story state and fades in.
 function script.default_event()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	local mc_load: s32 = 0
-	helper_19b130fb()
-	helper_8b00b423()
+	inside_of_locomotive.show_characters_by_progress()
+	inside_of_locomotive.disable_saving()
 	flag = event.get_save_flag(203) or flag
 	flag_2 = event.get_save_flag(204) or flag_2
 	if flag == 1 and flag_2 == 0 then
-		helper_7f754b8f(1)
+		inside_of_locomotive.set_function_points_enabled(1)
 		event.set_save_control_bits(1, 1)
 	else
-		helper_7f754b8f(0)
+		inside_of_locomotive.set_function_points_enabled(0)
 	end
 	mc_load = event.take_memory_card_load_state() or mc_load
 	if mc_load == 1 then
@@ -95,49 +89,51 @@ function script.default_event()
 		event.reset_character_cloth_and_hair(0)
 	end
 	if flag == 1 and flag_2 == 0 then
-		helper_23e54()
+		place_locomotive_crew()
 	end
 	event.fade_in_screen(30)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Shows the locomotive message after the button is released.
 function script.key_open()
 	vm.wait(1)
-	helper_c956b4a2(64)
-	show_message(0, 1002, 8, 450, 100)
+	wait.until_button_pressed(64)
+	message.show(0, 1002, 8, 450, 100)
 	event.do_nothing(0)
 end
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	local var0: s32 = 0
+--- Leaves through the front door to the station when the door is usable.
+function script.exit_front_door()
+	local can_use_door: s32 = 0
 	print("-------event_200----------------------\n")
-	var0 = helper_df4094fb(1)
-	if var0 ~= 0 then
+	can_use_door = train.is_door_usable(1)
+	if can_use_door ~= 0 then
 		event.set_save_control_bits(1, 0)
 		event.set_save_counter(15, 1)
 		event.fade_out_screen(0)
 		event.stop_music(0)
-		helper_5be5f988()
+		map.jump_to_station()
 	end
 end
+script[200] = script.exit_front_door
 
---- Event 201, which map data, a script or the engine runs by number.
-function script.event_201()
-	local var0: s32 = 0
+--- Leaves through the rear door to the station when the door is usable.
+function script.exit_rear_door()
+	local can_use_door: s32 = 0
 	print("-------event_201----------------------\n")
-	var0 = helper_df4094fb(0)
-	if var0 ~= 0 then
+	can_use_door = train.is_door_usable(0)
+	if can_use_door ~= 0 then
 		event.set_save_control_bits(1, 0)
 		event.set_save_counter(15, 0)
 		event.fade_out_screen(0)
 		event.stop_music(0)
-		helper_5be5f988()
+		map.jump_to_station()
 	end
 end
+script[201] = script.exit_rear_door
 
---- Event 203, which map data, a script or the engine runs by number.
-function script.event_203()
+--- Goes back to the passenger car unless the crew scene is active.
+function script.go_to_passenger_car()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	flag = event.get_save_flag(203) or flag
@@ -149,15 +145,16 @@ function script.event_203()
 		event.set_message_window_mode(0, 7)
 		event.set_save_counter(0, 1)
 		event.fade_out_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 		event.set_character_position(0, 0.0, 36.0, 235.0)
 		event.set_character_rotation(0, 0.0, 3.14, 0.0)
 		event.jump_to_map_2(-1, "s07")
 	end
 end
+script[203] = script.go_to_passenger_car
 
---- Event 204, which map data, a script or the engine runs by number.
-function script.event_204()
+--- Leaves the locomotive for the next area during the crew scene.
+function script.leave_locomotive_for_s03()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	flag = event.get_save_flag(203) or flag
@@ -165,37 +162,40 @@ function script.event_204()
 	if flag ~= 0 and flag_2 == 0 then
 		event.set_save_control_bits(1, 0)
 		event.fade_in_screen(30)
-		event.stop_sound_effect(global0, 2)
-		event.stop_sound_effect(global0, 8)
+		event.stop_sound_effect(sound_bank, 2)
+		event.stop_sound_effect(sound_bank, 8)
 		event.jump_to_map_3(-1, "s03", 501)
 		vm.wait(1)
 	end
 end
+script[204] = script.leave_locomotive_for_s03
 
---- Event 205, which map data, a script or the engine runs by number.
-function script.event_205()
-	local var0: s32 = 0
+--- Requests the town edit event at the front door when it is not usable.
+function script.request_edit_at_front_door()
+	local can_use_door: s32 = 0
 	print("--------------------------event205-------------------------\n")
-	var0 = helper_df4094fb(1)
-	if var0 == 0 then
+	can_use_door = train.is_door_usable(1)
+	if can_use_door == 0 then
 		event.request_town_edit_event(0)
 		vm.wait(1)
 	end
 end
+script[205] = script.request_edit_at_front_door
 
---- Event 206, which map data, a script or the engine runs by number.
-function script.event_206()
-	local var0: s32 = 0
+--- Requests the town edit event at the rear door when it is not usable.
+function script.request_edit_at_rear_door()
+	local can_use_door: s32 = 0
 	print("--------------------------event206-------------------------\n")
-	var0 = helper_df4094fb(0)
-	if var0 == 0 then
+	can_use_door = train.is_door_usable(0)
+	if can_use_door == 0 then
 		event.request_town_edit_event(0)
 		vm.wait(1)
 	end
 end
+script[206] = script.request_edit_at_rear_door
 
---- Event 208, which map data, a script or the engine runs by number.
-function script.event_208()
+--- Requests the town edit event during the crew scene.
+function script.request_edit_during_crew_scene()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	print("--------------------------event208-------------------------\n")
@@ -206,9 +206,10 @@ function script.event_208()
 		vm.wait(1)
 	end
 end
+script[208] = script.request_edit_during_crew_scene
 
---- Event 209, which map data, a script or the engine runs by number.
-function script.event_209()
+--- Requests the town edit event outside the crew scene.
+function script.request_edit_outside_crew_scene()
 	local flag: s32 = 0
 	local flag_2: s32 = 0
 	print("--------------------------event209-------------------------\n")
@@ -220,70 +221,77 @@ function script.event_209()
 		vm.wait(1)
 	end
 end
+script[209] = script.request_edit_outside_crew_scene
 
---- Event 400, which map data, a script or the engine runs by number.
-function script.event_400()
+--- Opens the menu with its save data value set.
+function script.open_menu()
 	event.set_save_data_value(3, 1)
-	helper_f57795f8()
+	menu.open_with_fade()
 	event.set_save_data_value(3, 0)
 end
+script[400] = script.open_menu
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
-	helper_8b00b423()
-	helper_7f754b8f(1)
-	helper_23e54()
-	helper_5fbdba13()
+--- Places the crew and plays the picture scene.
+function script.cutscene_picture_scene()
+	inside_of_locomotive.disable_saving()
+	inside_of_locomotive.set_function_points_enabled(1)
+	place_locomotive_crew()
+	inside_of_locomotive.play_picture_scene()
 	event.set_save_control_bits(1, 1)
-	helper_23d98()
+	play_locomotive_sounds()
 	event.fade_in_screen(30)
 end
+script[501] = script.cutscene_picture_scene
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_976e3050()
+--- Plays the collapse scene and goes to the next area.
+function script.cutscene_collapse()
+	inside_of_locomotive.play_collapse_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s03", 512)
 	vm.wait(2)
 end
+script[502] = script.cutscene_collapse
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	var0 = event.get_triggered_event_data_2(13) or var0
-	set_window_mode(0, 1)
-	if var0 == 9 then
+--- Shows what the crew member says to the player.
+function script.talk_to_crew()
+	local character_slot: s32 = 0
+	character_slot = event.get_triggered_event_data_2(13) or character_slot
+	message.set_window_mode(0, 1)
+	if character_slot == 9 then
 		event.open_message_window_2(0, "Quit stalling.\nHurry up and climb that ladder!")
 	end
-	if var0 == 10 then
+	if character_slot == 10 then
 		event.open_message_window_2(
 			0,
 			"This is no time to be chattering\non about the world! Max, hurry up\nand see what it looks like outside!"
 		)
 	end
-	if var0 == 11 then
+	if character_slot == 11 then
 		event.open_message_window_2(
 			0,
 			"Judging by those shocks, I'd say\nthey were pretty small bombs.<page>I just hope they don't hit anything\ncritical."
 		)
 	end
-	helper_1c04a0eb(var0, -1, 0, 0)
+	cutscene.talk(character_slot, -1, 0, 0)
 end
+script[1000] = script.talk_to_crew
 
---- Event 12030, which map data, a script or the engine runs by number.
-function script.event_12030()
-	helper_23e54()
-	helper_5fbdba13()
-	helper_23d98()
+--- Replays the picture scene.
+function script.replay_picture_scene()
+	place_locomotive_crew()
+	inside_of_locomotive.play_picture_scene()
+	play_locomotive_sounds()
 	event.fade_in_screen(30)
 end
+script[12030] = script.replay_picture_scene
 
---- Event 12050, which map data, a script or the engine runs by number.
-function script.event_12050()
-	helper_976e3050()
+--- Replays the collapse scene.
+function script.replay_collapse_scene()
+	inside_of_locomotive.play_collapse_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s03", 512)
 	vm.wait(2)
 end
+script[12050] = script.replay_collapse_scene
 
 return script

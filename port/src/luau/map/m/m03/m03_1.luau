@@ -1,35 +1,35 @@
 --!strict
--- map/m/m03/m03_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the Palm Brinks square map m03, with its Starble appearance and Starbre climb cutscenes.
 
 local vm = require("@lib/vm")
-local helper_7dfaaca0 = require("@lib/event/helper_7dfaaca0")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local wait_frames = require("@lib/event/wait_frames")
+local palm_brinks_square = require("@lib/event/palm_brinks_square")
+local wait = require("@lib/event/wait")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99() end
+--- Does nothing.
+local function do_nothing() end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.do_nothing = do_nothing
+script[99] = script.do_nothing
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Prints a debug marker on entry.
 function script.default_event()
-	event_99()
+	do_nothing()
 	print("e109a kita----------\n")
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits for the button press that ends the town walk.
 function script.key_open()
 	vm.wait(1)
-	helper_c956b4a2(64)
+	wait.until_button_pressed(64)
 end
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
+--- Shows the Starble character in a short skippable scene and then restores the player.
+function script.cutscene_starble_appearance()
 	vm.section(function()
 		event.initialize_event()
 		event.assign_memory_stack(5)
@@ -47,23 +47,25 @@ function script.event_501()
 		event.set_object_sequence_position(0, 1984.9, 0.0, 2882.6)
 		event.set_object_sequence_rotation(0, 0.0, 0.0, 0.0)
 		vm.wait(1)
-		helper_c956b4a2(64)
+		wait.until_button_pressed(64)
 		event.cancel_drama_scene_skip()
 	end)
 	event.fade_out_screen(30)
-	wait_frames(30)
+	wait.frames(30)
 	event.delete_character(32)
 	event.set_character_active(1, 0)
 	event.fade_in_screen(30)
 end
+script[501] = script.cutscene_starble_appearance
 
---- Event 11091, which map data, a script or the engine runs by number.
-function script.event_11091()
-	helper_7dfaaca0()
+--- Plays the Starbre climb cutscene and jumps to the interior i03h01a.
+function script.cutscene_starbre_climb()
+	palm_brinks_square.play_starbre_climb_cutscene()
 	event.skip_villager_loading()
 	vm.wait(2)
 	event.go_to_interior_map(-1, "i03h01a", 500)
 	vm.wait(3)
 end
+script[11091] = script.cutscene_starbre_climb
 
 return script

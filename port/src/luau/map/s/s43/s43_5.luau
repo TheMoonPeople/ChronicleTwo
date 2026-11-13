@@ -1,27 +1,24 @@
 --!strict
--- map/s/s43/s43_5.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Circus tent battle with the opening show and Battle Wrench scene.
 
 local vm = require("@lib/vm")
-local helper_0e75aa9e = require("@lib/event/helper_0e75aa9e")
-local helper_16496a43 = require("@lib/event/helper_16496a43")
-local helper_36a7a3e2 = require("@lib/event/helper_36a7a3e2")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_bb8bad3f = require("@lib/event/helper_bb8bad3f")
-local helper_d743ebd8 = require("@lib/event/helper_d743ebd8")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_objects = require("@lib/event/wait_objects")
+local circus_tent = require("@lib/event/circus_tent")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local sound = require("@lib/event/sound")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_1b774()
-	local var0: s32 = 0
-	local var1: s32 = 0
+--- Plays the scene where the wrench becomes the Battle Wrench and the clowns drop in.
+local function cutscene_battle_wrench()
+	local sound_bank: s32 = 0
+	local effect_sound_id: s32 = 0
 	vm.section(function()
 		event.initialize_event()
 		event.show_dungeon_status_bar(0, 0.033333335)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
 		event.set_character_motion(0, "バトル立ち")
-		wait_frames(30)
+		wait.frames(30)
 		event.stop_music(0)
 		event.set_message_window_mode(0, 7)
 		event.enable_drama_skip()
@@ -31,8 +28,8 @@ local function helper_1b774()
 		event.clear_memory_stack(5)
 		event.load_message_file(0, 5, "event/opening/p4/op4ch2_1.txt")
 		event.load_map_sounds(1218)
-		var0 = event.load_sound_effect_file_2(1216) or var0
-		var1 = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or var1
+		sound_bank = event.load_sound_effect_file_2(1216) or sound_bank
+		effect_sound_id = event.load_sound_effect_file_3(8, "snd2/sp/sp_006.sound.json") or effect_sound_id
 		event.load_character_motion_pack(5, "event/opening/p4/p4_mints4.gltf", "info", 0)
 		event.set_character_active(0)
 		event.attach_object_handle_to_character(0, 0)
@@ -62,7 +59,7 @@ local function helper_1b774()
 		event.load_character_motion_pack(5, "event/opening/p4/p4_pierrot3.gltf", "info", 11)
 		event.set_character_active(0, 11)
 		event.attach_object_handle_to_character(3, 11)
-		event.set_object_handle_sound_bank(3, var0)
+		event.set_object_handle_sound_bank(3, sound_bank)
 		event.clear_object_sequence(3)
 		event.set_object_sequence_object(3, 3)
 		event.set_object_sequence_position(3, -50.82, 150.0, -15.75)
@@ -70,7 +67,7 @@ local function helper_1b774()
 		event.copy_character(5, 11, 12)
 		event.set_character_active(0, 12)
 		event.attach_object_handle_to_character(4, 12)
-		event.set_object_handle_sound_bank(4, var0)
+		event.set_object_handle_sound_bank(4, sound_bank)
 		event.clear_object_sequence(4)
 		event.set_object_sequence_object(4, 4)
 		event.set_object_sequence_position(4, 47.49, 150.0, -2.37)
@@ -78,7 +75,7 @@ local function helper_1b774()
 		event.copy_character(5, 11, 13)
 		event.set_character_active(0, 13)
 		event.attach_object_handle_to_character(5, 13)
-		event.set_object_handle_sound_bank(5, var0)
+		event.set_object_handle_sound_bank(5, sound_bank)
 		event.clear_object_sequence(5)
 		event.set_object_sequence_object(5, 5)
 		event.set_object_sequence_position(5, -28.7, 150.0, 70.26)
@@ -86,7 +83,7 @@ local function helper_1b774()
 		event.copy_character(5, 11, 14)
 		event.set_character_active(0, 14)
 		event.attach_object_handle_to_character(6, 14)
-		event.set_object_handle_sound_bank(6, var0)
+		event.set_object_handle_sound_bank(6, sound_bank)
 		event.clear_object_sequence(6)
 		event.set_object_sequence_object(6, 6)
 		event.set_object_sequence_position(6, 1.79, 150.0, 28.91)
@@ -102,27 +99,27 @@ local function helper_1b774()
 		event.set_camera_sequence_position(-2.8, 29.02, -36.61)
 		event.set_camera_sequence_look_at(0.85, 26.87, -88.33)
 		event.fade_in_screen(30)
-		wait_frames(30)
-		event.play_sound_effect(var1, 0)
+		wait.frames(30)
+		event.play_sound_effect(effect_sound_id, 0)
 		event.set_object_sequence_motion(0, "かかげる", 6)
 		event.queue_object_sequence_next_motion(0, "かかげるL", 4)
-		event.play_object_sequence_sound(0, var0, 37)
-		wait_frames(16)
+		event.play_object_sequence_sound(0, sound_bank, 37)
+		wait.frames(16)
 		event.set_object_sequence_motion(7, "発動", 6)
 		event.move_camera_sequence_eased(-0.86, 81.13, -64.1, 0.85, 26.87, -88.33, 12, 2, 1.0)
-		wait_frames(20)
-		event.play_object_sequence_sound(0, var0, 38)
-		wait_frames(60)
+		wait.frames(20)
+		event.play_object_sequence_sound(0, sound_bank, 38)
+		wait.frames(60)
 		event.set_message_window_mode(0, 4)
 		event.set_message_draw_speed(0, 0)
 		event.open_message_window_2(0, "La Llave se ha\nconvertido en el objeto de combate\nLlave de combate.")
-		helper_75684dd8(0, -1, 8, 0, 0)
+		message.show_and_wait(0, -1, 8, 0, 0)
 		event.set_message_window_mode(0, 7)
 		event.set_message_draw_speed(0, 1)
-		wait_frames(10)
+		wait.frames(10)
 		event.set_object_sequence_motion(0, "気がつく", 6)
 		event.queue_object_sequence_next_motion(0, "気がつくL", 4)
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_character_active(11)
 		event.set_character_active(12)
 		event.set_character_active(13)
@@ -132,7 +129,7 @@ local function helper_1b774()
 		event.queue_object_sequence_next_motion(3, "立ち", 4)
 		event.jump_object_sequence(3, -50.82, 8.8, -15.75, -0.1, 30)
 		event.delay_object_sequence_sound_track(3, 30)
-		event.play_object_sequence_sound(3, var0, 29)
+		event.play_object_sequence_sound(3, sound_bank, 29)
 		event.delay_object_sequence_motion_track(4, 3)
 		event.delay_object_sequence_position_track(4, 3)
 		event.delay_object_sequence_sound_track(4, 3)
@@ -141,7 +138,7 @@ local function helper_1b774()
 		event.queue_object_sequence_next_motion(4, "立ち", 4)
 		event.jump_object_sequence(4, 47.49, 8.8, -2.37, -0.1, 30)
 		event.delay_object_sequence_sound_track(4, 30)
-		event.play_object_sequence_sound(4, var0, 29)
+		event.play_object_sequence_sound(4, sound_bank, 29)
 		event.delay_object_sequence_motion_track(5, 9)
 		event.delay_object_sequence_position_track(5, 9)
 		event.delay_object_sequence_sound_track(5, 9)
@@ -150,7 +147,7 @@ local function helper_1b774()
 		event.queue_object_sequence_next_motion(5, "立ち", 4)
 		event.jump_object_sequence(5, -28.7, 8.8, 70.26, -0.1, 30)
 		event.delay_object_sequence_sound_track(5, 30)
-		event.play_object_sequence_sound(5, var0, 29)
+		event.play_object_sequence_sound(5, sound_bank, 29)
 		event.delay_object_sequence_motion_track(6, 15)
 		event.delay_object_sequence_position_track(6, 15)
 		event.delay_object_sequence_sound_track(6, 15)
@@ -159,15 +156,15 @@ local function helper_1b774()
 		event.queue_object_sequence_next_motion(6, "立ち", 4)
 		event.jump_object_sequence(6, 1.79, 8.8, 28.91, -0.1, 30)
 		event.delay_object_sequence_sound_track(6, 30)
-		event.play_object_sequence_sound(6, var0, 29)
-		wait_frames(20)
+		event.play_object_sequence_sound(6, sound_bank, 29)
+		wait.frames(20)
 		event.attach_object_handle_to_character(21, 1)
 		event.set_object_handle_visible(21, 0)
 		event.set_camera_sequence_position(-12.49, 56.75, -150.16)
 		event.set_camera_sequence_look_at(-0.59, 13.56, -3.76)
 		event.set_object_sequence_rotation(0, 0.0, -1.57, 0.0)
 		event.set_object_sequence_motion(0, "かまえ立ち", 4, -1.0, 1)
-		wait_frames(40)
+		wait.frames(40)
 		event.set_character_active(0, 11)
 		event.set_character_active(0, 12)
 		event.set_character_active(0, 13)
@@ -182,17 +179,17 @@ local function helper_1b774()
 		event.set_object_sequence_texture_animation(0, 1, "落ちるー（３）")
 		vm.wait(11)
 		event.set_mouth_texture_animations(0, "通常口パク", "怒り口（３）")
-		helper_0e75aa9e(40090, -1, 10)
+		message.show_voiced_with_button_prompt(40090, -1, 10)
 		event.reset_mouth_texture_animations()
-		helper_d743ebd8(40100)
+		sound.play_voice(40100)
 		event.set_object_sequence_motion(0, "出口を見る", 6)
 		event.queue_object_sequence_next_motion(0, "出口を見るL", 6)
-		wait_frames(12)
+		wait.frames(12)
 		event.set_object_sequence_motion(0, "→走り", 2)
 		event.queue_object_sequence_next_motion(0, "走り", 4)
-		wait_frames(10)
+		wait.frames(10)
 		event.move_object_sequence(0, 0.0, 10.0, -120.0, 20)
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(0.0, 41.13, -104.26)
 		event.set_camera_sequence_look_at(0.0, 20.2, -217.19)
 		event.set_object_sequence_position(0, 0.0, 0.0, -200.0)
@@ -203,27 +200,27 @@ local function helper_1b774()
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "拍手喝采（３）")
 		event.set_object_sequence_texture_animation(0, 1, "怒り口")
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-60.96, 9.43, -525.19)
 		event.set_camera_sequence_look_at(0.0, 28.11, -410.09)
 		event.move_camera_sequence(-60.96, 9.43, -525.19, 0.0, 28.11, -451.39, 35)
 		event.set_object_sequence_motion(0, "客を飛び超える", 6)
 		event.move_object_sequence(0, 0.0, 0.0, -470.0, 35)
 		event.delay_object_sequence_sound_track(0, 10)
-		event.play_object_sequence_sound(0, var0, 30)
+		event.play_object_sequence_sound(0, sound_bank, 30)
 		event.set_character_motion(9, "振り向き", 2)
 		event.set_character_motion(10, "振り向き", 2)
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-107.5, 71.31, -471.79)
 		event.set_camera_sequence_look_at(21.82, 28.11, -671.17)
 		event.set_object_sequence_motion(0, "走り", 4)
 		event.set_object_sequence_position(0, -40.33, 0.0, -525.86)
 		event.set_object_sequence_rotation(0, 0.0, 2.7, 0.0)
 		event.move_object_sequence(0, 29.23, 5.07, -691.14, 50)
-		wait_frames(20)
+		wait.frames(20)
 		event.fade_out_screen(30)
 		event.fade_out_music(30)
-		wait_frames(30)
+		wait.frames(30)
 	end)
 	event.cancel_drama_scene_skip()
 	event.set_character_cloth_animation_enabled(0, 1)
@@ -242,17 +239,17 @@ local function helper_1b774()
 	event.delete_character(15)
 	event.stop_music(0)
 	event.stop_environment_music()
-	wait_frames(4)
+	wait.frames(4)
 	event.skip_next_music_load()
 	event.skip_next_map_sound_load()
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Chains into the second tent script.
 function script.default_event()
 	event.initialize_event()
 	vm.wait(1)
@@ -262,25 +259,25 @@ function script.default_event()
 	event.load_event_script("s43/s43b.stb", 100)
 end
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
-	local at: number = 0
+--- Plays the ladder climb and clown show then loads the tent script.
+function script.cutscene_opening_show()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.set_time_of_day_advancing(0)
 		event.show_dungeon_status_bar(0, 1.0)
 		event.set_save_control_bits(1, 1)
 		event.set_dungeon_pause_flags(256, 1)
-		at = 1
-		helper_16496a43()
-		at = 2
-		helper_36a7a3e2()
+		resume_step = 1
+		circus_tent.play_part1_chapter8_ladder_climb()
+		resume_step = 2
+		circus_tent.play_opening_clown_show()
 		event.load_event_script("s43/s43b.stb", 151)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_36a7a3e2()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				circus_tent.play_opening_clown_show()
 				return vm.continue_with(function()
 					event.load_event_script("s43/s43b.stb", 151)
 					return
@@ -291,10 +288,11 @@ function script.event_151()
 		return nil
 	end)
 end
+script[151] = script.cutscene_opening_show
 
---- Event 152, which map data, a script or the engine runs by number.
-function script.event_152()
-	local var0: s32 = 0
+--- Spawns the clown monsters and starts the battle.
+function script.start_clown_battle()
+	local sound_bank: s32 = 0
 	event.initialize_event()
 	event.assign_memory_stack(3)
 	event.clear_memory_stack(3)
@@ -303,8 +301,8 @@ function script.event_152()
 	event.place_dungeon_monster(600, 48.62, 8.8, 60.52, 0.0, -2.42, 0.0)
 	event.place_dungeon_monster(600, -35.87, 8.8, -54.34, 0.0, 0.38, 0.0)
 	event.place_dungeon_monster(600, 30.12, 8.8, -61.93, 0.0, -0.6, 0.0)
-	var0 = event.load_sound_effect_file_3(4, "snd2/event/ev_200_000.sound.json") or var0
-	event.play_sound_effect(var0, 0)
+	sound_bank = event.load_sound_effect_file_3(4, "snd2/event/ev_200_000.sound.json") or sound_bank
+	event.play_sound_effect(sound_bank, 0)
 	event.set_dungeon_pause_flags(16384, 1)
 	event.set_save_counter(5, 2)
 	vm.wait(1)
@@ -312,13 +310,14 @@ function script.event_152()
 	event.fade_in_screen(30)
 	event.finish_event()
 end
+script[152] = script.start_clown_battle
 
 --- Event 1200, which map data, a script or the engine runs by number.
-script.event_1200 = helper_bb8bad3f
+script[1200] = circus_tent.play_opening_fall_and_start_battle
 
---- The dungeon system event run when every monster on the floor has been defeated.
+--- Plays the wrench scene and moves to Georama edit once the clowns are defeated.
 function script.floor_clear()
-	helper_1b774()
+	cutscene_battle_wrench()
 	event.add_inventory_item(1)
 	event.equip_character_item(0, 1)
 	event.remove_item(387)
@@ -327,29 +326,29 @@ function script.floor_clear()
 	event.go_to_georama_edit(17, 153)
 end
 
---- Event 8000, which map data, a script or the engine runs by number.
-function script.event_8000()
-	local at: number = 0
+--- Starts music and plays the opening clown show.
+function script.start_clown_show()
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.stop_music(0)
 		event.stop_environment_music()
-		at = 1
-		wait_frames(6)
+		resume_step = 1
+		wait.frames(6)
 		event.load_map_sounds(1213)
 		event.load_music(103)
 		event.play_music(0)
 		event.show_dungeon_status_bar(0, 1.0)
 		event.set_save_control_bits(1, 1)
 		event.set_dungeon_pause_flags(256, 1)
-		at = 2
-		helper_36a7a3e2()
+		resume_step = 2
+		circus_tent.play_opening_clown_show()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_36a7a3e2()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				circus_tent.play_opening_clown_show()
 				return vm.continue_with(function()
 					return
 				end)
@@ -359,13 +358,14 @@ function script.event_8000()
 		return nil
 	end)
 end
+script[8000] = script.start_clown_show
 
---- Event 8001, which map data, a script or the engine runs by number.
-function script.event_8001()
+--- Starts music and reloads the second tent script.
+function script.reload_clown_show_script()
 	event.initialize_event()
 	event.stop_music(0)
 	event.stop_environment_music()
-	wait_frames(6)
+	wait.frames(6)
 	event.load_map_sounds(1213)
 	event.load_music(103)
 	event.play_music(0)
@@ -378,9 +378,10 @@ function script.event_8001()
 	event.set_object_handle_visible(3, 0)
 	event.load_event_script("s43/s43b.stb", 151)
 end
+script[8001] = script.reload_clown_show_script
 
---- Event 8002, which map data, a script or the engine runs by number.
-function script.event_8002()
+--- Hides the stage objects and reloads the second tent script at event 8000.
+function script.reload_stage_script()
 	event.initialize_event()
 	vm.wait(1)
 	event.show_dungeon_status_bar(0, 1.0)
@@ -392,5 +393,6 @@ function script.event_8002()
 	event.set_object_handle_visible(3, 0)
 	event.load_event_script("s43/s43b.stb", 8000)
 end
+script[8002] = script.reload_stage_script
 
 return script

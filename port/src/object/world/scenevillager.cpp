@@ -688,6 +688,8 @@ int CScene::LoadVillager(int map_no, int texb) {
 
     if (skip_load_villager != 0) {
         skip_load_villager = 0;
+        // The edit loop borrows its sub data from the villager stack, so it still needs binding to the new map.
+        AssignStack(SCENE_STACK_VILLAGER);
         return 0;
     }
 

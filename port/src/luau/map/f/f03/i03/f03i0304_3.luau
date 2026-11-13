@@ -1,45 +1,46 @@
 --!strict
--- map/f/f03/i03/f03i0304_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for the fourth Luna lab interior, which only has an entrance and an exit door.
 
 local vm = require("@lib/vm")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_3300e99f = require("@lib/event/helper_3300e99f")
-local helper_421a3242 = require("@lib/event/helper_421a3242")
-local helper_7d7eee8f = require("@lib/event/helper_7d7eee8f")
-local wait_frames = require("@lib/event/wait_frames")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local luna_lab_villagers = require("@lib/event/german/luna_lab_villagers")
+local wait = require("@lib/event/wait")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Fades in and places the player at the entrance.
 function script.default_event()
-	helper_1ef0d4b2()
-	helper_1ef0d4b2()
+	cutscene.noop()
+	cutscene.noop()
 	event.fade_in_screen(20)
-	helper_7d7eee8f(vm.f32(87.9), vm.f32(69.1), -196.5, vm.f32(1.55))
+	character.place_standing(vm.f32(87.9), vm.f32(69.1), -196.5, vm.f32(1.55))
 	event.reset_follow_camera(1, 3.14)
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing, so the square button has no effect here.
 function script.key_open() end
 
---- Event 400, which map data, a script or the engine runs by number.
-function script.event_400()
-	local var0: s32 = 0
-	helper_3300e99f(vm.f32(3.1415927))
+--- Faces the door, fades out and jumps back to the f03 town map.
+function script.leave_to_town()
+	local sound_effect_id: s32 = 0
+	character.turn_player_to_rotation(vm.f32(3.1415927))
 	event.set_character_motion(0, "立ち")
-	var0 = event.get_sound_id(2) or var0
-	event.play_sound_effect(var0, 94)
+	sound_effect_id = event.get_sound_id(2) or sound_effect_id
+	event.play_sound_effect(sound_effect_id, 94)
 	event.fade_out_screen(30)
-	wait_frames(30)
+	wait.frames(30)
 	event.jump_to_map_2(-1, "f03")
 	vm.wait(3)
 end
+script[400] = script.leave_to_town
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_421a3242
+script[1000] = luna_lab_villagers.talk_to_villager
 
 return script

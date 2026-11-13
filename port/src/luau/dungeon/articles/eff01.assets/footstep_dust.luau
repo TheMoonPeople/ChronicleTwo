@@ -1,0 +1,97 @@
+--!strict
+--- Shows dust puffs kicked up by a footstep on sandy ground.
+
+local vm = require("@lib/vm")
+
+local script = {}
+
+--- Does nothing; the effect needs no load-time setup.
+function script.setup() end
+
+--- Initialisation program that every effect script defines empty; the engine never runs it.
+-- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the effect needs no initialisation.
+function script.init() end
+
+--- Scatters four dust sprites around the footstep that rise and spin while growing and fading out.
+function script.on_start()
+	local footstep_x: f32 = 0
+	local footstep_y: f32 = 0
+	local footstep_z: f32 = 0
+	local i: s32 = 0
+	local sprite_x: f32 = 0
+	local sprite_y: f32 = 0
+	local sprite_z: f32 = 0
+	local rise_speed: f32 = 0
+	local random_angle: f32 = 0
+	local spin_choice: s32 = 0
+	local alpha: f32 = 0
+	local is_fading_out: s32 = 0
+	local scale: f32 = 0
+	do
+		local out1, out2, out3 = effect.get_first_work_vector()
+		footstep_x = out1 or footstep_x
+		footstep_y = out2 or footstep_y
+		footstep_z = out3 or footstep_z
+	end
+	effect.set_sprite_texture("base_eff2")
+	effect.allocate_sprites_1(4)
+	effect.reset_sprites(0, 4)
+	effect.set_sprite_blend_mode(0, 1, 4)
+	effect.set_sprite_visible(0, 1, 4)
+	effect.set_sprite_size(0, 10.0, 10.0, 4)
+	effect.set_sprite_texture_rect(0, 65.0, 1.0, 62.0, 62.0, 4)
+	effect.set_sprite_color(0, 128.0, 128.0, 128.0, 0.0, 4)
+	i = 0
+	while i < 4 do
+		sprite_x = effect.get_random_number(6.0) or sprite_x
+		sprite_x = vm.f32(vm.f32(sprite_x - 3.0) + footstep_x)
+		sprite_y = effect.get_random_number(3.0) or sprite_y
+		sprite_y = vm.f32(sprite_y + footstep_y)
+		sprite_z = effect.get_random_number(6.0) or sprite_z
+		sprite_z = vm.f32(vm.f32(sprite_z - 3.0) + footstep_z)
+		effect.set_sprite_position(i, sprite_x, sprite_y, sprite_z)
+		rise_speed = effect.get_random_number(0.4) or rise_speed
+		rise_speed = vm.f32(rise_speed + vm.f32(0.2))
+		effect.set_sprite_velocity(i, 0.0, rise_speed, 0.0)
+		effect.set_sprite_acceleration(i, 0.0, -vm.f32(rise_speed * vm.f32(0.05)), 0.0)
+		random_angle = effect.get_random_number(6.2831855) or random_angle
+		random_angle = vm.f32(random_angle - vm.f32(3.1415927))
+		effect.set_sprite_rotation(i, random_angle)
+		spin_choice = effect.get_random_number_int(100) or spin_choice
+		if spin_choice < 50 then
+			random_angle = vm.f32(0.2)
+		else
+			random_angle = vm.f32(-0.2)
+		end
+		effect.set_sprite_angular_velocity(i, random_angle)
+		effect.set_sprite_angular_acceleration(i, -vm.f32(random_angle * vm.f32(0.05)))
+		i = i + 1
+	end
+	is_fading_out = 0
+	alpha = 92.0
+	scale = vm.f32(0.2)
+	i = 0
+	while i < 30 do
+		effect.set_sprite_color(0, 128.0, 128.0, 128.0, alpha, 4)
+		if alpha >= 92.0 then
+			is_fading_out = 1
+		end
+		if is_fading_out == 0 then
+			alpha = vm.f32(alpha + vm.f32(51.2))
+		else
+			alpha = vm.f32(alpha - 4.0)
+		end
+		effect.set_sprite_scale(0, scale, scale, 4)
+		scale = vm.f32(scale + vm.f32(0.2))
+		i = i + 1
+		vm.wait()
+	end
+end
+
+--- Ends an effect.
+-- Defined empty, so the engine runs this instead of its default.
+--- Does nothing; the effect needs no finish handling.
+function script.on_finish() end
+
+return script

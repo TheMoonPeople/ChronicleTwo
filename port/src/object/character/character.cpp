@@ -3007,6 +3007,31 @@ bool ResourcesWouldRetireOnReset(const CCharacter2 &character, const mgCMemory &
     return character.resource_state.WouldRetireOnReset(memory, kind);
 }
 
+bool DetachRetiringExtensions(CCharacter2 &character, const mgCMemory &memory, dc2::memory::ArenaResetKind kind) {
+    const auto state = character.resource_state.Acquire<ResourceState>();
+    if (!state || state->anchor.WouldRetireOnReset(memory, kind)) {
+        return false;
+    }
+    bool extension_retires = false;
+    for (const auto &producer : state->producers) {
+        if (!producer.lifetime.WouldRetireOnReset(memory, kind)) {
+            continue;
+        }
+        const bool extension = producer.index > 0 && (producer.channel == ResourceChannel::Motion ||
+                                                      producer.channel == ResourceChannel::ShadowMotion ||
+                                                      producer.channel == ResourceChannel::Image);
+        if (!extension) {
+            return false;
+        }
+        extension_retires = true;
+    }
+    if (!extension_retires) {
+        return false;
+    }
+    character.DeleteExtMotion();
+    return !ResourcesWouldRetireOnReset(character, memory, kind);
+}
+
 bool PublishResources(CCharacter2 &character, ResourceState state) {
     std::stable_sort(state.producers.begin(), state.producers.end(), [](const auto &left, const auto &right) {
         return left.channel < right.channel || (left.channel == right.channel && left.index < right.index);

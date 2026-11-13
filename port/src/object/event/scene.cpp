@@ -1212,6 +1212,13 @@ void RetireSceneResources(CScene &scene, const mgCMemory &memory, dc2::memory::A
         for (auto &slot : scene.chara) {
             if ((slot.Resource().HasValue() || slot.resource_lifetime.HasValue()) &&
                 (!slot.ResourcesLive() || slot.ResourcesWouldRetireOnReset(memory, kind))) {
+                // An event's extension motions die with its arena; the character they were loaded onto stays.
+                auto *character = slot.ResourcesLive() ? slot.Resource().Get() : nullptr;
+                if (character != nullptr && !slot.CSceneData::ResourcesWouldRetireOnReset(memory, kind) &&
+                    dc2::character::DetachRetiringExtensions(*character, memory, kind) &&
+                    !slot.ResourcesWouldRetireOnReset(memory, kind)) {
+                    continue;
+                }
                 slot.Initialize();
                 retired = true;
             }

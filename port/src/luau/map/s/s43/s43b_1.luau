@@ -1,32 +1,31 @@
 --!strict
--- map/s/s43/s43b_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Circus tent trapeze chase and curse scenes.
 
 local vm = require("@lib/vm")
-local helper_1b215860 = require("@lib/event/helper_1b215860")
-local helper_d7ebd2a3 = require("@lib/event/helper_d7ebd2a3")
+local circus_tent = require("@lib/event/circus_tent")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
-script.default_event = helper_1b215860
+--- Plays the trapeze chase scene.
+script.default_event = circus_tent.play_part4_chapter1_trapeze_chase
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
-	local at: number = 0
+--- Plays the curse scene then the trapeze chase.
+function script.cutscene_curse_then_trapeze_chase()
+	local resume_step: number = 0
 	return vm.guard(function()
-		at = 1
-		helper_d7ebd2a3()
-		at = 2
-		helper_1b215860()
+		resume_step = 1
+		circus_tent.play_opening_curse_scene()
+		resume_step = 2
+		circus_tent.play_part4_chapter1_trapeze_chase()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_1b215860()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				circus_tent.play_part4_chapter1_trapeze_chase()
 				return vm.continue_with(function()
 					return
 				end)
@@ -36,13 +35,16 @@ function script.event_151()
 		return nil
 	end)
 end
+script[151] = script.cutscene_curse_then_trapeze_chase
 
---- Event 152, which map data, a script or the engine runs by number.
-function script.event_152()
+--- Goes to Georama edit.
+function script.enter_georama_edit()
 	event.go_to_georama_edit(17, 153)
 end
+script[152] = script.enter_georama_edit
 
---- Event 8000, which map data, a script or the engine runs by number.
-script.event_8000 = helper_1b215860
+--- Plays the trapeze chase scene.
+script.cutscene_trapeze_chase = circus_tent.play_part4_chapter1_trapeze_chase
+script[8000] = script.cutscene_trapeze_chase
 
 return script

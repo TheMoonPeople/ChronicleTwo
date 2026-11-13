@@ -1,93 +1,70 @@
 --!strict
--- map/s/s04/s04_4.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for Balance Valley Station covering arrivals, boarding trains and station conversations.
 
 local vm = require("@lib/vm")
-local helper_0c718064 = require("@lib/event/helper_0c718064")
-local helper_0d806bce = require("@lib/event/helper_0d806bce")
-local helper_1584c528 = require("@lib/event/helper_1584c528")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_358ee3a0 = require("@lib/event/helper_358ee3a0")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_64a94650 = require("@lib/event/helper_64a94650")
-local helper_7f95a402 = require("@lib/event/helper_7f95a402")
-local helper_826a3ea7 = require("@lib/event/helper_826a3ea7")
-local helper_83f038b5 = require("@lib/event/helper_83f038b5")
-local helper_89d22243 = require("@lib/event/helper_89d22243")
-local helper_918c322c = require("@lib/event/helper_918c322c")
-local helper_946c0402 = require("@lib/event/helper_946c0402")
-local helper_98e2328c = require("@lib/event/helper_98e2328c")
-local helper_9d1e4c6a = require("@lib/event/helper_9d1e4c6a")
-local helper_9e09c6bc = require("@lib/event/helper_9e09c6bc")
-local helper_9e146e8b = require("@lib/event/helper_9e146e8b")
-local helper_ad46c277 = require("@lib/event/helper_ad46c277")
-local helper_b79fe662 = require("@lib/event/helper_b79fe662")
-local helper_b9d220f5 = require("@lib/event/helper_b9d220f5")
-local helper_c161ab52 = require("@lib/event/helper_c161ab52")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_c99744f1 = require("@lib/event/helper_c99744f1")
-local helper_d7295df9 = require("@lib/event/helper_d7295df9")
-local helper_d7ee9abb = require("@lib/event/helper_d7ee9abb")
-local helper_e2123063 = require("@lib/event/helper_e2123063")
-local helper_e5f03808 = require("@lib/event/helper_e5f03808")
-local helper_e6450f0b = require("@lib/event/helper_e6450f0b")
-local helper_f4ec8310 = require("@lib/event/helper_f4ec8310")
-local helper_f57795f8 = require("@lib/event/helper_f57795f8")
-local helper_fab38133 = require("@lib/event/helper_fab38133")
-local helper_fdad3d3b = require("@lib/event/helper_fdad3d3b")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_objects = require("@lib/event/wait_objects")
+local balance_valley_station = require("@lib/event/balance_valley_station")
+local cutscene = require("@lib/event/cutscene")
+local inventory = require("@lib/event/inventory")
+local menu = require("@lib/event/menu")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local partner_talk = require("@lib/event/italian/partner_talk")
+local party = require("@lib/event/party")
+local town_prompt = require("@lib/event/italian/town_prompt")
+local train = require("@lib/event/train")
+local wait = require("@lib/event/wait")
 
-local global0: s32 = 0
-local global1: s32 = 0
+local mints_character: s32 = 0
+local monica_character: s32 = 0
 
---- Helper function.
-local function helper_3032c()
-	local active_chr_no: s32 = 0
+--- Loads the party, the p01_03a character, motions and messages used by the station conversation cutscene.
+local function load_station_chat_scene()
+	local playable_character: s32 = 0
 	event.set_message_window_mode(0, 7)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		global0 = 0
-		global1 = 33
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e300/e372/e372_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	playable_character = event.get_playable_character() or playable_character
+	if playable_character == 0 then
+		mints_character = 0
+		monica_character = 33
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_character)
+		event.load_character_motion_pack(5, "event/e300/e372/e372_mints.gltf", "info", mints_character)
+		event.attach_object_handle_to_character(0, mints_character)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
-		event.load_character(5, "chara/c02_base.gltf", "info", global1)
-		event.load_equipment_model(5, 1, 4, "info", global1)
-		event.load_equipment_model(5, 1, 3, "info", global1)
-		event.load_equipment_model(5, 1, 2, "info", global1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e300/e372/e372_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.set_character_active(0, mints_character)
+		event.load_character(5, "chara/c02_base.gltf", "info", monica_character)
+		event.load_equipment_model(5, 1, 4, "info", monica_character)
+		event.load_equipment_model(5, 1, 3, "info", monica_character)
+		event.load_equipment_model(5, 1, 2, "info", monica_character, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_character)
+		event.load_character_motion_pack(5, "event/e300/e372/e372_monica.gltf", "info", monica_character)
+		event.attach_object_handle_to_character(1, monica_character)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_character)
 		event.set_character_active(1, 37)
 	end
-	if active_chr_no == 1 then
-		global0 = 32
-		global1 = 0
-		event.load_character(5, "chara/c01_base.gltf", "info", global0)
-		event.load_equipment_model(5, 0, 4, "info", global0)
-		event.load_equipment_model(5, 0, 3, "info", global0)
-		event.load_equipment_model(5, 0, 2, "info", global0, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", global0)
-		event.load_character_motion_pack(5, "event/e300/e372/e372_mints.gltf", "info", global0)
-		event.attach_object_handle_to_character(0, global0)
+	if playable_character == 1 then
+		mints_character = 32
+		monica_character = 0
+		event.load_character(5, "chara/c01_base.gltf", "info", mints_character)
+		event.load_equipment_model(5, 0, 4, "info", mints_character)
+		event.load_equipment_model(5, 0, 3, "info", mints_character)
+		event.load_equipment_model(5, 0, 2, "info", mints_character, 37)
+		event.load_character_motion_pack(5, "event/basic_evmot/mints_set.gltf", "info", mints_character)
+		event.load_character_motion_pack(5, "event/e300/e372/e372_mints.gltf", "info", mints_character)
+		event.attach_object_handle_to_character(0, mints_character)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.set_character_active(0, global0)
+		event.set_character_active(0, mints_character)
 		event.set_character_active(1, 37)
-		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", global1)
-		event.load_character_motion_pack(5, "event/e300/e372/e372_monica.gltf", "info", global1)
-		event.attach_object_handle_to_character(1, global1)
+		event.load_character_motion_pack(5, "event/basic_evmot/monica_set.gltf", "info", monica_character)
+		event.load_character_motion_pack(5, "event/e300/e372/e372_monica.gltf", "info", monica_character)
+		event.attach_object_handle_to_character(1, monica_character)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
-		event.set_character_active(0, global1)
+		event.set_character_active(0, monica_character)
 	end
 	event.load_character(5, "chara/p01_03a.gltf", "info", 35)
 	event.attach_object_handle_to_character(2, 35)
@@ -95,52 +72,52 @@ local function helper_3032c()
 	event.set_object_sequence_object(2, 2)
 	event.set_character_active(0, 35)
 	event.load_message_file(0, 5, "event/e300/e372/e372_1.txt")
-	event.set_scene_status_flags(1, global0, 256, 1)
-	event.set_scene_status_flags(1, global1, 256, 1)
+	event.set_scene_status_flags(1, mints_character, 256, 1)
+	event.set_scene_status_flags(1, monica_character, 256, 1)
 end
 
---- Helper function.
-local function helper_30078()
-	local active_chr_no: s32 = 0
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 0 then
-		event.set_character_active(1, global0)
-		event.set_character_active(0, global1)
-		event.delete_character_extension_packs(global0)
-		event.delete_character(global1)
+--- Deletes the characters loaded for the station conversation cutscene and restores the party.
+local function unload_station_chat_scene()
+	local playable_character: s32 = 0
+	playable_character = event.get_playable_character() or playable_character
+	if playable_character == 0 then
+		event.set_character_active(1, mints_character)
+		event.set_character_active(0, monica_character)
+		event.delete_character_extension_packs(mints_character)
+		event.delete_character(monica_character)
 		event.delete_character(37)
 	end
-	if active_chr_no == 1 then
-		event.set_character_active(1, global1)
-		event.set_character_active(0, global0)
-		event.delete_character_extension_packs(global1)
-		event.delete_character(global0)
+	if playable_character == 1 then
+		event.set_character_active(1, monica_character)
+		event.set_character_active(0, mints_character)
+		event.delete_character_extension_packs(monica_character)
+		event.delete_character(mints_character)
 		event.delete_character(37)
 	end
 	event.delete_character(35)
 end
 
---- Helper function.
-local function helper_31124()
+--- Plays the cutscene in which the party runs to the platform and talks with the p01_03a character, then restores control.
+local function play_station_chat_scene()
 	vm.section(function()
 		event.set_character_active(0, 24)
 		event.set_save_flag(372, 1)
 		event.initialize_event()
 		event.attach_object_handle_to_map_part_2(20, "p01_train01")
 		event.set_object_handle_position(20, 0.0, 0.0, 400.0)
-		helper_3032c()
+		load_station_chat_scene()
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "わらい顔")
 		event.set_object_sequence_texture_animation(2, 1, "通常目パチ")
 		event.set_object_handle_footstep_sound(0, 2)
 		event.set_object_handle_footstep_sound(1, 2)
 		event.stop_music(0)
-		wait_frames(4)
+		wait.frames(4)
 		event.load_music(49)
 		event.play_music(0)
 		event.enable_drama_skip()
-		event.set_character_active(1, global0)
-		event.set_character_active(1, global1)
+		event.set_character_active(1, mints_character)
+		event.set_character_active(1, monica_character)
 		event.set_character_active(1, 35)
 		event.set_camera_sequence_position(-940.17, 88.71, -222.08)
 		event.set_camera_sequence_look_at(-788.53, 51.39, -202.38)
@@ -155,7 +132,7 @@ local function helper_31124()
 		event.set_object_sequence_motion(1, "走り", 0)
 		event.move_object_sequence(0, -647.07, 0.0, -165.42, 60)
 		event.move_object_sequence(1, -636.31, 0.0, -204.74, 60)
-		wait_objects(0)
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-243.89, 55.02, -207.96)
 		event.set_camera_sequence_look_at(-152.87, 61.42, -156.97)
 		event.set_object_sequence_position(0, -207.98, 36.0, -142.65)
@@ -169,7 +146,7 @@ local function helper_31124()
 		event.move_object_sequence(0, -155.54, 36.0, -140.71, 75)
 		event.move_object_sequence(1, -153.89, 36.0, -159.09, 75)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_1584c528(3720500, 60)
+		message.show_voiced_for(3720500, 60)
 		event.reset_mouth_texture_animations()
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
@@ -186,46 +163,48 @@ local function helper_31124()
 		event.set_object_sequence_motion(2, "会話2", 2)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
 		event.set_mouth_texture_animations(2, "口パク")
-		helper_4116e6bb(3720505)
+		message.show_voiced(3720505)
 		event.reset_mouth_texture_animations()
 		event.fade_out_screen(30)
-		wait_frames(30)
+		wait.frames(30)
 	end)
 	event.cancel_drama_scene_skip()
-	if global0 == 0 then
+	if mints_character == 0 then
 		event.set_character_position(0, -155.54, 36.0, -140.71)
 	else
 		event.set_character_position(0, -153.89, 36.0, -159.09)
 	end
-	helper_30078()
+	unload_station_chat_scene()
 	event.set_character_active(1, 24)
 	event.fade_in_screen(30)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing.
+function script.do_nothing() end
+script[99] = script.do_nothing
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Positions the party on entering the station: restores the player after a memory card load, runs in from the first map, plays the arrival cutscene or walks off the train, depending on the previous map and story flags.
 function script.default_event()
-	local mc_load: s32 = 0
-	local old_map_no: s32 = 0
-	local var2: s32 = 0
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local var5: s32 = 0
-	local var6: s32 = 0
-	local var7: s32 = 0
-	local at: number = 0
+	local memory_card_load_state: s32 = 0
+	local previous_map: s32 = 0
+	local map_type: s32 = 0
+	local save_flag_283: s32 = 0
+	local save_flag_300: s32 = 0
+	local chapter_on_arrival: s32 = 0
+	local save_counter: s32 = 0
+	local chapter_on_return: s32 = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
-		helper_fab38133()
-		mc_load = event.take_memory_card_load_state() or mc_load
-		if mc_load == 1 then
+		balance_valley_station.initialize_station_characters()
+		memory_card_load_state = event.take_memory_card_load_state() or memory_card_load_state
+		if memory_card_load_state == 1 then
 			event.set_character_position(0, -357.0, 0.0, -206.0)
 			event.set_character_rotation(0, 0.0, -1.57, 0.0)
 			event.set_character_motion(0, "立ち", 4)
@@ -233,54 +212,54 @@ function script.default_event()
 			event.reset_character_cloth_and_hair(0)
 			event.reset_follow_camera(1, 3.14, 20.0)
 		else
-			old_map_no = event.get_previous_map() or old_map_no
-			var2 = event.get_map_type(old_map_no) or var2
-			if var2 ~= -1 then
-				if old_map_no == 1 then
-					at = 1
-					helper_e2123063()
-				elseif old_map_no ~= 18 and old_map_no ~= 23 and old_map_no ~= 120 and old_map_no ~= 108 then
-					flag = event.get_save_flag(283) or flag
-					flag_2 = event.get_save_flag(300) or flag_2
-					if flag == 1 and flag_2 == 0 then
+			previous_map = event.get_previous_map() or previous_map
+			map_type = event.get_map_type(previous_map) or map_type
+			if map_type ~= -1 then
+				if previous_map == 1 then
+					checkpoint = 1
+					balance_valley_station.run_in_from_map_entrance()
+				elseif previous_map ~= 18 and previous_map ~= 23 and previous_map ~= 120 and previous_map ~= 108 then
+					save_flag_283 = event.get_save_flag(283) or save_flag_283
+					save_flag_300 = event.get_save_flag(300) or save_flag_300
+					if save_flag_283 == 1 and save_flag_300 == 0 then
 						event.set_villager_ai_enabled(0, 24)
 						event.set_villager_ai_enabled(0, 25)
 						event.set_villager_ai_enabled(0, 26)
-						at = 2
-						helper_0d806bce()
-						helper_b79fe662()
+						checkpoint = 2
+						balance_valley_station.play_party_arrival_scene()
+						balance_valley_station.place_villagers()
 						event.set_villager_ai_enabled(1, 24)
 						event.set_villager_ai_enabled(1, 25)
 						event.set_villager_ai_enabled(1, 26)
 					else
 						event.set_character_active(0, 25)
-						var5 = event.get_chapter() or var5
-						if var5 ~= 6 and var5 ~= 7 then
-							at = 3
-							helper_9e09c6bc()
+						chapter_on_arrival = event.get_chapter() or chapter_on_arrival
+						if chapter_on_arrival ~= 6 and chapter_on_arrival ~= 7 then
+							checkpoint = 3
+							balance_valley_station.walk_off_train_skippable()
 						else
-							at = 4
-							helper_918c322c()
+							checkpoint = 4
+							balance_valley_station.walk_off_train()
 						end
 						event.set_character_active(25)
 					end
 				else
-					var6 = event.get_save_counter(1) or var6
+					save_counter = event.get_save_counter(1) or save_counter
 					if
-						(old_map_no == 18 or old_map_no == 23 or old_map_no == 120 or old_map_no == 108)
-						and var6 == 3
+						(previous_map == 18 or previous_map == 23 or previous_map == 120 or previous_map == 108)
+						and save_counter == 3
 					then
-						helper_946c0402()
+						train.place_player_at_saved_platform()
 						event.fade_in_screen(15)
 						event.reset_follow_camera(1, 0.0)
 					else
-						var7 = event.get_chapter() or var7
-						if var7 ~= 6 and var7 ~= 7 then
-							at = 5
-							helper_9e09c6bc()
+						chapter_on_return = event.get_chapter() or chapter_on_return
+						if chapter_on_return ~= 6 and chapter_on_return ~= 7 then
+							checkpoint = 5
+							balance_valley_station.walk_off_train_skippable()
 						else
-							at = 6
-							helper_918c322c()
+							checkpoint = 6
+							balance_valley_station.walk_off_train()
 						end
 					end
 				end
@@ -290,40 +269,40 @@ function script.default_event()
 		end
 		return
 	end, function(received: { any })
-		if at <= 6 then
-			if at <= 1 then
-				at = 2
-				helper_0d806bce()
+		if checkpoint <= 6 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				balance_valley_station.play_party_arrival_scene()
 				return vm.continue_with(function()
-					helper_b79fe662()
+					balance_valley_station.place_villagers()
 					event.set_villager_ai_enabled(1, 24)
 					event.set_villager_ai_enabled(1, 25)
 					event.set_villager_ai_enabled(1, 26)
 					return
 				end)
 			end
-			if at <= 2 then
-				helper_1ef0d4b2()
-				at = 3
-				helper_9e09c6bc()
+			if checkpoint <= 2 then
+				cutscene.noop()
+				checkpoint = 3
+				balance_valley_station.walk_off_train_skippable()
 				return vm.continue_with(function()
 					event.set_character_active(25)
 					return
 				end)
 			end
-			if at <= 3 then
-				helper_7f95a402()
+			if checkpoint <= 3 then
+				wait.skip_short_pause()
 			end
-			if at <= 4 then
-				helper_d7295df9()
-				at = 5
-				helper_9e09c6bc()
+			if checkpoint <= 4 then
+				train.skip_place_player_at_saved_platform()
+				checkpoint = 5
+				balance_valley_station.walk_off_train_skippable()
 				return vm.continue_with(function()
 					return
 				end)
 			end
-			if at <= 5 then
-				helper_7f95a402()
+			if checkpoint <= 5 then
+				wait.skip_short_pause()
 			end
 			print("------  <START EVENT> OLD MAP ERR   ------\n")
 			return 0
@@ -332,253 +311,259 @@ function script.default_event()
 	end)
 end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Waits for the square button, plays a sound effect, then waits for the button again.
 function script.key_open()
-	local var0: s32 = 0
+	local sound_bank: s32 = 0
 	event.initialize_event()
-	var0 = event.load_sound_effect_file_2(3200) or var0
+	sound_bank = event.load_sound_effect_file_2(3200) or sound_bank
 	vm.wait(1)
-	helper_c956b4a2(64)
-	event.play_sound_effect(var0, 8)
+	wait.until_button_pressed(64)
+	event.play_sound_effect(sound_bank, 8)
 	vm.wait(3)
-	helper_c956b4a2(64)
+	wait.until_button_pressed(64)
 end
 
---- Event 250, which map data, a script or the engine runs by number.
-function script.event_250()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local var2: s32 = 0
-	local at: number = 0
+--- Asks whether to leave and boards a short train to s08 or s37, or a full train to s07 or s38, depending on the chapter and trigger data.
+function script.board_train()
+	local choice: s32 = 0
+	local chapter: s32 = 0
+	local train_kind: s32 = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
-		at = 1
-		var0 = helper_9e146e8b()
-		if var0 ~= 1 then
+		checkpoint = 1
+		choice = town_prompt.ask_enter_or_leave()
+		if choice ~= 1 then
 			return
 		end
 		event.set_save_counter(1, 3)
-		var1 = event.get_chapter() or var1
-		var2 = event.get_triggered_event_data_2(3) or var2
-		if var2 <= 1 then
-			if var1 ~= 6 and var1 ~= 7 then
-				at = 2
-				helper_f4ec8310()
+		chapter = event.get_chapter() or chapter
+		train_kind = event.get_triggered_event_data_2(3) or train_kind
+		if train_kind <= 1 then
+			if chapter ~= 6 and chapter ~= 7 then
+				checkpoint = 2
+				train.board_short_train()
 				event.stop_music(0)
-				at = 3
+				checkpoint = 3
 				vm.wait(3)
 				event.jump_to_map_2(-1, "s08")
 			else
-				at = 4
-				helper_f4ec8310()
+				checkpoint = 4
+				train.board_short_train()
 				event.stop_music(0)
-				at = 5
+				checkpoint = 5
 				vm.wait(5)
 				event.jump_to_map_2(-1, "s37")
 			end
-			at = 6
+			checkpoint = 6
 			vm.wait(6)
-		elseif var1 ~= 6 and var1 ~= 7 then
-			at = 7
-			helper_826a3ea7(0)
+		elseif chapter ~= 6 and chapter ~= 7 then
+			checkpoint = 7
+			train.board_train(0)
 			event.stop_music(0)
 			event.jump_to_map_2(100, "s07")
 		else
-			at = 8
-			helper_fdad3d3b()
+			checkpoint = 8
+			train.board_train_via_gangway()
 			event.stop_music(0)
 			event.jump_to_map_2(100, "s38")
 		end
 		return
 	end, function(received: { any })
-		if at <= 1 then
-			if at == 1 then
-				var0 = received[1] :: number
+		if checkpoint <= 1 then
+			if checkpoint == 1 then
+				choice = received[1] :: number
 			end
 			return 0
 		end
-		if at <= 8 then
-			if at <= 3 then
-				helper_83f038b5()
+		if checkpoint <= 8 then
+			if checkpoint <= 3 then
+				train.board_train_skipping()
 			end
-			if at <= 6 then
-				helper_e6450f0b(0)
+			if checkpoint <= 6 then
+				train.board_train_skipping_primary(0)
 			end
-			if at <= 7 then
-				helper_c99744f1()
+			if checkpoint <= 7 then
+				train.board_train_via_gangway_skipping()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[250] = script.board_train
 
 --- Event 400, which map data, a script or the engine runs by number.
-script.event_400 = helper_f57795f8
+script[400] = menu.open_with_fade
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	if helper_b9d220f5() ~= 0 then
+--- Asks whether to leave through the map exit and jumps to map g02 when the player does.
+function script.leave_station_to_g02()
+	if balance_valley_station.walk_to_map_exit() ~= 0 then
 		event.jump_to_map_3(-1, "g02", 100)
 	end
 end
+script[500] = script.leave_station_to_g02
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
-	helper_fab38133()
-	helper_31124()
+--- Plays the cutscene in which the party runs to the platform and talks.
+function script.cutscene_station_chat()
+	balance_valley_station.initialize_station_characters()
+	play_station_chat_scene()
 end
+script[501] = script.cutscene_station_chat
 
---- Event 502, which map data, a script or the engine runs by number.
-function script.event_502()
-	helper_0c718064(3)
-	helper_fab38133()
+--- Grants the stage supplies and plays the party arrival cutscene with the villagers.
+function script.cutscene_arrival_with_supplies()
+	inventory.grant_stage_supplies(3)
+	balance_valley_station.initialize_station_characters()
 	event.set_villager_ai_enabled(0, 24)
 	event.set_villager_ai_enabled(0, 25)
 	event.set_villager_ai_enabled(0, 26)
-	helper_0d806bce()
-	helper_b79fe662()
+	balance_valley_station.play_party_arrival_scene()
+	balance_valley_station.place_villagers()
 	event.set_villager_ai_enabled(1, 24)
 	event.set_villager_ai_enabled(1, 25)
 	event.set_villager_ai_enabled(1, 26)
 end
+script[502] = script.cutscene_arrival_with_supplies
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local at: number = 0
+--- Handles conversation with the station character chosen by the trigger data, including departing by train.
+function script.talk_to_station_npc()
+	local npc_id: s32 = 0
+	local choice: s32 = 0
+	local checkpoint: number = 0
 	return vm.guard(function()
-		var0 = event.get_triggered_event_data_2(14) or var0
-		if var0 == 1 then
-			at = 1
-			var1 = helper_c161ab52()
-			if var1 == 1 then
-				at = 2
-				helper_d7ee9abb()
-				at = 3
-				helper_89d22243()
+		npc_id = event.get_triggered_event_data_2(14) or npc_id
+		if npc_id == 1 then
+			checkpoint = 1
+			choice = partner_talk.offer_leave_or_speak_with_npc_1()
+			if choice == 1 then
+				checkpoint = 2
+				balance_valley_station.play_starbre_departure_scene()
+				checkpoint = 3
+				balance_valley_station.play_train_departure_scene()
 				event.open_event_menu(13, 8)
-				at = 4
+				checkpoint = 4
 				vm.wait(4)
 				event.jump_to_map_2(-1, "s09")
 			end
 		end
-		if var0 == 2 then
-			at = 5
-			helper_358ee3a0()
+		if npc_id == 2 then
+			checkpoint = 5
+			partner_talk.speak_with_npc_2()
 		end
-		if var0 == 13 then
-			at = 6
-			helper_9d1e4c6a()
+		if npc_id == 13 then
+			checkpoint = 6
+			partner_talk.speak_with_npc_13()
 		end
-		if var0 == 301 then
-			at = 7
-			helper_98e2328c()
+		if npc_id == 301 then
+			checkpoint = 7
+			town_prompt.say_waiting_outside()
 		end
 		return
 	end, function(received: { any })
-		if at <= 7 then
-			if at == 1 then
-				var1 = received[1] :: number
+		if checkpoint <= 7 then
+			if checkpoint == 1 then
+				choice = received[1] :: number
 			end
-			if at <= 1 then
-				at = 2
-				helper_d7ee9abb()
+			if checkpoint <= 1 then
+				checkpoint = 2
+				balance_valley_station.play_starbre_departure_scene()
 				return vm.continue_with(function()
-					at = 3
-					helper_89d22243()
+					checkpoint = 3
+					balance_valley_station.play_train_departure_scene()
 					event.open_event_menu(13, 8)
-					at = 4
+					checkpoint = 4
 					vm.wait(4)
 					event.jump_to_map_2(-1, "s09")
-					if var0 == 2 then
-						at = 5
-						helper_358ee3a0()
+					if npc_id == 2 then
+						checkpoint = 5
+						partner_talk.speak_with_npc_2()
 					end
-					if var0 == 13 then
-						at = 6
-						helper_9d1e4c6a()
+					if npc_id == 13 then
+						checkpoint = 6
+						partner_talk.speak_with_npc_13()
 					end
-					if var0 == 301 then
-						at = 7
-						helper_98e2328c()
+					if npc_id == 301 then
+						checkpoint = 7
+						town_prompt.say_waiting_outside()
 					end
 					return
 				end)
 			end
-			if at <= 2 then
-				at = 3
-				helper_89d22243()
+			if checkpoint <= 2 then
+				checkpoint = 3
+				balance_valley_station.play_train_departure_scene()
 				return vm.continue_with(function()
 					event.open_event_menu(13, 8)
-					at = 4
+					checkpoint = 4
 					vm.wait(4)
 					event.jump_to_map_2(-1, "s09")
-					if var0 == 2 then
-						at = 5
-						helper_358ee3a0()
+					if npc_id == 2 then
+						checkpoint = 5
+						partner_talk.speak_with_npc_2()
 					end
-					if var0 == 13 then
-						at = 6
-						helper_9d1e4c6a()
+					if npc_id == 13 then
+						checkpoint = 6
+						partner_talk.speak_with_npc_13()
 					end
-					if var0 == 301 then
-						at = 7
-						helper_98e2328c()
+					if npc_id == 301 then
+						checkpoint = 7
+						town_prompt.say_waiting_outside()
 					end
 					return
 				end)
 			end
-			if at <= 4 then
-				helper_64a94650()
+			if checkpoint <= 4 then
+				party.skip_talk_to_engineer()
 			end
-			if at <= 5 then
-				helper_ad46c277()
+			if checkpoint <= 5 then
+				party.skip_talk_to_blaster()
 			end
-			if at <= 6 then
-				helper_e5f03808()
+			if checkpoint <= 6 then
+				party.skip_talk_to_waiting_npc()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[1000] = script.talk_to_station_npc
 
---- Event 13000, which map data, a script or the engine runs by number.
-function script.event_13000()
-	helper_fab38133()
+--- Plays the party arrival cutscene with the villagers.
+function script.cutscene_party_arrival()
+	balance_valley_station.initialize_station_characters()
 	event.set_villager_ai_enabled(0, 24)
 	event.set_villager_ai_enabled(0, 25)
 	event.set_villager_ai_enabled(0, 26)
-	helper_0d806bce()
-	helper_b79fe662()
+	balance_valley_station.play_party_arrival_scene()
+	balance_valley_station.place_villagers()
 	event.set_villager_ai_enabled(1, 24)
 	event.set_villager_ai_enabled(1, 25)
 	event.set_villager_ai_enabled(1, 26)
 end
+script[13000] = script.cutscene_party_arrival
 
---- Event 13600, which map data, a script or the engine runs by number.
-function script.event_13600()
-	local at: number = 0
+--- Plays Starbre's departure announcement and the train leaving, then jumps to map s09.
+function script.cutscene_train_departure()
+	local checkpoint: number = 0
 	return vm.guard(function()
-		helper_fab38133()
-		at = 1
-		helper_d7ee9abb()
-		at = 2
-		helper_89d22243()
+		balance_valley_station.initialize_station_characters()
+		checkpoint = 1
+		balance_valley_station.play_starbre_departure_scene()
+		checkpoint = 2
+		balance_valley_station.play_train_departure_scene()
 		event.open_event_menu(13, 8)
-		at = 3
+		checkpoint = 3
 		vm.wait(3)
 		event.jump_to_map_2(-1, "s09")
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_89d22243()
+		if checkpoint <= 3 then
+			if checkpoint <= 1 then
+				checkpoint = 2
+				balance_valley_station.play_train_departure_scene()
 				return vm.continue_with(function()
 					event.open_event_menu(13, 8)
-					at = 3
+					checkpoint = 3
 					vm.wait(3)
 					event.jump_to_map_2(-1, "s09")
 					return
@@ -589,5 +574,6 @@ function script.event_13600()
 		return nil
 	end)
 end
+script[13600] = script.cutscene_train_departure
 
 return script

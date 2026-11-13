@@ -1,38 +1,36 @@
 --!strict
--- map/s/s59/s59.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the train departure scene at the Luna lab and moves on to map s37.
 
 local vm = require("@lib/vm")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_344d6cd8 = require("@lib/event/helper_344d6cd8")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local cutscene = require("@lib/event/cutscene")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_b8ac()
-	local var0: s32 = 0
-	local var2: s32 = 0
-	local pos_z: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local pos_y: f32 = 0
-	local var7: f32 = 0
-	local var8: f32 = 0
-	local pos_x: f32 = 0
-	local var10: f32 = 0
-	local var11: f32 = 0
-	local at: number = 0
+--- Plays the e600 cutscene in which a train pulls out of the station past the platform parts and then flies off, with water-spray, flow and light characters appearing along the way.
+local function play_train_departure_scene()
+	local sound_bank: s32 = 0
+	local frame_index: s32 = 0
+	local position_z: f32 = 0
+	local velocity_z: f32 = 0
+	local acceleration_z: f32 = 0
+	local position_y: f32 = 0
+	local velocity_y: f32 = 0
+	local acceleration_y: f32 = 0
+	local position_x: f32 = 0
+	local velocity_x: f32 = 0
+	local acceleration_x: f32 = 0
+	local checkpoint: number = 0
 	vm.section(function()
 		event.set_save_flag(600, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
-		at = 1
-		helper_888ab2a3(4)
+		checkpoint = 1
+		wait.for_frame_count(4)
 		event.load_music(115)
 		event.load_map_sounds(4525)
-		var0 = event.load_sound_effect_file_2(4525) or var0
+		sound_bank = event.load_sound_effect_file_2(4525) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.get_playable_character()
@@ -144,52 +142,52 @@ local function helper_b8ac()
 		event.set_camera_sequence_angle_height_distance(2.6, 800.0, 3000.0)
 		event.move_camera_sequence_angle_height_distance_eased(-2.6, 800.0, 3000.0, 120, 0, 1.0)
 		event.fade_in_screen(30)
-		at = 2
-		helper_888ab2a3(14)
+		checkpoint = 2
+		wait.for_frame_count(14)
 		event.play_music(0)
-		at = 3
-		helper_888ab2a3(66)
-		event.play_sound_effect(var0, 0)
+		checkpoint = 3
+		wait.for_frame_count(66)
+		event.play_sound_effect(sound_bank, 0)
 		event.rotate_object_sequence_eased(1, 0.0, 0.08, 0.0, 160, 0, 1.0)
 		event.rotate_object_sequence_eased(2, 0.0, -0.08, 0.0, 160, 0, 1.0)
-		at = 4
-		wait_camera()
+		checkpoint = 4
+		camera.wait_until_done()
 		event.set_camera_sequence_position(213.43, 452.11, -5638.41)
 		event.set_camera_sequence_look_at(206.97, 452.67, -5520.54)
 		event.move_camera_sequence_eased(269.87, 930.16, -6906.42, 250.2, 895.98, -6763.9, 360, 0, 1.0)
-		at = 5
-		wait_objects(2)
-		event.play_sound_effect(var0, 1)
+		checkpoint = 5
+		object.wait_until_done(2)
+		event.play_sound_effect(sound_bank, 1)
 		event.move_object_sequence_eased(3, 0.0, 0.0, 0.0, 100, 2, 1.0)
 		event.delay_object_sequence_sound_track(3, 140.0)
-		event.play_object_sequence_sound(3, var0, 3)
+		event.play_object_sequence_sound(3, sound_bank, 3)
 		event.move_object_sequence_eased(5, 0.0, 0.0, 0.0, 360, 2, 1.0)
 		event.delay_object_sequence_sound_track(5, 520.0)
-		event.play_object_sequence_sound(5, var0, 3)
+		event.play_object_sequence_sound(5, sound_bank, 3)
 		event.move_object_sequence_eased(17, 0.0, 0.0, 0.0, 100, 2, 1.0)
 		event.move_object_sequence_eased(19, 0.0, 0.0, 0.0, 360, 2, 1.0)
-		at = 6
-		helper_888ab2a3(40)
+		checkpoint = 6
+		wait.for_frame_count(40)
 		event.move_object_sequence_eased(4, 0.0, 0.0, 0.0, 200, 2, 1.0)
 		event.move_object_sequence_eased(18, 0.0, 0.0, 0.0, 200, 2, 1.0)
 		event.delay_object_sequence_sound_track(4, 280.0)
-		event.play_object_sequence_sound(4, var0, 3)
-		at = 7
-		wait_objects(5)
-		at = 8
-		wait_camera()
+		event.play_object_sequence_sound(4, sound_bank, 3)
+		checkpoint = 7
+		object.wait_until_done(5)
+		checkpoint = 8
+		camera.wait_until_done()
 		event.set_camera_sequence_position(427.74, 105.92, -3207.97)
 		event.set_camera_sequence_look_at(380.62, 117.95, -3117.35)
-		event.play_sound_effect(var0, 4)
+		event.play_sound_effect(sound_bank, 4)
 		event.set_object_sequence_position(3, 0.0, 0.0, 0.0)
 		event.set_object_sequence_position(4, 0.0, 0.0, 0.0)
 		event.set_object_sequence_position(5, 0.0, 0.0, 0.0)
 		event.set_object_handle_visible(17, 0)
 		event.set_object_handle_visible(18, 0)
 		event.set_object_handle_visible(19, 0)
-		at = 9
-		helper_888ab2a3(30)
-		event.play_sound_effect(var0, 5)
+		checkpoint = 9
+		wait.for_frame_count(30)
+		event.play_sound_effect(sound_bank, 5)
 		event.move_object_sequence_eased(0, 0.0, 70.0, -2600.0, 120, 1, 1.0)
 		event.move_object_sequence_eased(15, 0.0, 70.0, -2600.0, 120, 1, 1.0)
 		event.rotate_object_sequence_eased(6, 3.1, 0.0, 0.0, 60, 1, 1.0)
@@ -202,49 +200,49 @@ local function helper_b8ac()
 		event.rotate_object_sequence(8, 0.1, 0.0, 0.0, -1)
 		event.rotate_object_sequence(9, 0.1, 0.0, 0.0, -1)
 		event.rotate_object_sequence(10, 0.1, 0.0, 0.0, -1)
-		at = 10
-		helper_888ab2a3(70)
+		checkpoint = 10
+		wait.for_frame_count(70)
 		event.set_character_active(1, 32)
 		event.set_character_visible(32, 1, 1, 0.011111111)
-		at = 11
-		wait_objects(0)
+		checkpoint = 11
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(493.85, 133.35, -3161.95)
 		event.set_camera_sequence_look_at(192.71, 140.7, -3161.9)
-		var2 = 0
-		pos_z = -2600.0
-		var4 = -16.0
-		var5 = vm.f32(-0.6)
-		while var2 < 60 do
-			event.set_object_sequence_position(0, 0.0, 70.0, pos_z)
-			event.set_object_sequence_position(15, 0.0, 70.0, pos_z)
-			pos_z = vm.f32(pos_z + var4)
-			var4 = vm.f32(var4 + var5)
-			var2 = var2 + 1
-			at = 12
+		frame_index = 0
+		position_z = -2600.0
+		velocity_z = -16.0
+		acceleration_z = vm.f32(-0.6)
+		while frame_index < 60 do
+			event.set_object_sequence_position(0, 0.0, 70.0, position_z)
+			event.set_object_sequence_position(15, 0.0, 70.0, position_z)
+			position_z = vm.f32(position_z + velocity_z)
+			velocity_z = vm.f32(velocity_z + acceleration_z)
+			frame_index = frame_index + 1
+			checkpoint = 12
 			vm.wait(12)
 		end
-		at = 13
-		wait_objects(0)
+		checkpoint = 13
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(-1162.38, 1222.12, -7192.96)
 		event.set_camera_sequence_look_at(-630.41, 849.9, -6224.85)
 		event.set_object_sequence_rotation(0, -0.209, 3.14, 0.0)
 		event.set_object_sequence_rotation(15, -0.209, 3.14, 0.0)
-		pos_y = 460.0
-		var7 = 12.5
-		var8 = 0.5
-		pos_z = -5500.0
-		var4 = -62.5
-		var5 = -2.5
-		var2 = 0
-		while var2 < 20 do
-			event.set_object_sequence_position(0, 0.0, pos_y, pos_z)
-			event.set_object_sequence_position(15, 0.0, pos_y, pos_z)
-			pos_y = vm.f32(pos_y + var7)
-			var7 = vm.f32(var7 + var8)
-			pos_z = vm.f32(pos_z + var4)
-			var4 = vm.f32(var4 + var5)
-			var2 = var2 + 1
-			at = 14
+		position_y = 460.0
+		velocity_y = 12.5
+		acceleration_y = 0.5
+		position_z = -5500.0
+		velocity_z = -62.5
+		acceleration_z = -2.5
+		frame_index = 0
+		while frame_index < 20 do
+			event.set_object_sequence_position(0, 0.0, position_y, position_z)
+			event.set_object_sequence_position(15, 0.0, position_y, position_z)
+			position_y = vm.f32(position_y + velocity_y)
+			velocity_y = vm.f32(velocity_y + acceleration_y)
+			position_z = vm.f32(position_z + velocity_z)
+			velocity_z = vm.f32(velocity_z + acceleration_z)
+			frame_index = frame_index + 1
+			checkpoint = 14
 			vm.wait(14)
 		end
 		event.set_camera_sequence_position(-563.64, 740.88, -4153.64)
@@ -257,123 +255,123 @@ local function helper_b8ac()
 		event.rotate_object_sequence_eased(16, -0.209, 2.8, 0.0, 120, 0, 0.4)
 		event.set_object_sequence_motion(16, "ループ入り", 6)
 		event.queue_object_sequence_next_motion(16, "ループ", 4)
-		pos_x = 0.0
-		var10 = 0.0
-		var11 = vm.f32(0.6)
-		pos_y = 655.0
-		var7 = 40.0
-		var8 = vm.f32(0.33333334)
-		pos_z = -6300.0
-		var4 = -200.0
-		var5 = vm.f32(-1.6666666)
-		var2 = 0
-		while var2 < 110 do
-			if var2 == 30 then
+		position_x = 0.0
+		velocity_x = 0.0
+		acceleration_x = vm.f32(0.6)
+		position_y = 655.0
+		velocity_y = 40.0
+		acceleration_y = vm.f32(0.33333334)
+		position_z = -6300.0
+		velocity_z = -200.0
+		acceleration_z = vm.f32(-1.6666666)
+		frame_index = 0
+		while frame_index < 110 do
+			if frame_index == 30 then
 				event.set_character_active(1, 34)
 				event.set_character_visible(34, 1, 1, 0.016666668)
 			end
-			event.set_object_sequence_position(0, pos_x, pos_y, pos_z)
-			event.set_object_sequence_position(16, pos_x, pos_y + 80.0, pos_z)
-			pos_x = vm.f32(pos_x + var10)
-			var10 = vm.f32(var10 + var11)
-			pos_y = vm.f32(pos_y + var7)
-			var7 = vm.f32(var7 + var8)
-			pos_z = vm.f32(pos_z + var4)
-			var4 = vm.f32(var4 + var5)
-			var2 = var2 + 1
-			at = 15
+			event.set_object_sequence_position(0, position_x, position_y, position_z)
+			event.set_object_sequence_position(16, position_x, position_y + 80.0, position_z)
+			position_x = vm.f32(position_x + velocity_x)
+			velocity_x = vm.f32(velocity_x + acceleration_x)
+			position_y = vm.f32(position_y + velocity_y)
+			velocity_y = vm.f32(velocity_y + acceleration_y)
+			position_z = vm.f32(position_z + velocity_z)
+			velocity_z = vm.f32(velocity_z + acceleration_z)
+			frame_index = frame_index + 1
+			checkpoint = 15
 			vm.wait(15)
 		end
 		event.fade_out_screen(10)
-		at = 16
-		helper_888ab2a3(10)
+		checkpoint = 16
+		wait.for_frame_count(10)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			helper_038a2e4d(14)
+		if checkpoint <= 1 then
+			wait.skip_frame_count(14)
 		end
-		if at <= 2 then
-			helper_038a2e4d(66)
+		if checkpoint <= 2 then
+			wait.skip_frame_count(66)
 		end
-		if at <= 3 then
-			helper_344d6cd8()
+		if checkpoint <= 3 then
+			wait.background_load_skipping()
 		end
-		if at <= 4 then
-			helper_238b5abc(2)
+		if checkpoint <= 4 then
+			cutscene.skip_command(2)
 		end
-		if at <= 5 then
-			helper_038a2e4d(40)
+		if checkpoint <= 5 then
+			wait.skip_frame_count(40)
 		end
-		if at <= 6 then
-			helper_238b5abc(5)
+		if checkpoint <= 6 then
+			cutscene.skip_command(5)
 		end
-		if at <= 7 then
-			helper_344d6cd8()
+		if checkpoint <= 7 then
+			wait.background_load_skipping()
 		end
-		if at <= 8 then
-			helper_038a2e4d(30)
+		if checkpoint <= 8 then
+			wait.skip_frame_count(30)
 		end
-		if at <= 9 then
-			helper_038a2e4d(70)
+		if checkpoint <= 9 then
+			wait.skip_frame_count(70)
 		end
-		if at <= 10 then
-			helper_238b5abc(0)
+		if checkpoint <= 10 then
+			cutscene.skip_command(0)
 		end
-		if at <= 11 then
-			var2 = 0
-			pos_z = -2600.0
-			var4 = -16.0
-			var5 = vm.f32(-0.6)
-			pos_z = vm.f32(pos_z + var4)
-			var4 = vm.f32(var4 + var5)
-			local _ = var2 < 60
-			var2 = var2 + 1
+		if checkpoint <= 11 then
+			frame_index = 0
+			position_z = -2600.0
+			velocity_z = -16.0
+			acceleration_z = vm.f32(-0.6)
+			position_z = vm.f32(position_z + velocity_z)
+			velocity_z = vm.f32(velocity_z + acceleration_z)
+			local _ = frame_index < 60
+			frame_index = frame_index + 1
 		end
-		if at <= 12 then
-			helper_238b5abc(0)
+		if checkpoint <= 12 then
+			cutscene.skip_command(0)
 		end
-		if at <= 13 then
-			pos_y = 460.0
-			var7 = 12.5
-			var8 = 0.5
-			pos_z = -5500.0
-			var4 = -62.5
-			var5 = -2.5
-			var2 = 0
-			pos_y = vm.f32(pos_y + var7)
-			var7 = vm.f32(var7 + var8)
-			pos_z = vm.f32(pos_z + var4)
-			var4 = vm.f32(var4 + var5)
-			local _ = var2 < 20
-			var2 = var2 + 1
+		if checkpoint <= 13 then
+			position_y = 460.0
+			velocity_y = 12.5
+			acceleration_y = 0.5
+			position_z = -5500.0
+			velocity_z = -62.5
+			acceleration_z = -2.5
+			frame_index = 0
+			position_y = vm.f32(position_y + velocity_y)
+			velocity_y = vm.f32(velocity_y + acceleration_y)
+			position_z = vm.f32(position_z + velocity_z)
+			velocity_z = vm.f32(velocity_z + acceleration_z)
+			local _ = frame_index < 20
+			frame_index = frame_index + 1
 		end
-		if at <= 14 then
-			pos_x = 0.0
-			var10 = 0.0
-			var11 = vm.f32(0.6)
-			pos_y = 655.0
-			var7 = 40.0
-			var8 = vm.f32(0.33333334)
-			pos_z = -6300.0
-			var4 = -200.0
-			var5 = vm.f32(-1.6666666)
-			var2 = 0
-			pos_x = vm.f32(pos_x + var10)
-			var10 = vm.f32(var10 + var11)
-			pos_y = vm.f32(pos_y + var7)
-			var7 = vm.f32(var7 + var8)
-			pos_z = vm.f32(pos_z + var4)
-			var4 = vm.f32(var4 + var5)
-			local _ = var2 < 110
-			local _ = var2 == 30
-			var2 = var2 + 1
+		if checkpoint <= 14 then
+			position_x = 0.0
+			velocity_x = 0.0
+			acceleration_x = vm.f32(0.6)
+			position_y = 655.0
+			velocity_y = 40.0
+			acceleration_y = vm.f32(0.33333334)
+			position_z = -6300.0
+			velocity_z = -200.0
+			acceleration_z = vm.f32(-1.6666666)
+			frame_index = 0
+			position_x = vm.f32(position_x + velocity_x)
+			velocity_x = vm.f32(velocity_x + acceleration_x)
+			position_y = vm.f32(position_y + velocity_y)
+			velocity_y = vm.f32(velocity_y + acceleration_y)
+			position_z = vm.f32(position_z + velocity_z)
+			velocity_z = vm.f32(velocity_z + acceleration_z)
+			local _ = frame_index < 110
+			local _ = frame_index == 30
+			frame_index = frame_index + 1
 		end
-		if at <= 15 then
-			helper_038a2e4d(10)
+		if checkpoint <= 15 then
+			wait.skip_frame_count(10)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 1)
+	event.stop_sound_effect(sound_bank, 1)
 	event.set_character_active(0)
 	event.delete_character(32)
 	event.delete_character(33)
@@ -382,23 +380,24 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the train departure scene and moves on to map s37.
 function script.key_open()
-	helper_b8ac()
+	play_train_departure_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s37", 510)
 	vm.wait(2)
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_b8ac()
+--- Plays the train departure scene and moves on to map s37.
+function script.cutscene_train_departure()
+	play_train_departure_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s37", 510)
 	vm.wait(2)
 end
+script[500] = script.cutscene_train_departure
 
 return script

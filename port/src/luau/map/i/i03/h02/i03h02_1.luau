@@ -1,34 +1,34 @@
 --!strict
--- map/i/i03/h02/i03h02_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Fishing Town house interior script that plays the opening crowd and clown show scene.
 
 local vm = require("@lib/vm")
-local helper_bcc35d7c = require("@lib/event/helper_bcc35d7c")
-local helper_c50beb15 = require("@lib/event/helper_c50beb15")
+local fishing_town_house_h02 = require("@lib/event/fishing_town_house_h02")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing so the map's default entry behavior is suppressed.
 function script.default_event() end
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
-	local at: number = 0
+--- Plays the crowd arrival and the clown show and loads the next part of the scene.
+function script.cutscene_opening_clown_show()
+	local resume_step: number = 0
 	return vm.guard(function()
-		at = 1
-		helper_c50beb15()
-		at = 2
-		helper_bcc35d7c()
+		resume_step = 1
+		fishing_town_house_h02.play_opening_crowd_arrival()
+		resume_step = 2
+		fishing_town_house_h02.play_opening_clown_show()
 		event.load_event_script("i03h02/i03h02_2.stb", 151)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_bcc35d7c()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				resume_step = 2
+				fishing_town_house_h02.play_opening_clown_show()
 				return vm.continue_with(function()
 					event.load_event_script("i03h02/i03h02_2.stb", 151)
 					return
@@ -39,5 +39,6 @@ function script.event_151()
 		return nil
 	end)
 end
+script[151] = script.cutscene_opening_clown_show
 
 return script

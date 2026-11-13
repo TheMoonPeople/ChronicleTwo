@@ -1,52 +1,52 @@
 --!strict
--- map/s/s39/s39_4.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Operations room with the arrival and Georama cutscenes.
 
 local vm = require("@lib/vm")
-local helper_5a735084 = require("@lib/event/helper_5a735084")
-local helper_b450afc0 = require("@lib/event/helper_b450afc0")
-local helper_dc38d801 = require("@lib/event/helper_dc38d801")
-local helper_f58be482 = require("@lib/event/helper_f58be482")
-local helper_fb78ba4a = require("@lib/event/helper_fb78ba4a")
-local wait_frames = require("@lib/event/wait_frames")
+local georama = require("@lib/event/georama")
+local operations_room = require("@lib/event/operations_room")
+local wait = require("@lib/event/wait")
+local workshop_villagers = require("@lib/event/italian/workshop_villagers")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
 --- Event 99, which map data, a script or the engine runs by number.
 -- Defined empty, so the engine runs this instead of its default.
-function script.event_99() end
+--- Does nothing.
+function script.initialize_map() end
+script[99] = script.initialize_map
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Plays the pending cutscenes then places the player.
 function script.default_event()
-	local flag: s32 = 0
-	local var1: s32 = 0
-	local flag_2: s32 = 0
-	local chara_id: s32 = 0
-	local at: number = 0
+	local flag_524: s32 = 0
+	local cutscene_played: s32 = 0
+	local flag_536: s32 = 0
+	local character_slot: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
-		var1 = 0
-		flag = event.get_save_flag(524) or flag
-		if flag == 0 then
-			var1 = 1
+		cutscene_played = 0
+		flag_524 = event.get_save_flag(524) or flag_524
+		if flag_524 == 0 then
+			cutscene_played = 1
 			event.add_inventory_item(354, 1)
-			at = 1
-			helper_b450afc0()
+			resume_step = 1
+			operations_room.play_e524_cutscene()
 		end
-		if helper_5a735084() ~= 0 then
-			var1 = 1
+		if georama.can_start_event_560() ~= 0 then
+			cutscene_played = 1
 			event.add_inventory_item(82, 1)
-			at = 2
-			helper_f58be482()
+			resume_step = 2
+			operations_room.play_e560_cutscene()
 		end
-		if var1 == 1 then
+		if cutscene_played == 1 then
 			return
 		end
-		flag_2 = event.get_save_flag(536) or flag_2
-		if flag_2 ~= 0 then
-			chara_id = event.get_character_slot_by_number(400) or chara_id
-			event.set_character_active(0, chara_id)
+		flag_536 = event.get_save_flag(536) or flag_536
+		if flag_536 ~= 0 then
+			character_slot = event.get_character_slot_by_number(400) or character_slot
+			event.set_character_active(0, character_slot)
 		end
 		event.set_character_position(0, 0.0, 30.0, -180.0)
 		event.set_character_rotation(0, 0.0, 0.0, 0.0)
@@ -54,20 +54,20 @@ function script.default_event()
 		event.fade_in_screen(15)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				local _ = helper_fb78ba4a()
-				var1 = 1
-				at = 2
-				helper_f58be482()
+		if resume_step <= 2 then
+			if resume_step <= 1 then
+				local _ = georama.can_start_placeholder_event_c()
+				cutscene_played = 1
+				resume_step = 2
+				operations_room.play_e560_cutscene()
 				return vm.continue_with(function()
-					if var1 == 1 then
+					if cutscene_played == 1 then
 						return
 					end
-					flag_2 = event.get_save_flag(536) or flag_2
-					if flag_2 ~= 0 then
-						chara_id = event.get_character_slot_by_number(400) or chara_id
-						event.set_character_active(0, chara_id)
+					flag_536 = event.get_save_flag(536) or flag_536
+					if flag_536 ~= 0 then
+						character_slot = event.get_character_slot_by_number(400) or character_slot
+						event.set_character_active(0, character_slot)
 					end
 					event.set_character_position(0, 0.0, 30.0, -180.0)
 					event.set_character_rotation(0, 0.0, 0.0, 0.0)
@@ -84,23 +84,25 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 551, which map data, a script or the engine runs by number.
-function script.event_551()
+--- Fades out and jumps to f04.
+function script.leave_for_f04()
 	event.fade_out_screen(15)
-	wait_frames(15)
+	wait.frames(15)
 	event.jump_to_map_2(-1, "f04")
 	vm.wait(2)
 end
+script[551] = script.leave_for_f04
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_dc38d801
+script[1000] = workshop_villagers.talk_to_villager
 
 --- Event 15240, which map data, a script or the engine runs by number.
-script.event_15240 = helper_b450afc0
+script[15240] = operations_room.play_e524_cutscene
 
 --- Event 15600, which map data, a script or the engine runs by number.
-script.event_15600 = helper_f58be482
+script[15600] = operations_room.play_e560_cutscene
 
 return script

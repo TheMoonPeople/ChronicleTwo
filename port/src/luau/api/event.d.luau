@@ -1707,6 +1707,12 @@ declare event: {
 	--- Pushes a random float or integer in the range given, depending on the type of the range argument.
 	get_random_number: (range: f32) -> f32?,
 	get_random_number_2: (range: f32) -> f32?,
+	--- get_random_number with its value as an integer.
+	get_random_number_int: (range: s32) -> s32?,
+	get_random_number_int_2: (range: s32) -> s32?,
+	--- get_random_number with its value as a float.
+	get_random_number_float: (range: f32) -> f32?,
+	get_random_number_float_2: (range: f32) -> f32?,
 	--- Pushes the distance from a point to a line segment, or -1 when the point projects outside the segment.
 	get_point_to_segment_distance: (start_x: f32, start_y: f32, start_z: f32, end_x: f32, end_y: f32, end_z: f32, point_x: f32, point_y: f32, point_z: f32) -> f32?,
 	get_point_to_segment_distance_10: (start_x: f32, start_y: f32, start_z: f32, end_x: f32, end_y: f32, end_z: f32, point_x: f32, point_y: f32, point_z: f32) -> f32?,

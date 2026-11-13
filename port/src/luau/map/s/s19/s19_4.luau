@@ -1,39 +1,26 @@
 --!strict
--- map/s/s19/s19_4.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Cave of Ancient Murals events: the Marionette encounters, the gate chamber, the Shingala game over and the exits.
 
 local vm = require("@lib/vm")
-local helper_013b7e59 = require("@lib/event/helper_013b7e59")
-local helper_0f67d486 = require("@lib/event/helper_0f67d486")
-local helper_3d13e6aa = require("@lib/event/helper_3d13e6aa")
-local helper_3e84c83c = require("@lib/event/helper_3e84c83c")
-local helper_47084b1b = require("@lib/event/helper_47084b1b")
-local helper_479dc9e9 = require("@lib/event/helper_479dc9e9")
-local helper_4a9b8bc5 = require("@lib/event/helper_4a9b8bc5")
-local helper_581cb30c = require("@lib/event/helper_581cb30c")
-local helper_75684dd8 = require("@lib/event/helper_75684dd8")
-local helper_7d6d40d6 = require("@lib/event/helper_7d6d40d6")
-local helper_80432060 = require("@lib/event/helper_80432060")
-local helper_80ad60c2 = require("@lib/event/helper_80ad60c2")
-local helper_8e4884b7 = require("@lib/event/helper_8e4884b7")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_d2e16403 = require("@lib/event/helper_d2e16403")
-local helper_f0ee9a01 = require("@lib/event/helper_f0ee9a01")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_frames_skipping = require("@lib/event/wait_frames_skipping")
+local cave_of_ancient_murals = require("@lib/event/cave_of_ancient_murals")
+local cutscene = require("@lib/event/cutscene")
+local dungeon = require("@lib/event/dungeon")
+local message = require("@lib/event/message")
+local wait = require("@lib/event/wait")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local var2: s32 = 0
+--- Loads the cave sounds and starts the cave music unless the party is between the Marionette confrontation and the shock scene.
+local function initialize_cave_audio()
+	local encounter_flag: s32 = 0
+	local shock_flag: s32 = 0
+	local progress_value: s32 = 0
 	event.load_map_sounds(4684)
-	flag = event.get_save_flag(408) or flag
-	flag_2 = event.get_save_flag(420) or flag_2
-	var2 = event.get_save_data_value(2) or var2
-	if flag == 1 and flag_2 == 0 and var2 == 1 then
+	encounter_flag = event.get_save_flag(408) or encounter_flag
+	shock_flag = event.get_save_flag(420) or shock_flag
+	progress_value = event.get_save_data_value(2) or progress_value
+	if encounter_flag == 1 and shock_flag == 0 and progress_value == 1 then
 	else
 		event.stop_music(0)
-		wait_frames(4)
+		wait.frames(4)
 		event.load_music(167)
 		event.play_music(0)
 	end
@@ -41,46 +28,47 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script loads.
 function script.setup() end
 
-script.event_99 = event_99
+script.initialize_cave_audio = initialize_cave_audio
+script[99] = script.initialize_cave_audio
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Chooses which cave scene to play from the progress flags.
 function script.default_event()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local flag_3: s32 = 0
-	local var3: s32 = 0
-	local at: number = 0
+	local cave_flag: s32 = 0
+	local encounter_flag: s32 = 0
+	local shock_flag: s32 = 0
+	local progress_value: s32 = 0
+	local step: number = 0
 	return vm.guard(function()
-		at = 1
-		event_99()
-		flag = event.get_save_flag(400) or flag
-		flag_2 = event.get_save_flag(408) or flag_2
-		flag_3 = event.get_save_flag(420) or flag_3
-		if flag == 1 then
-			if flag_2 == 0 then
-				at = 2
-				helper_0f67d486()
+		step = 1
+		initialize_cave_audio()
+		cave_flag = event.get_save_flag(400) or cave_flag
+		encounter_flag = event.get_save_flag(408) or encounter_flag
+		shock_flag = event.get_save_flag(420) or shock_flag
+		if cave_flag == 1 then
+			if encounter_flag == 0 then
+				step = 2
+				cave_of_ancient_murals.play_monster_encounter()
 				event.go_to_georama_edit(75, 500)
 				return
 			end
-			if flag_3 == 0 then
-				var3 = event.get_save_data_value(2) or var3
-				if var3 ~= 0 then
-					at = 3
-					helper_3d13e6aa(1)
-					at = 4
-					helper_80432060()
+			if shock_flag == 0 then
+				progress_value = event.get_save_data_value(2) or progress_value
+				if progress_value ~= 0 then
+					step = 3
+					cave_of_ancient_murals.set_map_part_visible(1)
+					step = 4
+					cave_of_ancient_murals.play_gate_chamber_arrival()
 					event.set_save_control_bits(1, 1)
 					return
 				else
-					at = 5
-					helper_013b7e59()
+					step = 5
+					cave_of_ancient_murals.play_marionette_confrontation()
 					event.stop_all_sounds()
-					at = 6
-					wait_frames(6)
+					step = 6
+					wait.frames(6)
 					event.load_music(18)
 					event.load_map_sounds(4601)
 					event.play_music(0)
@@ -88,19 +76,19 @@ function script.default_event()
 					return
 				end
 			else
-				at = 7
-				helper_8e4884b7()
+				step = 7
+				cave_of_ancient_murals.play_gate_opening()
 			end
 		else
-			at = 8
-			helper_8e4884b7()
+			step = 8
+			cave_of_ancient_murals.play_gate_opening()
 		end
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_0f67d486()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				cave_of_ancient_murals.play_monster_encounter()
 				return vm.continue_with(function()
 					event.go_to_georama_edit(75, 500)
 					return
@@ -108,10 +96,10 @@ function script.default_event()
 			end
 			return 0
 		end
-		if at <= 4 then
-			if at <= 3 then
-				at = 4
-				helper_80432060()
+		if step <= 4 then
+			if step <= 3 then
+				step = 4
+				cave_of_ancient_murals.play_gate_chamber_arrival()
 				return vm.continue_with(function()
 					event.set_save_control_bits(1, 1)
 					return
@@ -119,16 +107,16 @@ function script.default_event()
 			end
 			return 0
 		end
-		if at <= 6 then
-			if at <= 5 then
-				wait_frames_skipping(6)
+		if step <= 6 then
+			if step <= 5 then
+				wait.frames_skipping(6)
 			end
 			return 0
 		end
-		if at <= 8 then
-			if at <= 7 then
-				at = 8
-				helper_8e4884b7()
+		if step <= 8 then
+			if step <= 7 then
+				step = 8
+				cave_of_ancient_murals.play_gate_opening()
 				return vm.continue_with(function()
 					return
 				end)
@@ -140,10 +128,10 @@ function script.default_event()
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_0f67d486
+script.key_open = cave_of_ancient_murals.play_monster_encounter
 
---- Event 151, which map data, a script or the engine runs by number.
-function script.event_151()
+--- Positions the player, loads the battle monsters and places one of them for the fight.
+function script.prepare_monster_battle()
 	event.fade_in_screen(30)
 	event.initialize_event()
 	vm.wait(1)
@@ -155,32 +143,34 @@ function script.event_151()
 	event.get_character_position(0)
 	event.finish_event()
 end
+script[151] = script.prepare_monster_battle
 
---- Event 152, which map data, a script or the engine runs by number.
-function script.event_152()
+--- Waits for the confirm button.
+function script.wait_for_confirm_button()
 	vm.wait(1)
-	helper_c956b4a2(64)
+	wait.until_button_pressed(64)
 end
+script[152] = script.wait_for_confirm_button
 
---- Event 153, which map data, a script or the engine runs by number.
-function script.event_153()
-	local at: number = 0
+--- Clears the battle monsters and fades in to the Marionette shock scene.
+function script.fade_into_marionette_shock()
+	local step: number = 0
 	return vm.guard(function()
 		event.set_dungeon_pause_flags(1, 1)
 		event.fade_out_screen(0)
 		event.set_dungeon_pause_flags(16, 1)
-		at = 1
-		wait_frames(30)
+		step = 1
+		wait.frames(30)
 		event.fade_in_screen(30)
 		event.clear_event_battle_monsters(-1)
-		at = 2
-		helper_7d6d40d6()
+		step = 2
+		cave_of_ancient_murals.play_marionette_shock()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_7d6d40d6()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				cave_of_ancient_murals.play_marionette_shock()
 				return vm.continue_with(function()
 					return
 				end)
@@ -190,141 +180,146 @@ function script.event_153()
 		return nil
 	end)
 end
+script[153] = script.fade_into_marionette_shock
 
---- Event 154, which map data, a script or the engine runs by number.
-function script.event_154()
+--- Aims the camera at a fixed point and waits for the confirm button.
+function script.aim_camera_and_wait_for_confirm()
 	event.set_camera_look_at(-33.22, 3.88, 763.5)
 	vm.wait(1)
-	helper_c956b4a2(64)
+	wait.until_button_pressed(64)
 end
+script[154] = script.aim_camera_and_wait_for_confirm
 
 --- Event 155, which map data, a script or the engine runs by number.
-script.event_155 = helper_80432060
+script[155] = cave_of_ancient_murals.play_gate_chamber_arrival
 
---- Event 160, which map data, a script or the engine runs by number.
-function script.event_160()
+--- Waits for the confirm button.
+function script.wait_for_confirm_press()
 	vm.wait(1)
-	helper_c956b4a2(64)
+	wait.until_button_pressed(64)
 end
+script[160] = script.wait_for_confirm_press
 
---- Event 200, which map data, a script or the engine runs by number.
-function script.event_200()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
+--- Reminds the player to feed the fish to Shingala while that fight is active, otherwise leaves the cave to the dungeon after confirming.
+function script.leave_cave()
+	local is_shingala_fight_active: s32 = 0
+	local active_character: s32 = 0
 	event.initialize_event()
-	var0 = event.has_save_control_bits(1) or var0
-	if var0 == 1 then
+	is_shingala_fight_active = event.has_save_control_bits(1) or is_shingala_fight_active
+	if is_shingala_fight_active == 1 then
 		event.set_dungeon_pause_flags(9, 1)
 		event.reset_action_character_motion(0)
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
 		event.open_message_window_2(0, "Fareste meglio a dare questo\npesce a Shingala... e in fretta!")
-		helper_75684dd8(0, -1, 5, 0, 0)
+		message.show_and_wait(0, -1, 5, 0, 0)
 		event.set_dungeon_pause_flags(9, 0)
 		return
 	end
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 2 then
+	active_character = event.get_playable_character() or active_character
+	if active_character == 2 then
 		event.set_character_motion(0, "立ち")
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 1)
-		if active_chr_no == 2 then
-			helper_75684dd8(0, 20, 5, 256, 208)
+		if active_character == 2 then
+			message.show_and_wait(0, 20, 5, 256, 208)
 		else
-			helper_75684dd8(0, 21, 5, 256, 208)
+			message.show_and_wait(0, 21, 5, 256, 208)
 		end
 		event.finish_event()
 		return
 	end
-	if helper_3e84c83c(0) ~= 0 then
+	if cave_of_ancient_murals.confirm_exit(0) ~= 0 then
 		event.load_event_script("d04/d04.stb", 1000)
 	end
 end
+script[200] = script.leave_cave
 
---- Event 201, which map data, a script or the engine runs by number.
-function script.event_201()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
+--- Reminds the player to feed the fish to Shingala while that fight is active, otherwise advances to the next floor and leaves the cave after confirming.
+function script.leave_cave_to_next_floor()
+	local is_shingala_fight_active: s32 = 0
+	local active_character: s32 = 0
 	local stage_id: s32 = 0
-	local var3: s32 = 0
-	local argc: s32 = 0
+	local current_floor: s32 = 0
+	local next_floor: s32 = 0
 	event.initialize_event()
-	var0 = event.has_save_control_bits(1) or var0
-	if var0 == 1 then
+	is_shingala_fight_active = event.has_save_control_bits(1) or is_shingala_fight_active
+	if is_shingala_fight_active == 1 then
 		event.set_dungeon_pause_flags(9, 1)
 		event.reset_action_character_motion(0)
 		event.set_message_window_mode(0, 1)
 		event.set_message_bubble_tail(0, 0)
 		event.open_message_window_2(0, "Fareste meglio a dare questo\npesce a Shingala... e in fretta!")
-		helper_75684dd8(0, -1, 5, 0, 0)
+		message.show_and_wait(0, -1, 5, 0, 0)
 		event.set_dungeon_pause_flags(9, 0)
 		return
 	end
-	active_chr_no = event.get_playable_character() or active_chr_no
-	if active_chr_no == 2 then
+	active_character = event.get_playable_character() or active_character
+	if active_character == 2 then
 		event.set_character_motion(0, "立ち")
 		event.set_message_window_mode(0, 1)
 		event.set_message_draw_speed(0, 1)
-		if active_chr_no == 2 then
-			helper_75684dd8(0, 20, 5, 256, 208)
+		if active_character == 2 then
+			message.show_and_wait(0, 20, 5, 256, 208)
 		else
-			helper_75684dd8(0, 21, 5, 256, 208)
+			message.show_and_wait(0, 21, 5, 256, 208)
 		end
 		event.finish_event()
 		return
 	end
-	if helper_3e84c83c(1) ~= 0 then
+	if cave_of_ancient_murals.confirm_exit(1) ~= 0 then
 		stage_id = event.get_dungeon_stage_id() or stage_id
-		var3 = event.get_dungeon_floor() or var3
-		argc = event.get_dungeon_next_floor(var3, 0) or argc
-		event.set_dungeon_floor(argc)
-		event.set_dungeon_floor_info(stage_id, var3, 5, 2)
-		event.set_dungeon_floor_info(stage_id, argc, 5, 1)
+		current_floor = event.get_dungeon_floor() or current_floor
+		next_floor = event.get_dungeon_next_floor(current_floor, 0) or next_floor
+		event.set_dungeon_floor(next_floor)
+		event.set_dungeon_floor_info(stage_id, current_floor, 5, 2)
+		event.set_dungeon_floor_info(stage_id, next_floor, 5, 1)
 		event.stop_music(0)
 		event.stop_environment_music()
 		event.stop_map_object_sounds()
-		wait_frames(6)
+		wait.frames(6)
 		event.load_music(18)
 		event.load_map_sounds(4601)
 		event.play_music(0)
 		event.load_event_script("d04/d04.stb", 1000)
 	end
 end
+script[201] = script.leave_cave_to_next_floor
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	local at: number = 0
+--- Ends the Shingala fight and plays the Marionette shock scene before moving on.
+function script.cutscene_marionette_shock_after_battle()
+	local step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
 		event.fade_out_screen(0)
-		at = 1
+		step = 1
 		vm.wait(1)
-		at = 2
+		step = 2
 		vm.wait(2)
 		event.clear_event_battle_monsters(-1)
 		event.set_save_data_value(4)
 		event.set_save_control_bits(1, 0)
-		at = 3
-		helper_3d13e6aa(0)
-		at = 4
-		helper_7d6d40d6()
+		step = 3
+		cave_of_ancient_murals.set_map_part_visible(0)
+		step = 4
+		cave_of_ancient_murals.play_marionette_shock()
 		event.skip_next_music_load()
 		event.go_to_georama_edit(75, 100)
-		at = 5
+		step = 5
 		vm.wait(5)
 		return
 	end, function(received: { any })
-		if at <= 5 then
-			if at <= 2 then
-				helper_4a9b8bc5(0)
+		if step <= 5 then
+			if step <= 2 then
+				cutscene.ignore_value(0)
 			end
-			if at <= 3 then
-				at = 4
-				helper_7d6d40d6()
+			if step <= 3 then
+				step = 4
+				cave_of_ancient_murals.play_marionette_shock()
 				return vm.continue_with(function()
 					event.skip_next_music_load()
 					event.go_to_georama_edit(75, 100)
-					at = 5
+					step = 5
 					vm.wait(5)
 					return
 				end)
@@ -334,38 +329,39 @@ function script.event_500()
 		return nil
 	end)
 end
+script[500] = script.cutscene_marionette_shock_after_battle
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local argc: s32 = 0
-	local battle_bgm_vol: s32 = 0
-	local active_chr_no: s32 = 0
-	local block: s32 = 0
+--- Shows the Shingala defeat message and game over screen, returning whether to continue.
+function script.show_shingala_game_over()
+	local can_continue: s32 = 0
+	local sound_effect_bank: s32 = 0
+	local sound_effect_status: s32 = 0
+	local battle_music_volume: s32 = 0
+	local active_character: s32 = 0
+	local image_block: s32 = 0
 	local debug_flag: s32 = 0
-	local load_no: s32 = 0
-	local boss_map: s32 = 0
-	helper_d2e16403()
+	local saved_music_number: s32 = 0
+	local is_boss_floor: s32 = 0
+	cave_of_ancient_murals.play_boss_death()
 	event.set_dungeon_pause_flags(1, 0)
-	var0 = 0
+	can_continue = 0
 	event.initialize_event()
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
 	event.set_dungeon_pause_flags(16384, 1)
 	event.save_music_status(-1)
-	var1 = event.get_event_sound_bank(4) or var1
-	argc = event.get_sound_effect_status(var1, 0) or argc
-	battle_bgm_vol = event.get_battle_music_volume() or battle_bgm_vol
-	event.stop_sound_effect(var1, 0)
+	sound_effect_bank = event.get_event_sound_bank(4) or sound_effect_bank
+	sound_effect_status = event.get_sound_effect_status(sound_effect_bank, 0) or sound_effect_status
+	battle_music_volume = event.get_battle_music_volume() or battle_music_volume
+	event.stop_sound_effect(sound_effect_bank, 0)
 	event.stop_music(0)
-	active_chr_no = event.get_playable_character() or active_chr_no
+	active_character = event.get_playable_character() or active_character
 	event.start_background_file_loads_2("snd2/bgm/bg_060.sound.json", "textures/dungeon/image/gameover/gameover_1.json")
-	wait_frames(30)
-	helper_479dc9e9()
+	wait.frames(30)
+	wait.background_load()
 	event.load_music_pack(60)
 	event.play_music(0)
-	wait_frames(30)
+	wait.frames(30)
 	event.set_dungeon_pause_flags(1, 1)
 	event.reset_dungeon_collision_primitives()
 	event.set_message_window_mode(0, 8)
@@ -373,11 +369,11 @@ function script.event_510()
 		0,
 		"Oh, no! Shingala [UNI00e8] morto... Come\nriportiamo il futuro alla normalit[UNI00e0] senza di lui?"
 	)
-	helper_75684dd8(0, -1, 8, 0, 0)
-	block = event.load_event_image_4(5, "textures/dungeon/image/gameover/gameover_1.json", 0) or block
+	message.show_and_wait(0, -1, 8, 0, 0)
+	image_block = event.load_event_image_4(5, "textures/dungeon/image/gameover/gameover_1.json", 0) or image_block
 	event.reset_event_sprite(0)
 	event.set_event_sprite_type(0, 0)
-	event.set_event_sprite_texture(0, "gameover1", block)
+	event.set_event_sprite_texture(0, "gameover1", image_block)
 	event.set_event_sprite_color(0, 128, 128, 128, 128)
 	event.set_event_sprite_texture_rect(0, 0, 0, 576, 128)
 	event.set_event_sprite_size(0, 576, 128)
@@ -387,10 +383,10 @@ function script.event_510()
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
 	event.move_object_sequence(0, 288, 208, 0.0, 20)
-	wait_frames(30)
+	wait.frames(30)
 	event.reset_event_sprite(1)
 	event.set_event_sprite_type(1, 0)
-	event.set_event_sprite_texture(1, "gameover1", block)
+	event.set_event_sprite_texture(1, "gameover1", image_block)
 	event.set_event_sprite_color(1, 128, 128, 128, 0)
 	event.set_event_sprite_texture_rect(1, 0, 128, 576, 64)
 	event.set_event_sprite_size(1, 576, 64)
@@ -400,9 +396,9 @@ function script.event_510()
 	event.clear_object_sequence(1)
 	event.set_object_sequence_object(1, 1)
 	event.set_object_sequence_color(1, 128, 128, 128, 128, 120)
-	wait_frames(120)
+	wait.frames(120)
 	while true do
-		if helper_581cb30c(0) ~= 0 then
+		if wait.get_button_state(0) ~= 0 then
 			break
 		else
 			vm.wait(8)
@@ -416,15 +412,15 @@ function script.event_510()
 	else
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		wait_frames(30)
-		if active_chr_no == 2 then
+		wait.frames(30)
+		if active_character == 2 then
 			event.clear_effect_manager()
 		end
 		event.stop_music(0)
 		event.set_event_sprite_draw_pass(0, 0)
 		event.set_event_sprite_draw_pass(1, 0)
 		event.delete_event_image(0)
-		if var0 == 1 then
+		if can_continue == 1 then
 			event.add_hp_by_rate(1.0, 0)
 			event.add_battle_weapon_durability(0, 999)
 			event.add_battle_weapon_durability(1, 999)
@@ -440,18 +436,18 @@ function script.event_510()
 		end
 	end
 	event.stop_music(0)
-	wait_frames(4)
-	load_no = event.get_saved_music_number() or load_no
-	event.load_music(load_no)
+	wait.frames(4)
+	saved_music_number = event.get_saved_music_number() or saved_music_number
+	event.load_music(saved_music_number)
 	event.restore_music_status(-1)
 	event.set_event_sprite_draw_pass(0, 0)
 	event.set_event_sprite_draw_pass(1, 0)
 	event.delete_event_image(0)
-	boss_map = event.is_dungeon_boss_floor() or boss_map
-	if boss_map ~= 1 then
-		if argc == 1 then
-			event.play_sound_effect(var1, 0)
-			event.set_sound_effect_volume(var1, 0, battle_bgm_vol)
+	is_boss_floor = event.is_dungeon_boss_floor() or is_boss_floor
+	if is_boss_floor ~= 1 then
+		if sound_effect_status == 1 then
+			event.play_sound_effect(sound_effect_bank, 0)
+			event.set_sound_effect_volume(sound_effect_bank, 0, battle_music_volume)
 		end
 	end
 	event.set_camera_control_enabled(1)
@@ -463,9 +459,10 @@ function script.event_510()
 	event.finish_event()
 	return 0
 end
+script[510] = script.show_shingala_game_over
 
---- Event 550, which map data, a script or the engine runs by number.
-function script.event_550()
+--- Shows the hint about throwing the Electric Fish into Shingala's mouth.
+function script.show_shingala_hint()
 	event.initialize_event()
 	event.set_dungeon_pause_flags(3, 1)
 	event.apply_message_window_preset(0, 4)
@@ -475,53 +472,55 @@ function script.event_550()
 		0,
 		"[(!)]Se colpisci Shingala, si arrabbier[UNI00e0] e si\n   avviciner[UNI00e0] a te.\n   Allora spalancher[UNI00e0] la bocca<page>   e cos[UNI00ec] tu potrai tirarci\n   dentro il Pesce Elettrico!"
 	)
-	helper_75684dd8(0, -1, 5, 0, 0)
+	message.show_and_wait(0, -1, 5, 0, 0)
 	event.set_message_window_mode(0, 1)
 	event.set_message_draw_speed(0, 0)
 	event.set_dungeon_pause_flags(3, 0)
 	event.finish_event()
 end
+script[550] = script.show_shingala_hint
 
---- Event 1200, which map data, a script or the engine runs by number.
-function script.event_1200()
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local var2: s32 = 0
-	local at: number = 0
+--- Plays a randomly chosen voiced defeat dialogue while the Shingala fight is under way, otherwise the silent one.
+function script.on_defeat()
+	local gate_arrival_flag: s32 = 0
+	local shock_flag: s32 = 0
+	local random_roll: s32 = 0
+	local step: number = 0
 	return vm.guard(function()
-		flag = event.get_save_flag(416) or flag
-		flag_2 = event.get_save_flag(420) or flag_2
-		if flag ~= 0 and flag_2 == 0 then
-			var2 = vm.float_bits(event.get_random_number(100)) or var2
-			if var2 < 50 then
-				at = 1
-				helper_47084b1b(0, 8610060)
+		gate_arrival_flag = event.get_save_flag(416) or gate_arrival_flag
+		shock_flag = event.get_save_flag(420) or shock_flag
+		if gate_arrival_flag ~= 0 and shock_flag == 0 then
+			random_roll = event.get_random_number_int(100) or random_roll
+			if random_roll < 50 then
+				step = 1
+				dungeon.handle_defeat_with_dialogue_voiced(0, 8610060)
 			else
-				at = 2
-				helper_47084b1b(0, 8610070)
+				step = 2
+				dungeon.handle_defeat_with_dialogue_voiced(0, 8610070)
 			end
 			return
 		end
-		at = 3
-		helper_f0ee9a01(0)
+		step = 3
+		dungeon.handle_defeat_with_dialogue_silent(0)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				helper_80ad60c2(0, 8610070)
+		if step <= 2 then
+			if step <= 1 then
+				dungeon.skip_defeat_dialogue_sequence_voiced(0, 8610070)
 			end
 			return 0
 		end
-		if at <= 3 then
+		if step <= 3 then
 			return 0
 		end
 		return nil
 	end)
 end
+script[1200] = script.on_defeat
 
---- Event 14080, which map data, a script or the engine runs by number.
-function script.event_14080()
-	local at: number = 0
+--- Sets the progress flags and plays the monster encounter scene.
+function script.cutscene_monster_encounter()
+	local step: number = 0
 	return vm.guard(function()
 		event.fade_out_screen(0)
 		event.set_save_flag(400, 1)
@@ -529,18 +528,18 @@ function script.event_14080()
 		event.set_save_flag(404, 1)
 		event.set_save_flag(406, 1)
 		event.set_save_flag(408, 0)
-		at = 1
-		event_99()
-		at = 2
-		helper_0f67d486()
+		step = 1
+		initialize_cave_audio()
+		step = 2
+		cave_of_ancient_murals.play_monster_encounter()
 		event.clear_event_running_flag()
 		event.go_to_georama_edit(75, 500)
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_0f67d486()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				cave_of_ancient_murals.play_monster_encounter()
 				return vm.continue_with(function()
 					event.clear_event_running_flag()
 					event.go_to_georama_edit(75, 500)
@@ -552,10 +551,11 @@ function script.event_14080()
 		return nil
 	end)
 end
+script[14080] = script.cutscene_monster_encounter
 
---- Event 14100, which map data, a script or the engine runs by number.
-function script.event_14100()
-	local at: number = 0
+--- Sets the progress flags and plays the Marionette confrontation.
+function script.cutscene_marionette_confrontation()
+	local step: number = 0
 	return vm.guard(function()
 		event.set_save_flag(400, 1)
 		event.set_save_flag(402, 1)
@@ -563,16 +563,16 @@ function script.event_14100()
 		event.set_save_flag(406, 1)
 		event.set_save_flag(408, 1)
 		event.set_save_flag(410, 0)
-		at = 1
-		event_99()
-		at = 2
-		helper_013b7e59()
+		step = 1
+		initialize_cave_audio()
+		step = 2
+		cave_of_ancient_murals.play_marionette_confrontation()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_013b7e59()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				cave_of_ancient_murals.play_marionette_confrontation()
 				return vm.continue_with(function()
 					return
 				end)
@@ -582,26 +582,27 @@ function script.event_14100()
 		return nil
 	end)
 end
+script[14100] = script.cutscene_marionette_confrontation
 
---- Event 14160, which map data, a script or the engine runs by number.
-function script.event_14160()
-	local at: number = 0
+--- Sets the progress flags and plays the gate chamber arrival.
+function script.cutscene_gate_chamber_arrival()
+	local step: number = 0
 	return vm.guard(function()
-		at = 1
-		event_99()
+		step = 1
+		initialize_cave_audio()
 		event.set_save_flag(400, 1)
 		event.set_save_flag(402, 1)
 		event.set_save_flag(404, 1)
 		event.set_save_flag(406, 1)
 		event.set_save_flag(408, 1)
-		at = 2
-		helper_80432060()
+		step = 2
+		cave_of_ancient_murals.play_gate_chamber_arrival()
 		return
 	end, function(received: { any })
-		if at <= 2 then
-			if at <= 1 then
-				at = 2
-				helper_80432060()
+		if step <= 2 then
+			if step <= 1 then
+				step = 2
+				cave_of_ancient_murals.play_gate_chamber_arrival()
 				return vm.continue_with(function()
 					return
 				end)
@@ -611,10 +612,11 @@ function script.event_14160()
 		return nil
 	end)
 end
+script[14160] = script.cutscene_gate_chamber_arrival
 
---- Event 14200, which map data, a script or the engine runs by number.
-function script.event_14200()
-	local at: number = 0
+--- Sets the progress flags and plays the Marionette shock scene.
+function script.cutscene_marionette_shock()
+	local step: number = 0
 	return vm.guard(function()
 		event.set_save_flag(400, 1)
 		event.set_save_flag(402, 1)
@@ -622,26 +624,26 @@ function script.event_14200()
 		event.set_save_flag(406, 1)
 		event.set_save_flag(408, 1)
 		event.set_save_flag(416, 1)
-		at = 1
-		event_99()
-		at = 2
-		helper_7d6d40d6()
+		step = 1
+		initialize_cave_audio()
+		step = 2
+		cave_of_ancient_murals.play_marionette_shock()
 		event.clear_event_running_flag()
 		event.skip_next_music_load()
 		event.go_to_georama_edit(75, 100)
-		at = 3
+		step = 3
 		vm.wait(3)
 		return
 	end, function(received: { any })
-		if at <= 3 then
-			if at <= 1 then
-				at = 2
-				helper_7d6d40d6()
+		if step <= 3 then
+			if step <= 1 then
+				step = 2
+				cave_of_ancient_murals.play_marionette_shock()
 				return vm.continue_with(function()
 					event.clear_event_running_flag()
 					event.skip_next_music_load()
 					event.go_to_georama_edit(75, 100)
-					at = 3
+					step = 3
 					vm.wait(3)
 					return
 				end)
@@ -651,5 +653,6 @@ function script.event_14200()
 		return nil
 	end)
 end
+script[14200] = script.cutscene_marionette_shock
 
 return script

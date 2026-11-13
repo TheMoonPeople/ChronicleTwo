@@ -1,20 +1,20 @@
 --!strict
--- map/i/i04/h02/i04h02a_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Girard House town house interior script that shows a scripted scene with a villager and handles villager dialogue.
 
 local vm = require("@lib/vm")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_c956b4a2 = require("@lib/event/helper_c956b4a2")
-local helper_fe0f3321 = require("@lib/event/helper_fe0f3321")
+local cutscene = require("@lib/event/cutscene")
+local villager_dialogue = require("@lib/event/german/villager_dialogue")
+local wait = require("@lib/event/wait")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
-script.default_event = helper_1ef0d4b2
+script.default_event = cutscene.noop
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Sets up the camera, the player and a villager for a short scene and waits for a button press.
 function script.key_open()
 	event.initialize_event()
 	event.set_villager_ai_enabled(0, 8)
@@ -32,10 +32,10 @@ function script.key_open()
 	event.set_character_rotation(8, 0.0, -1.78, 0.0)
 	event.set_character_motion(8, "待機")
 	vm.wait(1)
-	helper_c956b4a2(64)
+	wait.until_button_pressed(64)
 end
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_fe0f3321
+script[1000] = villager_dialogue.talk_to_triggered_villager
 
 return script

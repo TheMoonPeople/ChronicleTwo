@@ -1,28 +1,29 @@
 --!strict
--- map/s/s59/s59_2.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Plays the train departure scene at the Luna lab and moves on to map s37.
 
 local vm = require("@lib/vm")
-local helper_3306dbdc = require("@lib/event/helper_3306dbdc")
+local luna_lab = require("@lib/event/luna_lab")
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the train departure scene and moves on to map s37.
 function script.key_open()
-	helper_3306dbdc()
+	luna_lab.play_train_departure_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s37", 510)
 	vm.wait(2)
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_3306dbdc()
+--- Plays the train departure scene and moves on to map s37.
+function script.cutscene_train_departure()
+	luna_lab.play_train_departure_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s37", 510)
 	vm.wait(2)
 end
+script[500] = script.cutscene_train_departure
 
 return script

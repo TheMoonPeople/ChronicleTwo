@@ -1,47 +1,28 @@
 --!strict
--- map/s/s30/s30_1.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Paznos bridge town with the jump gate, the counterattack briefing and the lift-off cutscene.
 
 local vm = require("@lib/vm")
-local helper_0ffc2526 = require("@lib/event/helper_0ffc2526")
-local helper_1315f555 = require("@lib/event/helper_1315f555")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_278438ff = require("@lib/event/helper_278438ff")
-local helper_4ba013c2 = require("@lib/event/helper_4ba013c2")
-local helper_6dca11b1 = require("@lib/event/helper_6dca11b1")
-local helper_6e59aa59 = require("@lib/event/helper_6e59aa59")
-local helper_758eaf41 = require("@lib/event/helper_758eaf41")
-local helper_778d04c1 = require("@lib/event/helper_778d04c1")
-local helper_7d54f41c = require("@lib/event/helper_7d54f41c")
-local helper_9cbdc640 = require("@lib/event/helper_9cbdc640")
-local helper_9ced6ae4 = require("@lib/event/helper_9ced6ae4")
-local helper_9dafbc83 = require("@lib/event/helper_9dafbc83")
-local helper_b88762f7 = require("@lib/event/helper_b88762f7")
-local helper_bac0e30d = require("@lib/event/helper_bac0e30d")
-local helper_bde1dfef = require("@lib/event/helper_bde1dfef")
-local helper_c831193d = require("@lib/event/helper_c831193d")
-local helper_cfe3f87c = require("@lib/event/helper_cfe3f87c")
-local helper_d00ee03f = require("@lib/event/helper_d00ee03f")
-local helper_de3682e9 = require("@lib/event/helper_de3682e9")
-local helper_e4877873 = require("@lib/event/helper_e4877873")
-local helper_f242e245 = require("@lib/event/helper_f242e245")
-local helper_fbd9683d = require("@lib/event/helper_fbd9683d")
-local set_window_mode = require("@lib/event/set_window_mode")
-local wait_frames = require("@lib/event/wait_frames")
-local wait_frames_skipping = require("@lib/event/wait_frames_skipping")
+local character = require("@lib/event/character")
+local cutscene = require("@lib/event/cutscene")
+local message = require("@lib/event/message")
+local paznos_bridge = require("@lib/event/paznos_bridge")
+local sound = require("@lib/event/sound")
+local wait = require("@lib/event/wait")
+local workshop_villagers = require("@lib/event/english/workshop_villagers")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99()
-	helper_278438ff()
+--- Loads the flagged extra character.
+local function load_extra_character()
+	paznos_bridge.load_flagged_extra_character()
 end
 
---- Helper function.
-local function helper_2f6c4(arg0: any)
-	local var1: s32 = 0
-	local var2: any = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: s32 = 0
+--- Lets the player choose a jump gate destination and warps there.
+local function use_jump_gate(unused_argument: any)
+	local option_count: s32 = 0
+	local selected_option: any = 0
+	local x: f32 = 0
+	local y: f32 = 0
+	local z: f32 = 0
+	local sound_id: s32 = 0
 	event.initialize_event()
 	event.set_character_motion(0, "立ち")
 	event.set_message_window_mode(0, 4)
@@ -52,15 +33,15 @@ local function helper_2f6c4(arg0: any)
 		0,
 		"Select Jump Gate Destination\nJump Gate -- North\nJump Gate -- East\nJump Gate -- West\nIn front of Time Gate"
 	)
-	var1 = 4
-	var2 = helper_bac0e30d(0, -1, 8, 0, 0, var1, 1)
+	option_count = 4
+	selected_option = message.ask_choice(0, -1, 8, 0, 0, option_count, 1)
 	event.set_message_selection_top_line(0, 0)
 	event.set_message_window_option(0, 0, 0)
 	event.set_message_window_option(0, 1, 0)
-	if var2 == -1 then
+	if selected_option == -1 then
 		return
 	end
-	if vm.wrap(var2 - 1) ~= 1 and vm.wrap(var2 - 1) ~= 2 and vm.wrap(var2 - 1) ~= 3 and vm.wrap(var2 - 1) ~= 0 then
+	if vm.wrap(selected_option - 1) ~= 1 and vm.wrap(selected_option - 1) ~= 2 and vm.wrap(selected_option - 1) ~= 3 and vm.wrap(selected_option - 1) ~= 0 then
 		return
 	end
 	event.assign_memory_stack(5)
@@ -71,166 +52,166 @@ local function helper_2f6c4(arg0: any)
 	event.create_effect("サンワープ２")
 	do
 		local out1, out2, out3 = event.get_character_position(0)
-		var3 = out1 or var3
-		var4 = out2 or var4
-		var5 = out3 or var5
+		x = out1 or x
+		y = out2 or y
+		z = out3 or z
 	end
-	event.set_effect_first_vector(var3, var4, var5)
-	var6 = event.get_sound_id(2) or var6
-	event.play_sound_effect(var6, 120)
-	wait_frames(15)
+	event.set_effect_first_vector(x, y, z)
+	sound_id = event.get_sound_id(2) or sound_id
+	event.play_sound_effect(sound_id, 120)
+	wait.frames(15)
 	event.set_character_visible(0, 0, 1, 0.05)
 	event.set_character_visible(1, 0, 1, 0.05)
 	event.set_character_visible(2, 0, 1, 0.05)
 	event.set_character_visible(3, 0, 1, 0.05)
-	wait_frames(30)
+	wait.frames(30)
 	event.fade_out_screen(15)
-	wait_frames(15)
+	wait.frames(15)
 	event.clear_effect_manager()
 	event.set_character_visible(0, 1)
 	event.set_character_visible(1, 1)
 	event.set_character_visible(2, 1)
 	event.set_character_visible(3, 1)
-	event.set_save_counter(18, vm.wrap(var2 - 1))
+	event.set_save_counter(18, vm.wrap(selected_option - 1))
 	event.jump_to_map_2(-1, "f04")
 	vm.wait(5)
 end
 
---- Helper function.
-local function helper_12c40(arg0: s32)
-	local var1: f32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local var8: f32 = 0
-	local var11: f32 = 0
+--- Has the character ask whether the party is ready and returns whether it is.
+local function ask_ready_for_counterattack(character_slot: s32)
+	local player_x: f32 = 0
+	local player_y: f32 = 0
+	local player_z: f32 = 0
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
+	local player_yaw: f32 = 0
+	local character_yaw: f32 = 0
 	local yaw: f32 = 0
 	local yaw_2: f32 = 0
-	local var15: s32 = 0
-	local var16: any = 0
-	local at: number = 0
+	local needs_turn: s32 = 0
+	local choice: any = 0
+	local resume_step: number = 0
 	return vm.guard(function()
-		set_window_mode(0, 7)
+		message.set_window_mode(0, 7)
 		event.attach_object_handle_to_character(0, 0)
 		event.clear_object_sequence(0)
 		event.set_object_sequence_object(0, 0)
-		event.attach_object_handle_to_character(1, arg0)
+		event.attach_object_handle_to_character(1, character_slot)
 		event.clear_object_sequence(1)
 		event.set_object_sequence_object(1, 1)
 		do
 			local out1, out2, out3 = event.get_character_position(0)
-			var1 = out1 or var1
-			var2 = out2 or var2
-			var3 = out3 or var3
+			player_x = out1 or player_x
+			player_y = out2 or player_y
+			player_z = out3 or player_z
 		end
 		do
 			local _, out2, _ = event.get_character_rotation(0)
-			var8 = out2 or var8
+			player_yaw = out2 or player_yaw
 		end
 		do
-			local out1, out2, out3 = event.get_character_position(arg0)
-			var4 = out1 or var4
-			var5 = out2 or var5
-			var6 = out3 or var6
+			local out1, out2, out3 = event.get_character_position(character_slot)
+			character_x = out1 or character_x
+			character_y = out2 or character_y
+			character_z = out3 or character_z
 		end
 		do
-			local _, out2, _ = event.get_character_rotation(arg0)
-			var11 = out2 or var11
+			local _, out2, _ = event.get_character_rotation(character_slot)
+			character_yaw = out2 or character_yaw
 		end
-		yaw = event.get_direction_angle(var1, var2, var3, var4, var5, var6) or yaw
-		yaw_2 = event.get_direction_angle(var4, var5, var6, var1, var2, var3) or yaw_2
-		var15 = event.compare_angles(var8, yaw, 0.1) or var15
-		if var15 ~= 0 then
+		yaw = event.get_direction_angle(player_x, player_y, player_z, character_x, character_y, character_z) or yaw
+		yaw_2 = event.get_direction_angle(character_x, character_y, character_z, player_x, player_y, player_z) or yaw_2
+		needs_turn = event.compare_angles(player_yaw, yaw, 0.1) or needs_turn
+		if needs_turn ~= 0 then
 			event.rotate_object_sequence(0, 0.0, yaw, 0.0, 10)
 			event.set_object_sequence_motion(0, "歩き")
 			event.delay_object_sequence_motion_track(0, 10)
 		end
 		event.set_object_sequence_motion(0, "立ち")
-		var15 = event.compare_angles(var11, yaw_2, 0.1) or var15
-		if var15 ~= 0 then
+		needs_turn = event.compare_angles(character_yaw, yaw_2, 0.1) or needs_turn
+		if needs_turn ~= 0 then
 			event.rotate_object_sequence(1, 0.0, yaw_2, 0.0, 10)
 			event.set_object_sequence_motion(1, "歩き")
 			event.delay_object_sequence_motion_track(1, 10)
 		end
 		event.set_object_sequence_motion(1, "立ち")
-		at = 1
-		wait_frames(20)
+		resume_step = 1
+		wait.frames(20)
 		event.open_voice_stream_wave(1, 5400010)
-		at = 2
-		helper_9cbdc640(1)
+		resume_step = 2
+		sound.wait_voice_stream_ready(1)
 		event.play_voice_stream(1)
 		event.set_mouth_motions(1, "会話", 0, "立ち", 0)
 		event.open_message_window_2(0, "Our counterattack on Griffon\nshould be starting soon.")
-		at = 3
-		helper_0ffc2526(0, -1, arg0, 0, 0)
+		resume_step = 3
+		message.say_bubble(0, -1, character_slot, 0, 0)
 		event.close_voice_stream(1)
 		event.open_voice_stream_wave(1, 5400015)
-		at = 4
-		helper_9cbdc640(1)
+		resume_step = 4
+		sound.wait_voice_stream_ready(1)
 		event.play_voice_stream(1)
 		event.open_message_window_2(0, "Are you prepared?")
-		at = 5
-		helper_0ffc2526(0, -1, arg0, 0, 0)
+		resume_step = 5
+		message.say_bubble(0, -1, character_slot, 0, 0)
 		event.close_voice_stream(1)
-		set_window_mode(0, 1)
+		message.set_window_mode(0, 1)
 		event.open_message_window_2(0, "Yes.\nNo.")
-		at = 6
-		var16 = helper_bac0e30d(0, -1, 5, 256, 208, 2, 0)
-		if var16 == 0 then
+		resume_step = 6
+		choice = message.ask_choice(0, -1, 5, 256, 208, 2, 0)
+		if choice == 0 then
 			return 1
 		else
-			set_window_mode(0, 7)
+			message.set_window_mode(0, 7)
 			event.open_voice_stream_wave(1, 5400020)
-			at = 7
-			helper_9cbdc640(1)
+			resume_step = 7
+			sound.wait_voice_stream_ready(1)
 			event.play_voice_stream(1)
 			event.set_mouth_motions(1, "会話", 0, "立ち", 0)
 			event.open_message_window_2(0, "Their Golem Units are right on us.\nBetter hurry.")
-			at = 8
-			helper_0ffc2526(0, -1, arg0, 0, 0)
+			resume_step = 8
+			message.say_bubble(0, -1, character_slot, 0, 0)
 			event.close_voice_stream(1)
-			var15 = event.compare_angles(var11, yaw_2, 0.1) or var15
-			if var15 ~= 0 then
-				event.rotate_object_sequence(1, 0.0, var11, 0.0, 10)
+			needs_turn = event.compare_angles(character_yaw, yaw_2, 0.1) or needs_turn
+			if needs_turn ~= 0 then
+				event.rotate_object_sequence(1, 0.0, character_yaw, 0.0, 10)
 				event.set_object_sequence_motion(1, "歩き")
 				event.delay_object_sequence_motion_track(1, 10)
 			end
 			event.set_object_sequence_motion(1, "立ち")
-			at = 9
-			wait_frames(11)
+			resume_step = 9
+			wait.frames(11)
 			return 0
 		end
 	end, function(received: { any })
-		if at <= 6 then
-			if at == 6 then
-				var16 = received[1] :: number
+		if resume_step <= 6 then
+			if resume_step == 6 then
+				choice = received[1] :: number
 			end
-			if at <= 1 then
-				helper_238b5abc(1)
+			if resume_step <= 1 then
+				cutscene.skip_command(1)
 			end
-			if at <= 2 then
-				helper_9ced6ae4(0, -1, arg0, 0, 0)
+			if resume_step <= 2 then
+				paznos_bridge.update_talk_state(0, -1, character_slot, 0, 0)
 			end
-			if at <= 3 then
-				helper_238b5abc(1)
+			if resume_step <= 3 then
+				cutscene.skip_command(1)
 			end
-			if at <= 4 then
-				helper_9ced6ae4(0, -1, arg0, 0, 0)
+			if resume_step <= 4 then
+				paznos_bridge.update_talk_state(0, -1, character_slot, 0, 0)
 			end
-			if at <= 5 then
-				helper_fbd9683d(0, 1)
-				var16 = helper_7d54f41c(0, -1, 5, 256, 208, 2, 0)
+			if resume_step <= 5 then
+				message.set_window_mode_skipping(0, 1)
+				choice = message.open_choice_skipping(0, -1, 5, 256, 208, 2, 0)
 			end
 			return 1
 		end
-		if at <= 9 then
-			if at <= 7 then
-				helper_9ced6ae4(0, -1, arg0, 0, 0)
+		if resume_step <= 9 then
+			if resume_step <= 7 then
+				paznos_bridge.update_talk_state(0, -1, character_slot, 0, 0)
 			end
-			if at <= 8 then
-				wait_frames_skipping(11)
+			if resume_step <= 8 then
+				wait.frames_skipping(11)
 			end
 			return 0
 		end
@@ -238,17 +219,17 @@ local function helper_12c40(arg0: s32)
 	end)
 end
 
---- Helper function.
-local function helper_2335c()
-	local var0: s32 = 0
-	local at: number = 0
+--- Plays the Paznos lift-off movies and scenes then jumps to s29.
+local function cutscene_paznos_liftoff()
+	local sound_bank: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
-		at = 1
+		resume_step = 1
 		vm.entry(1)
 		event.set_save_flag(540, 1)
-		at = 2
-		helper_778d04c1()
-		at = 3
+		resume_step = 2
+		paznos_bridge.play_event_540_scene_2()
+		resume_step = 3
 		vm.wait(3)
 		event.set_character_active(0, 8)
 		event.load_music(116)
@@ -261,61 +242,61 @@ local function helper_2335c()
 		event.clear_memory_stack(5)
 		event.fade_in_screen(10)
 		event.play_movie(5, "movie/e54001.mp4", 0)
-		at = 4
+		resume_step = 4
 		vm.wait(4)
 		event.set_movie_caption(0, 0)
 		event.fade_out_screen(0)
-		at = 5
-		helper_6dca11b1()
-		at = 6
+		resume_step = 5
+		paznos_bridge.play_event_540_scene_3()
+		resume_step = 6
 		vm.wait(6)
 		event.stop_all_sound_effects()
 		event.fade_in_screen(10)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.play_movie(5, "movie/e54002.mp4", 0)
-		at = 7
+		resume_step = 7
 		vm.wait(7)
 		event.fade_out_screen(0)
-		at = 8
-		helper_c831193d()
-		at = 9
+		resume_step = 8
+		paznos_bridge.play_event_540_scene_4()
+		resume_step = 9
 		vm.wait(9)
 		event.stop_all_sound_effects()
-		var0 = event.get_event_sound_bank(4) or var0
-		event.play_sound_effect(var0, 11)
+		sound_bank = event.get_event_sound_bank(4) or sound_bank
+		event.play_sound_effect(sound_bank, 11)
 		event.fade_in_screen(10)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.play_movie(5, "movie/e54003.mp4", 0)
-		at = 10
+		resume_step = 10
 		vm.wait(10)
-		event.stop_sound_effect(var0, 11)
+		event.stop_sound_effect(sound_bank, 11)
 		event.fade_out_screen(0)
-		at = 11
-		helper_d00ee03f()
-		at = 12
+		resume_step = 11
+		paznos_bridge.play_event_540_scene_5()
+		resume_step = 12
 		vm.wait(12)
 		event.stop_all_sound_effects()
 		event.fade_in_screen(10)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.play_movie(5, "movie/e54004.mp4")
-		at = 13
+		resume_step = 13
 		vm.wait(13)
 		event.fade_out_screen(0)
-		at = 14
-		helper_f242e245()
+		resume_step = 14
+		paznos_bridge.play_event_540_scene_6()
 		event.skip_next_music_load()
 		event.jump_to_map_3(-1, "s29", 600)
 		return
 	end, function(received: { any })
-		if at <= 14 then
-			if at <= 1 then
-				at = 2
-				helper_778d04c1()
+		if resume_step <= 14 then
+			if resume_step <= 1 then
+				resume_step = 2
+				paznos_bridge.play_event_540_scene_2()
 				return vm.continue_with(function()
-					at = 3
+					resume_step = 3
 					vm.wait(3)
 					event.set_character_active(0, 8)
 					event.load_music(116)
@@ -328,164 +309,164 @@ local function helper_2335c()
 					event.clear_memory_stack(5)
 					event.fade_in_screen(10)
 					event.play_movie(5, "movie/e54001.mp4", 0)
-					at = 4
+					resume_step = 4
 					vm.wait(4)
 					event.set_movie_caption(0, 0)
 					event.fade_out_screen(0)
-					at = 5
-					helper_6dca11b1()
-					at = 6
+					resume_step = 5
+					paznos_bridge.play_event_540_scene_3()
+					resume_step = 6
 					vm.wait(6)
 					event.stop_all_sound_effects()
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54002.mp4", 0)
-					at = 7
+					resume_step = 7
 					vm.wait(7)
 					event.fade_out_screen(0)
-					at = 8
-					helper_c831193d()
-					at = 9
+					resume_step = 8
+					paznos_bridge.play_event_540_scene_4()
+					resume_step = 9
 					vm.wait(9)
 					event.stop_all_sound_effects()
-					var0 = event.get_event_sound_bank(4) or var0
-					event.play_sound_effect(var0, 11)
+					sound_bank = event.get_event_sound_bank(4) or sound_bank
+					event.play_sound_effect(sound_bank, 11)
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54003.mp4", 0)
-					at = 10
+					resume_step = 10
 					vm.wait(10)
-					event.stop_sound_effect(var0, 11)
+					event.stop_sound_effect(sound_bank, 11)
 					event.fade_out_screen(0)
-					at = 11
-					helper_d00ee03f()
-					at = 12
+					resume_step = 11
+					paznos_bridge.play_event_540_scene_5()
+					resume_step = 12
 					vm.wait(12)
 					event.stop_all_sound_effects()
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54004.mp4")
-					at = 13
+					resume_step = 13
 					vm.wait(13)
 					event.fade_out_screen(0)
-					at = 14
-					helper_f242e245()
+					resume_step = 14
+					paznos_bridge.play_event_540_scene_6()
 					event.skip_next_music_load()
 					event.jump_to_map_3(-1, "s29", 600)
 					return
 				end)
 			end
-			if at <= 4 then
-				at = 5
-				helper_6dca11b1()
+			if resume_step <= 4 then
+				resume_step = 5
+				paznos_bridge.play_event_540_scene_3()
 				return vm.continue_with(function()
-					at = 6
+					resume_step = 6
 					vm.wait(6)
 					event.stop_all_sound_effects()
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54002.mp4", 0)
-					at = 7
+					resume_step = 7
 					vm.wait(7)
 					event.fade_out_screen(0)
-					at = 8
-					helper_c831193d()
-					at = 9
+					resume_step = 8
+					paznos_bridge.play_event_540_scene_4()
+					resume_step = 9
 					vm.wait(9)
 					event.stop_all_sound_effects()
-					var0 = event.get_event_sound_bank(4) or var0
-					event.play_sound_effect(var0, 11)
+					sound_bank = event.get_event_sound_bank(4) or sound_bank
+					event.play_sound_effect(sound_bank, 11)
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54003.mp4", 0)
-					at = 10
+					resume_step = 10
 					vm.wait(10)
-					event.stop_sound_effect(var0, 11)
+					event.stop_sound_effect(sound_bank, 11)
 					event.fade_out_screen(0)
-					at = 11
-					helper_d00ee03f()
-					at = 12
+					resume_step = 11
+					paznos_bridge.play_event_540_scene_5()
+					resume_step = 12
 					vm.wait(12)
 					event.stop_all_sound_effects()
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54004.mp4")
-					at = 13
+					resume_step = 13
 					vm.wait(13)
 					event.fade_out_screen(0)
-					at = 14
-					helper_f242e245()
+					resume_step = 14
+					paznos_bridge.play_event_540_scene_6()
 					event.skip_next_music_load()
 					event.jump_to_map_3(-1, "s29", 600)
 					return
 				end)
 			end
-			if at <= 7 then
-				at = 8
-				helper_c831193d()
+			if resume_step <= 7 then
+				resume_step = 8
+				paznos_bridge.play_event_540_scene_4()
 				return vm.continue_with(function()
-					at = 9
+					resume_step = 9
 					vm.wait(9)
 					event.stop_all_sound_effects()
-					var0 = event.get_event_sound_bank(4) or var0
-					event.play_sound_effect(var0, 11)
+					sound_bank = event.get_event_sound_bank(4) or sound_bank
+					event.play_sound_effect(sound_bank, 11)
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54003.mp4", 0)
-					at = 10
+					resume_step = 10
 					vm.wait(10)
-					event.stop_sound_effect(var0, 11)
+					event.stop_sound_effect(sound_bank, 11)
 					event.fade_out_screen(0)
-					at = 11
-					helper_d00ee03f()
-					at = 12
+					resume_step = 11
+					paznos_bridge.play_event_540_scene_5()
+					resume_step = 12
 					vm.wait(12)
 					event.stop_all_sound_effects()
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54004.mp4")
-					at = 13
+					resume_step = 13
 					vm.wait(13)
 					event.fade_out_screen(0)
-					at = 14
-					helper_f242e245()
+					resume_step = 14
+					paznos_bridge.play_event_540_scene_6()
 					event.skip_next_music_load()
 					event.jump_to_map_3(-1, "s29", 600)
 					return
 				end)
 			end
-			if at <= 10 then
-				at = 11
-				helper_d00ee03f()
+			if resume_step <= 10 then
+				resume_step = 11
+				paznos_bridge.play_event_540_scene_5()
 				return vm.continue_with(function()
-					at = 12
+					resume_step = 12
 					vm.wait(12)
 					event.stop_all_sound_effects()
 					event.fade_in_screen(10)
 					event.assign_memory_stack(5)
 					event.clear_memory_stack(5)
 					event.play_movie(5, "movie/e54004.mp4")
-					at = 13
+					resume_step = 13
 					vm.wait(13)
 					event.fade_out_screen(0)
-					at = 14
-					helper_f242e245()
+					resume_step = 14
+					paznos_bridge.play_event_540_scene_6()
 					event.skip_next_music_load()
 					event.jump_to_map_3(-1, "s29", 600)
 					return
 				end)
 			end
-			if at <= 13 then
-				at = 14
-				helper_f242e245()
+			if resume_step <= 13 then
+				resume_step = 14
+				paznos_bridge.play_event_540_scene_6()
 				return vm.continue_with(function()
 					event.skip_next_music_load()
 					event.jump_to_map_3(-1, "s29", 600)
@@ -500,167 +481,183 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.load_extra_character = load_extra_character
+script[99] = script.load_extra_character
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Places the player and fades in.
 function script.default_event()
-	event_99()
-	helper_9dafbc83(-155.0, vm.f32(76.3), -205.0, vm.f32(0.9))
+	load_extra_character()
+	character.place_standing_and_reset_cloth(-155.0, vm.f32(76.3), -205.0, vm.f32(0.9))
 	event.reset_follow_camera(1, 3.14, 10)
 	event.fade_in_screen(30)
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing.
 function script.key_open() end
 
---- Event 560, which map data, a script or the engine runs by number.
-function script.event_560()
-	helper_2f6c4(4)
+--- Opens the jump gate destination menu.
+function script.examine_jump_gate()
+	use_jump_gate(4)
 end
+script[560] = script.examine_jump_gate
 
---- Event 600, which map data, a script or the engine runs by number.
-function script.event_600()
-	helper_4ba013c2()
+--- Plays the first lift-off scene and jumps to f04.
+function script.cutscene_lift_off_scene_1()
+	paznos_bridge.play_event_540_scene_1()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "f04", 601)
 end
+script[600] = script.cutscene_lift_off_scene_1
 
---- Event 601, which map data, a script or the engine runs by number.
-function script.event_601()
-	helper_6dca11b1()
+--- Plays the third lift-off scene and jumps to s55.
+function script.cutscene_lift_off_scene_3()
+	paznos_bridge.play_event_540_scene_3()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s55", 601)
 end
+script[601] = script.cutscene_lift_off_scene_3
 
---- Event 602, which map data, a script or the engine runs by number.
-function script.event_602()
-	helper_c831193d()
+--- Plays the fourth lift-off scene and jumps to s55.
+function script.cutscene_lift_off_scene_4()
+	paznos_bridge.play_event_540_scene_4()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s55", 602)
 end
+script[602] = script.cutscene_lift_off_scene_4
 
---- Event 603, which map data, a script or the engine runs by number.
-function script.event_603()
-	helper_d00ee03f()
+--- Plays the fifth lift-off scene and jumps to s55.
+function script.cutscene_lift_off_scene_5()
+	paznos_bridge.play_event_540_scene_5()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s55", 603)
 end
+script[603] = script.cutscene_lift_off_scene_5
 
---- Event 604, which map data, a script or the engine runs by number.
-function script.event_604()
-	helper_f242e245()
+--- Plays the sixth lift-off scene and jumps to s29.
+function script.cutscene_lift_off_scene_6()
+	paznos_bridge.play_event_540_scene_6()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "s29", 600)
 end
+script[604] = script.cutscene_lift_off_scene_6
 
---- Event 605, which map data, a script or the engine runs by number.
-function script.event_605()
-	helper_bde1dfef()
+--- Plays the seventh lift-off scene and jumps to s10.
+function script.cutscene_lift_off_scene_7()
+	paznos_bridge.play_event_540_scene_7()
 	event.jump_to_map_3(-1, "s10", 510)
 end
+script[605] = script.cutscene_lift_off_scene_7
 
---- Event 610, which map data, a script or the engine runs by number.
-function script.event_610()
-	helper_b88762f7()
+--- Plays the first gate scene and jumps to d06b01.
+function script.cutscene_gate_scene_1()
+	paznos_bridge.play_event_640_scene_1()
 	event.jump_to_map_3(-1, "d06b01", 600)
 	vm.wait(2)
 end
+script[610] = script.cutscene_gate_scene_1
 
---- Event 620, which map data, a script or the engine runs by number.
-function script.event_620()
-	helper_1315f555()
+--- Plays the second gate scene and jumps to s32.
+function script.cutscene_gate_scene_2()
+	paznos_bridge.play_event_640_scene_2()
 	event.jump_to_map_3(-1, "s32", 610)
 	vm.wait(2)
 end
+script[620] = script.cutscene_gate_scene_2
 
---- Event 630, which map data, a script or the engine runs by number.
-function script.event_630()
-	helper_e4877873()
+--- Plays the third gate scene and jumps to s32.
+function script.cutscene_gate_scene_3()
+	paznos_bridge.play_event_640_scene_3()
 	event.jump_to_map_3(-1, "s32", 620)
 	vm.wait(2)
 end
+script[630] = script.cutscene_gate_scene_3
 
---- Event 640, which map data, a script or the engine runs by number.
-function script.event_640()
-	helper_6e59aa59()
+--- Plays the fourth gate scene and jumps to s32.
+function script.cutscene_gate_scene_4()
+	paznos_bridge.play_event_640_scene_4()
 	event.jump_to_map_3(-1, "s32", 630)
 	vm.wait(2)
 end
+script[640] = script.cutscene_gate_scene_4
 
---- Event 650, which map data, a script or the engine runs by number.
-function script.event_650()
-	helper_758eaf41()
+--- Plays the fifth gate scene and jumps to s32.
+function script.cutscene_gate_scene_5()
+	paznos_bridge.play_event_640_scene_5()
 	event.jump_to_map_3(-1, "s32", 640)
 	vm.wait(2)
 end
+script[650] = script.cutscene_gate_scene_5
 
---- Event 1000, which map data, a script or the engine runs by number.
-function script.event_1000()
-	local var0: s32 = 0
-	local var1: s32 = 0
-	local flag: s32 = 0
-	local flag_2: s32 = 0
-	local at: number = 0
+--- Starts the counterattack briefing for the commander or runs a villager conversation.
+function script.talk_to_villager()
+	local npc_id: s32 = 0
+	local character_slot: s32 = 0
+	local flag_536: s32 = 0
+	local flag_540: s32 = 0
+	local resume_step: number = 0
 	return vm.guard(function()
 		event.initialize_event()
-		var0 = event.get_triggered_event_data_2(14) or var0
-		var1 = event.get_triggered_event_data_2(13) or var1
-		if var0 == 400 then
-			flag = event.get_save_flag(536) or flag
-			flag_2 = event.get_save_flag(540) or flag_2
-			if flag == 1 and flag_2 == 0 then
-				at = 1
-				if helper_12c40(var1) == 1 then
+		npc_id = event.get_triggered_event_data_2(14) or npc_id
+		character_slot = event.get_triggered_event_data_2(13) or character_slot
+		if npc_id == 400 then
+			flag_536 = event.get_save_flag(536) or flag_536
+			flag_540 = event.get_save_flag(540) or flag_540
+			if flag_536 == 1 and flag_540 == 0 then
+				resume_step = 1
+				if ask_ready_for_counterattack(character_slot) == 1 then
 					event.fade_out_music(15)
 					event.fade_out_screen(15)
-					at = 2
-					wait_frames(15)
-					at = 3
-					helper_2335c()
+					resume_step = 2
+					wait.frames(15)
+					resume_step = 3
+					cutscene_paznos_liftoff()
 				end
 			else
-				at = 4
-				helper_cfe3f87c()
+				resume_step = 4
+				workshop_villagers.talk_to_villager()
 			end
 		else
-			at = 5
-			helper_cfe3f87c()
+			resume_step = 5
+			workshop_villagers.talk_to_villager()
 		end
 		return
 	end, function(received: { any })
-		if at <= 5 then
-			if at <= 1 then
-				wait_frames_skipping(15)
+		if resume_step <= 5 then
+			if resume_step <= 1 then
+				wait.frames_skipping(15)
 			end
-			if at <= 2 then
-				at = 3
-				helper_2335c()
+			if resume_step <= 2 then
+				resume_step = 3
+				cutscene_paznos_liftoff()
 				return vm.continue_with(function()
 					return
 				end)
 			end
-			if at <= 3 then
-				helper_de3682e9()
+			if resume_step <= 3 then
+				paznos_bridge.update_talk_characters()
 			end
-			if at <= 4 then
-				helper_de3682e9()
+			if resume_step <= 4 then
+				paznos_bridge.update_talk_characters()
 			end
 			return 0
 		end
 		return nil
 	end)
 end
+script[1000] = script.talk_to_villager
 
---- Event 15400, which map data, a script or the engine runs by number.
-function script.event_15400()
+--- Sets the lift-off flags and replays the lift-off cutscene.
+function script.replay_liftoff()
 	event.set_save_flag(536, 1)
 	event.set_save_flag(540, 0)
-	event_99()
-	helper_2335c()
+	load_extra_character()
+	cutscene_paznos_liftoff()
 end
+script[15400] = script.replay_liftoff
 
 return script

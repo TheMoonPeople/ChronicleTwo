@@ -1,36 +1,27 @@
 --!strict
--- map/i/i04/h01/i04h01.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Girard house interior script that handles the hide and seek events, the chapter ending and villager dialogue.
 
 local vm = require("@lib/vm")
-local close_message = require("@lib/event/close_message")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_09b10784 = require("@lib/event/helper_09b10784")
-local helper_183cf34f = require("@lib/event/helper_183cf34f")
-local helper_2b01dbd7 = require("@lib/event/helper_2b01dbd7")
-local helper_2e67f92b = require("@lib/event/helper_2e67f92b")
-local helper_581cb30c = require("@lib/event/helper_581cb30c")
-local helper_61e5dba6 = require("@lib/event/helper_61e5dba6")
-local helper_6c0ef236 = require("@lib/event/helper_6c0ef236")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_9cbdc640 = require("@lib/event/helper_9cbdc640")
-local helper_acffd9e4 = require("@lib/event/helper_acffd9e4")
-local helper_d61bc810 = require("@lib/event/helper_d61bc810")
-local helper_f38eabca = require("@lib/event/helper_f38eabca")
-local open_message = require("@lib/event/open_message")
-local show_message = require("@lib/event/show_message")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local cutscene = require("@lib/event/cutscene")
+local i04_girard_house = require("@lib/event/i04_girard_house")
+local inventory = require("@lib/event/inventory")
+local message = require("@lib/event/message")
+local npc = require("@lib/event/npc")
+local object = require("@lib/event/object")
+local sound = require("@lib/event/sound")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_3932c()
-	local var0: s32 = 0
-	local time: f32 = 0
+--- Plays the event 736 cutscene of Mints writing a letter.
+local function play_mints_letter_scene()
+	local sound_bank: s32 = 0
+	local saved_time_of_day: f32 = 0
 	vm.section(function()
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_all_sounds()
 		event.load_map_sounds(0)
-		var0 = event.load_sound_effect_file_2(6244) or var0
+		sound_bank = event.load_sound_effect_file_2(6244) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.set_character_active(0, 0)
@@ -47,7 +38,7 @@ local function helper_3932c()
 		event.set_object_sequence_position(0, 70.93, 0.0, -135.77)
 		event.set_object_sequence_rotation(0, 0.0, 3.12, 0.0)
 		event.set_object_sequence_motion(0, "手紙書く", 4)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(24.0)
 		event.enable_drama_skip()
 		event.set_camera_sequence_look_at(68.06, 28.91, 95.45)
@@ -62,32 +53,32 @@ local function helper_3932c()
 		event.add_camera_sequence_path_point(-58.83, 74.1, -57.22, 65.76, 32.77, -130.49)
 		event.add_camera_sequence_path_point(-17.1, 74.1, -81.76, 65.76, 32.77, -130.49)
 		event.start_camera_sequence_path()
-		helper_0382f327(7360270, -1)
-		wait_camera()
-		helper_888ab2a3(30)
+		message.show_voiced_for_stopping(7360270, -1)
+		camera.wait_until_done()
+		wait.for_frame_count(30)
 		event.set_camera_sequence_position(96.22, 35.83, -174.85)
 		event.set_camera_sequence_look_at(67.95, 23.82, -123.84)
-		event.play_sound_effect(var0, 0)
+		event.play_sound_effect(sound_bank, 0)
 		event.set_object_sequence_motion(0, "手紙書く", 4)
 		event.set_object_handle_visible(1, 0)
 		event.set_object_handle_visible(6, 0)
-		helper_0382f327(7360280, -1)
-		helper_888ab2a3(15)
-		helper_0382f327(7360290, -1)
-		helper_888ab2a3(15)
+		message.show_voiced_for_stopping(7360280, -1)
+		wait.for_frame_count(15)
+		message.show_voiced_for_stopping(7360290, -1)
+		wait.for_frame_count(15)
 		event.set_object_handle_visible(1, 1)
 		event.set_object_handle_visible(6, 1)
 		event.set_camera_sequence_position(-58.83, 74.1, -57.22)
 		event.set_camera_sequence_look_at(65.76, 32.77, -130.49)
-		helper_0382f327(7360300, -1)
-		helper_888ab2a3(15)
+		message.show_voiced_for_stopping(7360300, -1)
+		wait.for_frame_count(15)
 		event.set_object_handle_visible(1, 0)
 		event.set_object_handle_visible(6, 0)
 		event.set_camera_sequence_position(70.85, 28.26, -161.24)
 		event.set_camera_sequence_look_at(70.53, 23.82, -123.26)
 		event.set_object_sequence_motion(0, "手紙書く", 4)
-		event.play_sound_effect(var0, 1)
-		helper_0382f327(7360310, -1)
+		event.play_sound_effect(sound_bank, 1)
+		message.show_voiced_for_stopping(7360310, -1)
 		event.wait_object_sequence_motion_end(0)
 		event.set_object_sequence_motion(0, "ひとやすみ", 2)
 		event.queue_object_sequence_next_motion(0, "ひとやすみL", 4)
@@ -96,30 +87,30 @@ local function helper_3932c()
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "前向き～上向き")
 		event.delay_object_sequence_sound_track(0, 165)
-		event.play_object_sequence_sound(0, var0, 2)
+		event.play_object_sequence_sound(0, sound_bank, 2)
 		event.delay_object_sequence_sound_track(0, 210)
-		event.play_object_sequence_sound(0, var0, 3)
-		helper_0382f327(7360320, -1)
-		helper_888ab2a3(15)
-		helper_0382f327(7360325, -1)
-		wait_objects(0)
+		event.play_object_sequence_sound(0, sound_bank, 3)
+		message.show_voiced_for_stopping(7360320, -1)
+		wait.for_frame_count(15)
+		message.show_voiced_for_stopping(7360325, -1)
+		object.wait_until_done(0)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "上向き～目とじ")
 		event.set_object_sequence_texture_animation(0, 1, "口ためいき")
 		event.set_object_sequence_motion(0, "ため息", 6)
 		event.queue_object_sequence_next_motion(0, "ひとやすみL", 4)
-		helper_888ab2a3(120)
+		wait.for_frame_count(120)
 		event.set_object_sequence_texture_animation(0, 0)
 		event.set_object_sequence_texture_animation(0, 1, "デフォルト顔")
 		event.set_object_sequence_texture_animation(0, 1, "上向き～目とじ")
 		event.set_object_sequence_texture_animation(0, 1, "口あけ～ほほえみ")
-		helper_888ab2a3(120)
+		wait.for_frame_count(120)
 	end)
 	event.cancel_drama_scene_skip()
 	event.fade_out_screen(60)
-	helper_888ab2a3(60)
-	event.set_time_of_day(time)
+	wait.for_frame_count(60)
+	event.set_time_of_day(saved_time_of_day)
 	event.stop_all_sounds()
 	event.delete_character(8)
 	event.set_object_handle_visible(1, 1)
@@ -129,21 +120,21 @@ local function helper_3932c()
 	vm.wait(18)
 end
 
---- Helper function.
-local function helper_35dd0(arg0: s32, arg1: s32)
-	event.open_voice_stream_wave(1, arg0)
-	helper_9cbdc640(1)
-	event.open_message_window_2(0, arg0)
-	open_message(0, -1, 5, 0, 0)
+--- Plays a voiced message line and waits for it up to the given duration.
+local function show_timed_voiced_message(message_id: s32, duration_frames: s32)
+	event.open_voice_stream_wave(1, message_id)
+	sound.wait_voice_stream_ready(1)
+	event.open_message_window_2(0, message_id)
+	message.open(0, -1, 5, 0, 0)
 	event.play_voice_stream(1)
-	helper_61e5dba6(0, arg1)
-	close_message(0)
+	message.wait_voice_stopping_for(0, duration_frames)
+	message.close(0)
 	event.close_voice_stream(1)
 end
 
---- Helper function.
-local function helper_35fac()
-	local time: f32 = 0
+--- Plays the event 102 cutscene of Mints and Eina crying.
+local function play_mints_and_eina_crying_scene()
+	local saved_time_of_day: f32 = 0
 	vm.section(function()
 		event.set_save_flag(102, 1)
 		event.initialize_event()
@@ -187,7 +178,7 @@ local function helper_35fac()
 		event.set_object_handle_motion(1, "泣く", 4)
 		event.enable_drama_skip()
 		event.set_drama_skip_fade_color(255.0, 255.0, 255.0)
-		time = event.get_scene_time_of_day() or time
+		saved_time_of_day = event.get_scene_time_of_day() or saved_time_of_day
 		event.set_time_of_day(12.0)
 		event.set_map_lighting(0)
 		event.clear_camera_sequence()
@@ -196,39 +187,39 @@ local function helper_35fac()
 		event.set_event_sprite_draw_pass(0, 1)
 		event.fade_in_screen(0)
 		event.set_message_window_mode(0, 0)
-		helper_35dd0(1020010, 120)
-		helper_35dd0(1020020, 210)
+		show_timed_voiced_message(1020010, 120)
+		show_timed_voiced_message(1020020, 210)
 		event.set_message_window_mode(0, 7)
 		event.set_message_button_prompt(0, 1)
 		event.set_event_sprite_color(0, 255, 255, 255, 32)
 		event.fade_out_screen(0)
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(58)
 		event.play_music(0)
 		event.fade_in_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.open_voice_stream_wave(1, 1020030)
-		helper_9cbdc640(1)
+		sound.wait_voice_stream_ready(1)
 		event.play_voice_stream(1)
 		event.open_message_window_2(0, 1020030)
-		helper_183cf34f(0, -1, 8, 0, 0, 175)
+		message.show_timed_primary(0, -1, 8, 0, 0, 175)
 		event.fade_out_screen(30, 255, 255, 255)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 		event.set_event_sprite_draw_pass(0, 1)
 		event.set_event_sprite_color(0, 255, 255, 255, 128)
 		event.fade_in_screen(0, 255, 255, 255)
 		event.set_message_window_mode(0, 12)
 		event.set_message_button_prompt(0, 0)
 		event.open_message_window_2(0, 1020040)
-		helper_183cf34f(0, -1, 5, 0, 0, 300)
+		message.show_timed_primary(0, -1, 5, 0, 0, 300)
 		event.close_voice_stream(1)
 		event.set_message_button_prompt(0, 1)
 		event.fade_out_screen(0, 255, 255, 255)
 		vm.wait(9)
 		event.fade_out_screen(30, 255, 255, 255)
 		event.fade_out_music(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
 	event.stop_music(0)
@@ -236,17 +227,17 @@ local function helper_35fac()
 	event.set_character_active(0)
 	event.set_event_sprite_draw_pass(0, 0)
 	event.set_map_lighting(0)
-	event.set_time_of_day(time)
+	event.set_time_of_day(saved_time_of_day)
 	event.fade_out_screen(0, 255, 255, 255)
 	event.delete_character(32)
 	event.delete_character(33)
 end
 
---- Helper function.
-local function helper_37b64()
+--- Plays the cutscene of a character delivering potato pie to a seated character.
+local function play_potato_pie_scene()
 	vm.section(function()
 		event.initialize_event()
-		helper_2b01dbd7()
+		cutscene.load_e209_actors_primary()
 		event.enable_drama_skip()
 		event.fade_in_screen(30)
 		event.set_character_active(1, 32)
@@ -267,7 +258,7 @@ local function helper_37b64()
 		event.queue_object_sequence_next_motion(0, "左を見るL", 0)
 		event.set_object_sequence_motion(1, "ポテトパイ歩き", 4)
 		event.move_object_sequence(1, 29.44, 0.0, -115.61, 120)
-		helper_888ab2a3(120)
+		wait.for_frame_count(120)
 		event.detach_character_from_frame(34)
 		event.detach_character_from_frame(35)
 		event.set_character_active(0, 33)
@@ -279,7 +270,7 @@ local function helper_37b64()
 		event.set_object_sequence_rotation(0, 0.0, -1.08, 0.0)
 		event.set_object_sequence_motion(0, "喜ぶ", 6)
 		event.queue_object_sequence_next_motion(0, "喜ぶL", 0)
-		helper_888ab2a3(60)
+		wait.for_frame_count(60)
 		event.set_character_active(1, 33)
 		event.set_camera_sequence_position(73.92, 10.61, -94.01)
 		event.set_camera_sequence_look_at(36.84, 20.8, -109.04)
@@ -290,68 +281,71 @@ local function helper_37b64()
 		event.set_object_sequence_motion(0, "食べる", 4)
 		event.set_object_sequence_motion(1, "ユリス見立ち", 4)
 		event.open_message_window_2(0, 2090590)
-		show_message(0, -1, 8, 0, 0)
+		message.show(0, -1, 8, 0, 0)
 		event.open_message_window_2(0, 2090591)
-		show_message(0, -1, 8, 0, 0)
+		message.show(0, -1, 8, 0, 0)
 		event.open_message_window_2(0, 2090592)
-		show_message(0, -1, 8, 0, 0)
+		message.show(0, -1, 8, 0, 0)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
-	helper_2e67f92b()
+	cutscene.unload_e209_actors()
 	event.fade_in_screen(30)
 end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Updates the hide and seek state and resets the follow camera when the house is entered.
 function script.default_event()
-	helper_acffd9e4()
+	i04_girard_house.update_hide_and_seek_state()
 	event.reset_follow_camera(1, 0.0)
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
-script.key_open = helper_3932c
+script.key_open = play_mints_letter_scene
 
---- Event 400, which map data, a script or the engine runs by number.
-function script.event_400()
-	local flag: s32 = 0
+--- Gives the player item 357 once and hides the map part it sat on.
+function script.pick_up_map_item()
+	local save_flag: s32 = 0
 	event.set_character_motion(0, "立ち")
-	flag = event.get_save_flag(38) or flag
-	if flag == 0 then
+	save_flag = event.get_save_flag(38) or save_flag
+	if save_flag == 0 then
 		event.set_save_flag(38, 1)
 		event.add_inventory_item(357)
-		helper_f38eabca(357, 1)
-		helper_6c0ef236(0)
-		helper_d61bc810(1)
+		inventory.announce_received(357, 1)
+		i04_girard_house.set_map_part_visible(0)
+		inventory.resolve_overflow(1)
 	end
 end
+script[400] = script.pick_up_map_item
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_35fac()
+--- Plays the scene of Mints and Eina crying and enters the dungeon.
+function script.cutscene_crying_scene_then_enter_dungeon()
+	play_mints_and_eina_crying_scene()
 	event.fade_out_screen(0, 255.0, 255.0, 255.0)
 	event.set_background_color(255.0, 255.0, 255.0, 255.0)
 	event.skip_next_loading_screen()
 	event.go_to_dungeon(0, 3, 500)
 	vm.wait(2)
 end
+script[500] = script.cutscene_crying_scene_then_enter_dungeon
 
---- Event 501, which map data, a script or the engine runs by number.
-function script.event_501()
-	helper_37b64()
+--- Plays the potato pie scene and jumps to the g01i07 map.
+function script.cutscene_potato_pie_then_go_to_g01i07()
+	play_potato_pie_scene()
 	event.jump_to_map_3(-1, "g01i07", 502)
 	vm.wait(2)
 end
+script[501] = script.cutscene_potato_pie_then_go_to_g01i07
 
---- Event 530, which map data, a script or the engine runs by number.
-function script.event_530()
+--- Plays the ending movie and the chapter 8 start file message and sets up the party for the next chapter.
+function script.cutscene_chapter_ending()
 	local block: s32 = 0
-	helper_3932c()
+	play_mints_letter_scene()
 	event.set_pause_enabled(0)
 	event.initialize_event()
 	event.assign_memory_stack(5)
@@ -362,7 +356,7 @@ function script.event_530()
 	event.fade_out_screen(0)
 	event.stop_all_sounds()
 	event.set_sound_reverb_enabled(0)
-	helper_888ab2a3(2)
+	wait.for_frame_count(2)
 	block = event.load_event_image_4(5, "textures/event/e700/e736/e73601.json", 0) or block
 	event.reset_event_sprite(0)
 	event.set_event_sprite_type(0, 0)
@@ -379,24 +373,24 @@ function script.event_530()
 	event.set_event_sprite_position(1, 256, 224)
 	event.set_event_sprite_draw_pass(1, 1)
 	event.fade_in_screen(60)
-	helper_888ab2a3(90)
+	wait.for_frame_count(90)
 	while true do
-		if helper_581cb30c(0) ~= 0 then
+		if wait.get_button_state(0) ~= 0 then
 			break
 		else
 			vm.wait(4)
 		end
 	end
 	event.fade_out_screen(30)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_event_sprite_draw_pass(1, 0)
 	event.fade_in_screen(0)
 	event.set_message_window_mode(0, 4)
 	event.set_message_draw_speed(0, 1)
 	event.open_message_window_2(0, "８章スタートファイルをセーブします。")
-	show_message(0, -1, 8, 0, 0)
+	message.show(0, -1, 8, 0, 0)
 	event.fade_out_screen(0)
-	helper_888ab2a3(2)
+	wait.for_frame_count(2)
 	event.set_event_sprite_draw_pass(0, 0)
 	event.set_save_flag(799, 1)
 	event.set_save_data_value(0, 10)
@@ -419,25 +413,29 @@ function script.event_530()
 	event.set_sound_reverb_enabled(1)
 	event.set_scene_exit_flag(1)
 end
+script[530] = script.cutscene_chapter_ending
 
 --- Event 600, which map data, a script or the engine runs by number.
-script.event_600 = helper_37b64
+script.play_potato_pie_scene = play_potato_pie_scene
+script[600] = script.play_potato_pie_scene
 
 --- Event 610, which map data, a script or the engine runs by number.
-script.event_610 = helper_35fac
+script.play_mints_and_eina_crying_scene = play_mints_and_eina_crying_scene
+script[610] = script.play_mints_and_eina_crying_scene
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_09b10784
+script[1000] = npc.talk_to_triggering_npc
 
---- Event 11020, which map data, a script or the engine runs by number.
-function script.event_11020()
+--- Plays the scene of Mints and Eina crying and enters the dungeon.
+function script.cutscene_crying_scene_after_stopping_music()
 	event.stop_music(0)
-	helper_35fac()
+	play_mints_and_eina_crying_scene()
 	event.fade_out_screen(0, 255.0, 255.0, 255.0)
 	event.set_background_color(255.0, 255.0, 255.0, 255.0)
 	event.skip_next_loading_screen()
 	event.go_to_dungeon(0, -1, 500)
 	vm.wait(2)
 end
+script[11020] = script.cutscene_crying_scene_after_stopping_music
 
 return script

@@ -1,21 +1,22 @@
 --!strict
--- map/s/s64/s64_3.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Event script for a short map that plays Andrea's conversation with the sun and then loads the dungeon floor.
 
-local helper_66949cb5 = require("@lib/event/helper_66949cb5")
+local moon_flower_palace_flashback_2 = require("@lib/event/moon_flower_palace_flashback_2")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99() end
+--- Does nothing; the map needs no setup before it is entered.
+local function initialize_map() end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs when the script is loaded and does nothing.
 function script.setup() end
 
-script.event_99 = event_99
+script.initialize_map = initialize_map
+script[99] = script.initialize_map
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Resets the follow camera and fades the screen in on entering the map.
 function script.default_event()
-	event_99()
+	initialize_map()
 	event.reset_follow_camera(1)
 	event.fade_in_screen(30)
 	event.finish_event()
@@ -23,14 +24,16 @@ end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing, so the engine runs this instead of its default.
 function script.key_open() end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_66949cb5()
+--- Plays the conversation between Andrea and the sun and then loads the dungeon map and its event script.
+function script.cutscene_andrea_and_sun_conversation()
+	moon_flower_palace_flashback_2.play_andrea_and_sun_conversation()
 	event.skip_next_music_load()
 	event.load_dungeon_map("d06b01")
 	event.load_event_script("d06b01/d06b01.stb", 510)
 end
+script[500] = script.cutscene_andrea_and_sun_conversation
 
 return script

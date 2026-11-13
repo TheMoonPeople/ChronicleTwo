@@ -1,32 +1,28 @@
 --!strict
--- map/s/s40/s40.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Veniccio demo with battleship scenes.
 
 local vm = require("@lib/vm")
-local helper_0382f327 = require("@lib/event/helper_0382f327")
-local helper_038a2e4d = require("@lib/event/helper_038a2e4d")
-local helper_238b5abc = require("@lib/event/helper_238b5abc")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_53ffe901 = require("@lib/event/helper_53ffe901")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8cd371d7 = require("@lib/event/helper_8cd371d7")
-local interpolate = require("@lib/event/interpolate")
-local wait_objects = require("@lib/event/wait_objects")
+local calc = require("@lib/event/calc")
+local cutscene = require("@lib/event/cutscene")
+local message = require("@lib/event/message")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Event 99, which map data, a script or the engine runs by number.
-local function event_99() end
+--- Does nothing.
+local function initialize_map() end
 
---- Helper function.
-local function helper_10510()
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local var5: f32 = 0
-	local var6: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local rot_x: f32 = 0
-	local rot_z: f32 = 0
-	local var12: s32 = 0
+--- Plays the noon scene in which the battleship flies across the sky above the running party.
+local function play_noon_battleship_flyover()
+	local start_x: f32 = 0
+	local end_x: f32 = 0
+	local start_z: f32 = 0
+	local end_z: f32 = 0
+	local ship_x: f32 = 0
+	local ship_y: f32 = 0
+	local ship_z: f32 = 0
+	local ship_pitch: f32 = 0
+	local ship_roll: f32 = 0
+	local frame: s32 = 0
 	event.set_time_of_day(12.0)
 	event.set_time_of_day_advancing(0)
 	event.initialize_event()
@@ -79,35 +75,35 @@ local function helper_10510()
 	event.move_object_sequence(1, 1953.45, 0.0, 0.77001953, 450)
 	event.set_object_sequence_position(6, 453.45, 0.0, 1500.77)
 	event.move_object_sequence(6, 1923.45, 0.0, 30.77002, 450)
-	var3 = vm.f32(-2786.55)
-	var4 = vm.f32(-786.55005)
-	var5 = vm.f32(-1259.23)
-	var6 = vm.f32(-3259.23)
-	var12 = 0
-	while var12 < 450 do
-		if var12 == 113 then
+	start_x = vm.f32(-2786.55)
+	end_x = vm.f32(-786.55005)
+	start_z = vm.f32(-1259.23)
+	end_z = vm.f32(-3259.23)
+	frame = 0
+	while frame < 450 do
+		if frame == 113 then
 			event.move_camera_sequence(2075.95, 6.11, 103.27002, 1963.45, 50.0, -9.22998, 337)
 		end
-		pos_x_2 = interpolate(var3, var4, var12, 450)
-		pos_z_2 = interpolate(var5, var6, var12, 450)
-		if var12 < 225 then
-			pos_y_2 = interpolate(1400.0, 1000.0, var12, 225)
+		ship_x = calc.interpolate(start_x, end_x, frame, 450)
+		ship_z = calc.interpolate(start_z, end_z, frame, 450)
+		if frame < 225 then
+			ship_y = calc.interpolate(1400.0, 1000.0, frame, 225)
 		else
-			pos_y_2 = interpolate(1000.0, 1400.0, var12 - 225, 225)
+			ship_y = calc.interpolate(1000.0, 1400.0, frame - 225, 225)
 		end
-		if var12 < 150 then
-			rot_x = interpolate(-0.25, 0.25, var12, 150)
-			rot_z = 0.0
+		if frame < 150 then
+			ship_pitch = calc.interpolate(-0.25, 0.25, frame, 150)
+			ship_roll = 0.0
 		else
-			rot_x = interpolate(0.25, -0.25, var12 - 150, 300)
-			rot_z = 0.0
+			ship_pitch = calc.interpolate(0.25, -0.25, frame - 150, 300)
+			ship_roll = 0.0
 		end
-		event.set_object_handle_position(2, pos_x_2, pos_y_2, pos_z_2)
-		event.set_object_handle_rotation(2, rot_x, 2.3561945, rot_z)
-		var12 = var12 + 1
+		event.set_object_handle_position(2, ship_x, ship_y, ship_z)
+		event.set_object_handle_rotation(2, ship_pitch, 2.3561945, ship_roll)
+		frame = frame + 1
 		vm.wait(1)
 	end
-	helper_888ab2a3(150)
+	wait.for_frame_count(150)
 	event.delete_character_extension_packs(0)
 	event.delete_character(9)
 	event.delete_character(13)
@@ -115,19 +111,19 @@ local function helper_10510()
 	event.finish_event()
 end
 
---- Helper function.
-local function helper_db18()
-	local pos_x: f32 = 0
-	local pos_y: f32 = 0
-	local pos_z: f32 = 0
-	local rot_y: f32 = 0
-	local pos_x_2: f32 = 0
-	local pos_y_2: f32 = 0
-	local pos_z_2: f32 = 0
-	local var7: f32 = 0
-	local pos_y_3: f32 = 0
-	local var9: f32 = 0
-	local var13: f32 = 0
+--- Plays the night scene in which the party looks up at the battleship from the ground.
+local function play_night_battleship_sighting()
+	local character_x: f32 = 0
+	local character_y: f32 = 0
+	local character_z: f32 = 0
+	local facing_angle: f32 = 0
+	local camera_x: f32 = 0
+	local camera_y: f32 = 0
+	local camera_z: f32 = 0
+	local target_x: f32 = 0
+	local target_y: f32 = 0
+	local target_z: f32 = 0
+	local target_end_y: f32 = 0
 	event.set_time_of_day(24.0)
 	event.set_time_of_day_advancing(0)
 	event.initialize_event()
@@ -135,18 +131,18 @@ local function helper_db18()
 	event.clear_memory_stack(4)
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	pos_x = vm.f32(1707.99)
-	pos_y = vm.f32(-8.19)
-	pos_z = vm.f32(-424.51)
-	rot_y = vm.f32(-2.3561945)
+	character_x = vm.f32(1707.99)
+	character_y = vm.f32(-8.19)
+	character_z = vm.f32(-424.51)
+	facing_angle = vm.f32(-2.3561945)
 	event.set_character_motion(0, "立ち")
 	event.load_character_motion_pack(5, "event/e400/e438/e438_mints.gltf", "info", 0)
 	event.set_character_active(0)
 	event.attach_object_handle_to_character(0, 0)
 	event.clear_object_sequence(0)
 	event.set_object_sequence_object(0, 0)
-	event.set_object_sequence_position(0, pos_x, pos_y, pos_z)
-	event.set_object_sequence_rotation(0, 0.0, rot_y, 0.0)
+	event.set_object_sequence_position(0, character_x, character_y, character_z)
+	event.set_object_sequence_rotation(0, 0.0, facing_angle, 0.0)
 	event.set_object_sequence_motion(0, "上見立ち", 4)
 	event.load_character(5, "chara/c02_base.gltf", "info", 9)
 	event.load_character_motion_pack(5, "event/e400/e438/e438_monica.gltf", "info", 9)
@@ -160,7 +156,7 @@ local function helper_db18()
 	event.set_object_handle_visible(5, 1)
 	event.clear_object_sequence(1)
 	event.set_object_sequence_object(1, 1)
-	event.set_object_sequence_position(1, vm.f32(pos_x - 10.0) + 10.0, -5.03, vm.f32(pos_z + 10.0) + 10.0)
+	event.set_object_sequence_position(1, vm.f32(character_x - 10.0) + 10.0, -5.03, vm.f32(character_z + 10.0) + 10.0)
 	event.set_object_sequence_rotation(1, 0.0, -2.6, 0.0)
 	event.set_object_sequence_motion(1, "上見立ち", 4)
 	event.reset_object_handle_dynamic_animation(1)
@@ -169,26 +165,26 @@ local function helper_db18()
 	event.attach_object_handle_to_character(6, 14)
 	event.clear_object_sequence(6)
 	event.set_object_sequence_object(6, 6)
-	event.set_object_sequence_position(6, vm.f32(pos_x + 10.0) + 10.0, -6.28, vm.f32(pos_z - 10.0) + 10.0)
+	event.set_object_sequence_position(6, vm.f32(character_x + 10.0) + 10.0, -6.28, vm.f32(character_z - 10.0) + 10.0)
 	event.set_object_sequence_rotation(6, 0.0, -2.12, 0.0)
 	event.set_object_sequence_motion(6, "見上げるL", 4)
 	event.attach_object_handle_to_map_part_2(2, "p01_battleship")
 	event.set_object_handle_visible(2, 0)
-	pos_x_2 = vm.f32(1682.18)
-	pos_y_2 = vm.f32(29.66)
-	pos_z_2 = vm.f32(-487.46)
-	var7 = vm.f32(1712.17)
-	pos_y_3 = vm.f32(13.54)
-	var9 = vm.f32(-420.33)
-	var13 = vm.f32(19.26)
+	camera_x = vm.f32(1682.18)
+	camera_y = vm.f32(29.66)
+	camera_z = vm.f32(-487.46)
+	target_x = vm.f32(1712.17)
+	target_y = vm.f32(13.54)
+	target_z = vm.f32(-420.33)
+	target_end_y = vm.f32(19.26)
 	event.clear_camera_sequence()
-	event.set_camera_sequence_position(pos_x_2, pos_y_2, pos_z_2)
-	event.set_camera_sequence_look_at(var7, pos_y_3, var9)
-	helper_888ab2a3(60)
-	event.move_camera_sequence_look_at(var7, var13, var9, 210)
+	event.set_camera_sequence_position(camera_x, camera_y, camera_z)
+	event.set_camera_sequence_look_at(target_x, target_y, target_z)
+	wait.for_frame_count(60)
+	event.move_camera_sequence_look_at(target_x, target_end_y, target_z, 210)
 	event.move_camera_sequence_angle_height_distance(1.47, -10.82, 76.77, 210)
-	helper_888ab2a3(210)
-	helper_888ab2a3(150)
+	wait.for_frame_count(210)
+	wait.for_frame_count(150)
 	event.delete_character_extension_packs(0)
 	event.delete_character(9)
 	event.delete_character(13)
@@ -197,14 +193,14 @@ local function helper_db18()
 	event.finish_event()
 end
 
---- Helper function.
-local function helper_120bc()
-	local var0: s32 = 0
-	local active_chr_no: s32 = 0
-	local var2: f32 = 0
-	local var3: f32 = 0
-	local var4: f32 = 0
-	local at: number = 0
+--- Plays the dialogue scene in which the battleship swoops over the party and two companions run up to meet them.
+local function play_battleship_arrival_scene()
+	local sound_bank: s32 = 0
+	local player_character: s32 = 0
+	local ship_target_x: f32 = 0
+	local ship_target_y: f32 = 0
+	local ship_target_z: f32 = 0
+	local progress: number = 0
 	vm.section(function()
 		event.set_camera_position(846.73, 268.48, 883.94)
 		event.set_camera_look_at(1289.42, 146.71, 951.29)
@@ -212,25 +208,25 @@ local function helper_120bc()
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.stop_music(0)
-		at = 1
-		helper_888ab2a3(4)
+		progress = 1
+		wait.for_frame_count(4)
 		event.load_music(32)
 		event.load_map_sounds(4217)
-		var0 = event.load_sound_effect_file_2(4217) or var0
+		sound_bank = event.load_sound_effect_file_2(4217) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
-		active_chr_no = event.get_playable_character() or active_chr_no
+		player_character = event.get_playable_character() or player_character
 		event.set_scene_status_flags(1, 0, 256, 1)
 		event.change_directory("event/e400/e438/")
 		event.load_message_file(0, 5, "e438.txt")
-		if active_chr_no == 0 then
+		if player_character == 0 then
 			event.load_character_motion_pack(5, "e438_mints.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(0, 0)
 			event.clear_object_sequence(0)
 			event.set_object_sequence_object(0, 0)
 		end
-		if active_chr_no == 1 then
+		if player_character == 1 then
 			event.load_character_motion_pack(5, "e438_monica.gltf", "info", 0)
 			event.set_character_active(0)
 			event.attach_object_handle_to_character(1, 0)
@@ -251,7 +247,7 @@ local function helper_120bc()
 		event.clear_object_sequence(4)
 		event.set_object_sequence_object(4, 4)
 		event.change_directory("")
-		if active_chr_no == 1 then
+		if player_character == 1 then
 			event.load_character(5, "chara/c01_base.gltf", "info", 32)
 			event.load_equipment_model(5, 0, 4, "info", 32)
 			event.load_equipment_model(5, 0, 3, "info", 32)
@@ -297,7 +293,7 @@ local function helper_120bc()
 		event.set_object_handle_texture_animation(2, 1, "通常目パチ")
 		event.set_object_handle_position(3, 1651.38, 0.0, 1262.95)
 		event.set_object_handle_rotation(3, 0.0, -2.52, 0.0)
-		event.set_object_handle_sound_bank(3, var0)
+		event.set_object_handle_sound_bank(3, sound_bank)
 		event.set_object_handle_texture_animation(3, 0)
 		event.set_object_handle_texture_animation(3, 1, "通常目パチ")
 		event.set_object_handle_position(4, 1400.0, 2000.0, 900.0)
@@ -311,53 +307,53 @@ local function helper_120bc()
 		event.set_object_sequence_motion(1, "走り", 4, -1.0, 1)
 		event.delay_object_sequence_motion_track(1, 36)
 		event.set_object_sequence_motion(1, "立ち")
-		var2 = vm.f32(vm.f32(vm.sin(vm.f32(-2.52)) * 30000.0) + 1400.0)
-		var3 = 2000.0
-		var4 = vm.f32(vm.f32(vm.cos(vm.f32(-2.52)) * 30000.0) + 900.0)
+		ship_target_x = vm.f32(vm.f32(vm.sin(vm.f32(-2.52)) * 30000.0) + 1400.0)
+		ship_target_y = 2000.0
+		ship_target_z = vm.f32(vm.f32(vm.cos(vm.f32(-2.52)) * 30000.0) + 900.0)
 		event.enable_drama_skip()
-		event.play_sound_effect(var0, 11)
+		event.play_sound_effect(sound_bank, 11)
 		event.clear_camera_sequence()
 		event.set_camera_sequence_position(846.73, 268.48, 883.94)
 		event.set_camera_sequence_look_at(1289.42, 146.71, 951.29)
 		event.fade_in_screen(30)
-		at = 2
-		helper_888ab2a3(10)
-		event.play_sound_effect(var0, 12)
-		at = 3
-		wait_objects(0)
-		at = 4
-		wait_objects(1)
+		progress = 2
+		wait.for_frame_count(10)
+		event.play_sound_effect(sound_bank, 12)
+		progress = 3
+		object.wait_until_done(0)
+		progress = 4
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(1446.78, 902.12, 1000.12)
 		event.set_camera_sequence_look_at(1342.3, 1004.84, 851.59)
 		event.play_music(0)
-		event.move_object_sequence(4, var2, var3, var4, 300)
+		event.move_object_sequence(4, ship_target_x, ship_target_y, ship_target_z, 300)
 		event.delay_object_sequence_sound_track(4, 260)
-		event.call_command(492, 4, var0, 11) -- retail: command 492 is not registered
+		event.call_command(492, 4, sound_bank, 11) -- retail: command 492 is not registered
 		event.set_mouth_texture_animations(1, "大口パク")
-		at = 5
-		helper_0382f327(4380100, 50)
+		progress = 5
+		message.show_voiced_for_stopping(4380100, 50)
 		event.set_camera_sequence_position(1478.85, 26.8, 1037.73)
 		event.set_camera_sequence_look_at(1389.49, 33.55, 913.48)
 		event.set_object_sequence_scale(4, 0.0, 0.0, 0.0, 250)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		at = 6
-		helper_4116e6bb(4380110)
+		progress = 6
+		message.show_voiced(4380110)
 		event.set_object_sequence_motion(1, "右向く", 6)
 		event.queue_object_sequence_next_motion(1, "右向くL", 4)
 		event.delay_object_sequence_motion_track(0, 10)
 		event.set_object_sequence_motion(0, "左向く", 6)
 		event.queue_object_sequence_next_motion(0, "左向くL", 4)
 		event.set_mouth_texture_animations(1, "大口パク")
-		at = 7
-		helper_4116e6bb(4380120)
-		at = 8
-		wait_objects(1)
-		at = 9
-		wait_objects(0)
+		progress = 7
+		message.show_voiced(4380120)
+		progress = 8
+		object.wait_until_done(1)
+		progress = 9
+		object.wait_until_done(0)
 		event.set_object_sequence_motion(0, "左向くうなづき", 6)
 		event.queue_object_sequence_next_motion(0, "左向くL", 4)
-		at = 10
-		wait_objects(0)
+		progress = 10
+		object.wait_until_done(0)
 		event.set_camera_sequence_position(1395.3, 38.89, 921.11)
 		event.set_camera_sequence_look_at(1525.4, 51.33, 1091.97)
 		event.set_character_active(34)
@@ -372,129 +368,129 @@ local function helper_120bc()
 		event.set_object_sequence_motion(3, "立ち")
 		event.set_object_sequence_motion(0, "立ち", 6)
 		event.set_object_sequence_motion(1, "立ち", 6)
-		at = 11
-		helper_4116e6bb(4380130)
-		at = 12
-		wait_objects(3)
+		progress = 11
+		message.show_voiced(4380130)
+		progress = 12
+		object.wait_until_done(3)
 		event.set_camera_sequence_position(1358.73, 17.36, 907.69)
 		event.set_camera_sequence_look_at(1478.91, 37.71, 1028.52)
 		event.set_mouth_texture_animations(1, "大口パク")
-		at = 13
-		helper_4116e6bb(4380140)
+		progress = 13
+		message.show_voiced(4380140)
 		event.set_object_handle_texture_animation(2, 0)
 		event.set_object_handle_texture_animation(2, 1, "こまり目パチ")
 		event.set_object_sequence_motion(2, "ちょっとまって", 2)
 		event.queue_object_sequence_next_motion(2, "ちょっとまってL", 4)
-		at = 14
-		helper_4116e6bb(4380150)
-		at = 15
-		wait_objects(2)
+		progress = 14
+		message.show_voiced(4380150)
+		progress = 15
+		object.wait_until_done(2)
 		event.set_camera_sequence_position(1416.31, 11.25, 988.08)
 		event.set_camera_sequence_look_at(1408.14, 20.76, 940.82)
-		event.play_sound_effect(var0, 13)
+		event.play_sound_effect(sound_bank, 13)
 		event.set_object_sequence_motion(1, "振り返り静止", 6)
 		event.queue_object_sequence_next_motion(1, "振り返り静止L", 4)
 		event.delay_object_sequence_motion_track(0, 10)
 		event.set_object_sequence_motion(0, "左向く", 6)
 		event.queue_object_sequence_next_motion(0, "左向くL", 4)
 		event.set_mouth_texture_animations(1, "大口パク")
-		at = 16
-		helper_4116e6bb(4380160)
-		at = 17
-		wait_objects(1)
+		progress = 16
+		message.show_voiced(4380160)
+		progress = 17
+		object.wait_until_done(1)
 		event.set_camera_sequence_position(1358.73, 17.36, 907.69)
 		event.set_camera_sequence_look_at(1478.91, 37.71, 1028.52)
 		event.set_object_handle_texture_animation(2, 0)
 		event.set_object_handle_texture_animation(2, 1, "通常目パチ")
 		event.set_object_sequence_motion(2, "ちょっとまって戻り", 6)
 		event.queue_object_sequence_next_motion(2, "立ち", 4)
-		at = 18
-		helper_4116e6bb(4380170)
+		progress = 18
+		message.show_voiced(4380170)
 		event.set_camera_sequence_position(1416.31, 11.25, 988.08)
 		event.set_camera_sequence_look_at(1408.14, 20.76, 940.82)
 		event.set_mouth_texture_animations(0, "通常口パク")
-		at = 19
-		helper_4116e6bb(4380180)
-		event.play_sound_effect(var0, 14)
+		progress = 19
+		message.show_voiced(4380180)
+		event.play_sound_effect(sound_bank, 14)
 		event.set_object_sequence_motion(1, "戻り", 2)
 		event.queue_object_sequence_next_motion(1, "立ち", 4)
 		event.delay_object_sequence_motion_track(0, 20)
 		event.set_object_sequence_motion(0, "左向く戻り", 6)
 		event.queue_object_sequence_next_motion(0, "立ち", 4)
 		event.set_mouth_texture_animations(1, "大口パク")
-		at = 20
-		helper_4116e6bb(4380190)
+		progress = 20
+		message.show_voiced(4380190)
 		event.fade_out_screen(30)
-		at = 21
-		helper_888ab2a3(30)
+		progress = 21
+		wait.for_frame_count(30)
 	end, function(received: { any }): boolean
-		if at <= 1 then
-			var2 = vm.f32(vm.f32(vm.sin(vm.f32(-2.52)) * 30000.0) + 1400.0)
-			var3 = 2000.0
-			var4 = vm.f32(vm.f32(vm.cos(vm.f32(-2.52)) * 30000.0) + 900.0)
-			helper_038a2e4d(10)
+		if progress <= 1 then
+			ship_target_x = vm.f32(vm.f32(vm.sin(vm.f32(-2.52)) * 30000.0) + 1400.0)
+			ship_target_y = 2000.0
+			ship_target_z = vm.f32(vm.f32(vm.cos(vm.f32(-2.52)) * 30000.0) + 900.0)
+			wait.skip_frame_count(10)
 		end
-		if at <= 2 then
-			helper_238b5abc(0)
+		if progress <= 2 then
+			cutscene.skip_command(0)
 		end
-		if at <= 3 then
-			helper_238b5abc(1)
+		if progress <= 3 then
+			cutscene.skip_command(1)
 		end
-		if at <= 4 then
-			helper_53ffe901(4380100, 50)
+		if progress <= 4 then
+			message.show_voiced_for_stopping_skipping(4380100, 50)
 		end
-		if at <= 5 then
-			helper_8cd371d7(4380110)
+		if progress <= 5 then
+			message.show_voiced_skipping(4380110)
 		end
-		if at <= 6 then
-			helper_8cd371d7(4380120)
+		if progress <= 6 then
+			message.show_voiced_skipping(4380120)
 		end
-		if at <= 7 then
-			helper_238b5abc(1)
+		if progress <= 7 then
+			cutscene.skip_command(1)
 		end
-		if at <= 8 then
-			helper_238b5abc(0)
+		if progress <= 8 then
+			cutscene.skip_command(0)
 		end
-		if at <= 9 then
-			helper_238b5abc(0)
+		if progress <= 9 then
+			cutscene.skip_command(0)
 		end
-		if at <= 10 then
-			helper_8cd371d7(4380130)
+		if progress <= 10 then
+			message.show_voiced_skipping(4380130)
 		end
-		if at <= 11 then
-			helper_238b5abc(3)
+		if progress <= 11 then
+			cutscene.skip_command(3)
 		end
-		if at <= 12 then
-			helper_8cd371d7(4380140)
+		if progress <= 12 then
+			message.show_voiced_skipping(4380140)
 		end
-		if at <= 13 then
-			helper_8cd371d7(4380150)
+		if progress <= 13 then
+			message.show_voiced_skipping(4380150)
 		end
-		if at <= 14 then
-			helper_238b5abc(2)
+		if progress <= 14 then
+			cutscene.skip_command(2)
 		end
-		if at <= 15 then
-			helper_8cd371d7(4380160)
+		if progress <= 15 then
+			message.show_voiced_skipping(4380160)
 		end
-		if at <= 16 then
-			helper_238b5abc(1)
+		if progress <= 16 then
+			cutscene.skip_command(1)
 		end
-		if at <= 17 then
-			helper_8cd371d7(4380170)
+		if progress <= 17 then
+			message.show_voiced_skipping(4380170)
 		end
-		if at <= 18 then
-			helper_8cd371d7(4380180)
+		if progress <= 18 then
+			message.show_voiced_skipping(4380180)
 		end
-		if at <= 19 then
-			helper_8cd371d7(4380190)
+		if progress <= 19 then
+			message.show_voiced_skipping(4380190)
 		end
-		if at <= 20 then
-			helper_038a2e4d(30)
+		if progress <= 20 then
+			wait.skip_frame_count(30)
 		end
 		return true
 	end)
 	event.cancel_drama_scene_skip()
-	event.stop_sound_effect(var0, 11)
+	event.stop_sound_effect(sound_bank, 11)
 	event.play_music(0)
 	event.set_scene_status_flags(1, 0, 256, 0)
 	event.set_object_handle_footstep_sound(0, 0)
@@ -511,25 +507,27 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Does nothing at load time.
 function script.setup() end
 
-script.event_99 = event_99
+script.initialize_map = initialize_map
+script[99] = script.initialize_map
 
 --- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
-script.default_event = event_99
+script.default_event = initialize_map
 
---- The event the town walk runs when the square button is pressed, after reloading the map script.
+--- Plays the battleship flyover and sighting scenes.
 function script.key_open()
-	helper_10510()
-	helper_db18()
+	play_noon_battleship_flyover()
+	play_night_battleship_sighting()
 end
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_120bc()
+--- Plays the battleship arrival and jumps to g03.
+function script.cutscene_battleship_arrival()
+	play_battleship_arrival_scene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "g03", 510)
 end
+script[500] = script.cutscene_battleship_arrival
 
 return script

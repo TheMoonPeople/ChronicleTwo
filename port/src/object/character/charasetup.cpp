@@ -267,7 +267,7 @@ int SetupMainUnit(std::span<u8> read_buffer, mgCMemory *memory, mgCMemory *stack
 
         if (!edit_mode) {
             int file_size = {};
-            if (!load_file("mainchr/c01.stb", &file_size)) {
+            if (!load_file("mainchr/max.stb", &file_size)) {
                 return false;
             }
             parts[0]->LoadActionFile(reinterpret_cast<char *>(read_buffer.data()), file_size, &stacks[6]);
@@ -341,7 +341,7 @@ int SetupMainUnit(std::span<u8> read_buffer, mgCMemory *memory, mgCMemory *stack
 
         if (!edit_mode) {
             int file_size = {};
-            if (!load_file("mainchr/c02.stb", &file_size)) {
+            if (!load_file("mainchr/monica.stb", &file_size)) {
                 return false;
             }
             parts[0]->LoadActionFile(reinterpret_cast<char *>(read_buffer.data()), file_size, &stacks[6]);
@@ -391,7 +391,7 @@ int SetupMainUnit(std::span<u8> read_buffer, mgCMemory *memory, mgCMemory *stack
         hat->LoadPack(loaded_data, "info", &stacks[2], &stacks[2], &stacks[2], texture, parts[0]);
         SetupUnitMan(scene, user_data, USER_CHARA_ROBO, robo_info);
         int file_size = {};
-        if (!load_file("dungeon/act_script/robo.stb", &file_size)) {
+        if (!load_file("dungeon/act_script/ridepod.stb", &file_size)) {
             return false;
         }
         parts[0]->LoadActionFile(reinterpret_cast<char *>(read_buffer.data()), file_size, &stacks[4]);

@@ -1,45 +1,34 @@
 --!strict
--- map/i/i03/h01/i03h01a.stb: event script, translated from the NTSC-timed bytecode by tools/luau/stb2luau.
+--- Fishing Town house interior script that plays the house cutscenes and sends the player on to the dungeon or the next map.
 
 local vm = require("@lib/vm")
-local helper_0fc04819 = require("@lib/event/helper_0fc04819")
-local helper_1e7d5c6e = require("@lib/event/helper_1e7d5c6e")
-local helper_1ef0d4b2 = require("@lib/event/helper_1ef0d4b2")
-local helper_2768ff79 = require("@lib/event/helper_2768ff79")
-local helper_29d0ac90 = require("@lib/event/helper_29d0ac90")
-local helper_2b0300bc = require("@lib/event/helper_2b0300bc")
-local helper_4116e6bb = require("@lib/event/helper_4116e6bb")
-local helper_4e319702 = require("@lib/event/helper_4e319702")
-local helper_67153b53 = require("@lib/event/helper_67153b53")
-local helper_70e4c90a = require("@lib/event/helper_70e4c90a")
-local helper_86ac6534 = require("@lib/event/helper_86ac6534")
-local helper_888ab2a3 = require("@lib/event/helper_888ab2a3")
-local helper_8e5b8087 = require("@lib/event/helper_8e5b8087")
-local helper_a4d18817 = require("@lib/event/helper_a4d18817")
-local helper_b4bd3a08 = require("@lib/event/helper_b4bd3a08")
-local helper_bf310715 = require("@lib/event/helper_bf310715")
-local helper_f810e577 = require("@lib/event/helper_f810e577")
-local wait_camera = require("@lib/event/wait_camera")
-local wait_objects = require("@lib/event/wait_objects")
+local camera = require("@lib/event/camera")
+local cutscene = require("@lib/event/cutscene")
+local fishing_town_house_h01 = require("@lib/event/fishing_town_house_h01")
+local map = require("@lib/event/map")
+local message = require("@lib/event/message")
+local npc = require("@lib/event/npc")
+local object = require("@lib/event/object")
+local wait = require("@lib/event/wait")
 
---- Helper function.
-local function helper_36bc8(se_id: s32)
+--- Shows Need sitting at the desk, fades the screen in and pulls the camera across the room.
+local function play_need_sitting_shot(se_id: s32)
 	event.set_camera_sequence_position(79.6, 44.59, -39.31)
 	event.set_camera_sequence_look_at(-7.3, 30.03, -86.44)
 	event.set_character_active(1, 34)
 	event.set_object_sequence_position(2, 0.22, 5.19, -94.18)
 	event.set_object_sequence_rotation(2, 0.0, 0.0, 0.0)
 	event.set_object_sequence_motion(2, "座り", 4)
-	wait_objects(2)
+	object.wait_until_done(2)
 	event.fade_in_screen(30)
 	event.play_sound_effect(se_id, 2)
-	helper_888ab2a3(66)
+	wait.for_frame_count(66)
 	event.move_camera_sequence_eased(79.6, 44.59, -39.31, 39.97, 30.03, 52.15, 90, 2, 0.4)
-	wait_camera()
+	camera.wait_until_done()
 end
 
---- Helper function.
-local function helper_378d8(arg0: s32)
+--- Shows Starbre walking toward the desk while Need stands up.
+local function play_starbre_walk_in_shot(sound_bank: s32)
 	event.set_camera_sequence_position(-49.42, 28.58, -9.71)
 	event.set_camera_sequence_look_at(5.37, 27.75, -69.7)
 	event.set_character_active(1, 33)
@@ -53,12 +42,12 @@ local function helper_378d8(arg0: s32)
 	event.delay_object_sequence_motion_track(1, 69)
 	event.set_object_sequence_motion(1, "立ち", 2)
 	event.move_object_sequence(1, 1.5, 5.43, -38.55, 70)
-	helper_a4d18817(arg0, 70)
-	helper_888ab2a3(5)
+	fishing_town_house_h01.wait_for_frames(sound_bank, 70)
+	wait.for_frame_count(5)
 end
 
---- Helper function.
-local function helper_37d38(se_id: s32)
+--- Shows Starbre putting his hand on his hip and slamming the desk, with the slam sound played once the motion reaches the slam, under a temporarily changed event projection.
+local function play_desk_slam_shot(se_id: s32)
 	local projection: f32 = 0
 	projection = event.get_event_projection() or projection
 	event.set_event_projection(813.9)
@@ -73,23 +62,23 @@ local function helper_37d38(se_id: s32)
 	event.set_object_sequence_motion(2, "立ちあがるL", 4)
 	event.set_object_sequence_motion(1, "腰に手", 6)
 	event.queue_object_sequence_next_motion(1, "腰に手L")
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1090020)
+	message.show_voiced(1090020)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(1, "机をたたく", 6)
 	event.queue_object_sequence_next_motion(1, "机をたたくL")
-	helper_8e5b8087(33, vm.f32(0.805), -1.0, 60)
+	wait.until_motion_progress(33, vm.f32(0.805), -1.0, 60)
 	event.play_sound_effect(se_id, 6)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1090030)
+	message.show_voiced(1090030)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_event_projection(projection)
 end
 
---- Helper function.
-local function helper_383a8(arg0: any)
+--- Shows Need rising at the desk, speaking, sighing and speaking again.
+local function play_need_sigh_shot(sound_bank: any)
 	event.set_camera_sequence_position(-13.07, 25.09, -70.71)
 	event.set_camera_sequence_look_at(1.86, 31.3, -95.34)
 	event.set_character_active(1, 34)
@@ -98,27 +87,27 @@ local function helper_383a8(arg0: any)
 	event.set_object_sequence_motion(2, "立ちあがるL", 4)
 	event.set_object_sequence_texture_animation(2, 1, "目あき～目とじ")
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090040)
+	message.show_voiced(1090040)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(2, "ため息", 6)
 	event.wait_object_sequence_motion_end(2)
 	event.reset_object_sequence_motion(2)
 	event.set_object_sequence_motion(2, "下向き立ち")
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090050)
+	message.show_voiced(1090050)
 	event.reset_mouth_texture_animations()
-	wait_objects(2)
+	object.wait_until_done(2)
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090051)
+	message.show_voiced(1090051)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090052)
+	message.show_voiced(1090052)
 	event.reset_mouth_texture_animations()
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 end
 
---- Helper function.
-local function helper_38908(arg0: any)
+--- Shows Starbre and Need talking in turn.
+local function play_starbre_need_talk_shot(sound_bank: any)
 	event.set_camera_sequence_position(-24.3, 23.42, -18.85)
 	event.set_camera_sequence_look_at(2.59, 28.72, -60.25)
 	event.set_character_active(1, 33)
@@ -130,29 +119,29 @@ local function helper_38908(arg0: any)
 	event.set_object_sequence_motion(1, "会話", 6)
 	event.queue_object_sequence_next_motion(1, "立ち", 0)
 	event.set_mouth_texture_animations(1, "通常口パク")
-	helper_4116e6bb(1090060)
+	message.show_voiced(1090060)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090070)
+	message.show_voiced(1090070)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090071)
+	message.show_voiced(1090071)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_390ac()
+--- Plays the first Starbre and Need house cutscene, from Starbre entering through the door to the closing fade, and restores the event projection afterwards.
+local function play_e109a_cutscene()
 	local projection: f32 = 0
-	local var1: s32 = 0
+	local sound_bank: s32 = 0
 	vm.section(function()
 		event.set_save_flag(109, 1)
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(1240)
-		var1 = event.load_sound_effect_file_2(1240) or var1
+		sound_bank = event.load_sound_effect_file_2(1240) or sound_bank
 		projection = event.get_event_projection() or projection
 		event.stop_music(0)
-		helper_888ab2a3(4)
+		wait.for_frame_count(4)
 		event.load_music(101)
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
@@ -168,7 +157,7 @@ local function helper_390ac()
 		event.set_object_sequence_position(1, -0.66, 0.09, 140.34)
 		event.set_object_sequence_rotation(1, 0.0, -3.12, 0.0)
 		event.set_character_texture_animation(33, 0, "通常口パク")
-		event.set_object_handle_sound_bank(1, var1)
+		event.set_object_handle_sound_bank(1, sound_bank)
 		event.load_character(5, "event/e100/e109/e109_need.gltf", "info", 34)
 		event.set_character_active(1, 34)
 		event.attach_object_handle_to_character(2, 34)
@@ -177,7 +166,7 @@ local function helper_390ac()
 		event.set_object_sequence_position(2, 0.0, 50.0, 0.0)
 		event.set_object_sequence_rotation(2, 0.0, 0.0, 0.0)
 		event.set_character_texture_animation(34, 0, "通常口パク")
-		event.set_object_handle_sound_bank(2, var1)
+		event.set_object_handle_sound_bank(2, sound_bank)
 		event.load_character(5, "event/e100/e109/e109_door.gltf", "info", 35)
 		event.set_character_active(1, 35)
 		event.attach_object_handle_to_character(3, 35)
@@ -186,7 +175,7 @@ local function helper_390ac()
 		event.set_object_sequence_position(3, -0.66, 0.0, 123.46)
 		event.set_object_sequence_rotation(3, 0.0, -3.14, 0.0)
 		event.set_object_sequence_motion(3, "待機", 4)
-		wait_objects(3)
+		object.wait_until_done(3)
 		event.attach_object_handle_to_map_part_3(10, "p06_i03h01a", "i03h01a_06-m")
 		event.clear_object_sequence(10)
 		event.set_object_sequence_object(10, 10)
@@ -210,19 +199,19 @@ local function helper_390ac()
 		event.set_object_sequence_texture_animation(2, 1, "こまり顔")
 		event.set_object_sequence_texture_animation(2, 1, "こまり目パチ")
 		event.enable_drama_skip()
-		helper_86ac6534(var1)
-		helper_36bc8(var1)
-		helper_b4bd3a08(var1)
-		helper_86ac6534(var1)
-		helper_70e4c90a(var1)
-		helper_378d8(var1)
-		helper_37d38(var1)
-		helper_383a8(var1)
-		helper_38908(var1)
-		helper_f810e577(var1)
+		cutscene.skip_value_command(sound_bank)
+		play_need_sitting_shot(sound_bank)
+		fishing_town_house_h01.play_door_opening_shot(sound_bank)
+		cutscene.skip_value_command(sound_bank)
+		fishing_town_house_h01.play_need_stands_up_shot(sound_bank)
+		play_starbre_walk_in_shot(sound_bank)
+		play_desk_slam_shot(sound_bank)
+		play_need_sigh_shot(sound_bank)
+		play_starbre_need_talk_shot(sound_bank)
+		fishing_town_house_h01.play_camera_pull_in_shot(sound_bank)
 		event.fade_out_music(30)
 		event.fade_out_screen(30)
-		helper_888ab2a3(30)
+		wait.for_frame_count(30)
 	end)
 	event.cancel_drama_scene_skip()
 	event.set_character_active(1, 0)
@@ -234,8 +223,8 @@ local function helper_390ac()
 	event.fade_in_screen(30)
 end
 
---- Helper function.
-local function helper_3a2e0(arg0: any)
+--- Fades the screen in on Starbre and Need and plays Need's opening line.
+local function play_fade_in_dialogue_shot(sound_bank: any)
 	event.set_camera_sequence_position(-46.87, 29.18, -9.44)
 	event.set_camera_sequence_look_at(3.87, 26.86, -60.12)
 	event.set_object_sequence_position(1, -0.19, 5.43, -35.38)
@@ -245,14 +234,14 @@ local function helper_3a2e0(arg0: any)
 	event.set_object_sequence_motion(1, "立ち", 4)
 	event.set_object_sequence_motion(2, "下向き立ち", 4)
 	event.fade_in_screen(30)
-	helper_888ab2a3(30)
+	wait.for_frame_count(30)
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090090)
+	message.show_voiced(1090090)
 	event.reset_mouth_texture_animations()
 end
 
---- Helper function.
-local function helper_3b238(arg0: any)
+--- Shows Starbre and Need conversing across the room.
+local function play_starbre_conversation_shot(sound_bank: any)
 	event.set_camera_sequence_position(17.24, 26.0, -9.56)
 	event.set_camera_sequence_look_at(5.22, 26.46, -42.09)
 	event.set_object_sequence_position(1, -4.35, 5.29, -42.32)
@@ -261,30 +250,30 @@ local function helper_3b238(arg0: any)
 	event.set_object_sequence_position(2, 0.22, 5.19, -94.18)
 	event.set_object_sequence_rotation(2, 0.0, 0.0, 0.0)
 	event.set_object_sequence_motion(2, "下見向き立ち", 4)
-	wait_objects(1)
-	wait_objects(2)
+	object.wait_until_done(1)
+	object.wait_until_done(2)
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090140)
+	message.show_voiced(1090140)
 	event.reset_mouth_texture_animations()
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090141)
+	message.show_voiced(1090141)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_motion(1, "会話", 6)
 	event.queue_object_sequence_next_motion(1, "立ち", 0)
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(1090150)
+	message.show_voiced(1090150)
 	event.reset_mouth_texture_animations()
-	helper_4116e6bb(1090160)
+	message.show_voiced(1090160)
 	event.set_object_sequence_motion(1, "会話", 6)
 	event.queue_object_sequence_next_motion(1, "立ち", 0)
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(1090170)
+	message.show_voiced(1090170)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
+	object.wait_until_done(1)
 end
 
---- Helper function.
-local function helper_3bf78(se_id: s32)
+--- Shows Starbre excitedly speaking while Need thinks and replies, then Starbre speaking again.
+local function play_starbre_realization_shot(se_id: s32)
 	local projection: f32 = 0
 	event.set_camera_sequence_position(17.24, 26.0, -9.56)
 	event.set_camera_sequence_look_at(5.22, 26.46, -42.09)
@@ -294,18 +283,18 @@ local function helper_3bf78(se_id: s32)
 	event.set_object_sequence_position(2, 0.22, 5.19, -94.18)
 	event.set_object_sequence_rotation(2, 0.0, 0.0, 0.0)
 	event.set_object_sequence_motion(2, "前を見るL", 4)
-	wait_objects(1)
-	wait_objects(2)
+	object.wait_until_done(1)
+	object.wait_until_done(2)
 	event.set_object_sequence_motion(1, "そうじゃ！会話", 6)
 	event.queue_object_sequence_next_motion(1, "そうじゃ！L")
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(1090210)
+	message.show_voiced(1090210)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
+	object.wait_until_done(1)
 	event.set_object_sequence_motion(1, "そうじゃ！会話", 6)
 	event.queue_object_sequence_next_motion(1, "そうじゃ！L", 0)
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(1090211)
+	message.show_voiced(1090211)
 	event.reset_mouth_texture_animations()
 	event.set_object_sequence_texture_animation(2, 1, "目あき～目とじ")
 	event.set_object_sequence_motion(2, "考える", 6, 0.08)
@@ -313,28 +302,28 @@ local function helper_3bf78(se_id: s32)
 	event.reset_object_sequence_motion(2)
 	event.set_object_sequence_motion(2, "下向き立ち")
 	event.set_mouth_texture_animations(2, "通常口パク")
-	helper_4116e6bb(1090220)
+	message.show_voiced(1090220)
 	event.reset_mouth_texture_animations()
-	wait_objects(2)
+	object.wait_until_done(2)
 	event.play_sound_effect(se_id, 5)
 	event.set_object_sequence_motion(1, "そうじゃ！会話", 6)
 	event.queue_object_sequence_next_motion(1, "そうじゃ！L")
 	event.set_mouth_texture_animations(1, "大口パク")
-	helper_4116e6bb(1090230)
+	message.show_voiced(1090230)
 	event.reset_mouth_texture_animations()
-	wait_objects(1)
-	helper_888ab2a3(60)
+	object.wait_until_done(1)
+	wait.for_frame_count(60)
 	event.set_event_projection(projection)
 end
 
---- Helper function.
-local function helper_3cbb4()
-	local var0: s32 = 0
+--- Plays the second Starbre and Need house cutscene, in which Starbre lectures Need and the two talk it over, and deletes the characters afterwards.
+local function play_e109b_cutscene()
+	local sound_bank: s32 = 0
 	vm.section(function()
 		event.initialize_event()
 		event.set_message_window_mode(0, 7)
 		event.load_map_sounds(1243)
-		var0 = event.load_sound_effect_file_2(1243) or var0
+		sound_bank = event.load_sound_effect_file_2(1243) or sound_bank
 		event.assign_memory_stack(5)
 		event.clear_memory_stack(5)
 		event.clear_camera_sequence()
@@ -351,7 +340,7 @@ local function helper_3cbb4()
 		event.set_character_position(33, -0.66, 0.09, 140.34)
 		event.set_character_rotation(33, 0.0, -3.12, 0.0)
 		event.set_character_texture_animation(33, 0, "口パク")
-		event.set_object_handle_sound_bank(1, var0)
+		event.set_object_handle_sound_bank(1, sound_bank)
 		event.load_character(5, "event/e100/e109/e109_need.gltf", "info", 34)
 		event.set_character_active(1, 34)
 		event.attach_object_handle_to_character(2, 34)
@@ -367,7 +356,7 @@ local function helper_3cbb4()
 		event.set_character_position(35, -0.66, 0.0, 123.46)
 		event.set_character_rotation(35, 0.0, -3.14, 0.0)
 		event.set_object_sequence_motion(3, "待機", 4)
-		wait_objects(3)
+		object.wait_until_done(3)
 		event.attach_object_handle_to_map_part_3(10, "p06_i03h01a", "i03h01a_06-m")
 		event.clear_object_sequence(10)
 		event.set_object_sequence_object(10, 10)
@@ -380,9 +369,9 @@ local function helper_3cbb4()
 		event.clear_object_sequence(12)
 		event.set_object_sequence_object(12, 12)
 		event.set_object_sequence_position(12, -26.5572, -30.485, -63.0372)
-		wait_objects(10)
-		wait_objects(11)
-		wait_objects(12)
+		object.wait_until_done(10)
+		object.wait_until_done(11)
+		object.wait_until_done(12)
 		event.attach_object_handle_to_map_part_3(13, "p01_i03h01a", "i03h01a_01-m")
 		event.set_object_handle_frame_draw_flag(13, "doa", 2)
 		event.load_message_file(0, 5, "event/e100/e109/e109b.txt")
@@ -392,15 +381,15 @@ local function helper_3cbb4()
 		event.set_object_sequence_texture_animation(2, 0)
 		event.set_object_sequence_texture_animation(2, 1, "目あき～目とじ")
 		event.enable_drama_skip()
-		helper_3a2e0(var0)
-		helper_2b0300bc(var0)
-		helper_67153b53(var0)
-		helper_bf310715(var0)
-		helper_3b238(var0)
-		helper_1e7d5c6e(var0)
-		helper_2768ff79(var0)
-		helper_3bf78(var0)
-		helper_29d0ac90(var0)
+		play_fade_in_dialogue_shot(sound_bank)
+		fishing_town_house_h01.play_starbre_arms_crossed_shot(sound_bank)
+		fishing_town_house_h01.play_need_closeup_shot(sound_bank)
+		fishing_town_house_h01.play_starbre_scolding_shot(sound_bank)
+		play_starbre_conversation_shot(sound_bank)
+		fishing_town_house_h01.play_starbre_exclaims_shot(sound_bank)
+		fishing_town_house_h01.play_need_serious_shot(sound_bank)
+		play_starbre_realization_shot(sound_bank)
+		fishing_town_house_h01.play_need_looks_forward_shot(sound_bank)
 	end)
 	event.cancel_drama_scene_skip()
 	event.delete_character(33)
@@ -410,55 +399,61 @@ end
 
 local script: { [any]: (...any) -> ...any } = {}
 
---- Runs when the script is loaded, before any program.
+--- Runs once when the script loads and needs no setup.
 function script.setup() end
 
---- The event the engine runs on entering a town or interior, jumping to a map and leaving it, and the one an omitted event number means.
+--- Resets the follow camera when the interior is entered.
 function script.default_event()
-	helper_1ef0d4b2()
+	cutscene.noop()
 	event.reset_follow_camera(1)
 end
 
 --- The event the town walk runs when the square button is pressed, after reloading the map script.
 -- Defined empty, so the engine runs this instead of its default.
+--- Does nothing so the square-button hook is suppressed.
 function script.key_open() end
 
 --- Event 151, which map data, a script or the engine runs by number.
-script.event_151 = helper_390ac
+script.play_e109a_cutscene = play_e109a_cutscene
+script[151] = script.play_e109a_cutscene
 
 --- Event 152, which map data, a script or the engine runs by number.
-script.event_152 = helper_3cbb4
+script.play_e109b_cutscene = play_e109b_cutscene
+script[152] = script.play_e109b_cutscene
 
 --- Event 200, which map data, a script or the engine runs by number.
-script.event_200 = helper_0fc04819
+script[200] = map.enter_door
 
---- Event 500, which map data, a script or the engine runs by number.
-function script.event_500()
-	helper_390ac()
+--- Plays the first house cutscene and enters the dungeon.
+function script.play_first_scene_then_enter_dungeon()
+	play_e109a_cutscene()
 	event.go_to_dungeon(0, -1, 1000)
 end
+script[500] = script.play_first_scene_then_enter_dungeon
 
---- Event 510, which map data, a script or the engine runs by number.
-function script.event_510()
-	helper_3cbb4()
+--- Plays the second house cutscene and jumps to the Train Town house map.
+function script.play_second_scene_then_enter_train_house()
+	play_e109b_cutscene()
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "i02h01", 500)
 end
+script[510] = script.play_second_scene_then_enter_train_house
 
 --- Event 1000, which map data, a script or the engine runs by number.
-script.event_1000 = helper_4e319702
+script[1000] = npc.talk_to_triggered_npc
 
 --- Event 11091, which map data, a script or the engine runs by number.
-script.event_11091 = helper_390ac
+script[11091] = script.play_e109a_cutscene
 
---- Event 11092, which map data, a script or the engine runs by number.
-function script.event_11092()
+--- Plays the second house cutscene with character slot 8 hidden and jumps to the Train Town house map.
+function script.play_second_scene_with_character_8_hidden()
 	event.set_character_active(0, 8)
-	helper_3cbb4()
+	play_e109b_cutscene()
 	event.set_character_active(1, 8)
 	event.skip_next_music_load()
 	event.jump_to_map_3(-1, "i02h01", 500)
 	vm.wait(2)
 end
+script[11092] = script.play_second_scene_with_character_8_hidden
 
 return script
