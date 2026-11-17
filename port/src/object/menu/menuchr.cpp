@@ -3353,10 +3353,12 @@ int MenuCharaChangeKey() {
                         const auto archive = dc2::menu::ReadMenuFile("chrchg0.pac");
                         texture = reinterpret_cast<u8 *>(ChrChangeInitTextureStack.stack);
                         const auto destination = dc2::memory::AvailableFrom(ChrChangeInitTextureStack, texture);
-                        if (!archive || destination.size() < archive.PaddedBytes().size()) {
+                        // Opened from the main menu, the page shares only the archive's own bytes; retail's read spilled
+                        // its sector padding into MenuChangeMemory's reserved head instead.
+                        if (!archive || destination.size() < archive.Bytes().size()) {
                             return 1;
                         }
-                        dc2::memory::CopyTrackedBytes(texture, archive.PaddedBytes().data(), archive.PaddedBytes().size());
+                        dc2::memory::CopyTrackedBytes(texture, archive.Bytes().data(), archive.Bytes().size());
                         ChrChangMenuPt->EnterDataMenu(texture);
                         ChrChangMenuPt->LoadNPCFaceData(&MenuChangeNpcMemory, MENU_FILE_LOAD_DIRECT);
                         ChrChangMenuPt->EnterNPCFaceData();
