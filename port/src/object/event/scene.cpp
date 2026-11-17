@@ -1219,6 +1219,15 @@ void RetireSceneResources(CScene &scene, const mgCMemory &memory, dc2::memory::A
                     !slot.ResourcesWouldRetireOnReset(memory, kind)) {
                     continue;
                 }
+                // A native character outlives the arena its model came from, so it lets go of that model and keeps its slot.
+                if (character != nullptr && slot.Resource().Producer() == nullptr &&
+                    !slot.CSceneData::ResourcesWouldRetireOnReset(memory, kind)) {
+                    character->Initialize();
+                    if (!slot.ResourcesWouldRetireOnReset(memory, kind)) {
+                        retired = true;
+                        continue;
+                    }
+                }
                 slot.Initialize();
                 retired = true;
             }

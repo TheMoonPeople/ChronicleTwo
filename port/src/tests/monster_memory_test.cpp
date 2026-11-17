@@ -245,6 +245,34 @@ TEST(MonsterViews, DestroyedSceneRevokesManagerWhileCharacterOwnerSurvives) {
     manager->RunScript(0);
 }
 
+TEST(MonsterViews, ClearingTheStackOfAMonstersModelKeepsTheMonsterInItsSlot) {
+    // Loading a dungeon map clears the stacks that hold the monsters' models while the last fight's monsters are still in
+    // their slots. A slot's monster lasts as long as the dungeon, so the next placement must still find it.
+    alignas(64) static u_long128 storage[1024]{};
+    mgCMemory                    models;
+    models.stSetBuffer(storage, 1024);
+    auto manager = std::make_unique<CMonsterMan>();
+    auto scene = std::make_unique<CScene>();
+    scene->chara_num = DNG_CHARA_SLOT_MONSTER_END;
+    scene->stack_num = 1;
+    scene->stack[0] = &models;
+    auto monster = std::make_shared<CActiveMonster>();
+    ASSERT_EQ(scene->AssignChara(DNG_CHARA_SLOT_MONSTER, dc2::scene::CharacterResource::FromOwned(monster)), DNG_CHARA_SLOT_MONSTER);
+    dc2::test::ScopedGlobalObject<FxScriptMan> effects;
+    manager->Initialize(scene.get());
+    auto *frame = dc2::memory::NewObject<mgCFrame>(models);
+    ASSERT_NE(frame, nullptr);
+    monster->CObjectFrame::frame = frame;
+    ASSERT_TRUE(dc2::character::CaptureModelResources(*monster, models));
+    monster->state = ACTIVE_MONSTER_LIVE;
+
+    scene->ClearStack(0);
+    EXPECT_EQ(manager->GetActiveMonster(0), monster.get());
+    EXPECT_EQ(manager->SearchActiveMonsterBlock(), 0);
+    EXPECT_EQ(monster->state, ACTIVE_MONSTER_NONE);
+    EXPECT_EQ(monster->CObjectFrame::frame, nullptr);
+}
+
 TEST(MonsterConstruction, ReusedStorageStartsWithDefinedControllerAndInactiveMonsterFields) {
     alignas(CActiveMonster) std::array<std::byte, sizeof(CActiveMonster)> monster_storage{};
     std::ranges::fill(monster_storage, std::byte{0xA5});
