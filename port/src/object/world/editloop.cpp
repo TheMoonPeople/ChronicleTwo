@@ -884,11 +884,14 @@ void EditInit(INIT_LOOP_ARG arg) {
         LoadMap();
     }
 
-    MainCharaBuff.Align64();
-    MainCharaBuff.stSetLocked(true);
-    data_size = MainCharaBuff.stGetRest();
-    SubDataBuff.stSetBorrowedBuffer(MainCharaBuff, std::span(MainCharaBuff.stGetTop(), static_cast<std::size_t>(data_size)));
-    SubDataBuff.stReset();
+    // A sub map EditMapJump loaded (maps 11 to 14) already holds this rest of MainCharaBuff; resetting it would drop that map.
+    if (MainScene->GetMap(sub_map.map_no) == nullptr) {
+        MainCharaBuff.Align64();
+        MainCharaBuff.stSetLocked(true);
+        data_size = MainCharaBuff.stGetRest();
+        SubDataBuff.stSetBorrowedBuffer(MainCharaBuff, std::span(MainCharaBuff.stGetTop(), static_cast<std::size_t>(data_size)));
+        SubDataBuff.stReset();
+    }
     SetCurrentDir(nullptr);
     sceVu0FVECTOR position = {0.0f, 0.0f, 0.0f, 0.0f};
     player = MainScene->GetCharacter(MainScene->player_chara);
