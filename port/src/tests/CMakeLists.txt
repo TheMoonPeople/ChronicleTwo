@@ -36,6 +36,11 @@ add_test(NAME MenuReplay.MonsterMenuTransform
         --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case monster-menu)
 set_tests_properties(MenuReplay.MonsterMenuTransform PROPERTIES
     SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
+add_test(NAME MenuReplay.MonsterMenuCancel
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
+        --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case monster-menu-cancel)
+set_tests_properties(MenuReplay.MonsterMenuCancel PROPERTIES
+    SKIP_RETURN_CODE 77 TIMEOUT 630 RUN_SERIAL TRUE LABELS "replay;gpu")
 add_test(NAME MenuReplay.EquipBodyReload
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/port/menu_replay.py
         --exe $<TARGET_FILE:darkchronicle> --work ${CMAKE_BINARY_DIR}/menu-replays --case equip-dungeon)

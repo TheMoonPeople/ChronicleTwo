@@ -20,6 +20,7 @@
 #include "gamepad.hpp"
 #include "inventmn.hpp"
 #include "log/game_output.hpp"
+#include "log/log.hpp"
 #include "mainloop.hpp"
 #include "map.hpp"
 #include "mapselect.hpp"
@@ -46,6 +47,7 @@
 #include "nowload.hpp"
 #include "pal_timing.hpp"
 #include "prespr.hpp"
+#include "render/renderer.hpp"
 #include "render/texture_runtime.hpp"
 #include "savedata.hpp"
 #include "scenesnd.hpp"
@@ -2641,6 +2643,9 @@ int MenuExitCore() {
         }
 
         MenuMainScene->SetVolBGM(MenuBGMVolume_Save);
+        CT_LOG_DEBUG(Menu, "menu exit: loop={}, end_code={}, character={}, root_live={}, fade_alpha={}, frame={}",
+                     GetMenuLoopType() == MENU_LOOP_DUNGEON ? "dungeon" : "town", MenuArg.end_code, active_chara,
+                     chara != nullptr && chara->GetFrame() != nullptr, MenuMainScene->fade.alpha, mgPortFrameCount());
     }
 
     leaving = (MenuArg.end_code == MENU_END_DNG_MOVE) | (MenuArg.end_code == MENU_END_WORLD_MOVE);
