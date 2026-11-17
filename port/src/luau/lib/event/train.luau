@@ -508,7 +508,13 @@ function train.board_short_train()
 	sound_id = event.get_sound_id(1) or sound_id
 	train_id = event.get_triggered_event_data_2(3) or train_id
 	event.get_triggered_event_data_2(4)
-	event.call_command(1035, 8, world_x, world_y, world_z, world_rotation) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		world_x = out1 or world_x
+		world_y = out2 or world_y
+		world_z = out3 or world_z
+		world_rotation = out4 or world_rotation
+	end
 	event.set_event_world_coordinate(world_x, world_y, world_z, world_rotation)
 	if vm.imod(train_id, 2) ~= 1 then
 		world_rotation = vm.f32(-3.1415927)
@@ -616,7 +622,13 @@ function train.board_short_train_primary()
 	sound_id = event.get_sound_id(1) or sound_id
 	train_id = event.get_triggered_event_data_2(3) or train_id
 	event.get_triggered_event_data_2(4)
-	event.call_command(1035, 8, world_x, world_y, world_z, world_rotation) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		world_x = out1 or world_x
+		world_y = out2 or world_y
+		world_z = out3 or world_z
+		world_rotation = out4 or world_rotation
+	end
 	event.set_event_world_coordinate(world_x, world_y, world_z, world_rotation)
 	if vm.imod(train_id, 2) ~= 1 then
 		world_rotation = vm.f32(-3.1415927)
@@ -732,7 +744,13 @@ function train.board_train(platform_variant: s32)
 	event.get_sound_id(1)
 	train_id = event.get_triggered_event_data_2(3) or train_id
 	event.get_triggered_event_data_2(4)
-	event.call_command(1035, 8, world_x, world_y, world_z, world_rotation) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		world_x = out1 or world_x
+		world_y = out2 or world_y
+		world_z = out3 or world_z
+		world_rotation = out4 or world_rotation
+	end
 	print("train_id=", train_id, "----------------\n")
 	print("fpos[0]=", vm.float(world_x), "---------------\n")
 	print("fpos[1]=", vm.float(world_y), "---------------\n")
@@ -945,7 +963,13 @@ function train.board_train_primary(platform_variant: s32)
 	event.get_sound_id(1)
 	train_id = event.get_triggered_event_data_2(3) or train_id
 	event.get_triggered_event_data_2(4)
-	event.call_command(1035, 8, world_x, world_y, world_z, world_rotation) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		world_x = out1 or world_x
+		world_y = out2 or world_y
+		world_z = out3 or world_z
+		world_rotation = out4 or world_rotation
+	end
 	print("train_id=", train_id, "----------------\n")
 	print("fpos[0]=", vm.float(world_x), "---------------\n")
 	print("fpos[1]=", vm.float(world_y), "---------------\n")
@@ -1199,7 +1223,13 @@ function train.board_train_via_gangway()
 		event.get_sound_id(1)
 		train_id = event.get_triggered_event_data_2(3) or train_id
 		event.get_triggered_event_data_2(4)
-		event.call_command(1035, 8, world_x, world_y, world_z, event_rotation) -- retail: the handler rejects 5 arguments
+		do
+			local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+			world_x = out1 or world_x
+			world_y = out2 or world_y
+			world_z = out3 or world_z
+			event_rotation = out4 or event_rotation
+		end
 		print("train_id=", train_id, "----------------\n")
 		print("fpos[0]=", vm.float(world_x), "---------------\n")
 		print("fpos[1]=", vm.float(world_y), "---------------\n")
@@ -1515,7 +1545,13 @@ function train.board_train_via_gangway_primary()
 		event.get_sound_id(1)
 		train_id = event.get_triggered_event_data_2(3) or train_id
 		event.get_triggered_event_data_2(4)
-		event.call_command(1035, 8, world_x, world_y, world_z, event_rotation) -- retail: the handler rejects 5 arguments
+		do
+			local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+			world_x = out1 or world_x
+			world_y = out2 or world_y
+			world_z = out3 or world_z
+			event_rotation = out4 or event_rotation
+		end
 		print("train_id=", train_id, "----------------\n")
 		print("fpos[0]=", vm.float(world_x), "---------------\n")
 		print("fpos[1]=", vm.float(world_y), "---------------\n")
@@ -1863,7 +1899,13 @@ function train.board_via_gangway_main()
 		event.get_sound_id(1)
 		train_id = event.get_triggered_event_data_2(3) or train_id
 		event.get_triggered_event_data_2(4)
-		event.call_command(1035, 8, world_x, world_y, world_z, world_rotation_input) -- retail: the handler rejects 5 arguments
+		do
+			local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+			world_x = out1 or world_x
+			world_y = out2 or world_y
+			world_z = out3 or world_z
+			world_rotation_input = out4 or world_rotation_input
+		end
 		print("train_id=", train_id, "----------------\n")
 		print("fpos[0]=", vm.float(world_x), "---------------\n")
 		print("fpos[1]=", vm.float(world_y), "---------------\n")

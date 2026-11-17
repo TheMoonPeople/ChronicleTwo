@@ -25,7 +25,13 @@ function rainbow_butterfly_wood.clear_spider_web()
 	event.initialize_event()
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	event.call_command(1035, 8, web_x, web_y, web_z, facing_angle) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		web_x = out1 or web_x
+		web_y = out2 or web_y
+		web_z = out3 or web_z
+		facing_angle = out4 or facing_angle
+	end
 	facing_angle = vm.bits_float(event.get_triggered_event_data_2(11)) or facing_angle
 	map_part = event.get_triggered_event_data_2(9) or map_part
 	event.start_background_file_loads_2("event/dng_inout/kumonosu.gltf", "snd2/sp/sp_028.sound.json")
@@ -91,7 +97,13 @@ function rainbow_butterfly_wood.cut_spider_web_with_key()
 	event.initialize_event()
 	event.assign_memory_stack(5)
 	event.clear_memory_stack(5)
-	event.call_command(1035, 8, web_x, web_y, web_z, facing_angle) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		web_x = out1 or web_x
+		web_y = out2 or web_y
+		web_z = out3 or web_z
+		facing_angle = out4 or facing_angle
+	end
 	facing_angle = vm.bits_float(event.get_triggered_event_data_2(11)) or facing_angle
 	map_part = event.get_triggered_event_data_2(9) or map_part
 	event.attach_object_handle_to_character(0, 0)

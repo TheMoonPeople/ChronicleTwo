@@ -35,7 +35,13 @@ function mount_gundor.play_door_opening(use_wind: s32)
 		door_z = out3 or door_z
 	end
 	event.open_minimap_door(door_x, door_y, door_z)
-	event.call_command(1035, 8, target_x, target_y, target_z, camera_angle) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		target_x = out1 or target_x
+		target_y = out2 or target_y
+		target_z = out3 or target_z
+		camera_angle = out4 or camera_angle
+	end
 	camera_angle = vm.bits_float(event.get_triggered_event_data_2(11)) or camera_angle
 	camera_angle = vm.f32(camera_angle - vm.f32(3.1415927))
 	camera_angle = event.wrap_angle(camera_angle) or camera_angle

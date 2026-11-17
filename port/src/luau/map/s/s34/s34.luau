@@ -38,7 +38,13 @@ local function board_train_via_gangway()
 		event.get_sound_id(1)
 		train_id = event.get_triggered_event_data_2(3) or train_id
 		event.get_triggered_event_data_2(4)
-		event.call_command(1035, 8, world_x, world_y, world_z, event_rotation) -- retail: the handler rejects 5 arguments
+		do
+			local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+			world_x = out1 or world_x
+			world_y = out2 or world_y
+			world_z = out3 or world_z
+			event_rotation = out4 or event_rotation
+		end
 		print("train_id=", train_id, "----------------\n")
 		print("fpos[0]=", vm.float(world_x), "---------------\n")
 		print("fpos[1]=", vm.float(world_y), "---------------\n")
