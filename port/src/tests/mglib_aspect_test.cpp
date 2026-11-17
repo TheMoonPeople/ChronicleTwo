@@ -1109,6 +1109,84 @@ TEST(MglibAspect, CharacterBackdropContinuesArtworkAt3840x2160) {
     ExpectMenuBackdropContinuation(3840, 2160, 1);
 }
 
+// The Character page slides in and out beside the main frame (bg16), which the menu draws first. Once the page has
+// left the right edge, the frame's own artwork fills the right flank and the page's mirror must not cover it; settled,
+// the page still mirrors itself into that flank.
+TEST(MglibAspect, CharacterSlideLeavesTheRightFlankToTheMainFrame) {
+    AspectRenderer         renderer(1920, 1080);
+    std::vector<u_long128> arena(4096);
+    std::vector<u_long128> frame_pixels(1024 * 512 * 4 / 16);
+    std::vector<u_long128> page_pixels(1024 * 1024 * 4 / 16);
+    mgCMemory              memory;
+    memory.stSetBuffer(arena.data(), static_cast<int>(arena.size()));
+    mgTexManager.SetTableBuffer(16, 4, &memory);
+    mgTexManager.Initialize(0x1000, -1);
+    // Opaque artwork, red 80 for the frame and 160 for the page.
+    const auto paint = [](std::vector<u_long128> &pixels, int width, int height, uint8_t red) {
+        auto *rgba = reinterpret_cast<uint8_t *>(pixels.data());
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                rgba[(y * 1024 + x) * 4] = red;
+                rgba[(y * 1024 + x) * 4 + 3] = 255;
+            }
+        }
+    };
+    paint(frame_pixels, 704, 416, 80);
+    paint(page_pixels, 513, 768, 160);
+    u_long128  *levels[MG_TEXTURE_LEVEL_MAX] = {frame_pixels.data()};
+    char        frame_name[] = "bg16";
+    char        page_name[] = "chr_bg";
+    mgCTexture *frame = mgTexManager.EnterTexture(0, frame_name, levels, 1024, 512, 32, nullptr, 0, 0);
+    levels[0] = page_pixels.data();
+    mgCTexture *page = mgTexManager.EnterTexture(0, page_name, levels, 1024, 1024, 32, nullptr, 0, 0);
+    ASSERT_NE(frame, nullptr);
+    ASSERT_NE(page, nullptr);
+    const auto mapping = gfx::GetLogicalMapping(gfx::kMainTarget);
+
+    struct Pose {
+        int   frame_left;
+        float page_left;
+        int   right_flank_red;
+    };
+
+    // Left edges 14 frames into the town menu's Character exit, then with the page settled.
+    for (const Pose pose : {
+             Pose{283, -229.0f, 80 },
+             Pose{510, -2.0f,   160}
+    }) {
+        SCOPED_TRACE(pose.frame_left);
+        mgSetBackGround(0, 0, 0, 128);
+        mgBeginFrame(nullptr);
+        mgCDrawPrim prim;
+        SetSpriteEnv(&prim, MENU_SPRITE_ENV_TEXTURE);
+        prim.Bilinear(1);
+        prim.Begin(MG_PRIM_SPRITE);
+        prim.Texture(frame);
+        prim.Color(128, 128, 128, 128);
+        PrimQuad(&prim, mgRect<int>(pose.frame_left, 0, 704, 480), mgRect<int>(0, 0, 704, 416));
+        prim.End();
+        prim.Begin(MG_PRIM_SPRITE);
+        prim.Texture(page);
+        prim.Color(128, 128, 128, 128);
+        PrimQuad(&prim, mgRect<float>(pose.page_left, -315, 513, 883), mgRect<int>(0, 0, 513, 768));
+        prim.End();
+        mgEndFrame(nullptr);
+        std::vector<uint8_t> rgba;
+        uint32_t             width = 0;
+        uint32_t             height = 0;
+        ASSERT_TRUE(mgPortCanonicalReadColor(gfx::kMainTarget, rgba, width, height));
+        const auto red = [&](float x) {
+            const int sx = static_cast<int>(mapping.offset_x + x * mapping.scale_x);
+            return static_cast<int>(rgba[(static_cast<size_t>(height / 2) * width + sx) * 4]);
+        };
+        EXPECT_NEAR(red(pose.page_left + 200.0f), 160, 4) << "the page's own artwork";
+        for (float x : {530.0f, 560.0f, 590.0f}) {
+            EXPECT_NEAR(red(x), pose.right_flank_red, 4) << "right flank at x=" << x;
+        }
+    }
+    mgTexManager.Initialize(0x1000, -1);
+}
+
 TEST(MglibAspect, InventBackdropContinuesArtworkAt1920x1080) {
     ExpectMenuBackdropContinuation(1920, 1080, 2);
 }

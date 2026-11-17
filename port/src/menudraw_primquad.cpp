@@ -24,7 +24,18 @@ bool IsBackdrop(mgCDrawPrim *prim, mgRect<int> uv, char *name, int width, int he
     return texture && prim->texture.tex0_bits == texture->tex0_bits;
 }
 
-void DrawBackdrop(mgCDrawPrim &prim, mgRect<float> rect, mgRect<int> uv, float artwork_width) {
+// The main frame's (bg16) artwork as drawn in a frame: the Character page slides out beside it.
+struct MainFrameArt {
+    int   frame = -1;
+    float left = 0.0f;
+    float right = 0.0f;
+    float top = 0.0f;
+    float bottom = 0.0f;
+};
+
+MainFrameArt main_frame_art;
+
+void DrawBackdrop(mgCDrawPrim &prim, mgRect<float> rect, mgRect<int> uv, float artwork_width, bool main_frame) {
     const auto extent = mgPortVisibleExtent();
     const bool wide = extent.left < 0 || extent.right > mgScreenWidth;
     uint8_t    color[4];
@@ -58,6 +69,16 @@ void DrawBackdrop(mgCDrawPrim &prim, mgRect<float> rect, mgRect<int> uv, float a
     const float u_end = wide ? artwork_width : uv.right;
     const float span = rect.right * u_end / uv.right;
     append(left, left + span, 0, u_end);
+    if (main_frame) {
+        main_frame_art = {mgPortFrameCount(), left, left + span, rect.top, rect.top + rect.bottom};
+    }
+    // A page that has slid away from a flank leaves it to the main frame's artwork when that artwork, drawn earlier
+    // in the frame, fills it: the page's reflection would cover it and cut it off at the retail frame's edge.
+    const auto yields_to_main_frame = [&](bool slid_away, float from, float to) {
+        return slid_away && !main_frame && main_frame_art.frame == mgPortFrameCount() && main_frame_art.left <= from &&
+               to <= main_frame_art.right && main_frame_art.top <= std::max(rect.top, extent.top) &&
+               std::min(rect.top + rect.bottom, extent.bottom) <= main_frame_art.bottom;
+    };
 
     if (wide && rect.right > 0 && rect.bottom > 0 && right > 0 && left < mgScreenWidth) {
         // Keep the reflection phase attached to the moving artwork. During a
@@ -69,7 +90,7 @@ void DrawBackdrop(mgCDrawPrim &prim, mgRect<float> rect, mgRect<int> uv, float a
         for (float edge = left; extent.left < edge; edge -= span, reflected = !reflected) {
             const float end = std::max(extent.left, edge - span);
             const float start = std::min(left_join, edge);
-            if (start <= end) {
+            if (start <= end || yields_to_main_frame(left > 2, end, start)) {
                 continue;
             }
             const float start_u = reflected ? 0 : u_end;
@@ -81,7 +102,7 @@ void DrawBackdrop(mgCDrawPrim &prim, mgRect<float> rect, mgRect<int> uv, float a
         for (float edge = left + span; extent.right > edge; edge += span, reflected = !reflected) {
             const float end = std::min(extent.right, edge + span);
             const float start = std::max(right_join, edge);
-            if (start >= end) {
+            if (start >= end || yields_to_main_frame(right < mgScreenWidth - 2, start, end)) {
                 continue;
             }
             const float start_u = reflected ? u_end : 0;
@@ -129,7 +150,7 @@ void PrimQuad<float>(mgCDrawPrim *prim, mgRect<float> put_rect, mgRect<int> tex_
         (IsBackdrop(prim, tex_rect, character_name, 513, 768) ||
          IsBackdrop(prim, tex_rect, invent_name, 512, 416, 48) ||
          IsBackdrop(prim, tex_rect, options_name, 512, 448, 46))) {
-        DrawBackdrop(*prim, put_rect, tex_rect, 512);
+        DrawBackdrop(*prim, put_rect, tex_rect, 512, false);
         return;
     }
     PrimQuad_f_(prim, mgRect_f_{.left = put_rect.left, .top = put_rect.top, .right = put_rect.right, .bottom = put_rect.bottom},
@@ -145,7 +166,7 @@ void PrimQuad<int>(mgCDrawPrim *prim, mgRect<int> put_rect, mgRect<int> tex_rect
     if (IsBackdrop(prim, tex_rect, frame_name, 704, 416)) {
         // Preserve the authored lens position. Full-frame sprite cover scaling
         // moves its alpha mask away from the model camera, even at 4:3.
-        DrawBackdrop(*prim, mgRect<float>(put_rect.left, put_rect.top, put_rect.right, put_rect.bottom), tex_rect, 700);
+        DrawBackdrop(*prim, mgRect<float>(put_rect.left, put_rect.top, put_rect.right, put_rect.bottom), tex_rect, 700, true);
         return;
     }
     PrimQuad_i_(prim, mgRect_i_{.left = put_rect.left, .top = put_rect.top, .right = put_rect.right, .bottom = put_rect.bottom},
