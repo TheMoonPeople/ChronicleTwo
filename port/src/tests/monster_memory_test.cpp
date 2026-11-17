@@ -249,7 +249,7 @@ TEST(MonsterViews, ClearingTheStackOfAMonstersModelKeepsTheMonsterInItsSlot) {
     // Loading a dungeon map clears the stacks that hold the monsters' models while the last fight's monsters are still in
     // their slots. A slot's monster lasts as long as the dungeon, so the next placement must still find it.
     alignas(64) static u_long128 storage[1024]{};
-    mgCMemory models;
+    mgCMemory                    models;
     models.stSetBuffer(storage, 1024);
     auto manager = std::make_unique<CMonsterMan>();
     auto scene = std::make_unique<CScene>();
