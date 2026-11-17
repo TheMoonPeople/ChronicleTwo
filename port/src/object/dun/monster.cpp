@@ -3022,6 +3022,9 @@ bool CActiveMonster::Copy(CActiveMonster &dest, mgCMemory *memory) try {
             dest.Initialize();
             return false;
         }
+        // A smaller monster or a floor load (PrepareMonsterMemory) can leave the slot bound to less than its block, and
+        // ArenaBlock hands that block back without a new generation. Retire the smaller extent so the slot can regrow.
+        memory->stSetBuffer(nullptr, 0);
         memory->stSetBuffer(buffer, static_cast<int>(capacity));
     }
     dest = *this;

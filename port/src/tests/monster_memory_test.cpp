@@ -188,6 +188,21 @@ TEST_P(MonsterMemory, ModelCopySizesItsSlotBeforeAllocatingScriptStacks) {
     int second_capacity = 0;
     copy_model(768, second_capacity);
     EXPECT_GT(second_capacity, first_capacity);
+
+    // A smaller monster shrinks the slot within its block, and so does loading a floor, which binds every slot back to
+    // its script stack. Either way the larger model then regrows the slot in the same block.
+    slot.stReset();
+    int smaller_capacity = 0;
+    copy_model(512, smaller_capacity);
+    EXPECT_EQ(smaller_capacity, first_capacity);
+    slot.stReset();
+    int regrown_capacity = 0;
+    copy_model(768, regrown_capacity);
+    EXPECT_EQ(regrown_capacity, second_capacity);
+    PrepareMonsterMemory(*manager);
+    int reload_capacity = 0;
+    copy_model(768, reload_capacity);
+    EXPECT_EQ(reload_capacity, second_capacity);
 }
 
 INSTANTIATE_TEST_SUITE_P(MoreMonsters, MonsterMemory, testing::Bool(),
