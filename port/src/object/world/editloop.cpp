@@ -3127,6 +3127,12 @@ int EditDrawCore() {
         show_system = 0;
     }
 
+    // The frame a menu opens on becomes the menu's picture of the world. Retail leaves the camera's prompts out of
+    // it (above) and covers this corner with menu art; the Item page shows the whole picture, so the icon stays out.
+    if ((EditDrawFlag & 0x1) != 0) {
+        show_system = 0;
+    }
+
     if (show_system) {
         sceVu0FVECTOR system_pos;
         chara = MainScene->GetCharacter(MainScene->player_chara);
