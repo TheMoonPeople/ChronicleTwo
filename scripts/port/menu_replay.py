@@ -19,7 +19,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exe", type=Path, required=True)
     parser.add_argument("--work", type=Path, required=True)
-    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu", "equip-dungeon", "weapon-view-dungeon"), default="georama")
+    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu", "equip-dungeon", "weapon-view-dungeon", "town-sub-map"), default="georama")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[2]
     data = Path(os.environ.get("DC2_DATA", "data")).resolve()
@@ -64,6 +64,8 @@ def main() -> int:
                                 "2400 triangle\n2406\n2520 cross\n2526\n2720 left\n2726\n2790 down\n2796\n2860 down\n2866\n2930 right\n2936\n"
                                 "3000 cross\n3006\n3150 cross\n3156\n3300 circle\n3306\n3450 circle\n3456\n3600 circle\n3606\n3750 circle\n3756\n"
                                 "3900 circle\n3906\n"),
+        # Enters Palm Brinks as map 14, the Zelmite Mines exit, which loads the town with its sub map at once.
+        "town-sub-map": ("town:14", 300, "120 cross\n126\n"),
         "monster-menu": ("event:26010", 2400,
                          "400 l3\n406\n900 triangle\n906\n970 down\n971\n1020 cross\n1026\n1200 up\n1206\n1250 cross\n1256\n1500 cross\n1506\n1650 cross\n1656\n1800 cross\n1806\n2000 up\n2100\n2150 cross\n2156\n"),
     }[args.case]
@@ -121,6 +123,13 @@ def main() -> int:
             raise AssertionError(f"expected one body reload keeping 3 parts; got {exits}; see {log_path}")
     elif args.case == "weapon-view-dungeon":
         pass
+    elif args.case == "town-sub-map":
+        sub_data = [int(kb) for kb in re.findall(r"Sub Data ([0-9]+)kbyte", output)]
+        receipt["sub_data_kb"] = sub_data
+        receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+        # The edit loop's start reported the sub map's storage; an empty stack means the map was dropped.
+        if len(sub_data) != 1 or sub_data[0] == 0:
+            raise AssertionError(f"expected the sub map to survive the town's start; got {sub_data} kB; see {log_path}")
     elif args.case == "georama":
         transitions = [(state, int(frame)) for state, frame in re.findall(
             r"georama menu (ready|closed): town=0, frame=([0-9]+)", output)]
