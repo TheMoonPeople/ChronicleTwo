@@ -6802,7 +6802,7 @@ void CGameDataUsed::GetMsgAddInfo(char **message, char **extra_message, int *val
 }
 
 /**
- * Returns the transformation's attack with optional faster level growth and the retail cap.
+ * Returns the transformation's attack with the optional base floor and faster level growth, and the retail cap.
  */
 int MOS_CHANGE_PARAM::GetAttackVol(int monster_no) {
     if (monster_no < 0) {
@@ -6812,9 +6812,12 @@ int MOS_CHANGE_PARAM::GetAttackVol(int monster_no) {
     if (param == nullptr) {
         return 0;
     }
-    const float growth = ConfigGet().transformation_stats ? 4.0f : 2.0f;
+    const bool rebalanced = ConfigGet().transformation_stats;
+    // Rebalanced forms start at least at the Wind Gemron's base attack, the lowest of the Gemrons'.
+    const int   base = rebalanced ? std::max<int>(param->attack, 33) : param->attack;
+    const float growth = rebalanced ? 4.0f : 2.0f;
     const float scale = 1.0f + growth * (static_cast<float>(level) / 98.0f);
-    return std::min(fptosi(static_cast<float>(param->attack) * scale), 999);
+    return std::min(fptosi(static_cast<float>(base) * scale), 999);
 }
 
 /**

@@ -828,7 +828,7 @@ Three PC SETTINGS > Game settings retune Monica's monster transformations. Each 
 
 | Setting | Key | Off (retail) | On |
 |---|---|---|---|
-| Transformation stats | `game.transformation_stats` | Attack is the badge's base × (1 + 2 × level / 98), three times the base at level 98; defence is the base plus 2 per 6 levels, at most 30 | Attack grows twice as fast, base × (1 + 4 × level / 98), five times the base at level 98 and still capped at 999; defence is Monica's when hers is higher than the badge's own |
+| Transformation stats | `game.transformation_stats` | Attack is the badge's base × (1 + 2 × level / 98), three times the base at level 98; defence is the base plus 2 per 6 levels, at most 30 | Attack starts from at least 33, the Wind Gemron's base, and grows twice as fast: max(base, 33) × (1 + 4 × level / 98), five times that at level 98 and still capped at 999; defence is Monica's when hers is higher than the badge's own |
 | Transformation EXP | `game.transformation_exp` | The badge in use gains each kill's absorption | It gains twice that |
 | Shared badge EXP | `game.shared_badge_exp` | Only the badge in use gains absorption | A quarter of every absorption Monica gains, armed or transformed, also goes to each other unlocked badge, which levels up when its gauge fills |
 

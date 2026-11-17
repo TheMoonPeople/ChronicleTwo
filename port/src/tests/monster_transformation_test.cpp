@@ -71,7 +71,8 @@ TEST_F(TransformationSettings, BadgeStatsFollowTheSetting) {
     EXPECT_EQ(badge.GetAttackVol(-1), 66);
     EXPECT_EQ(badge.GetDefenceVol(-1), 42);
     Set(true);
-    EXPECT_EQ(badge.GetAttackVol(-1), 110);
+    EXPECT_EQ(badge.GetAttackVol(-1), 165);
+    EXPECT_EQ(badge.GetAttackVol(2), 320);
     EXPECT_EQ(badge.GetDefenceVol(-1), 60);
     monica.defence = 20;
     EXPECT_EQ(badge.GetDefenceVol(-1), 42);
