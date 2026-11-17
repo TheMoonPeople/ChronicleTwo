@@ -561,7 +561,13 @@ local function unlock_door_with_key()
 		door_z = out3 or door_z
 	end
 	event.open_minimap_door(door_x, door_y, door_z)
-	event.call_command(1035, 8, camera_target_x, camera_target_y, camera_target_z, camera_angle) -- retail: the handler rejects 5 arguments
+	do
+		local out1, out2, out3, out4 = event.get_triggered_event_data_5(8)
+		camera_target_x = out1 or camera_target_x
+		camera_target_y = out2 or camera_target_y
+		camera_target_z = out3 or camera_target_z
+		camera_angle = out4 or camera_angle
+	end
 	camera_angle = vm.bits_float(event.get_triggered_event_data_2(11)) or camera_angle
 	camera_angle = vm.f32(camera_angle - vm.f32(3.1415927))
 	camera_angle = event.wrap_angle(camera_angle) or camera_angle

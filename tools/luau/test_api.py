@@ -154,6 +154,12 @@ class DeclarationTest(unittest.TestCase):
         catalog = json.loads((HERE / "commands.json").read_text(encoding="utf-8"))
         self.assertEqual(api.stale(api.OUTPUT, catalog), [])
 
+    def test_checked_in_modules_keep_event_data_outputs(self):
+        # Every GET_EVENT_DATA field writes outputs, and call_command returns nothing, so the raw form loses them.
+        modules = HERE.parent.parent / "port/src/luau"
+        raw = [p.relative_to(modules).as_posix() for p in sorted(modules.rglob("*.luau")) if "event.call_command(1035," in p.read_text(encoding="utf-8")]
+        self.assertEqual(raw, [])
+
 
 if __name__ == "__main__":
     unittest.main()
