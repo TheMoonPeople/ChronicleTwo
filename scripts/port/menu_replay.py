@@ -11,15 +11,34 @@ import shutil
 import struct
 import subprocess
 import tempfile
+import zlib
 
 from pc_settings_replay import published_data_available
+
+
+def lit_fraction(image: bytes) -> float:
+    """Gives the share of pixels that are not black in a capture the game wrote as 8-bit RGB."""
+    if image[24:29] != b"\x08\x02\x00\x00\x00":
+        raise AssertionError("capture is not the game's 8-bit RGB PNG")
+    width, height = struct.unpack(">II", image[16:24])
+    data, position = bytearray(), 8
+    while position < len(image):
+        length, kind = struct.unpack(">I4s", image[position:position + 8])
+        if kind == b"IDAT":
+            data += image[position + 8:position + 8 + length]
+        position += 12 + length
+    # The game writes every row unfiltered, so each row is its filter byte followed by the pixels.
+    rows, stride = zlib.decompress(data), 1 + width * 3
+    lit = sum(1 for row in range(height) for pixel in range(row * stride + 1, (row + 1) * stride, 3)
+              if max(rows[pixel:pixel + 3]) > 16)
+    return lit / (width * height)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exe", type=Path, required=True)
     parser.add_argument("--work", type=Path, required=True)
-    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu", "equip-dungeon", "weapon-view-dungeon"), default="georama")
+    parser.add_argument("--case", choices=("georama", "quick-town", "quick-dungeon", "party-town", "party-dungeon", "monster-menu", "monster-menu-cancel", "equip-dungeon", "weapon-view-dungeon"), default="georama")
     args = parser.parse_args()
     source = Path(__file__).resolve().parents[2]
     data = Path(os.environ.get("DC2_DATA", "data")).resolve()
@@ -66,6 +85,10 @@ def main() -> int:
                                 "3900 circle\n3906\n"),
         "monster-menu": ("event:26010", 2400,
                          "400 l3\n406\n900 triangle\n906\n970 down\n971\n1020 cross\n1026\n1200 up\n1206\n1250 cross\n1256\n1500 cross\n1506\n1650 cross\n1656\n1800 cross\n1806\n2000 up\n2100\n2150 cross\n2156\n"),
+        # Opens the same badge box from Character, backs out of it without transforming, leaves Character and
+        # closes the menu, then captures the field.
+        "monster-menu-cancel": ("event:26010", 2100,
+                                "400 l3\n406\n900 triangle\n906\n970 down\n971\n1020 cross\n1026\n1200 up\n1206\n1250 cross\n1256\n1500 circle\n1506\n1650 circle\n1656\n1800 circle\n1806\n"),
     }[args.case]
     # The first dungeon R3 chord disables the jump's retail debug flag and mounts the ridepod.
     input_path.write_text(script, encoding="utf-8")
@@ -80,7 +103,7 @@ def main() -> int:
         "--jump", jump, "--fast-load", "--frames", str(frames),
         "--input", str(input_path), "--log-level", "menu=debug", "--screenshot", str(screenshot),
     ]
-    if args.case.endswith("-dungeon") or args.case == "monster-menu":
+    if args.case.endswith("-dungeon") or args.case.startswith("monster-menu"):
         command.append("--invincible")
     if args.case == "equip-dungeon":
         command += ["--give", "21"]
@@ -121,6 +144,19 @@ def main() -> int:
             raise AssertionError(f"expected one body reload keeping 3 parts; got {exits}; see {log_path}")
     elif args.case == "weapon-view-dungeon":
         pass
+    elif args.case == "monster-menu-cancel":
+        exits = [(loop, int(code), int(character), live == "true", float(alpha), int(frame))
+                 for loop, code, character, live, alpha, frame in re.findall(
+                     r"menu exit: loop=(\w+), end_code=(-?[0-9]+), character=([0-9]+), root_live=(true|false), "
+                     r"fade_alpha=([0-9.]+), frame=([0-9]+)", output)]
+        receipt["exits"] = exits
+        receipt_path.write_text(json.dumps(receipt, indent=2), encoding="utf-8")
+        # The L3 quick change to Monica closes its background menu at 400 (MENU_END_CHARA_CHANGE_FADE, 21). The
+        # main menu then closes once with nothing to do (MENU_END_NONE, 0), only after backing out of both the box
+        # and Character, with Monica live and the box's fade-out lifted.
+        if ("monster change complete" in output or len(exits) != 2 or exits[0][1:3] != (21, 1) or
+                exits[1][:5] != ("dungeon", 0, 1, True, 0.0) or not 1800 <= exits[1][5] < 2000):
+            raise AssertionError(f"expected one uncovered menu exit with Monica live; got {exits}; see {log_path}")
     elif args.case == "georama":
         transitions = [(state, int(frame)) for state, frame in re.findall(
             r"georama menu (ready|closed): town=0, frame=([0-9]+)", output)]
@@ -152,6 +188,8 @@ def main() -> int:
     if (image[:8] != b"\x89PNG\r\n\x1a\n" or image[12:16] != b"IHDR" or
             struct.unpack(">II", image[16:24]) != (640, 480) or len(image) < 1024):
         raise AssertionError(f"missing rendered menu capture: {screenshot}")
+    if args.case == "monster-menu-cancel" and lit_fraction(image) < 0.5:
+        raise AssertionError(f"the field is not drawn after the menu closed: {screenshot}")
     print(f"PASS: {args.case} completed its checked transitions; receipts: {run}")
     return 0
 
