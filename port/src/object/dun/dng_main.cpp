@@ -126,7 +126,11 @@ std::span<u8> dc2::dungeon::ReadStorage() {
     auto                  storage = dc2::memory::AllocationBytes(*MainBuffer, BuffReadData);
     constexpr std::size_t kScratchBytes = 0x20000 * sizeof(u_long128);
     // The renderer places its cross texture at this offset; nowload owns a later region.
-    return storage.first(std::min(storage.size(), kScratchBytes));
+    const auto scratch = storage.first(std::min(storage.size(), kScratchBytes));
+    // The main menu borrows this buffer in the dungeon and poisons what it used when it closes. The buffer is still
+    // allocated here, and whoever takes it next refills it.
+    dc2::memory::UnpoisonArenaBytes(scratch.data(), scratch.size());
+    return scratch;
 }
 
 /**
