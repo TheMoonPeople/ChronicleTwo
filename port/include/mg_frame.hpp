@@ -357,6 +357,7 @@ public:
     mgCVisual    *visual{};       /**< Visual drawn at the frame, or null. */
     int           reference{};    /**< Whether parent is a followed frame rather than a true parent. */
     int           rot_type{};     /**< Rotation bits, from mgFrameRotType. */
+    bool          fills_screen{}; /**< Port: set on a model's root once an event keeps the model in front of the camera. */
 
     /**
      *

@@ -1568,6 +1568,12 @@ static int scsCharaAttach(_SEN_CMR_SEQ *seq, CSceneCmrSeq *owner) {
     sceVu0ScaleVector(direction, direction, seq->dist);
     sceVu0AddVector(target, owner->pos, direction);
     chara->SetPosition(target);
+
+    // The model covers the screen from here; its billboard follows a wider or taller view (mgCFrame::GetBBoardMatrix).
+    if (chara->GetFrame() != nullptr) {
+        chara->GetFrame()->fills_screen = true;
+    }
+
     owner->chara_cnt++;
     return 1;
 }

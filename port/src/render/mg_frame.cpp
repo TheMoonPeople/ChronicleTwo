@@ -1134,6 +1134,7 @@ void mgCFrame::Initialize() {
     sceVu0UnitMatrix(trans_matrix);
     name = nullptr;
     rot_type = 0;
+    fills_screen = false;
     reference = 0;
     visual = nullptr;
     attr = nullptr;
@@ -1189,6 +1190,19 @@ void mgCFrame::GetBBoardMatrix(int mode, float (*matrix)[4], mgRENDER_INFO *info
     }
 
     ScaleColumns(matrix, matrix, scale);
+
+    // A model that an event keeps in front of the camera (the flashback frames, the speed lines) faces it through a
+    // billboard sized to cover retail's screen. Stretch that billboard with the view, so a wider or taller window shows
+    // none of its edges.
+    for (const mgCFrame *node = this; node != nullptr; node = node->parent) {
+        if (node->fills_screen) {
+            const mgPortExtent view = mgPortVisibleExtent();
+            sceVu0ScaleVector(matrix[0], matrix[0], std::max(1.0f, (view.right - view.left) / mgScreenWidth));
+            sceVu0ScaleVector(matrix[1], matrix[1], std::max(1.0f, (view.bottom - view.top) / mgScreenHeight));
+            break;
+        }
+    }
+
     matrix[3][0] = position[0];
     matrix[3][1] = position[1];
     matrix[3][2] = position[2];
