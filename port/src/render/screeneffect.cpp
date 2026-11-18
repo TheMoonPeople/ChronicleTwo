@@ -349,7 +349,11 @@ void LensFlareDraw(const LensFlareSun &sun, const float colour[4], const LensFla
                FlareColour{0x20, 0x20, 0x20, 0x80}, sun.depth);
     mgPortDraw2D(gfx::Primitive::Quads, plate, gfx::TextureBinding{}, FlarePass(gfx::DepthTest::GEqual));
 
+    // The seed samples a row past the downsampled area, and above 512x480 a little past its right edge. The ghost
+    // passes add light there, which builds up over the frames into lines along the flare's right and bottom edges
+    // unless the target is cleared.
     gfx::SetRenderTarget(second);
+    gfx::Clear(true, black_opaque.data(), false, 0.0f, &whole);
     std::vector<gfx::Vertex2D> downsample;
     AppendQuad(downsample, 0.0f, 0.0f, downsample_right, downsample_bottom, 0.0f, 0.0f, downsample_u, downsample_v,
                identity);
