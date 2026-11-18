@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -30,9 +31,9 @@ namespace {
 
 class PresentRenderer {
 public:
-    PresentRenderer() {
+    explicit PresentRenderer(int width = 512, int height = 480) {
         SetEnv("VK_LAYER_VALIDATE_SYNC", "1", 0);
-        WindowConfig window{.width = 512, .height = 480, .headless = true};
+        WindowConfig window{.width = width, .height = height, .headless = true};
         window.vulkan = false;
         WindowInit(window);
 
@@ -294,6 +295,41 @@ TEST(ScreenEffect, LensFlareOutsideDistanceLimitDoesNothing) {
     const Pixels pixels = ReadMain();
     EXPECT_NEAR(pixels.At(256.0f, 240.0f)[0], 0x40, 0);
     EXPECT_NEAR(pixels.At(40.0f, 40.0f)[0], 0x40, 0);
+}
+
+// Above 512x480, the seed also reads just past the downsampled area, where a ghost pass adds light every frame. Once the
+// sun is hidden, no light may remain along the flare's right and bottom edges.
+TEST(ScreenEffect, LensFlareLeavesNoEdgeOnceHidden) {
+    PresentRenderer renderer(1024, 960);
+    mgSetRenderInfo(512.0f, 10.0f, 20000.0f);
+    UseIdentityView();
+    const float           colour[4] = {128.0f, 128.0f, 128.0f, 128.0f};
+    const LensFlareSource source{.first_alpha = true, .second_alpha = true, .tex1 = 0};
+
+    for (int frame = 0; frame < 8; ++frame) {
+        mgBeginFrame(nullptr);
+        ClearMain(0x40, 0.0f);
+        LensFlareDraw(SunAt(256, 240), colour, source);
+        mgEndFrame(nullptr);
+    }
+
+    mgBeginFrame(nullptr);
+    ClearMain(0x40, 0.0f);
+    DrawFrameOccluder(DepthOfFieldDepth(500.0f), 0x40);
+    LensFlareDraw(SunAt(256, 240), colour, source);
+    mgEndFrame(nullptr);
+
+    const Pixels pixels = ReadMain();
+    uint8_t      right = 0;
+    uint8_t      bottom = 0;
+
+    for (float inset = 0.5f; inset < 32.0f; inset += 1.0f) {
+        right = std::max(right, pixels.At(512.0f - inset, 240.0f)[0]);
+        bottom = std::max(bottom, pixels.At(256.0f, 480.0f - inset)[0]);
+    }
+
+    EXPECT_NEAR(right, 0x40, 2) << "right edge";
+    EXPECT_NEAR(bottom, 0x40, 2) << "bottom edge";
 }
 
 // Depth of field samples the display's own grab in screen space. A scene camera must not
