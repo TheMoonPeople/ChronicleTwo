@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -24,6 +25,7 @@
 #include "menudraw.hpp"
 #include "menumain.hpp"
 #include "mg_drawprim.hpp"
+#include "mg_frame.hpp"
 #include "mg_memory.hpp"
 #include "mg_texture.hpp"
 #include "mglib.hpp"
@@ -241,6 +243,52 @@ TEST(MglibAspect, ExtentKeepsWidthWhenNarrow) {
     EXPECT_NEAR(e.right, 512.0f, 0.5f);
     EXPECT_LT(e.top, 0.0f);
     EXPECT_GT(e.bottom, 480.0f);
+}
+
+// The flashback frames and speed lines are billboards that an event keeps in front of the camera, sized for retail's
+// screen. Under such a model's root a billboard stretches with the view; any other billboard keeps retail's shape.
+void ExpectScreenFillingBillboard(int width, int height, float stretch_x, float stretch_y) {
+    AspectRenderer renderer(width, height);
+    mgRenderInfo.camera_pos[0] = 30.0f;
+    mgRenderInfo.camera_pos[1] = 50.0f;
+    mgRenderInfo.camera_pos[2] = 100.0f;
+    mgRenderInfo.camera_pos[3] = 1.0f;
+
+    for (const bool fills_screen : {true, false}) {
+        SCOPED_TRACE(fills_screen ? "model kept in front of the camera" : "other model");
+        mgCFrame     root;
+        mgCFrame     billboard;
+        mgCFrameAttr attr{};
+        const float  scale[4] = {2.0f, 2.0f, 2.0f, 0.0f};
+        root.use_srt = 1;
+        std::memcpy(root.scale, scale, sizeof(root.scale));
+        root.changed = 1;
+        root.fills_screen = fills_screen;
+        attr.billboard = MG_FRAME_BILLBOARD_FULL;
+        billboard.attr = &attr;
+        billboard.parent = &root;
+        billboard.changed = 1;
+
+        float matrix[4][4];
+        billboard.GetBBoardMatrix(MG_FRAME_BILLBOARD_FULL, matrix, &mgRenderInfo);
+        const auto length = [&](int row) { return std::hypot(matrix[row][0], matrix[row][1], matrix[row][2]); };
+        EXPECT_NEAR(length(0), 2.0f * (fills_screen ? stretch_x : 1.0f), 0.01f) << "across the screen";
+        EXPECT_NEAR(length(1), 2.0f * (fills_screen ? stretch_y : 1.0f), 0.01f) << "up the screen";
+        EXPECT_NEAR(length(2), 2.0f, 0.01f) << "towards the camera";
+    }
+}
+
+TEST(MglibAspect, ScreenFillingBillboardWidensAtSixteenNine) {
+    ExpectScreenFillingBillboard(1280, 720, 4.0f / 3.0f, 1.0f);
+}
+
+TEST(MglibAspect, ScreenFillingBillboardKeepsRetailShapeAtFourThree) {
+    ExpectScreenFillingBillboard(1024, 768, 1.0f, 1.0f);
+}
+
+TEST(MglibAspect, ScreenFillingBillboardHeightensWhenNarrow) {
+    // 800x1200 keeps the 512 columns at 800 pixels; at 4:3 a row is 1.25 pixels, so 960 rows show.
+    ExpectScreenFillingBillboard(800, 1200, 1.0f, 2.0f);
 }
 
 TEST(MglibAspect, CullAtMinusFortyWhenWider) {
