@@ -8564,8 +8564,10 @@ std::vector<RaceClass> ParseRaceFish(const native_config::Json &document) {
         if (race.race_class < 0 || race.race_class >= 4 || race.count < 0 || race.count > 0x7FFF) {
             throw std::runtime_error("race class or fish count out of range");
         }
+        // A name can outgrow the fish's field, since PAL accents are 9-byte tags such as [UNI00e9]. SetName decides what
+        // to keep, as retail's did.
         for (const auto &fish : Array(item, "fish")) {
-            race.fish.push_back({.id = Int(fish, "id"), .name = Text(fish, "name", sizeof(BREEDFISH_USED::name)), .kind = Int(fish, "kind"), .battle = Int(fish, "battle"), .boost = Int(fish, "boost"), .endurance = Int(fish, "endurance"), .tenacity = Int(fish, "tenacity"), .stamina = Int(fish, "stamina"), .size = Int(fish, "size")});
+            race.fish.push_back({.id = Int(fish, "id"), .name = Text(fish, "name"), .kind = Int(fish, "kind"), .battle = Int(fish, "battle"), .boost = Int(fish, "boost"), .endurance = Int(fish, "endurance"), .tenacity = Int(fish, "tenacity"), .stamina = Int(fish, "stamina"), .size = Int(fish, "size")});
         }
         classes.push_back(std::move(race));
     }

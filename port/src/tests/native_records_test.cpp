@@ -187,6 +187,37 @@ TEST_F(NativeRecords, RaceFishCountsFitTheArenaAndIndicesStayInRange) {
     LanguageCode = saved_language;
 }
 
+// French (rfd2) spells accents as 9-byte tags, so some names outgrow the fish's 20-byte field. The race must still get
+// its rivals: a refused document left none, and starting the race read a null fish.
+TEST_F(NativeRecords, RaceFishNamesLongerThanTheFieldStillLoad) {
+    const auto saved_language = LanguageCode;
+    LanguageCode = 2;
+    Json fish = Json::array();
+    for (const char *name : {"Tortan muscl[UNI00e9]", "T[UNI00e9]l[UNI00e9]graham"}) {
+        fish.push_back({
+            {"id",        0   },
+            {"name",      name},
+            {"kind",      1   },
+            {"battle",    10  },
+            {"boost",     10  },
+            {"endurance", 10  },
+            {"tenacity",  10  },
+            {"stamina",   10  },
+            {"size",      50  }
+        });
+    }
+    Publish("sg/gyo/rfd2.cfg.json", "race_fish", {
+                                                     {"classes", Json::array({{{"class", 0}, {"count", 2}, {"fish", fish}}})}
+    });
+    CGyoraceFishData race{};
+    CaptureLoggedStderr();
+    EXPECT_EQ(race.LoadData(&memory, nullptr), 1);
+    EXPECT_EQ(GetLoggedStderr().find("longer than the game holds"), std::string::npos);
+    EXPECT_EQ(race.fish_num[0], 2);
+    EXPECT_NE(race.GetRaceFish(0, 1), nullptr);
+    LanguageCode = saved_language;
+}
+
 TEST_F(NativeRecords, FishingPlacesKeepTheirAreaAndAtMostEightFish) {
     Json fish = Json::array();
     for (int index = 0; index < 10; ++index) {
