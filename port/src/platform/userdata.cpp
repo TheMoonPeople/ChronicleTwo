@@ -6734,7 +6734,8 @@ int CGameDataUsed::Boiled() {
 }
 
 // Retail accepts any name under 32 bytes for every family, overrunning the 21-byte fish name and the
-// 26-byte attachment name. Names are cut to the family's field instead.
+// 26-byte attachment name. Names are cut to the family's field instead, never inside a bracketed tag
+// such as a PAL accent ([UNI00e9]), which the font would print as text.
 void CGameDataUsed::SetName(char *name) {
     const auto field = RenameField(*this);
     const auto text = dc2::text::View(name);
@@ -6742,7 +6743,20 @@ void CGameDataUsed::SetName(char *name) {
         return;
     }
 
-    dc2::text::Copy(field, text);
+    auto kept = dc2::text::Fit(text, field.size() - 1);
+    if (kept.size() < text.size()) {
+        // Brackets count only at character starts: a Shift-JIS trail byte can be 0x5B or 0x5D.
+        std::size_t open = std::string_view::npos;
+        for (std::size_t at = 0; at < kept.size(); at += dc2::text::IsShiftJisLead(static_cast<unsigned char>(kept[at])) ? 2 : 1) {
+            if (kept[at] == '[') {
+                open = at;
+            } else if (kept[at] == ']') {
+                open = std::string_view::npos;
+            }
+        }
+        kept = kept.substr(0, open);
+    }
+    dc2::text::Copy(field, kept);
     const char *default_name = GetItemMessage(item_no);
     rename_flag = default_name != nullptr && std::strcmp(default_name, field.data()) != 0 ? 1 : 0;
 }

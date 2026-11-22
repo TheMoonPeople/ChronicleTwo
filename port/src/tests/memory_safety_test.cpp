@@ -243,6 +243,27 @@ TEST(ItemNames, FishRenameIsHeldToTheFishField) {
     EXPECT_EQ(item.data.fish.sex, 5);
 }
 
+// French race fish names (rfd2): the fish's field holds 20 bytes and each accent is a 9-byte tag.
+TEST(ItemNames, FishRenameKeepsAccentTagsWhole) {
+    CGameDataUsed item;
+    item.used_type = USED_ITEM_TYPE_FISH;
+    item.item_no = 0;
+
+    char cut_inside_tag[] = "Tortan muscl[UNI00e9]";
+    item.SetName(cut_inside_tag);
+    EXPECT_STREQ(item.data.fish.name, "Tortan muscl");
+
+    char cut_after_tag[] = "T[UNI00e9]l[UNI00e9]graham";
+    item.SetName(cut_after_tag);
+    EXPECT_STREQ(item.data.fish.name, "T[UNI00e9]l[UNI00e9]");
+
+    // Ten Shift-JIS long-vowel marks (0x81 0x5B) and a letter: the trail bytes are not brackets.
+    char long_vowels[] = "\x81\x5B\x81\x5B\x81\x5B\x81\x5B\x81\x5B\x81\x5B\x81\x5B\x81\x5B\x81\x5B\x81\x5B"
+                         "A";
+    item.SetName(long_vowels);
+    EXPECT_EQ(std::string_view(item.data.fish.name), std::string_view(long_vowels, 20));
+}
+
 TEST(ItemNames, BoiledNameIsHeldToTheBoiledField) {
     LanguageScope language(3);
     CGameDataUsed item;
